@@ -1,0 +1,106 @@
+test_all <- function(bundle_dir){
+
+  cat("Opening bundle\n")
+  b <- wb_open_bundle(bundle_dir)
+
+  cat("bundle is opened\n")
+  cat("Basic sanity\n")
+
+  stopifnot(inherits(b, "scworkbench_bundle"))
+  stopifnot(dir.exists(b$dir))
+  stopifnot(DBI::dbIsValid(b$con))
+  stopifnot(!is.null(wb_manifest(b)$bundle_id))
+  cat("Registries exist and have rows\n")
+  mats <- wb_list(b, "matrices")
+  feats <- wb_list(b, "features")
+  sp   <- wb_list(b, "spaces")
+  ds   <- wb_list(b, "datasets")
+
+  cat("Cells and meta alignment\n")
+
+  stopifnot(nrow(ds) >= 1)
+  stopifnot(nrow(mats) >= 0)   # can be 0 if write_matrices=FALSE
+  stopifnot(nrow(feats) >= 0)  # can be 0 in minimal bundles
+  stopifnot(nrow(sp) >= 0)
+
+  cells_all <- wb_cells(b)
+  stopifnot(length(cells_all) == nrow(wb_meta(b, cols = c("cell_id"))))
+  stopifnot(identical(cells_all, wb_meta(b, cells = cells_all, cols = c("cell_id"))$cell_id))
+
+  cells_20 <- head(cells_all, 20)
+  meta_20  <- wb_meta(b, cells = cells_20, cols = c("cell_id", "dataset_id"))
+  stopifnot(identical(meta_20$cell_id, cells_20))
+
+  cat("Features registry + ordering per assay\n")
+
+  if (nrow(mats) > 0) {
+    assay <- mats$assay[1]
+    fids  <- wb_feature_ids(b, assay)
+    stopifnot(length(fids) > 0)
+
+    # check features table contains them
+    ftab <- wb_features(b, assay = assay)
+    stopifnot(all(fids %in% ftab$feature_id))
+  }
+  cat("BPCells handle opens + dimension sanity\n")
+
+  if (nrow(mats) > 0) {
+    mid <- mats$matrix_id[1]
+    mh  <- wb_matrix(b, mid)
+    d   <- dim(mh)
+
+    stopifnot(length(d) == 2)
+    stopifnot(d[2] == length(wb_cells(b)))
+  }
+  cat("BPCells slice path (small slice → sparse Matrix)\n")
+  if (nrow(mats) > 0) {
+    mid <- mats$matrix_id[1]
+    assay <- mats$assay[1]
+
+    feat10 <- head(wb_feature_ids(b, assay), 10)
+    cell50 <- head(wb_cells(b), 50)
+
+    x <- wb_slice(b, mid, features = feat10, cells = cell50)
+    stopifnot(inherits(x, "Matrix"))
+    stopifnot(identical(rownames(x), feat10))
+    stopifnot(identical(colnames(x), cell50))
+    stopifnot(all(dim(x) == c(10, 50)))
+  }
+  cat("Vector getter agrees with slice\n")
+  if (nrow(mats) > 0) {
+    mid <- mats$matrix_id[1]
+    assay <- mats$assay[1]
+
+    gene <- wb_feature_ids(b, assay)[1]
+    cell50 <- head(wb_cells(b), 50)
+
+    v <- wb_vector(b, mid, gene, cells = cell50)
+    x <- wb_slice(b, mid, features = gene, cells = cell50)
+
+    stopifnot(length(v) == 50)
+    stopifnot(identical(names(v), cell50))
+    stopifnot(all(as.numeric(x[1, ]) == as.numeric(v)))
+  }
+  cat("Space getter (2D and long)\n")
+  if (nrow(sp) > 0) {
+    sid <- sp$space_id[1]
+    cells_20 <- head(wb_cells(b), 20)
+
+    s <- wb_space(b, sid, cells = cells_20)
+
+    if (is.data.frame(s)) {
+      stopifnot(all(c("cell_id", "x", "y") %in% colnames(s)))
+      stopifnot(nrow(s) == 20)
+      stopifnot(identical(s$cell_id, cells_20))
+    } else {
+      stopifnot(is.matrix(s))
+      stopifnot(nrow(s) == 20)
+      stopifnot(identical(rownames(s), cells_20))
+    }
+  }
+  cat("close bundle\n")
+  wb_close_bundle(b)
+
+  TRUE
+
+}
