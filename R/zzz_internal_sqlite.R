@@ -39,6 +39,15 @@
     params = x
   )
 }
+# Robust for large vectors
+.wb_sql_in_json <- function(x) {
+  .wb_assert(!is.null(x) && length(x) > 0, "Vector must be non-empty.")
+  list(
+    sql = "(SELECT value FROM json_each(?))",
+    params = list(jsonlite::toJSON(as.character(x), auto_unbox = TRUE))
+  )
+}
+
 
 
 .wb_db_get_in_chunks <- function(con, sql_prefix, ids, chunk = 1000, params_prefix = list()) {

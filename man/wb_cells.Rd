@@ -2,18 +2,17 @@
 % Please edit documentation in R/getters.R
 \name{wb_cells}
 \alias{wb_cells}
-\title{Get cell IDs (canonical order)}
+\title{List cell IDs in canonical bundle order}
 \usage{
-wb_cells(bundle, dataset_id = NULL)
+wb_cells(bundle, dataset_id = NULL, cell_set = "core")
 }
 \arguments{
-\item{bundle}{Bundle handle from \code{wb_open_bundle()}}
+\item{bundle}{scworkbench bundle handle}
 
-\item{dataset_id}{Optional dataset_id (exact match)}
-}
-\value{
-Character vector of cell_ids
+\item{dataset_id}{Optional dataset filter}
+
+\item{cell_set}{Which cell set to use: "core" (default), "all", or "set:\if{html}{\out{<name>}}"}
 }
 \description{
-Returns cell IDs in the canonical bundle order. Optionally filtered by dataset.
+List cell IDs in canonical bundle order
 }

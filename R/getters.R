@@ -187,25 +187,56 @@ wb_list <- function(bundle, what = c("matrices", "features", "spaces", "datasets
   DBI::dbReadTable(con, what)
 }
 
-#' Get cell IDs (canonical order)
+#' List cell IDs in canonical bundle order
 #'
-#' Returns cell IDs in the canonical bundle order. Optionally filtered by dataset.
-#'
-#' @param bundle Bundle handle from `wb_open_bundle()`
-#' @param dataset_id Optional dataset_id (exact match)
-#' @return Character vector of cell_ids
+#' @param bundle scworkbench bundle handle
+#' @param dataset_id Optional dataset filter
+#' @param cell_set Which cell set to use: "core" (default), "all", or "set:<name>"
 #' @export
-wb_cells <- function(bundle, dataset_id = NULL) {
+wb_cells <- function(bundle, dataset_id = NULL, cell_set = "core") {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
   con <- bundle$con
 
-  if (is.null(dataset_id)) {
-    # rowid order corresponds to insertion order in SQLite (canonical bundle order)
-    res <- DBI::dbGetQuery(con, "SELECT cell_id FROM cells ORDER BY rowid;")
-  } else {
-    res <- DBI::dbGetQuery(con, "SELECT cell_id FROM cells WHERE dataset_id = ? ORDER BY rowid;",
-                           params = list(dataset_id))
+  cell_set <- as.character(cell_set %||% "core")
+
+  # Validate cell_set selector
+  if (!identical(cell_set, "all")) {
+    avail <- wb_cell_sets(bundle)
+    .wb_assert(cell_set %in% avail,
+               paste0(
+                 "Unknown cell_set: ", cell_set, "\n",
+                 "Available: ", paste(avail, collapse = ", "), "\n",
+                 "Use 'all' for all cells."
+               )
+    )
   }
+
+  # Build query with filters, preserving canonical rowid order
+  where <- character(0)
+  params <- list()
+
+  if (!is.null(dataset_id)) {
+    where <- c(where, "dataset_id = ?")
+    params <- c(params, list(dataset_id))
+  }
+
+  if (!identical(cell_set, "all")) {
+    where <- c(where, "cell_set = ?")
+    params <- c(params, list(cell_set))
+  }
+
+  q <- "SELECT cell_id FROM cells"
+  if (length(where)) {
+    q <- paste0(q, " WHERE ", paste(where, collapse = " AND "))
+  }
+  q <- paste0(q, " ORDER BY rowid;")
+
+  if (length(params)) {
+    res <- DBI::dbGetQuery(con, q, params = params)
+  } else {
+    res <- DBI::dbGetQuery(con, q)
+  }
+
   res$cell_id
 }
 
@@ -461,6 +492,9 @@ wb_matrix_info <- function(bundle, matrix_id) {
   row <- .wb_get_matrices_row(con, matrix_id)
   row
 }
+
+
+
 
 #' Search features by matrix (assay + feature_type)
 #' @export
