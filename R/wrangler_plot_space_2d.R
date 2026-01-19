@@ -30,6 +30,9 @@ wb_plot_space_2d <- function(bundle,
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Missing suggested package 'ggplot2' for plotting.", call. = FALSE)
   }
+  if (!requireNamespace("rlang", quietly = TRUE)) {
+    stop("Missing suggested package 'rlang' for tidy evaluation.", call. = FALSE)
+  }
 
   # 1) base coords
   if (is.null(cells)) cells <- wb_cells(bundle)
@@ -44,50 +47,52 @@ wb_plot_space_2d <- function(bundle,
   df$cell_id <- as.character(df$cell_id)
 
   # 2) resolve color values (optional)
-  color_vec <- NULL
-  color_name <- NULL
+  if (!is.null(color_by)) {
 
-  if (is.null(color_by)) {
-    # no color
-  } else if (is.character(color_by) && length(color_by) == 1) {
-    col <- color_by
-    con <- bundle$con
+    if (is.character(color_by) && length(color_by) == 1) {
+      col <- color_by
+      con <- bundle$con
+      q <- sprintf('SELECT cell_id, "%s" AS value FROM cells;', col)
+      md <- DBI::dbGetQuery(con, q)
+      md$cell_id <- as.character(md$cell_id)
 
-    # Fetch full column mapping (avoids SQLite "too many variables" from IN (...))
-    q <- sprintf('SELECT cell_id, "%s" AS value FROM cells;', col)
-    md <- DBI::dbGetQuery(con, q)
+      df$value <- md$value[match(df$cell_id, md$cell_id)]
+      legend_name <- col
 
-    md$cell_id <- as.character(md$cell_id)
-    df <- merge(df, md, by = "cell_id", all.x = TRUE, sort = FALSE)
-    color_name <- "value"
-   }else if (is.data.frame(color_by)) {
-    stopifnot(all(c("cell_id", "value") %in% colnames(color_by)))
-    md <- color_by[, c("cell_id", "value")]
-    md$cell_id <- as.character(md$cell_id)
-    df <- merge(df, md, by = "cell_id", all.x = TRUE, sort = FALSE)
-    color_name <- "value"
-  } else if (is.atomic(color_by) && !is.null(names(color_by))) {
-    v <- color_by
-    md <- data.frame(cell_id = names(v), value = unname(v), stringsAsFactors = FALSE)
-    md$cell_id <- as.character(md$cell_id)
-    df <- merge(df, md, by = "cell_id", all.x = TRUE, sort = FALSE)
-    color_name <- "value"
-  } else {
-    stop("color_by must be NULL, a metadata column name, a named vector, or data.frame(cell_id,value).",
-         call. = FALSE)
+    } else if (is.data.frame(color_by)) {
+      stopifnot(all(c("cell_id", "value") %in% colnames(color_by)))
+      md <- color_by[, c("cell_id", "value")]
+      md$cell_id <- as.character(md$cell_id)
+
+      df$value <- md$value[match(df$cell_id, md$cell_id)]
+      legend_name <- "value"
+
+    } else if (is.atomic(color_by) && !is.null(names(color_by)) && any(nzchar(names(color_by)))) {
+      v <- color_by
+      df$value <- unname(v[df$cell_id])
+      legend_name <- "value"
+
+    } else {
+      stop("color_by must be NULL, a metadata column name, a named vector, or data.frame(cell_id,value).",
+           call. = FALSE)
+    }
+
   }
+
 
   # 3) base plot
   gp <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y))
-
+  print("eyyy")
+  print(color_by)
   if (!is.null(color_by)) {
-    gp <- gp + ggplot2::geom_point(
-      ggplot2::aes(color = .data[[color_name]]),
-      alpha = alpha, size = size
-    ) + ggplot2::labs(color = color_label %||% color_name)
+    .wb_assert("value" %in% colnames(df), "Internal error: expected df$value for coloring.")
+    gp <- gp +
+      ggplot2::geom_point(ggplot2::aes(color = value), alpha = alpha, size = size) +
+      ggplot2::labs(color = color_label %||% legend_name)
   } else {
     gp <- gp + ggplot2::geom_point(alpha = alpha, size = size)
   }
+
 
   gp <- gp + ggplot2::labs(
     title = paste0("Space: ", space_id),
@@ -131,4 +136,3 @@ wb_plot_space_2d <- function(bundle,
   gp
 }
 
-`%||%` <- function(x, y) if (is.null(x)) y else x
