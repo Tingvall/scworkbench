@@ -353,11 +353,14 @@ publish_app_bundle <- function(
     );
   ")
   DBI::dbExecute(con, "
-    CREATE TABLE cells (
-      cell_id TEXT PRIMARY KEY,
-      dataset_id TEXT
-    );
-  ")
+  CREATE TABLE cells (
+    cell_id TEXT PRIMARY KEY,
+    dataset_id TEXT,
+    cell_set TEXT NOT NULL DEFAULT 'core'
+    -- metadata columns added below
+  );
+")
+
   DBI::dbExecute(con, "
     CREATE TABLE spaces (
       space_id TEXT PRIMARY KEY,
@@ -421,7 +424,14 @@ publish_app_bundle <- function(
   DBI::dbWriteTable(con, "datasets", ds_tab, append = TRUE)
 
   # ---- write cells + metadata ----
-  cells_df <- data.frame(cell_id = cell_id, dataset_id = dataset_id, stringsAsFactors = FALSE)
+  cells_df <- data.frame(
+    cell_id   = cell_id,
+    dataset_id = dataset_id,
+    cell_set  = "core",
+    stringsAsFactors = FALSE
+  )
+
+
 
   meta2 <- meta
   for (nm in colnames(meta2)) {
@@ -435,13 +445,14 @@ publish_app_bundle <- function(
   meta2$cell_id <- NULL
   cells_df <- cbind(cells_df, meta2)
 
-  for (nm in setdiff(colnames(cells_df), c("cell_id", "dataset_id"))) {
+  for (nm in setdiff(colnames(cells_df), c("cell_id", "dataset_id", "cell_set"))) {
     col_type <- if (is.numeric(cells_df[[nm]])) "REAL" else "TEXT"
     if (is.integer(cells_df[[nm]])) col_type <- "INTEGER"
     DBI::dbExecute(con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
   }
   DBI::dbWriteTable(con, "cells", cells_df, append = TRUE)
   DBI::dbExecute(con, "CREATE INDEX idx_cells_dataset ON cells(dataset_id);")
+  DBI::dbExecute(con, "CREATE INDEX idx_cells_cell_set ON cells(cell_set);")
 
   # ---- spaces: reductions ----
   if (isTRUE(write_spaces)) {

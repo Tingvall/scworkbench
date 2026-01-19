@@ -148,7 +148,7 @@ wb_add_space <- function(bundle,
     }
   }
 
-  # ---- indexes (idempotent-ish) ----
+  # ---- indexes ----
   # If these already exist, SQLite will error. So wrap in try.
   try(DBI::dbExecute(con, "CREATE INDEX idx_space_2d_space ON space_2d(space_id);"), silent = TRUE)
   try(DBI::dbExecute(con, "CREATE INDEX idx_space_2d_cell  ON space_2d(cell_id);"), silent = TRUE)
