@@ -32,6 +32,29 @@
         )
       )
     ),
+    umap_fit = list(
+      op_name = "umap_fit",
+      title = "UMAP fit (uwot)",
+      description = "Fit a 2D UMAP from a high-dimensional space and persist model for later projection.",
+      intent = c("embed", "projection"),
+      inputs = list(
+        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
+      ),
+      params = list(
+        list(name="dims", type="int_range", default="2:30", help="Dims of source space to use."),
+        list(name="space_id_out", type="string", default=NULL, help="Output space id (default: umap.<source>)."),
+        list(name="n_neighbors", type="int", default=30, min=5, max=200, help="UMAP n_neighbors."),
+        list(name="min_dist", type="dbl", default=0.3, min=0.0, max=1.0, help="UMAP min_dist."),
+        list(name="metric", type="string", default="euclidean", help="Distance metric."),
+        list(name="nn_method", type="string", default="nndescent", help="Nearest-neighbor method."),
+        list(name="seed", type="int", default=1, help="Random seed.")
+      ),
+      produces = list(
+        # “produces” is optional here since it’s a side-effect op (writes space_2d + model)
+        space_2d = list(kind="space", description="Creates a new 2D space and registers a persisted model.")
+      )
+    ),
+
 
     slingshot = list(
       op_name = "slingshot",
