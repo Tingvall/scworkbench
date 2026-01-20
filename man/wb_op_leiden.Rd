@@ -7,7 +7,7 @@
 wb_op_leiden(
   bundle,
   space_id,
-  cells = NULL,
+  cells,
   k = 30,
   dims = NULL,
   resolution = 1,
