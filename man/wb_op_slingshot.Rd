@@ -8,10 +8,8 @@ wb_op_slingshot(
   bundle,
   space_id,
   labels,
-  cells = NULL,
+  cells,
   exclude_cells = NULL,
-  include_datasets = NULL,
-  exclude_datasets = NULL,
   include_clusters = NULL,
   exclude_clusters = NULL,
   start.clus = NULL,
@@ -34,10 +32,6 @@ wb_op_slingshot(
 
 \item{exclude_cells}{Optional cells to exclude}
 
-\item{include_datasets}{Optional dataset_ids to keep}
-
-\item{exclude_datasets}{Optional dataset_ids to drop}
-
 \item{include_clusters}{Optional clusters to keep (from labels$cluster)}
 
 \item{exclude_clusters}{Optional clusters to drop (from labels$cluster)}
@@ -47,6 +41,10 @@ wb_op_slingshot(
 \item{stretch, reweight, shrink, maxit}{Slingshot params}
 
 \item{...}{passed to slingshot::slingshot()}
+
+\item{include_datasets}{Optional dataset_ids to keep}
+
+\item{exclude_datasets}{Optional dataset_ids to drop}
 }
 \value{
 list(

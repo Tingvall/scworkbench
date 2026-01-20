@@ -416,6 +416,14 @@ publish_app_bundle <- function(
       description  TEXT
     );
   ")
+  DBI::dbExecute(con, "
+CREATE TABLE matrix_cells (
+  matrix_id TEXT,
+  cell_id   TEXT,
+  PRIMARY KEY (matrix_id, cell_id)
+);
+  ")
+
 
   # ---- write datasets ----
   ds_tab <- as.data.frame(table(dataset_id), stringsAsFactors = FALSE)
@@ -453,6 +461,8 @@ publish_app_bundle <- function(
   DBI::dbWriteTable(con, "cells", cells_df, append = TRUE)
   DBI::dbExecute(con, "CREATE INDEX idx_cells_dataset ON cells(dataset_id);")
   DBI::dbExecute(con, "CREATE INDEX idx_cells_cell_set ON cells(cell_set);")
+  DBI::dbExecute(con, "CREATE INDEX idx_matrix_cells_cell   ON matrix_cells(cell_id);")
+  DBI::dbExecute(con, "CREATE INDEX idx_matrix_cells_matrix ON matrix_cells(matrix_id);")
 
   # ---- spaces: reductions ----
   if (isTRUE(write_spaces)) {
