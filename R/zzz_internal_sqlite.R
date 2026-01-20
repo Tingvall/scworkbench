@@ -61,3 +61,22 @@
   }
   do.call(rbind, out)
 }
+
+
+.wb_ensure_space_models_table <- function(con) {
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS space_models (
+      space_id        TEXT PRIMARY KEY,
+      model_type      TEXT NOT NULL,      -- 'uwot_umap'
+      source_space_id TEXT NOT NULL,      -- e.g. 'lsi' or 'peakvi_latent'
+      dims_json       TEXT,               -- JSON array, e.g. [2,3,...,30]
+      cell_set        TEXT NOT NULL,      -- 'core' or 'all' or 'set:...'
+      uwot_args_json  TEXT NOT NULL,      -- JSON list of uwot args
+      seed            INTEGER,
+      model_path      TEXT NOT NULL,      -- relative path inside bundle
+      created_at      TEXT NOT NULL
+    );
+  ")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_models_source_space ON space_models(source_space_id);")
+  invisible(TRUE)
+}

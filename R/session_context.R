@@ -25,7 +25,11 @@
   list(
     leiden = list(requires = c("space"), produces = c("labels")),
     slingshot = list(requires = c("space", "labels"), produces = c("trajectory")),
-    meanexpr = list(requires = c("matrix", "features"), produces = c("scores"))
+    meanexpr = list(requires = c("matrix", "features"), produces = c("scores")),
+    umap_fit = list(
+      requires = c("space"),
+      produces = c("space_2d", "model")  # names are up to you, but must exist
+    )
   )
 }
 
@@ -143,8 +147,9 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   parents <- character(0)
 
   # Resolve bundle-entity inputs (space, matrix) from explicit inputs or active context
-  space_id  <- inputs$space_id  %||% session$active$space_id
-  matrix_id <- inputs$matrix_id %||% session$active$matrix_id
+  space_id  <- inputs[["space_id"]]  %||% session$active$space_id
+  matrix_id <- inputs[["matrix_id"]] %||% session$active$matrix_id
+
 
   if ("space" %in% spec$requires) {
     .wb_assert(!is.null(space_id) && nzchar(space_id),
@@ -168,7 +173,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   # - "all" (default)
   # - "core"
   # - "set:<name>"
-  cell_set <- inputs$cell_set %||% "all"
+  cell_set <- inputs[["cell_set"]] %||% "all"
 
   # Build required input coverage request (only what the op needs)
   cov_inputs <- list()
@@ -176,7 +181,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   # dims are an op param, but coverage needs to know it for ND spaces
   # (e.g. leiden dims=2:30). We look for dims in inputs first, then ...
   # then in ... via match.call for safety; simplest is to expect inputs$dims
-  dims_req <- inputs$dims %||% NULL
+  dims_req <- inputs[["dims"]] %||% NULL
 
   if ("space" %in% spec$requires) {
     cov_inputs$space_id <- space_id

@@ -698,55 +698,43 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
 #'
 #' @param inputs list(space_id=..., matrix_id=...) (either/both)
 #' @export
-wb_cell_coverage <- function(bundle, cell_set = "all", inputs = list()) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
-  req_cells <- wb_cells(bundle, cell_set = cell_set)
-  req_cells <- as.character(req_cells)
+wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
+  message("DEBUG wb_cell_coverage(): cell_set=", cell_set)
+  message("DEBUG wb_cell_coverage(): inputs names = ", paste(names(inputs), collapse = ","))
+  message("DEBUG wb_cell_coverage(): inputs$space_id = ", deparse(inputs$space_id))
+  message("DEBUG wb_cell_coverage(): inputs$matrix_id = ", deparse(inputs$matrix_id))
+  message("DEBUG wb_cell_coverage(): inputs$dims = ", deparse(inputs$dims))
+  cells <- wb_cells(bundle, cell_set = cell_set)
 
   res <- list(
-    cell_set = cell_set,
-    n_requested = length(req_cells),
-    inputs = list(),
-    n_effective = NA_integer_,
-    pct_effective = NA_real_
+    requested = length(cells),
+    per_input = list()
   )
 
-  eff <- req_cells
+  current <- cells
 
   if (!is.null(inputs$space_id)) {
-    sid <- as.character(inputs$space_id)
-    has <- wb_cells_with_space(bundle, sid)
-    has <- as.character(has)
-
-    res$inputs$space_id <- list(
-      space_id = sid,
-      n_available = length(has),
-      n_in_set = sum(req_cells %in% has)
+    have <- wb_cells_with_space(bundle, space_id = inputs$space_id, dims = inputs$dims %||% NULL)
+    res$per_input$space <- list(
+      have = length(have),
+      intersect = length(intersect(current, have))
     )
-
-    eff <- intersect(eff, has)
+    current <- intersect(current, have)
   }
 
   if (!is.null(inputs$matrix_id)) {
-    mid <- as.character(inputs$matrix_id)
-    has <- wb_cells_with_matrix(bundle, mid)
-    has <- as.character(has)
-
-    res$inputs$matrix_id <- list(
-      matrix_id = mid,
-      n_available = length(has),
-      n_in_set = sum(req_cells %in% has)
+    have <- wb_cells_with_matrix(bundle, matrix_id = inputs$matrix_id)
+    res$per_input$matrix <- list(
+      have = length(have),
+      intersect = length(intersect(current, have))
     )
-
-    eff <- intersect(eff, has)
+    current <- intersect(current, have)
   }
 
-  res$n_effective <- length(eff)
-  res$pct_effective <- if (length(req_cells) == 0) 0 else (100 * length(eff) / length(req_cells))
-  res$cells_effective <- eff
-
-  class(res) <- "wb_cell_coverage"
+  res$effective <- length(current)
+  res$percent <- if (res$requested == 0) 0 else round(100 * res$effective / res$requested, 1)
   res
 }
+
 
 
