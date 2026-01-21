@@ -553,6 +553,17 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   all_cells <- wb_cells(bundle)
   all_features <- wb_feature_ids(bundle, assay = assay)  # canonical feature order for that assay
 
+  all_features <- wb_feature_ids(bundle, assay = assay)
+
+  if (length(all_features) == 0) {
+    m0 <- wb_matrix(bundle, matrix_id)
+    .wb_assert(!is.null(rownames(m0)) && length(rownames(m0)) > 0,
+               paste0("No features registered for assay: ", assay,
+                      " and matrix has no rownames."))
+    all_features <- rownames(m0)
+  }
+
+
   # Resolve indices preserving requested order
   if (!is.null(features)) {
     fi <- match(features, all_features)
@@ -621,3 +632,109 @@ wb_vector <- function(bundle, matrix_id, feature_id, cells = NULL) {
   v
 
 }
+
+#' Cells with coordinates available for a given space
+#' @export
+wb_cells_with_space <- function(bundle, space_id) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
+  con <- bundle$con
+  space_id <- as.character(space_id)
+
+  info <- .wb_get_spaces_row(con, space_id)
+  storage <- info$storage %||% ""
+  dims_total <- as.integer(info$dims %||% NA_integer_)
+
+  if (grepl("^wide:space_2d", storage) ||
+      (!is.na(dims_total) && dims_total == 2 && .wb_table_exists(con, "space_2d"))) {
+    df <- DBI::dbGetQuery(con,
+                          "SELECT cell_id FROM space_2d WHERE space_id = ?;",
+                          params = list(space_id)
+    )
+    return(as.character(df$cell_id))
+  }
+
+  .wb_assert(.wb_table_exists(con, "space_coords"), "space_coords table not found in SQLite")
+
+  df <- DBI::dbGetQuery(con,
+                        "SELECT DISTINCT cell_id FROM space_coords WHERE space_id = ?;",
+                        params = list(space_id)
+  )
+  as.character(df$cell_id)
+}
+
+#' Cells with data available for a given matrix
+#' @export
+wb_cells_with_matrix <- function(bundle, matrix_id) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
+  con <- bundle$con
+
+  .wb_assert(.wb_table_exists(con, "matrices"), "No matrices table in bundle.")
+  row <- .wb_get_matrices_row(con, matrix_id)
+  .wb_assert(nrow(row) == 1, paste0("Unknown matrix_id: ", matrix_id))
+
+  all_cells <- wb_cells(bundle)
+  n_all <- length(all_cells)
+
+  n_cells <- as.integer(row$n_cells %||% NA_integer_)
+  .wb_assert(!is.na(n_cells) && n_cells >= 0, "matrices$n_cells missing or invalid.")
+
+  if (n_cells == 0) return(character(0))
+
+  if (n_cells != n_all) {
+    stop(
+      paste0(
+        "Matrix coverage unknown for matrix_id='", matrix_id, "':\n",
+        "  matrices$n_cells=", n_cells, " but bundle has ", n_all, " cells.\n",
+        "Add a matrix_cells mapping table or store per-matrix cell_id list to support partial matrices."
+      ),
+      call. = FALSE
+    )
+  }
+
+  all_cells
+}
+
+#' Coverage of required inputs within a cell_set
+#'
+#' @param inputs list(space_id=..., matrix_id=...) (either/both)
+#' @export
+wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
+  message("DEBUG wb_cell_coverage(): cell_set=", cell_set)
+  message("DEBUG wb_cell_coverage(): inputs names = ", paste(names(inputs), collapse = ","))
+  message("DEBUG wb_cell_coverage(): inputs$space_id = ", deparse(inputs$space_id))
+  message("DEBUG wb_cell_coverage(): inputs$matrix_id = ", deparse(inputs$matrix_id))
+  message("DEBUG wb_cell_coverage(): inputs$dims = ", deparse(inputs$dims))
+  cells <- wb_cells(bundle, cell_set = cell_set)
+
+  res <- list(
+    requested = length(cells),
+    per_input = list()
+  )
+
+  current <- cells
+
+  if (!is.null(inputs$space_id)) {
+    have <- wb_cells_with_space(bundle, space_id = inputs$space_id, dims = inputs$dims %||% NULL)
+    res$per_input$space <- list(
+      have = length(have),
+      intersect = length(intersect(current, have))
+    )
+    current <- intersect(current, have)
+  }
+
+  if (!is.null(inputs$matrix_id)) {
+    have <- wb_cells_with_matrix(bundle, matrix_id = inputs$matrix_id)
+    res$per_input$matrix <- list(
+      have = length(have),
+      intersect = length(intersect(current, have))
+    )
+    current <- intersect(current, have)
+  }
+
+  res$effective <- length(current)
+  res$percent <- if (res$requested == 0) 0 else round(100 * res$effective / res$requested, 1)
+  res
+}
+
+
+

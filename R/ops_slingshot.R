@@ -31,9 +31,8 @@ wb_op_slingshot <- function(bundle,
                             space_id,
                             labels,
                             cells = NULL,
+                            cell_set = "core",
                             exclude_cells = NULL,
-                            include_datasets = NULL,
-                            exclude_datasets = NULL,
                             include_clusters = NULL,
                             exclude_clusters = NULL,
                             start.clus = NULL,
@@ -54,19 +53,31 @@ wb_op_slingshot <- function(bundle,
   .wb_assert(all(c("cell_id", "cluster") %in% colnames(labels)),
              "labels must have columns: cell_id, cluster")
 
-  # 1) universal cell filtering
-  rr <- .wb_resolve_cells(
-    bundle = bundle,
-    cells = cells,
-    exclude_cells = exclude_cells,
-    include_datasets = include_datasets,
-    exclude_datasets = exclude_datasets
-  )
+  .wb_assert(!missing(cells) && length(cells) > 0,
+             "Internal: wb_op_slingshot() must be called with 'cells' (use wb_session_run_op).")
+  if (is.null(cells)) {
+    cells <- .wb_resolve_effective_cells_for_op(
+      bundle  = bundle,
+      op_name = "slingshot",
+      cell_set = cell_set,
+      inputs = list(space_id = space_id),
+      min_cells = 10
+    )
+  }
+
+
+  # optional manual excludes
+  if (!is.null(exclude_cells)) {
+    exclude_cells <- as.character(exclude_cells)
+    cells_use <- setdiff(cells_use, exclude_cells)
+  }
+  rr <- .wb_resolve_cells(bundle = bundle, cells = cells, ...)
   cells_use <- rr$cells
 
-  .wb_assert(length(cells_use) >= 10, "Too few cells after filtering (need >= 10).")
-
-  # 2) pull 2D coords from bundle (must align to requested cells)
+  .wb_assert(length(cells_use) >= 10,
+             paste0("slingshot: too few cells after filtering for cell_set=", cell_set,
+                    " (need >=10, got ", length(cells_use), ")."))
+  # 1) pull 2D coords from bundle (must align to requested cells)
   sp <- wb_space(bundle, space_id = space_id, cells = cells_use)
   X <- .wb_as_coord_matrix(sp)
 
@@ -78,15 +89,32 @@ wb_op_slingshot <- function(bundle,
     rownames(X) <- cells_use
   }
 
+  # 2) filter labels to the same cell universe
+  labels2 <- labels[labels$cell_id %in% cells_use, , drop = FALSE]
+  labels2$cell_id <- as.character(labels2$cell_id)
+  labels2$cluster <- as.character(labels2$cluster)
+
+  # Some workflows may have labels for all cells but not for all requested cells (or vice versa)
+  .wb_assert(nrow(labels2) > 0, "No labels found for the selected cells.")
+  .wb_assert(length(unique(labels2$cell_id)) >= 10, "Too few labeled cells after filtering (need >= 10).")
+
+  # Ensure labels cover all cells_use (strict by default)
+  missing_lab <- setdiff(cells_use, labels2$cell_id)
+  .wb_assert(length(missing_lab) == 0,
+             paste0("Labels missing for ", length(missing_lab), " selected cells. ",
+                    "This op requires cluster labels for all selected cells."))
+
   # 3) cluster include/exclude filtering (labels-driven)
   fl <- .wb_filter_labels(
-    labels_df = labels,
+    labels_df = labels2,
     cells = cells_use,
     include_clusters = include_clusters,
     exclude_clusters = exclude_clusters
   )
-  cells2 <- fl$cells
-  lab2 <- fl$labels
+  cells2 <- as.character(fl$cells)
+  lab2   <- fl$labels
+  lab2$cell_id <- as.character(lab2$cell_id)
+  lab2$cluster <- as.character(lab2$cluster)
 
   .wb_assert(length(cells2) >= 10, "Too few cells after cluster filtering (need >= 10).")
 
@@ -97,7 +125,8 @@ wb_op_slingshot <- function(bundle,
   rownames(X) <- cells2
 
   # 4) validate start/end clusters still exist after filtering
-  present_clusters <- unique(as.character(lab2$cluster))
+  present_clusters <- sort(unique(as.character(lab2$cluster)))
+
   if (!is.null(start.clus)) {
     .wb_assert(length(start.clus) == 1, "start.clus must be length 1 or NULL.")
     .wb_assert(as.character(start.clus) %in% present_clusters,
@@ -167,14 +196,14 @@ wb_op_slingshot <- function(bundle,
     curves = curves_2d,
     params = list(
       space_id = space_id,
-      # universal filters (recorded for provenance)
-      cell_set = rr$cell_set,
+      cell_set_n = length(cells),               # what session runner gave us
+      cells_after_exclude_cells = length(cells_use),
+      cells_after_cluster_filter = length(cells2),
+
       exclude_cells = if (is.null(exclude_cells)) NULL else as.character(exclude_cells),
-      include_datasets = if (is.null(include_datasets)) NULL else as.character(include_datasets),
-      exclude_datasets = if (is.null(exclude_datasets)) NULL else as.character(exclude_datasets),
       include_clusters = if (is.null(include_clusters)) NULL else as.character(include_clusters),
       exclude_clusters = if (is.null(exclude_clusters)) NULL else as.character(exclude_clusters),
-      # slingshot args
+
       start.clus = start.clus,
       end.clus = end.clus,
       stretch = stretch,
@@ -185,3 +214,4 @@ wb_op_slingshot <- function(bundle,
     )
   )
 }
+

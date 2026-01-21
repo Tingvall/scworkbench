@@ -38,7 +38,7 @@
 #' @export
 wb_op_knn_graph <- function(bundle,
                             space_id,
-                            cells = NULL,
+                            cells,
                             k = 30,
                             dims = NULL,
                             metric = c("euclidean"),
@@ -48,12 +48,14 @@ wb_op_knn_graph <- function(bundle,
   .wb_require_pkg("igraph", "kNN graph construction")
   .wb_require_pkg("RANN", "fast kNN search")
 
+  .wb_assert(!missing(cells) && length(cells) > 0,
+             "Internal: wb_op_knn_graph() must be called with 'cells' (use wb_session_run_op).")
+  cells <- as.character(cells)
+
   .wb_assert(is.numeric(k) && length(k) == 1 && k >= 1, "k must be a positive integer")
   k <- as.integer(k)
 
-  # Pull coordinates aligned to cells
-  if (is.null(cells)) cells <- wb_cells(bundle)
-
+  # Pull coordinates aligned to cells (space coverage already enforced upstream)
   S <- wb_space(bundle, space_id = space_id, cells = cells)
   X <- .wb_as_coord_matrix(S)
 
@@ -80,8 +82,7 @@ wb_op_knn_graph <- function(bundle,
   # Build directed edge list excluding self (first neighbor typically self)
   n <- nrow(X)
   from <- rep(seq_len(n), each = kk - 1L)
-  to   <- as.vector(t(idx[, -1, drop = FALSE]))  # <- row-wise flatten
-
+  to   <- as.vector(t(idx[, -1, drop = FALSE]))  # row-wise flatten
 
   # Remove any accidental self-links
   keep <- from != to
@@ -100,19 +101,13 @@ wb_op_knn_graph <- function(bundle,
 
   g <- igraph::make_empty_graph(n = n, directed = FALSE)
   g <- igraph::add_edges(g, edges)
-
   igraph::V(g)$name <- cells
 
   if (isTRUE(weight)) {
-    # For weights, use min distance among occurrences (approx). Recompute for unique edges:
-    # We'll derive weights from the first occurrence in the original directed list.
-    # Good enough for Leiden weighting.
-    # Map (a,b) back to a distance quickly:
-    # Use the directed distances we already have (from -> to) and take first.
+    # derive weights from the directed distances and take first occurrence per undirected edge
     d_from <- rep(seq_len(n), each = kk - 1L)
-    d_to  <- as.vector(t(idx[, -1, drop = FALSE]))
-    d_val <- as.vector(t(dist[, -1, drop = FALSE]))
-
+    d_to   <- as.vector(t(idx[, -1, drop = FALSE]))
+    d_val  <- as.vector(t(dist[, -1, drop = FALSE]))
 
     d_keep <- d_from != d_to
     d_from <- d_from[d_keep]
@@ -123,18 +118,14 @@ wb_op_knn_graph <- function(bundle,
     db <- pmax(d_from, d_to)
     dkey <- paste(da, db, sep = "_")
 
-    # first distance encountered per undirected edge (fast, acceptable)
     first <- !duplicated(dkey)
     d_tbl <- data.frame(key = dkey[first], d = d_val[first], stringsAsFactors = FALSE)
 
-    # align to graph edges
     ekey <- paste(a, b, sep = "_")
     dd <- d_tbl$d[match(ekey, d_tbl$key)]
-    # if any NA (shouldn't), set to 1
     dd[is.na(dd)] <- 1
 
-    w <- 1 / (1 + dd)
-    igraph::E(g)$weight <- w
+    igraph::E(g)$weight <- 1 / (1 + dd)
   }
 
   list(
@@ -143,6 +134,7 @@ wb_op_knn_graph <- function(bundle,
     params = list(space_id = space_id, k = k, dims = dims, metric = metric, weight = weight)
   )
 }
+
 
 #' Leiden clustering on a space
 #'
@@ -166,6 +158,7 @@ wb_op_knn_graph <- function(bundle,
 wb_op_leiden <- function(bundle,
                          space_id,
                          cells = NULL,
+                         cell_set = "core",
                          k = 30,
                          dims = NULL,
                          resolution = 1.0,
@@ -174,11 +167,25 @@ wb_op_leiden <- function(bundle,
                          weight = TRUE) {
   .wb_require_pkg("igraph", "Leiden clustering")
 
+  .wb_assert(!missing(cells) && length(cells) > 0,
+             "Internal: wb_op_leiden() must be called with 'cells' (use wb_session_run_op).")
+
   .wb_assert(is.numeric(resolution) && length(resolution) == 1 && resolution > 0,
              "resolution must be a single positive number")
 
+  if (is.null(cells)) {
+    cells <- .wb_resolve_effective_cells_for_op(
+      bundle  = bundle,
+      op_name = "leiden",
+      cell_set = cell_set,
+      inputs = list(space_id = space_id, dims = dims),
+      min_cells = 10
+    )
+  }
+
+
   if (!is.null(seed)) {
-    old <- .Random.seed
+    old <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) .Random.seed else NULL
     on.exit({ if (!is.null(old)) .Random.seed <<- old }, add = TRUE)
     set.seed(as.integer(seed))
   }
@@ -186,7 +193,7 @@ wb_op_leiden <- function(bundle,
   knn <- wb_op_knn_graph(
     bundle = bundle,
     space_id = space_id,
-    cells = cells,
+    cells = as.character(cells),
     k = k,
     dims = dims,
     weight = weight
@@ -194,7 +201,6 @@ wb_op_leiden <- function(bundle,
 
   g <- knn$graph
 
-  # igraph Leiden (requires igraph >= a certain version; cluster_leiden is common now)
   # Use weights if present
   use_w <- isTRUE(weight) && "weight" %in% igraph::edge_attr_names(g)
 
@@ -223,6 +229,7 @@ wb_op_leiden <- function(bundle,
     graph = g,
     params = list(
       space_id = space_id,
+      cell_set_n = length(cells),
       k = k,
       dims = dims,
       resolution = resolution,
@@ -232,3 +239,4 @@ wb_op_leiden <- function(bundle,
     )
   )
 }
+

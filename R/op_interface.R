@@ -32,6 +32,55 @@
         )
       )
     ),
+    umap_fit = list(
+      op_name = "umap_fit",
+      title = "UMAP fit (uwot)",
+      description = "Fit a 2D UMAP from a high-dimensional space and persist model for later projection.",
+      intent = c("embed", "projection"),
+      inputs = list(
+        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
+      ),
+      params = list(
+        list(name="dims", type="int_range", default="2:30", help="Dims of source space to use."),
+        list(name="space_id_out", type="string", default=NULL, help="Output space id (default: umap.<source>)."),
+        list(name="n_neighbors", type="int", default=30, min=5, max=200, help="UMAP n_neighbors."),
+        list(name="min_dist", type="dbl", default=0.3, min=0.0, max=1.0, help="UMAP min_dist."),
+        list(name="metric", type="string", default="euclidean", help="Distance metric."),
+        list(name="nn_method", type="string", default="nndescent", help="Nearest-neighbor method."),
+        list(name="seed", type="int", default=1, help="Random seed.")
+      ),
+      produces = list(
+        # “produces” is optional here since it’s a side-effect op (writes space_2d + model)
+        space_2d = list(kind="space", description="Creates a new 2D space and registers a persisted model.")
+      )
+    ),
+    umap_transform = list(
+      op_name = "umap_transform",
+      title = "UMAP transform (project cells)",
+      description = "Project cells into an existing UMAP using a stored uwot model.",
+      intent = c("projection", "umap"),
+      inputs = list(
+        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),  # this is in_space_id
+        model_space = list(required = TRUE, must_be_2d = TRUE, dims_min = 2, dims_max = 2)
+      ),
+      params = list(
+        list(name = "model_space_id", type = "string", default = NULL,
+             help = "2D UMAP space_id that has a stored model."),
+        list(name = "in_space_id", type = "string", default = NULL,
+             help = "High-D space_id providing input coordinates (defaults to selected space)."),
+        list(name = "dims", type = "int_range", default = NULL,
+             help = "Dims to use from in_space_id (e.g. 2:30)."),
+        list(name = "cell_set", type = "string", default = "set:<name>",
+             help = "Which cells to project (typically an ingested set: set:<name>)."),
+        list(name = "overwrite", type = "bool", default = TRUE,
+             help = "Overwrite existing projected coordinates for those cells.")
+      ),
+      produces = list(
+        space_2d = list(kind = "space_2d", description = "Projected x/y written into space_2d for model_space_id.")
+      )
+    ),
+
+
 
     slingshot = list(
       op_name = "slingshot",
@@ -106,18 +155,50 @@ wb_list_ops <- function() {
 #' High-level op interface spec (for UIs and agents)
 #'
 #' JSON-serializable description of inputs/params/outputs.
+#' Dynamically injects cell_set choices based on bundle contents.
 #'
 #' @param op_name Operation name
+#' @param bundle Optional scworkbench_bundle (needed for set:* choices)
 #' @export
-wb_op_interface <- function(op_name) {
+wb_op_interface <- function(op_name, bundle = NULL) {
   op_name <- as.character(op_name)
   reg <- .wb_op_interface_registry()
+
   if (!op_name %in% names(reg)) {
     stop("Unknown op: ", op_name, call. = FALSE)
   }
-  reg[[op_name]]
-}
 
+  spec <- reg[[op_name]]
+
+  # ensure inputs list exists
+  if (is.null(spec$inputs)) spec$inputs <- list()
+
+  # ---- inject / normalize cell_set ----
+  if (is.null(spec$inputs$cell_set)) {
+    spec$inputs$cell_set <- list()
+  }
+
+  # dynamic choices
+  sets <- c("core", "all")
+  if (!is.null(bundle)) {
+    sets <- unique(c(sets, wb_cell_sets(bundle)))
+  }
+
+  spec$inputs$cell_set$type    <- "select"
+  spec$inputs$cell_set$label  <- "Cell set"
+  spec$inputs$cell_set$choices <- sets
+
+  # default varies by op (sensible semantics)
+  if (is.null(spec$inputs$cell_set$default)) {
+    spec$inputs$cell_set$default <- switch(
+      op_name,
+      umap_transform = "set:",
+      "core"
+    )
+  }
+
+  spec
+}
 
 .wb_validate_op_interface <- function(spec) {
   .wb_assert(!is.null(spec$op_name) && nzchar(spec$op_name), "spec missing op_name")
