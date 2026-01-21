@@ -4,11 +4,14 @@
 \alias{wb_op_interface}
 \title{High-level op interface spec (for UIs and agents)}
 \usage{
-wb_op_interface(op_name)
+wb_op_interface(op_name, bundle = NULL)
 }
 \arguments{
 \item{op_name}{Operation name}
+
+\item{bundle}{Optional scworkbench_bundle (needed for set:* choices)}
 }
 \description{
 JSON-serializable description of inputs/params/outputs.
+Dynamically injects cell_set choices based on bundle contents.
 }
