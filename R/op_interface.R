@@ -155,18 +155,50 @@ wb_list_ops <- function() {
 #' High-level op interface spec (for UIs and agents)
 #'
 #' JSON-serializable description of inputs/params/outputs.
+#' Dynamically injects cell_set choices based on bundle contents.
 #'
 #' @param op_name Operation name
+#' @param bundle Optional scworkbench_bundle (needed for set:* choices)
 #' @export
-wb_op_interface <- function(op_name) {
+wb_op_interface <- function(op_name, bundle = NULL) {
   op_name <- as.character(op_name)
   reg <- .wb_op_interface_registry()
+
   if (!op_name %in% names(reg)) {
     stop("Unknown op: ", op_name, call. = FALSE)
   }
-  reg[[op_name]]
-}
 
+  spec <- reg[[op_name]]
+
+  # ensure inputs list exists
+  if (is.null(spec$inputs)) spec$inputs <- list()
+
+  # ---- inject / normalize cell_set ----
+  if (is.null(spec$inputs$cell_set)) {
+    spec$inputs$cell_set <- list()
+  }
+
+  # dynamic choices
+  sets <- c("core", "all")
+  if (!is.null(bundle)) {
+    sets <- unique(c(sets, wb_cell_sets(bundle)))
+  }
+
+  spec$inputs$cell_set$type    <- "select"
+  spec$inputs$cell_set$label  <- "Cell set"
+  spec$inputs$cell_set$choices <- sets
+
+  # default varies by op (sensible semantics)
+  if (is.null(spec$inputs$cell_set$default)) {
+    spec$inputs$cell_set$default <- switch(
+      op_name,
+      umap_transform = "set:",
+      "core"
+    )
+  }
+
+  spec
+}
 
 .wb_validate_op_interface <- function(spec) {
   .wb_assert(!is.null(spec$op_name) && nzchar(spec$op_name), "spec missing op_name")
