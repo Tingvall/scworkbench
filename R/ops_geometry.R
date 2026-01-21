@@ -157,7 +157,8 @@ wb_op_knn_graph <- function(bundle,
 #' @export
 wb_op_leiden <- function(bundle,
                          space_id,
-                         cells,
+                         cells = NULL,
+                         cell_set = "core",
                          k = 30,
                          dims = NULL,
                          resolution = 1.0,
@@ -171,6 +172,17 @@ wb_op_leiden <- function(bundle,
 
   .wb_assert(is.numeric(resolution) && length(resolution) == 1 && resolution > 0,
              "resolution must be a single positive number")
+
+  if (is.null(cells)) {
+    cells <- .wb_resolve_effective_cells_for_op(
+      bundle  = bundle,
+      op_name = "leiden",
+      cell_set = cell_set,
+      inputs = list(space_id = space_id, dims = dims),
+      min_cells = 10
+    )
+  }
+
 
   if (!is.null(seed)) {
     old <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) .Random.seed else NULL

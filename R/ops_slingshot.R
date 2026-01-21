@@ -30,7 +30,8 @@
 wb_op_slingshot <- function(bundle,
                             space_id,
                             labels,
-                            cells,
+                            cells = NULL,
+                            cell_set = "core",
                             exclude_cells = NULL,
                             include_clusters = NULL,
                             exclude_clusters = NULL,
@@ -54,15 +55,28 @@ wb_op_slingshot <- function(bundle,
 
   .wb_assert(!missing(cells) && length(cells) > 0,
              "Internal: wb_op_slingshot() must be called with 'cells' (use wb_session_run_op).")
-  cells_use <- as.character(cells)
+  if (is.null(cells)) {
+    cells <- .wb_resolve_effective_cells_for_op(
+      bundle  = bundle,
+      op_name = "slingshot",
+      cell_set = cell_set,
+      inputs = list(space_id = space_id),
+      min_cells = 10
+    )
+  }
+
 
   # optional manual excludes
   if (!is.null(exclude_cells)) {
     exclude_cells <- as.character(exclude_cells)
     cells_use <- setdiff(cells_use, exclude_cells)
   }
-  .wb_assert(length(cells_use) >= 10, "Too few cells after filtering (need >= 10).")
+  rr <- .wb_resolve_cells(bundle = bundle, cells = cells, ...)
+  cells_use <- rr$cells
 
+  .wb_assert(length(cells_use) >= 10,
+             paste0("slingshot: too few cells after filtering for cell_set=", cell_set,
+                    " (need >=10, got ", length(cells_use), ")."))
   # 1) pull 2D coords from bundle (must align to requested cells)
   sp <- wb_space(bundle, space_id = space_id, cells = cells_use)
   X <- .wb_as_coord_matrix(sp)
