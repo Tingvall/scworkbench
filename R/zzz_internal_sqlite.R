@@ -63,7 +63,13 @@
 }
 
 
+.wb_db_has_column <- function(con, table, column) {
+  info <- DBI::dbGetQuery(con, sprintf("PRAGMA table_info(%s);", table))
+  any(info$name == column)
+}
+
 .wb_ensure_space_models_table <- function(con) {
+  # 1) Create the legacy/current table if it doesn't exist (keeps your schema)
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS space_models (
       space_id        TEXT PRIMARY KEY,
@@ -77,9 +83,27 @@
       created_at      TEXT NOT NULL
     );
   ")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_models_source_space ON space_models(source_space_id);")
+
+  # 2) Contract addition: provenance_json
+  # This lets us satisfy the "stable contract" without breaking anything.
+  if (!.wb_db_has_column(con, "space_models", "provenance_json")) {
+    DBI::dbExecute(con, "ALTER TABLE space_models ADD COLUMN provenance_json TEXT;")
+  }
+
+  # 3) Indexes (idempotent)
+  DBI::dbExecute(con, "
+    CREATE INDEX IF NOT EXISTS idx_space_models_source_space
+    ON space_models(source_space_id);
+  ")
+
+  DBI::dbExecute(con, "
+    CREATE INDEX IF NOT EXISTS idx_space_models_space_id
+    ON space_models(space_id);
+  ")
+
   invisible(TRUE)
 }
+
 
 # R/sql_space_2d.R
 
@@ -128,5 +152,10 @@
   DBI::dbCommit(con)
   on.exit(NULL, add = FALSE)
   invisible(TRUE)
+}
+
+.wb_db_has_column <- function(con, table, column) {
+  info <- DBI::dbGetQuery(con, sprintf("PRAGMA table_info(%s);", table))
+  any(info$name == column)
 }
 

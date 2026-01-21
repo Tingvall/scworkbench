@@ -133,9 +133,54 @@ wb_op_umap_fit <- function(bundle,
   #uwot::save_uwot(fit, file = model_path_abs)
 
   # register model (1 per space_id)
-  DBI::dbExecute(
-    bundle$con,
-    paste0(
+  # register model (1 per space_id)
+  con <- bundle$con
+  has_prov <- .wb_db_has_column(con, "space_models", "provenance_json")
+
+  provenance <- list(
+    space_id = space_id_out,
+    model_kind = "uwot_umap",
+    source_space_id = source_space_id,
+    dims = dims,
+    cell_set = cell_set,
+    uwot_args = uwot_args,
+    seed = seed,
+    created_at = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  )
+
+  if (has_prov) {
+    sql <- paste0(
+      "INSERT INTO space_models(",
+      " space_id, model_type, source_space_id, dims_json, cell_set, uwot_args_json, seed, model_path, created_at, provenance_json",
+      ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      " ON CONFLICT(space_id) DO UPDATE SET ",
+      " model_type=excluded.model_type,",
+      " source_space_id=excluded.source_space_id,",
+      " dims_json=excluded.dims_json,",
+      " cell_set=excluded.cell_set,",
+      " uwot_args_json=excluded.uwot_args_json,",
+      " seed=excluded.seed,",
+      " model_path=excluded.model_path,",
+      " created_at=excluded.created_at,",
+      " provenance_json=excluded.provenance_json"
+    )
+
+    params <- list(
+      space_id_out,
+      "uwot_umap",
+      source_space_id,
+      jsonlite::toJSON(as.list(dims), auto_unbox = TRUE),
+      cell_set,
+      jsonlite::toJSON(uwot_args, auto_unbox = TRUE),
+      if (is.null(seed)) NA_integer_ else as.integer(seed),
+      model_path_rel,
+      provenance$created_at,
+      jsonlite::toJSON(provenance, auto_unbox = TRUE)
+    )
+
+  } else {
+    # older bundles: no provenance_json column
+    sql <- paste0(
       "INSERT INTO space_models(",
       " space_id, model_type, source_space_id, dims_json, cell_set, uwot_args_json, seed, model_path, created_at",
       ") VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -148,20 +193,22 @@ wb_op_umap_fit <- function(bundle,
       " seed=excluded.seed,",
       " model_path=excluded.model_path,",
       " created_at=excluded.created_at"
-    ),
-    params = list(
+    )
+
+    params <- list(
       space_id_out,
-      "uwot",
+      "uwot_umap",
       source_space_id,
       jsonlite::toJSON(as.list(dims), auto_unbox = TRUE),
       cell_set,
       jsonlite::toJSON(uwot_args, auto_unbox = TRUE),
       if (is.null(seed)) NA_integer_ else as.integer(seed),
       model_path_rel,
-      format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+      provenance$created_at
     )
-  )
+  }
 
+  DBI::dbExecute(con, sql, params = params)
 
   list(
     space_id = space_id_out,
