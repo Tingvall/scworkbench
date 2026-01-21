@@ -123,5 +123,21 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   cells
 }
 
+.wb_resolve_effective_cells_for_op <- function(bundle, op_name, cell_set,
+                                               inputs = list(),
+                                               min_cells = 10) {
+  cell_set <- cell_set %||% "core"
+  .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set),
+             "cell_set must be a single non-empty string.")
+
+  .wb_effective_cells(
+    bundle = bundle,
+    cell_set = cell_set,
+    inputs = inputs,
+    op_name = op_name,
+    min_cells = min_cells
+  )
+}
+
 
 

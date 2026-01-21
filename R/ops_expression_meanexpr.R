@@ -8,7 +8,8 @@
 #' @param cells Optional cell subset (default all)
 #' @param na_rm If TRUE, ignore NA values in the mean
 #' @export
-wb_op_meanexpr <- function(bundle, matrix_id, features, cells, na_rm = TRUE) {
+wb_op_meanexpr <- function(bundle, matrix_id, features,  cells = NULL,
+                           cell_set = "core", na_rm = TRUE) {
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
              "matrix_id must be a single non-empty string.")
   .wb_assert(is.character(features) && length(features) >= 1,
@@ -16,8 +17,16 @@ wb_op_meanexpr <- function(bundle, matrix_id, features, cells, na_rm = TRUE) {
 
   .wb_assert(!missing(cells) && length(cells) > 0,
              "Internal: wb_op_meanexpr() must be called with 'cells' (use wb_session_run_op).")
+  if (is.null(cells)) {
+    cells <- .wb_resolve_effective_cells_for_op(
+      bundle  = bundle,
+      op_name = "meanexpr",
+      cell_set = cell_set,
+      inputs = list(matrix_id = matrix_id),
+      min_cells = 1
+    )
+  }
   cells <- as.character(cells)
-
   # Slice: features x cells (sparse Matrix)
   x <- wb_slice(bundle, matrix_id = matrix_id, features = features, cells = cells)
 

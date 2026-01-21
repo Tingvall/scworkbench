@@ -4,7 +4,14 @@
 \alias{wb_op_meanexpr}
 \title{Mean expression per cell over a set of features}
 \usage{
-wb_op_meanexpr(bundle, matrix_id, features, cells, na_rm = TRUE)
+wb_op_meanexpr(
+  bundle,
+  matrix_id,
+  features,
+  cells = NULL,
+  cell_set = "core",
+  na_rm = TRUE
+)
 }
 \arguments{
 \item{bundle}{Bundle handle}
