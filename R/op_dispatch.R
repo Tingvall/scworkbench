@@ -35,7 +35,48 @@
         seed = inputs[["seed"]] %||% NULL,
         ...
       )
-    }    ,
+    },
+    # inside .wb_op_dispatch_registry()
+
+    umap_transform = function(bundle, space_id = NULL, ..., inputs,
+                              matrix_id = NULL, labels_df = NULL, effective_cells = NULL) {
+
+      # in_space_id can come from inputs or fall back to the "space_id" slot
+      in_space_id    <- inputs$in_space_id %||% space_id
+      model_space_id <- inputs$model_space_id
+
+      .wb_assert(!is.null(in_space_id) && nzchar(in_space_id),
+                 "umap_transform requires inputs$in_space_id (or inputs$space_id/active space).")
+      .wb_assert(!is.null(model_space_id) && nzchar(model_space_id),
+                 "umap_transform requires inputs$model_space_id.")
+      .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
+                 "umap_transform: effective_cells is empty (coverage filtering removed all cells).")
+
+      # Protect against duplicates sneaking in via ...
+      dots <- list(...)
+      dots$model_space_id <- NULL
+      dots$in_space_id <- NULL
+      dots$cells <- NULL
+      dots$dims <- NULL
+      dots$overwrite <- NULL
+
+      do.call(
+        wb_op_umap_transform,
+        c(
+          list(
+            bundle = bundle,
+            model_space_id = model_space_id,
+            in_space_id = in_space_id,
+            cells = effective_cells,
+            dims = inputs$dims %||% NULL,
+            overwrite = inputs$overwrite %||% TRUE
+          ),
+          dots
+        )
+      )
+    },
+
+
 
 
     slingshot = function(bundle,

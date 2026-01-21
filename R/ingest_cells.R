@@ -128,6 +128,14 @@ wb_ingest_cells <- function(
 }
 
 .wb_ingest_space_coords <- function(con, bundle_dir, space_id, coords, cell_ids) {
+
+  if (is.data.frame(coords) && all(c("cell_id","dim","value") %in% colnames(coords))) {
+    coords <- .wb_coords_long_to_mat(coords)
+  }
+
+  .wb_assert(!is.null(rownames(coords)) && all(nzchar(rownames(coords))),
+             "High-D space coords must have rownames = cell_id")
+
   .wb_assert(is.character(space_id) && length(space_id) == 1 && nzchar(space_id), "space_id invalid")
 
   # Normalize coords to include only ingested cells
@@ -198,4 +206,27 @@ wb_ingest_cells <- function(
   }
   invisible(TRUE)
 }
+
+.wb_coords_long_to_mat <- function(df) {
+  .wb_assert(is.data.frame(df), "coords long must be a data.frame")
+  .wb_assert(all(c("cell_id","dim","value") %in% colnames(df)),
+             "coords long must have columns: cell_id, dim, value")
+
+  df$cell_id <- as.character(df$cell_id)
+  df$dim <- as.integer(df$dim)
+
+  cells <- unique(df$cell_id)
+  dims  <- sort(unique(df$dim))
+
+  mat <- matrix(NA_real_, nrow = length(cells), ncol = length(dims))
+  rownames(mat) <- cells
+  colnames(mat) <- paste0("dim", dims)
+
+  i <- match(df$cell_id, cells)
+  j <- match(df$dim, dims)
+  mat[cbind(i, j)] <- as.numeric(df$value)
+
+  mat
+}
+
 

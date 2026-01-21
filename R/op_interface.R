@@ -54,6 +54,32 @@
         space_2d = list(kind="space", description="Creates a new 2D space and registers a persisted model.")
       )
     ),
+    umap_transform = list(
+      op_name = "umap_transform",
+      title = "UMAP transform (project cells)",
+      description = "Project cells into an existing UMAP using a stored uwot model.",
+      intent = c("projection", "umap"),
+      inputs = list(
+        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),  # this is in_space_id
+        model_space = list(required = TRUE, must_be_2d = TRUE, dims_min = 2, dims_max = 2)
+      ),
+      params = list(
+        list(name = "model_space_id", type = "string", default = NULL,
+             help = "2D UMAP space_id that has a stored model."),
+        list(name = "in_space_id", type = "string", default = NULL,
+             help = "High-D space_id providing input coordinates (defaults to selected space)."),
+        list(name = "dims", type = "int_range", default = NULL,
+             help = "Dims to use from in_space_id (e.g. 2:30)."),
+        list(name = "cell_set", type = "string", default = "set:<name>",
+             help = "Which cells to project (typically an ingested set: set:<name>)."),
+        list(name = "overwrite", type = "bool", default = TRUE,
+             help = "Overwrite existing projected coordinates for those cells.")
+      ),
+      produces = list(
+        space_2d = list(kind = "space_2d", description = "Projected x/y written into space_2d for model_space_id.")
+      )
+    ),
+
 
 
     slingshot = list(

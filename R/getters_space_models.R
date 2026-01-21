@@ -39,8 +39,9 @@ wb_space_model_path <- function(bundle, space_id) {
   row <- wb_space_model(bundle, space_id)
 
   rel <- row$model_path
-  .wb_assert(is.character(rel) && nzchar(rel),
-             "Invalid model_path stored for space_id: ", space_id)
+  .wb_assert(is.character(rel) && length(rel) == 1 && nzchar(rel),
+             paste0("Invalid model_path stored for space_id: ", space_id))
+
 
   abs <- file.path(bundle$dir, rel)
 
