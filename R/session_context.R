@@ -29,6 +29,10 @@
     umap_fit = list(
       requires = c("space"),
       produces = c("space_2d", "model")  # names are up to you, but must exist
+    ),
+    umap_transform = list(
+      requires = c("in_space", "model_space"),
+      produces = c("space_2d")
     )
   )
 }
@@ -147,18 +151,31 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   parents <- character(0)
 
   # Resolve bundle-entity inputs (space, matrix) from explicit inputs or active context
-  space_id  <- inputs[["space_id"]]  %||% session$active$space_id
-  matrix_id <- inputs[["matrix_id"]] %||% session$active$matrix_id
+  # Resolve bundle-entity inputs
+  space_id  <- inputs$space_id  %||% session$active$space_id
+  matrix_id <- inputs$matrix_id %||% session$active$matrix_id
 
+  # NEW: resolve umap_transform-specific space ids
+  in_space_id    <- inputs$in_space_id    %||% session$active$space_id
+  model_space_id <- inputs$model_space_id %||% NULL
 
   if ("space" %in% spec$requires) {
     .wb_assert(!is.null(space_id) && nzchar(space_id),
-               paste0(op_name, " requires a space_id (set session active space or pass inputs$space_id)."))
+               paste0(op_name, " requires a space_id ..."))
+  }
+  if ("in_space" %in% spec$requires) {
+    .wb_assert(!is.null(in_space_id) && nzchar(in_space_id),
+               paste0(op_name, " requires inputs$in_space_id (high-D space)."))
+  }
+  if ("model_space" %in% spec$requires) {
+    .wb_assert(!is.null(model_space_id) && nzchar(model_space_id),
+               paste0(op_name, " requires inputs$model_space_id (the fitted UMAP space)."))
   }
   if ("matrix" %in% spec$requires) {
     .wb_assert(!is.null(matrix_id) && nzchar(matrix_id),
-               paste0(op_name, " requires a matrix_id (set session active matrix or pass inputs$matrix_id)."))
+               paste0(op_name, " requires a matrix_id ..."))
   }
+
 
   # Resolve typed run/artifact inputs
   labels_df <- NULL
@@ -177,19 +194,18 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
 
   # Build required input coverage request (only what the op needs)
   cov_inputs <- list()
-
-  # dims are an op param, but coverage needs to know it for ND spaces
-  # (e.g. leiden dims=2:30). We look for dims in inputs first, then ...
-  # then in ... via match.call for safety; simplest is to expect inputs$dims
-  dims_req <- inputs[["dims"]] %||% NULL
+  dims_req <- inputs$dims %||% NULL
 
   if ("space" %in% spec$requires) {
     cov_inputs$space_id <- space_id
     if (!is.null(dims_req)) cov_inputs$dims <- dims_req
   }
-  if ("matrix" %in% spec$requires) {
-    cov_inputs$matrix_id <- matrix_id
+  if ("in_space" %in% spec$requires) {
+    cov_inputs$space_id <- in_space_id
+    if (!is.null(dims_req)) cov_inputs$dims <- dims_req
   }
+  if ("matrix" %in% spec$requires) cov_inputs$matrix_id <- matrix_id
+
   # labels do not affect "has input" coverage (they are just a vector mapping),
   # so we don't include them here.
 
@@ -255,12 +271,15 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
 
   # Build run inputs metadata (for provenance)
   run_inputs <- list(
-    space_id = if ("space" %in% spec$requires) space_id else NULL,
-    matrix_id = if ("matrix" %in% spec$requires) matrix_id else NULL,
+    space_id       = if ("space" %in% spec$requires) space_id else NULL,
+    in_space_id    = if ("in_space" %in% spec$requires) in_space_id else NULL,
+    model_space_id = if ("model_space" %in% spec$requires) model_space_id else NULL,
+    matrix_id      = if ("matrix" %in% spec$requires) matrix_id else NULL,
     cell_set = cell_set,
     effective_n = length(effective_cells),
     parents = parents
   )
+
 
   run <- wb_new_run(
     op_name = op_name,
