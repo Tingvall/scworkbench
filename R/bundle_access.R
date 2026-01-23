@@ -35,6 +35,7 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE) {
   if (isTRUE(validate)) {
     wb_validate_bundle(bundle_dir)
   }
+  wb_migrate_artifacts(bundle)
 
   bundle
 }

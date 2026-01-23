@@ -38,40 +38,50 @@
       )
     },
 
-    umap_fit = function(bundle,
-                        space_id,
-                        ...,
-                        inputs,
-                        effective_cells = NULL,
-                        matrix_id = NULL,
-                        labels_df = NULL) {
+    umap_fit = function(bundle, space_id, ..., inputs,
+                        matrix_id = NULL, labels_df = NULL, effective_cells = NULL) {
 
       source_space_id <- inputs[["space_id"]] %||% space_id
       .wb_assert(!is.null(source_space_id) && nzchar(source_space_id),
                  "umap_fit requires an input space_id (set active space or pass inputs[['space_id']]).")
 
-      dots <- .drop_keys(.dots(...),
-                         c("bundle","source_space_id","space_id","cells","dims","space_id_out",
-                           "n_neighbors","min_dist","nn_method","seed"))
+      dots <- list(...)
+
+      # Prefer explicit params from ..., fall back to inputs (if you ever put them there)
+      dims        <- dots$dims        %||% inputs[["dims"]]        %||% NULL
+      space_id_out<- dots$space_id_out%||% inputs[["space_id_out"]]%||% paste0("umap.", source_space_id)
+      n_neighbors <- dots$n_neighbors %||% inputs[["n_neighbors"]] %||% 30
+      min_dist    <- dots$min_dist    %||% inputs[["min_dist"]]    %||% 0.3
+      nn_method   <- dots$nn_method   %||% inputs[["nn_method"]]   %||% "nndescent"
+      metric      <- dots$metric      %||% inputs[["metric"]]      %||% "euclidean"
+      seed        <- dots$seed        %||% inputs[["seed"]]        %||% NULL
+
+      # Remove params we’ve consumed so they don’t get passed twice
+      dots$dims <- NULL
+      dots$space_id_out <- NULL
+      dots$n_neighbors <- NULL
+      dots$min_dist <- NULL
+      dots$nn_method <- NULL
+      dots$metric <- NULL
+      dots$seed <- NULL
 
       do.call(
         wb_op_umap_fit,
-        c(
-          list(
-            bundle = bundle,
-            source_space_id = source_space_id,
-            cells = effective_cells,
-            dims = inputs[["dims"]] %||% NULL,
-            space_id_out = inputs[["space_id_out"]] %||% paste0("umap.", source_space_id),
-            n_neighbors = inputs[["n_neighbors"]] %||% 30,
-            min_dist = inputs[["min_dist"]] %||% 0.3,
-            nn_method = inputs[["nn_method"]] %||% "nndescent",
-            seed = inputs[["seed"]] %||% NULL
-          ),
-          dots
-        )
+        c(list(
+          bundle = bundle,
+          source_space_id = source_space_id,
+          cells = effective_cells,
+          dims = dims,
+          space_id_out = space_id_out,
+          n_neighbors = n_neighbors,
+          min_dist = min_dist,
+          nn_method = nn_method,
+          metric = metric,
+          seed = seed
+        ), dots)
       )
     },
+
 
     umap_transform = function(bundle,
                               space_id = NULL,

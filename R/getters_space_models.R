@@ -63,13 +63,32 @@ wb_load_space_model <- function(bundle, space_id) {
   row <- wb_space_model(bundle, space_id)
   path <- wb_space_model_path(bundle, space_id)
 
-  model_type <- row$model_type %||% "uwot"
+  model_type <- row$model_type %||% "uwot_umap"
 
-  if (model_type == "uwot") {
+  if (model_type == "uwot_umap") {
     .wb_require_pkg("uwot", "UMAP transform")
     return(uwot::load_uwot(path))
   }
 
   stop("Unknown model_type: ", model_type, call. = FALSE)
 }
+
+#' List space_ids that have a stored model
+#' @export
+wb_spaces_with_model <- function(bundle, model_type = NULL) {
+  con <- bundle$con
+  .wb_assert(DBI::dbExistsTable(con, "space_models"),
+             "space_models table not found in bundle. Have you run umap_fit?")
+
+  if (is.null(model_type)) {
+    q <- "SELECT space_id FROM space_models ORDER BY created_at DESC;"
+    out <- DBI::dbGetQuery(con, q)$space_id
+  } else {
+    q <- "SELECT space_id FROM space_models WHERE model_type = ? ORDER BY created_at DESC;"
+    out <- DBI::dbGetQuery(con, q, params = list(as.character(model_type)))$space_id
+  }
+
+  as.character(out)
+}
+
 
