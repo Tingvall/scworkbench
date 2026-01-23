@@ -736,5 +736,50 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   res
 }
 
+wb_matrix_fragments <- function(bundle, matrix_id) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(is.character(matrix_id) && nzchar(matrix_id), "matrix_id invalid")
+  con <- bundle$con
+
+  # fail fast if schema is wrong
+  cols <- DBI::dbGetQuery(con, "PRAGMA table_info(matrix_fragments);")$name
+  need <- c("fragment_id","matrix_id","storage","path","n_features","n_cells",
+            "feature_ids_json","cell_ids_json","source","created_at","description")
+  missing <- setdiff(need, cols)
+  if (length(missing)) {
+    stop("matrix_fragments schema missing columns: ",
+         paste(missing, collapse=", "),
+         "\nYou probably reverted schema or published a bundle with an older schema.",
+         call. = FALSE)
+  }
+
+  DBI::dbGetQuery(
+    con,
+    "SELECT fragment_id, matrix_id, storage, path, n_features, n_cells,
+            feature_ids_json, cell_ids_json, source, created_at, description
+     FROM matrix_fragments
+     WHERE matrix_id = ?
+     ORDER BY created_at ASC;",
+    params = list(matrix_id)
+  )
+}
+
+
+wb_matrix_resolve <- function(bundle, matrix_id) {
+  fr <- wb_matrix_fragments(bundle, matrix_id)
+
+  # Back-compat: bundles without matrix_fragments
+  if (nrow(fr) == 0) {
+    # fall back to old 'matrices' table path
+    m <- wb_matrix(bundle, matrix_id) # <- if you already have a base getter; otherwise read matrices row
+    # If you don't have wb_matrix() yet, implement a wb_matrix_row(bundle, matrix_id)
+    stop("No matrix_fragments found for matrix_id=", matrix_id, " and no legacy fallback implemented.")
+  }
+
+  # Return absolute paths + metadata
+  fr$abs_path <- file.path(bundle$dir, fr$path)
+  fr
+}
+
 
 
