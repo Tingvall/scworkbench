@@ -59,26 +59,27 @@
       title = "UMAP transform (project cells)",
       description = "Project cells into an existing UMAP using a stored uwot model.",
       intent = c("projection", "umap"),
+
       inputs = list(
-        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),  # this is in_space_id
+        # high-D input space
+        # 2D model space (UMAP space that has stored model)
         model_space = list(required = TRUE, must_be_2d = TRUE, dims_min = 2, dims_max = 2)
       ),
+
       params = list(
-        list(name = "model_space_id", type = "string", default = NULL,
-             help = "2D UMAP space_id that has a stored model."),
-        list(name = "in_space_id", type = "string", default = NULL,
-             help = "High-D space_id providing input coordinates (defaults to selected space)."),
         list(name = "dims", type = "int_range", default = NULL,
-             help = "Dims to use from in_space_id (e.g. 2:30)."),
+             help = "Dims to use from the input space (e.g. 2:30)."),
         list(name = "cell_set", type = "string", default = "set:<name>",
              help = "Which cells to project (typically an ingested set: set:<name>)."),
         list(name = "overwrite", type = "bool", default = TRUE,
              help = "Overwrite existing projected coordinates for those cells.")
       ),
+
       produces = list(
-        space_2d = list(kind = "space_2d", description = "Projected x/y written into space_2d for model_space_id.")
+        space_2d = list(kind = "space_2d", description = "Projected x/y written into space_2d for model_space.")
       )
     ),
+
 
 
 
@@ -173,6 +174,20 @@ wb_op_interface <- function(op_name, bundle = NULL) {
   # ensure inputs list exists
   if (is.null(spec$inputs)) spec$inputs <- list()
 
+  # ---- kill legacy umap_transform fields (old spec) ----
+  if (identical(op_name, "umap_transform")) {
+
+    # If old input block exists, remove it (we use model_space_id instead)
+    spec$inputs$model_space <- NULL
+
+    # If an old param named "model_space" exists, remove it
+    if (!is.null(spec$params) && length(spec$params)) {
+      keep <- vapply(spec$params, function(p) !identical(p$name, "model_space"), logical(1))
+      spec$params <- spec$params[keep]
+    }
+  }
+
+
   # ---- inject / normalize cell_set ----
   if (is.null(spec$inputs$cell_set)) {
     spec$inputs$cell_set <- list()
@@ -184,9 +199,9 @@ wb_op_interface <- function(op_name, bundle = NULL) {
     sets <- unique(c(sets, wb_cell_sets(bundle)))
   }
 
-  spec$inputs$cell_set$type    <- "select"
-  spec$inputs$cell_set$label  <- "Cell set"
-  spec$inputs$cell_set$choices <- sets
+  spec$inputs$cell_set$type     <- "select"
+  spec$inputs$cell_set$label    <- "Cell set"
+  spec$inputs$cell_set$choices  <- sets
 
   # default varies by op (sensible semantics)
   if (is.null(spec$inputs$cell_set$default)) {
@@ -197,8 +212,51 @@ wb_op_interface <- function(op_name, bundle = NULL) {
     )
   }
 
+  # ---- op-specific dynamic inputs (bundle-aware) ----
+  if (!is.null(bundle) && identical(op_name, "umap_transform")) {
+
+    # 1) model_space_id choices: spaces that have a stored model
+    model_spaces <- character(0)
+    if (.wb_table_exists(bundle$con, "space_models")) {
+      model_spaces <- DBI::dbGetQuery(
+        bundle$con,
+        "SELECT space_id FROM space_models ORDER BY created_at DESC;"
+      )$space_id
+      model_spaces <- as.character(model_spaces)
+    }
+
+    if (is.null(spec$inputs$model_space_id)) spec$inputs$model_space_id <- list()
+    spec$inputs$model_space_id$type     <- "select"
+    spec$inputs$model_space_id$label    <- "Model space (2D UMAP with stored model)"
+    spec$inputs$model_space_id$required <- TRUE
+    spec$inputs$model_space_id$choices  <- model_spaces
+
+    if (is.null(spec$inputs$model_space_id$default)) {
+      spec$inputs$model_space_id$default <- if (length(model_spaces)) model_spaces[1] else ""
+    }
+    if (!length(model_spaces) && is.null(spec$inputs$model_space_id$help)) {
+      spec$inputs$model_space_id$help <- "No stored space models found in this bundle. Run umap_fit first."
+    }
+
+    # 2) in_space_id choices: any space in bundle (high-D input space)
+    sp <- wb_spaces(bundle)
+    in_spaces <- as.character(sp$space_id)
+
+    if (is.null(spec$inputs$in_space_id)) spec$inputs$in_space_id <- list()
+    spec$inputs$in_space_id$type     <- "select"
+    spec$inputs$in_space_id$label    <- "Input space (high-D space_id)"
+    spec$inputs$in_space_id$required <- FALSE
+    spec$inputs$in_space_id$choices  <- in_spaces
+
+    if (is.null(spec$inputs$in_space_id$default)) {
+      spec$inputs$in_space_id$default <- if ("lsi" %in% in_spaces) "lsi" else if (length(in_spaces)) in_spaces[1] else ""
+    }
+  }
+
   spec
 }
+
+
 
 .wb_validate_op_interface <- function(spec) {
   .wb_assert(!is.null(spec$op_name) && nzchar(spec$op_name), "spec missing op_name")
