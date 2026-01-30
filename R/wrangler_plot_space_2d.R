@@ -84,6 +84,11 @@ wb_plot_space_2d <- function(bundle,
 
   df_base <- if (length(base_cells)) .wb_space_2d_safe(bundle, space_id, base_cells) else empty_xy()
   df_ov   <- if (length(overlay_cells)) .wb_space_2d_safe(bundle, space_id, overlay_cells) else empty_xy()
+  message("plot_space_2d: space_id=", space_id)
+  message("  base_cells=", length(base_cells), " overlay_cells=", length(overlay_cells))
+  message("  df_base rows=", nrow(df_base), " df_ov rows=", nrow(df_ov))
+  if (nrow(df_ov)) message("  overlay cell_sets: ", paste(unique(df_ov$cell_set), collapse=", "))
+
 
   # Ensure expected columns exist even if 0 rows
   for (nm in c("cell_id", "x", "y")) {
@@ -142,6 +147,55 @@ wb_plot_space_2d <- function(bundle,
   }
 
   # ---- Plot: two layers, same color meaning ----
+  # ---- optional: apply cell_set style defaults (core + overlay) ----
+  # Requires: bundle + overlay_cell_set (e.g. "set:bulkers")
+  if (exists("bundle", inherits = FALSE) && inherits(bundle, "scworkbench_bundle")) {
+
+    # core defaults (only override if style exists + non-NA)
+    core_style <- tryCatch(
+      wb_get_cell_set_style(
+        bundle,
+        "core",
+        defaults = list(alpha = base_alpha, size = base_size)
+      ),
+      error = function(e) NULL
+    )
+
+    if (!is.null(core_style)) {
+      if (!is.na(core_style$alpha)) base_alpha <- core_style$alpha
+      if (!is.na(core_style$size))  base_size  <- core_style$size
+    }
+
+    # overlay defaults (only if you provided overlay_cell_set)
+    if (exists("overlay_cell_set", inherits = FALSE) &&
+        is.character(overlay_cell_set) && nzchar(overlay_cell_set)) {
+
+      ov_style <- tryCatch(
+        wb_get_cell_set_style(
+          bundle,
+          overlay_cell_set,
+          defaults = list(
+            alpha   = overlay_alpha,
+            size    = overlay_size,
+            shape   = overlay_shape,
+            stroke  = overlay_stroke,
+            outline = overlay_outline
+          )
+        ),
+        error = function(e) NULL
+      )
+
+      if (!is.null(ov_style)) {
+        if (!is.na(ov_style$alpha))   overlay_alpha <- ov_style$alpha
+        if (!is.na(ov_style$size))    overlay_size  <- ov_style$size
+        if (!is.na(ov_style$shape))   overlay_shape <- as.integer(ov_style$shape)
+        if (!is.na(ov_style$stroke))  overlay_stroke <- ov_style$stroke
+        if (!is.null(ov_style$outline) && nzchar(ov_style$outline)) overlay_outline <- ov_style$outline
+      }
+    }
+  }
+
+  # ---- plot ----
   p <- ggplot2::ggplot()
 
   if (nrow(df_base)) {
@@ -161,35 +215,68 @@ wb_plot_space_2d <- function(bundle,
   }
 
   if (nrow(df_ov)) {
-    if (is.null(color_by)) {
-      p <- p + ggplot2::geom_point(
-        data = df_ov,
-        ggplot2::aes(x = x, y = y),
-        alpha = overlay_alpha, size = overlay_size, shape = overlay_shape,
-        stroke = overlay_stroke,
-        color = overlay_outline
+
+    # If no set labels, treat as one group
+    if (all(is.na(df_ov$cell_set))) {
+      df_ov$cell_set <- "overlay"
+    }
+
+    for (cs in unique(df_ov$cell_set)) {
+      sub <- df_ov[df_ov$cell_set == cs, , drop = FALSE]
+
+      sty <- tryCatch(
+        wb_get_cell_set_style(
+          bundle, cs,
+          defaults = list(
+            alpha   = overlay_alpha,
+            size    = overlay_size,
+            shape   = overlay_shape,
+            stroke  = overlay_stroke,
+            outline = overlay_outline,
+            fill_mode = "auto"
+          )
+        ),
+        error = function(e) NULL
       )
-    } else {
-      if (overlay_shape %in% 21:25) {
-        # fill carries the value, color is outline
+
+      a <- if (!is.null(sty) && !is.na(sty$alpha)) sty$alpha else overlay_alpha
+      s <- if (!is.null(sty) && !is.na(sty$size))  sty$size  else overlay_size
+      sh <- if (!is.null(sty) && !is.na(sty$shape)) as.integer(sty$shape) else overlay_shape
+      st <- if (!is.null(sty) && !is.na(sty$stroke)) sty$stroke else overlay_stroke
+      ol <- if (!is.null(sty) && !is.null(sty$outline) && nzchar(sty$outline)) sty$outline else overlay_outline
+      fm <- if (!is.null(sty) && !is.null(sty$fill_mode)) sty$fill_mode else "auto"
+
+      if (is.null(color_by)) {
         p <- p + ggplot2::geom_point(
-          data = df_ov,
-          ggplot2::aes(x = x, y = y, fill = value),
-          alpha = overlay_alpha, size = overlay_size, shape = overlay_shape,
-          stroke = overlay_stroke,
-          color = overlay_outline
+          data = sub,
+          ggplot2::aes(x = x, y = y),
+          alpha = a, size = s, shape = sh,
+          stroke = st,
+          color = ol
         )
+
       } else {
-        # normal shapes: color carries the value
-        p <- p + ggplot2::geom_point(
-          data = df_ov,
-          ggplot2::aes(x = x, y = y, color = value),
-          alpha = overlay_alpha, size = overlay_size, shape = overlay_shape
-        )
+        # decide whether to map value to fill or color
+        use_fill <- (fm == "fill") || (fm == "auto" && sh %in% 21:25)
+
+        if (use_fill) {
+          p <- p + ggplot2::geom_point(
+            data = sub,
+            ggplot2::aes(x = x, y = y, fill = value),
+            alpha = a, size = s, shape = sh,
+            stroke = st,
+            color = ol
+          )
+        } else {
+          p <- p + ggplot2::geom_point(
+            data = sub,
+            ggplot2::aes(x = x, y = y, color = value),
+            alpha = a, size = s, shape = sh
+          )
+        }
       }
     }
   }
-
 
   # ---- Legend title + NA handling ----
   if (!is.null(color_by)) {
@@ -212,7 +299,6 @@ wb_plot_space_2d <- function(bundle,
 
   # ---- Optional centroid labels (uses SAME grouping variable) ----
   if (isTRUE(label_groups)) {
-    # Build df for labeling from what was actually plotted
     df <- rbind(
       df_base[, c("cell_id", "x", "y", "role", "value"), drop = FALSE],
       df_ov[,   c("cell_id", "x", "y", "role", "value"), drop = FALSE]
@@ -248,5 +334,4 @@ wb_plot_space_2d <- function(bundle,
 
   p
 }
-
 

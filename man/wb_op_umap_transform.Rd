@@ -9,6 +9,7 @@ wb_op_umap_transform(
   model_space_id,
   in_space_id,
   cells = NULL,
+  cell_set = "all",
   dims = NULL,
   overwrite = TRUE,
   ...
@@ -21,16 +22,18 @@ wb_op_umap_transform(
 
 \item{in_space_id}{high-D space_id used as input for transform (e.g. lsi, peakvi)}
 
-\item{cells}{cell IDs to project (already resolved effective cells recommended)}
+\item{cells}{optional explicit cell IDs to project}
 
-\item{dims}{optional dims for in_space_id (e.g. 2:30)}
+\item{cell_set}{if cells is NULL, resolve cells via wb_cells(bundle, cell_set=cell_set)}
+
+\item{dims}{optional dims for in_space_id (e.g. 2:30); defaults to model dims_json}
 
 \item{overwrite}{whether to overwrite existing rows for these cells in model_space_id}
 
 \item{...}{passed to uwot::umap_transform}
 }
 \value{
-list(coords=data.frame(cell_id,x,y), params=list(...))
+list(n_projected=int, params=list(...))
 }
 \description{
 Project cells into an existing fitted UMAP space

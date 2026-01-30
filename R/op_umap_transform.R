@@ -5,26 +5,35 @@
 #' @param bundle scworkbench bundle
 #' @param model_space_id 2D UMAP space_id that has a stored model in space_models
 #' @param in_space_id high-D space_id used as input for transform (e.g. lsi, peakvi)
-#' @param cells cell IDs to project (already resolved effective cells recommended)
-#' @param dims optional dims for in_space_id (e.g. 2:30)
+#' @param cells optional explicit cell IDs to project
+#' @param cell_set if cells is NULL, resolve cells via wb_cells(bundle, cell_set=cell_set)
+#' @param dims optional dims for in_space_id (e.g. 2:30); defaults to model dims_json
 #' @param overwrite whether to overwrite existing rows for these cells in model_space_id
 #' @param ... passed to uwot::umap_transform
-#' @return list(coords=data.frame(cell_id,x,y), params=list(...))
+#' @return list(n_projected=int, params=list(...))
 #' @export
 wb_op_umap_transform <- function(bundle,
                                  model_space_id,
                                  in_space_id,
                                  cells = NULL,
+                                 cell_set = "all",
                                  dims = NULL,
                                  overwrite = TRUE,
                                  ...) {
 
   .wb_require_pkg("uwot", "UMAP transform")
 
+  .wb_assert(is.character(model_space_id) && nzchar(model_space_id),
+             "model_space_id must be a non-empty string.")
+  .wb_assert(is.character(in_space_id) && nzchar(in_space_id),
+             "in_space_id must be a non-empty string.")
+
+  # Resolve cells (bench owns this logic)
   if (is.null(cells)) {
-    stop("umap_transform: cells must be provided (usually effective_cells).", call. = FALSE)
+    cells <- wb_cells(bundle, cell_set = cell_set)
   }
   cells <- as.character(cells)
+  .wb_assert(length(cells) > 0, "umap_transform: resolved 0 cells.")
 
   # 1) Load model row + model object
   mrow <- wb_space_model(bundle, model_space_id)
@@ -45,7 +54,6 @@ wb_op_umap_transform <- function(bundle,
   # 3) Pull high-D coords and build X with correct shape
   S <- wb_space(bundle, space_id = in_space_id, cells = cells, dims = dims_use)
 
-  # wb_space might return matrix for ND spaces; enforce matrix + rownames
   X <- S
   if (is.data.frame(S) && all(c("cell_id","dim","value") %in% colnames(S))) {
     X <- .wb_as_coord_matrix(S)
@@ -77,7 +85,6 @@ wb_op_umap_transform <- function(bundle,
   # 6) Write to space_2d for model_space_id (ONLY these cells)
   con <- bundle$con
 
-  # optionally: delete existing rows for those cells if overwrite
   if (isTRUE(overwrite)) {
     DBI::dbExecute(
       con,
@@ -86,8 +93,6 @@ wb_op_umap_transform <- function(bundle,
     )
   }
 
-  # insert in a transaction
-  # insert in a transaction
   DBI::dbExecute(con, "BEGIN;")
   on.exit(try(DBI::dbExecute(con, "ROLLBACK;"), silent = TRUE), add = TRUE)
 
@@ -102,7 +107,6 @@ wb_op_umap_transform <- function(bundle,
     j <- min(i + chunk_size - 1L, nrow(df2))
     sub <- df2[i:j, , drop = FALSE]
 
-    # bind 4 params per row (SQLite-safe)
     for (k in seq_len(nrow(sub))) {
       DBI::dbBind(stmt, list(
         model_space_id,
@@ -117,14 +121,14 @@ wb_op_umap_transform <- function(bundle,
   DBI::dbExecute(con, "COMMIT;")
   on.exit(NULL, add = FALSE)
 
-
   list(
     n_projected = nrow(df2),
     params = list(
       model_space_id = model_space_id,
       in_space_id = in_space_id,
       dims = dims_use,
-      cell_set = NA_character_
+      cell_set = cell_set
     )
   )
 }
+
