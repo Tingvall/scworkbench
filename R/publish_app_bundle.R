@@ -54,6 +54,26 @@ wb_matrix_spec <- function(matrix_id, assay, slot = "counts",
   )
 }
 
+.wb_ensure_cell_set_styles_table <- function(con) {
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS cell_set_styles (
+      cell_set    TEXT PRIMARY KEY,
+      label       TEXT,
+      shape       INTEGER,
+      size        REAL,
+      alpha       REAL,
+      stroke      REAL,
+      outline     TEXT,
+      fill_mode   TEXT,
+      created_at  TEXT NOT NULL,
+      created_by  TEXT,
+      description TEXT
+    );
+  ")
+  invisible(TRUE)
+}
+
+
 wb_default_matrix_specs <- function(seurat, slot = "counts", export_assays = NULL, feature_type_map = NULL) {
   assays <- names(seurat@assays)
   if (!is.null(export_assays)) assays <- intersect(assays, export_assays)
@@ -324,6 +344,7 @@ wb_register_features_for_specs <- function(con, seurat, matrix_specs) {
   # new primitive
   .wb_ensure_matrix_fragments_table(con)
   .wb_ensure_cell_vectors_tables(con)
+  .wb_ensure_cell_set_styles_table()
 
 
   # indices for long coords (created once)

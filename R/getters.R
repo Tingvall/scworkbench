@@ -446,7 +446,19 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
 #' List spaces in the bundle
 #' @export
 wb_spaces <- function(bundle) {
-  DBI::dbReadTable(bundle$con, "spaces")
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  con <- bundle$con
+
+  df <- DBI::dbGetQuery(con, "
+    SELECT space_id, source, dims, storage, description
+    FROM spaces
+    ORDER BY space_id;
+  ")
+
+  # hard guard: never allow phantom rows
+  df <- df[!is.na(df$space_id) & nzchar(df$space_id), , drop = FALSE]
+
+  df
 }
 
 #' Get matrix registry info
