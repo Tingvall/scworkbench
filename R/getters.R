@@ -193,52 +193,35 @@ wb_list <- function(bundle, what = c("matrices", "features", "spaces", "datasets
 #' @param dataset_id Optional dataset filter
 #' @param cell_set Which cell set to use: "core" (default), "all", or "set:<name>"
 #' @export
-wb_cells <- function(bundle, dataset_id = NULL, cell_set = "core") {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
+wb_cells <- function(bundle, cell_set = "core", dataset_id = NULL) {
   con <- bundle$con
+  .wb_ensure_cell_set_membership_table(con)
 
-  cell_set <- as.character(cell_set %||% "core")
-
-  # Validate cell_set selector
-  if (!identical(cell_set, "all")) {
-    avail <- wb_cell_sets(bundle)
-    .wb_assert(cell_set %in% avail,
-               paste0(
-                 "Unknown cell_set: ", cell_set, "\n",
-                 "Available: ", paste(avail, collapse = ", "), "\n",
-                 "Use 'all' for all cells."
-               )
-    )
+  if (identical(cell_set, "all")) {
+    if (is.null(dataset_id)) return(DBI::dbGetQuery(con, "SELECT cell_id FROM cells ORDER BY rowid;")$cell_id)
+    return(DBI::dbGetQuery(con, "SELECT cell_id FROM cells WHERE dataset_id=? ORDER BY rowid;", params=list(dataset_id))$cell_id)
   }
 
-  # Build query with filters, preserving canonical rowid order
-  where <- character(0)
-  params <- list()
-
-  if (!is.null(dataset_id)) {
-    where <- c(where, "dataset_id = ?")
-    params <- c(params, list(dataset_id))
+  # membership query
+  if (is.null(dataset_id)) {
+    return(DBI::dbGetQuery(con, "
+      SELECT c.cell_id
+      FROM cell_set_membership m
+      JOIN cells c ON c.cell_id = m.cell_id
+      WHERE m.cell_set = ?
+      ORDER BY c.rowid;", params = list(cell_set))$cell_id)
   }
 
-  if (!identical(cell_set, "all")) {
-    where <- c(where, "cell_set = ?")
-    params <- c(params, list(cell_set))
-  }
-
-  q <- "SELECT cell_id FROM cells"
-  if (length(where)) {
-    q <- paste0(q, " WHERE ", paste(where, collapse = " AND "))
-  }
-  q <- paste0(q, " ORDER BY rowid;")
-
-  if (length(params)) {
-    res <- DBI::dbGetQuery(con, q, params = params)
-  } else {
-    res <- DBI::dbGetQuery(con, q)
-  }
-
-  res$cell_id
+  DBI::dbGetQuery(con, "
+    SELECT c.cell_id
+    FROM cell_set_membership m
+    JOIN cells c ON c.cell_id = m.cell_id
+    WHERE m.cell_set = ? AND c.dataset_id = ?
+    ORDER BY c.rowid;",
+                  params = list(cell_set, dataset_id)
+  )$cell_id
 }
+
 
 #' Get cell metadata
 #'

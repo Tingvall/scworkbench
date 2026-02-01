@@ -1,29 +1,4 @@
-#' Plot a 2D space with projection-aware overlay semantics
-#'
-#' When cell_set = "all", core cells are drawn as a muted background layer
-#' and non-core cells (set:*) are drawn as an overlay foreground layer.
-#'
-#' A single color scale is used for both layers. Missing values (NA) are kept
-#' and displayed as grey.
-#'
-#' @param bundle Bundle handle
-#' @param space_id 2D space id
-#' @param cell_set "core" | "all" | "set:<name>"
-#' @param overlay_sets Optional character vector like c("set:tumorA","set:queryB").
-#'   Only used when cell_set="all". If NULL, all non-core are overlaid.
-#' @param color_by One of:
-#'   - NULL
-#'   - character(1): column name in SQLite `cells` table (e.g. "orig.ident")
-#'   - named vector: names are cell_id, values are the color variable
-#'   - data.frame with columns cell_id and value
-#' @param color_label Legend title override (optional)
-#' @param base_alpha,base_size Background aesthetics (core)
-#' @param overlay_alpha,overlay_size Foreground aesthetics (non-core)
-#' @param overlay_shape Shape for overlay points (default 16)
-#' @param label_groups If TRUE, label group ids at centroids (e.g. cluster numbers)
-#' @param label_by Grouping used for centroid labels. If NULL, uses the plotted color variable.
-#' @param label_min_n Only label groups with at least this many cells
-#' @return ggplot2 plot
+#' Plot a 2D space with overlay sets and per-set glyph styles
 #' @export
 wb_plot_space_2d <- function(bundle,
                              space_id,
@@ -40,77 +15,81 @@ wb_plot_space_2d <- function(bundle,
                              overlay_outline = "grey20",
                              label_groups = FALSE,
                              label_by = NULL,
-                             label_min_n = 50) {
+                             label_min_n = 50,
+                             debug = FALSE) {
+
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Missing suggested package 'ggplot2' for plotting.", call. = FALSE)
   }
 
+  `%||%` <- function(x, y) if (is.null(x)) y else x
   cell_set <- as.character(cell_set[1])
 
-  # ---- Decide which cells are base vs overlay ----
+  # -------------------------
+  # 1) Resolve base vs overlay cell IDs
+  # -------------------------
   if (cell_set == "core") {
     base_cells <- wb_cells(bundle, cell_set = "core")
-    overlay_cells <- character(0)
+    overlay_sets <- character(0)
 
   } else if (cell_set == "all") {
     base_cells <- wb_cells(bundle, cell_set = "core")
-
-    all_cells <- wb_cells(bundle, cell_set = "all")
-    noncore_cells <- setdiff(all_cells, base_cells)
-
-    if (!is.null(overlay_sets)) {
-      overlay_sets <- as.character(overlay_sets)
-      set_cells <- unlist(lapply(overlay_sets, function(s) wb_cells(bundle, cell_set = s)), use.names = FALSE)
-      overlay_cells <- intersect(noncore_cells, set_cells)
+    if (is.null(overlay_sets)) {
+      # default for "all": overlay all non-core (but only if you actually have them)
+      overlay_sets <- setdiff(wb_cell_sets(bundle), "core")
+      overlay_sets <- overlay_sets[startsWith(overlay_sets, "set:")]
     } else {
-      overlay_cells <- noncore_cells
+      overlay_sets <- as.character(overlay_sets)
     }
 
   } else if (startsWith(cell_set, "set:")) {
     base_cells <- character(0)
-    overlay_cells <- wb_cells(bundle, cell_set = cell_set)
+    overlay_sets <- cell_set
 
   } else {
     stop("cell_set must be 'core', 'all', or 'set:<name>'.", call. = FALSE)
   }
 
+  # base cells
   base_cells <- as.character(base_cells)
-  overlay_cells <- as.character(overlay_cells)
 
-  # ---- Fetch coords (non-strict) ----
-  empty_xy <- function() {
-    data.frame(cell_id = character(0), x = numeric(0), y = numeric(0), stringsAsFactors = FALSE)
+  # overlay cells: union of overlay_sets (each set plotted separately)
+  overlay_sets <- as.character(overlay_sets %||% character(0))
+  overlay_sets <- unique(overlay_sets[nzchar(overlay_sets)])
+
+  overlay_cells_by_set <- list()
+  for (s in overlay_sets) {
+    overlay_cells_by_set[[s]] <- as.character(wb_cells(bundle, cell_set = s))
   }
+
+  overlay_cells <- unique(unlist(overlay_cells_by_set, use.names = FALSE))
+
+  # prevent double-plotting: if base is core and overlay includes core members, remove them from base
+  if (length(base_cells) && length(overlay_cells)) {
+    base_cells <- setdiff(base_cells, overlay_cells)
+  }
+
+  # -------------------------
+  # 2) Fetch coords
+  # -------------------------
+  empty_xy <- function() data.frame(cell_id = character(0), x = numeric(0), y = numeric(0), stringsAsFactors = FALSE)
 
   df_base <- if (length(base_cells)) .wb_space_2d_safe(bundle, space_id, base_cells) else empty_xy()
-  df_ov   <- if (length(overlay_cells)) .wb_space_2d_safe(bundle, space_id, overlay_cells) else empty_xy()
-  message("plot_space_2d: space_id=", space_id)
-  message("  base_cells=", length(base_cells), " overlay_cells=", length(overlay_cells))
-  message("  df_base rows=", nrow(df_base), " df_ov rows=", nrow(df_ov))
-  if (nrow(df_ov)) message("  overlay cell_sets: ", paste(unique(df_ov$cell_set), collapse=", "))
-
-
-  # Ensure expected columns exist even if 0 rows
-  for (nm in c("cell_id", "x", "y")) {
-    if (!nm %in% colnames(df_base)) df_base[[nm]] <- empty_xy()[[nm]]
-    if (!nm %in% colnames(df_ov))   df_ov[[nm]]   <- empty_xy()[[nm]]
-  }
-
-  if (!nrow(df_base) && !nrow(df_ov)) {
-    stop("No cells found in this space for the requested selection (after dropping missing coords).", call. = FALSE)
-  }
-
-  df_base$role <- rep("core",    nrow(df_base))
-  df_ov$role   <- rep("overlay", nrow(df_ov))
-
   df_base$cell_id <- as.character(df_base$cell_id)
-  df_ov$cell_id   <- as.character(df_ov$cell_id)
 
-  # ---- Resolve color values for BOTH layers (key fix) ----
-  legend_name <- NULL
+  df_ov_all <- if (length(overlay_cells)) .wb_space_2d_safe(bundle, space_id, overlay_cells) else empty_xy()
+  df_ov_all$cell_id <- as.character(df_ov_all$cell_id)
+
+  if (!nrow(df_base) && !nrow(df_ov_all)) {
+    stop("No cells found in this space for requested selection.", call. = FALSE)
+  }
+
+  # -------------------------
+  # 3) Resolve color values (single legend)
+  # -------------------------
   df_base$value <- rep(NA, nrow(df_base))
-  df_ov$value   <- rep(NA, nrow(df_ov))
-
+  df_ov_all$value <- rep(NA, nrow(df_ov_all))
+  legend_name <- NULL
 
   if (!is.null(color_by)) {
 
@@ -120,8 +99,8 @@ wb_plot_space_2d <- function(bundle,
       md <- DBI::dbGetQuery(bundle$con, q)
       md$cell_id <- as.character(md$cell_id)
 
-      df_base$value <- md$value[match(df_base$cell_id, md$cell_id)]
-      df_ov$value   <- md$value[match(df_ov$cell_id,   md$cell_id)]
+      df_base$value   <- md$value[match(df_base$cell_id,   md$cell_id)]
+      df_ov_all$value <- md$value[match(df_ov_all$cell_id, md$cell_id)]
       legend_name <- col
 
     } else if (is.data.frame(color_by)) {
@@ -130,14 +109,14 @@ wb_plot_space_2d <- function(bundle,
       md <- color_by[, c("cell_id", "value")]
       md$cell_id <- as.character(md$cell_id)
 
-      df_base$value <- md$value[match(df_base$cell_id, md$cell_id)]
-      df_ov$value   <- md$value[match(df_ov$cell_id,   md$cell_id)]
+      df_base$value   <- md$value[match(df_base$cell_id,   md$cell_id)]
+      df_ov_all$value <- md$value[match(df_ov_all$cell_id, md$cell_id)]
       legend_name <- "value"
 
-    } else if (is.atomic(color_by) && !is.null(names(color_by)) && any(nzchar(names(color_by)))) {
+    } else if (is.atomic(color_by) && !is.null(names(color_by))) {
       v <- color_by
-      df_base$value <- unname(v[df_base$cell_id])
-      df_ov$value   <- unname(v[df_ov$cell_id])
+      df_base$value   <- unname(v[df_base$cell_id])
+      df_ov_all$value <- unname(v[df_ov_all$cell_id])
       legend_name <- "value"
 
     } else {
@@ -146,56 +125,53 @@ wb_plot_space_2d <- function(bundle,
     }
   }
 
-  # ---- Plot: two layers, same color meaning ----
-  # ---- optional: apply cell_set style defaults (core + overlay) ----
-  # Requires: bundle + overlay_cell_set (e.g. "set:bulkers")
-  if (exists("bundle", inherits = FALSE) && inherits(bundle, "scworkbench_bundle")) {
+  # -------------------------
+  # 4) Helper: style fetch (NO silent failure)
+  # -------------------------
+  get_style <- function(cs) {
+    # local defaults
+    d <- list(
+      alpha = overlay_alpha,
+      size = overlay_size,
+      shape = overlay_shape,
+      stroke = overlay_stroke,
+      outline = overlay_outline,
+      fill_mode = "auto"
+    )
 
-    # core defaults (only override if style exists + non-NA)
-    core_style <- tryCatch(
-      wb_get_cell_set_style(
-        bundle,
-        "core",
-        defaults = list(alpha = base_alpha, size = base_size)
-      ),
+    sty <- NULL
+    sty <- tryCatch(
+      wb_get_cell_set_style(bundle, cs),
       error = function(e) NULL
     )
 
-    if (!is.null(core_style)) {
-      if (!is.na(core_style$alpha)) base_alpha <- core_style$alpha
-      if (!is.na(core_style$size))  base_size  <- core_style$size
+    if (is.null(sty) || !is.data.frame(sty) || nrow(sty) == 0) {
+      return(d)
     }
 
-    # overlay defaults (only if you provided overlay_cell_set)
-    if (exists("overlay_cell_set", inherits = FALSE) &&
-        is.character(overlay_cell_set) && nzchar(overlay_cell_set)) {
+    # Normalize from the first row
+    row <- sty[1, , drop = FALSE]
 
-      ov_style <- tryCatch(
-        wb_get_cell_set_style(
-          bundle,
-          overlay_cell_set,
-          defaults = list(
-            alpha   = overlay_alpha,
-            size    = overlay_size,
-            shape   = overlay_shape,
-            stroke  = overlay_stroke,
-            outline = overlay_outline
-          )
-        ),
-        error = function(e) NULL
-      )
+    out <- d
+    if ("alpha" %in% names(row) && !is.na(row$alpha))   out$alpha  <- as.numeric(row$alpha)
+    if ("size"  %in% names(row) && !is.na(row$size))    out$size   <- as.numeric(row$size)
+    if ("shape" %in% names(row) && !is.na(row$shape))   out$shape  <- as.integer(row$shape)
+    if ("stroke" %in% names(row) && !is.na(row$stroke)) out$stroke <- as.numeric(row$stroke)
 
-      if (!is.null(ov_style)) {
-        if (!is.na(ov_style$alpha))   overlay_alpha <- ov_style$alpha
-        if (!is.na(ov_style$size))    overlay_size  <- ov_style$size
-        if (!is.na(ov_style$shape))   overlay_shape <- as.integer(ov_style$shape)
-        if (!is.na(ov_style$stroke))  overlay_stroke <- ov_style$stroke
-        if (!is.null(ov_style$outline) && nzchar(ov_style$outline)) overlay_outline <- ov_style$outline
-      }
+    if ("outline" %in% names(row) && !is.null(row$outline) && !is.na(row$outline) && nzchar(row$outline)) {
+      out$outline <- as.character(row$outline)
     }
+
+    if ("fill_mode" %in% names(row) && !is.null(row$fill_mode) && !is.na(row$fill_mode) && nzchar(row$fill_mode)) {
+      out$fill_mode <- as.character(row$fill_mode)
+    }
+
+    out
   }
 
-  # ---- plot ----
+  # -------------------------
+  # 5) Plot base
+  # -------------------------
   p <- ggplot2::ggplot()
 
   if (nrow(df_base)) {
@@ -203,7 +179,8 @@ wb_plot_space_2d <- function(bundle,
       p <- p + ggplot2::geom_point(
         data = df_base,
         ggplot2::aes(x = x, y = y),
-        alpha = base_alpha, size = base_size
+        alpha = base_alpha, size = base_size,
+        color = "grey80"
       )
     } else {
       p <- p + ggplot2::geom_point(
@@ -214,124 +191,75 @@ wb_plot_space_2d <- function(bundle,
     }
   }
 
-  if (nrow(df_ov)) {
+  # -------------------------
+  # 6) Plot overlay: each set separately with its style
+  # -------------------------
+  if (length(overlay_sets)) {
+    for (cs in overlay_sets) {
+      cells_cs <- overlay_cells_by_set[[cs]] %||% character(0)
+      if (!length(cells_cs)) next
 
-    # If no set labels, treat as one group
-    if (all(is.na(df_ov$cell_set))) {
-      df_ov$cell_set <- "overlay"
-    }
+      sub <- df_ov_all[df_ov_all$cell_id %in% cells_cs, , drop = FALSE]
+      if (!nrow(sub)) next
 
-    for (cs in unique(df_ov$cell_set)) {
-      sub <- df_ov[df_ov$cell_set == cs, , drop = FALSE]
+      sty <- get_style(cs)
 
-      sty <- tryCatch(
-        wb_get_cell_set_style(
-          bundle, cs,
-          defaults = list(
-            alpha   = overlay_alpha,
-            size    = overlay_size,
-            shape   = overlay_shape,
-            stroke  = overlay_stroke,
-            outline = overlay_outline,
-            fill_mode = "auto"
-          )
-        ),
-        error = function(e) NULL
-      )
-
-      a <- if (!is.null(sty) && !is.na(sty$alpha)) sty$alpha else overlay_alpha
-      s <- if (!is.null(sty) && !is.na(sty$size))  sty$size  else overlay_size
-      sh <- if (!is.null(sty) && !is.na(sty$shape)) as.integer(sty$shape) else overlay_shape
-      st <- if (!is.null(sty) && !is.na(sty$stroke)) sty$stroke else overlay_stroke
-      ol <- if (!is.null(sty) && !is.null(sty$outline) && nzchar(sty$outline)) sty$outline else overlay_outline
-      fm <- if (!is.null(sty) && !is.null(sty$fill_mode)) sty$fill_mode else "auto"
+      if (isTRUE(debug)) {
+        message("overlay set: ", cs, " n=", nrow(sub),
+                " shape=", sty$shape, " size=", sty$size,
+                " alpha=", sty$alpha, " stroke=", sty$stroke,
+                " outline=", sty$outline, " fill_mode=", sty$fill_mode)
+      }
 
       if (is.null(color_by)) {
         p <- p + ggplot2::geom_point(
           data = sub,
           ggplot2::aes(x = x, y = y),
-          alpha = a, size = s, shape = sh,
-          stroke = st,
-          color = ol
+          shape  = sty$shape,
+          size   = sty$size,
+          alpha  = sty$alpha,
+          stroke = sty$stroke,
+          color  = sty$outline
         )
-
       } else {
-        # decide whether to map value to fill or color
-        use_fill <- (fm == "fill") || (fm == "auto" && sh %in% 21:25)
+        use_fill <- (sty$fill_mode == "fill") || (sty$fill_mode == "auto" && sty$shape %in% 21:25)
 
         if (use_fill) {
           p <- p + ggplot2::geom_point(
             data = sub,
             ggplot2::aes(x = x, y = y, fill = value),
-            alpha = a, size = s, shape = sh,
-            stroke = st,
-            color = ol
+            shape  = sty$shape,
+            size   = sty$size,
+            alpha  = sty$alpha,
+            stroke = sty$stroke,
+            color  = sty$outline
           )
         } else {
           p <- p + ggplot2::geom_point(
             data = sub,
             ggplot2::aes(x = x, y = y, color = value),
-            alpha = a, size = s, shape = sh
+            shape = sty$shape,
+            size  = sty$size,
+            alpha = sty$alpha
           )
         }
       }
     }
   }
 
-  # ---- Legend title + NA handling ----
+
+  # -------------------------
+  # 7) Single legend handling (only if color_by used)
+  # -------------------------
   if (!is.null(color_by)) {
     lab <- color_label %||% legend_name %||% "value"
 
-    # Use a discrete scale if value is not numeric; continuous otherwise.
-    if (is.numeric(c(df_base$value, df_ov$value))) {
-      p <- p + ggplot2::scale_color_continuous(na.value = "grey80") +
-        ggplot2::labs(color = lab)
+    if (is.numeric(c(df_base$value, df_ov_all$value))) {
+      p <- p + ggplot2::scale_color_continuous(na.value = "grey80") + ggplot2::labs(color = lab)
     } else {
-      p <- p + ggplot2::scale_color_discrete(na.value = "grey80") +
-        ggplot2::labs(color = lab)
+      p <- p + ggplot2::scale_color_discrete(na.value = "grey80") + ggplot2::labs(color = lab)
     }
   }
 
-  p <- p + ggplot2::labs(
-    title = paste0("Space: ", space_id),
-    x = "x", y = "y"
-  )
-
-  # ---- Optional centroid labels (uses SAME grouping variable) ----
-  if (isTRUE(label_groups)) {
-    df <- rbind(
-      df_base[, c("cell_id", "x", "y", "role", "value"), drop = FALSE],
-      df_ov[,   c("cell_id", "x", "y", "role", "value"), drop = FALSE]
-    )
-
-    grp_col <- label_by
-    if (is.null(grp_col)) grp_col <- if (!is.null(color_by)) "value" else NULL
-
-    .wb_assert(!is.null(grp_col) && grp_col %in% colnames(df),
-               "label_groups=TRUE requires a grouping column (set label_by or supply color_by).")
-
-    agg <- stats::aggregate(
-      df[, c("x", "y")],
-      by = list(group = df[[grp_col]]),
-      FUN = mean
-    )
-    sizes <- as.data.frame(table(df[[grp_col]]), stringsAsFactors = FALSE)
-    colnames(sizes) <- c("group", "n")
-    agg$group <- as.character(agg$group)
-    sizes$group <- as.character(sizes$group)
-    agg <- merge(agg, sizes, by = "group", all.x = TRUE, sort = FALSE)
-    agg <- agg[agg$n >= as.integer(label_min_n), , drop = FALSE]
-
-    p <- p + ggplot2::geom_text(
-      data = agg,
-      ggplot2::aes(x = x, y = y, label = group),
-      inherit.aes = FALSE,
-      color = "black",
-      fontface = "bold",
-      size = 4
-    )
-  }
-
-  p
+  p + ggplot2::labs(title = paste0("Space: ", space_id), x = "x", y = "y")
 }
-

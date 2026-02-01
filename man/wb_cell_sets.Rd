@@ -2,10 +2,18 @@
 % Please edit documentation in R/cell_sets.R
 \name{wb_cell_sets}
 \alias{wb_cell_sets}
-\title{List available cell sets in a bundle}
+\title{List available cell sets in a bundle
+\itemize{
+\item Includes legacy sets from cells.cell_set (e.g. "core")
+\item Includes membership sets from cell_set_membership (e.g. "set:bulkers")
+}}
 \usage{
 wb_cell_sets(bundle)
 }
 \description{
 List available cell sets in a bundle
+\itemize{
+\item Includes legacy sets from cells.cell_set (e.g. "core")
+\item Includes membership sets from cell_set_membership (e.g. "set:bulkers")
+}
 }

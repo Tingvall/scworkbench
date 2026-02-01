@@ -1,13 +1,24 @@
-#' Ingest new cells into an existing bundle as a named cell set
+#' Ingest new cells into an existing bundle as a named membership-based cell set
+#'
+#' - Inserts new rows into `cells` (cell_id + dataset_id)
+#' - Writes membership rows into `cell_set_membership` for set:<set_name>
+#' - Optionally ingests metadata and spaces for those cells
+#' - Optionally ingests matrices via wb_attach_to_cells() (recommended canonical path)
+#'
+#' NOTE: dev-mode, fresh bundles only: we do NOT use legacy `cells.cell_set`.
 #'
 #' @param bundle scworkbench bundle handle (opened)
-#' @param set_name Name of ingested set (stored as cell_set = "set:<name>")
+#' @param set_name Name of ingested set (stored in membership as cell_set = "set:<name>")
 #' @param cell_ids Character vector of new cell IDs
-#' @param metadata Optional data.frame with rownames or a cell_id column
+#' @param metadata Optional data.frame. First column treated as cell_id if no "cell_id" column.
 #' @param spaces Optional named list of spaces. Each entry can be:
-#'   - data.frame(cell_id,x,y) for 2D, or
-#'   - matrix/data.frame with rownames=cell_id and columns=dims for high-D
-#' @param overwrite If TRUE, allows re-ingesting existing cell_ids (not recommended yet)
+#'   - 2D wide df: first col cell_id, next cols x,y (no colnames required)
+#'   - high-D wide matrix/df: rownames=cell_id OR first col cell_id
+#'   - long df: first col cell_id, second col dim, third col value (no colnames required)
+#' @param matrices Optional named list passed to wb_attach_to_cells(matrices=...)
+#' @param overwrite If TRUE, allow re-ingesting existing cell_ids (NOT implemented yet)
+#' @param source Provenance string stored in membership rows / space registry
+#' @param created_by Optional provenance
 #' @export
 wb_ingest_cells <- function(
     bundle,
@@ -16,20 +27,37 @@ wb_ingest_cells <- function(
     metadata = NULL,
     spaces = list(),
     matrices = list(),
-    overwrite = FALSE
+    overwrite = FALSE,
+    source = "ingest",
+    created_by = NULL
 ) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
-  .wb_assert(is.character(set_name) && length(set_name) == 1 && nzchar(set_name), "set_name must be a non-empty string")
-  .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids must be a non-empty character vector")
+  .wb_assert(is.character(set_name) && length(set_name) == 1 && nzchar(set_name),
+             "set_name must be a non-empty string")
+  .wb_assert(is.character(cell_ids) && length(cell_ids) > 0,
+             "cell_ids must be a non-empty character vector")
+
+  con <- bundle$con
   cell_ids <- unique(as.character(cell_ids))
+  cell_ids <- cell_ids[nzchar(cell_ids)]
+  .wb_assert(length(cell_ids) > 0, "cell_ids empty after cleaning")
 
   cell_set <- paste0("set:", set_name)
-  con <- bundle$con
 
+  # Ensure schema primitives exist
+  .wb_ensure_schema(con)
+  .wb_ensure_cell_set_membership_table(con)
+
+  # -------------------------
+  # 1) Validate non-existence (dev safety)
+  # -------------------------
   cl <- .wb_sql_in_json(cell_ids)
-  q <- paste0("SELECT cell_id FROM cells WHERE cell_id IN ", cl$sql, ";")
-  existing <- DBI::dbGetQuery(con, q, params = cl$params)$cell_id
-
+  existing <- DBI::dbGetQuery(
+    con,
+    paste0("SELECT cell_id FROM cells WHERE cell_id IN ", cl$sql, ";"),
+    params = cl$params
+  )$cell_id
+  existing <- as.character(existing)
 
   if (length(existing) > 0) {
     if (!isTRUE(overwrite)) {
@@ -38,68 +66,108 @@ wb_ingest_cells <- function(
         paste(head(existing, 10), collapse = ", "),
         call. = FALSE
       )
-    } else {
-      stop("overwrite=TRUE not implemented yet for safety.", call. = FALSE)
     }
+    stop("overwrite=TRUE not implemented yet for safety.", call. = FALSE)
   }
 
-  # --- 2) insert cells (dataset_id can be set_name for now) ---
-  # You can refine dataset_id semantics later; this is pragmatic.
+  # -------------------------
+  # 2) Insert into cells table (NO cell_set column used)
+  # -------------------------
+  # minimal row: cell_id + dataset_id. (dataset_id can be set_name for now.)
   new_cells_df <- data.frame(
-    cell_id = cell_ids,
+    cell_id    = cell_ids,
     dataset_id = set_name,
-    cell_set = cell_set,
     stringsAsFactors = FALSE
   )
 
   DBI::dbWriteTable(con, "cells", new_cells_df, append = TRUE)
 
-  # --- 3) metadata (optional) ---
+  # -------------------------
+  # 3) Add membership rows for this set
+  # -------------------------
+  created_at <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  ins <- data.frame(
+    cell_set    = cell_set,
+    cell_id     = cell_ids,
+    source      = source,
+    created_at  = created_at,
+    created_by  = created_by %||% NA_character_,
+    description = paste0("ingested cells for ", cell_set),
+    stringsAsFactors = FALSE
+  )
+  DBI::dbWriteTable(con, "cell_set_membership", ins, append = TRUE)
+
+  # -------------------------
+  # 4) Metadata (optional) into cells table columns
+  # -------------------------
   if (!is.null(metadata)) {
     .wb_ingest_cell_metadata(con, cell_ids, metadata)
   }
 
-  # --- 4) spaces (optional) ---
+  # -------------------------
+  # 5) Spaces (optional)
+  # -------------------------
   if (length(spaces)) {
     for (space_id in names(spaces)) {
       coords <- spaces[[space_id]]
-      .wb_ingest_space_coords(con, bundle_dir = bundle$dir, space_id = space_id, coords = coords, cell_ids = cell_ids)
+      .wb_ingest_space_coords(
+        con        = con,
+        bundle_dir = bundle$dir,
+        space_id   = space_id,
+        coords     = coords,
+        cell_ids   = cell_ids,
+        source     = source
+      )
     }
   }
 
-  # --- 5) matrices (optional, not yet) ---
+  # -------------------------
+  # 6) Matrices (optional) — canonical path: attach fragments to THESE new cells
+  # -------------------------
   if (length(matrices)) {
-    stop("Matrix ingestion not implemented yet (matrices=...).", call. = FALSE)
+    wb_attach_to_cells(
+      bundle   = bundle,
+      matrices = matrices,
+      cell_ids = cell_ids,     # restrict to these new cells
+      source   = source,
+      created_by = created_by
+    )
   }
 
   invisible(list(
-    set_name = set_name,
-    cell_set = cell_set,
-    n_ingested = length(cell_ids)
+    set_name     = set_name,
+    cell_set     = cell_set,
+    n_ingested   = length(cell_ids),
+    n_spaces     = length(spaces),
+    n_matrices   = length(matrices)
   ))
 }
 
 
+# -------------------------
+# Metadata ingestion (first column == cell_id if no explicit column)
+# -------------------------
 .wb_ingest_cell_metadata <- function(con, cell_ids, metadata) {
   .wb_assert(is.data.frame(metadata), "metadata must be a data.frame")
 
-  # Normalize metadata row addressing
-  if ("cell_id" %in% colnames(metadata)) {
-    md <- metadata
-  } else if (!is.null(rownames(metadata)) && all(nzchar(rownames(metadata)))) {
-    md <- metadata
-    md$cell_id <- rownames(md)
+  md <- as.data.frame(metadata, stringsAsFactors = FALSE, check.names = FALSE)
+
+  # first column is cell_id unless explicit "cell_id" exists
+  if (!("cell_id" %in% colnames(md))) {
+    .wb_assert(ncol(md) >= 1, "metadata must have at least 1 column")
+    md$cell_id <- as.character(md[[1]])
   } else {
-    stop("metadata must have a cell_id column or rownames as cell_id", call. = FALSE)
+    md$cell_id <- as.character(md$cell_id)
   }
 
   md$cell_id <- as.character(md$cell_id)
   md <- md[md$cell_id %in% cell_ids, , drop = FALSE]
+  if (!nrow(md)) return(invisible(TRUE))
 
-  # Convert factor/logical as in publish
+  # Convert factor/logical
   for (nm in setdiff(colnames(md), "cell_id")) {
     x <- md[[nm]]
-    if (is.factor(x)) x <- as.character(x)
+    if (is.factor(x))  x <- as.character(x)
     if (is.logical(x)) x <- as.integer(x)
     md[[nm]] <- x
   }
@@ -107,73 +175,155 @@ wb_ingest_cells <- function(
   # Add missing columns
   existing_cols <- DBI::dbListFields(con, "cells")
   new_cols <- setdiff(colnames(md), existing_cols)
+
   for (nm in new_cols) {
-    col_type <- if (is.numeric(md[[nm]])) "REAL" else "TEXT"
-    if (is.integer(md[[nm]])) col_type <- "INTEGER"
+    x <- md[[nm]]
+    col_type <- if (is.numeric(x)) "REAL" else "TEXT"
+    if (is.integer(x)) col_type <- "INTEGER"
     DBI::dbExecute(con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
   }
 
-  # Update rows per column using parameterized UPDATE
-  # (This is not the fastest, but fine for v1.)
+  # Update per cell (v1 correct, optimize later)
   cols_to_write <- setdiff(colnames(md), "cell_id")
   for (nm in cols_to_write) {
     stmt <- sprintf('UPDATE cells SET "%s" = ? WHERE cell_id = ?;', nm)
-    vals <- md[[nm]]
     for (i in seq_len(nrow(md))) {
-      DBI::dbExecute(con, stmt, params = list(vals[i], md$cell_id[i]))
+      DBI::dbExecute(con, stmt, params = list(md[[nm]][[i]], md$cell_id[[i]]))
     }
   }
 
   invisible(TRUE)
 }
 
-.wb_ingest_space_coords <- function(con, bundle_dir, space_id, coords, cell_ids) {
 
-  if (is.data.frame(coords) && all(c("cell_id","dim","value") %in% colnames(coords))) {
-    coords <- .wb_coords_long_to_mat(coords)
-  }
-
-  .wb_assert(!is.null(rownames(coords)) && all(nzchar(rownames(coords))),
-             "High-D space coords must have rownames = cell_id")
-
+# -------------------------
+# Space ingestion (2D wide -> space_2d ; otherwise -> long space_coords)
+# First column ALWAYS treated as cell_id, no explicit names required.
+# -------------------------
+.wb_ingest_space_coords <- function(con, bundle_dir, space_id, coords, cell_ids, source = "ingest") {
   .wb_assert(is.character(space_id) && length(space_id) == 1 && nzchar(space_id), "space_id invalid")
 
-  # Normalize coords to include only ingested cells
-  if (is.data.frame(coords) && all(c("cell_id", "x", "y") %in% colnames(coords))) {
-    df <- coords
-    df$cell_id <- as.character(df$cell_id)
-    df <- df[df$cell_id %in% cell_ids, , drop = FALSE]
-
-    # Register space if missing
-    .wb_ensure_space_registered(con, space_id, dims = 2, storage = "wide:space_2d",
-                                source = "ingest", description = space_id)
-
-    # Write
-    out <- df[, c("cell_id","x","y")]
-    out$space_id <- space_id
-    out <- out[, c("space_id","cell_id","x","y")]
-    DBI::dbWriteTable(con, "space_2d", out, append = TRUE)
-
-    return(invisible(TRUE))
+  # Helper: normalize df where first col is cell_id
+  normalize_df_first_col_id <- function(df) {
+    df <- as.data.frame(df, stringsAsFactors = FALSE, check.names = FALSE)
+    .wb_assert(ncol(df) >= 1, "coords data.frame must have at least 1 column")
+    cell <- as.character(df[[1]])
+    .wb_assert(all(nzchar(cell)), "coords first column (cell_id) has empty values")
+    df$..cell_id <- cell
+    df
   }
 
-  # High-D: accept matrix/data.frame with rownames=cell_id
+  # -------------------------
+  # Case 1: data.frame with >= 3 columns could be:
+  #   - 2D wide: [cell_id, x, y]
+  #   - long:    [cell_id, dim, value]
+  # We decide by column 2 type: if integer-ish and column3 numeric -> long.
+  # Otherwise treat as 2D if exactly 3 columns, else treat as wide high-D.
+  # -------------------------
+  if (is.data.frame(coords)) {
+    df <- normalize_df_first_col_id(coords)
+    df <- df[df$..cell_id %in% cell_ids, , drop = FALSE]
+    if (!nrow(df)) return(invisible(TRUE))
+
+    if (ncol(df) >= 3) {
+      v2 <- df[[2]]
+      v3 <- df[[3]]
+
+      looks_long <- (is.numeric(v2) || is.integer(v2)) && (is.numeric(v3) || is.integer(v3))
+      if (isTRUE(looks_long)) {
+        # interpret as long: [cell_id, dim, value]
+        out <- data.frame(
+          space_id = space_id,
+          cell_id  = as.character(df$..cell_id),
+          dim      = as.integer(df[[2]]),
+          value    = as.numeric(df[[3]]),
+          stringsAsFactors = FALSE
+        )
+
+        .wb_ensure_space_registered(
+          con, space_id,
+          dims = max(out$dim, na.rm = TRUE),
+          storage = "long:space_coords",
+          source = source,
+          description = space_id
+        )
+
+        DBI::dbWriteTable(con, "space_coords", out, append = TRUE)
+        return(invisible(TRUE))
+      }
+
+      # If exactly 3 cols -> treat as 2D wide [cell_id, x, y]
+      if (ncol(df) == 3) {
+        out <- data.frame(
+          space_id = space_id,
+          cell_id  = as.character(df$..cell_id),
+          x        = as.numeric(df[[2]]),
+          y        = as.numeric(df[[3]]),
+          stringsAsFactors = FALSE
+        )
+
+        .wb_ensure_space_registered(
+          con, space_id,
+          dims = 2L,
+          storage = "wide:space_2d",
+          source = source,
+          description = space_id
+        )
+
+        DBI::dbWriteTable(con, "space_2d", out, append = TRUE)
+        return(invisible(TRUE))
+      }
+
+      # Otherwise: wide high-D stored in remaining columns 2:n
+      m <- as.matrix(df[, 2:(ncol(df)-1), drop = FALSE])  # exclude ..cell_id tail
+      rownames(m) <- as.character(df$..cell_id)
+      return(.wb_ingest_space_matrix_long(con, space_id, m, source = source))
+    }
+
+    stop("coords data.frame must have at least 3 columns: [cell_id,x,y] or [cell_id,dim,value].", call. = FALSE)
+  }
+
+  # -------------------------
+  # Case 2: matrix-like high-D (rownames = cell_id OR first col is cell_id)
+  # -------------------------
   m <- coords
   if (is.data.frame(m)) m <- as.matrix(m)
-  .wb_assert(is.matrix(m), "space coords must be either df(cell_id,x,y) or a matrix-like object")
+  .wb_assert(is.matrix(m), "space coords must be a data.frame or matrix-like object")
 
-  if (is.null(rownames(m))) stop("High-D space coords must have rownames = cell_id", call. = FALSE)
+  if (is.null(rownames(m)) || !all(nzchar(rownames(m)))) {
+    stop("High-D coords matrix must have rownames=cell_id (or provide as data.frame with first col=cell_id).",
+         call. = FALSE)
+  }
+
   m <- m[intersect(cell_ids, rownames(m)), , drop = FALSE]
+  if (!nrow(m)) return(invisible(TRUE))
+
+  .wb_ingest_space_matrix_long(con, space_id, m, source = source)
+}
+
+
+# Write a wide matrix (cells x dims) into space_coords long format
+.wb_ingest_space_matrix_long <- function(con, space_id, m, source = "ingest") {
+  if (is.data.frame(m)) m <- as.matrix(m)
+  .wb_assert(is.matrix(m), "m must be a matrix")
+  .wb_assert(!is.null(rownames(m)) && all(nzchar(rownames(m))), "m must have rownames (cell_id)")
 
   dims <- ncol(m)
-  .wb_ensure_space_registered(con, space_id, dims = dims, storage = "long:space_coords",
-                              source = "ingest", description = space_id)
+  .wb_assert(dims >= 1, "m has 0 columns")
 
-  # Write long format in chunks
-  chunk <- 20000
-  idx <- seq_len(nrow(m))
-  for (s in seq(1, length(idx), by = chunk)) {
-    ii <- idx[s:min(s + chunk - 1, length(idx))]
+  .wb_ensure_space_registered(
+    con, space_id,
+    dims = dims,
+    storage = "long:space_coords",
+    source = source,
+    description = space_id
+  )
+
+  # Chunk by cells (safe, simple)
+  chunk <- 2000L
+  r <- seq_len(nrow(m))
+  for (s in seq(1, length(r), by = chunk)) {
+    ii <- r[s:min(s + chunk - 1L, length(r))]
     sub <- m[ii, , drop = FALSE]
 
     df_long <- do.call(rbind, lapply(seq_len(dims), function(d) {
@@ -192,9 +342,11 @@ wb_ingest_cells <- function(
   invisible(TRUE)
 }
 
+
+# Register space in `spaces` if missing
 .wb_ensure_space_registered <- function(con, space_id, dims, storage, source, description) {
   exists <- DBI::dbGetQuery(con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id))
-  if (nrow(exists) == 0) {
+  if (!nrow(exists)) {
     DBI::dbWriteTable(con, "spaces", data.frame(
       space_id = space_id,
       source = source,
@@ -203,30 +355,17 @@ wb_ingest_cells <- function(
       description = description,
       stringsAsFactors = FALSE
     ), append = TRUE)
+  } else {
+    # keep existing, but ensure dims/storage are not empty
+    DBI::dbExecute(con, "
+      UPDATE spaces
+      SET dims = COALESCE(dims, ?),
+          storage = COALESCE(storage, ?),
+          source = COALESCE(source, ?),
+          description = COALESCE(description, ?)
+      WHERE space_id = ?;",
+                   params = list(as.integer(dims), storage, source, description, space_id)
+    )
   }
   invisible(TRUE)
 }
-
-.wb_coords_long_to_mat <- function(df) {
-  .wb_assert(is.data.frame(df), "coords long must be a data.frame")
-  .wb_assert(all(c("cell_id","dim","value") %in% colnames(df)),
-             "coords long must have columns: cell_id, dim, value")
-
-  df$cell_id <- as.character(df$cell_id)
-  df$dim <- as.integer(df$dim)
-
-  cells <- unique(df$cell_id)
-  dims  <- sort(unique(df$dim))
-
-  mat <- matrix(NA_real_, nrow = length(cells), ncol = length(dims))
-  rownames(mat) <- cells
-  colnames(mat) <- paste0("dim", dims)
-
-  i <- match(df$cell_id, cells)
-  j <- match(df$dim, dims)
-  mat[cbind(i, j)] <- as.numeric(df$value)
-
-  mat
-}
-
-

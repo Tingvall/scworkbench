@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrangler_plot_space_2d.R
 \name{wb_plot_space_2d}
 \alias{wb_plot_space_2d}
-\title{Plot a 2D space with projection-aware overlay semantics}
+\title{Plot a 2D space with overlay sets and per-set glyph styles}
 \usage{
 wb_plot_space_2d(
   bundle,
@@ -20,49 +20,10 @@ wb_plot_space_2d(
   overlay_outline = "grey20",
   label_groups = FALSE,
   label_by = NULL,
-  label_min_n = 50
+  label_min_n = 50,
+  debug = FALSE
 )
 }
-\arguments{
-\item{bundle}{Bundle handle}
-
-\item{space_id}{2D space id}
-
-\item{cell_set}{"core" | "all" | "set:\if{html}{\out{<name>}}"}
-
-\item{overlay_sets}{Optional character vector like c("set:tumorA","set:queryB").
-Only used when cell_set="all". If NULL, all non-core are overlaid.}
-
-\item{color_by}{One of:
-\itemize{
-\item NULL
-\item character(1): column name in SQLite \code{cells} table (e.g. "orig.ident")
-\item named vector: names are cell_id, values are the color variable
-\item data.frame with columns cell_id and value
-}}
-
-\item{color_label}{Legend title override (optional)}
-
-\item{base_alpha, base_size}{Background aesthetics (core)}
-
-\item{overlay_alpha, overlay_size}{Foreground aesthetics (non-core)}
-
-\item{overlay_shape}{Shape for overlay points (default 16)}
-
-\item{label_groups}{If TRUE, label group ids at centroids (e.g. cluster numbers)}
-
-\item{label_by}{Grouping used for centroid labels. If NULL, uses the plotted color variable.}
-
-\item{label_min_n}{Only label groups with at least this many cells}
-}
-\value{
-ggplot2 plot
-}
 \description{
-When cell_set = "all", core cells are drawn as a muted background layer
-and non-core cells (set:*) are drawn as an overlay foreground layer.
-}
-\details{
-A single color scale is used for both layers. Missing values (NA) are kept
-and displayed as grey.
+Plot a 2D space with overlay sets and per-set glyph styles
 }

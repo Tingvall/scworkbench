@@ -2,7 +2,7 @@
 % Please edit documentation in R/ingest_cells.R
 \name{wb_ingest_cells}
 \alias{wb_ingest_cells}
-\title{Ingest new cells into an existing bundle as a named cell set}
+\title{Ingest new cells into an existing bundle as a named membership-based cell set}
 \usage{
 wb_ingest_cells(
   bundle,
@@ -11,26 +11,43 @@ wb_ingest_cells(
   metadata = NULL,
   spaces = list(),
   matrices = list(),
-  overwrite = FALSE
+  overwrite = FALSE,
+  source = "ingest",
+  created_by = NULL
 )
 }
 \arguments{
 \item{bundle}{scworkbench bundle handle (opened)}
 
-\item{set_name}{Name of ingested set (stored as cell_set = "set:\if{html}{\out{<name>}}")}
+\item{set_name}{Name of ingested set (stored in membership as cell_set = "set:\if{html}{\out{<name>}}")}
 
 \item{cell_ids}{Character vector of new cell IDs}
 
-\item{metadata}{Optional data.frame with rownames or a cell_id column}
+\item{metadata}{Optional data.frame. First column treated as cell_id if no "cell_id" column.}
 
 \item{spaces}{Optional named list of spaces. Each entry can be:
 \itemize{
-\item data.frame(cell_id,x,y) for 2D, or
-\item matrix/data.frame with rownames=cell_id and columns=dims for high-D
+\item 2D wide df: first col cell_id, next cols x,y (no colnames required)
+\item high-D wide matrix/df: rownames=cell_id OR first col cell_id
+\item long df: first col cell_id, second col dim, third col value (no colnames required)
 }}
 
-\item{overwrite}{If TRUE, allows re-ingesting existing cell_ids (not recommended yet)}
+\item{matrices}{Optional named list passed to wb_attach_to_cells(matrices=...)}
+
+\item{overwrite}{If TRUE, allow re-ingesting existing cell_ids (NOT implemented yet)}
+
+\item{source}{Provenance string stored in membership rows / space registry}
+
+\item{created_by}{Optional provenance}
 }
 \description{
-Ingest new cells into an existing bundle as a named cell set
+\itemize{
+\item Inserts new rows into \code{cells} (cell_id + dataset_id)
+\item Writes membership rows into \code{cell_set_membership} for set:<set_name>
+\item Optionally ingests metadata and spaces for those cells
+\item Optionally ingests matrices via wb_attach_to_cells() (recommended canonical path)
+}
+}
+\details{
+NOTE: dev-mode, fresh bundles only: we do NOT use legacy \code{cells.cell_set}.
 }
