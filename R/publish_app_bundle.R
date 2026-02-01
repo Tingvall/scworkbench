@@ -344,7 +344,8 @@ wb_register_features_for_specs <- function(con, seurat, matrix_specs) {
   # new primitive
   .wb_ensure_matrix_fragments_table(con)
   .wb_ensure_cell_vectors_tables(con)
-  .wb_ensure_cell_set_styles_table()
+  .wb_ensure_cell_set_styles_table(con)
+
 
 
   # indices for long coords (created once)
@@ -515,6 +516,21 @@ publish_app_bundle <- function(
 
   DBI::dbExecute(con, "DELETE FROM cells;")
   DBI::dbWriteTable(con, "cells", cells_df, append = TRUE)
+  # ---- cell_set_membership: core membership for ALL published cells ----
+  .wb_ensure_cell_set_membership_table(con)
+
+  core_df <- data.frame(
+    cell_set    = "core",
+    cell_id     = cell_id,
+    source      = "publish",
+    created_at  = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+    created_by  = NA_character_,
+    description = "Published atlas core cells",
+    stringsAsFactors = FALSE
+  )
+
+  DBI::dbWriteTable(con, "cell_set_membership", core_df, append = TRUE)
+
 
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_cells_dataset  ON cells(dataset_id);")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_cells_cell_set ON cells(cell_set);")

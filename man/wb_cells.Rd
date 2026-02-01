@@ -4,14 +4,14 @@
 \alias{wb_cells}
 \title{List cell IDs in canonical bundle order}
 \usage{
-wb_cells(bundle, dataset_id = NULL, cell_set = "core")
+wb_cells(bundle, cell_set = "core", dataset_id = NULL)
 }
 \arguments{
 \item{bundle}{scworkbench bundle handle}
 
-\item{dataset_id}{Optional dataset filter}
-
 \item{cell_set}{Which cell set to use: "core" (default), "all", or "set:\if{html}{\out{<name>}}"}
+
+\item{dataset_id}{Optional dataset filter}
 }
 \description{
 List cell IDs in canonical bundle order

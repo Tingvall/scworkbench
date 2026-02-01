@@ -29,7 +29,7 @@ wb_attach_to_cells <- function(
   con <- bundle$con
 
   # ---- ensure tables exist ----
-  .wb_ensure_schema(con)
+  #.wb_ensure_schema(con)
   .wb_ensure_matrix_fragments_table(con)
 
   as_chr <- function(x) as.character(x)
