@@ -40,3 +40,38 @@
 
   df
 }
+
+# Order cell_ids by bundle canonical order (cells.rowid)
+# Internal helper used by selectors + wranglers.
+.wb_order_like_bundle <- function(bundle, cell_ids) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(is.character(cell_ids), "cell_ids must be character")
+
+  cell_ids <- unique(as.character(cell_ids))
+  if (!length(cell_ids)) return(character(0))
+
+  con <- bundle$con
+
+  # Use JSON IN because SQLite has param limits; you already use this pattern elsewhere.
+  js <- jsonlite::toJSON(as.list(cell_ids), auto_unbox = TRUE)
+
+  # Pull in canonical order. This also implicitly drops unknown ids (left join not needed).
+  ord <- DBI::dbGetQuery(
+    con,
+    "
+    SELECT c.cell_id
+    FROM cells c
+    WHERE c.cell_id IN (SELECT value FROM json_each(?))
+    ORDER BY c.rowid;
+    ",
+    params = list(js)
+  )$cell_id
+
+  # Preserve any ids not in cells (shouldn't happen for normal use, but keep deterministic)
+  # Append them in original input order at the end.
+  missing <- setdiff(cell_ids, ord)
+  if (length(missing)) ord <- c(ord, missing)
+
+  ord
+}
+
