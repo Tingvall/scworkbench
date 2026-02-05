@@ -6,17 +6,8 @@
 \usage{
 wb_sel_space_box(x, space_id, xmin, xmax, ymin, ymax, bundle = NULL)
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{space_id}{2D space id.}
-
-\item{xmin, xmax, ymin, ymax}{Box limits.}
-
-\item{bundle}{Optional bundle override.}
-}
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Select cells inside an axis-aligned box in a 2D space

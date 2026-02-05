@@ -14,22 +14,9 @@ wb_sel_expr(
   bundle = NULL
 )
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{matrix_id}{Matrix id.}
-
-\item{feature_id}{Feature id (gene/peak id depending on matrix).}
-
-\item{min, max}{Range filter.}
-
-\item{na.rm}{Drop NA before applying thresholds (TRUE recommended).}
-
-\item{bundle}{Optional bundle override.}
-}
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
-Uses wb_matrix_read_feature() and thresholds on the returned named vector.
+Select by expression of a single feature (scalar getter)
 }

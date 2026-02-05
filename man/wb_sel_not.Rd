@@ -6,15 +6,8 @@
 \usage{
 wb_sel_not(x, universe = NULL, bundle = NULL)
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{universe}{Optional universe; default all cells.}
-
-\item{bundle}{Optional bundle override.}
-}
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Negation (NOT): universe minus x

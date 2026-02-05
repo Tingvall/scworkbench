@@ -62,29 +62,28 @@
 # -------------------------
 
 #' Select all cells from a cell_set (optionally within a dataset)
-#'
-#' Pipe-friendly selector.
-#'
-#' @param x A bundle (start of pipeline) or a character vector of cell_ids (continuation).
-#' @param cell_set Cell set selector (e.g. "core", "all", "set:bulkers", "set:interesting").
-#' @param dataset_id Optional dataset filter.
-#' @param bundle Optional bundle when piping cell_ids without a bundle attribute (rare).
-#'
-#' @return Character vector of selected cell_ids, ordered like the bundle, with bundle attached.
+#' @inheritParams wb_sel_all
+#' @return Character vector of selected cell_ids, ordered like the bundle, with bundle + recipe attached.
 #' @export
 wb_sel_all <- function(x, cell_set = "core", dataset_id = NULL, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
   ids <- wb_cells(b, cell_set = cell_set, dataset_id = dataset_id)
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, ids), b)
+  out <- .wb_order_like_bundle(b, ids)
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(
+      sel  = "wb_sel_all",
+      args = list(cell_set = cell_set, dataset_id = dataset_id)
+    )
+  )
 }
 
 #' Select union of one or more named sets
-#'
-#' @param x Bundle (start) or cell_ids (continuation).
-#' @param sets Character vector of set selectors (e.g. c("set:bulkers","set:interesting")).
-#' @param bundle Optional bundle override.
-#'
-#' @return cell_ids (ordered, bundle-attached)
+#' @inheritParams wb_sel_set
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_set <- function(x, sets, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
@@ -95,19 +94,23 @@ wb_sel_set <- function(x, sets, bundle = NULL) {
 
   out <- unique(unlist(lapply(sets, function(s) wb_cells(b, cell_set = s)), use.names = FALSE))
   if (!is.null(base)) out <- intersect(base, out)
+  out <- .wb_order_like_bundle(b, out)
 
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, out), b)
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(
+      sel  = "wb_sel_set",
+      args = list(sets = sets)
+    )
+  )
 }
 
+
 #' Select by cell metadata column (categorical values or numeric range)
-#'
-#' @param x Bundle (start) or cell_ids (continuation).
-#' @param col Column name in the SQLite `cells` table.
-#' @param values Optional categorical selection: keep rows where col in values.
-#' @param min,max Optional numeric range selection.
-#' @param bundle Optional bundle override.
-#'
-#' @return cell_ids (ordered, bundle-attached)
+#' @inheritParams wb_sel_meta
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
@@ -125,8 +128,14 @@ wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = 
          AND "%s" IN (SELECT value FROM json_each(?))
        ORDER BY rowid;', col
     )
-    ids <- DBI::dbGetQuery(con, q, params = list(js, vals))$cell_id
-    return(.wb_sel_attach_bundle(as.character(ids), b))
+    ids <- as.character(DBI::dbGetQuery(con, q, params = list(js, vals))$cell_id)
+
+    return(.wb_sel_attach_bundle_recipe(
+      cell_ids = ids,
+      bundle   = b,
+      recipe_from = x,
+      step = list(sel="wb_sel_meta", args=list(col=col, values=as.character(values)))
+    ))
   }
 
   if (!is.null(min) || !is.null(max)) {
@@ -138,49 +147,47 @@ wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = 
          AND (? IS NULL OR "%s" <= ?)
        ORDER BY rowid;', col, col, col, col
     )
-    ids <- DBI::dbGetQuery(con, q, params = list(js, min, min, max, max))$cell_id
-    return(.wb_sel_attach_bundle(as.character(ids), b))
+    ids <- as.character(DBI::dbGetQuery(con, q, params = list(js, min, min, max, max))$cell_id)
+
+    return(.wb_sel_attach_bundle_recipe(
+      cell_ids = ids,
+      bundle   = b,
+      recipe_from = x,
+      step = list(sel="wb_sel_meta", args=list(col=col, min=min, max=max))
+    ))
   }
 
   stop("Provide either values= or min/max=", call. = FALSE)
 }
 
+
 #' Select by a registered cell vector (numeric)
-#'
-#' @param x Bundle (start) or cell_ids (continuation).
-#' @param vector_id Registered vector id (see wb_list_cell_vectors()).
-#' @param min,max Range filter.
-#' @param na.rm Drop NA values before applying thresholds.
-#' @param bundle Optional bundle override.
-#'
-#' @return cell_ids (ordered, bundle-attached)
+#' @inheritParams wb_sel_vector
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_vector <- function(x, vector_id, min = NULL, max = NULL, na.rm = TRUE, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
   base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
 
-  v <- wb_read_cell_vector(b, vector_id = vector_id, cell_ids = base) # named numeric
+  v <- wb_read_cell_vector(b, vector_id = vector_id, cell_ids = base)
   ok <- rep(TRUE, length(v))
   if (isTRUE(na.rm)) ok <- ok & !is.na(v)
   if (!is.null(min)) ok <- ok & (v >= min)
   if (!is.null(max)) ok <- ok & (v <= max)
 
-  out <- names(v)[ok]
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, out), b)
+  out <- .wb_order_like_bundle(b, names(v)[ok])
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_vector", args=list(vector_id=vector_id, min=min, max=max, na.rm=na.rm))
+  )
 }
 
 #' Select by expression of a single feature (scalar getter)
-#'
-#' Uses wb_matrix_read_feature() and thresholds on the returned named vector.
-#'
-#' @param x Bundle (start) or cell_ids (continuation).
-#' @param matrix_id Matrix id.
-#' @param feature_id Feature id (gene/peak id depending on matrix).
-#' @param min,max Range filter.
-#' @param na.rm Drop NA before applying thresholds (TRUE recommended).
-#' @param bundle Optional bundle override.
-#'
-#' @return cell_ids (ordered, bundle-attached)
+#' @inheritParams wb_sel_expr
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_expr <- function(x, matrix_id, feature_id, min = NULL, max = NULL,
                         na.rm = TRUE, bundle = NULL) {
@@ -190,87 +197,119 @@ wb_sel_expr <- function(x, matrix_id, feature_id, min = NULL, max = NULL,
 
   v <- wb_matrix_read_feature(
     b,
-    matrix_id = matrix_id,
+    matrix_id  = matrix_id,
     feature_id = feature_id,
-    cell_ids = base
-  ) # named numeric (may include NA depending on your getter behavior)
+    cell_ids   = base
+  )
 
   ok <- rep(TRUE, length(v))
   if (isTRUE(na.rm)) ok <- ok & !is.na(v)
   if (!is.null(min)) ok <- ok & (v >= min)
   if (!is.null(max)) ok <- ok & (v <= max)
 
-  out <- names(v)[ok]
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, out), b)
+  out <- .wb_order_like_bundle(b, names(v)[ok])
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_expr", args=list(matrix_id=matrix_id, feature_id=feature_id, min=min, max=max, na.rm=na.rm))
+  )
 }
 
+
 #' Select cells inside an axis-aligned box in a 2D space
-#'
-#' @param x Bundle (start) or cell_ids (continuation).
-#' @param space_id 2D space id.
-#' @param xmin,xmax,ymin,ymax Box limits.
-#' @param bundle Optional bundle override.
-#'
-#' @return cell_ids (ordered, bundle-attached)
+#' @inheritParams wb_sel_space_box
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_space_box <- function(x, space_id, xmin, xmax, ymin, ymax, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
   base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
 
-  df <- .wb_space_2d_safe(b, space_id = space_id, cells = base) # df(cell_id,x,y)
-  if (!nrow(df)) return(.wb_sel_attach_bundle(character(0), b))
+  df <- .wb_space_2d_safe(b, space_id = space_id, cells = base)
+  if (!nrow(df)) {
+    return(.wb_sel_attach_bundle_recipe(
+      cell_ids = character(0),
+      bundle   = b,
+      recipe_from = x,
+      step = list(sel="wb_sel_space_box", args=list(space_id=space_id, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax))
+    ))
+  }
 
   hit <- df$cell_id[
     df$x >= xmin & df$x <= xmax &
       df$y >= ymin & df$y <= ymax
   ]
 
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, hit), b)
+  out <- .wb_order_like_bundle(b, hit)
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_space_box", args=list(space_id=space_id, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax))
+  )
 }
+
 
 # -------------------------
 # Set algebra (pipe-friendly)
 # -------------------------
 
 #' Intersect (AND) one or more cell_id vectors
-#'
-#' Pipe-friendly: `bundle %>% wb_sel_all() %>% wb_sel_and(other_ids)`
-#'
-#' @param x Bundle (start) or cell_ids (continuation).
-#' @param ... One or more character vectors of cell_ids.
-#' @param universe Optional universe (defaults to "all" cells).
-#' @param bundle Optional bundle override.
-#'
-#' @return cell_ids (ordered, bundle-attached)
+#' @inheritParams wb_sel_and
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_and <- function(x, ..., universe = NULL, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
   base <- .wb_sel_resolve_cell_ids(x) %||% (universe %||% wb_cells(b, cell_set = "all"))
+
   sets <- list(...)
   out <- base
   for (s in sets) out <- intersect(out, as.character(s))
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, out), b)
+  out <- .wb_order_like_bundle(b, out)
+
+  parent_recipes <- lapply(sets, function(s) attr(s, "wb_recipe", exact = TRUE))
+  parent_recipes <- Filter(Negate(is.null), parent_recipes)
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_and", args=list(n_inputs=length(sets))),
+    parents = if (length(parent_recipes)) parent_recipes else NULL
+  )
 }
 
 #' Union (OR) one or more cell_id vectors
-#'
+#' @inheritParams wb_sel_or
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_or <- function(x, ..., universe = NULL, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
   base <- .wb_sel_resolve_cell_ids(x) %||% character(0)
+
   sets <- list(...)
   out <- unique(c(base, unlist(sets, use.names = FALSE)))
   if (!is.null(universe)) out <- intersect(out, as.character(universe))
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, out), b)
+  out <- .wb_order_like_bundle(b, out)
+
+  parent_recipes <- lapply(sets, function(s) attr(s, "wb_recipe", exact = TRUE))
+  parent_recipes <- Filter(Negate(is.null), parent_recipes)
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_or", args=list(n_inputs=length(sets), has_universe=!is.null(universe))),
+    parents = if (length(parent_recipes)) parent_recipes else NULL
+  )
 }
 
+
 #' Negation (NOT): universe minus x
-#'
-#' @param x Bundle (start) or cell_ids (continuation).
-#' @param universe Optional universe; default all cells.
-#' @param bundle Optional bundle override.
-#'
-#' @return cell_ids (ordered, bundle-attached)
+#' @inheritParams wb_sel_not
+#' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_not <- function(x, universe = NULL, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
@@ -278,7 +317,35 @@ wb_sel_not <- function(x, universe = NULL, bundle = NULL) {
   .wb_assert(!is.null(base), "wb_sel_not() must be called on cell_ids (e.g. after a selector).")
 
   uni <- as.character(universe %||% wb_cells(b, cell_set = "all"))
-  out <- setdiff(uni, base)
+  out <- .wb_order_like_bundle(b, setdiff(uni, base))
 
-  .wb_sel_attach_bundle(.wb_order_like_bundle(b, out), b)
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_not", args=list(has_universe = !is.null(universe)))
+  )
 }
+
+#' Get the recipe from a selector result
+#' @export
+wb_sel_recipe <- function(x) {
+  attr(x, "wb_recipe", exact = TRUE)
+}
+
+#' Print a compact recipe summary
+#' @export
+wb_sel_recipe_print <- function(x) {
+  r <- wb_sel_recipe(x)
+  if (is.null(r)) {
+    cat("<no recipe>\n")
+    return(invisible(NULL))
+  }
+  cat("wb_recipe v", r$version, " created_at=", r$created_at, "\n", sep = "")
+  for (i in seq_along(r$steps)) {
+    st <- r$steps[[i]]
+    cat(sprintf("  %02d) %s\n", i, st$sel))
+  }
+  invisible(r)
+}
+

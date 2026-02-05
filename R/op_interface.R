@@ -38,22 +38,24 @@
       description = "Fit a 2D UMAP from a high-dimensional space and persist model for later projection.",
       intent = c("embed", "projection"),
       inputs = list(
-        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
+        in_space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
       ),
       params = list(
         list(name="dims", type="int_range", default="2:30", help="Dims of source space to use."),
-        list(name="space_id_out", type="string", default=NULL, help="Output space id (default: umap.<source>)."),
+        list(name="space_id_out", type="string", default=NULL, help="Output space id (default: umap.<in_space>)."),
         list(name="n_neighbors", type="int", default=30, min=5, max=200, help="UMAP n_neighbors."),
         list(name="min_dist", type="dbl", default=0.3, min=0.0, max=1.0, help="UMAP min_dist."),
         list(name="metric", type="string", default="euclidean", help="Distance metric."),
         list(name="nn_method", type="string", default="nndescent", help="Nearest-neighbor method."),
         list(name="seed", type="int", default=1, help="Random seed.")
       ),
-      produces = list(
-        # “produces” is optional here since it’s a side-effect op (writes space_2d + model)
-        space_2d = list(kind="space", description="Creates a new 2D space and registers a persisted model.")
-      )
+      side_effects = list(
+        space_2d = list(kind="space_2d", description="Writes fitted embedding to space_2d and registers the space."),
+        model    = list(kind="space_model", description="Writes uwot model to disk and registers it in space_models.")
+      ),
+      produces = list()
     ),
+
     umap_transform = list(
       op_name = "umap_transform",
       title = "UMAP transform (project cells)",
@@ -61,23 +63,23 @@
       intent = c("projection", "umap"),
 
       inputs = list(
-        # high-D input space
-        # 2D model space (UMAP space that has stored model)
+        in_space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),
         model_space = list(required = TRUE, must_be_2d = TRUE, dims_min = 2, dims_max = 2)
       ),
 
       params = list(
         list(name = "dims", type = "int_range", default = NULL,
              help = "Dims to use from the input space (e.g. 2:30)."),
-        list(name = "cell_set", type = "string", default = "set:<name>",
-             help = "Which cells to project (typically an ingested set: set:<name>)."),
+        list(name = "cell_set", type = "string", default = "all",
+             help = "Which cells to project (e.g. 'set:bulkers')."),
         list(name = "overwrite", type = "bool", default = TRUE,
              help = "Overwrite existing projected coordinates for those cells.")
       ),
 
-      produces = list(
-        space_2d = list(kind = "space_2d", description = "Projected x/y written into space_2d for model_space.")
-      )
+      side_effects = list(
+        space_2d = list(kind = "space_2d", description = "Writes projected x/y into space_2d for model_space_id.")
+      ),
+      produces = list()
     ),
 
 

@@ -6,19 +6,8 @@
 \usage{
 wb_sel_meta(x, col, values = NULL, min = NULL, max = NULL, bundle = NULL)
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{col}{Column name in the SQLite \code{cells} table.}
-
-\item{values}{Optional categorical selection: keep rows where col in values.}
-
-\item{min, max}{Optional numeric range selection.}
-
-\item{bundle}{Optional bundle override.}
-}
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Select by cell metadata column (categorical values or numeric range)

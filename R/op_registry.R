@@ -1,31 +1,30 @@
 # Internal op registry (v1)
 # Declares which outputs of each op are saveable and how they should be promoted.
 
-.wb_op_registry <- function() {
+# ---- Op registry: define REQUIRED input TYPES and PRODUCED output TYPES ----
+.wb_session_op_registry <- function() {
   list(
+    leiden    = list(requires = c("space"),    produces = c("clusters")),
+    slingshot = list(requires = c("space_2d", "clusters"), produces = c("trajectory")),
 
-    leiden = list(
-      saveable_outputs = list(
-        labels = list(
-          artifact_type = "labels",
-          promoter = ".wb_promote_labels"
-        )
-      )
+
+    meanexpr = list(
+      requires  = c("matrix", "features"),
+      produces  = c("cell_vector") # or "cell_vector" if you treat scores as numeric vector primitive
     ),
 
-    slingshot = list(
-      saveable_outputs = list(
-        trajectory = list(
-          artifact_type = "trajectory",
-          promoter = ".wb_promote_trajectory_2d",
-          # hard dependency: needs labels
-          depends_on = "labels"
-        )
-      )
-    )
+    umap_fit = list(
+      requires  = c("space"),
+      produces  = c("space_2d")   # optional but useful for provenance
+    ),
 
+    umap_transform = list(
+      requires  = c("in_space", "model_space"),
+      produces  = c("space_2d")   # optional but useful for provenance
+    )
   )
 }
+
 
 .wb_op_spec <- function(op_name) {
   reg <- .wb_op_registry()

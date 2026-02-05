@@ -20,6 +20,40 @@ wb_op_umap_fit(
   verbose = FALSE
 )
 }
+\arguments{
+\item{bundle}{scworkbench bundle}
+
+\item{source_space_id}{High-D space id used for fitting (e.g. "lsi", "peakvi_latent")}
+
+\item{cells}{Optional explicit cell IDs to fit on. If NULL, uses cell_set.}
+
+\item{cell_set}{If cells is NULL, resolved via wb_cells(bundle, cell_set=cell_set)}
+
+\item{dims}{Optional dims to use (e.g. 2:30). If NULL uses all dims returned by wb_space().}
+
+\item{space_id_out}{2D space id to write. Default: paste0("umap.", source_space_id)}
+
+\item{n_neighbors, min_dist, metric, nn_method, spread}{UMAP parameters}
+
+\item{seed}{Random seed for reproducibility}
+
+\item{verbose}{Passed to uwot}
+}
+\value{
+list(
+space_2d = list(space_id, n, cell_set),
+model    = list(space_id, model_path),
+params   = list(...)
+)
+}
 \description{
-Fit UMAP from a high-D space and persist model for later transform
+Fits a 2D UMAP embedding from a high-dimensional space (e.g. LSI/PeakVI latent),
+writes the 2D coordinates to \code{space_2d}, and saves a uwot model to disk,
+registered in \code{space_models} for later \code{wb_op_umap_transform()}.
+}
+\details{
+Session contract:
+\itemize{
+\item produces: space_2d, model
+}
 }

@@ -6,6 +6,9 @@
 \usage{
 wb_sel_or(x, ..., universe = NULL, bundle = NULL)
 }
+\value{
+cell_ids (ordered, bundle-attached, recipe-attached)
+}
 \description{
 Union (OR) one or more cell_id vectors
 }

@@ -1,4 +1,28 @@
+# R/op_umap_fit.R
+
 #' Fit UMAP from a high-D space and persist model for later transform
+#'
+#' Fits a 2D UMAP embedding from a high-dimensional space (e.g. LSI/PeakVI latent),
+#' writes the 2D coordinates to `space_2d`, and saves a uwot model to disk,
+#' registered in `space_models` for later `wb_op_umap_transform()`.
+#'
+#' Session contract:
+#' - produces: space_2d, model
+#'
+#' @param bundle scworkbench bundle
+#' @param source_space_id High-D space id used for fitting (e.g. "lsi", "peakvi_latent")
+#' @param cells Optional explicit cell IDs to fit on. If NULL, uses cell_set.
+#' @param cell_set If cells is NULL, resolved via wb_cells(bundle, cell_set=cell_set)
+#' @param dims Optional dims to use (e.g. 2:30). If NULL uses all dims returned by wb_space().
+#' @param space_id_out 2D space id to write. Default: paste0("umap.", source_space_id)
+#' @param n_neighbors,min_dist,metric,nn_method,spread UMAP parameters
+#' @param seed Random seed for reproducibility
+#' @param verbose Passed to uwot
+#' @return list(
+#'   space_2d = list(space_id, n, cell_set),
+#'   model    = list(space_id, model_path),
+#'   params   = list(...)
+#' )
 #' @export
 wb_op_umap_fit <- function(bundle,
                            source_space_id,
@@ -13,30 +37,60 @@ wb_op_umap_fit <- function(bundle,
                            spread = 1.0,
                            seed = 1,
                            verbose = FALSE) {
+
   .wb_require_pkg("uwot", "UMAP fitting")
 
-  .wb_assert(is.character(source_space_id) && nzchar(source_space_id),
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(is.character(source_space_id) && length(source_space_id) == 1 && nzchar(source_space_id),
              "source_space_id must be a non-empty string.")
 
-  if (is.null(cells)) cells <- wb_cells(bundle, cell_set = "core")
+  # ---- Resolve cells ----
+  if (is.null(cells)) {
+    cells <- wb_cells(bundle, cell_set = cell_set)
+  }
   cells <- as.character(cells)
+  .wb_assert(length(cells) > 0, "umap_fit: resolved 0 cells.")
 
-  # Pull high-D coords (matrix)
+  # ---- Pull high-D coords -> X matrix ----
   S <- wb_space(bundle, space_id = source_space_id, cells = cells)
-  X <- .wb_as_coord_matrix(S)
-  .wb_assert(nrow(X) == length(cells), "Internal: wb_space returned unexpected rows.")
 
-  X <- .wb_select_dims(X, dims)  # will validate bounds
+  X <- S
+  if (is.data.frame(S) && all(c("cell_id","dim","value") %in% colnames(S))) {
+    X <- .wb_as_coord_matrix(S)
+  } else if (is.data.frame(S)) {
+    X <- as.matrix(S)
+  }
 
-  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) set.seed(1)
-  set.seed(as.integer(seed))
+  .wb_assert(is.matrix(X), "High-D space must yield a matrix after wb_space/.wb_as_coord_matrix().")
+  .wb_assert(!is.null(rownames(X)), "High-D coords must have rownames = cell_id.")
 
+  # reorder rows to match requested 'cells'
+  ii <- match(cells, rownames(X))
+  .wb_assert(!anyNA(ii), "Some requested cells are missing from source_space_id coords.")
+  X <- X[ii, , drop = FALSE]
+
+  # dims selection
+  dims_use <- dims
+  if (!is.null(dims_use)) {
+    X <- .wb_select_dims(X, dims_use)   # validates bounds & returns subset
+  } else {
+    # default = all columns in the returned matrix
+    dims_use <- seq_len(ncol(X))
+  }
+
+  .wb_assert(nrow(X) == length(cells), "Internal: X rows != length(cells) after reordering.")
+  .wb_assert(ncol(X) == length(dims_use), "Internal: X cols != length(dims_use) after dim selection.")
+
+  # ---- Decide output space id ----
   if (is.null(space_id_out) || !nzchar(space_id_out)) {
-    # Stable default: derived from source + cell role
     space_id_out <- paste0("umap.", source_space_id)
   }
 
-  # Fit UMAP
+  # ---- RNG ----
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) set.seed(1)
+  set.seed(as.integer(seed))
+
+  # ---- Fit UMAP ----
   fit <- uwot::umap(
     X,
     n_neighbors = as.integer(n_neighbors),
@@ -51,15 +105,6 @@ wb_op_umap_fit <- function(bundle,
   emb <- fit$embedding
   .wb_assert(is.matrix(emb) && ncol(emb) == 2, "uwot returned invalid embedding.")
 
-  uwot_args <- list(
-    n_neighbors = n_neighbors,
-    min_dist = min_dist,
-    nn_method = nn_method,
-    n_components = 2
-  )
-  uwot_args_json <- jsonlite::toJSON(uwot_args, auto_unbox = TRUE)
-
-
   df2 <- data.frame(
     cell_id = cells,
     x = as.numeric(emb[, 1]),
@@ -70,83 +115,72 @@ wb_op_umap_fit <- function(bundle,
   # ---- Persist embedding to bundle ----
   con <- bundle$con
 
-  # register 2D space in `spaces`
-  .wb_upsert_space_row(con,
-                       space_id = space_id_out,
-                       source = paste0("uwot_fit:", source_space_id),
-                       dims = 2L,
-                       storage = "wide:space_2d",
-                       description = paste0("UMAP fit from ", source_space_id, " (uwot)")
+  .wb_upsert_space_row(
+    con,
+    space_id = space_id_out,
+    source = paste0("uwot_fit:", source_space_id),
+    dims = 2L,
+    storage = "wide:space_2d",
+    description = paste0("UMAP fit from ", source_space_id, " (uwot)")
   )
 
-  # write coords
-  # (delete existing if re-fit same space_id_out)
-  DBI::dbExecute(con, "DELETE FROM space_2d WHERE space_id = ?;", params = list(space_id_out))
-  # df2 must contain: cell_id, x, y (n rows)
-  df2 <- df2[, c("cell_id","x","y")]
-  df2$cell_id <- as.character(df2$cell_id)
-
+  # overwrite semantics: deterministic rerun
   DBI::dbWithTransaction(con, {
-
-    # overwrite semantics for this space_id if you want deterministic reruns
     DBI::dbExecute(con, "DELETE FROM space_2d WHERE space_id = ?;", params = list(space_id_out))
 
-    stmt <- DBI::dbSendStatement(con,
-                                 "INSERT INTO space_2d(space_id, cell_id, x, y) VALUES(?, ?, ?, ?);"
+    stmt <- DBI::dbSendStatement(
+      con,
+      "INSERT INTO space_2d(space_id, cell_id, x, y) VALUES(?, ?, ?, ?);"
     )
     on.exit(DBI::dbClearResult(stmt), add = TRUE)
 
-    # Bind per-row (correct shape: list(space_id, cell_id, x, y))
+    # row-bind (good enough for now; can chunk like transform if needed)
     for (i in seq_len(nrow(df2))) {
       DBI::dbBind(stmt, params = list(
         space_id_out,
         df2$cell_id[i],
-        as.numeric(df2$x[i]),
-        as.numeric(df2$y[i])
+        df2$x[i],
+        df2$y[i]
       ))
     }
   })
 
-  # NOTE: above insert is illustrative; you probably already have a bulk insert helper.
-  # Use your existing ingestion helper for space_2d if you have one.
-
   # ---- Persist model to disk + register in space_models ----
   .wb_ensure_space_models_table(con)
+
   model_dir <- file.path(bundle$dir, "models", "umap")
   dir.create(model_dir, recursive = TRUE, showWarnings = FALSE)
+  .wb_assert(dir.exists(model_dir), paste0("Failed to create model directory: ", model_dir))
 
-  .wb_assert(dir.exists(model_dir),
-             paste0("Failed to create model directory: ", model_dir))
-
-
-  model_id <- paste0("umap_", space_id_out, "_", format(Sys.time(), "%Y%m%d%H%M%S"))
-  model_id <- paste0(
-    "umap_",
-    space_id_out,
-    "_",
-    format(Sys.time(), "%Y%m%d%H%M%S")
-  )
   model_file <- paste0(space_id_out, ".uwot")
   model_path_abs <- file.path(model_dir, model_file)
   model_path_rel <- file.path("models", "umap", model_file)
-  uwot::save_uwot(model = fit, file = model_path_abs, verbose = T)
-  #uwot::save_uwot(fit, file = model_path_abs)
 
-  # register model (1 per space_id)
-  # register model (1 per space_id)
-  con <- bundle$con
-  has_prov <- .wb_db_has_column(con, "space_models", "provenance_json")
+  uwot::save_uwot(model = fit, file = model_path_abs, verbose = isTRUE(verbose))
+
+  uwot_args <- list(
+    n_neighbors = n_neighbors,
+    min_dist = min_dist,
+    metric = metric,
+    nn_method = nn_method,
+    spread = spread,
+    n_components = 2
+  )
+
+  created_at <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
 
   provenance <- list(
     space_id = space_id_out,
     model_kind = "uwot_umap",
     source_space_id = source_space_id,
-    dims = dims,
+    dims = dims_use,
     cell_set = cell_set,
     uwot_args = uwot_args,
     seed = seed,
-    created_at = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+    created_at = created_at
   )
+
+  has_prov <- .wb_db_has_column(con, "space_models", "provenance_json")
 
   if (has_prov) {
     sql <- paste0(
@@ -169,17 +203,16 @@ wb_op_umap_fit <- function(bundle,
       space_id_out,
       "uwot_umap",
       source_space_id,
-      jsonlite::toJSON(as.list(dims), auto_unbox = TRUE),
+      jsonlite::toJSON(as.list(dims_use), auto_unbox = TRUE),
       cell_set,
       jsonlite::toJSON(uwot_args, auto_unbox = TRUE),
       if (is.null(seed)) NA_integer_ else as.integer(seed),
       model_path_rel,
-      provenance$created_at,
+      created_at,
       jsonlite::toJSON(provenance, auto_unbox = TRUE)
     )
 
   } else {
-    # older bundles: no provenance_json column
     sql <- paste0(
       "INSERT INTO space_models(",
       " space_id, model_type, source_space_id, dims_json, cell_set, uwot_args_json, seed, model_path, created_at",
@@ -199,26 +232,33 @@ wb_op_umap_fit <- function(bundle,
       space_id_out,
       "uwot_umap",
       source_space_id,
-      jsonlite::toJSON(as.list(dims), auto_unbox = TRUE),
+      jsonlite::toJSON(as.list(dims_use), auto_unbox = TRUE),
       cell_set,
       jsonlite::toJSON(uwot_args, auto_unbox = TRUE),
       if (is.null(seed)) NA_integer_ else as.integer(seed),
       model_path_rel,
-      provenance$created_at
+      created_at
     )
   }
 
   DBI::dbExecute(con, sql, params = params)
 
+  # ---- Session-facing return contract ----
   list(
-    space_id = space_id_out,
-    coords = df2,
-    model_path = model_path_rel,
+    space_2d = list(
+      space_id = space_id_out,
+      n = nrow(df2),
+      cell_set = cell_set
+    ),
+    model = list(
+      space_id = space_id_out,
+      model_path = model_path_rel
+    ),
     params = list(
       source_space_id = source_space_id,
       space_id_out = space_id_out,
-      dims = dims,
-      cell_set = "core",
+      dims = dims_use,
+      cell_set = cell_set,
       seed = seed,
       uwot = uwot_args
     )

@@ -122,13 +122,20 @@ wb_op_umap_transform <- function(bundle,
   on.exit(NULL, add = FALSE)
 
   list(
-    n_projected = nrow(df2),
+    space_2d = list(
+      space_id = model_space_id,
+      cell_ids = cells,
+      n = nrow(df2)
+    ),
+    n_projected = nrow(df2),   # keep for convenience if you like
     params = list(
       model_space_id = model_space_id,
-      in_space_id = in_space_id,
-      dims = dims_use,
-      cell_set = cell_set
+      in_space_id    = in_space_id,
+      dims           = dims_use,
+      cell_set       = cell_set,
+      overwrite      = overwrite
     )
   )
+
 }
 

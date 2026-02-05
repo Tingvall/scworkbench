@@ -183,7 +183,6 @@ wb_op_leiden <- function(bundle,
     )
   }
 
-
   if (!is.null(seed)) {
     old <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) .Random.seed else NULL
     on.exit({ if (!is.null(old)) .Random.seed <<- old }, add = TRUE)
@@ -200,8 +199,6 @@ wb_op_leiden <- function(bundle,
   )
 
   g <- knn$graph
-
-  # Use weights if present
   use_w <- isTRUE(weight) && "weight" %in% igraph::edge_attr_names(g)
 
   cl <- igraph::cluster_leiden(
@@ -213,19 +210,22 @@ wb_op_leiden <- function(bundle,
   )
 
   memb <- igraph::membership(cl)
-
-  # membership is named by vertex sequence; map to cell IDs
   cell_ids <- igraph::V(g)$name
-  clusters <- as.integer(memb)
+  clusters <- as.character(as.integer(memb))
 
-  labels <- data.frame(
-    cell_id = cell_ids,
-    cluster = as.character(clusters),
-    stringsAsFactors = FALSE
+  # ---- primitive output ----
+  clusters_vec <- wb_prim_cell_vector(
+    x = setNames(as.character(clusters), as.character(cell_ids)),
+    value_type = "categorical"
   )
+  clusters_vec$meta <- list(label = "Leiden clusters")
+
 
   list(
-    labels = labels,
+    outputs = list(
+      clusters = clusters_vec
+    ),
+    # keep if you want debug access; session/promotion can ignore
     graph = g,
     params = list(
       space_id = space_id,
@@ -239,4 +239,5 @@ wb_op_leiden <- function(bundle,
     )
   )
 }
+
 

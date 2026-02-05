@@ -225,3 +225,6 @@ wb_op_cells_top_n_by <- function(bundle, by, n = 10, cells = NULL, drop_na = TRU
   tab <- tab[order(tab$n_cells, decreasing = TRUE), , drop = FALSE]
   head(tab$group, n)
 }
+
+
+

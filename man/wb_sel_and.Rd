@@ -6,18 +6,9 @@
 \usage{
 wb_sel_and(x, ..., universe = NULL, bundle = NULL)
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{...}{One or more character vectors of cell_ids.}
-
-\item{universe}{Optional universe (defaults to "all" cells).}
-
-\item{bundle}{Optional bundle override.}
-}
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
-Pipe-friendly: \code{bundle \%>\% wb_sel_all() \%>\% wb_sel_and(other_ids)}
+Intersect (AND) one or more cell_id vectors
 }

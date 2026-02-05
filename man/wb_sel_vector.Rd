@@ -13,19 +13,8 @@ wb_sel_vector(
   bundle = NULL
 )
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{vector_id}{Registered vector id (see wb_list_cell_vectors()).}
-
-\item{min, max}{Range filter.}
-
-\item{na.rm}{Drop NA values before applying thresholds.}
-
-\item{bundle}{Optional bundle override.}
-}
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Select by a registered cell vector (numeric)

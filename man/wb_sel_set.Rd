@@ -6,15 +6,8 @@
 \usage{
 wb_sel_set(x, sets, bundle = NULL)
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{sets}{Character vector of set selectors (e.g. c("set:bulkers","set:interesting")).}
-
-\item{bundle}{Optional bundle override.}
-}
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Select union of one or more named sets
