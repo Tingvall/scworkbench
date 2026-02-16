@@ -3,6 +3,12 @@ test_all <- function(bundle_dir){
   if (exists("test_primitives_contract", mode = "function")) {
     stopifnot(test_primitives_contract())
   }
+  if (exists("test_foundation_data_getters_selectors", mode = "function")) {
+    stopifnot(test_foundation_data_getters_selectors(bundle_dir))
+  }
+  if (exists("test_foundation_hardening_1to5", mode = "function")) {
+    stopifnot(test_foundation_hardening_1to5(bundle_dir))
+  }
 
   cat("Opening bundle\n")
   b <- wb_open_bundle(bundle_dir)
@@ -35,15 +41,15 @@ test_all <- function(bundle_dir){
   meta_20  <- wb_meta(b, cells = cells_20, cols = c("cell_id", "dataset_id"))
   stopifnot(identical(meta_20$cell_id, cells_20))
 
-  cat("Features registry + ordering per assay\n")
+  cat("Features registry + ordering per matrix_id\n")
 
   if (nrow(mats) > 0) {
-    assay <- mats$assay[1]
-    fids  <- wb_feature_ids(b, assay)
+    mid <- mats$matrix_id[1]
+    fids  <- wb_feature_ids(b, mid)
     stopifnot(length(fids) > 0)
 
     # check features table contains them
-    ftab <- wb_features(b, assay = assay)
+    ftab <- wb_features(b, matrix_id = mid)
     stopifnot(all(fids %in% ftab$feature_id))
   }
   cat("BPCells handle opens + dimension sanity\n")
@@ -59,9 +65,8 @@ test_all <- function(bundle_dir){
   cat("BPCells slice path (small slice → sparse Matrix)\n")
   if (nrow(mats) > 0) {
     mid <- mats$matrix_id[1]
-    assay <- mats$assay[1]
 
-    feat10 <- head(wb_feature_ids(b, assay), 10)
+    feat10 <- head(wb_feature_ids(b, mid), 10)
     cell50 <- head(wb_cells(b), 50)
 
     x <- wb_slice(b, mid, features = feat10, cells = cell50)
@@ -73,9 +78,8 @@ test_all <- function(bundle_dir){
   cat("Vector getter agrees with slice\n")
   if (nrow(mats) > 0) {
     mid <- mats$matrix_id[1]
-    assay <- mats$assay[1]
 
-    gene <- wb_feature_ids(b, assay)[1]
+    gene <- wb_feature_ids(b, mid)[1]
     cell50 <- head(wb_cells(b), 50)
 
     v <- wb_vector(b, mid, gene, cells = cell50)

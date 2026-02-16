@@ -91,11 +91,12 @@ wb_resolve_cell_vector <- function(bundle, x, runs = NULL, cell_ids = NULL, key 
   .wb_assert(.wb_is_primitive(prim), "wb_resolve_cell_vector(): resolved object is not a wb_primitive")
 
   if (identical(prim$kind, "cell_vector")) {
-    v <- as.character(prim$value)
+    is_cont <- identical(prim$value_type %||% "", "continuous") || is.numeric(prim$value)
+    v <- if (is_cont) as.numeric(prim$value) else as.character(prim$value)
     names(v) <- as.character(prim$cell_id)
 
     # subset and preserve order, NA for missing
-    out <- rep(NA_character_, length(cell_ids))
+    out <- if (is_cont) rep(NA_real_, length(cell_ids)) else rep(NA_character_, length(cell_ids))
     names(out) <- cell_ids
     hit <- intersect(cell_ids, names(v))
     out[hit] <- v[hit]
@@ -218,4 +219,3 @@ wb_vector_ref_to_spec <- function(ref) {
 
   stop("Unknown ref format: ", ref, call. = FALSE)
 }
-
