@@ -187,6 +187,39 @@
   raw
 }
 
+.wb_runner_knn_pseudobulk <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "knn_pseudobulk runner: missing resolved$matrix.")
+  .wb_assert(!is.null(resolved$space), "knn_pseudobulk runner: missing resolved$space.")
+  .wb_assert(!is.null(inputs$query_cells), "knn_pseudobulk runner: inputs$query_cells is required.")
+
+  matrix_id <- resolved$matrix$matrix_id
+  space_id <- resolved$space$space_id
+
+  query_cells <- .wb_resolve_group_cells(bundle, inputs$query_cells, effective_cells)
+  candidate_cells <- if (!is.null(inputs$candidate_cells)) {
+    .wb_resolve_group_cells(bundle, inputs$candidate_cells, effective_cells)
+  } else {
+    as.character(effective_cells)
+  }
+
+  raw <- wb_op_knn_pseudobulk(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    space_id = space_id,
+    query_cells = query_cells,
+    candidate_cells = candidate_cells,
+    features = inputs$features %||% NULL,
+    k = inputs$k %||% 100,
+    include_query = inputs$include_query %||% FALSE,
+    aggregate = inputs$aggregate %||% "sum",
+    ...
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "knn_pseudobulk must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 # Canonical op catalog.
 # Add new ops in one place only: contract + wrangler + interface metadata.
 .wb_op_catalog <- function() {
@@ -360,6 +393,49 @@
         markers = list(
           kind = "feature_table",
           description = "Cluster-marker table with per-feature statistics."
+        )
+      )
+    ),
+    knn_pseudobulk = list(
+      op_name = "knn_pseudobulk",
+      title = "kNN Pseudobulk Around Query Cell(s)",
+      description = "Find k nearest neighbors in latent space around query cells and aggregate matrix values.",
+      intent = c("pseudobulk", "neighbors", "projection"),
+      requires = list(matrix = "matrix", space = "space"),
+      produces = list(
+        pseudobulk_table = "feature_table",
+        neighbor_distance = "cell_vector_family"
+      ),
+      promotable = c("pseudobulk_table", "neighbor_distance"),
+      runner = .wb_runner_knn_pseudobulk,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix"),
+        space = list(required = TRUE, kind = "space")
+      ),
+      params = list(
+        list(name = "query_cells", type = "cell_ids_or_set", default = NULL,
+             help = "Query cells: explicit IDs or 'set:<name>'"),
+        list(name = "candidate_cells", type = "cell_ids_or_set", default = NULL,
+             help = "Optional candidate neighbor pool; defaults to effective cells."),
+        list(name = "features", type = "string_vec", default = NULL,
+             help = "Optional feature subset for pseudobulk output."),
+        list(name = "k", type = "int", default = 100, min = 1, max = 50000,
+             help = "Nearest neighbors per query cell."),
+        list(name = "include_query", type = "bool", default = FALSE,
+             help = "Include query cells themselves when they are in candidate pool."),
+        list(name = "aggregate", type = "string", default = "sum",
+             help = "Aggregation mode: sum or mean.")
+      ),
+      interface_produces = list(
+        pseudobulk_table = list(
+          kind = "feature_table",
+          description = "Feature-level pseudobulk values keyed by query cell."
+        ),
+        neighbor_distance = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "query_cell_id",
+          description = "Neighbor distances per query cell."
         )
       )
     ),
