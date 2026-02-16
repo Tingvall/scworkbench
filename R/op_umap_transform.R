@@ -121,21 +121,26 @@ wb_op_umap_transform <- function(bundle,
   DBI::dbExecute(con, "COMMIT;")
   on.exit(NULL, add = FALSE)
 
+  out_space_2d <- list(
+    space_id = model_space_id,
+    cell_ids = cells,
+    n = nrow(df2)
+  )
+  out_params <- list(
+    model_space_id = model_space_id,
+    in_space_id = in_space_id,
+    dims = dims_use,
+    cell_set = cell_set,
+    overwrite = overwrite
+  )
+
   list(
-    space_2d = list(
-      space_id = model_space_id,
-      cell_ids = cells,
-      n = nrow(df2)
+    outputs = list(
+      space_2d = wb_prim_space_2d(model_space_id)
     ),
-    n_projected = nrow(df2),   # keep for convenience if you like
-    params = list(
-      model_space_id = model_space_id,
-      in_space_id    = in_space_id,
-      dims           = dims_use,
-      cell_set       = cell_set,
-      overwrite      = overwrite
-    )
+    space_2d = out_space_2d,
+    n_projected = nrow(df2),
+    params = out_params
   )
 
 }
-

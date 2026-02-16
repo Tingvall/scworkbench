@@ -244,23 +244,38 @@ wb_op_umap_fit <- function(bundle,
   DBI::dbExecute(con, sql, params = params)
 
   # ---- Session-facing return contract ----
+  # Keep top-level metadata fields for direct callers, but always expose
+  # canonical primitive outputs for session dispatch.
+  out_space_2d <- list(
+    space_id = space_id_out,
+    n = nrow(df2),
+    cell_set = cell_set
+  )
+  out_model <- list(
+    space_id = space_id_out,
+    model_path = model_path_rel
+  )
+  out_params <- list(
+    source_space_id = source_space_id,
+    space_id_out = space_id_out,
+    dims = dims_use,
+    cell_set = cell_set,
+    seed = seed,
+    uwot = uwot_args
+  )
+
   list(
-    space_2d = list(
-      space_id = space_id_out,
-      n = nrow(df2),
-      cell_set = cell_set
+    outputs = list(
+      model = wb_prim_model_ref(
+        model_space_id = space_id_out,
+        in_space_id = source_space_id,
+        engine = "uwot",
+        artifact_id = NULL
+      ),
+      space_2d = wb_prim_space_2d(space_id_out)
     ),
-    model = list(
-      space_id = space_id_out,
-      model_path = model_path_rel
-    ),
-    params = list(
-      source_space_id = source_space_id,
-      space_id_out = space_id_out,
-      dims = dims_use,
-      cell_set = cell_set,
-      seed = seed,
-      uwot = uwot_args
-    )
+    space_2d = out_space_2d,
+    model = out_model,
+    params = out_params
   )
 }

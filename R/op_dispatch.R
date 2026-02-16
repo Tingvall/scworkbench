@@ -1,8 +1,3 @@
-# R/op_dispatch.R  (NEW CANONICAL OP REGISTRY + RUNNERS)
-# Replace your old .wb_op_dispatch_registry() completely.
-# Session should call ops via: op <- .wb_ops()[[op_name]] ; op$runner(...)
-
-
 .wb_op_dispatch_registry <- function() {
 
   # pass-through dots (excluding keys we explicitly manage)
@@ -30,23 +25,9 @@
         ), dots)
       )
 
-      # raw op may already return normalized {outputs, params}
-      if (!is.null(raw$outputs) && is.list(raw$outputs)) return(raw)
-
-      # otherwise normalize legacy return (labels df -> primitive)
-      .wb_assert(!is.null(raw$labels), "leiden op must return labels (legacy) or outputs (new).")
-      labs <- raw$labels
-      .wb_assert(is.data.frame(labs) && all(c("cell_id","cluster") %in% names(labs)),
-                 "leiden legacy labels must be data.frame(cell_id, cluster).")
-
-      cl <- as.character(labs$cluster); names(cl) <- as.character(labs$cell_id)
-
-      list(
-        outputs = list(
-          clusters = wb_prim_cell_vector(cl, value_type = "categorical")
-        ),
-        params = raw$params %||% list()
-      )
+      .wb_assert(is.list(raw) && is.list(raw$outputs),
+                 "leiden must return list(outputs=<list>, params=<list>).")
+      raw
     },
 
     # ---- SLINGSHOT ----
@@ -118,26 +99,9 @@
         ), dots)
       )
 
-      # If your wb_op_umap_fit already returns normalized outputs, keep it.
-      if (!is.null(raw$outputs) && is.list(raw$outputs)) return(raw)
-
-      # Otherwise normalize legacy return shape from wb_op_umap_fit().
-      # Expected raw fields include raw$model$space_id and/or raw$space_2d$space_id.
-      model_space_id <- raw$model$space_id %||% raw$space_2d$space_id %||% space_id_out
-      fit_in_space_id <- source_space_id
-
-      list(
-        outputs = list(
-          model = wb_prim_model_ref(
-            model_space_id = model_space_id,   # where the model lives / identifies
-            in_space_id    = fit_in_space_id,  # the training source space
-            engine         = "uwot",
-            artifact_id    = NULL
-          ),
-          space_2d = wb_prim_space_2d(model_space_id)
-        ),
-        params = raw$params %||% list()
-      )
+      .wb_assert(is.list(raw) && is.list(raw$outputs),
+                 "umap_fit must return list(outputs=<list>, params=<list>).")
+      raw
 
     },
 
@@ -186,12 +150,9 @@
         ), dots)
       )
 
-      if (!is.null(raw$outputs) && is.list(raw$outputs)) return(raw)
-
-      list(
-        outputs = list(space_2d = wb_prim_space_2d(model_space_id)),
-        params  = raw$params %||% list()
-      )
+      .wb_assert(is.list(raw) && is.list(raw$outputs),
+                 "umap_transform must return list(outputs=<list>, params=<list>).")
+      raw
     }
 
 
