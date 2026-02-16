@@ -3,7 +3,7 @@ wb_matrix_fragments <- function(bundle, matrix_id) {
   .wb_assert(is.character(matrix_id) && nzchar(matrix_id), "matrix_id invalid")
   con <- bundle$con
 
-  .wb_ensure_matrix_fragments_table(con)
+
 
   DBI::dbGetQuery(
     con,

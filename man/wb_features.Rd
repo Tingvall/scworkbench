@@ -4,18 +4,19 @@
 \alias{wb_features}
 \title{Get features registry}
 \usage{
-wb_features(bundle, assay = NULL, feature_type = NULL)
+wb_features(bundle, matrix_id = NULL, feature_type = NULL)
 }
 \arguments{
-\item{bundle}{Bundle handle from \code{wb_open_bundle()}}
+\item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
 
-\item{assay}{Optional assay filter (exact match)}
+\item{matrix_id}{Optional matrix identifier (exact match). If NULL, returns all features.}
 
-\item{feature_type}{Optional feature_type filter (e.g. "gene", "peak")}
+\item{feature_type}{Optional feature_type filter (e.g. "gene", "peak").}
 }
 \value{
-A data.frame of features
+A data.frame with columns:
+matrix_id, feature_id, feature_type, chr, start, end
 }
 \description{
-Get features registry
+Returns the registered features for a matrix (matrix_id-first world).
 }

@@ -7,10 +7,6 @@
 #
 # Output names are the run output names: clusters, pseudotime, curves, space_2d, model, ...
 # Artifact type is determined from primitive kind.
-wb_is_run <- function(x) inherits(x, "wb_run")
-
-.wb_is_primitive <- function(x) inherits(x, "wb_primitive") && is.list(x) && !is.null(x$kind)
-
 # ---- mapping: primitive kind -> promoter function ----
 # Keep this small. This is your "promotion kernel".
 .wb_promoters_by_kind <- function() {
@@ -168,18 +164,6 @@ wb_promote_analysis <- function(bundle,
          paste0(sample(c(0:9, letters), 8, TRUE), collapse=""))
 }
 
-# Minimal helper for provenance
-.wb_prov_json <- function(run, parent_artifacts) {
-  jsonlite::toJSON(list(
-    run_id = run$run_id,
-    op_name = run$op_name,
-    created_at = run$created_at %||% NA_character_,
-    inputs = run$inputs %||% list(),
-    params = run$params %||% list(),
-    notes  = run$notes %||% NULL,
-    parent_artifacts = parent_artifacts
-  ), auto_unbox = TRUE)
-}
 
 # ---- cell_vector -> artifacts + artifact_labels ----
 # Your existing schema already has artifacts + artifact_labels; we use it.
@@ -214,8 +198,8 @@ wb_promote_analysis <- function(bundle,
     created_at,
     created_by %||% NA_character_,
     run$op_name,
-    run$inputs$space_id %||% NA_character_,
-    run$inputs$matrix_id %||% NA_character_,
+    .wb_run_input_space_id(run),
+    .wb_run_input_matrix_id(run),
     run$inputs$cell_set %||% "all",
     prov_json,
     as.character(utils::packageVersion("scworkbench"))
@@ -265,8 +249,8 @@ wb_promote_analysis <- function(bundle,
     created_at,
     created_by %||% NA_character_,
     run$op_name,
-    run$inputs$space_id %||% NA_character_,
-    run$inputs$matrix_id %||% NA_character_,
+    .wb_run_input_space_id(run),
+    .wb_run_input_matrix_id(run),
     run$inputs$cell_set %||% "all",
     prov_json,
     as.character(utils::packageVersion("scworkbench"))
@@ -320,8 +304,8 @@ wb_promote_analysis <- function(bundle,
     created_at,
     created_by %||% NA_character_,
     run$op_name,
-    run$inputs$space_id %||% NA_character_,
-    run$inputs$matrix_id %||% NA_character_,
+    .wb_run_input_space_id(run),
+    .wb_run_input_matrix_id(run),
     run$inputs$cell_set %||% "all",
     prov_json,
     as.character(utils::packageVersion("scworkbench"))
@@ -383,7 +367,7 @@ wb_promote_analysis <- function(bundle,
     created_by %||% NA_character_,
     run$op_name,
     space_id,
-    run$inputs$matrix_id %||% NA_character_,
+    .wb_run_input_matrix_id(run),
     run$inputs$cell_set %||% "all",
     prov_json,
     as.character(utils::packageVersion("scworkbench"))
@@ -431,8 +415,8 @@ wb_promote_analysis <- function(bundle,
     created_at,
     created_by %||% NA_character_,
     run$op_name,
-    run$inputs$space_id %||% NA_character_,
-    run$inputs$matrix_id %||% NA_character_,
+    .wb_run_input_space_id(run),
+    .wb_run_input_matrix_id(run),
     run$inputs$cell_set %||% "all",
     prov_json,
     as.character(utils::packageVersion("scworkbench"))
@@ -527,4 +511,30 @@ wb_migrate_artifacts <- function(bundle) {
 
 
   invisible(TRUE)
+}
+
+#' @keywords internal
+.wb_run_input_space_id <- function(run) {
+  # 1) Prefer op params (best canonical)
+  x <- run$params$space_id %||% NULL
+  if (!is.null(x) && length(x) == 1 && nzchar(x)) return(as.character(x))
+
+  # 2) Fall back to user_inputs (covers old runs / ops that didn't set params)
+  ui <- run$inputs$user_inputs %||% list()
+  x <- ui$space_id %||% ui$space %||% ui$space_2d %||% ui$in_space %||% ui$in_space_id %||% NULL
+  if (!is.null(x) && length(x) == 1 && nzchar(x)) return(as.character(x))
+
+  NA_character_
+}
+
+#' @keywords internal
+.wb_run_input_matrix_id <- function(run) {
+  x <- run$params$matrix_id %||% NULL
+  if (!is.null(x) && length(x) == 1 && nzchar(x)) return(as.character(x))
+
+  ui <- run$inputs$user_inputs %||% list()
+  x <- ui$matrix_id %||% ui$matrix %||% NULL
+  if (!is.null(x) && length(x) == 1 && nzchar(x)) return(as.character(x))
+
+  NA_character_
 }

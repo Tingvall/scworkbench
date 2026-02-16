@@ -90,8 +90,20 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   res
 }
 
+
 .wb_effective_cells <- function(bundle, cell_set, inputs, op_name, min_cells = 10) {
-  cov <- wb_cell_coverage(bundle, cell_set, inputs)
+
+  # NEW: explicit cell_ids override the "requested" universe
+  requested_cells <- NULL
+  if (!is.null(inputs$cell_ids)) {
+    requested_cells <- as.character(inputs$cell_ids)
+    requested_cells <- unique(requested_cells[nzchar(requested_cells)])
+    .wb_assert(length(requested_cells) > 0, "inputs$cell_ids provided but empty.")
+  } else {
+    requested_cells <- wb_cells(bundle, cell_set = cell_set)
+  }
+
+  cov <- wb_cell_coverage(bundle, cell_set, inputs)  # you may want to also let coverage use cell_ids (optional)
 
   if (cov$effective < min_cells) {
     msg <- paste0(
@@ -111,7 +123,9 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   }
 
   # return actual cell IDs
-  cells <- wb_cells(bundle, cell_set = cell_set)
+  cells <- requested_cells
+
+  # apply per-input availability intersections
   for (k in names(inputs)) {
     if (k == "space_id") {
       cells <- intersect(cells, wb_cells_with_space(bundle, inputs$space_id, inputs$dims %||% NULL))
@@ -120,8 +134,14 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
       cells <- intersect(cells, wb_cells_with_matrix(bundle, inputs$matrix_id))
     }
   }
+
+  .wb_assert(length(cells) >= min_cells,
+             paste0("Op '", op_name, "' cannot run: effective cells < min_cells after intersections."))
+
   cells
 }
+
+
 
 .wb_resolve_effective_cells_for_op <- function(bundle, op_name, cell_set,
                                                inputs = list(),

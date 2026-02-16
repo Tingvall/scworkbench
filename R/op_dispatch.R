@@ -3,43 +3,6 @@
 # Session should call ops via: op <- .wb_ops()[[op_name]] ; op$runner(...)
 
 
-# ---- Canonical op registry ----
-# Each op entry:
-# - requires: named list input_name -> primitive kind
-# - produces: named list output_name -> primitive kind
-# - promotable: which outputs can be persisted
-# - runner: MUST return list(outputs=<named list of primitives>, params=<list>)
-.wb_ops <- function() {
-  list(
-    leiden = list(
-      requires   = list(space = "space"),
-      produces   = list(clusters = "cell_vector"),
-      runner     = .wb_get_op_runner("leiden"),
-      promotable = c("clusters")
-    ),
-    slingshot = list(
-      requires   = list(space_2d = "space_2d", clusters = "cell_vector"),
-      produces   = list(pseudotime = "cell_vector_family", curves = "path_2d_family"),
-      runner     = .wb_get_op_runner("slingshot"),
-      promotable = c("pseudotime","curves")
-    ),
-    umap_fit = list(
-      requires   = list(space = "space"),
-      produces   = list(space_2d = "space_2d", model = "model_ref"),
-      runner     = .wb_get_op_runner("umap_fit"),
-      promotable = c("space_2d","model")
-    ),
-    umap_transform = list(
-      requires   = list(in_space = "space", model = "model_ref"),
-      produces   = list(space_2d = "space_2d"),
-      runner     = .wb_get_op_runner("umap_transform"),
-      promotable = c("space_2d")
-    )
-  )
-}
-
-
-
 .wb_op_dispatch_registry <- function() {
 
   # pass-through dots (excluding keys we explicitly manage)
@@ -161,31 +124,40 @@
       # Otherwise normalize: it writes to bundle; outputs are references
       list(
         outputs = list(
-          space_2d = wb_prim_space_2d(space_id_out),
-          # model_ref primitive not shown in your list; keep as a placeholder primitive if you have one
-          model   = structure(list(kind="model_ref", space_id=space_id_out), class="wb_primitive")
+          model_ref = wb_prim_model_ref(
+            model_space_id = model_space_id,   # where the model lives / identifies
+            in_space_id    = space_id,         # the training source space
+            engine         = "uwot",
+            artifact_id    = artifact_id %||% NULL
+          ),
+          space_2d = wb_prim_space_2d(model_space_id)
         ),
         params = raw$params %||% list()
       )
+
     },
 
-    # ---- UMAP TRANSFORM ----
+    # ---- UMAP TRANSFORM (modern) ----
     umap_transform = function(bundle, resolved, effective_cells, inputs = list(), ...) {
-      .wb_assert(!is.null(resolved$in_space), "umap_transform runner: missing resolved$in_space.")
-      .wb_assert(!is.null(resolved$model),    "umap_transform runner: missing resolved$model.")
-      .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
-                 "umap_transform runner: effective_cells is empty.")
+      .wb_assert(!is.null(resolved$in_space),   "umap_transform runner: missing resolved$in_space.")
+      .wb_assert(!is.null(resolved$model_ref), "umap_transform runner: missing resolved$model_ref.")
+      .wb_assert(length(effective_cells) > 0,  "umap_transform runner: effective_cells is empty.")
 
       in_space_id <- resolved$in_space$space_id
 
-      # model_ref: you likely store space_id in it
-      model_space_id <- resolved$model$space_id %||% resolved$model$model_space_id
-      .wb_assert(!is.null(model_space_id) && nzchar(model_space_id),
-                 "umap_transform runner: model_ref must contain $space_id (the fitted umap space).")
+      mr <- resolved$model_ref
+      model_space_id <- mr$model_space_id %||% mr$space_id
+      fit_in_space_id <- mr$in_space_id %||% ""
+
+      .wb_assert(nzchar(model_space_id), "model_ref must contain model_space_id (or space_id).")
+      .wb_assert(nzchar(fit_in_space_id), "model_ref must contain in_space_id (fit source space).")
+
+      # optional but highly recommended safety:
+      # .wb_assert(identical(in_space_id, fit_in_space_id),
+      #            paste0("Model was fit on '", fit_in_space_id, "' but you selected in_space '", in_space_id, "'."))
 
       dims      <- inputs$dims %||% NULL
       overwrite <- inputs$overwrite %||% TRUE
-
       dots <- .drop_keys(.dots(...), c("bundle","resolved","effective_cells","inputs"))
 
       raw <- do.call(
@@ -203,12 +175,12 @@
       if (!is.null(raw$outputs) && is.list(raw$outputs)) return(raw)
 
       list(
-        outputs = list(
-          space_2d = wb_prim_space_2d(model_space_id)
-        ),
-        params = raw$params %||% list()
+        outputs = list(space_2d = wb_prim_space_2d(model_space_id)),
+        params  = raw$params %||% list()
       )
     }
+
+
   )
 }
 

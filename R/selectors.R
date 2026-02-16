@@ -161,15 +161,30 @@ wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = 
 }
 
 
-#' Select by a registered cell vector (numeric)
-#' @inheritParams wb_sel_vector
-#' @return cell_ids (ordered, bundle-attached, recipe-attached)
+#' Select by a registered scalar cell vector (numeric range)
+#'
+#' Expects wb_read_cell_vector() to return a numeric vector (continuous).
+#' If vector is categorical (e.g. clusters), use wb_sel_vector_values().
+#' If vector is a family (e.g. pseudotime), use wb_sel_vector_family().
+#'
 #' @export
 wb_sel_vector <- function(x, vector_id, min = NULL, max = NULL, na.rm = TRUE, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
   base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
 
   v <- wb_read_cell_vector(b, vector_id = vector_id, cell_ids = base)
+
+  # Make failure mode explicit (clusters etc.)
+  if (!is.numeric(v)) {
+    stop(
+      "wb_sel_vector() expects a numeric vector (continuous). ",
+      "Got type: ", typeof(v), ". ",
+      "If this is categorical (clusters), use wb_sel_vector_values(). ",
+      "If this is a family (pseudotime), use wb_sel_vector_family().",
+      call. = FALSE
+    )
+  }
+
   ok <- rep(TRUE, length(v))
   if (isTRUE(na.rm)) ok <- ok & !is.na(v)
   if (!is.null(min)) ok <- ok & (v >= min)
@@ -185,6 +200,66 @@ wb_sel_vector <- function(x, vector_id, min = NULL, max = NULL, na.rm = TRUE, bu
   )
 }
 
+
+#' Select by a scalar cell vector (categorical values)
+#'
+#' Example: clusters in {"3","4"}.
+#'
+#' @export
+wb_sel_vector_values <- function(x, vector_id, values, na.rm = TRUE, bundle = NULL) {
+  b <- .wb_sel_resolve_bundle(x, bundle = bundle)
+  base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
+
+  .wb_assert(!is.null(values) && length(values) > 0, "values must be a non-empty vector.")
+
+  v <- wb_read_cell_vector(b, vector_id = vector_id, cell_ids = base)
+
+  ok <- rep(TRUE, length(v))
+  if (isTRUE(na.rm)) ok <- ok & !is.na(v)
+
+  vals <- as.character(values)
+  ok <- ok & (as.character(v) %in% vals)
+
+  out <- .wb_order_like_bundle(b, names(v)[ok])
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_vector_values", args=list(vector_id=vector_id, values=vals, na.rm=na.rm))
+  )
+}
+
+
+#' Select by a cell_vector_family member (numeric range)
+#'
+#' Example: pseudotime for lineage "L1" between 5 and 25.
+#'
+#' @export
+wb_sel_vector_family <- function(x, vector_id, key, min = NULL, max = NULL, na.rm = TRUE, bundle = NULL) {
+  b <- .wb_sel_resolve_bundle(x, bundle = bundle)
+  base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
+
+  .wb_assert(is.character(key) && length(key) == 1 && nzchar(key), "key must be a single non-empty string (e.g. 'L1').")
+
+  v <- wb_read_cell_vector_family(b, vector_id = vector_id, key = key, cell_ids = base)
+
+  ok <- rep(TRUE, length(v))
+  if (isTRUE(na.rm)) ok <- ok & !is.na(v)
+  if (!is.null(min)) ok <- ok & (v >= min)
+  if (!is.null(max)) ok <- ok & (v <= max)
+
+  out <- .wb_order_like_bundle(b, names(v)[ok])
+
+  .wb_sel_attach_bundle_recipe(
+    cell_ids = out,
+    bundle   = b,
+    recipe_from = x,
+    step = list(sel="wb_sel_vector_family", args=list(vector_id=vector_id, key=key, min=min, max=max, na.rm=na.rm))
+  )
+}
+
+
 #' Select by expression of a single feature (scalar getter)
 #' @inheritParams wb_sel_expr
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
@@ -193,7 +268,26 @@ wb_sel_expr <- function(x, matrix_id, feature_id, min = NULL, max = NULL,
                         na.rm = TRUE, bundle = NULL) {
 
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
-  base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
+  base <- .wb_sel_resolve_cell_ids(x)
+
+  # if base is NULL, default to universe (core/all)
+  if (is.null(base)) base <- wb_cells(b, cell_set = "all")
+
+  base <- as.character(base)
+  base <- base[nzchar(base)]
+
+  # ✅ EMPTY-SAFE: nothing in, nothing out
+  if (length(base) == 0) {
+    out <- character(0)
+    return(.wb_sel_attach_bundle_recipe(
+      cell_ids = out,
+      bundle   = b,
+      recipe_from = x,
+      step = list(sel="wb_sel_expr",
+                  args=list(matrix_id=matrix_id, feature_id=feature_id,
+                            min=min, max=max, na.rm=na.rm))
+    ))
+  }
 
   v <- wb_matrix_read_feature(
     b,

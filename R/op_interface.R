@@ -23,9 +23,9 @@
              help = "Random seed.")
       ),
       produces = list(
-        labels = list(
-          kind = "labels",
-          description = "Cluster label per cell.",
+        clusters = list(
+          kind = "cell_vector",
+          description = "Cluster label per cell (categorical cell vector).",
           colorable = TRUE,
           color_type = "categorical",
           label = "Leiden clusters"
@@ -34,52 +34,47 @@
     ),
     umap_fit = list(
       op_name = "umap_fit",
-      title = "UMAP fit (uwot)",
-      description = "Fit a 2D UMAP from a high-dimensional space and persist model for later projection.",
-      intent = c("embed", "projection"),
+      title = "UMAP fit (train model)",
+      description = "Fit a UMAP model on a space and store it for future projection.",
+      intent = c("umap", "fit"),
+
       inputs = list(
-        in_space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
+        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
       ),
+
       params = list(
-        list(name="dims", type="int_range", default="2:30", help="Dims of source space to use."),
-        list(name="space_id_out", type="string", default=NULL, help="Output space id (default: umap.<in_space>)."),
-        list(name="n_neighbors", type="int", default=30, min=5, max=200, help="UMAP n_neighbors."),
-        list(name="min_dist", type="dbl", default=0.3, min=0.0, max=1.0, help="UMAP min_dist."),
-        list(name="metric", type="string", default="euclidean", help="Distance metric."),
-        list(name="nn_method", type="string", default="nndescent", help="Nearest-neighbor method."),
-        list(name="seed", type="int", default=1, help="Random seed.")
+        list(name="dims", type="int_range", default=NULL, help="Dims to use (e.g. 2:30)."),
+        list(name="overwrite", type="bool", default=TRUE, help="Overwrite existing model/coords.")
       ),
-      side_effects = list(
-        space_2d = list(kind="space_2d", description="Writes fitted embedding to space_2d and registers the space."),
-        model    = list(kind="space_model", description="Writes uwot model to disk and registers it in space_models.")
-      ),
-      produces = list()
+
+      produces = list(
+        model = list(kind="model_ref", description="Reference to the fitted UMAP model."),
+        space_2d  = list(kind="space_2d",  description="The fitted 2D embedding space id.")
+      )
     ),
+
 
     umap_transform = list(
       op_name = "umap_transform",
       title = "UMAP transform (project cells)",
-      description = "Project cells into an existing UMAP using a stored uwot model.",
+      description = "Project cells into an existing UMAP using a stored model.",
       intent = c("projection", "umap"),
 
       inputs = list(
-        in_space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),
-        model_space = list(required = TRUE, must_be_2d = TRUE, dims_min = 2, dims_max = 2)
+        in_space  = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),
+        model_ref = list(required = TRUE)
       ),
 
       params = list(
         list(name = "dims", type = "int_range", default = NULL,
              help = "Dims to use from the input space (e.g. 2:30)."),
-        list(name = "cell_set", type = "string", default = "all",
-             help = "Which cells to project (e.g. 'set:bulkers')."),
         list(name = "overwrite", type = "bool", default = TRUE,
              help = "Overwrite existing projected coordinates for those cells.")
       ),
 
-      side_effects = list(
-        space_2d = list(kind = "space_2d", description = "Writes projected x/y into space_2d for model_space_id.")
-      ),
-      produces = list()
+      produces = list(
+        space_2d = list(kind = "space_2d", description = "Projected x/y in the target UMAP space.")
+      )
     ),
 
 
@@ -93,7 +88,7 @@
       inputs = list(
         space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),
         plot_space = list(required = FALSE, must_be_2d = TRUE, dims_min = 2, dims_max = 2),
-        labels = list(required = TRUE)
+        clusters = list(required = TRUE, kind = "cell_vector")
       ),
       params = list(
         list(name = "start.clus", type = "string", default = NULL,
@@ -108,18 +103,16 @@
              help = "Whether to reweight assignments during fitting.")
       ),
       produces = list(
-        trajectory = list(
-          kind = "trajectory",
-          description = "Pseudotime + fitted curves.",
-          # trajectory itself overlays as curves, but also exposes pseudotime vectors per lineage
-          colorables = list(
-            pseudotime = list(
-              kind = "vector_family",
-              value_kind = "continuous",
-              key = "lineage_id",
-              label = "Slingshot pseudotime"
-            )
-          )
+        pseudotime = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "lineage_id",
+          description = "Lineage-specific pseudotime values per cell."
+        ),
+        curves = list(
+          kind = "path_2d_family",
+          key = "lineage_id",
+          description = "Lineage curve paths in 2D."
         )
       )
     ),
@@ -136,8 +129,8 @@
       params = list(),
       produces = list(
         scores = list(
-          kind = "scores",
-          description = "Per-cell numeric score.",
+          kind = "cell_vector",
+          description = "Per-cell numeric score (continuous cell vector).",
           colorable = TRUE,
           color_type = "continuous",
           label = "Mean expression"

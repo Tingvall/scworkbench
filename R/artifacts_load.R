@@ -2,68 +2,6 @@
 # Load a promoted artifact back into a wb_primitive (kind-safe),
 # using the *existing* migrate schema (no payload_json column needed).
 
-`%||%` <- function(x, y) if (is.null(x)) y else x
-
-.wb_assert <- function(ok, msg) {
-  if (!isTRUE(ok)) stop(msg, call. = FALSE)
-  invisible(TRUE)
-}
-
-# Optional: if you already have these, remove duplicates.
-.wb_is_primitive <- function(x) inherits(x, "wb_primitive")
-.wb_assert_kind <- function(x, expected_kind, where = "") {
-  .wb_assert(.wb_is_primitive(x), paste0("Expected primitive object", where, "."))
-  .wb_assert(identical(as.character(x$kind), as.character(expected_kind)),
-             paste0("Expected kind '", expected_kind, "'", where, ", got '", x$kind, "'."))
-  invisible(TRUE)
-}
-
-# ---- Your primitive constructors (use yours if already defined) ----
-wb_prim_cell_vector <- function(x, value_type = "categorical") {
-  stopifnot(is.atomic(x), !is.null(names(x)))
-  structure(
-    list(kind = "cell_vector",
-         cell_id = as.character(names(x)),
-         value = as.character(x),
-         value_type = as.character(value_type)),
-    class = "wb_primitive"
-  )
-}
-
-wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "continuous") {
-  structure(
-    list(kind = "cell_vector_family",
-         key = as.character(key),
-         cell_id = as.character(cell_id),
-         value = as.numeric(value),
-         value_type = as.character(value_type)),
-    class = "wb_primitive"
-  )
-}
-
-wb_prim_path_2d_family <- function(key, point, x, y) {
-  structure(
-    list(kind = "path_2d_family",
-         key = as.character(key),
-         point = as.integer(point),
-         x = as.numeric(x),
-         y = as.numeric(y)),
-    class = "wb_primitive"
-  )
-}
-
-wb_prim_space_2d <- function(space_id) {
-  structure(list(kind = "space_2d", space_id = as.character(space_id)),
-            class = "wb_primitive")
-}
-
-wb_prim_model_ref <- function(space_id, model_path = NULL) {
-  structure(list(kind = "model_ref",
-                 space_id = as.character(space_id),
-                 model_path = if (is.null(model_path)) NULL else as.character(model_path)),
-            class = "wb_primitive")
-}
-
 # ---- Main loader ----
 wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
   con <- bundle$con
@@ -171,7 +109,14 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
         params = list(artifact_id)
       )
       .wb_assert(nrow(df) == 1, paste0("wb_art_load(): no row in artifact_umap_model for ", artifact_id))
-      wb_prim_model_ref(space_id = df$space_id[[1]], model_path = df$model_path[[1]])
+      p <- wb_prim_model_ref(
+        model_space_id = as.character(df$space_id[[1]]),
+        in_space_id = if (is.null(art$input_space_id[[1]])) "" else as.character(art$input_space_id[[1]]),
+        engine = "uwot",
+        artifact_id = artifact_id
+      )
+      p$model_path <- as.character(df$model_path[[1]])
+      p
     },
 
     stop("wb_art_load(): Unsupported artifact type: ", type, call. = FALSE)

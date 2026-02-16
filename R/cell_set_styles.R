@@ -47,7 +47,7 @@ wb_set_cell_set_style <- function(bundle,
   created_at <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
 
   con <- bundle$con
-  .wb_ensure_cell_set_styles_table(con)
+  #.wb_ensure_cell_set_styles_table(con)
 
   sql <- "
     INSERT INTO cell_set_styles(
@@ -90,7 +90,7 @@ wb_get_cell_set_style <- function(bundle, cell_set) {
   .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set), "cell_set invalid")
 
   con <- bundle$con
-  .wb_ensure_cell_set_styles_table(con)
+  #.wb_ensure_cell_set_styles_table(con)
 
   df <- DBI::dbGetQuery(
     con,

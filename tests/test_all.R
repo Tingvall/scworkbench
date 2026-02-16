@@ -1,5 +1,9 @@
 test_all <- function(bundle_dir){
 
+  if (exists("test_primitives_contract", mode = "function")) {
+    stopifnot(test_primitives_contract())
+  }
+
   cat("Opening bundle\n")
   b <- wb_open_bundle(bundle_dir)
 

@@ -77,7 +77,7 @@
 #' Define a cell set (persist membership + optionally persist recipe)
 #'
 #' This is the "promotable" version of tagging:
-#' - Always writes membership via `wb_cell_set_add()`.
+#' - Writes membership (either REPLACE or ADD depending on overwrite=).
 #' - Optionally stores a provenance recipe in `cell_set_recipes`.
 #'
 #' The recipe can be supplied explicitly via `recipe=`, or taken from
@@ -86,17 +86,19 @@
 #' @param bundle scworkbench bundle handle
 #' @param cell_set Target set name. Accepts "set:foo" or "foo" (auto-prefixes to "set:foo").
 #' @param cells Character vector of cell_ids (optionally bundle-attached from selectors).
+#' @param overwrite If TRUE, set becomes exactly `cells` (replace). If FALSE, adds `cells` to set (union).
 #' @param source Provenance tag for membership rows (stored in membership table).
 #' @param created_by Optional author.
 #' @param description Optional description stored on both membership rows and recipe row.
 #' @param store_recipe If TRUE, writes a recipe row if a recipe is available (or provided).
 #' @param recipe Optional explicit recipe (list or JSON string). If NULL, tries attr(cells,"wb_recipe").
 #'
-#' @return Invisible list summary: cell_set, n_added, recipe_stored (TRUE/FALSE).
+#' @return Invisible list summary: cell_set, n_written, recipe_stored (TRUE/FALSE).
 #' @export
 wb_cell_set_define <- function(bundle,
                                cell_set,
                                cells,
+                               overwrite = TRUE,
                                source = "rule",
                                created_by = NULL,
                                description = NULL,
@@ -106,18 +108,36 @@ wb_cell_set_define <- function(bundle,
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   cell_set <- .wb_normalize_cell_set(cell_set)
 
-  .wb_assert(is.character(cells) && length(cells) > 0, "cells must be a non-empty character vector of cell_ids")
+  .wb_assert(is.character(cells) && length(cells) > 0,
+             "cells must be a non-empty character vector of cell_ids")
   cell_ids <- unique(as.character(cells))
+  cell_ids <- cell_ids[nzchar(cell_ids)]
+  .wb_assert(length(cell_ids) > 0, "cells empty after cleaning")
 
-  # 1) Persist membership (always)
-  add_res <- wb_cell_set_add(
-    bundle = bundle,
-    cell_set = cell_set,
-    cell_ids = cell_ids,
-    source = source,
-    created_by = created_by,
-    description = description
-  )
+  # 1) Persist membership
+  mem_res <- NULL
+  if (isTRUE(overwrite)) {
+    # Replace: set becomes exactly these cells
+    mem_res <- wb_cell_set_replace(
+      bundle      = bundle,
+      cell_set    = cell_set,
+      cell_ids    = cell_ids,
+      source      = source,
+      created_by  = created_by,
+      description = description,
+      strict      = TRUE
+    )
+  } else {
+    # Add/union: keep existing members, add these cells
+    mem_res <- wb_cell_set_add(
+      bundle      = bundle,
+      cell_set    = cell_set,
+      cell_ids    = cell_ids,
+      source      = source,
+      created_by  = created_by,
+      description = description
+    )
+  }
 
   # 2) Persist recipe (optional)
   recipe_stored <- FALSE
@@ -159,12 +179,17 @@ wb_cell_set_define <- function(bundle,
     }
   }
 
+  # Normalize output summary
+  n_written <- mem_res$n_written %||% mem_res$n_added %||% mem_res$n %||% length(cell_ids)
+
   invisible(list(
-    cell_set = cell_set,
-    n_added = add_res$n_added %||% length(cell_ids),
+    cell_set      = cell_set,
+    overwrite     = isTRUE(overwrite),
+    n_written     = as.integer(n_written),
     recipe_stored = recipe_stored
   ))
 }
+
 
 #' Get the stored recipe for a cell set (if any)
 #'

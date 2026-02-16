@@ -94,18 +94,6 @@ wb_session_add_run <- function(session, run) {
   r
 }
 
-# ---------- Primitive checks ----------
-.wb_is_primitive <- function(x) {
-  is.list(x) && !is.null(x$kind) && is.character(x$kind) && length(x$kind) == 1
-}
-
-.wb_assert_kind <- function(x, kind, where = "") {
-  .wb_assert(.wb_is_primitive(x), paste0("Expected primitive object", where, "."))
-  .wb_assert(identical(x$kind, kind),
-             paste0("Expected kind='", kind, "'", where, " but got kind='", x$kind, "'."))
-  invisible(TRUE)
-}
-
 # ---------- Resolve required inputs ----------
 # Required inputs are keyed by name (e.g. "clusters") with an expected kind (e.g. "cell_vector").
 # Resolution priority:
@@ -187,6 +175,10 @@ wb_session_add_run <- function(session, run) {
     }
     if (expected_kind == "space_2d" && is.character(val) && length(val) == 1 && nzchar(val)) {
       val <- wb_prim_space_2d(val)
+    }
+    if (expected_kind == "model_ref" && is.character(val) && length(val)==1 && nzchar(val)) {
+      # interpret as model_space_id; but then in_space_id is unknown -> not safe
+      val <- wb_prim_model_ref(model_space_id = val, in_space_id = "")
     }
     if (expected_kind == "cell_vector" && is.atomic(val) && !is.null(names(val))) {
       val <- wb_prim_cell_vector(val, value_type = "categorical")
@@ -310,4 +302,3 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
 
   res
 }
-

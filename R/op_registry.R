@@ -15,12 +15,12 @@
 
     umap_fit = list(
       requires  = c("space"),
-      produces  = c("space_2d")   # optional but useful for provenance
+      produces  = c("model_ref", "space_2d")
     ),
 
     umap_transform = list(
-      requires  = c("in_space", "model_space"),
-      produces  = c("space_2d")   # optional but useful for provenance
+      requires  = c("in_space", "model_ref"),
+      produces  = c("space_2d")
     )
   )
 }

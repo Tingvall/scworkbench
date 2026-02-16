@@ -8,6 +8,7 @@ wb_cell_set_define(
   bundle,
   cell_set,
   cells,
+  overwrite = TRUE,
   source = "rule",
   created_by = NULL,
   description = NULL,
@@ -22,6 +23,8 @@ wb_cell_set_define(
 
 \item{cells}{Character vector of cell_ids (optionally bundle-attached from selectors).}
 
+\item{overwrite}{If TRUE, set becomes exactly \code{cells} (replace). If FALSE, adds \code{cells} to set (union).}
+
 \item{source}{Provenance tag for membership rows (stored in membership table).}
 
 \item{created_by}{Optional author.}
@@ -33,12 +36,12 @@ wb_cell_set_define(
 \item{recipe}{Optional explicit recipe (list or JSON string). If NULL, tries attr(cells,"wb_recipe").}
 }
 \value{
-Invisible list summary: cell_set, n_added, recipe_stored (TRUE/FALSE).
+Invisible list summary: cell_set, n_written, recipe_stored (TRUE/FALSE).
 }
 \description{
 This is the "promotable" version of tagging:
 \itemize{
-\item Always writes membership via \code{wb_cell_set_add()}.
+\item Writes membership (either REPLACE or ADD depending on overwrite=).
 \item Optionally stores a provenance recipe in \code{cell_set_recipes}.
 }
 }
