@@ -1,13 +1,8 @@
-# Canonical op execution contract lives in .wb_ops() (session_context.R).
-# Keep these legacy helpers as compatibility shims only.
+# Canonical op execution contract lives in .wb_ops() (session_context.R),
+# derived from .wb_op_catalog() (op_catalog.R).
 
 #' @keywords internal
-.wb_session_op_registry <- function() {
-  .wb_ops()
-}
-
-#' @keywords internal
-.wb_op_spec <- function(op_name) {
+.wb_get_op <- function(op_name) {
   .wb_op(op_name)
 }
 

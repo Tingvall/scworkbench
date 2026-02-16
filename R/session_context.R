@@ -9,42 +9,16 @@
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
-# ---------- Registry ----------
-#### NEW REGISTRY!
-
 .wb_ops <- function() {
-  list(
-    leiden = list(
-      requires = list(space = "space"),
-      produces = list(clusters = "cell_vector"),
-      runner   = wb_op_leiden,
-      promotable = c("clusters")
-    ),
-
-    slingshot = list(
-      requires = list(space_2d = "space_2d", clusters = "cell_vector"),
-      produces = list(
-        pseudotime = "cell_vector_family",   # can be multiple vectors if lineage-specific
-        curves     = "path_2d_family"
-      ),
-      runner   = wb_op_slingshot,
-      promotable = c("pseudotime", "curves")
-    ),
-
-    umap_fit = list(
-      requires = list(space = "space"),
-      produces = list(space_2d = "space_2d", model = "model_ref"),
-      runner   = wb_op_umap_fit,
-      promotable = c("space_2d", "model") # optional
-    ),
-
-    umap_transform = list(
-      requires = list(in_space = "space", model = "model_ref"),
-      produces = list(space_2d = "space_2d"),
-      runner   = wb_op_umap_transform,
-      promotable = c("space_2d") # optional snapshot
+  cat <- .wb_op_catalog()
+  lapply(cat, function(x) {
+    list(
+      requires = x$requires %||% list(),
+      produces = x$produces %||% list(),
+      runner = x$runner,
+      promotable = x$promotable %||% character(0)
     )
-  )
+  })
 }
 
 .wb_op <- function(op_name) {
@@ -54,14 +28,20 @@
 }
 
 # ---------- Refs ----------
+#' Create a reference to a run output
+#' @export
 wb_ref_run <- function(run_id, output_name) {
   list(ref_type = "run", run_id = as.character(run_id), output = as.character(output_name))
 }
+#' Create a reference to an artifact output
+#' @export
 wb_ref_artifact <- function(artifact_id, output_name) {
   list(ref_type = "artifact", artifact_id = as.character(artifact_id), output = as.character(output_name))
 }
 
 # ---------- Session object ----------
+#' Create a new wb_session
+#' @export
 wb_session_new <- function() {
   s <- list(
     runs = list(),         # run_id -> wb_run
@@ -71,8 +51,12 @@ wb_session_new <- function() {
   class(s) <- "wb_session"
   s
 }
+#' Check whether an object is a wb_session
+#' @export
 wb_is_session <- function(x) inherits(x, "wb_session")
 
+#' Set an active output reference in a session
+#' @export
 wb_session_set_active <- function(session, output_name, ref) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   .wb_assert(is.list(ref) && !is.null(ref$ref_type), "ref must be a wb_ref_*")
@@ -80,6 +64,8 @@ wb_session_set_active <- function(session, output_name, ref) {
   session
 }
 
+#' Add a run to a session
+#' @export
 wb_session_add_run <- function(session, run) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   .wb_assert(wb_is_run(run), "run must be a wb_run.")
@@ -149,7 +135,7 @@ wb_session_add_run <- function(session, run) {
         val <- run$outputs[[ref$output]]
         parents <- unique(c(parents, ref$run_id))
       } else if (identical(ref$ref_type, "artifact")) {
-        val <- wb_art_load(bundle, artifact_id = ref$artifact_id, output = ref$output)
+        val <- wb_art_load(bundle, artifact_id = ref$artifact_id, expected_kind = expected_kind)
         prov_refs[[name]] <- ref
       } else {
         stop("Unknown ref_type: ", ref$ref_type, call. = FALSE)
@@ -193,6 +179,8 @@ wb_session_add_run <- function(session, run) {
 
 # ---------- Run op ----------
 # Op contract: op(bundle, effective_cells, inputs = list(...), ...) -> list(outputs=<named primitives>, params=<list>)
+#' Run an operation in a session
+#' @export
 wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   op <- .wb_op(op_name)
@@ -223,7 +211,8 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     }
   }
 
-  runner <- .wb_get_op_runner(op_name)
+  runner <- op$runner
+  .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
   res <- runner(
     bundle = bundle,
     resolved = resolved,

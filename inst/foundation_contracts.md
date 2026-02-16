@@ -16,6 +16,27 @@ These contracts are intended to be stable for all clients:
 
 Ops/wranglers may evolve more quickly, but should build on these guarantees.
 
+## Op/Wrangler Registration Contract
+
+There is one canonical registration point for operations and wranglers:
+
+- `R/op_catalog.R` via `.wb_op_catalog()`
+
+Each op entry in `.wb_op_catalog()` defines, together:
+
+- execution contract: `requires`, `produces`, `promotable`
+- wrangler/runner: `runner(bundle, resolved, effective_cells, inputs, ...)`
+- interface metadata: `title`, `description`, `intent`, `inputs`, `params`, `interface_produces`
+
+Derived views must not be edited independently:
+
+- `.wb_ops()` derives execution contract from `.wb_op_catalog()`
+- `.wb_op_interface_registry()` derives interface contract from `.wb_op_catalog()`
+- `.wb_op_dispatch_registry()` derives runners from `.wb_op_catalog()`
+
+Adding a new op means adding one entry to `.wb_op_catalog()` plus the underlying `wb_op_*`
+implementation function. Do not add parallel op lists in other files.
+
 ## Data Layer Contracts
 
 ### Canonical Cell Order

@@ -1,123 +1,18 @@
 # R/op_interface.R
 
-# Internal registry for UI/agent interface specs (v1)
 .wb_op_interface_registry <- function() {
-  list(
-
-    leiden = list(
-      op_name = "leiden",
-      title = "Leiden clustering",
-      description = "Graph clustering on a kNN graph derived from an embedding space.",
-      intent = c("cluster"),
-      inputs = list(
-        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
-      ),
-      params = list(
-        list(name = "dims", type = "int_range", default = "1:30",
-             help = "Which dimensions of the space to use (1-indexed)."),
-        list(name = "k", type = "int", default = 30, min = 5, max = 200,
-             help = "Number of neighbors for kNN graph."),
-        list(name = "resolution", type = "dbl", default = 1.0, min = 0.01, max = 10,
-             help = "Leiden resolution parameter."),
-        list(name = "seed", type = "int", default = 1,
-             help = "Random seed.")
-      ),
-      produces = list(
-        clusters = list(
-          kind = "cell_vector",
-          description = "Cluster label per cell (categorical cell vector).",
-          colorable = TRUE,
-          color_type = "categorical",
-          label = "Leiden clusters"
-        )
-      )
-    ),
-    umap_fit = list(
-      op_name = "umap_fit",
-      title = "UMAP fit (train model)",
-      description = "Fit a UMAP model on a space and store it for future projection.",
-      intent = c("umap", "fit"),
-
-      inputs = list(
-        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
-      ),
-
-      params = list(
-        list(name="dims", type="int_range", default=NULL, help="Dims to use (e.g. 2:30)."),
-        list(name="overwrite", type="bool", default=TRUE, help="Overwrite existing model/coords.")
-      ),
-
-      produces = list(
-        model = list(kind="model_ref", description="Reference to the fitted UMAP model."),
-        space_2d  = list(kind="space_2d",  description="The fitted 2D embedding space id.")
-      )
-    ),
-
-
-    umap_transform = list(
-      op_name = "umap_transform",
-      title = "UMAP transform (project cells)",
-      description = "Project cells into an existing UMAP using a stored model.",
-      intent = c("projection", "umap"),
-
-      inputs = list(
-        model = list(required = TRUE, kind = "model_ref"),
-        in_space = list(required = FALSE, must_be_2d = FALSE, dims_min = 2)
-      ),
-
-      params = list(
-        list(name = "dims", type = "int_range", default = NULL,
-             help = "Dims to use from the input space (e.g. 2:30)."),
-        list(name = "overwrite", type = "bool", default = TRUE,
-             help = "Overwrite existing projected coordinates for those cells.")
-      ),
-
-      produces = list(
-        space_2d = list(kind = "space_2d", description = "Projected x/y in the target UMAP space.")
-      )
-    ),
-
-
-
-
-    slingshot = list(
-      op_name = "slingshot",
-      title = "Slingshot trajectory",
-      description = "Infer lineage curves and pseudotime from clusters in a 2D space.",
-      intent = c("trajectory"),
-      inputs = list(
-        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),
-        plot_space = list(required = FALSE, must_be_2d = TRUE, dims_min = 2, dims_max = 2),
-        clusters = list(required = TRUE, kind = "cell_vector")
-      ),
-      params = list(
-        list(name = "start.clus", type = "string", default = NULL,
-             help = "Starting cluster id."),
-        list(name = "end.clus", type = "string_vec", default = NULL,
-             help = "Ending cluster id(s)."),
-        list(name = "exclude_clusters", type = "string_vec", default = character(0),
-             help = "Cluster id(s) to exclude before fitting."),
-        list(name = "stretch", type = "dbl", default = 2, min = 0, max = 10,
-             help = "Slingshot curve stretching."),
-        list(name = "reweight", type = "bool", default = TRUE,
-             help = "Whether to reweight assignments during fitting.")
-      ),
-      produces = list(
-        pseudotime = list(
-          kind = "cell_vector_family",
-          value_kind = "continuous",
-          key = "lineage_id",
-          description = "Lineage-specific pseudotime values per cell."
-        ),
-        curves = list(
-          kind = "path_2d_family",
-          key = "lineage_id",
-          description = "Lineage curve paths in 2D."
-        )
-      )
+  cat <- .wb_op_catalog()
+  lapply(cat, function(x) {
+    list(
+      op_name = as.character(x$op_name),
+      title = as.character(x$title %||% ""),
+      description = as.character(x$description %||% ""),
+      intent = as.character(x$intent %||% character(0)),
+      inputs = x$inputs %||% list(),
+      params = x$params %||% list(),
+      produces = x$interface_produces %||% list()
     )
-
-  )
+  })
 }
 
 

@@ -8,13 +8,16 @@ test_op_contract_conformance <- function() {
   # 3) Every execution op has a dispatch runner with required formals.
   scworkbench:::.wb_validate_op_dispatch_registry()
 
-  # 4) Session registry shim must point to canonical execution contract.
-  stopifnot(identical(names(scworkbench:::.wb_session_op_registry()), names(scworkbench:::.wb_ops())))
+  # 4) Single-source registration: execution/interface/dispatch all derive from catalog.
+  cat_names <- names(scworkbench:::.wb_op_catalog())
+  stopifnot(setequal(cat_names, names(scworkbench:::.wb_ops())))
+  stopifnot(setequal(cat_names, names(scworkbench:::.wb_op_interface_registry())))
+  stopifnot(setequal(cat_names, names(scworkbench:::.wb_op_dispatch_registry())))
 
   # 5) wb_ops() table reflects canonical ops.
   ops_tbl <- wb_ops()
-  stopifnot(is.data.frame(ops_tbl), nrow(ops_tbl) == length(scworkbench:::.wb_ops()))
-  stopifnot(setequal(as.character(ops_tbl$op_name), names(scworkbench:::.wb_ops())))
+  stopifnot(is.data.frame(ops_tbl), nrow(ops_tbl) == length(cat_names))
+  stopifnot(setequal(as.character(ops_tbl$op_name), cat_names))
 
   TRUE
 }
