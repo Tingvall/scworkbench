@@ -104,6 +104,35 @@
   raw
 }
 
+.wb_runner_addmodulescore <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "addmodulescore runner: missing resolved$matrix.")
+  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
+             "addmodulescore runner: effective_cells is empty.")
+  .wb_assert(!is.null(inputs$features),
+             "addmodulescore runner: inputs$features is required.")
+
+  matrix_id <- resolved$matrix$matrix_id
+  .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
+             "addmodulescore runner: resolved matrix primitive missing matrix_id.")
+
+  raw <- wb_op_addmodulescore(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    features = inputs$features,
+    pool = inputs$pool %||% NULL,
+    cells = as.character(effective_cells),
+    nbin = inputs$nbin %||% 24,
+    ctrl = inputs$ctrl %||% 100,
+    name = inputs$name %||% "Module",
+    seed = inputs$seed %||% 1,
+    ...
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "addmodulescore must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 # Canonical op catalog.
 # Add new ops in one place only: contract + wrangler + interface metadata.
 .wb_op_catalog <- function() {
@@ -184,6 +213,41 @@
         space_2d = list(kind = "space_2d", description = "Projected x/y in the target UMAP space.")
       )
     ),
+    addmodulescore = list(
+      op_name = "addmodulescore",
+      title = "Add module score",
+      description = "Seurat-style module scoring using matched control features by expression bin.",
+      intent = c("expression", "signature", "score"),
+      requires = list(matrix = "matrix"),
+      produces = list(module_scores = "cell_vector_family"),
+      promotable = c("module_scores"),
+      runner = .wb_runner_addmodulescore,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix")
+      ),
+      params = list(
+        list(name = "features", type = "string_vec_or_list", default = NULL,
+             help = "Module feature IDs: character vector or list of vectors."),
+        list(name = "pool", type = "string_vec", default = NULL,
+             help = "Optional control feature pool; defaults to all matrix features."),
+        list(name = "nbin", type = "int", default = 24, min = 2, max = 200,
+             help = "Number of expression bins for control matching."),
+        list(name = "ctrl", type = "int", default = 100, min = 1, max = 1000,
+             help = "Control features sampled per module feature."),
+        list(name = "name", type = "string", default = "Module",
+             help = "Prefix for module names when features are unnamed."),
+        list(name = "seed", type = "int", default = 1,
+             help = "Random seed for control sampling.")
+      ),
+      interface_produces = list(
+        module_scores = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "module",
+          description = "Per-cell module scores for one or more signatures."
+        )
+      )
+    ),
     slingshot = list(
       op_name = "slingshot",
       title = "Slingshot trajectory",
@@ -229,4 +293,3 @@
     )
   )
 }
-
