@@ -239,6 +239,16 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   pft <- wb_art_load(b, artifact_id = as.character(aid_ft), expected_kind = "feature_table")
   stopifnot(identical(pft$kind, "feature_table"), nrow(pft$table) == 2)
 
+  # wrangler projection: artifact ref -> normalized table
+  if (exists("wb_client_load_table", mode = "function")) {
+    tft <- wb_client_load_table(
+      bundle = b,
+      ref = wb_ref_artifact(as.character(aid_ft), "de_table"),
+      include_context = TRUE
+    )
+    stopifnot(is.data.frame(tft), nrow(tft) == 2, "feature_id" %in% names(tft), "kind" %in% names(tft))
+  }
+
   # obs_table promotion path (internal promoter, same artifact schema)
   run_obs <- wb_new_run(
     op_name = "de_wilcox",
@@ -261,6 +271,14 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   )
   pot <- wb_art_load(b, artifact_id = as.character(aid_ot), expected_kind = "obs_table")
   stopifnot(identical(pot$kind, "obs_table"), nrow(pot$table) == 2)
+  if (exists("wb_client_load_table", mode = "function")) {
+    tot <- wb_client_load_table(
+      bundle = b,
+      ref = wb_ref_artifact(as.character(aid_ot), "summary"),
+      include_context = TRUE
+    )
+    stopifnot(is.data.frame(tot), nrow(tot) == 2, "kind" %in% names(tot), "entity_kind" %in% names(tot))
+  }
 
   TRUE
 }

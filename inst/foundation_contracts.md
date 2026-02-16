@@ -156,6 +156,11 @@ Loading contract:
   - `wb_prim_feature_table(...)`
   - `wb_prim_obs_table(...)`
 
+Wrangler contract:
+
+- outward clients should use `wb_primitive_to_table()` / `wb_client_load_table()`
+  for normalized display tables instead of reading primitive internals directly.
+
 ## Validation Strategy
 
 Foundation behavior is verified by:

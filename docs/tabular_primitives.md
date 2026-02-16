@@ -70,6 +70,22 @@ This keeps the promotion path generic while preserving provenance in `artifacts`
 - `feature_table` -> `wb_prim_feature_table(...)`
 - `obs_table` -> `wb_prim_obs_table(...)`
 
+## Wrangler (Client Display)
+
+For outward display/export, use the table wrangler layer:
+
+- `wb_primitive_to_table(prim, key = NULL, include_context = TRUE)`
+- `wb_client_load_table(bundle, ref, ...)`
+
+This returns normalized `data.frame` output with stable ordering:
+
+- feature tables: `feature_id` first
+- obs tables: entity-like id columns first when present
+- vector-family tables: `key`, `cell_id`, `value`
+
+`include_context=TRUE` appends display-safe context columns like `kind`,
+`table_type`, and `entity_kind`.
+
 ## Promotion Rules
 
 - Only outputs declared in op `promotable` are promoted by `wb_promote_analysis()`.
@@ -80,4 +96,3 @@ This keeps the promotion path generic while preserving provenance in `artifacts`
 
 - `de_wilcox` -> output `de_table` (`feature_table`, promotable)
 - `markers_topn` -> output `markers` (`feature_table`, promotable)
-
