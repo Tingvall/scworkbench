@@ -133,6 +133,60 @@
   raw
 }
 
+.wb_runner_de_wilcox <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "de_wilcox runner: missing resolved$matrix.")
+  .wb_assert(!is.null(inputs$group_a), "de_wilcox runner: inputs$group_a is required.")
+  .wb_assert(!is.null(inputs$group_b), "de_wilcox runner: inputs$group_b is required.")
+
+  matrix_id <- resolved$matrix$matrix_id
+  cells_a <- .wb_resolve_group_cells(bundle, inputs$group_a, effective_cells)
+  cells_b <- .wb_resolve_group_cells(bundle, inputs$group_b, effective_cells)
+
+  .wb_assert(length(cells_a) >= 2, "de_wilcox runner: group_a resolved to <2 cells.")
+  .wb_assert(length(cells_b) >= 2, "de_wilcox runner: group_b resolved to <2 cells.")
+
+  raw <- wb_op_de_wilcox(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    cells_a = cells_a,
+    cells_b = cells_b,
+    features = inputs$features %||% NULL,
+    min_pct = inputs$min_pct %||% 0,
+    p_adjust_method = inputs$p_adjust_method %||% "BH",
+    ...
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "de_wilcox must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
+.wb_runner_markers_topn <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "markers_topn runner: missing resolved$matrix.")
+  .wb_assert(!is.null(resolved$clusters), "markers_topn runner: missing resolved$clusters.")
+
+  matrix_id <- resolved$matrix$matrix_id
+  clp <- resolved$clusters
+  clusters_vec <- as.character(clp$value)
+  names(clusters_vec) <- as.character(clp$cell_id)
+
+  raw <- wb_op_markers_topn(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    clusters = clusters_vec,
+    cells = as.character(effective_cells),
+    features = inputs$features %||% NULL,
+    top_n = inputs$top_n %||% 20,
+    min_pct = inputs$min_pct %||% 0.1,
+    p_adjust_method = inputs$p_adjust_method %||% "BH",
+    ...
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "markers_topn must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 # Canonical op catalog.
 # Add new ops in one place only: contract + wrangler + interface metadata.
 .wb_op_catalog <- function() {
@@ -245,6 +299,67 @@
           value_kind = "continuous",
           key = "module",
           description = "Per-cell module scores for one or more signatures."
+        )
+      )
+    ),
+    de_wilcox = list(
+      op_name = "de_wilcox",
+      title = "Differential Expression (Wilcoxon)",
+      description = "Wilcoxon rank-sum DE between two cell groups (A vs B).",
+      intent = c("de", "markers", "comparison"),
+      requires = list(matrix = "matrix"),
+      produces = list(de_table = "feature_table"),
+      promotable = character(0),
+      runner = .wb_runner_de_wilcox,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix")
+      ),
+      params = list(
+        list(name = "group_a", type = "cell_ids_or_set", default = NULL,
+             help = "Group A cells: vector of cell IDs or 'set:<name>'."),
+        list(name = "group_b", type = "cell_ids_or_set", default = NULL,
+             help = "Group B cells: vector of cell IDs or 'set:<name>'."),
+        list(name = "features", type = "string_vec", default = NULL,
+             help = "Optional feature subset."),
+        list(name = "min_pct", type = "dbl", default = 0, min = 0, max = 1,
+             help = "Minimum detection fraction in either group."),
+        list(name = "p_adjust_method", type = "string", default = "BH",
+             help = "Method passed to p.adjust.")
+      ),
+      interface_produces = list(
+        de_table = list(
+          kind = "feature_table",
+          description = "Feature-level DE statistics table."
+        )
+      )
+    ),
+    markers_topn = list(
+      op_name = "markers_topn",
+      title = "Top Markers Per Cluster",
+      description = "One-vs-rest Wilcoxon marker ranking for each cluster.",
+      intent = c("markers", "cluster"),
+      requires = list(matrix = "matrix", clusters = "cell_vector"),
+      produces = list(markers = "feature_table"),
+      promotable = character(0),
+      runner = .wb_runner_markers_topn,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix"),
+        clusters = list(required = TRUE, kind = "cell_vector")
+      ),
+      params = list(
+        list(name = "features", type = "string_vec", default = NULL,
+             help = "Optional feature subset."),
+        list(name = "top_n", type = "int", default = 20, min = 1, max = 1000,
+             help = "Top markers retained per cluster."),
+        list(name = "min_pct", type = "dbl", default = 0.1, min = 0, max = 1,
+             help = "Minimum detection fraction in either group."),
+        list(name = "p_adjust_method", type = "string", default = "BH",
+             help = "Method passed to p.adjust.")
+      ),
+      interface_produces = list(
+        markers = list(
+          kind = "feature_table",
+          description = "Cluster-marker table with per-feature statistics."
         )
       )
     ),

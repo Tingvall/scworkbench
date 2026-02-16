@@ -9,6 +9,8 @@
   invisible(TRUE)
 }
 
+#' Create a cell_vector_family primitive
+#' @export
 wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "continuous") {
 
   structure(
@@ -23,8 +25,14 @@ wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "contin
   )
 }
 
+#' Create a space primitive
+#' @export
 wb_prim_space  <- function(space_id)  structure(list(kind="space",  space_id=as.character(space_id)),  class="wb_primitive")
+#' Create a matrix primitive
+#' @export
 wb_prim_matrix <- function(matrix_id) structure(list(kind="matrix", matrix_id=as.character(matrix_id)), class="wb_primitive")
+#' Create a space_2d primitive
+#' @export
 wb_prim_space_2d <- function(space_id) {
   structure(
     list(kind = "space_2d", space_id = as.character(space_id)),
@@ -33,6 +41,8 @@ wb_prim_space_2d <- function(space_id) {
 }
 
 
+#' Create a cell_vector primitive
+#' @export
 wb_prim_cell_vector <- function(x, value_type = "categorical") {
   stopifnot(is.atomic(x), !is.null(names(x)))
   structure(
@@ -46,6 +56,8 @@ wb_prim_cell_vector <- function(x, value_type = "categorical") {
   )
 }
 
+#' Create a path_2d_family primitive
+#' @export
 wb_prim_path_2d_family <- function(key, point, x, y) {
   structure(
     list(
@@ -60,6 +72,8 @@ wb_prim_path_2d_family <- function(key, point, x, y) {
 }
 
 
+#' Create a model_ref primitive
+#' @export
 wb_prim_model_ref <- function(model_space_id, in_space_id, engine = "uwot", artifact_id = NULL) {
   structure(
     list(
@@ -68,6 +82,22 @@ wb_prim_model_ref <- function(model_space_id, in_space_id, engine = "uwot", arti
       model_space_id = as.character(model_space_id),
       in_space_id    = as.character(in_space_id),
       artifact_id    = artifact_id
+    ),
+    class = "wb_primitive"
+  )
+}
+
+#' Create a feature_table primitive
+#' @export
+wb_prim_feature_table <- function(table, table_type = "generic", meta = list()) {
+  .wb_assert(is.data.frame(table), "table must be a data.frame")
+  if (is.null(meta)) meta <- list()
+  structure(
+    list(
+      kind = "feature_table",
+      table_type = as.character(table_type)[1],
+      table = table,
+      meta = meta
     ),
     class = "wb_primitive"
   )
