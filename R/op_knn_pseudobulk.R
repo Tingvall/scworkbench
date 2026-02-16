@@ -35,7 +35,11 @@ wb_op_knn_pseudobulk <- function(bundle,
              "k must be >= 1.")
 
   query_cells <- unique(as.character(query_cells))
-  candidate_cells <- if (is.null(candidate_cells)) character(0) else unique(as.character(candidate_cells))
+  candidate_cells <- if (is.null(candidate_cells)) {
+    as.character(wb_cells(bundle, cell_set = "all"))
+  } else {
+    unique(as.character(candidate_cells))
+  }
 
   feature_ids <- if (is.null(features)) wb_feature_ids(bundle, matrix_id = matrix_id) else as.character(features)
   .wb_assert(length(feature_ids) > 0, "No features available for kNN pseudobulk.")
@@ -50,12 +54,8 @@ wb_op_knn_pseudobulk <- function(bundle,
   query_cells <- query_cells[query_cells %in% rownames(coords)]
   .wb_assert(length(query_cells) > 0, "None of query_cells were found in the selected space.")
 
-  if (length(candidate_cells) == 0) {
-    candidate_cells <- setdiff(rownames(coords), if (isTRUE(include_query)) character(0) else query_cells)
-  } else {
-    candidate_cells <- candidate_cells[candidate_cells %in% rownames(coords)]
-    if (!isTRUE(include_query)) candidate_cells <- setdiff(candidate_cells, query_cells)
-  }
+  candidate_cells <- candidate_cells[candidate_cells %in% rownames(coords)]
+  if (!isTRUE(include_query)) candidate_cells <- setdiff(candidate_cells, query_cells)
   .wb_assert(length(candidate_cells) >= 1, "candidate_cells resolved to empty set.")
 
   cand_mat <- coords[candidate_cells, , drop = FALSE]
@@ -148,4 +148,3 @@ wb_op_knn_pseudobulk <- function(bundle,
   }
   out
 }
-
