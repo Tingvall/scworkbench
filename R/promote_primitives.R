@@ -26,7 +26,25 @@
   fn
 }
 
+.wb_db_append_chunked <- function(con, table, df, chunk_size = 1000L) {
+  if (is.null(df) || nrow(df) == 0) return(invisible(TRUE))
+  chunk_size <- as.integer(chunk_size)
+  .wb_assert(chunk_size >= 1L, "chunk_size must be >= 1")
+
+  n <- nrow(df)
+  idx <- seq.int(1L, n, by = chunk_size)
+  for (i in idx) {
+    j <- min(i + chunk_size - 1L, n)
+    sub <- df[i:j, , drop = FALSE]
+    # dbAppendTable avoids some sqlite temp-file issues seen with large dbWriteTable append calls.
+    DBI::dbAppendTable(con, table, sub)
+  }
+  invisible(TRUE)
+}
+
 # ---- New promotion entrypoint: promote analysis DAG from runs ----
+#' Promote a session analysis DAG to persisted artifacts
+#' @export
 wb_promote_analysis <- function(bundle,
                                 runs,
                                 head_run_id,
@@ -212,7 +230,7 @@ wb_promote_analysis <- function(bundle,
     label = as.character(prim$value),
     stringsAsFactors = FALSE
   )
-  DBI::dbWriteTable(con, "artifact_labels", df, append = TRUE)
+  .wb_db_append_chunked(con, "artifact_labels", df, chunk_size = 1000L)
 
   artifact_id
 }
@@ -264,7 +282,7 @@ wb_promote_analysis <- function(bundle,
     pseudotime = as.numeric(prim$value),
     stringsAsFactors = FALSE
   )
-  DBI::dbWriteTable(con, "artifact_pseudotime", pt, append = TRUE)
+  .wb_db_append_chunked(con, "artifact_pseudotime", pt, chunk_size = 1000L)
 
   artifact_id
 }
@@ -319,7 +337,7 @@ wb_promote_analysis <- function(bundle,
     y = as.numeric(prim$y),
     stringsAsFactors = FALSE
   )
-  DBI::dbWriteTable(con, "artifact_curves_2d", cv, append = TRUE)
+  .wb_db_append_chunked(con, "artifact_curves_2d", cv, chunk_size = 1000L)
 
   artifact_id
 }
@@ -376,7 +394,7 @@ wb_promote_analysis <- function(bundle,
   out <- df
   out$artifact_id <- artifact_id
   out <- out[, c("artifact_id", "cell_id", "x", "y")]
-  DBI::dbWriteTable(con, "artifact_space_2d", out, append = TRUE)
+  .wb_db_append_chunked(con, "artifact_space_2d", out, chunk_size = 1000L)
 
   artifact_id
 }
@@ -422,12 +440,12 @@ wb_promote_analysis <- function(bundle,
     as.character(utils::packageVersion("scworkbench"))
   ))
 
-  DBI::dbWriteTable(con, "artifact_umap_model", data.frame(
+  .wb_db_append_chunked(con, "artifact_umap_model", data.frame(
     artifact_id = artifact_id,
     space_id = space_id,
     model_path = model_path,
     stringsAsFactors = FALSE
-  ), append = TRUE)
+  ), chunk_size = 1000L)
 
   artifact_id
 }
