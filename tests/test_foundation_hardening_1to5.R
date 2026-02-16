@@ -199,5 +199,68 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
     stopifnot(identical(p_art$kind, "cell_vector"))
   }
 
+  # ---------------------------------------------------------
+  # 6) Tabular primitives are promotable and loadable
+  # ---------------------------------------------------------
+  run_ft <- wb_new_run(
+    op_name = "de_wilcox",
+    inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
+    params = list(matrix_id = if (nrow(wb_matrices(b)) > 0) wb_matrices(b)$matrix_id[1] else NA_character_),
+    outputs = list(
+      de_table = wb_prim_feature_table(
+        table = data.frame(
+          feature_id = c("f1", "f2"),
+          p_val = c(0.01, 0.02),
+          p_val_adj = c(0.02, 0.03),
+          stringsAsFactors = FALSE
+        ),
+        table_type = "de_wilcox"
+      )
+    ),
+    notes = "feature_table promote/load test"
+  )
+
+  s3 <- wb_session_new()
+  s3 <- wb_session_add_run(s3, run_ft)
+  s3$head_run_id <- run_ft$run_id
+
+  prom_tbl <- wb_promote_analysis(
+    bundle = b,
+    runs = s3$runs,
+    head_run_id = run_ft$run_id,
+    name_prefix = "foundation_tables",
+    created_by = "test",
+    fail_fast = TRUE
+  )
+  ok_tbl <- prom_tbl$promoted[prom_tbl$promoted$status == "ok", , drop = FALSE]
+  stopifnot(nrow(ok_tbl) >= 1)
+
+  aid_ft <- ok_tbl$artifact_id[ok_tbl$output == "de_table"][1]
+  pft <- wb_art_load(b, artifact_id = as.character(aid_ft), expected_kind = "feature_table")
+  stopifnot(identical(pft$kind, "feature_table"), nrow(pft$table) == 2)
+
+  # obs_table promotion path (internal promoter, same artifact schema)
+  run_obs <- wb_new_run(
+    op_name = "de_wilcox",
+    inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
+    params = list(),
+    outputs = list(),
+    notes = "obs_table promote/load test"
+  )
+  obs_prim <- wb_prim_obs_table(
+    table = data.frame(sample_id = c("s1", "s2"), n = c(10, 20), stringsAsFactors = FALSE),
+    table_type = "qc_summary",
+    entity_kind = "sample"
+  )
+  aid_ot <- scworkbench:::.wb_promote_obs_table(
+    bundle = b,
+    run = run_obs,
+    out_name = "summary",
+    prim = obs_prim,
+    created_by = "test"
+  )
+  pot <- wb_art_load(b, artifact_id = as.character(aid_ot), expected_kind = "obs_table")
+  stopifnot(identical(pot$kind, "obs_table"), nrow(pot$table) == 2)
+
   TRUE
 }

@@ -26,6 +26,19 @@ test_primitives_contract <- function() {
     identical(mr$in_space_id, "lsi")
   )
 
+  ft <- wb_prim_feature_table(
+    table = data.frame(feature_id = c("g1", "g2"), stat = c(1, 2), stringsAsFactors = FALSE),
+    table_type = "unit_test"
+  )
+  stopifnot(.wb_is_primitive(ft), identical(ft$kind, "feature_table"))
+
+  ot <- wb_prim_obs_table(
+    table = data.frame(sample_id = c("s1", "s2"), value = c(0.1, 0.2), stringsAsFactors = FALSE),
+    table_type = "unit_test",
+    entity_kind = "sample"
+  )
+  stopifnot(.wb_is_primitive(ot), identical(ot$kind, "obs_table"))
+
   # Op contract invariants
   ops <- .wb_ops()
   stopifnot(is.list(ops), length(ops) > 0)

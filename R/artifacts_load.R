@@ -3,6 +3,8 @@
 # using the *existing* migrate schema (no payload_json column needed).
 
 # ---- Main loader ----
+#' Load a promoted artifact as a primitive
+#' @export
 wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
   con <- bundle$con
   .wb_assert(!is.null(con), "wb_art_load(): bundle$con is NULL (no DB connection).")
@@ -117,6 +119,89 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
       )
       p$model_path <- as.character(df$model_path[[1]])
       p
+    },
+
+    "feature_table" = {
+      info <- DBI::dbGetQuery(
+        con,
+        "SELECT table_type, entity_kind, meta_json
+         FROM artifact_tables
+         WHERE artifact_id = ?;",
+        params = list(artifact_id)
+      )
+      .wb_assert(nrow(info) == 1, paste0("wb_art_load(): no row in artifact_tables for ", artifact_id))
+
+      rows <- DBI::dbGetQuery(
+        con,
+        "SELECT row_json
+         FROM artifact_table_rows
+         WHERE artifact_id = ?
+         ORDER BY row_idx ASC;",
+        params = list(artifact_id)
+      )
+      .wb_assert(nrow(rows) >= 0, paste0("wb_art_load(): failed reading table rows for ", artifact_id))
+
+      tbl <- if (nrow(rows) == 0) {
+        data.frame(stringsAsFactors = FALSE)
+      } else {
+        rr <- lapply(rows$row_json, jsonlite::fromJSON)
+        rr <- lapply(rr, as.data.frame, stringsAsFactors = FALSE)
+        out <- do.call(rbind, rr)
+        rownames(out) <- NULL
+        out
+      }
+      meta <- if (!is.null(info$meta_json[[1]]) && nzchar(as.character(info$meta_json[[1]]))) {
+        jsonlite::fromJSON(as.character(info$meta_json[[1]]), simplifyVector = TRUE)
+      } else {
+        list()
+      }
+
+      wb_prim_feature_table(
+        table = tbl,
+        table_type = as.character(info$table_type[[1]] %||% "generic"),
+        meta = meta
+      )
+    },
+
+    "obs_table" = {
+      info <- DBI::dbGetQuery(
+        con,
+        "SELECT table_type, entity_kind, meta_json
+         FROM artifact_tables
+         WHERE artifact_id = ?;",
+        params = list(artifact_id)
+      )
+      .wb_assert(nrow(info) == 1, paste0("wb_art_load(): no row in artifact_tables for ", artifact_id))
+
+      rows <- DBI::dbGetQuery(
+        con,
+        "SELECT row_json
+         FROM artifact_table_rows
+         WHERE artifact_id = ?
+         ORDER BY row_idx ASC;",
+        params = list(artifact_id)
+      )
+      tbl <- if (nrow(rows) == 0) {
+        data.frame(stringsAsFactors = FALSE)
+      } else {
+        rr <- lapply(rows$row_json, jsonlite::fromJSON)
+        rr <- lapply(rr, as.data.frame, stringsAsFactors = FALSE)
+        out <- do.call(rbind, rr)
+        rownames(out) <- NULL
+        out
+      }
+      meta <- if (!is.null(info$meta_json[[1]]) && nzchar(as.character(info$meta_json[[1]]))) {
+        jsonlite::fromJSON(as.character(info$meta_json[[1]]), simplifyVector = TRUE)
+      } else {
+        list()
+      }
+
+      wb_prim_obs_table(
+        table = tbl,
+        table_type = as.character(info$table_type[[1]] %||% "generic"),
+        entity_kind = as.character(info$entity_kind[[1]] %||% "generic"),
+        meta = meta
+      )
     },
 
     stop("wb_art_load(): Unsupported artifact type: ", type, call. = FALSE)

@@ -309,7 +309,7 @@
       intent = c("de", "markers", "comparison"),
       requires = list(matrix = "matrix"),
       produces = list(de_table = "feature_table"),
-      promotable = character(0),
+      promotable = c("de_table"),
       runner = .wb_runner_de_wilcox,
       inputs = list(
         matrix = list(required = TRUE, kind = "matrix")
@@ -340,7 +340,7 @@
       intent = c("markers", "cluster"),
       requires = list(matrix = "matrix", clusters = "cell_vector"),
       produces = list(markers = "feature_table"),
-      promotable = character(0),
+      promotable = c("markers"),
       runner = .wb_runner_markers_topn,
       inputs = list(
         matrix = list(required = TRUE, kind = "matrix"),

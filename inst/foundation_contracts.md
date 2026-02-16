@@ -119,6 +119,43 @@ The engine supports a single canonical reference model across runtimes:
 
 This reference model is intended to be shared by all clients (Shiny, Python, Node, agents).
 
+## Tabular Primitive Contracts
+
+The engine now supports canonical tabular primitives for analysis results:
+
+- `feature_table` (rows are feature-level results; requires `feature_id` column)
+- `obs_table` (generic entity-level tables: pathways, samples, clusters, etc.)
+
+Primitive shape:
+
+- `feature_table`:
+  - `kind = "feature_table"`
+  - `table_type` (string)
+  - `table` (`data.frame`)
+  - `meta` (list)
+- `obs_table`:
+  - `kind = "obs_table"`
+  - `table_type` (string)
+  - `entity_kind` (string, e.g. `sample`, `cluster`, `pathway`, `generic`)
+  - `table` (`data.frame`)
+  - `meta` (list)
+
+Promotion contract:
+
+- both kinds are promotable through `wb_promote_analysis()`
+- artifact types:
+  - `feature_table`
+  - `obs_table`
+- storage tables:
+  - `artifact_tables` (metadata: `table_type`, `entity_kind`, `meta_json`)
+  - `artifact_table_rows` (row-wise JSON payload, ordered by `row_idx`)
+
+Loading contract:
+
+- `wb_art_load()` reconstructs promoted table artifacts back to:
+  - `wb_prim_feature_table(...)`
+  - `wb_prim_obs_table(...)`
+
 ## Validation Strategy
 
 Foundation behavior is verified by:

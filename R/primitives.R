@@ -102,3 +102,20 @@ wb_prim_feature_table <- function(table, table_type = "generic", meta = list()) 
     class = "wb_primitive"
   )
 }
+
+#' Create an obs_table primitive
+#' @export
+wb_prim_obs_table <- function(table, table_type = "generic", entity_kind = "generic", meta = list()) {
+  .wb_assert(is.data.frame(table), "table must be a data.frame")
+  if (is.null(meta)) meta <- list()
+  structure(
+    list(
+      kind = "obs_table",
+      table_type = as.character(table_type)[1],
+      entity_kind = as.character(entity_kind)[1],
+      table = table,
+      meta = meta
+    ),
+    class = "wb_primitive"
+  )
+}

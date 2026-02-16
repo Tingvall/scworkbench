@@ -53,6 +53,27 @@
     ))
   }
 
+  if (identical(kind, "feature_table")) {
+    tbl <- p$table
+    return(list(
+      kind = "feature_table",
+      table_type = p$table_type %||% "generic",
+      n_rows = if (is.data.frame(tbl)) nrow(tbl) else NA_integer_,
+      n_cols = if (is.data.frame(tbl)) ncol(tbl) else NA_integer_
+    ))
+  }
+
+  if (identical(kind, "obs_table")) {
+    tbl <- p$table
+    return(list(
+      kind = "obs_table",
+      table_type = p$table_type %||% "generic",
+      entity_kind = p$entity_kind %||% "generic",
+      n_rows = if (is.data.frame(tbl)) nrow(tbl) else NA_integer_,
+      n_cols = if (is.data.frame(tbl)) ncol(tbl) else NA_integer_
+    ))
+  }
+
   # fallback
   list(kind = kind)
 }

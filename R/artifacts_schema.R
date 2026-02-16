@@ -77,5 +77,24 @@
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_umap_model_space ON artifact_umap_model(space_id);")
 
+  # generic tabular outputs (feature_table / obs_table)
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS artifact_tables (
+      artifact_id TEXT PRIMARY KEY,
+      table_type TEXT NOT NULL,
+      entity_kind TEXT NOT NULL,
+      meta_json TEXT
+    );
+  ")
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS artifact_table_rows (
+      artifact_id TEXT NOT NULL,
+      row_idx INTEGER NOT NULL,
+      row_json TEXT NOT NULL,
+      PRIMARY KEY (artifact_id, row_idx)
+    );
+  ")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_table_rows_artifact ON artifact_table_rows(artifact_id);")
+
   invisible(TRUE)
 }

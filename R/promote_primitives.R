@@ -15,7 +15,9 @@
     cell_vector_family  = .wb_promote_cell_vector_family,
     path_2d_family      = .wb_promote_path_2d_family,
     space_2d            = .wb_promote_space_2d_ref,
-    model_ref           = .wb_promote_model_ref
+    model_ref           = .wb_promote_model_ref,
+    feature_table       = .wb_promote_feature_table,
+    obs_table           = .wb_promote_obs_table
   )
 }
 
@@ -450,6 +452,118 @@ wb_promote_analysis <- function(bundle,
   artifact_id
 }
 
+.wb_promote_feature_table <- function(bundle, run, out_name, prim,
+                                      name = NULL, description = NULL, created_by = NULL,
+                                      parent_artifacts = list()) {
+  .wb_assert(prim$kind == "feature_table", "Expected kind=feature_table")
+  .wb_assert(is.data.frame(prim$table), "feature_table missing data.frame 'table'")
+  if (!("feature_id" %in% names(prim$table))) {
+    stop("feature_table requires a 'feature_id' column.", call. = FALSE)
+  }
+
+  .wb_promote_tabular_common(
+    bundle = bundle,
+    run = run,
+    out_name = out_name,
+    prim = prim,
+    artifact_type = "feature_table",
+    entity_kind = "feature",
+    name = name,
+    description = description,
+    created_by = created_by,
+    parent_artifacts = parent_artifacts
+  )
+}
+
+.wb_promote_obs_table <- function(bundle, run, out_name, prim,
+                                  name = NULL, description = NULL, created_by = NULL,
+                                  parent_artifacts = list()) {
+  .wb_assert(prim$kind == "obs_table", "Expected kind=obs_table")
+  .wb_assert(is.data.frame(prim$table), "obs_table missing data.frame 'table'")
+
+  .wb_promote_tabular_common(
+    bundle = bundle,
+    run = run,
+    out_name = out_name,
+    prim = prim,
+    artifact_type = "obs_table",
+    entity_kind = prim$entity_kind %||% "generic",
+    name = name,
+    description = description,
+    created_by = created_by,
+    parent_artifacts = parent_artifacts
+  )
+}
+
+.wb_promote_tabular_common <- function(bundle, run, out_name, prim,
+                                       artifact_type, entity_kind,
+                                       name = NULL, description = NULL, created_by = NULL,
+                                       parent_artifacts = list()) {
+  .wb_require_pkg("jsonlite", "tabular artifact promotion")
+  con <- bundle$con
+  wb_migrate_artifacts(bundle)
+
+  artifact_id <- .wb_new_artifact_id(artifact_type)
+  created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
+  prov_json <- .wb_prov_json(run, parent_artifacts)
+
+  DBI::dbExecute(con, "
+    INSERT INTO artifacts(
+      artifact_id, type, name, description, created_at, created_by,
+      source_op, input_space_id, input_matrix_id, cell_set,
+      provenance_json, scworkbench_version
+    )
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+  ", params = list(
+    artifact_id,
+    artifact_type,
+    name %||% paste0(out_name, " (", run$op_name, ")"),
+    description %||% NA_character_,
+    created_at,
+    created_by %||% NA_character_,
+    run$op_name,
+    .wb_run_input_space_id(run),
+    .wb_run_input_matrix_id(run),
+    run$inputs$cell_set %||% "all",
+    prov_json,
+    as.character(utils::packageVersion("scworkbench"))
+  ))
+
+  tbl <- prim$table
+  meta <- prim$meta %||% list()
+  meta_json <- jsonlite::toJSON(.wb_json_sanitize(meta), auto_unbox = TRUE, null = "null")
+
+  DBI::dbExecute(con, "
+    INSERT INTO artifact_tables(
+      artifact_id, table_type, entity_kind, meta_json
+    ) VALUES(?, ?, ?, ?);
+  ", params = list(
+    artifact_id,
+    as.character(prim$table_type %||% "generic")[1],
+    as.character(entity_kind %||% "generic")[1],
+    as.character(meta_json)
+  ))
+
+  row_df <- data.frame(
+    artifact_id = rep(artifact_id, nrow(tbl)),
+    row_idx = seq_len(nrow(tbl)),
+    row_json = vapply(
+      seq_len(nrow(tbl)),
+      function(i) {
+        jsonlite::toJSON(
+          .wb_json_sanitize(as.list(tbl[i, , drop = FALSE])),
+          auto_unbox = TRUE,
+          null = "null"
+        )
+      },
+      character(1)
+    ),
+    stringsAsFactors = FALSE
+  )
+  .wb_db_append_chunked(con, "artifact_table_rows", row_df, chunk_size = 1000L)
+  artifact_id
+}
+
 #' @export
 wb_migrate_artifacts <- function(bundle) {
   con <- bundle$con
@@ -525,6 +639,24 @@ wb_migrate_artifacts <- function(bundle) {
   );
 ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_umap_model_space ON artifact_umap_model(space_id);")
+
+  DBI::dbExecute(con, "
+  CREATE TABLE IF NOT EXISTS artifact_tables (
+    artifact_id TEXT PRIMARY KEY,
+    table_type TEXT NOT NULL,
+    entity_kind TEXT NOT NULL,
+    meta_json TEXT
+  );
+")
+  DBI::dbExecute(con, "
+  CREATE TABLE IF NOT EXISTS artifact_table_rows (
+    artifact_id TEXT NOT NULL,
+    row_idx INTEGER NOT NULL,
+    row_json TEXT NOT NULL,
+    PRIMARY KEY (artifact_id, row_idx)
+  );
+")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_table_rows_artifact ON artifact_table_rows(artifact_id);")
 
 
 
