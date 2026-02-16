@@ -1,48 +1,26 @@
-# Internal op registry (v1)
-# Declares which outputs of each op are saveable and how they should be promoted.
+# Canonical op execution contract lives in .wb_ops() (session_context.R).
+# Keep these legacy helpers as compatibility shims only.
 
-# ---- Op registry: define REQUIRED input TYPES and PRODUCED output TYPES ----
+#' @keywords internal
 .wb_session_op_registry <- function() {
-  list(
-    leiden    = list(requires = c("space"),    produces = c("clusters")),
-    slingshot = list(requires = c("space_2d", "clusters"), produces = c("trajectory")),
-
-
-    meanexpr = list(
-      requires  = c("matrix", "features"),
-      produces  = c("cell_vector") # or "cell_vector" if you treat scores as numeric vector primitive
-    ),
-
-    umap_fit = list(
-      requires  = c("space"),
-      produces  = c("model_ref", "space_2d")
-    ),
-
-    umap_transform = list(
-      requires  = c("in_space", "model_ref"),
-      produces  = c("space_2d")
-    )
-  )
+  .wb_ops()
 }
 
-
+#' @keywords internal
 .wb_op_spec <- function(op_name) {
-  reg <- .wb_op_registry()
-  if (!op_name %in% names(reg)) {
-    stop("Unknown op in registry: ", op_name, call. = FALSE)
-  }
-  reg[[op_name]]
+  .wb_op(op_name)
 }
 
 
 #' List ops with titles/intents
 #' @export
 wb_ops <- function() {
-  ops <- wb_list_ops()
+  ops <- names(.wb_ops())
   rows <- lapply(ops, function(op) {
-    spec <- wb_op_interface(op)
+    spec <- try(wb_op_interface(op), silent = TRUE)
+    if (inherits(spec, "try-error")) spec <- list()
     data.frame(
-      op_name = spec$op_name %||% op,
+      op_name = op,
       title = spec$title %||% "",
       intent = paste(spec$intent %||% character(0), collapse = ","),
       stringsAsFactors = FALSE
@@ -51,5 +29,41 @@ wb_ops <- function() {
   do.call(rbind, rows)
 }
 
-`%||%` <- function(x, y) if (is.null(x)) y else x
+#' @keywords internal
+.wb_validate_op_contract_alignment <- function() {
+  ops <- .wb_ops()
+  ui_ops <- .wb_op_interface_registry()
 
+  .wb_assert(setequal(names(ops), names(ui_ops)),
+             paste0(
+               "Execution ops and interface ops differ. exec-only: ",
+               paste(setdiff(names(ops), names(ui_ops)), collapse = ", "),
+               " ; interface-only: ",
+               paste(setdiff(names(ui_ops), names(ops)), collapse = ", ")
+             ))
+
+  for (op_name in names(ops)) {
+    op <- ops[[op_name]]
+    spec <- ui_ops[[op_name]]
+    out_exec <- op$produces %||% list()
+    out_ui <- spec$produces %||% list()
+
+    .wb_assert(setequal(names(out_exec), names(out_ui)),
+               paste0("Output names mismatch for op '", op_name, "'"))
+
+    for (nm in names(out_exec)) {
+      k_exec <- as.character(out_exec[[nm]])
+      k_ui <- as.character(out_ui[[nm]]$kind %||% "")
+      .wb_assert(identical(k_exec, k_ui),
+                 paste0("Output kind mismatch for op '", op_name, "' output '", nm, "': ", k_exec, " vs ", k_ui))
+    }
+
+    prom <- op$promotable %||% character(0)
+    .wb_assert(all(prom %in% names(out_exec)),
+               paste0("promotable outputs must be subset of produces for op '", op_name, "'"))
+  }
+
+  invisible(TRUE)
+}
+
+`%||%` <- function(x, y) if (is.null(x)) y else x

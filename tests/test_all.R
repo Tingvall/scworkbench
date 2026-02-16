@@ -9,6 +9,9 @@ test_all <- function(bundle_dir){
   if (exists("test_foundation_hardening_1to5", mode = "function")) {
     stopifnot(test_foundation_hardening_1to5(bundle_dir))
   }
+  if (exists("test_op_contract_conformance", mode = "function")) {
+    stopifnot(test_op_contract_conformance())
+  }
 
   cat("Opening bundle\n")
   b <- wb_open_bundle(bundle_dir)

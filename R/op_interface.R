@@ -61,8 +61,8 @@
       intent = c("projection", "umap"),
 
       inputs = list(
-        in_space  = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),
-        model_ref = list(required = TRUE)
+        model = list(required = TRUE, kind = "model_ref"),
+        in_space = list(required = FALSE, must_be_2d = FALSE, dims_min = 2)
       ),
 
       params = list(
@@ -113,27 +113,6 @@
           kind = "path_2d_family",
           key = "lineage_id",
           description = "Lineage curve paths in 2D."
-        )
-      )
-    ),
-
-    meanexpr = list(
-      op_name = "meanexpr",
-      title = "Mean expression score",
-      description = "Compute mean expression over a feature set per cell.",
-      intent = c("score"),
-      inputs = list(
-        matrix = list(required = TRUE),
-        features = list(required = TRUE, kind = "features")
-      ),
-      params = list(),
-      produces = list(
-        scores = list(
-          kind = "cell_vector",
-          description = "Per-cell numeric score (continuous cell vector).",
-          colorable = TRUE,
-          color_type = "continuous",
-          label = "Mean expression"
         )
       )
     )
@@ -210,7 +189,7 @@ wb_op_interface <- function(op_name, bundle = NULL) {
   # ---- op-specific dynamic inputs (bundle-aware) ----
   if (!is.null(bundle) && identical(op_name, "umap_transform")) {
 
-    # 1) model_space_id choices: spaces that have a stored model
+    # 1) model choices: spaces that have a stored model
     model_spaces <- character(0)
     if (.wb_table_exists(bundle$con, "space_models")) {
       model_spaces <- DBI::dbGetQuery(
@@ -220,17 +199,17 @@ wb_op_interface <- function(op_name, bundle = NULL) {
       model_spaces <- as.character(model_spaces)
     }
 
-    if (is.null(spec$inputs$model_space_id)) spec$inputs$model_space_id <- list()
-    spec$inputs$model_space_id$type     <- "select"
-    spec$inputs$model_space_id$label    <- "Model space (2D UMAP with stored model)"
-    spec$inputs$model_space_id$required <- TRUE
-    spec$inputs$model_space_id$choices  <- model_spaces
+    if (is.null(spec$inputs$model)) spec$inputs$model <- list()
+    spec$inputs$model$type     <- "select"
+    spec$inputs$model$label    <- "Model"
+    spec$inputs$model$required <- TRUE
+    spec$inputs$model$choices  <- model_spaces
 
-    if (is.null(spec$inputs$model_space_id$default)) {
-      spec$inputs$model_space_id$default <- if (length(model_spaces)) model_spaces[1] else ""
+    if (is.null(spec$inputs$model$default)) {
+      spec$inputs$model$default <- if (length(model_spaces)) model_spaces[1] else ""
     }
-    if (!length(model_spaces) && is.null(spec$inputs$model_space_id$help)) {
-      spec$inputs$model_space_id$help <- "No stored space models found in this bundle. Run umap_fit first."
+    if (!length(model_spaces) && is.null(spec$inputs$model$help)) {
+      spec$inputs$model$help <- "No stored space models found in this bundle. Run umap_fit first."
     }
 
     # 2) in_space_id choices: any space in bundle (high-D input space)
@@ -258,5 +237,28 @@ wb_op_interface <- function(op_name, bundle = NULL) {
   .wb_assert(is.list(spec$inputs), "spec$inputs must be a list")
   .wb_assert(is.list(spec$params), "spec$params must be a list")
   .wb_assert(is.list(spec$produces), "spec$produces must be a list")
+  invisible(TRUE)
+}
+
+#' @keywords internal
+.wb_validate_op_interface_registry <- function() {
+  reg <- .wb_op_interface_registry()
+  .wb_assert(is.list(reg) && length(reg) > 0, "op interface registry is empty")
+  for (nm in names(reg)) {
+    spec <- reg[[nm]]
+    .wb_validate_op_interface(spec)
+    .wb_assert(identical(as.character(spec$op_name), as.character(nm)),
+               paste0("op interface key/op_name mismatch: key='", nm, "', op_name='", spec$op_name, "'"))
+    out <- spec$produces %||% list()
+    if (length(out)) {
+      .wb_assert(!is.null(names(out)) && all(nzchar(names(out))),
+                 paste0("op interface '", nm, "' produces must be a named list"))
+      for (onm in names(out)) {
+        k <- out[[onm]]$kind %||% NA_character_
+        .wb_assert(is.character(k) && length(k) == 1 && nzchar(k),
+                   paste0("op interface '", nm, "' output '", onm, "' missing kind"))
+      }
+    }
+  }
   invisible(TRUE)
 }

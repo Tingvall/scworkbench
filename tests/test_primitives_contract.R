@@ -44,8 +44,8 @@ test_primitives_contract <- function() {
     }
   }
 
-  # UI interface should speak primitive output kinds for these core ops
-  must_align <- c("leiden", "slingshot", "umap_fit", "umap_transform")
+  # UI interface should speak primitive output kinds for all canonical ops
+  must_align <- names(ops)
   for (op_name in must_align) {
     iface <- wb_op_interface(op_name)
     op <- ops[[op_name]]

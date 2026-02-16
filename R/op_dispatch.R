@@ -121,14 +121,18 @@
       # If your wb_op_umap_fit already returns normalized outputs, keep it.
       if (!is.null(raw$outputs) && is.list(raw$outputs)) return(raw)
 
-      # Otherwise normalize: it writes to bundle; outputs are references
+      # Otherwise normalize legacy return shape from wb_op_umap_fit().
+      # Expected raw fields include raw$model$space_id and/or raw$space_2d$space_id.
+      model_space_id <- raw$model$space_id %||% raw$space_2d$space_id %||% space_id_out
+      fit_in_space_id <- source_space_id
+
       list(
         outputs = list(
-          model_ref = wb_prim_model_ref(
+          model = wb_prim_model_ref(
             model_space_id = model_space_id,   # where the model lives / identifies
-            in_space_id    = space_id,         # the training source space
+            in_space_id    = fit_in_space_id,  # the training source space
             engine         = "uwot",
-            artifact_id    = artifact_id %||% NULL
+            artifact_id    = NULL
           ),
           space_2d = wb_prim_space_2d(model_space_id)
         ),
@@ -139,18 +143,28 @@
 
     # ---- UMAP TRANSFORM (modern) ----
     umap_transform = function(bundle, resolved, effective_cells, inputs = list(), ...) {
-      .wb_assert(!is.null(resolved$in_space),   "umap_transform runner: missing resolved$in_space.")
-      .wb_assert(!is.null(resolved$model_ref), "umap_transform runner: missing resolved$model_ref.")
+      .wb_assert(!is.null(resolved$model), "umap_transform runner: missing resolved$model.")
       .wb_assert(length(effective_cells) > 0,  "umap_transform runner: effective_cells is empty.")
 
-      in_space_id <- resolved$in_space$space_id
-
-      mr <- resolved$model_ref
+      mr <- resolved$model
       model_space_id <- mr$model_space_id %||% mr$space_id
       fit_in_space_id <- mr$in_space_id %||% ""
 
       .wb_assert(nzchar(model_space_id), "model_ref must contain model_space_id (or space_id).")
-      .wb_assert(nzchar(fit_in_space_id), "model_ref must contain in_space_id (fit source space).")
+
+      # If model_ref did not carry fit source space, recover it from registry.
+      if (!nzchar(fit_in_space_id)) {
+        sm <- wb_space_model(bundle, model_space_id)
+        fit_in_space_id <- as.character(sm$source_space_id[1] %||% "")
+      }
+
+      # Optional override for advanced callers; otherwise use the model's fit source.
+      in_space_id <- inputs$in_space_id %||% inputs$in_space %||% fit_in_space_id
+      if (is.list(in_space_id) && !is.null(in_space_id$space_id)) {
+        in_space_id <- in_space_id$space_id
+      }
+      in_space_id <- as.character(in_space_id)[1]
+      .wb_assert(nzchar(in_space_id), "Could not resolve in_space_id from model_ref or inputs.")
 
       # optional but highly recommended safety:
       # .wb_assert(identical(in_space_id, fit_in_space_id),
@@ -196,4 +210,29 @@
   ops <- .wb_ops()
   .wb_assert(op_name %in% names(ops), paste0("Unknown op: ", op_name))
   ops[[op_name]]
+}
+
+#' @keywords internal
+.wb_validate_op_dispatch_registry <- function() {
+  ops <- names(.wb_ops())
+  reg <- .wb_op_dispatch_registry()
+  runners <- names(reg)
+
+  .wb_assert(setequal(ops, runners),
+             paste0(
+               "Dispatch runners and execution ops differ. runner-only: ",
+               paste(setdiff(runners, ops), collapse = ", "),
+               " ; op-only: ",
+               paste(setdiff(ops, runners), collapse = ", ")
+             ))
+
+  for (op_name in ops) {
+    fn <- reg[[op_name]]
+    .wb_assert(is.function(fn), paste0("Runner for op '", op_name, "' is not a function"))
+    fml <- names(formals(fn))
+    .wb_assert(all(c("bundle", "resolved", "effective_cells", "inputs") %in% fml),
+               paste0("Runner for op '", op_name, "' missing required formals"))
+  }
+
+  invisible(TRUE)
 }
