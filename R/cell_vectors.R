@@ -43,22 +43,80 @@ wb_attach_cell_vector <- function(bundle, vector_id, values, overwrite = TRUE) {
   invisible(list(vector_id = vector_id, n = nrow(df)))
 }
 
+#' Read a cell_vector (scalar per cell) for a set of cells
+#'
+#' Supports two backends:
+#' 1) artifact-backed vectors: vector_id = "artifact:<artifact_id>"
+#'    - loads via wb_art_load() and subsets to cell_ids
+#' 2) legacy DB vectors: vector_id = "<vector_id>"
+#'    - reads from cell_vector_values (numeric)
+#'
+#' @export
 wb_read_cell_vector <- function(bundle, vector_id, cell_ids) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(vector_id) && length(vector_id) == 1 && nzchar(vector_id), "vector_id invalid")
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids invalid")
   con <- bundle$con
-  .wb_ensure_cell_vectors_tables(con)
+  .wb_assert(!is.null(con), "bundle$con is NULL")
 
   cell_ids <- as.character(cell_ids)
+
+  # -------------------------
+  # 1) Artifact-backed
+  # -------------------------
+  if (startsWith(vector_id, "artifact:")) {
+    artifact_id <- sub("^artifact:", "", vector_id)
+    prim <- wb_art_load(bundle, artifact_id = artifact_id)
+
+    .wb_assert(inherits(prim, "wb_primitive"), "wb_art_load() did not return a wb_primitive")
+    .wb_assert(identical(prim$kind, "cell_vector") || identical(prim$kind, "cell_vector_family"),
+               "artifact must be of kind 'cell_vector' or 'cell_vector_family'")
+
+    if (identical(prim$kind, "cell_vector_family")) {
+      stop(
+        "wb_read_cell_vector(): '", vector_id, "' is a cell_vector_family. ",
+        "Use wb_read_cell_vector_family(bundle, vector_id, key=, cell_ids=) instead.",
+        call. = FALSE
+      )
+    }
+
+    # Build full named vector
+    v <- prim$value
+    names(v) <- prim$cell_id
+
+    # Subset (preserve order, return NA for missing)
+    out <- rep(NA_character_, length(cell_ids))
+    names(out) <- cell_ids
+    hit <- intersect(cell_ids, names(v))
+    out[hit] <- as.character(v[hit])
+
+    # Optional: if value_type looks numeric, coerce
+    if (!is.null(prim$value_type) && identical(prim$value_type, "continuous")) {
+      out_num <- suppressWarnings(as.numeric(out))
+      names(out_num) <- names(out)
+      return(out_num)
+    }
+
+    return(out)
+  }
+
+  # -------------------------
+  # 2) Legacy DB-backed numeric vectors
+  # -------------------------
+  .wb_ensure_cell_vectors_tables(con)
+
   out <- rep(NA_real_, length(cell_ids))
   names(out) <- cell_ids
 
-  cl <- .wb_sql_in_json(cell_ids)  # you already have this helper
-  df <- DBI::dbGetQuery(con, paste0(
-    "SELECT cell_id, value FROM cell_vector_values
-     WHERE vector_id = ? AND cell_id IN ", cl$sql, ";"
-  ), params = c(list(vector_id), cl$params))
+  cl <- .wb_sql_in_json(cell_ids)
+  df <- DBI::dbGetQuery(
+    con,
+    paste0(
+      "SELECT cell_id, value FROM cell_vector_values
+       WHERE vector_id = ? AND cell_id IN ", cl$sql, ";"
+    ),
+    params = c(list(vector_id), cl$params)
+  )
 
   if (nrow(df) == 0) return(out)
   out[df$cell_id] <- as.numeric(df$value)
@@ -66,18 +124,153 @@ wb_read_cell_vector <- function(bundle, vector_id, cell_ids) {
 }
 
 
+#' Read one member of a cell_vector_family (e.g. pseudotime for a given lineage)
+#'
+#' vector_id must be artifact-backed: "artifact:<artifact_id>"
+#' key selects which family member (e.g. "L1")
+#'
+#' @export
+wb_read_cell_vector_family <- function(bundle, vector_id, key, cell_ids) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(is.character(vector_id) && length(vector_id) == 1 && nzchar(vector_id), "vector_id invalid")
+  .wb_assert(is.character(key) && length(key) == 1 && nzchar(key), "key invalid (e.g. 'L1')")
+  .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids invalid")
 
-wb_list_cell_vectors <- function(bundle) {
+  .wb_assert(startsWith(vector_id, "artifact:"),
+             "wb_read_cell_vector_family(): only supports artifact-backed families: vector_id='artifact:<artifact_id>'")
+  artifact_id <- sub("^artifact:", "", vector_id)
+
+  prim <- wb_art_load(bundle, artifact_id = artifact_id, expected_kind = "cell_vector_family")
+
+  # prim: (key, cell_id, value) triplets
+  key <- as.character(key)
+  keep <- prim$key == key
+
+  out <- rep(NA_real_, length(cell_ids))
+  names(out) <- as.character(cell_ids)
+
+  if (!any(keep)) return(out)
+
+  df_cell <- prim$cell_id[keep]
+  df_val  <- prim$value[keep]
+  names(df_val) <- df_cell
+
+  hit <- intersect(names(out), names(df_val))
+  out[hit] <- as.numeric(df_val[hit])
+  out
+}
+
+
+
+
+#' List available cell vectors (artifacts + optional session outputs)
+#'
+#' Source of truth:
+#' - Bundle: artifacts table (type == cell_vector / cell_vector_family)
+#' - Session (optional): session$runs outputs (kind == cell_vector / cell_vector_family)
+#'
+#' Returns a lightweight index for UX/plotting/selectors. It does NOT return payloads.
+#'
+#' Columns:
+#' - vector_id: stable id for loading (artifact:<artifact_id> or session:<run_id>:<output>)
+#' - kind: cell_vector | cell_vector_family
+#' - name: human label
+#' - source: artifact | session
+#' - created_at, created_by, op_name, run_id (when available)
+#' - artifact_id (when artifact)
+#'
+#' @export
+wb_list_cell_vectors <- function(bundle, session = NULL, include_session = !is.null(session)) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
-  .wb_ensure_cell_vectors_tables(con)
 
-  DBI::dbGetQuery(con, "
-    SELECT vector_id, name, description, value_type, source, created_at, created_by
-    FROM cell_vectors
-    ORDER BY created_at DESC;
-  ")
+  # ---- 1) artifact-backed vectors ----
+  arts <- DBI::dbGetQuery(
+    con,
+    "SELECT artifact_id, type, name, created_at, created_by, source_op
+     FROM artifacts
+     WHERE type IN ('cell_vector','cell_vector_family')
+     ORDER BY created_at DESC;"
+  )
+
+  if (nrow(arts) > 0) {
+    arts$vector_id <- paste0("artifact:", arts$artifact_id)
+    arts$kind      <- as.character(arts$type)
+    arts$source    <- "artifact"
+    arts$op_name   <- as.character(arts$source_op)
+    arts$run_id    <- NA_character_
+    arts$artifact_id <- as.character(arts$artifact_id)
+    arts$name      <- as.character(arts$name %||% arts$artifact_id)
+    arts$created_at <- as.character(arts$created_at)
+    arts$created_by <- as.character(arts$created_by)
+
+    arts <- arts[, c("vector_id","kind","name","source","created_at","created_by","op_name","run_id","artifact_id"), drop = FALSE]
+  } else {
+    arts <- data.frame(
+      vector_id = character(0),
+      kind = character(0),
+      name = character(0),
+      source = character(0),
+      created_at = character(0),
+      created_by = character(0),
+      op_name = character(0),
+      run_id = character(0),
+      artifact_id = character(0),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  # ---- 2) session-backed vectors (optional) ----
+  sess_df <- NULL
+  if (isTRUE(include_session)) {
+    .wb_assert(is.list(session), "session must be a list-like wb_session object")
+    runs <- session$runs %||% list()
+
+    rows <- list()
+    k <- 0L
+
+    for (rid in names(runs)) {
+      run <- runs[[rid]]
+      outs <- run$outputs %||% list()
+      if (!length(outs)) next
+
+      for (out_name in names(outs)) {
+        prim <- outs[[out_name]]
+        if (!is.list(prim) || is.null(prim$kind)) next
+        if (!prim$kind %in% c("cell_vector","cell_vector_family")) next
+
+        k <- k + 1L
+        k_name <- paste0("session:", rid, ":", out_name)
+
+        rows[[k]] <- data.frame(
+          vector_id   = k_name,
+          kind        = as.character(prim$kind),
+          name        = paste0(run$op_name %||% "op", "::", out_name),
+          source      = "session",
+          created_at  = as.character(run$created_at %||% NA_character_),
+          created_by  = as.character(run$created_by %||% NA_character_),
+          op_name     = as.character(run$op_name %||% NA_character_),
+          run_id      = as.character(rid),
+          artifact_id = NA_character_,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+
+    sess_df <- if (length(rows)) do.call(rbind, rows) else arts[0, ]
+  } else {
+    sess_df <- arts[0, ]
+  }
+
+  out <- rbind(arts, sess_df)
+
+  # optional: prefer session rows at the top if the same “name/kind” appears
+  out <- out[order(out$source, out$created_at, decreasing = TRUE), , drop = FALSE]
+
+  rownames(out) <- NULL
+  out
 }
+
 
 
 wb_register_cell_vector <- function(
@@ -130,6 +323,37 @@ wb_register_cell_vector <- function(
 
   invisible(vector_id)
 }
+
+#' Load a cell vector primitive by vector_id (artifact:* or session:*:*).
+#' @export
+wb_cell_vector_load <- function(bundle, session = NULL, vector_id, expected_kind = NULL) {
+  .wb_assert(is.character(vector_id) && length(vector_id) == 1 && nzchar(vector_id), "vector_id invalid")
+
+  if (startsWith(vector_id, "artifact:")) {
+    artifact_id <- sub("^artifact:", "", vector_id)
+    return(wb_art_load(bundle, artifact_id = artifact_id, expected_kind = expected_kind))
+  }
+
+  if (startsWith(vector_id, "session:")) {
+    .wb_assert(!is.null(session), "vector_id is session:* but session is NULL.")
+    parts <- strsplit(vector_id, ":", fixed = TRUE)[[1]]
+    .wb_assert(length(parts) >= 3, "session vector_id must be session:<run_id>:<output>")
+
+    run_id <- parts[[2]]
+    out_nm <- paste(parts[3:length(parts)], collapse=":") # tolerate ':' in output names
+
+    run <- session$runs[[run_id]]
+    .wb_assert(!is.null(run), paste0("No such run_id in session: ", run_id))
+    prim <- run$outputs[[out_nm]]
+    .wb_assert(!is.null(prim), paste0("Run ", run_id, " has no output '", out_nm, "'"))
+
+    if (!is.null(expected_kind)) .wb_assert_kind(prim, expected_kind, where = paste0(" (", vector_id, ")"))
+    return(prim)
+  }
+
+  stop("Unknown vector_id scheme: ", vector_id, call. = FALSE)
+}
+
 
 wb_write_cell_vector <- function(
     bundle,

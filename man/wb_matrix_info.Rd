@@ -4,9 +4,7 @@
 \alias{wb_matrix_info}
 \title{Get matrix registry info}
 \usage{
-wb_matrix_info(bundle, matrix_id)
-
-wb_matrix_info(bundle, matrix_id)
+wb_matrix_info(bundle, matrix_id = NULL)
 }
 \arguments{
 \item{bundle}{Bundle handle from \code{wb_open_bundle()}}
@@ -18,6 +16,4 @@ A data.frame of matrices
 }
 \description{
 Get matrix registry info
-
-Matrix metadata
 }

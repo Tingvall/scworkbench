@@ -7,14 +7,14 @@
 wb_sel_set(x, sets, bundle = NULL)
 }
 \arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
 
-\item{sets}{Character vector of set selectors (e.g. c("set:bulkers","set:interesting")).}
+\item{sets}{Character vector of cell set names to union.}
 
-\item{bundle}{Optional bundle override.}
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
 }
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Select union of one or more named sets

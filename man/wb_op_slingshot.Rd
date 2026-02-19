@@ -2,14 +2,13 @@
 % Please edit documentation in R/ops_slingshot.R
 \name{wb_op_slingshot}
 \alias{wb_op_slingshot}
-\title{Slingshot trajectory inference (PoC: 2D space like UMAP)}
+\title{Slingshot trajectory inference (2D space like UMAP)}
 \usage{
 wb_op_slingshot(
   bundle,
   space_id,
-  labels,
-  cells = NULL,
-  cell_set = "core",
+  clusters,
+  cells,
   exclude_cells = NULL,
   include_clusters = NULL,
   exclude_clusters = NULL,
@@ -22,43 +21,12 @@ wb_op_slingshot(
   ...
 )
 }
-\arguments{
-\item{bundle}{Bundle handle}
-
-\item{space_id}{2D space id (e.g. "umap")}
-
-\item{labels}{data.frame with columns cell_id and cluster}
-
-\item{cells}{Optional subset of cells to include (default all)}
-
-\item{exclude_cells}{Optional cells to exclude}
-
-\item{include_clusters}{Optional clusters to keep (from labels$cluster)}
-
-\item{exclude_clusters}{Optional clusters to drop (from labels$cluster)}
-
-\item{start.clus, end.clus}{Slingshot start/end cluster(s)}
-
-\item{stretch, reweight, shrink, maxit}{Slingshot params}
-
-\item{...}{passed to slingshot::slingshot()}
-
-\item{include_datasets}{Optional dataset_ids to keep}
-
-\item{exclude_datasets}{Optional dataset_ids to drop}
-}
-\value{
-list(
-pseudotime = data.frame(cell_id, lineage_id, pseudotime),
-curves     = data.frame(lineage_id, point, x, y),
-params     = list(...)
-)
-}
 \description{
-scworkbench contract:
+clusters:
 \itemize{
-\item universal filtering via cells/exclude_cells/(include|exclude)_datasets
-\item label filtering via (include|exclude)_clusters
-\item slingshot-native args preserved: start.clus, end.clus, stretch, ...
+\item named vector: names = cell_id, values = cluster label
 }
+}
+\details{
+cells MUST be provided (effective_cells computed by session).
 }

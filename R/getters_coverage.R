@@ -1,4 +1,14 @@
 #' Cells with available coordinates for a space
+#'
+#' Returns the cell IDs that have coordinates available for `space_id`.
+#' For `wide:space_2d`, this is any cell present in `space_2d`.
+#' For `long:space_coords`, this is any cell with all requested dimensions.
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param space_id Space identifier.
+#' @param dims Optional integer vector of required dimensions for long-form spaces.
+#'
+#' @return Character vector of `cell_id`.
 #' @export
 wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
   con <- bundle$con
@@ -37,6 +47,14 @@ wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
 }
 
 #' Cells available for a given matrix
+#'
+#' Returns cell IDs that are available for `matrix_id`.
+#' In current bundles, matrices are assumed aligned to canonical bundle cell order.
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param matrix_id Matrix identifier.
+#'
+#' @return Character vector of `cell_id` in canonical order, or empty if matrix_id is unknown.
 #' @export
 wb_cells_with_matrix <- function(bundle, matrix_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
@@ -57,6 +75,17 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
 
 
 #' Report coverage of required inputs for a cell set
+#'
+#' Computes how many cells in `cell_set` are covered by required inputs
+#' (currently `space_id` and/or `matrix_id`) and returns a compact summary.
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param cell_set Cell set selector (e.g. `"core"`, `"all"`, `"set:<name>"`).
+#' @param inputs Named list of required inputs. Recognized keys include
+#'   `space_id`, `matrix_id`, and optional `dims` for space coverage.
+#'
+#' @return List with fields:
+#'   `requested`, `per_input`, `effective`, `percent`.
 #' @export
 wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   cells <- wb_cells(bundle, cell_set = cell_set)
@@ -90,8 +119,20 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   res
 }
 
+
 .wb_effective_cells <- function(bundle, cell_set, inputs, op_name, min_cells = 10) {
-  cov <- wb_cell_coverage(bundle, cell_set, inputs)
+
+  # NEW: explicit cell_ids override the "requested" universe
+  requested_cells <- NULL
+  if (!is.null(inputs$cell_ids)) {
+    requested_cells <- as.character(inputs$cell_ids)
+    requested_cells <- unique(requested_cells[nzchar(requested_cells)])
+    .wb_assert(length(requested_cells) > 0, "inputs$cell_ids provided but empty.")
+  } else {
+    requested_cells <- wb_cells(bundle, cell_set = cell_set)
+  }
+
+  cov <- wb_cell_coverage(bundle, cell_set, inputs)  # you may want to also let coverage use cell_ids (optional)
 
   if (cov$effective < min_cells) {
     msg <- paste0(
@@ -111,7 +152,9 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   }
 
   # return actual cell IDs
-  cells <- wb_cells(bundle, cell_set = cell_set)
+  cells <- requested_cells
+
+  # apply per-input availability intersections
   for (k in names(inputs)) {
     if (k == "space_id") {
       cells <- intersect(cells, wb_cells_with_space(bundle, inputs$space_id, inputs$dims %||% NULL))
@@ -120,8 +163,14 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
       cells <- intersect(cells, wb_cells_with_matrix(bundle, inputs$matrix_id))
     }
   }
+
+  .wb_assert(length(cells) >= min_cells,
+             paste0("Op '", op_name, "' cannot run: effective cells < min_cells after intersections."))
+
   cells
 }
+
+
 
 .wb_resolve_effective_cells_for_op <- function(bundle, op_name, cell_set,
                                                inputs = list(),
@@ -138,6 +187,5 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
     min_cells = min_cells
   )
 }
-
 
 

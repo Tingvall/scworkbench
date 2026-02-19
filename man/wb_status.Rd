@@ -6,6 +6,12 @@
 \usage{
 wb_status(bundle)
 }
+\arguments{
+\item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
+}
+\value{
+Invisible list with tables.
+}
 \description{
-Prints what core tables exist, and summarizes spaces/matrices.
+Prints core table existence and summarizes spaces/matrices/artifacts.
 }

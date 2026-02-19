@@ -7,14 +7,14 @@
 wb_sel_not(x, universe = NULL, bundle = NULL)
 }
 \arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
+\item{x}{Selector result (character vector with attached bundle).}
 
-\item{universe}{Optional universe; default all cells.}
+\item{universe}{Optional character vector of universe cell IDs. Defaults to all bundle cells.}
 
-\item{bundle}{Optional bundle override.}
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
 }
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Negation (NOT): universe minus x

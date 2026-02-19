@@ -7,18 +7,20 @@
 wb_sel_meta(x, col, values = NULL, min = NULL, max = NULL, bundle = NULL)
 }
 \arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
 
-\item{col}{Column name in the SQLite \code{cells} table.}
+\item{col}{Metadata column name in \code{cells}.}
 
-\item{values}{Optional categorical selection: keep rows where col in values.}
+\item{values}{Optional categorical values to match (\code{IN} semantics).}
 
-\item{min, max}{Optional numeric range selection.}
+\item{min}{Optional lower bound for numeric range filtering.}
 
-\item{bundle}{Optional bundle override.}
+\item{max}{Optional upper bound for numeric range filtering.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
 }
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Select by cell metadata column (categorical values or numeric range)

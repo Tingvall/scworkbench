@@ -7,17 +7,25 @@
 wb_vector(bundle, matrix_id, feature_id, cells = NULL)
 }
 \arguments{
-\item{bundle}{Bundle handle from \code{wb_open_bundle()}}
+\item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
 
-\item{matrix_id}{Matrix identifier}
+\item{matrix_id}{Matrix identifier (exact match).}
 
-\item{feature_id}{Single feature id (character)}
+\item{feature_id}{Single feature id (character length-1).}
 
-\item{cells}{Optional cell_ids to subset/align}
+\item{cells}{Optional cell_ids to subset/align (order preserved).}
 }
 \value{
-Named numeric vector (names are cell_ids)
+Named numeric vector (names are cell_ids).
 }
 \description{
-Convenience getter for fast "one gene/peak" access.
+Convenience getter for fast "one gene/peak" access from a matrix.
+Returns a named numeric vector aligned to \code{cells} (or bundle cell order).
+}
+\details{
+Canonical ordering:
+\itemize{
+\item Cells: \code{wb_cells(bundle, cell_set="all")}
+\item Features: registry order for this matrix (if available), otherwise \code{rownames(wb_matrix())}
+}
 }

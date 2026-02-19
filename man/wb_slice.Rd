@@ -7,18 +7,25 @@
 wb_slice(bundle, matrix_id, features = NULL, cells = NULL)
 }
 \arguments{
-\item{bundle}{Bundle handle from \code{wb_open_bundle()}}
+\item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
 
-\item{matrix_id}{Matrix identifier}
+\item{matrix_id}{Matrix identifier (exact match).}
 
-\item{features}{Optional feature_ids (character) to subset rows}
+\item{features}{Optional character vector of feature_ids to subset rows (order preserved).}
 
-\item{cells}{Optional cell_ids (character) to subset columns}
+\item{cells}{Optional character vector of cell_ids to subset columns (order preserved).}
 }
 \value{
-A sparse Matrix (dgCMatrix)
+A sparse Matrix (dgCMatrix).
 }
 \description{
 Returns a sparse \code{Matrix} subset for downstream wranglers.
 Subsetting preserves the order of \code{features} and \code{cells} if provided.
+}
+\details{
+Canonical ordering:
+\itemize{
+\item Cells: \code{wb_cells(bundle, cell_set="all")}
+\item Features: registry order for this matrix (if available), otherwise \code{rownames(wb_matrix())}
+}
 }

@@ -11,7 +11,9 @@
 #
 # Internal helpers are prefixed with . (not exported).
 
-`%||%` <- function(a, b) if (!is.null(a) && length(a) > 0 && nzchar(as.character(a[1]))) a else b
+.wb_nonempty_or <- function(a, b) {
+  if (!is.null(a) && length(a) > 0 && nzchar(as.character(a[1]))) a else b
+}
 
 
 .wb_as_sparse <- function(x) {
@@ -38,8 +40,26 @@
     }
   }
 
-  # 4) Last resort: materialize small dense matrix then sparsify.
-  # This is acceptable for slices (like 10x50) but not huge pulls.
+  # 4) Last resort: materialize only small dense matrices, otherwise fail fast.
+  # This prevents accidental sparse->dense explosions on large pulls.
+  d <- try(dim(x), silent = TRUE)
+  if (!inherits(d, "try-error") && length(d) == 2 && all(is.finite(d))) {
+    n <- as.numeric(d[1]) * as.numeric(d[2])
+    est_mb <- (n * 8) / (1024^2)
+    limit_mb <- getOption("scworkbench.max_dense_materialize_mb", 256)
+    if (is.finite(est_mb) && est_mb > as.numeric(limit_mb)) {
+      stop(
+        paste0(
+          "Refusing sparse->dense materialization of ~", round(est_mb, 1),
+          " MB (limit=", limit_mb, " MB). ",
+          "Requested slice is too large for fallback coercion. ",
+          "Reduce features/cells or use a sparse-compatible matrix backend."
+        ),
+        call. = FALSE
+      )
+    }
+  }
+
   y <- try(as.matrix(x), silent = TRUE)
   if (inherits(y, "try-error")) {
     stop("Could not coerce BPCells slice to a sparse Matrix. Try updating BPCells or reduce slice size.", call. = FALSE)
@@ -110,55 +130,6 @@
     return(BPCells::open_matrix(path))
   }
   stop("No supported BPCells open function found (expected open_matrix_dir or open_matrix).", call. = FALSE)
-}
-
-#' Open an scworkbench bundle
-#'
-#' Opens a bundle directory and returns a handle containing:
-#' - `manifest`: parsed manifest.json
-#' - `con`: SQLite connection
-#' - `dir`: bundle directory path
-#'
-#' @param bundle_dir Path to bundle directory
-#' @param validate If TRUE, runs `wb_validate_bundle(bundle_dir)` if available
-#' @return An object of class `scworkbench_bundle`
-#' @export
-wb_open_bundle <- function(bundle_dir, validate = FALSE) {
-  .wb_assert(dir.exists(bundle_dir), paste0("Bundle directory does not exist: ", bundle_dir))
-
-  man_path <- file.path(bundle_dir, "manifest.json")
-  .wb_assert(file.exists(man_path), paste0("Missing manifest.json in bundle: ", bundle_dir))
-
-  manifest <- jsonlite::read_json(man_path, simplifyVector = TRUE)
-
-  db_rel <- manifest$storage$sqlite$path
-  .wb_assert(!is.null(db_rel) && nzchar(db_rel), "manifest.json missing storage$sqlite$path")
-
-  db_path <- file.path(bundle_dir, db_rel)
-  .wb_assert(file.exists(db_path), paste0("SQLite DB not found: ", db_path))
-
-  con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
-
-  bundle <- list(dir = bundle_dir, manifest = manifest, con = con)
-  class(bundle) <- "scworkbench_bundle"
-
-  if (isTRUE(validate) && exists("wb_validate_bundle", mode = "function")) {
-    wb_validate_bundle(bundle_dir)
-  }
-
-  bundle
-}
-
-#' Close an scworkbench bundle
-#'
-#' @param bundle Bundle handle from `wb_open_bundle()`
-#' @return TRUE (invisibly)
-#' @export
-wb_close_bundle <- function(bundle) {
-  if (inherits(bundle, "scworkbench_bundle") && !is.null(bundle$con)) {
-    DBI::dbDisconnect(bundle$con)
-  }
-  invisible(TRUE)
 }
 
 #' Get the manifest from an scworkbench bundle
@@ -269,61 +240,96 @@ wb_meta <- function(bundle, cells = NULL, cols = NULL, dataset_id = NULL) {
 
 #' Get features registry
 #'
-#' @param bundle Bundle handle from `wb_open_bundle()`
-#' @param assay Optional assay filter (exact match)
-#' @param feature_type Optional feature_type filter (e.g. "gene", "peak")
-#' @return A data.frame of features
+#' Returns the registered features for a matrix (matrix_id-first world).
+#'
+#' @param bundle Bundle handle from `wb_bundle_open()`.
+#' @param matrix_id Optional matrix identifier (exact match). If NULL, returns all features.
+#' @param feature_type Optional feature_type filter (e.g. "gene", "peak").
+#'
+#' @return A data.frame with columns:
+#'   matrix_id, feature_id, feature_type, chr, start, end
 #' @export
-wb_features <- function(bundle, assay = NULL, feature_type = NULL) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
+wb_features <- function(bundle, matrix_id = NULL, feature_type = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+             "bundle must be a scworkbench_bundle handle")
+
   con <- bundle$con
-  .wb_assert(.wb_table_exists(con, "features"), "features table not found in SQLite")
+  .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
+  .wb_assert(.wb_table_exists(con, "features"),
+             "features table not found in SQLite")
 
-  q <- "SELECT assay, feature_id, feature_type, chr, start, end FROM features"
-  params <- list()
+  # hard requirement in the new world
+  flds <- DBI::dbListFields(con, "features")
+  .wb_assert("matrix_id" %in% flds,
+             "features table must contain column 'matrix_id' (matrix_id-first bundles only).")
+
+  q <- "SELECT matrix_id, feature_id, feature_type, chr, start, end FROM features"
   where <- character(0)
+  params <- list()
 
-  if (!is.null(assay)) {
-    where <- c(where, "assay = ?")
-    params <- c(params, list(assay))
+  if (!is.null(matrix_id)) {
+    .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
+               "matrix_id must be a length-1 non-empty string")
+    where <- c(where, "matrix_id = ?")
+    params <- c(params, list(matrix_id))
   }
+
   if (!is.null(feature_type)) {
+    .wb_assert(is.character(feature_type) && length(feature_type) == 1 && nzchar(feature_type),
+               "feature_type must be a length-1 non-empty string")
     where <- c(where, "feature_type = ?")
     params <- c(params, list(feature_type))
   }
+
   if (length(where) > 0) q <- paste0(q, " WHERE ", paste(where, collapse = " AND "))
+  q <- paste0(q, " ORDER BY matrix_id, rowid;")  # rowid = publish insertion order
 
   if (length(params) == 0) DBI::dbGetQuery(con, q) else DBI::dbGetQuery(con, q, params = params)
 }
 
-#' Get feature IDs in canonical order for an assay
-#'
-#' Important: this defines the row order for matrices for that assay.
-#'
-#' @param bundle Bundle handle from `wb_open_bundle()`
-#' @param assay Assay name (exact match)
-#' @param feature_type Optional filter (e.g. "gene", "peak")
-#' @return Character vector of feature_ids
-#' @export
-wb_feature_ids <- function(bundle, assay, feature_type = NULL) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
-  con <- bundle$con
 
-  q <- "SELECT feature_id FROM features WHERE assay = ?"
-  params <- list(assay)
+
+#' Get feature IDs in canonical order for a matrix
+#'
+#' Important: this defines the row order for matrices for that `matrix_id`.
+#' The canonical order is the insertion order during bundle publish (SQLite `rowid`).
+#'
+#' @param bundle Bundle handle from `wb_bundle_open()`.
+#' @param matrix_id Matrix ID (exact match), e.g. "RNA_counts" or "ATAC_counts".
+#' @param feature_type Optional filter (e.g. "gene", "peak"). If provided, only
+#'   returns features of that type within the matrix.
+#'
+#' @return Character vector of `feature_id`s in canonical row order.
+#' @export
+wb_feature_ids <- function(bundle, matrix_id, feature_type = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+             "bundle must be a scworkbench_bundle handle")
+
+  .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
+             "matrix_id must be a non-empty string")
+
+  con <- bundle$con
+  .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
+  .wb_assert(.wb_table_exists(con, "features"), "features table not found in SQLite")
+
+  q <- "SELECT feature_id FROM features WHERE matrix_id = ?"
+  params <- list(matrix_id)
 
   if (!is.null(feature_type)) {
+    .wb_assert(is.character(feature_type) && length(feature_type) == 1 && nzchar(feature_type),
+               "feature_type must be a non-empty string when provided")
     q <- paste0(q, " AND feature_type = ?")
     params <- c(params, list(feature_type))
   }
 
-  # rowid order = insertion order during publish (canonical)
+  # `rowid` preserves insertion order from publish (canonical order).
   q <- paste0(q, " ORDER BY rowid;")
 
   res <- DBI::dbGetQuery(con, q, params = params)$feature_id
-  .wb_assert(length(res) > 0, paste0("No features found for assay: ", assay))
-  res
+  .wb_assert(length(res) > 0, paste0("No features found for matrix_id: ", matrix_id))
+  as.character(res)
 }
+
 
 #' Get space registry info
 #'
@@ -361,8 +367,8 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
   con <- bundle$con
 
   info <- .wb_get_spaces_row(con, space_id)
-  storage <- info$storage %||% ""
-  dims_total <- as.integer(info$dims %||% NA_integer_)
+  storage <- .wb_nonempty_or(info$storage, "")
+  dims_total <- as.integer(.wb_nonempty_or(info$dims, NA_integer_))
 
   if (grepl("^wide:space_2d", storage) || (!is.na(dims_total) && dims_total == 2 && .wb_table_exists(con, "space_2d"))) {
     df <- DBI::dbGetQuery(con,
@@ -479,34 +485,47 @@ wb_matrix <- function(bundle, matrix_id) {
   .wb_bp_open_matrix_dir(abs_path)
 }
 
-#' Matrix metadata
+
+#' Search features by matrix_id
+#'
+#' Returns feature IDs registered for a specific matrix, filtered by a text query.
+#'
+#' @param bundle Bundle handle from `wb_bundle_open()`.
+#' @param matrix_id Matrix ID (exact match), e.g. "RNA_counts".
+#' @param query Search string. If empty, returns the first `limit` features (sorted).
+#' @param limit Max number of results to return.
+#' @param mode Match mode: "prefix" (fast, uses `query%`) or "substring" (`%query%`).
+#'
+#' @return Character vector of feature IDs.
 #' @export
-wb_matrix_info <- function(bundle, matrix_id) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
-  con <- bundle$con
-  row <- .wb_get_matrices_row(con, matrix_id)
-  row
-}
-
-
-
-
-#' Search features by matrix (assay + feature_type)
-#' @export
-wb_search_features <- function(bundle, matrix_id, query = "", limit = 50,
+wb_search_features <- function(bundle,
+                               matrix_id,
+                               query = "",
+                               limit = 50,
                                mode = c("prefix", "substring")) {
   mode <- match.arg(mode)
-  con <- bundle$con
 
-  # Resolve matrix -> assay + feature_type
-  m <- DBI::dbGetQuery(
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+             "bundle must be a scworkbench_bundle handle")
+  .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
+             "matrix_id must be a non-empty string")
+  .wb_assert(is.character(query) && length(query) == 1,
+             "query must be a length-1 string")
+  .wb_assert(is.numeric(limit) && length(limit) == 1 && is.finite(limit) && limit > 0,
+             "limit must be a positive number")
+
+  con <- bundle$con
+  .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
+  .wb_assert(.wb_table_exists(con, "matrices"), "matrices table not found in SQLite")
+  .wb_assert(.wb_table_exists(con, "features"), "features table not found in SQLite")
+
+  # Validate matrix exists (nice error message)
+  ok <- DBI::dbGetQuery(
     con,
-    "SELECT assay, feature_type FROM matrices WHERE matrix_id = ?;",
+    "SELECT matrix_id FROM matrices WHERE matrix_id = ?;",
     params = list(matrix_id)
   )
-  .wb_assert(nrow(m) == 1, paste0("Unknown matrix_id: ", matrix_id))
-  assay <- as.character(m$assay[[1]])
-  ftype <- as.character(m$feature_type[[1]])
+  .wb_assert(nrow(ok) == 1, paste0("Unknown matrix_id: ", matrix_id))
 
   like <- if (mode == "prefix") paste0(query, "%") else paste0("%", query, "%")
 
@@ -514,252 +533,184 @@ wb_search_features <- function(bundle, matrix_id, query = "", limit = 50,
     con,
     "SELECT feature_id
      FROM features
-     WHERE assay = ? AND feature_type = ? AND feature_id LIKE ?
+     WHERE matrix_id = ?
+       AND feature_id LIKE ?
      ORDER BY feature_id
      LIMIT ?;",
-    params = list(assay, ftype, like, as.integer(limit))
+    params = list(matrix_id, like, as.integer(limit))
   )
 
-  res$feature_id
+  as.character(res$feature_id)
 }
-
-
-
 
 #' Slice a matrix into memory (sparse)
 #'
 #' Returns a sparse `Matrix` subset for downstream wranglers.
 #' Subsetting preserves the order of `features` and `cells` if provided.
 #'
-#' @param bundle Bundle handle from `wb_open_bundle()`
-#' @param matrix_id Matrix identifier
-#' @param features Optional feature_ids (character) to subset rows
-#' @param cells Optional cell_ids (character) to subset columns
-#' @return A sparse Matrix (dgCMatrix)
+#' Canonical ordering:
+#' - Cells: `wb_cells(bundle, cell_set="all")`
+#' - Features: registry order for this matrix (if available), otherwise `rownames(wb_matrix())`
+#'
+#' @param bundle Bundle handle from `wb_bundle_open()`.
+#' @param matrix_id Matrix identifier (exact match).
+#' @param features Optional character vector of feature_ids to subset rows (order preserved).
+#' @param cells Optional character vector of cell_ids to subset columns (order preserved).
+#'
+#' @return A sparse Matrix (dgCMatrix).
 #' @export
 wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+             "bundle must be a scworkbench_bundle handle")
+  .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
+             "matrix_id must be a non-empty string")
+
   con <- bundle$con
+  .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
+  .wb_assert(.wb_table_exists(con, "matrices"), "matrices table not found in SQLite")
 
-  row <- .wb_get_matrices_row(con, matrix_id)
-  assay <- row$assay
+  # Ensure matrix exists (nice error early)
+  .wb_get_matrices_row(con, matrix_id)
 
-  # Canonical IDs
-  all_cells <- wb_cells(bundle)
-  all_features <- wb_feature_ids(bundle, assay = assay)  # canonical feature order for that assay
+  # Load matrix (can be sparse/delayed/whatever your wb_matrix returns)
+  m <- wb_matrix(bundle, matrix_id)
+  .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
 
-  all_features <- wb_feature_ids(bundle, assay = assay)
+  # Canonical cells: bundle order
+  all_cells <- wb_cells(bundle, cell_set = "all")
 
-  if (length(all_features) == 0) {
-    m0 <- wb_matrix(bundle, matrix_id)
-    .wb_assert(!is.null(rownames(m0)) && length(rownames(m0)) > 0,
-               paste0("No features registered for assay: ", assay,
-                      " and matrix has no rownames."))
-    all_features <- rownames(m0)
+  # Canonical features: prefer registry-by-matrix if present, else matrix rownames
+  all_features <- NULL
+  if (.wb_table_exists(con, "features")) {
+    # New world: features table keyed by matrix_id
+    if ("matrix_id" %in% DBI::dbListFields(con, "features")) {
+      all_features <- DBI::dbGetQuery(
+        con,
+        "SELECT feature_id FROM features WHERE matrix_id = ? ORDER BY rowid;",
+        params = list(matrix_id)
+      )$feature_id
+      all_features <- as.character(all_features)
+    }
   }
 
+  if (is.null(all_features) || length(all_features) == 0) {
+    rn <- rownames(m)
+    .wb_assert(!is.null(rn) && length(rn) > 0,
+               paste0("No feature registry for matrix_id='", matrix_id,
+                      "' and matrix has no rownames."))
+    all_features <- as.character(rn)
+  }
 
   # Resolve indices preserving requested order
   if (!is.null(features)) {
+    .wb_assert(is.character(features), "features must be a character vector")
     fi <- match(features, all_features)
-    .wb_assert(!anyNA(fi), "Some requested features not found for this assay/matrix.")
-    feat_out <- features
+    .wb_assert(!anyNA(fi), "Some requested features not found for this matrix_id.")
+    feat_out <- as.character(features)
   } else {
     fi <- seq_along(all_features)
     feat_out <- all_features
   }
 
   if (!is.null(cells)) {
+    .wb_assert(is.character(cells), "cells must be a character vector")
     ci <- match(cells, all_cells)
     .wb_assert(!anyNA(ci), "Some requested cells not found in bundle.")
-    cell_out <- cells
+    cell_out <- as.character(cells)
   } else {
     ci <- seq_along(all_cells)
     cell_out <- all_cells
   }
 
-  m <- wb_matrix(bundle, matrix_id)
   out <- m[fi, ci, drop = FALSE]
   out <- .wb_as_sparse(out)
 
   rownames(out) <- feat_out
   colnames(out) <- cell_out
   out
-
 }
+
 
 #' Get a single feature vector across cells
 #'
-#' Convenience getter for fast "one gene/peak" access.
+#' Convenience getter for fast "one gene/peak" access from a matrix.
+#' Returns a named numeric vector aligned to `cells` (or bundle cell order).
 #'
-#' @param bundle Bundle handle from `wb_open_bundle()`
-#' @param matrix_id Matrix identifier
-#' @param feature_id Single feature id (character)
-#' @param cells Optional cell_ids to subset/align
-#' @return Named numeric vector (names are cell_ids)
+#' Canonical ordering:
+#' - Cells: `wb_cells(bundle, cell_set="all")`
+#' - Features: registry order for this matrix (if available), otherwise `rownames(wb_matrix())`
+#'
+#' @param bundle Bundle handle from `wb_bundle_open()`.
+#' @param matrix_id Matrix identifier (exact match).
+#' @param feature_id Single feature id (character length-1).
+#' @param cells Optional cell_ids to subset/align (order preserved).
+#'
+#' @return Named numeric vector (names are cell_ids).
 #' @export
 wb_vector <- function(bundle, matrix_id, feature_id, cells = NULL) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+             "bundle must be a scworkbench_bundle handle")
+  .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
+             "matrix_id must be a non-empty string")
+  .wb_assert(is.character(feature_id) && length(feature_id) == 1 && nzchar(feature_id),
+             "feature_id must be a non-empty string")
+
   con <- bundle$con
+  .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
+  .wb_assert(.wb_table_exists(con, "matrices"), "matrices table not found in SQLite")
 
-  row <- .wb_get_matrices_row(con, matrix_id)
-  assay <- row$assay
+  # Ensure matrix exists
+  .wb_get_matrices_row(con, matrix_id)
 
-  all_cells <- wb_cells(bundle)
-  all_features <- wb_feature_ids(bundle, assay = assay)
+  # Canonical cells
+  all_cells <- wb_cells(bundle, cell_set = "all")
+
+  # Load matrix
+  m <- wb_matrix(bundle, matrix_id)
+  .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
+
+  # Canonical features: prefer features registry keyed by matrix_id; else matrix rownames
+  all_features <- NULL
+  if (.wb_table_exists(con, "features") && ("matrix_id" %in% DBI::dbListFields(con, "features"))) {
+    all_features <- DBI::dbGetQuery(
+      con,
+      "SELECT feature_id FROM features WHERE matrix_id = ? ORDER BY rowid;",
+      params = list(matrix_id)
+    )$feature_id
+    all_features <- as.character(all_features)
+  }
+  if (is.null(all_features) || length(all_features) == 0) {
+    rn <- rownames(m)
+    .wb_assert(!is.null(rn) && length(rn) > 0,
+               paste0("No feature registry for matrix_id='", matrix_id,
+                      "' and matrix has no rownames."))
+    all_features <- as.character(rn)
+  }
 
   fi <- match(feature_id, all_features)
-  .wb_assert(!is.na(fi), paste0("Feature not found in assay '", assay, "': ", feature_id))
+  .wb_assert(!is.na(fi),
+             paste0("Feature not found in matrix_id='", matrix_id, "': ", feature_id))
 
+  # Resolve column indices preserving requested order
   if (is.null(cells)) {
     ci <- seq_along(all_cells)
     cell_out <- all_cells
   } else {
+    .wb_assert(is.character(cells), "cells must be a character vector")
     ci <- match(cells, all_cells)
     .wb_assert(!anyNA(ci), "Some requested cells not found in bundle.")
-    cell_out <- cells
+    cell_out <- as.character(cells)
   }
 
-  m <- wb_matrix(bundle, matrix_id)
   v <- m[fi, ci, drop = TRUE]
   v <- .wb_as_numeric(v)
   names(v) <- cell_out
   v
-
 }
 
-#' Cells with coordinates available for a given space
+
+#' Resolve matrix fragments to absolute paths
 #' @export
-wb_cells_with_space <- function(bundle, space_id) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
-  con <- bundle$con
-  space_id <- as.character(space_id)
-
-  info <- .wb_get_spaces_row(con, space_id)
-  storage <- info$storage %||% ""
-  dims_total <- as.integer(info$dims %||% NA_integer_)
-
-  if (grepl("^wide:space_2d", storage) ||
-      (!is.na(dims_total) && dims_total == 2 && .wb_table_exists(con, "space_2d"))) {
-    df <- DBI::dbGetQuery(con,
-                          "SELECT cell_id FROM space_2d WHERE space_id = ?;",
-                          params = list(space_id)
-    )
-    return(as.character(df$cell_id))
-  }
-
-  .wb_assert(.wb_table_exists(con, "space_coords"), "space_coords table not found in SQLite")
-
-  df <- DBI::dbGetQuery(con,
-                        "SELECT DISTINCT cell_id FROM space_coords WHERE space_id = ?;",
-                        params = list(space_id)
-  )
-  as.character(df$cell_id)
-}
-
-#' Cells with data available for a given matrix
-#' @export
-wb_cells_with_matrix <- function(bundle, matrix_id) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
-  con <- bundle$con
-
-  .wb_assert(.wb_table_exists(con, "matrices"), "No matrices table in bundle.")
-  row <- .wb_get_matrices_row(con, matrix_id)
-  .wb_assert(nrow(row) == 1, paste0("Unknown matrix_id: ", matrix_id))
-
-  all_cells <- wb_cells(bundle)
-  n_all <- length(all_cells)
-
-  n_cells <- as.integer(row$n_cells %||% NA_integer_)
-  .wb_assert(!is.na(n_cells) && n_cells >= 0, "matrices$n_cells missing or invalid.")
-
-  if (n_cells == 0) return(character(0))
-
-  if (n_cells != n_all) {
-    stop(
-      paste0(
-        "Matrix coverage unknown for matrix_id='", matrix_id, "':\n",
-        "  matrices$n_cells=", n_cells, " but bundle has ", n_all, " cells.\n",
-        "Add a matrix_cells mapping table or store per-matrix cell_id list to support partial matrices."
-      ),
-      call. = FALSE
-    )
-  }
-
-  all_cells
-}
-
-#' Coverage of required inputs within a cell_set
-#'
-#' @param inputs list(space_id=..., matrix_id=...) (either/both)
-#' @export
-wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
-  message("DEBUG wb_cell_coverage(): cell_set=", cell_set)
-  message("DEBUG wb_cell_coverage(): inputs names = ", paste(names(inputs), collapse = ","))
-  message("DEBUG wb_cell_coverage(): inputs$space_id = ", deparse(inputs$space_id))
-  message("DEBUG wb_cell_coverage(): inputs$matrix_id = ", deparse(inputs$matrix_id))
-  message("DEBUG wb_cell_coverage(): inputs$dims = ", deparse(inputs$dims))
-  cells <- wb_cells(bundle, cell_set = cell_set)
-
-  res <- list(
-    requested = length(cells),
-    per_input = list()
-  )
-
-  current <- cells
-
-  if (!is.null(inputs$space_id)) {
-    have <- wb_cells_with_space(bundle, space_id = inputs$space_id, dims = inputs$dims %||% NULL)
-    res$per_input$space <- list(
-      have = length(have),
-      intersect = length(intersect(current, have))
-    )
-    current <- intersect(current, have)
-  }
-
-  if (!is.null(inputs$matrix_id)) {
-    have <- wb_cells_with_matrix(bundle, matrix_id = inputs$matrix_id)
-    res$per_input$matrix <- list(
-      have = length(have),
-      intersect = length(intersect(current, have))
-    )
-    current <- intersect(current, have)
-  }
-
-  res$effective <- length(current)
-  res$percent <- if (res$requested == 0) 0 else round(100 * res$effective / res$requested, 1)
-  res
-}
-
-wb_matrix_fragments <- function(bundle, matrix_id) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  .wb_assert(is.character(matrix_id) && nzchar(matrix_id), "matrix_id invalid")
-  con <- bundle$con
-
-  # fail fast if schema is wrong
-  cols <- DBI::dbGetQuery(con, "PRAGMA table_info(matrix_fragments);")$name
-  need <- c("fragment_id","matrix_id","storage","path","n_features","n_cells",
-            "feature_ids_json","cell_ids_json","source","created_at","description")
-  missing <- setdiff(need, cols)
-  if (length(missing)) {
-    stop("matrix_fragments schema missing columns: ",
-         paste(missing, collapse=", "),
-         "\nYou probably reverted schema or published a bundle with an older schema.",
-         call. = FALSE)
-  }
-
-  DBI::dbGetQuery(
-    con,
-    "SELECT fragment_id, matrix_id, storage, path, n_features, n_cells,
-            feature_ids_json, cell_ids_json, source, created_at, description
-     FROM matrix_fragments
-     WHERE matrix_id = ?
-     ORDER BY created_at ASC;",
-    params = list(matrix_id)
-  )
-}
-
-
 wb_matrix_resolve <- function(bundle, matrix_id) {
   fr <- wb_matrix_fragments(bundle, matrix_id)
 
@@ -775,6 +726,3 @@ wb_matrix_resolve <- function(bundle, matrix_id) {
   fr$abs_path <- file.path(bundle$dir, fr$path)
   fr
 }
-
-
-

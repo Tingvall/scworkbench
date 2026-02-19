@@ -4,16 +4,16 @@
 #' No "cell_id" column semantics anywhere.
 #'
 #' @param bundle scworkbench_bundle
-#' @param matrices named list. Each entry can be:
-#'   - a Matrix-like (sparse ok) with colnames=cell_id and rownames=feature_id
-#'   - OR a list(mat=..., assay=..., layer=..., feature_type=..., description=...)
-#' @param spaces named list (space_id -> object). Each object must be a data.frame:
+#' @param matrices Named list. Each entry name is the `matrix_id`. Each entry can be:
+#'   - a Matrix-like object (sparse ok) with colnames=cell_id and rownames=feature_id
+#'   - OR a list(mat=..., layer=..., feature_type=..., description=...)
+#' @param spaces Named list (space_id -> data.frame). Each object must be a data.frame:
 #'   - 2D: first col=cell_id, plus x,y
 #'   - long: first col=cell_id, plus dim,value
-#' @param metadata optional data.frame: first col=cell_id, rest are metadata cols
-#' @param cell_ids optional character vector: restrict attach to these cells (must exist in bundle)
-#' @param source stored in registries
-#' @param created_by optional
+#' @param metadata Optional data.frame: first col=cell_id, rest are metadata cols
+#' @param cell_ids Optional character vector: restrict attach to these cells (must exist in bundle)
+#' @param source Stored in registries
+#' @param created_by Optional (currently unused here; kept for forward compatibility)
 #' @return report list
 #' @export
 wb_attach_to_cells <- function(
@@ -27,10 +27,10 @@ wb_attach_to_cells <- function(
 ) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
   con <- bundle$con
+  .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
 
-  # ---- ensure tables exist ----
-  #.wb_ensure_schema(con)
-  .wb_ensure_matrix_fragments_table(con)
+  # Ensure required tables exist
+  #.wb_ensure_matrix_fragments_table(con)
 
   as_chr <- function(x) as.character(x)
 
@@ -41,9 +41,8 @@ wb_attach_to_cells <- function(
 
     ids <- as_chr(df[[1]])
     .wb_assert(length(ids) == nrow(df), paste0(what, ": first column length mismatch."))
-
-    # keep NA allowed? -> no, for attach it is always an error
     .wb_assert(!anyNA(ids), paste0(what, ": first column contains NA cell ids."))
+
     ids <- ids[nzchar(ids)]
     .wb_assert(length(ids) == nrow(df), paste0(what, ": first column contains empty cell ids."))
 
@@ -72,14 +71,14 @@ wb_attach_to_cells <- function(
         cands <- c(cands, as_chr(obj[[1]]))
       }
     }
+
     if (!is.null(metadata)) {
       .wb_assert(is.data.frame(metadata), "metadata must be a data.frame (first col = cell_id).")
       cands <- c(cands, as_chr(metadata[[1]]))
     }
 
     cell_ids <- unique(cands[nzchar(cands)])
-    print(cell_ids)
-    .wb_assert(length(cell_ids) > 0, "Could not infer cell_ids from attachments (no first-column ids / colnames found).")
+    .wb_assert(length(cell_ids) > 0, "Could not infer cell_ids from attachments.")
   } else {
     cell_ids <- unique(as_chr(cell_ids))
     cell_ids <- cell_ids[nzchar(cell_ids)]
@@ -123,9 +122,7 @@ wb_attach_to_cells <- function(
         if (is.factor(x)) x <- as.character(x)
         if (is.logical(x)) x <- as.integer(x)
 
-        col_type <- if (is.numeric(x)) "REAL" else "TEXT"
-        if (is.integer(x)) col_type <- "INTEGER"
-
+        col_type <- if (is.integer(x)) "INTEGER" else if (is.numeric(x)) "REAL" else "TEXT"
         DBI::dbExecute(con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
       }
 
@@ -174,14 +171,14 @@ wb_attach_to_cells <- function(
           params = list(space_id, source, 2L, "wide:space_2d", space_id)
         )
 
-        # wipe+replace only for those cells (avoid huge IN lists: chunk)
         cells_u <- unique(df$cell_id)
         chunk <- 1000L
         for (s in seq(1, length(cells_u), by = chunk)) {
           sub <- cells_u[s:min(s + chunk - 1, length(cells_u))]
           DBI::dbExecute(
             con,
-            "DELETE FROM space_2d WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
+            "DELETE FROM space_2d
+             WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
             params = list(space_id, jsonlite::toJSON(as.list(sub), auto_unbox = TRUE))
           )
         }
@@ -216,7 +213,8 @@ wb_attach_to_cells <- function(
           sub <- cells_u[s:min(s + chunk - 1, length(cells_u))]
           DBI::dbExecute(
             con,
-            "DELETE FROM space_coords WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
+            "DELETE FROM space_coords
+             WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
             params = list(space_id, jsonlite::toJSON(as.list(sub), auto_unbox = TRUE))
           )
         }
@@ -256,7 +254,6 @@ wb_attach_to_cells <- function(
       x <- matrices[[matrix_id]]
       mat <- if (is.list(x) && !is.null(x$mat)) x$mat else x
 
-      assay <- if (is.list(x) && !is.null(x$assay)) x$assay else NULL
       layer <- if (is.list(x) && !is.null(x$layer)) x$layer else "counts"
       feature_type <- if (is.list(x) && !is.null(x$feature_type)) x$feature_type else "feature"
       description <- if (is.list(x) && !is.null(x$description)) x$description else NULL
@@ -270,7 +267,7 @@ wb_attach_to_cells <- function(
       col_cells <- as_chr(colnames(mat))
 
       keep_cols <- intersect(col_cells, keep)
-      .wb_assert(length(keep_cols) > 0, paste0("Matrix ", matrix_id, " has no columns that match existing bundle cells."))
+      .wb_assert(length(keep_cols) > 0, paste0("Matrix ", matrix_id, " has no columns matching bundle cells."))
 
       mat2 <- mat[, match(keep_cols, col_cells), drop = FALSE]
       colnames(mat2) <- keep_cols
@@ -278,17 +275,15 @@ wb_attach_to_cells <- function(
       # ensure matrices row exists (create if missing)
       have <- DBI::dbGetQuery(
         con,
-        "SELECT matrix_id, assay, layer, feature_type FROM matrices WHERE matrix_id = ?;",
+        "SELECT matrix_id FROM matrices WHERE matrix_id = ?;",
         params = list(matrix_id)
       )
 
       if (nrow(have) == 0) {
-        assay2 <- assay %||% matrix_id
         DBI::dbWriteTable(
           con, "matrices",
           data.frame(
             matrix_id = matrix_id,
-            assay = assay2,
             layer = layer,
             feature_type = feature_type,
             n_features = NA_integer_,
@@ -300,10 +295,6 @@ wb_attach_to_cells <- function(
           ),
           append = TRUE
         )
-      } else {
-        if (!is.null(assay) && (is.na(have$assay[1]) || !nzchar(have$assay[1]))) {
-          DBI::dbExecute(con, "UPDATE matrices SET assay = ? WHERE matrix_id = ?;", params = list(assay, matrix_id))
-        }
       }
 
       # write BPCells fragment
@@ -314,7 +305,7 @@ wb_attach_to_cells <- function(
       if (dir.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
       BPCells::write_matrix_dir(mat2, abs_path)
 
-      # register fragment
+      # register fragment (your existing registry is the authority)
       frag_id <- wb_register_matrix_fragment(
         con = con,
         matrix_id = matrix_id,

@@ -6,6 +6,13 @@
 \usage{
 wb_matrices(bundle)
 }
+\arguments{
+\item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
+}
+\value{
+A data.frame with columns:
+matrix_id, layer, feature_type, n_features, n_cells, storage, path
+}
 \description{
-List matrices available in the bundle
+Lists registered matrices from the bundle SQLite (matrices table).
 }

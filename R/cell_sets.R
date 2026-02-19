@@ -1,8 +1,7 @@
-#' List available cell sets in a bundle
-#' - Includes legacy sets from cells.cell_set (e.g. "core")
-#' - Includes membership sets from cell_set_membership (e.g. "set:bulkers")
-#' @export
-#' List available cell sets in a bundle (membership-only)
+#' List available cell sets in a bundle.
+#'
+#' Returns membership-backed set names from `cell_set_membership`.
+#' The legacy `cells.cell_set` column is not used.
 #' @export
 wb_cell_sets <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -57,4 +56,3 @@ wb_resolve_cell_set <- function(bundle, cell_set = "core") {
                   params = list(cell_set)
   )$cell_id
 }
-

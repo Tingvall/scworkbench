@@ -2,7 +2,7 @@
 % Please edit documentation in R/selectors.R
 \name{wb_sel_vector}
 \alias{wb_sel_vector}
-\title{Select by a registered cell vector (numeric)}
+\title{Select by a registered scalar cell vector (numeric range)}
 \usage{
 wb_sel_vector(
   x,
@@ -13,20 +13,8 @@ wb_sel_vector(
   bundle = NULL
 )
 }
-\arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
-
-\item{vector_id}{Registered vector id (see wb_list_cell_vectors()).}
-
-\item{min, max}{Range filter.}
-
-\item{na.rm}{Drop NA values before applying thresholds.}
-
-\item{bundle}{Optional bundle override.}
-}
-\value{
-cell_ids (ordered, bundle-attached)
-}
 \description{
-Select by a registered cell vector (numeric)
+Expects wb_read_cell_vector() to return a numeric vector (continuous).
+If vector is categorical (e.g. clusters), use wb_sel_vector_values().
+If vector is a family (e.g. pseudotime), use wb_sel_vector_family().
 }

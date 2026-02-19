@@ -17,25 +17,25 @@ wb_attach_to_cells(
 \arguments{
 \item{bundle}{scworkbench_bundle}
 
-\item{matrices}{named list. Each entry can be:
+\item{matrices}{Named list. Each entry name is the \code{matrix_id}. Each entry can be:
 \itemize{
-\item a Matrix-like (sparse ok) with colnames=cell_id and rownames=feature_id
-\item OR a list(mat=..., assay=..., layer=..., feature_type=..., description=...)
+\item a Matrix-like object (sparse ok) with colnames=cell_id and rownames=feature_id
+\item OR a list(mat=..., layer=..., feature_type=..., description=...)
 }}
 
-\item{spaces}{named list (space_id -> object). Each object must be a data.frame:
+\item{spaces}{Named list (space_id -> data.frame). Each object must be a data.frame:
 \itemize{
 \item 2D: first col=cell_id, plus x,y
 \item long: first col=cell_id, plus dim,value
 }}
 
-\item{metadata}{optional data.frame: first col=cell_id, rest are metadata cols}
+\item{metadata}{Optional data.frame: first col=cell_id, rest are metadata cols}
 
-\item{cell_ids}{optional character vector: restrict attach to these cells (must exist in bundle)}
+\item{cell_ids}{Optional character vector: restrict attach to these cells (must exist in bundle)}
 
-\item{source}{stored in registries}
+\item{source}{Stored in registries}
 
-\item{created_by}{optional}
+\item{created_by}{Optional (currently unused here; kept for forward compatibility)}
 }
 \value{
 report list

@@ -10,8 +10,6 @@
 # Export:
 # - wb_session_promote_current
 
-wb_is_session <- function(x) inherits(x, "wb_session")
-
 #' Promote the current analysis in a session
 #'
 #' Promotes all saveable outputs reachable from the session head run id, in dependency order.

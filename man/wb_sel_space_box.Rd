@@ -7,16 +7,18 @@
 wb_sel_space_box(x, space_id, xmin, xmax, ymin, ymax, bundle = NULL)
 }
 \arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
 
-\item{space_id}{2D space id.}
+\item{space_id}{2D space identifier.}
 
-\item{xmin, xmax, ymin, ymax}{Box limits.}
+\item{xmin, xmax}{X-axis box bounds.}
 
-\item{bundle}{Optional bundle override.}
+\item{ymin, ymax}{Y-axis box bounds.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
 }
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
 Select cells inside an axis-aligned box in a 2D space

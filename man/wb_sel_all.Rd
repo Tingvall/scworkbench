@@ -7,17 +7,18 @@
 wb_sel_all(x, cell_set = "core", dataset_id = NULL, bundle = NULL)
 }
 \arguments{
-\item{x}{A bundle (start of pipeline) or a character vector of cell_ids (continuation).}
+\item{x}{Either a \code{scworkbench_bundle} or a selector result (character vector
+with attached bundle).}
 
-\item{cell_set}{Cell set selector (e.g. "core", "all", "set:bulkers", "set:interesting").}
+\item{cell_set}{Cell set selector (e.g. \code{"core"}, \code{"all"}, \code{"set:<name>"}).}
 
 \item{dataset_id}{Optional dataset filter.}
 
-\item{bundle}{Optional bundle when piping cell_ids without a bundle attribute (rare).}
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
 }
 \value{
-Character vector of selected cell_ids, ordered like the bundle, with bundle attached.
+Character vector of selected cell_ids, ordered like the bundle, with bundle + recipe attached.
 }
 \description{
-Pipe-friendly selector.
+Select all cells from a cell_set (optionally within a dataset)
 }

@@ -7,17 +7,17 @@
 wb_sel_and(x, ..., universe = NULL, bundle = NULL)
 }
 \arguments{
-\item{x}{Bundle (start) or cell_ids (continuation).}
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
 
-\item{...}{One or more character vectors of cell_ids.}
+\item{...}{One or more character vectors of \code{cell_id} to intersect with \code{x}.}
 
-\item{universe}{Optional universe (defaults to "all" cells).}
+\item{universe}{Optional universe used only when \code{x} is a bundle.}
 
-\item{bundle}{Optional bundle override.}
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
 }
 \value{
-cell_ids (ordered, bundle-attached)
+cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
-Pipe-friendly: \code{bundle \%>\% wb_sel_all() \%>\% wb_sel_and(other_ids)}
+Intersect (AND) one or more cell_id vectors
 }

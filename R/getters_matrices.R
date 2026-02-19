@@ -1,30 +1,38 @@
 #' List matrices available in the bundle
+#'
+#' Lists registered matrices from the bundle SQLite (matrices table).
+#'
+#' @param bundle Bundle handle from `wb_bundle_open()`.
+#'
+#' @return A data.frame with columns:
+#'   matrix_id, layer, feature_type, n_features, n_cells, storage, path
+#'
 #' @export
 wb_matrices <- function(bundle) {
-  man <- bundle$manifest
-  mats <- man$storage$matrices %||% list()
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+             "bundle must be a scworkbench_bundle handle")
 
-  if (length(mats) == 0) {
-    return(data.frame(
-      matrix_id = character(0),
-      assay = character(0),
-      feature_type = character(0),
-      storage = character(0),
-      stringsAsFactors = FALSE
-    ))
-  }
+  con <- bundle$con
+  .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
+  .wb_assert(.wb_table_exists(con, "matrices"),
+             "matrices table not found in SQLite")
 
-  df <- do.call(rbind, lapply(mats, function(m) {
-    data.frame(
-      matrix_id = m$matrix_id %||% NA_character_,
-      assay = m$assay %||% NA_character_,
-      feature_type = m$feature_type %||% NA_character_,
-      storage = m$path %||% NA_character_,
-      stringsAsFactors = FALSE
-    )
-  }))
-  df
+  # Strict schema: no dynamic column negotiation.
+  q <- "
+    SELECT matrix_id,
+           layer,
+           feature_type,
+           n_features,
+           n_cells,
+           storage,
+           path
+    FROM matrices
+    ORDER BY matrix_id;
+  "
+
+  DBI::dbGetQuery(con, q)
 }
+
 
 #' @export
 wb_matrix_read_features <- function(bundle,

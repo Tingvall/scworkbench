@@ -1,80 +1,71 @@
 # R/session_context.R
-# Minimal session DAG + auto-wiring by *typed inputs* (NOT "previous run").
+# scworkbench session: primitives-only DAG runner
 #
-# Goal:
-# - Clients (Shiny/Streamlit/agents) keep ONE session object
-# - Running ops creates wb_run nodes automatically
-# - Parents are inferred ONLY when an op actually consumes outputs from prior runs/artifacts
-# - "Active outputs" act like a context (labels, trajectory, scores, ...)
-#
-# Assumptions:
-# - You already have:
-#     wb_new_run(), wb_is_run()
-#     wb_promote_analysis() / wb_promote_run()
-#     wb_art_get_labels() (returns cell_id,label) for persisted labels
-# - Ops exist with names: wb_op_leiden(), wb_op_slingshot(), wb_op_meanexpr() (later)
-#
-# You can extend registry entries as new ops arrive.
+# Contract:
+# - Ops return: list(outputs = named list of primitive objects, params = list(...))
+# - Session stores only primitives in run$outputs
+# - Active context stores refs to primitives, keyed by output name (e.g. "clusters", "space_2d")
+# - Dependencies ("parents") are inferred ONLY when a required input is satisfied by a run ref.
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
-
-# ---- Op registry: define REQUIRED input TYPES and PRODUCED output TYPES ----
-# This is what enables auto-wiring without "previous run" nonsense.
-.wb_session_op_registry <- function() {
-  list(
-    leiden = list(requires = c("space"), produces = c("labels")),
-    slingshot = list(requires = c("space", "labels"), produces = c("trajectory")),
-    meanexpr = list(requires = c("matrix", "features"), produces = c("scores")),
-    umap_fit = list(
-      requires = c("space"),
-      produces = c("space_2d", "model")  # names are up to you, but must exist
-    ),
-    umap_transform = list(
-      requires = c("in_space", "model_space"),
-      produces = c("space_2d")
+.wb_ops <- function() {
+  cat <- .wb_op_catalog()
+  lapply(cat, function(x) {
+    list(
+      requires = x$requires %||% list(),
+      produces = x$produces %||% list(),
+      runner = x$runner,
+      promotable = x$promotable %||% character(0)
     )
-  )
+  })
 }
 
-.wb_session_op_spec <- function(op_name) {
-  reg <- .wb_session_op_registry()
+.wb_op <- function(op_name) {
+  reg <- .wb_ops()
   .wb_assert(op_name %in% names(reg), paste0("Unknown op: ", op_name))
   reg[[op_name]]
 }
 
-
-.wb_op_spec <- function(op_name) {
-  reg <- .wb_op_registry()
-  .wb_assert(op_name %in% names(reg), paste0("Unknown op: ", op_name))
-  reg[[op_name]]
+# ---------- Refs ----------
+#' Create a reference to a run output
+#' @export
+wb_ref_run <- function(run_id, output_name) {
+  list(ref_type = "run", run_id = as.character(run_id), output = as.character(output_name))
+}
+#' Create a reference to an artifact output
+#' @export
+wb_ref_artifact <- function(artifact_id, output_name) {
+  list(ref_type = "artifact", artifact_id = as.character(artifact_id), output = as.character(output_name))
 }
 
-# ---- Session object ----
-wb_session_new <- function(space_id = NULL, matrix_id = NULL) {
+# ---------- Session object ----------
+#' Create a new wb_session
+#' @export
+wb_session_new <- function() {
   s <- list(
-    runs = list(),  # named by run_id
-    active = list(
-      space_id = space_id,
-      matrix_id = matrix_id,
-      outputs = list()  # typed: labels/trajectory/scores/... each is a ref
-    ),
+    runs = list(),         # run_id -> wb_run
+    active = list(),       # output_name -> ref
     head_run_id = NULL
   )
   class(s) <- "wb_session"
   s
 }
-
+#' Check whether an object is a wb_session
+#' @export
 wb_is_session <- function(x) inherits(x, "wb_session")
 
-# A typed output reference: where to fetch an input from (run output or artifact id)
-wb_ref_run_output <- function(run_id, output_type) {
-  list(ref_type = "run", run_id = run_id, output_type = output_type)
-}
-wb_ref_artifact <- function(artifact_id, output_type) {
-  list(ref_type = "artifact", artifact_id = artifact_id, output_type = output_type)
+#' Set an active output reference in a session
+#' @export
+wb_session_set_active <- function(session, output_name, ref) {
+  .wb_assert(wb_is_session(session), "session must be a wb_session.")
+  .wb_assert(is.list(ref) && !is.null(ref$ref_type), "ref must be a wb_ref_*")
+  session$active[[as.character(output_name)]] <- ref
+  session
 }
 
+#' Add a run to a session
+#' @export
 wb_session_add_run <- function(session, run) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   .wb_assert(wb_is_run(run), "run must be a wb_run.")
@@ -83,226 +74,394 @@ wb_session_add_run <- function(session, run) {
   session
 }
 
-wb_session_set_active_space <- function(session, space_id) {
-  .wb_assert(wb_is_session(session), "session must be a wb_session.")
-  session$active$space_id <- as.character(space_id)
-  session
-}
-
-wb_session_set_active_matrix <- function(session, matrix_id) {
-  .wb_assert(wb_is_session(session), "session must be a wb_session.")
-  session$active$matrix_id <- as.character(matrix_id)
-  session
-}
-
-wb_session_set_active_output <- function(session, output_type, ref) {
-  .wb_assert(wb_is_session(session), "session must be a wb_session.")
-  .wb_assert(is.list(ref) && !is.null(ref$ref_type), "ref must be a ref object from wb_ref_*.")
-  session$active$outputs[[output_type]] <- ref
-  session
-}
-
-# ---- Resolve typed inputs from session active outputs ----
 .wb_get_run <- function(session, run_id) {
   r <- session$runs[[run_id]]
-  .wb_assert(!is.null(r), paste0("Run not found in session: ", run_id))
+  .wb_assert(!is.null(r), paste0("Run not found: ", run_id))
   r
 }
 
-.wb_resolve_labels_df <- function(bundle, session, labels = NULL) {
-  # If labels explicitly provided, treat as external input (no parent run edge).
-  if (!is.null(labels)) return(list(value = labels, parents = character(0)))
+# ---------- Resolve required inputs ----------
+# Required inputs are keyed by name (e.g. "clusters") with an expected kind (e.g. "cell_vector").
+# Resolution priority:
+# 1) explicit inputs[[name]] (primitive or ref)
+# 2) explicit ref inputs[[paste0(name, "_ref")]] (rare)
+# 3) session active[[name]]
+#
+# Returns list(value=<primitive>, parents=<run_ids>, provenance_refs=<list of artifact refs>)
+.wb_resolve_input <- function(bundle, session, name, expected_kind, inputs) {
+  parents <- character(0)
+  prov_refs <- list()
 
-  ref <- session$active$outputs$labels
-  .wb_assert(!is.null(ref), "No labels provided and no active labels in session.")
+  # legacy aliases
+  alias <- switch(
+    name,
+    space       = "space_id",
+    space_2d    = "space_id",
+    matrix      = "matrix_id",
+    in_space    = "in_space_id",
+    model_space = "model_space_id",
+    NULL
+  )
 
-  if (identical(ref$ref_type, "run")) {
-    run <- .wb_get_run(session, ref$run_id)
-    lab <- run$outputs$labels
-    .wb_assert(is.data.frame(lab) && all(c("cell_id","cluster") %in% colnames(lab)),
-               "Active labels run does not contain outputs$labels as data.frame(cell_id, cluster).")
-    return(list(value = lab, parents = run$run_id))
+  val <- inputs[[name]] %||% (if (!is.null(alias)) inputs[[alias]] else NULL)
+  ref <- NULL
+
+  if (is.null(val)) {
+    ref <- inputs[[paste0(name, "_ref")]] %||%
+      (if (!is.null(alias)) inputs[[paste0(alias, "_ref")]] else NULL) %||%
+      session$active[[name]] %||%
+      (if (!is.null(alias)) session$active[[alias]] else NULL) %||%
+      (if (name == "space") session$active$space_id else NULL) %||%
+      (if (name == "matrix") session$active$matrix_id else NULL) %||%
+      NULL
+
+    .wb_assert(
+      !is.null(ref),
+      paste0(
+        "Missing required input '", name, "'. ",
+        "Provide inputs[['", name, "']]",
+        if (!is.null(alias)) paste0(" (or inputs[['", alias, "']])") else "",
+        " or set session active '", name, "'."
+      )
+    )
+
+    if (!is.list(ref) || is.null(ref$ref_type)) {
+      val <- ref
+    } else {
+      if (identical(ref$ref_type, "run")) {
+        run <- .wb_get_run(session, ref$run_id)
+        .wb_assert(ref$output %in% names(run$outputs),
+                   paste0("Run ", ref$run_id, " has no output '", ref$output, "'."))
+        val <- run$outputs[[ref$output]]
+        parents <- unique(c(parents, ref$run_id))
+      } else if (identical(ref$ref_type, "artifact")) {
+        val <- wb_art_load(bundle, artifact_id = ref$artifact_id, expected_kind = expected_kind)
+        prov_refs[[name]] <- ref
+      } else {
+        stop("Unknown ref_type: ", ref$ref_type, call. = FALSE)
+      }
+    }
   }
 
-  if (identical(ref$ref_type, "artifact")) {
-    # artifact returns cell_id,label -> convert to cell_id,cluster
-    lab <- wb_art_get_labels(bundle, ref$artifact_id)
-    .wb_assert(is.data.frame(lab) && all(c("cell_id","label") %in% colnames(lab)),
-               "wb_art_get_labels() must return data.frame(cell_id, label).")
-    lab2 <- data.frame(cell_id = lab$cell_id, cluster = as.character(lab$label), stringsAsFactors = FALSE)
-    return(list(value = lab2, parents = character(0)))
+  # ---- NEW: lift scalar IDs into primitives when caller supplied *_id ----
+  # This keeps your nice UX: inputs=list(space_id="foo") works,
+  # while the internal contract stays: inputs are primitives.
+  if (!.wb_is_primitive(val)) {
+    if (expected_kind == "space" && is.character(val) && length(val) == 1 && nzchar(val)) {
+      val <- wb_prim_space(val)          # must return a space primitive
+    }
+    if (expected_kind == "matrix" && is.character(val) && length(val) == 1 && nzchar(val)) {
+      val <- wb_prim_matrix(val)         # must return a matrix primitive
+    }
+    if (expected_kind == "in_space" && is.character(val) && length(val) == 1 && nzchar(val)) {
+      val <- wb_prim_space(val)          # in_space is still a space primitive
+    }
+    if (expected_kind == "model_space" && is.character(val) && length(val) == 1 && nzchar(val)) {
+      val <- wb_prim_space(val)          # model_space is also a space primitive
+    }
+    if (expected_kind == "space_2d" && is.character(val) && length(val) == 1 && nzchar(val)) {
+      val <- wb_prim_space_2d(val)
+    }
+    if (expected_kind == "model_ref" && is.character(val) && length(val)==1 && nzchar(val)) {
+      # interpret as model_space_id; but then in_space_id is unknown -> not safe
+      val <- wb_prim_model_ref(model_space_id = val, in_space_id = "")
+    }
+    if (expected_kind == "cell_vector" && is.atomic(val) && !is.null(names(val))) {
+      val <- wb_prim_cell_vector(val, value_type = "categorical")
+    }
   }
 
-  stop("Unknown labels ref_type: ", ref$ref_type, call. = FALSE)
+  .wb_assert_kind(val, expected_kind, where = paste0(" for input '", name, "'"))
+  list(value = val, parents = parents, prov_refs = prov_refs)
 }
 
-# ---- Main runner: auto-wire parents + compute effective cells (Issue #3) ----
-# For each required input type:
-# - if it is satisfied by an active run-output ref, add that run_id as a parent
-# - if satisfied by an artifact or explicit argument, no run parent edge
-# Additionally:
-# - compute "effective_cells" = requested cell_set ∩ coverage(required inputs)
-# - pass effective_cells into the op runner (single enforcement point)
+
+
+# ---------- Run op ----------
+# Op contract: op(bundle, effective_cells, inputs = list(...), ...) -> list(outputs=<named primitives>, params=<list>)
+#' Run an operation in a session
+#' @export
 wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
-  spec <- .wb_session_op_spec(op_name)
+  op <- .wb_op(op_name)
+  .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs)
 
-  # Start building resolved inputs + parents list
-  parents <- character(0)
-
-  # Resolve bundle-entity inputs (space, matrix) from explicit inputs or active context
-  # Resolve bundle-entity inputs
-  space_id  <- inputs$space_id  %||% session$active$space_id
-  matrix_id <- inputs$matrix_id %||% session$active$matrix_id
-
-  # NEW: resolve umap_transform-specific space ids
-  in_space_id    <- inputs$in_space_id    %||% session$active$space_id
-  model_space_id <- inputs$model_space_id %||% NULL
-
-  if ("space" %in% spec$requires) {
-    .wb_assert(!is.null(space_id) && nzchar(space_id),
-               paste0(op_name, " requires a space_id ..."))
-  }
-  if ("in_space" %in% spec$requires) {
-    .wb_assert(!is.null(in_space_id) && nzchar(in_space_id),
-               paste0(op_name, " requires inputs$in_space_id (high-D space)."))
-  }
-  if ("model_space" %in% spec$requires) {
-    .wb_assert(!is.null(model_space_id) && nzchar(model_space_id),
-               paste0(op_name, " requires inputs$model_space_id (the fitted UMAP space)."))
-  }
-  if ("matrix" %in% spec$requires) {
-    .wb_assert(!is.null(matrix_id) && nzchar(matrix_id),
-               paste0(op_name, " requires a matrix_id ..."))
-  }
-
-
-  # Resolve typed run/artifact inputs
-  labels_df <- NULL
-  if ("labels" %in% spec$requires) {
-    rr <- .wb_resolve_labels_df(bundle, session, labels = inputs$labels %||% NULL)
-    labels_df <- rr$value
-    parents <- unique(c(parents, rr$parents))
-  }
-
-  # ---- Effective cell set (Issue #3) ----
-  # requested cell_set can be:
-  # - "all" (default)
-  # - "core"
-  # - "set:<name>"
-  cell_set <- inputs[["cell_set"]] %||% "all"
-
-  # Build required input coverage request (only what the op needs)
-  cov_inputs <- list()
-  dims_req <- inputs$dims %||% NULL
-
-  if ("space" %in% spec$requires) {
-    cov_inputs$space_id <- space_id
-    if (!is.null(dims_req)) cov_inputs$dims <- dims_req
-  }
-  if ("in_space" %in% spec$requires) {
-    cov_inputs$space_id <- in_space_id
-    if (!is.null(dims_req)) cov_inputs$dims <- dims_req
-  }
-  if ("matrix" %in% spec$requires) cov_inputs$matrix_id <- matrix_id
-
-  # labels do not affect "has input" coverage (they are just a vector mapping),
-  # so we don't include them here.
-
-  # Compute effective cells only when we have something to constrain by.
-  # Still safe to compute for empty cov_inputs (returns wb_cells(cell_set)).
+  # Resolve effective_cells once, here. Nothing else is allowed to compute cells.
+  cell_set <- inputs$cell_set %||% "all"
   effective_cells <- .wb_effective_cells(
-    bundle   = bundle,
+    bundle = bundle,
     cell_set = cell_set,
-    inputs   = cov_inputs,
-    op_name  = op_name,
+    inputs = inputs,     # your coverage function can inspect space_id/matrix_id etc if you want
+    op_name = op_name,
     min_cells = inputs$min_cells %||% 10
   )
 
-  # ---- Dispatch op via registry ----
-  runner <- .wb_get_op_runner(op_name)
+  # Resolve required inputs (primitives)
+  resolved <- list()
+  parents <- character(0)
+  prov_refs <- list()
 
-  # Ensure RNG exists (some ops rely on it)
-  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-    set.seed(1)
+  req <- op$requires %||% list()
+  if (length(req)) {
+    for (nm in names(req)) {
+      kind <- req[[nm]]
+      rr <- .wb_resolve_input(bundle, session, nm, kind, inputs)
+      resolved[[nm]] <- rr$value
+      parents <- unique(c(parents, rr$parents))
+      prov_refs <- c(prov_refs, rr$prov_refs)
+    }
   }
 
-  # IMPORTANT: pass effective_cells into the op runner.
-  # Ops should trust and use ONLY these cells for any data access.
+  runner <- op$runner
+  .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
   res <- runner(
     bundle = bundle,
-    space_id = space_id,
-    matrix_id = matrix_id,
-    labels_df = labels_df,
+    resolved = resolved,
     effective_cells = effective_cells,
     inputs = inputs,
     ...
   )
+  res <- .wb_assert_op_result(op_name, res)
 
-  # Wrap outputs into a run object with parents (DAG edge correctness!)
-  outputs <- list()
 
-  if ("labels" %in% spec$produces) {
-    .wb_assert(!is.null(res$labels), "Op produced 'labels' but res$labels is NULL.")
-    outputs$labels <- res$labels
-  }
-
-  if ("trajectory" %in% spec$produces) {
-    # accept either res$trajectory or res$pseudotime + res$curves
-    if (!is.null(res$trajectory)) {
-      .wb_assert(is.list(res$trajectory), "res$trajectory must be a list.")
-      .wb_assert(!is.null(res$trajectory$pseudotime) && !is.null(res$trajectory$curves),
-                 "res$trajectory must contain pseudotime and curves.")
-      outputs$pseudotime <- res$trajectory$pseudotime
-      outputs$curves     <- res$trajectory$curves
-    } else {
-      .wb_assert(!is.null(res$pseudotime) && !is.null(res$curves),
-                 "slingshot op must return res$pseudotime and res$curves (or res$trajectory).")
-      outputs$pseudotime <- res$pseudotime
-      outputs$curves     <- res$curves
-    }
-    outputs$trajectory <- TRUE
-  }
-
-  if ("scores" %in% spec$produces) {
-    .wb_assert(!is.null(res$scores), "Op produced 'scores' but res$scores is NULL.")
-    outputs$scores <- res$scores
-  }
-
-  # Build run inputs metadata (for provenance)
-  run_inputs <- list(
-    space_id       = if ("space" %in% spec$requires) space_id else NULL,
-    in_space_id    = if ("in_space" %in% spec$requires) in_space_id else NULL,
-    model_space_id = if ("model_space" %in% spec$requires) model_space_id else NULL,
-    matrix_id      = if ("matrix" %in% spec$requires) matrix_id else NULL,
-    cell_set = cell_set,
-    effective_n = length(effective_cells),
-    parents = parents
+  .wb_assert(
+    is.list(res) && is.list(res$outputs),
+    paste0("Op '", op_name, "' must return list(outputs=<named list>, params=<list>).")
   )
 
+
+  # Validate produced outputs
+  out <- res$outputs
+  prod <- op$produces %||% list()
+  for (nm in names(prod)) {
+    .wb_assert(nm %in% names(out),
+               paste0("Op '", op_name, "' did not produce required output '", nm, "'."))
+    .wb_assert_kind(out[[nm]], prod[[nm]], where = paste0(" for output '", nm, "'"))
+  }
+
+  run_inputs <- list(
+    cell_set = cell_set,
+    effective_n = length(effective_cells),
+    parents = parents,
+    provenance_refs = prov_refs,
+    user_inputs = inputs,
+    symbolic_inputs = .wb_symbolic_inputs_snapshot(op_name = op_name, inputs = inputs),
+    execution_inputs = .wb_execution_inputs_snapshot(
+      resolved = resolved,
+      effective_cells = effective_cells
+    )
+  )
 
   run <- wb_new_run(
     op_name = op_name,
-    inputs = run_inputs,
-    params = res$params %||% list(),
-    outputs = outputs,
-    notes = notes
+    inputs  = run_inputs,
+    params  = res$params %||% list(),
+    outputs = out,
+    notes   = notes
   )
 
-  # Update session
   session <- wb_session_add_run(session, run)
 
-  # Update active outputs produced by this run
-  if ("labels" %in% spec$produces) {
-    session <- wb_session_set_active_output(session, "labels", wb_ref_run_output(run$run_id, "labels"))
-  }
-  if ("trajectory" %in% spec$produces) {
-    session <- wb_session_set_active_output(session, "trajectory", wb_ref_run_output(run$run_id, "trajectory"))
-  }
-  if ("scores" %in% spec$produces) {
-    session <- wb_session_set_active_output(session, "scores", wb_ref_run_output(run$run_id, "scores"))
+  # Update active outputs (by name) for anything produced
+  for (nm in names(out)) {
+    session <- wb_session_set_active(session, nm, wb_ref_run(run$run_id, nm))
   }
 
   list(session = session, run = run, result = res)
 }
 
+
+# op contract:
+
+.wb_assert_op_result <- function(op_name, res) {
+  .wb_assert(is.list(res),
+             paste0("Op '", op_name, "' must return a list."))
+
+  .wb_assert(!is.null(res$outputs) && is.list(res$outputs),
+             paste0("Op '", op_name, "' must return list(outputs=<named list>, params=<list>)."))
+
+  .wb_assert(!is.null(names(res$outputs)) && all(nzchar(names(res$outputs))),
+             paste0("Op '", op_name, "' outputs must be a named list."))
+
+  if (is.null(res$params)) res$params <- list()
+  .wb_assert(is.list(res$params),
+             paste0("Op '", op_name, "' params must be a list (or NULL)."))
+
+  # primitives are the currency
+  for (nm in names(res$outputs)) {
+    .wb_assert(
+      .wb_is_primitive(res$outputs[[nm]]),
+      paste0("Expected primitive object for output '", nm, "'.")
+    )
+  }
+
+  res
+}
+
+.wb_is_ref_run <- function(x) {
+  is.list(x) && identical(as.character(x$ref_type %||% "")[1], "run")
+}
+
+.wb_is_ref_artifact <- function(x) {
+  is.list(x) && identical(as.character(x$ref_type %||% "")[1], "artifact")
+}
+
+.wb_symbolic_ref_compact <- function(x) {
+  if (.wb_is_ref_run(x)) {
+    return(list(
+      ref_type = "run",
+      run_id = as.character(x$run_id %||% NA_character_)[1],
+      output = as.character(x$output %||% NA_character_)[1]
+    ))
+  }
+  if (.wb_is_ref_artifact(x)) {
+    return(list(
+      ref_type = "artifact",
+      artifact_id = as.character(x$artifact_id %||% NA_character_)[1],
+      output = as.character(x$output %||% NA_character_)[1]
+    ))
+  }
+  x
+}
+
+.wb_symbolic_param_types <- function(op_name) {
+  cat <- .wb_op_catalog()
+  op <- cat[[op_name]] %||% list()
+  p <- op$params %||% list()
+  if (!length(p)) return(stats::setNames(character(0), character(0)))
+  nm <- vapply(p, function(x) as.character(x$name %||% "")[1], character(1))
+  tp <- vapply(p, function(x) as.character(x$type %||% "")[1], character(1))
+  keep <- nzchar(nm) & nzchar(tp)
+  stats::setNames(tp[keep], nm[keep])
+}
+
+.wb_symbolic_inputs_snapshot <- function(op_name, inputs) {
+  x <- inputs %||% list()
+  if (!is.list(x)) x <- list()
+
+  out <- list(
+    cell_set = as.character(x$cell_set %||% "all")[1],
+    min_cells = as.integer(x$min_cells %||% 10L)
+  )
+
+  ptypes <- .wb_symbolic_param_types(op_name)
+  for (nm in names(ptypes)) {
+    val <- x[[nm]]
+    if (is.null(val)) next
+    tp <- ptypes[[nm]]
+
+    if (identical(tp, "cell_ids_or_set")) {
+      if (.wb_is_ref_run(val) || .wb_is_ref_artifact(val)) {
+        out[[nm]] <- .wb_symbolic_ref_compact(val)
+        next
+      }
+      if (is.character(val)) {
+        vv <- unique(as.character(val))
+        vv <- vv[nzchar(vv)]
+        if (!length(vv)) next
+        if (length(vv) == 1 && startsWith(vv, "set:")) {
+          out[[nm]] <- vv[[1]]
+        } else {
+          out[[nm]] <- vv
+        }
+        next
+      }
+    }
+
+    out[[nm]] <- .wb_symbolic_ref_compact(val)
+  }
+
+  # keep explicit symbolic run/artifact refs even if they are not op params
+  extras <- names(x)
+  for (nm in extras) {
+    if (!is.null(out[[nm]])) next
+    val <- x[[nm]]
+    if (.wb_is_ref_run(val) || .wb_is_ref_artifact(val)) {
+      out[[nm]] <- .wb_symbolic_ref_compact(val)
+    }
+  }
+
+  out
+}
+
+.wb_execution_inputs_snapshot <- function(resolved, effective_cells) {
+  res_compact <- list()
+  if (length(resolved %||% list())) {
+    for (nm in names(resolved)) {
+      val <- resolved[[nm]]
+      if (.wb_is_primitive(val)) {
+        res_compact[[nm]] <- .wb_prim_summary(val)
+      }
+    }
+  }
+
+  list(
+    effective_n = as.integer(length(effective_cells %||% character(0))),
+    resolved = res_compact
+  )
+}
+
+.wb_validate_cell_ids_or_set <- function(val, nm) {
+  if (.wb_is_ref_run(val) || .wb_is_ref_artifact(val)) return(invisible(TRUE))
+  .wb_assert(is.character(val), paste0("inputs$", nm, " must be character, wb_ref_run(), or wb_ref_artifact()."))
+  .wb_assert(length(val) > 0, paste0("inputs$", nm, " must be non-empty."))
+  vv <- unique(as.character(val))
+  vv <- vv[nzchar(vv)]
+  .wb_assert(length(vv) > 0, paste0("inputs$", nm, " is empty after cleaning."))
+  set_flags <- startsWith(vv, "set:")
+  .wb_assert(all(set_flags | !set_flags), paste0("inputs$", nm, " invalid value."))
+  invisible(TRUE)
+}
+
+.wb_validate_op_inputs_contract <- function(op_name, inputs) {
+  inputs <- inputs %||% list()
+  .wb_assert(is.list(inputs), "inputs must be a list.")
+  cat <- .wb_op_catalog()
+  op <- cat[[op_name]] %||% list()
+  params <- op$params %||% list()
+  if (!length(params)) return(invisible(TRUE))
+
+  for (p in params) {
+    nm <- as.character(p$name %||% "")[1]
+    tp <- as.character(p$type %||% "")[1]
+    if (!nzchar(nm) || !nzchar(tp)) next
+    if (is.null(inputs[[nm]])) next
+    val <- inputs[[nm]]
+
+    if (identical(tp, "cell_ids_or_set")) {
+      .wb_validate_cell_ids_or_set(val, nm)
+      next
+    }
+    if (identical(tp, "int")) {
+      .wb_assert(length(val) == 1 && !is.na(suppressWarnings(as.integer(val))),
+                 paste0("inputs$", nm, " must be scalar int-like."))
+      next
+    }
+    if (identical(tp, "dbl")) {
+      .wb_assert(length(val) == 1 && !is.na(suppressWarnings(as.numeric(val))),
+                 paste0("inputs$", nm, " must be scalar numeric-like."))
+      next
+    }
+    if (identical(tp, "bool")) {
+      b <- suppressWarnings(as.logical(val))
+      .wb_assert(length(b) == 1 && !is.na(b),
+                 paste0("inputs$", nm, " must be scalar logical-like."))
+      next
+    }
+    if (identical(tp, "string")) {
+      .wb_assert(length(val) == 1 && is.character(val),
+                 paste0("inputs$", nm, " must be scalar character."))
+      next
+    }
+    if (identical(tp, "string_vec")) {
+      .wb_assert(is.character(val), paste0("inputs$", nm, " must be character vector."))
+      next
+    }
+    if (identical(tp, "string_vec_or_list")) {
+      ok <- is.character(val) || (is.list(val) && all(vapply(val, is.character, logical(1))))
+      .wb_assert(ok, paste0("inputs$", nm, " must be character vector or list of character vectors."))
+      next
+    }
+  }
+  invisible(TRUE)
+}

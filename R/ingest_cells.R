@@ -45,7 +45,7 @@ wb_ingest_cells <- function(
   cell_set <- paste0("set:", set_name)
 
   # Ensure schema primitives exist
-  .wb_ensure_schema(con)
+
   .wb_ensure_cell_set_membership_table(con)
 
   # -------------------------

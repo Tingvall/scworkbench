@@ -2,20 +2,22 @@
 % Please edit documentation in R/getters.R
 \name{wb_feature_ids}
 \alias{wb_feature_ids}
-\title{Get feature IDs in canonical order for an assay}
+\title{Get feature IDs in canonical order for a matrix}
 \usage{
-wb_feature_ids(bundle, assay, feature_type = NULL)
+wb_feature_ids(bundle, matrix_id, feature_type = NULL)
 }
 \arguments{
-\item{bundle}{Bundle handle from \code{wb_open_bundle()}}
+\item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
 
-\item{assay}{Assay name (exact match)}
+\item{matrix_id}{Matrix ID (exact match), e.g. "RNA_counts" or "ATAC_counts".}
 
-\item{feature_type}{Optional filter (e.g. "gene", "peak")}
+\item{feature_type}{Optional filter (e.g. "gene", "peak"). If provided, only
+returns features of that type within the matrix.}
 }
 \value{
-Character vector of feature_ids
+Character vector of \code{feature_id}s in canonical row order.
 }
 \description{
-Important: this defines the row order for matrices for that assay.
+Important: this defines the row order for matrices for that \code{matrix_id}.
+The canonical order is the insertion order during bundle publish (SQLite \code{rowid}).
 }

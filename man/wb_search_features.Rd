@@ -2,7 +2,7 @@
 % Please edit documentation in R/getters.R
 \name{wb_search_features}
 \alias{wb_search_features}
-\title{Search features by matrix (assay + feature_type)}
+\title{Search features by matrix_id}
 \usage{
 wb_search_features(
   bundle,
@@ -12,6 +12,20 @@ wb_search_features(
   mode = c("prefix", "substring")
 )
 }
+\arguments{
+\item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
+
+\item{matrix_id}{Matrix ID (exact match), e.g. "RNA_counts".}
+
+\item{query}{Search string. If empty, returns the first \code{limit} features (sorted).}
+
+\item{limit}{Max number of results to return.}
+
+\item{mode}{Match mode: "prefix" (fast, uses \verb{query\%}) or "substring" (\verb{\%query\%}).}
+}
+\value{
+Character vector of feature IDs.
+}
 \description{
-Search features by matrix (assay + feature_type)
+Returns feature IDs registered for a specific matrix, filtered by a text query.
 }
