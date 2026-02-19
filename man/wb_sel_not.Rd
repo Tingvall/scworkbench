@@ -6,6 +6,13 @@
 \usage{
 wb_sel_not(x, universe = NULL, bundle = NULL)
 }
+\arguments{
+\item{x}{Selector result (character vector with attached bundle).}
+
+\item{universe}{Optional character vector of universe cell IDs. Defaults to all bundle cells.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 cell_ids (ordered, bundle-attached, recipe-attached)
 }

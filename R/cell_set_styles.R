@@ -1,4 +1,15 @@
-#'@export roxygen
+#' Set visual style for a cell set
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param cell_set Target cell set name (e.g. `"core"` or `"set:<name>"`).
+#' @param shape,size,alpha,stroke,outline Style parameters (nullable scalars).
+#' @param fill_mode One of `"auto"`, `"color"`, `"fill"`.
+#' @param label Optional display label.
+#' @param description Optional description metadata.
+#' @param created_by Optional actor string.
+#'
+#' @return `TRUE` invisibly.
+#' @export
 wb_set_cell_set_style <- function(bundle,
                                   cell_set,
                                   shape = NULL,
@@ -84,7 +95,13 @@ wb_set_cell_set_style <- function(bundle,
   invisible(TRUE)
 }
 
-#'@export roxygen
+#' Get visual style for a cell set
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param cell_set Target cell set name.
+#'
+#' @return One-row `data.frame` with style fields, or `NULL` if not set.
+#' @export
 wb_get_cell_set_style <- function(bundle, cell_set) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set), "cell_set invalid")
@@ -121,4 +138,3 @@ wb_get_cell_set_style <- function(bundle, cell_set) {
 
   df[1, , drop = FALSE]
 }
-

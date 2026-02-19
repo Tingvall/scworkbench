@@ -6,6 +6,19 @@
 \usage{
 wb_sel_meta(x, col, values = NULL, min = NULL, max = NULL, bundle = NULL)
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{col}{Metadata column name in \code{cells}.}
+
+\item{values}{Optional categorical values to match (\code{IN} semantics).}
+
+\item{min}{Optional lower bound for numeric range filtering.}
+
+\item{max}{Optional upper bound for numeric range filtering.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 cell_ids (ordered, bundle-attached, recipe-attached)
 }

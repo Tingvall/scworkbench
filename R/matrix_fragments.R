@@ -1,3 +1,5 @@
+#' Register a matrix fragment in the bundle registry
+#' @export
 wb_register_matrix_fragment <- function(
     con,
     matrix_id,
@@ -98,5 +100,4 @@ wb_register_matrix_fragment <- function(
 
   invisible(TRUE)
 }
-
 

@@ -234,15 +234,28 @@ wb_op_markers_topn <- function(bundle,
   .wb_assert(!is.null(x), "Group input is missing.")
   eff <- unique(as.character(effective_cells))
 
-  if (is.character(x) && length(x) == 1 && startsWith(x, "set:")) {
-    set_name <- sub("^set:", "", x)
-    cand <- wb_cells(bundle, cell_set = set_name)
+  if (is.character(x) && length(x) == 1) {
+    token <- as.character(x)[1]
+    known_sets <- try(as.character(wb_cell_sets(bundle)), silent = TRUE)
+    if (inherits(known_sets, "try-error")) known_sets <- character(0)
+    is_set_token <- startsWith(token, "set:") ||
+      (token %in% c("core", "all")) ||
+      (token %in% known_sets)
+
+    if (isTRUE(is_set_token)) {
+      cand <- wb_cells(bundle, cell_set = token)
+      # tolerate non-prefixed set names when token is plain "foo"
+      if (!length(cand) && !startsWith(token, "set:") && !(token %in% c("core", "all"))) {
+        cand <- wb_cells(bundle, cell_set = paste0("set:", token))
+      }
+    } else {
+      cand <- token
+    }
   } else if (is.character(x)) {
     cand <- x
   } else {
-    stop("Unsupported group input. Use cell IDs or 'set:<name>'.", call. = FALSE)
+    stop("Unsupported group input. Use cell IDs, 'core'/'all', or set selectors.", call. = FALSE)
   }
 
   unique(intersect(as.character(cand), eff))
 }
-

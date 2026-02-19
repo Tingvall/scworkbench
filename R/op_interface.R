@@ -48,6 +48,9 @@ wb_op_interface <- function(op_name, bundle = NULL) {
 
     # If old input block exists, remove it (we use model_space_id instead)
     spec$inputs$model_space <- NULL
+    # Hide optional manual override from default client interfaces.
+    # Engine still supports override in runner for expert/internal use.
+    spec$inputs$in_space_id <- NULL
 
     # If an old param named "model_space" exists, remove it
     if (!is.null(spec$params) && length(spec$params)) {
@@ -107,19 +110,6 @@ wb_op_interface <- function(op_name, bundle = NULL) {
       spec$inputs$model$help <- "No stored space models found in this bundle. Run umap_fit first."
     }
 
-    # 2) in_space_id choices: any space in bundle (high-D input space)
-    sp <- wb_spaces(bundle)
-    in_spaces <- as.character(sp$space_id)
-
-    if (is.null(spec$inputs$in_space_id)) spec$inputs$in_space_id <- list()
-    spec$inputs$in_space_id$type     <- "select"
-    spec$inputs$in_space_id$label    <- "Input space (high-D space_id)"
-    spec$inputs$in_space_id$required <- FALSE
-    spec$inputs$in_space_id$choices  <- in_spaces
-
-    if (is.null(spec$inputs$in_space_id$default)) {
-      spec$inputs$in_space_id$default <- if ("lsi" %in% in_spaces) "lsi" else if (length(in_spaces)) in_spaces[1] else ""
-    }
   }
 
   spec

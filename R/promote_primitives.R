@@ -54,6 +54,7 @@ wb_promote_analysis <- function(bundle,
                                 description = NULL,
                                 created_by = NULL,
                                 fail_fast = TRUE) {
+  wb_migrate_artifacts(bundle)
 
   .wb_assert(is.list(runs) && length(runs) > 0, "runs must be a non-empty list.")
   # ensure named by run_id
@@ -168,10 +169,22 @@ wb_promote_analysis <- function(bundle,
   }
 
   promoted_df <- do.call(rbind, rows)
+  snapshot_id <- .wb_prov_write_snapshot(
+    bundle = bundle,
+    runs = runs,
+    topo = topo,
+    heads = heads,
+    promoted_df = promoted_df,
+    name_prefix = name_prefix,
+    description = description,
+    created_by = created_by
+  )
+  promoted_df$snapshot_id <- snapshot_id
 
   list(
     artifact_pool = artifact_pool,
-    promoted = promoted_df
+    promoted = promoted_df,
+    provenance_snapshot_id = snapshot_id
   )
 }
 
@@ -659,6 +672,8 @@ wb_migrate_artifacts <- function(bundle) {
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_table_rows_artifact ON artifact_table_rows(artifact_id);")
 
 
+
+  .wb_migrate_provenance_tables(con)
 
   invisible(TRUE)
 }

@@ -119,6 +119,40 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   want_v <- cells_all[cells_all %in% names(vv)[vv >= 100 & vv <= 200]]
   stopifnot(identical(sel_v, want_v))
 
+  # Boolean groups + NOT
+  if (length(sets) > 0) {
+    set1 <- as.character(wb_cells(b, cell_set = sets[1]))
+    set1 <- set1[set1 %in% cells_all]
+    if (length(set1) > 0) {
+      not_plan <- list(
+        universe = "all",
+        groups = list(
+          list(rules = list(
+            list(type = "set", sets = sets[1], negate = TRUE)
+          ))
+        )
+      )
+      sel_not <- wb_exec_selection_plan(b, not_plan, runs = runs)
+      stopifnot(identical(sel_not, setdiff(cells_all, set1)))
+
+      or_plan <- list(
+        universe = "all",
+        groups = list(
+          list(rules = list(list(type = "set", sets = sets[1]))),
+          list(rules = list(list(type = "vector_range",
+                                 vector_ref = paste0("session:", run$run_id, ":scores"),
+                                 min = 100,
+                                 max = 105,
+                                 na.rm = TRUE)))
+        )
+      )
+      sel_or <- wb_exec_selection_plan(b, or_plan, runs = runs)
+      want_or <- unique(c(set1, names(vv)[vv >= 100 & vv <= 105]))
+      want_or <- cells_all[cells_all %in% want_or]
+      stopifnot(identical(sel_or, want_or))
+    }
+  }
+
   # ---------------------------------------------------------
   # 4) Coverage/effective-cells semantics are stable
   # ---------------------------------------------------------

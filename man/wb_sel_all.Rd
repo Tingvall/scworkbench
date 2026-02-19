@@ -6,6 +6,16 @@
 \usage{
 wb_sel_all(x, cell_set = "core", dataset_id = NULL, bundle = NULL)
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result (character vector
+with attached bundle).}
+
+\item{cell_set}{Cell set selector (e.g. \code{"core"}, \code{"all"}, \code{"set:<name>"}).}
+
+\item{dataset_id}{Optional dataset filter.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 Character vector of selected cell_ids, ordered like the bundle, with bundle + recipe attached.
 }

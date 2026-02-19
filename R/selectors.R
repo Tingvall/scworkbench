@@ -37,7 +37,7 @@
 #' Order a cell_id vector like the bundle's canonical cell order (cells.rowid)
 #' Drops IDs that are not present in bundle$cells.
 #' @keywords internal
-.wb_order_like_bundle <- function(bundle, cell_ids) {
+.wb_sel_order_like_bundle <- function(bundle, cell_ids) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   cell_ids <- unique(as.character(cell_ids))
   if (!length(cell_ids)) return(character(0))
@@ -62,13 +62,19 @@
 # -------------------------
 
 #' Select all cells from a cell_set (optionally within a dataset)
-#' @inheritParams wb_sel_all
+#'
+#' @param x Either a `scworkbench_bundle` or a selector result (character vector
+#'   with attached bundle).
+#' @param cell_set Cell set selector (e.g. `"core"`, `"all"`, `"set:<name>"`).
+#' @param dataset_id Optional dataset filter.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return Character vector of selected cell_ids, ordered like the bundle, with bundle + recipe attached.
 #' @export
 wb_sel_all <- function(x, cell_set = "core", dataset_id = NULL, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
   ids <- wb_cells(b, cell_set = cell_set, dataset_id = dataset_id)
-  out <- .wb_order_like_bundle(b, ids)
+  out <- .wb_sel_order_like_bundle(b, ids)
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -82,7 +88,11 @@ wb_sel_all <- function(x, cell_set = "core", dataset_id = NULL, bundle = NULL) {
 }
 
 #' Select union of one or more named sets
-#' @inheritParams wb_sel_set
+#'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param sets Character vector of cell set names to union.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_set <- function(x, sets, bundle = NULL) {
@@ -94,7 +104,7 @@ wb_sel_set <- function(x, sets, bundle = NULL) {
 
   out <- unique(unlist(lapply(sets, function(s) wb_cells(b, cell_set = s)), use.names = FALSE))
   if (!is.null(base)) out <- intersect(base, out)
-  out <- .wb_order_like_bundle(b, out)
+  out <- .wb_sel_order_like_bundle(b, out)
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -109,7 +119,14 @@ wb_sel_set <- function(x, sets, bundle = NULL) {
 
 
 #' Select by cell metadata column (categorical values or numeric range)
-#' @inheritParams wb_sel_meta
+#'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param col Metadata column name in `cells`.
+#' @param values Optional categorical values to match (`IN` semantics).
+#' @param min Optional lower bound for numeric range filtering.
+#' @param max Optional upper bound for numeric range filtering.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = NULL) {
@@ -190,7 +207,7 @@ wb_sel_vector <- function(x, vector_id, min = NULL, max = NULL, na.rm = TRUE, bu
   if (!is.null(min)) ok <- ok & (v >= min)
   if (!is.null(max)) ok <- ok & (v <= max)
 
-  out <- .wb_order_like_bundle(b, names(v)[ok])
+  out <- .wb_sel_order_like_bundle(b, names(v)[ok])
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -220,7 +237,7 @@ wb_sel_vector_values <- function(x, vector_id, values, na.rm = TRUE, bundle = NU
   vals <- as.character(values)
   ok <- ok & (as.character(v) %in% vals)
 
-  out <- .wb_order_like_bundle(b, names(v)[ok])
+  out <- .wb_sel_order_like_bundle(b, names(v)[ok])
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -249,7 +266,7 @@ wb_sel_vector_family <- function(x, vector_id, key, min = NULL, max = NULL, na.r
   if (!is.null(min)) ok <- ok & (v >= min)
   if (!is.null(max)) ok <- ok & (v <= max)
 
-  out <- .wb_order_like_bundle(b, names(v)[ok])
+  out <- .wb_sel_order_like_bundle(b, names(v)[ok])
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -301,7 +318,7 @@ wb_sel_expr <- function(x, matrix_id, feature_id, min = NULL, max = NULL,
   if (!is.null(min)) ok <- ok & (v >= min)
   if (!is.null(max)) ok <- ok & (v <= max)
 
-  out <- .wb_order_like_bundle(b, names(v)[ok])
+  out <- .wb_sel_order_like_bundle(b, names(v)[ok])
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -313,7 +330,13 @@ wb_sel_expr <- function(x, matrix_id, feature_id, min = NULL, max = NULL,
 
 
 #' Select cells inside an axis-aligned box in a 2D space
-#' @inheritParams wb_sel_space_box
+#'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param space_id 2D space identifier.
+#' @param xmin,xmax X-axis box bounds.
+#' @param ymin,ymax Y-axis box bounds.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_space_box <- function(x, space_id, xmin, xmax, ymin, ymax, bundle = NULL) {
@@ -335,7 +358,7 @@ wb_sel_space_box <- function(x, space_id, xmin, xmax, ymin, ymax, bundle = NULL)
       df$y >= ymin & df$y <= ymax
   ]
 
-  out <- .wb_order_like_bundle(b, hit)
+  out <- .wb_sel_order_like_bundle(b, hit)
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -351,7 +374,12 @@ wb_sel_space_box <- function(x, space_id, xmin, xmax, ymin, ymax, bundle = NULL)
 # -------------------------
 
 #' Intersect (AND) one or more cell_id vectors
-#' @inheritParams wb_sel_and
+#'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param ... One or more character vectors of `cell_id` to intersect with `x`.
+#' @param universe Optional universe used only when `x` is a bundle.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_and <- function(x, ..., universe = NULL, bundle = NULL) {
@@ -361,7 +389,7 @@ wb_sel_and <- function(x, ..., universe = NULL, bundle = NULL) {
   sets <- list(...)
   out <- base
   for (s in sets) out <- intersect(out, as.character(s))
-  out <- .wb_order_like_bundle(b, out)
+  out <- .wb_sel_order_like_bundle(b, out)
 
   parent_recipes <- lapply(sets, function(s) attr(s, "wb_recipe", exact = TRUE))
   parent_recipes <- Filter(Negate(is.null), parent_recipes)
@@ -376,7 +404,12 @@ wb_sel_and <- function(x, ..., universe = NULL, bundle = NULL) {
 }
 
 #' Union (OR) one or more cell_id vectors
-#' @inheritParams wb_sel_or
+#'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param ... One or more character vectors of `cell_id` to union with `x`.
+#' @param universe Optional character vector used to clamp the final result.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_or <- function(x, ..., universe = NULL, bundle = NULL) {
@@ -386,7 +419,7 @@ wb_sel_or <- function(x, ..., universe = NULL, bundle = NULL) {
   sets <- list(...)
   out <- unique(c(base, unlist(sets, use.names = FALSE)))
   if (!is.null(universe)) out <- intersect(out, as.character(universe))
-  out <- .wb_order_like_bundle(b, out)
+  out <- .wb_sel_order_like_bundle(b, out)
 
   parent_recipes <- lapply(sets, function(s) attr(s, "wb_recipe", exact = TRUE))
   parent_recipes <- Filter(Negate(is.null), parent_recipes)
@@ -402,7 +435,11 @@ wb_sel_or <- function(x, ..., universe = NULL, bundle = NULL) {
 
 
 #' Negation (NOT): universe minus x
-#' @inheritParams wb_sel_not
+#'
+#' @param x Selector result (character vector with attached bundle).
+#' @param universe Optional character vector of universe cell IDs. Defaults to all bundle cells.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_not <- function(x, universe = NULL, bundle = NULL) {
@@ -411,7 +448,7 @@ wb_sel_not <- function(x, universe = NULL, bundle = NULL) {
   .wb_assert(!is.null(base), "wb_sel_not() must be called on cell_ids (e.g. after a selector).")
 
   uni <- as.character(universe %||% wb_cells(b, cell_set = "all"))
-  out <- .wb_order_like_bundle(b, setdiff(uni, base))
+  out <- .wb_sel_order_like_bundle(b, setdiff(uni, base))
 
   .wb_sel_attach_bundle_recipe(
     cell_ids = out,
@@ -442,4 +479,3 @@ wb_sel_recipe_print <- function(x) {
   }
   invisible(r)
 }
-

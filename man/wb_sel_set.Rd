@@ -6,6 +6,13 @@
 \usage{
 wb_sel_set(x, sets, bundle = NULL)
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{sets}{Character vector of cell set names to union.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 cell_ids (ordered, bundle-attached, recipe-attached)
 }

@@ -10,8 +10,6 @@
 #'
 #' @return wb_primitive
 #' @export
-# scworkbench/R/primitives_coercion.R
-
 wb_as_primitive <- function(bundle, x, expected_kind = NULL) {
 
   # already primitive
@@ -41,7 +39,10 @@ wb_as_primitive <- function(bundle, x, expected_kind = NULL) {
         return(wb_prim_space_2d(space_id = x))
       }
       if (identical(expected_kind, "model_ref")) {
-        return(wb_prim_model_ref(space_id = x))
+        return(wb_prim_model_ref(
+          model_space_id = x,
+          in_space_id = ""
+        ))
       }
     }
   }

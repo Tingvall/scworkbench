@@ -9,8 +9,38 @@ test_all <- function(bundle_dir){
   if (exists("test_foundation_hardening_1to5", mode = "function")) {
     stopifnot(test_foundation_hardening_1to5(bundle_dir))
   }
+  if (exists("test_ingest_adapters_contract", mode = "function")) {
+    stopifnot(test_ingest_adapters_contract(bundle_dir))
+  }
+  if (exists("test_attach_adapters_contract", mode = "function")) {
+    stopifnot(test_attach_adapters_contract(bundle_dir))
+  }
   if (exists("test_op_contract_conformance", mode = "function")) {
     stopifnot(test_op_contract_conformance())
+  }
+  if (exists("test_op_knn_neighbors_contract", mode = "function")) {
+    stopifnot(test_op_knn_neighbors_contract(bundle_dir))
+  }
+  if (exists("test_feature_sets_contract", mode = "function")) {
+    stopifnot(test_feature_sets_contract(bundle_dir))
+  }
+  if (exists("test_feature_selection_plan_contract", mode = "function")) {
+    stopifnot(test_feature_selection_plan_contract(bundle_dir))
+  }
+  if (exists("test_compute_profile_contract", mode = "function")) {
+    stopifnot(test_compute_profile_contract())
+  }
+  if (exists("test_session_dag_contract", mode = "function")) {
+    stopifnot(test_session_dag_contract(bundle_dir))
+  }
+  if (exists("test_report_draft_contract", mode = "function")) {
+    stopifnot(test_report_draft_contract(bundle_dir))
+  }
+  if (exists("test_provenance_snapshot_contract", mode = "function")) {
+    stopifnot(test_provenance_snapshot_contract(bundle_dir))
+  }
+  if (exists("test_plot_wranglers_contract", mode = "function")) {
+    stopifnot(test_plot_wranglers_contract(bundle_dir))
   }
 
   cat("Opening bundle\n")

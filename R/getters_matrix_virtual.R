@@ -1,3 +1,5 @@
+#' List matrix fragments for a matrix
+#' @export
 wb_matrix_fragments <- function(bundle, matrix_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(matrix_id) && nzchar(matrix_id), "matrix_id invalid")
@@ -20,6 +22,8 @@ wb_matrix_fragments <- function(bundle, matrix_id) {
 
 # Read ONE feature vector for a set of cells, resolving across fragments.
 # Returns: named numeric vector (names = requested cell_ids), NA where missing.
+#' Read one feature vector across cells from virtual matrix fragments
+#' @export
 wb_matrix_read_feature <- function(bundle, matrix_id, feature_id, cell_ids) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
@@ -74,4 +78,3 @@ wb_matrix_read_feature <- function(bundle, matrix_id, feature_id, cell_ids) {
 
   out
 }
-

@@ -8,7 +8,12 @@
     bundle = bundle,
     space_id = space_id,
     cells = as.character(effective_cells),
-    ...
+    k = inputs$k %||% 30,
+    dims = inputs$dims %||% NULL,
+    resolution = inputs$resolution %||% 1.0,
+    n_iterations = inputs$n_iterations %||% 2,
+    seed = inputs$seed %||% NULL,
+    weight = inputs$weight %||% TRUE
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -32,7 +37,11 @@
     space_id = space_id,
     clusters = clusters_vec,
     cells = as.character(effective_cells),
-    ...
+    exclude_clusters = inputs$exclude_clusters %||% character(0),
+    start.clus = inputs$start.clus %||% NULL,
+    end.clus = inputs$end.clus %||% NULL,
+    stretch = inputs$stretch %||% 2,
+    reweight = inputs$reweight %||% TRUE
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -58,8 +67,7 @@
     metric = inputs$metric %||% "euclidean",
     nn_method = inputs$nn_method %||% "nndescent",
     spread = inputs$spread %||% 1.0,
-    seed = inputs$seed %||% 1,
-    ...
+    seed = inputs$seed %||% 1
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -95,8 +103,7 @@
     in_space_id = in_space_id,
     cells = as.character(effective_cells),
     dims = inputs$dims %||% NULL,
-    overwrite = inputs$overwrite %||% TRUE,
-    ...
+    overwrite = inputs$overwrite %||% TRUE
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -124,8 +131,7 @@
     nbin = inputs$nbin %||% 24,
     ctrl = inputs$ctrl %||% 100,
     name = inputs$name %||% "Module",
-    seed = inputs$seed %||% 1,
-    ...
+    seed = inputs$seed %||% 1
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -152,8 +158,7 @@
     cells_b = cells_b,
     features = inputs$features %||% NULL,
     min_pct = inputs$min_pct %||% 0,
-    p_adjust_method = inputs$p_adjust_method %||% "BH",
-    ...
+    p_adjust_method = inputs$p_adjust_method %||% "BH"
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -178,8 +183,7 @@
     features = inputs$features %||% NULL,
     top_n = inputs$top_n %||% 20,
     min_pct = inputs$min_pct %||% 0.1,
-    p_adjust_method = inputs$p_adjust_method %||% "BH",
-    ...
+    p_adjust_method = inputs$p_adjust_method %||% "BH"
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -199,7 +203,7 @@
   candidate_cells <- if (!is.null(inputs$candidate_cells)) {
     .wb_resolve_group_cells(bundle, inputs$candidate_cells, effective_cells)
   } else {
-    as.character(effective_cells)
+    as.character(wb_cells(bundle, cell_set = "all"))
   }
 
   raw <- wb_op_knn_pseudobulk(
@@ -211,12 +215,37 @@
     features = inputs$features %||% NULL,
     k = inputs$k %||% 100,
     include_query = inputs$include_query %||% FALSE,
-    aggregate = inputs$aggregate %||% "sum",
-    ...
+    aggregate = inputs$aggregate %||% "sum"
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "knn_pseudobulk must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
+.wb_runner_knn_neighbors <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$space), "knn_neighbors runner: missing resolved$space.")
+  .wb_assert(!is.null(inputs$query_cells), "knn_neighbors runner: inputs$query_cells is required.")
+
+  space_id <- resolved$space$space_id
+  query_cells <- .wb_resolve_group_cells(bundle, inputs$query_cells, effective_cells)
+  candidate_cells <- if (!is.null(inputs$candidate_cells)) {
+    .wb_resolve_group_cells(bundle, inputs$candidate_cells, effective_cells)
+  } else {
+    as.character(wb_cells(bundle, cell_set = "all"))
+  }
+
+  raw <- wb_op_knn_neighbors(
+    bundle = bundle,
+    space_id = space_id,
+    query_cells = query_cells,
+    candidate_cells = candidate_cells,
+    k = inputs$k %||% 100,
+    include_query = inputs$include_query %||% FALSE
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "knn_neighbors must return list(outputs=<list>, params=<list>).")
   raw
 }
 
@@ -416,7 +445,7 @@
         list(name = "query_cells", type = "cell_ids_or_set", default = NULL,
              help = "Query cells: explicit IDs or 'set:<name>'"),
         list(name = "candidate_cells", type = "cell_ids_or_set", default = NULL,
-             help = "Optional candidate neighbor pool; defaults to effective cells."),
+             help = "Optional candidate neighbor pool; defaults to all cells."),
         list(name = "features", type = "string_vec", default = NULL,
              help = "Optional feature subset for pseudobulk output."),
         list(name = "k", type = "int", default = 100, min = 1, max = 50000,
@@ -430,6 +459,44 @@
         pseudobulk_table = list(
           kind = "feature_table",
           description = "Feature-level pseudobulk values keyed by query cell."
+        ),
+        neighbor_distance = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "query_cell_id",
+          description = "Neighbor distances per query cell."
+        )
+      )
+    ),
+    knn_neighbors = list(
+      op_name = "knn_neighbors",
+      title = "kNN neighbors around query cell(s)",
+      description = "Find nearest neighbors in a latent space without requiring matrix aggregation.",
+      intent = c("neighbors", "geometry", "projection"),
+      requires = list(space = "space"),
+      produces = list(
+        neighbors = "obs_table",
+        neighbor_distance = "cell_vector_family"
+      ),
+      promotable = c("neighbors", "neighbor_distance"),
+      runner = .wb_runner_knn_neighbors,
+      inputs = list(
+        space = list(required = TRUE, kind = "space")
+      ),
+      params = list(
+        list(name = "query_cells", type = "cell_ids_or_set", default = NULL,
+             help = "Query cells: explicit IDs or 'set:<name>'"),
+        list(name = "candidate_cells", type = "cell_ids_or_set", default = NULL,
+             help = "Optional candidate neighbor pool; defaults to all cells."),
+        list(name = "k", type = "int", default = 100, min = 1, max = 50000,
+             help = "Nearest neighbors per query cell."),
+        list(name = "include_query", type = "bool", default = FALSE,
+             help = "Include query cells themselves when they are in candidate pool.")
+      ),
+      interface_produces = list(
+        neighbors = list(
+          kind = "obs_table",
+          description = "Per-query neighbor table (cell_id, rank, distance)."
         ),
         neighbor_distance = list(
           kind = "cell_vector_family",

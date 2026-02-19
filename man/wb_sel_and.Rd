@@ -6,6 +6,15 @@
 \usage{
 wb_sel_and(x, ..., universe = NULL, bundle = NULL)
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{...}{One or more character vectors of \code{cell_id} to intersect with \code{x}.}
+
+\item{universe}{Optional universe used only when \code{x} is a bundle.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 cell_ids (ordered, bundle-attached, recipe-attached)
 }

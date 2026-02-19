@@ -63,11 +63,6 @@
 }
 
 
-.wb_db_has_column <- function(con, table, column) {
-  info <- DBI::dbGetQuery(con, sprintf("PRAGMA table_info(%s);", table))
-  any(info$name == column)
-}
-
 .wb_ensure_space_models_table <- function(con) {
   # 1) Create the legacy/current table if it doesn't exist (keeps your schema)
   DBI::dbExecute(con, "
@@ -152,10 +147,5 @@
   DBI::dbCommit(con)
   on.exit(NULL, add = FALSE)
   invisible(TRUE)
-}
-
-.wb_db_has_column <- function(con, table, column) {
-  info <- DBI::dbGetQuery(con, sprintf("PRAGMA table_info(%s);", table))
-  any(info$name == column)
 }
 

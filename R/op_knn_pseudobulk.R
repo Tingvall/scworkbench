@@ -44,21 +44,17 @@ wb_op_knn_pseudobulk <- function(bundle,
   feature_ids <- if (is.null(features)) wb_feature_ids(bundle, matrix_id = matrix_id) else as.character(features)
   .wb_assert(length(feature_ids) > 0, "No features available for kNN pseudobulk.")
 
-  base_pool <- unique(c(candidate_cells, query_cells))
-  .wb_assert(length(base_pool) > 1, "Need at least two cells in query/candidate pool.")
-
-  coords_obj <- wb_space(bundle, space_id = space_id, cells = base_pool)
-  coords <- .wb_space_to_matrix(coords_obj, requested_cells = base_pool)
-
-  # Keep only query cells present in coordinates.
-  query_cells <- query_cells[query_cells %in% rownames(coords)]
-  .wb_assert(length(query_cells) > 0, "None of query_cells were found in the selected space.")
-
-  candidate_cells <- candidate_cells[candidate_cells %in% rownames(coords)]
-  if (!isTRUE(include_query)) candidate_cells <- setdiff(candidate_cells, query_cells)
-  .wb_assert(length(candidate_cells) >= 1, "candidate_cells resolved to empty set.")
-
-  cand_mat <- coords[candidate_cells, , drop = FALSE]
+  nn <- .wb_knn_neighbors_in_space(
+    bundle = bundle,
+    space_id = space_id,
+    query_cells = query_cells,
+    candidate_cells = candidate_cells,
+    k = k,
+    include_query = include_query
+  )
+  query_cells <- nn$query_cells
+  neighbors <- nn$neighbors
+  distances <- nn$distances
 
   rows <- vector("list", length(query_cells))
   dist_key <- character(0)
@@ -67,13 +63,8 @@ wb_op_knn_pseudobulk <- function(bundle,
 
   for (i in seq_along(query_cells)) {
     q <- query_cells[i]
-    qv <- coords[q, , drop = TRUE]
-    d <- sqrt(rowSums((cand_mat - matrix(qv, nrow = nrow(cand_mat), ncol = ncol(cand_mat), byrow = TRUE))^2))
-    ord <- order(d, decreasing = FALSE)
-    nkeep <- min(as.integer(k), length(ord))
-    idx <- ord[seq_len(nkeep)]
-    nn_cells <- rownames(cand_mat)[idx]
-    nn_dist <- as.numeric(d[idx])
+    nn_cells <- neighbors[[q]] %||% character(0)
+    nn_dist <- as.numeric(distances[[q]] %||% numeric(0))
 
     x <- wb_slice(bundle, matrix_id = matrix_id, features = feature_ids, cells = nn_cells)
     agg <- if (identical(aggregate, "sum")) Matrix::rowSums(x) else Matrix::rowMeans(x)
@@ -147,4 +138,147 @@ wb_op_knn_pseudobulk <- function(bundle,
     out <- out[keep, , drop = FALSE]
   }
   out
+}
+
+.wb_knn_neighbors_in_space <- function(bundle,
+                                       space_id,
+                                       query_cells,
+                                       candidate_cells = NULL,
+                                       k = 100,
+                                       include_query = FALSE) {
+  .wb_assert(is.character(space_id) && length(space_id) == 1 && nzchar(space_id),
+             "space_id must be a single non-empty string.")
+  .wb_assert(is.character(query_cells) && length(query_cells) > 0,
+             "query_cells must be a non-empty character vector.")
+  .wb_assert(is.numeric(k) && length(k) == 1 && as.integer(k) >= 1,
+             "k must be >= 1.")
+
+  query_cells <- unique(as.character(query_cells))
+  candidate_cells <- if (is.null(candidate_cells)) {
+    as.character(wb_cells(bundle, cell_set = "all"))
+  } else {
+    unique(as.character(candidate_cells))
+  }
+
+  base_pool <- unique(c(candidate_cells, query_cells))
+  .wb_assert(length(base_pool) > 1, "Need at least two cells in query/candidate pool.")
+
+  coords_obj <- wb_space(bundle, space_id = space_id, cells = base_pool)
+  coords <- .wb_space_to_matrix(coords_obj, requested_cells = base_pool)
+
+  query_cells <- query_cells[query_cells %in% rownames(coords)]
+  .wb_assert(length(query_cells) > 0, "None of query_cells were found in the selected space.")
+
+  candidate_cells <- candidate_cells[candidate_cells %in% rownames(coords)]
+  if (!isTRUE(include_query)) candidate_cells <- setdiff(candidate_cells, query_cells)
+  .wb_assert(length(candidate_cells) >= 1, "candidate_cells resolved to empty set.")
+
+  cand_mat <- coords[candidate_cells, , drop = FALSE]
+  neighbors <- list()
+  distances <- list()
+
+  for (q in query_cells) {
+    qv <- coords[q, , drop = TRUE]
+    d <- sqrt(rowSums((cand_mat - matrix(qv, nrow = nrow(cand_mat), ncol = ncol(cand_mat), byrow = TRUE))^2))
+    ord <- order(d, decreasing = FALSE)
+    nkeep <- min(as.integer(k), length(ord))
+    idx <- ord[seq_len(nkeep)]
+    neighbors[[q]] <- rownames(cand_mat)[idx]
+    distances[[q]] <- as.numeric(d[idx])
+  }
+
+  list(
+    query_cells = query_cells,
+    candidate_cells = candidate_cells,
+    neighbors = neighbors,
+    distances = distances
+  )
+}
+
+#' kNN neighbor search in latent space (space-only)
+#'
+#' Finds nearest neighbors around query cells using a selected space embedding.
+#' This op does not require a matrix and is useful for geometry-only workflows
+#' (for example PeakVI latent-space neighborhood lookup).
+#'
+#' @param bundle Bundle handle
+#' @param space_id Space identifier used for kNN search
+#' @param query_cells Character vector of query cell IDs
+#' @param candidate_cells Optional candidate pool for neighbors (defaults to all cells)
+#' @param k Number of neighbors per query cell
+#' @param include_query Include query cells themselves when they are in candidate pool
+#' @export
+wb_op_knn_neighbors <- function(bundle,
+                                space_id,
+                                query_cells,
+                                candidate_cells = NULL,
+                                k = 100,
+                                include_query = FALSE) {
+  nn <- .wb_knn_neighbors_in_space(
+    bundle = bundle,
+    space_id = space_id,
+    query_cells = query_cells,
+    candidate_cells = candidate_cells,
+    k = k,
+    include_query = include_query
+  )
+
+  query_cells <- nn$query_cells
+  candidate_cells <- nn$candidate_cells
+  neighbors <- nn$neighbors
+  distances <- nn$distances
+
+  rows <- vector("list", length(query_cells))
+  dist_key <- character(0)
+  dist_cell <- character(0)
+  dist_val <- numeric(0)
+
+  for (i in seq_along(query_cells)) {
+    q <- query_cells[i]
+    nn_cells <- neighbors[[q]] %||% character(0)
+    nn_dist <- as.numeric(distances[[q]] %||% numeric(0))
+
+    rows[[i]] <- data.frame(
+      query_cell_id = q,
+      neighbor_rank = seq_along(nn_cells),
+      cell_id = nn_cells,
+      distance = nn_dist,
+      stringsAsFactors = FALSE
+    )
+
+    dist_key <- c(dist_key, rep(q, length(nn_cells)))
+    dist_cell <- c(dist_cell, nn_cells)
+    dist_val <- c(dist_val, nn_dist)
+  }
+
+  tbl <- do.call(rbind, rows)
+  rownames(tbl) <- NULL
+
+  list(
+    outputs = list(
+      neighbors = wb_prim_obs_table(
+        table = tbl,
+        table_type = "knn_neighbors",
+        entity_kind = "cell",
+        meta = list(
+          space_id = space_id,
+          k = as.integer(k),
+          include_query = isTRUE(include_query)
+        )
+      ),
+      neighbor_distance = wb_prim_cell_vector_family(
+        key = dist_key,
+        cell_id = dist_cell,
+        value = dist_val,
+        value_type = "continuous"
+      )
+    ),
+    params = list(
+      space_id = space_id,
+      n_query = length(query_cells),
+      n_candidates = length(candidate_cells),
+      k = as.integer(k),
+      include_query = isTRUE(include_query)
+    )
+  )
 }

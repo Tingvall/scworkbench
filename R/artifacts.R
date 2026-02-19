@@ -1,3 +1,5 @@
+#' List promoted artifacts
+#' @export
 wb_art_list <- function(bundle, type = NULL) {
   con <- bundle$con
   if (is.null(type)) {
@@ -7,8 +9,9 @@ wb_art_list <- function(bundle, type = NULL) {
   }
 }
 
+#' Read label rows for a label-like artifact
+#' @export
 wb_art_get_labels <- function(bundle, artifact_id) {
   con <- bundle$con
   DBI::dbGetQuery(con, "SELECT cell_id, label FROM artifact_labels WHERE artifact_id = ? ORDER BY cell_id;", params = list(artifact_id))
 }
-

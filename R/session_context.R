@@ -184,6 +184,7 @@ wb_session_add_run <- function(session, run) {
 wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   op <- .wb_op(op_name)
+  .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs)
 
   # Resolve effective_cells once, here. Nothing else is allowed to compute cells.
   cell_set <- inputs$cell_set %||% "all"
@@ -243,7 +244,12 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     effective_n = length(effective_cells),
     parents = parents,
     provenance_refs = prov_refs,
-    user_inputs = inputs
+    user_inputs = inputs,
+    symbolic_inputs = .wb_symbolic_inputs_snapshot(op_name = op_name, inputs = inputs),
+    execution_inputs = .wb_execution_inputs_snapshot(
+      resolved = resolved,
+      effective_cells = effective_cells
+    )
   )
 
   run <- wb_new_run(
@@ -290,4 +296,172 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   }
 
   res
+}
+
+.wb_is_ref_run <- function(x) {
+  is.list(x) && identical(as.character(x$ref_type %||% "")[1], "run")
+}
+
+.wb_is_ref_artifact <- function(x) {
+  is.list(x) && identical(as.character(x$ref_type %||% "")[1], "artifact")
+}
+
+.wb_symbolic_ref_compact <- function(x) {
+  if (.wb_is_ref_run(x)) {
+    return(list(
+      ref_type = "run",
+      run_id = as.character(x$run_id %||% NA_character_)[1],
+      output = as.character(x$output %||% NA_character_)[1]
+    ))
+  }
+  if (.wb_is_ref_artifact(x)) {
+    return(list(
+      ref_type = "artifact",
+      artifact_id = as.character(x$artifact_id %||% NA_character_)[1],
+      output = as.character(x$output %||% NA_character_)[1]
+    ))
+  }
+  x
+}
+
+.wb_symbolic_param_types <- function(op_name) {
+  cat <- .wb_op_catalog()
+  op <- cat[[op_name]] %||% list()
+  p <- op$params %||% list()
+  if (!length(p)) return(stats::setNames(character(0), character(0)))
+  nm <- vapply(p, function(x) as.character(x$name %||% "")[1], character(1))
+  tp <- vapply(p, function(x) as.character(x$type %||% "")[1], character(1))
+  keep <- nzchar(nm) & nzchar(tp)
+  stats::setNames(tp[keep], nm[keep])
+}
+
+.wb_symbolic_inputs_snapshot <- function(op_name, inputs) {
+  x <- inputs %||% list()
+  if (!is.list(x)) x <- list()
+
+  out <- list(
+    cell_set = as.character(x$cell_set %||% "all")[1],
+    min_cells = as.integer(x$min_cells %||% 10L)
+  )
+
+  ptypes <- .wb_symbolic_param_types(op_name)
+  for (nm in names(ptypes)) {
+    val <- x[[nm]]
+    if (is.null(val)) next
+    tp <- ptypes[[nm]]
+
+    if (identical(tp, "cell_ids_or_set")) {
+      if (.wb_is_ref_run(val) || .wb_is_ref_artifact(val)) {
+        out[[nm]] <- .wb_symbolic_ref_compact(val)
+        next
+      }
+      if (is.character(val)) {
+        vv <- unique(as.character(val))
+        vv <- vv[nzchar(vv)]
+        if (!length(vv)) next
+        if (length(vv) == 1 && startsWith(vv, "set:")) {
+          out[[nm]] <- vv[[1]]
+        } else {
+          out[[nm]] <- vv
+        }
+        next
+      }
+    }
+
+    out[[nm]] <- .wb_symbolic_ref_compact(val)
+  }
+
+  # keep explicit symbolic run/artifact refs even if they are not op params
+  extras <- names(x)
+  for (nm in extras) {
+    if (!is.null(out[[nm]])) next
+    val <- x[[nm]]
+    if (.wb_is_ref_run(val) || .wb_is_ref_artifact(val)) {
+      out[[nm]] <- .wb_symbolic_ref_compact(val)
+    }
+  }
+
+  out
+}
+
+.wb_execution_inputs_snapshot <- function(resolved, effective_cells) {
+  res_compact <- list()
+  if (length(resolved %||% list())) {
+    for (nm in names(resolved)) {
+      val <- resolved[[nm]]
+      if (.wb_is_primitive(val)) {
+        res_compact[[nm]] <- .wb_prim_summary(val)
+      }
+    }
+  }
+
+  list(
+    effective_n = as.integer(length(effective_cells %||% character(0))),
+    resolved = res_compact
+  )
+}
+
+.wb_validate_cell_ids_or_set <- function(val, nm) {
+  if (.wb_is_ref_run(val) || .wb_is_ref_artifact(val)) return(invisible(TRUE))
+  .wb_assert(is.character(val), paste0("inputs$", nm, " must be character, wb_ref_run(), or wb_ref_artifact()."))
+  .wb_assert(length(val) > 0, paste0("inputs$", nm, " must be non-empty."))
+  vv <- unique(as.character(val))
+  vv <- vv[nzchar(vv)]
+  .wb_assert(length(vv) > 0, paste0("inputs$", nm, " is empty after cleaning."))
+  set_flags <- startsWith(vv, "set:")
+  .wb_assert(all(set_flags | !set_flags), paste0("inputs$", nm, " invalid value."))
+  invisible(TRUE)
+}
+
+.wb_validate_op_inputs_contract <- function(op_name, inputs) {
+  inputs <- inputs %||% list()
+  .wb_assert(is.list(inputs), "inputs must be a list.")
+  cat <- .wb_op_catalog()
+  op <- cat[[op_name]] %||% list()
+  params <- op$params %||% list()
+  if (!length(params)) return(invisible(TRUE))
+
+  for (p in params) {
+    nm <- as.character(p$name %||% "")[1]
+    tp <- as.character(p$type %||% "")[1]
+    if (!nzchar(nm) || !nzchar(tp)) next
+    if (is.null(inputs[[nm]])) next
+    val <- inputs[[nm]]
+
+    if (identical(tp, "cell_ids_or_set")) {
+      .wb_validate_cell_ids_or_set(val, nm)
+      next
+    }
+    if (identical(tp, "int")) {
+      .wb_assert(length(val) == 1 && !is.na(suppressWarnings(as.integer(val))),
+                 paste0("inputs$", nm, " must be scalar int-like."))
+      next
+    }
+    if (identical(tp, "dbl")) {
+      .wb_assert(length(val) == 1 && !is.na(suppressWarnings(as.numeric(val))),
+                 paste0("inputs$", nm, " must be scalar numeric-like."))
+      next
+    }
+    if (identical(tp, "bool")) {
+      b <- suppressWarnings(as.logical(val))
+      .wb_assert(length(b) == 1 && !is.na(b),
+                 paste0("inputs$", nm, " must be scalar logical-like."))
+      next
+    }
+    if (identical(tp, "string")) {
+      .wb_assert(length(val) == 1 && is.character(val),
+                 paste0("inputs$", nm, " must be scalar character."))
+      next
+    }
+    if (identical(tp, "string_vec")) {
+      .wb_assert(is.character(val), paste0("inputs$", nm, " must be character vector."))
+      next
+    }
+    if (identical(tp, "string_vec_or_list")) {
+      ok <- is.character(val) || (is.list(val) && all(vapply(val, is.character, logical(1))))
+      .wb_assert(ok, paste0("inputs$", nm, " must be character vector or list of character vectors."))
+      next
+    }
+  }
+  invisible(TRUE)
 }

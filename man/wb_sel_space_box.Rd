@@ -6,6 +6,17 @@
 \usage{
 wb_sel_space_box(x, space_id, xmin, xmax, ymin, ymax, bundle = NULL)
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{space_id}{2D space identifier.}
+
+\item{xmin, xmax}{X-axis box bounds.}
+
+\item{ymin, ymax}{Y-axis box bounds.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 cell_ids (ordered, bundle-attached, recipe-attached)
 }

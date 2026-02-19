@@ -47,4 +47,6 @@
 }
 
 
+#' Get selector recipe metadata
+#' @export
 wb_recipe <- function(x) attr(x, "wb_recipe", exact = TRUE)

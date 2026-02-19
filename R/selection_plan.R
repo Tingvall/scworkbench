@@ -1,9 +1,12 @@
+#' Execute a selection plan into ordered cell IDs
+#' @export
 wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.list(plan), "plan must be list")
 
   universe <- plan$universe %||% "all"
   rules <- plan$rules %||% list()
+  groups <- plan$groups %||% NULL
 
   # helper: normalize to cell_ids char vector
   .as_cell_ids <- function(x) {
@@ -18,24 +21,24 @@ wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
   # 1) Universe -> cell_ids
   # --------------------------
   # Use your canonical cell-set getter (NOT wb_sel_all)
-  cells <- wb_cells(bundle, cell_set = universe)
-  cells <- .as_cell_ids(cells)
-  .wb_assert(length(cells) > 0, paste0("Universe is empty: ", universe))
+  universe_cells <- wb_cells(bundle, cell_set = universe)
+  universe_cells <- .as_cell_ids(universe_cells)
+  .wb_assert(length(universe_cells) > 0, paste0("Universe is empty: ", universe))
 
-  # --------------------------
-  # 2) Apply AND rules
-  # --------------------------
-  for (r in rules) {
-    if (length(cells) == 0) break
+  .apply_rule <- function(cells, r) {
+    if (length(cells) == 0) return(cells)
+
     tp <- r$type %||% ""
+    negate <- isTRUE(r$negate %||% FALSE)
+    matched <- cells
 
     if (tp == "set") {
-      cells <- wb_sel_set(
-        cells,
+      matched <- wb_sel_set(
+        matched,
         bundle = bundle,
         sets = as.character(r$sets %||% character(0))
       )
-      cells <- .as_cell_ids(cells)
+      matched <- .as_cell_ids(matched)
     }
 
     else if (tp == "vector_range") {
@@ -45,7 +48,7 @@ wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
         bundle   = bundle,
         x        = spec,
         runs     = runs,
-        cell_ids = cells,
+        cell_ids = matched,
         key      = r$key %||% NULL
       )
 
@@ -54,14 +57,13 @@ wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
       if (!is.null(r$max)) ok <- ok & (v <= r$max)
       if (isTRUE(r$na.rm %||% TRUE)) ok <- ok & !is.na(v)
 
-      cells <- names(v)[ok]
-      cells <- .wb_order_like_bundle(bundle, cells)
-      .wb_assert(length(cells) > 0, "Selection became empty after vector_range rule.")
+      matched <- names(v)[ok]
+      matched <- .wb_order_like_bundle(bundle, matched)
     }
 
     else if (tp == "space_box") {
-      cells <- wb_sel_space_box(
-        cells,
+      matched <- wb_sel_space_box(
+        matched,
         bundle  = bundle,
         space_id = as.character(r$space_id),
         xmin = as.numeric(r$xmin),
@@ -69,7 +71,7 @@ wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
         ymin = as.numeric(r$ymin),
         ymax = as.numeric(r$ymax)
       )
-      cells <- .as_cell_ids(cells)
+      matched <- .as_cell_ids(matched)
     }
 
     else if (tp == "expr") {
@@ -80,8 +82,8 @@ wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
       .wb_assert(is.character(fid) && length(fid) == 1 && nzchar(fid),
                  "expr rule requires feature_id (length-1 string)")
 
-      cells <- wb_sel_expr(
-        cells,
+      matched <- wb_sel_expr(
+        matched,
         bundle = bundle,
         matrix_id  = as.character(mid),
         feature_id = as.character(fid),
@@ -89,12 +91,50 @@ wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
         max = r$max %||% NULL,
         na.rm = isTRUE(r$na.rm %||% TRUE)
       )
-      cells <- .as_cell_ids(cells)
+      matched <- .as_cell_ids(matched)
     }
 
     else {
       stop("Unknown rule type: ", tp, call. = FALSE)
     }
+
+    if (negate) {
+      cells <- setdiff(cells, matched)
+      cells <- .wb_order_like_bundle(bundle, cells)
+    } else {
+      cells <- matched
+    }
+
+    cells
+  }
+
+  .run_group <- function(group_rules) {
+    cells <- universe_cells
+    for (r in group_rules %||% list()) {
+      cells <- .apply_rule(cells, r)
+      if (length(cells) == 0) break
+    }
+    cells
+  }
+
+  # --------------------------
+  # 2) Apply boolean plan
+  # --------------------------
+  if (is.null(groups)) {
+    groups <- list(list(rules = rules))
+  }
+  .wb_assert(is.list(groups), "plan$groups must be a list when provided")
+
+  group_cells <- lapply(groups, function(g) {
+    if (!is.list(g)) stop("Each group must be a list.", call. = FALSE)
+    .run_group(g$rules %||% list())
+  })
+
+  if (length(group_cells) == 0) {
+    cells <- universe_cells
+  } else {
+    cells <- unique(unlist(group_cells, use.names = FALSE))
+    cells <- .wb_order_like_bundle(bundle, cells)
   }
 
   .wb_assert(length(cells) > 0, "Selection is empty at end of plan.")

@@ -1,4 +1,14 @@
 #' Cells with available coordinates for a space
+#'
+#' Returns the cell IDs that have coordinates available for `space_id`.
+#' For `wide:space_2d`, this is any cell present in `space_2d`.
+#' For `long:space_coords`, this is any cell with all requested dimensions.
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param space_id Space identifier.
+#' @param dims Optional integer vector of required dimensions for long-form spaces.
+#'
+#' @return Character vector of `cell_id`.
 #' @export
 wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
   con <- bundle$con
@@ -37,6 +47,14 @@ wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
 }
 
 #' Cells available for a given matrix
+#'
+#' Returns cell IDs that are available for `matrix_id`.
+#' In current bundles, matrices are assumed aligned to canonical bundle cell order.
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param matrix_id Matrix identifier.
+#'
+#' @return Character vector of `cell_id` in canonical order, or empty if matrix_id is unknown.
 #' @export
 wb_cells_with_matrix <- function(bundle, matrix_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
@@ -57,6 +75,17 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
 
 
 #' Report coverage of required inputs for a cell set
+#'
+#' Computes how many cells in `cell_set` are covered by required inputs
+#' (currently `space_id` and/or `matrix_id`) and returns a compact summary.
+#'
+#' @param bundle scworkbench bundle handle.
+#' @param cell_set Cell set selector (e.g. `"core"`, `"all"`, `"set:<name>"`).
+#' @param inputs Named list of required inputs. Recognized keys include
+#'   `space_id`, `matrix_id`, and optional `dims` for space coverage.
+#'
+#' @return List with fields:
+#'   `requested`, `per_input`, `effective`, `percent`.
 #' @export
 wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   cells <- wb_cells(bundle, cell_set = cell_set)
@@ -158,6 +187,5 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
     min_cells = min_cells
   )
 }
-
 
 

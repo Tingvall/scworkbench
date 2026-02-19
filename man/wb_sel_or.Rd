@@ -6,6 +6,15 @@
 \usage{
 wb_sel_or(x, ..., universe = NULL, bundle = NULL)
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{...}{One or more character vectors of \code{cell_id} to union with \code{x}.}
+
+\item{universe}{Optional character vector used to clamp the final result.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 cell_ids (ordered, bundle-attached, recipe-attached)
 }
