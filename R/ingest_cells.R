@@ -183,13 +183,39 @@ wb_ingest_cells <- function(
     DBI::dbExecute(con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
   }
 
-  # Update per cell (v1 correct, optimize later)
   cols_to_write <- setdiff(colnames(md), "cell_id")
-  for (nm in cols_to_write) {
-    stmt <- sprintf('UPDATE cells SET "%s" = ? WHERE cell_id = ?;', nm)
-    for (i in seq_len(nrow(md))) {
-      DBI::dbExecute(con, stmt, params = list(md[[nm]][[i]], md$cell_id[[i]]))
-    }
+  if (length(cols_to_write)) {
+    tmp_name <- paste0("tmp_cell_metadata_", as.integer(Sys.time()), "_", paste(sample(c(letters, 0:9), 6, replace = TRUE), collapse = ""))
+    DBI::dbWriteTable(
+      con,
+      tmp_name,
+      md[, c("cell_id", cols_to_write), drop = FALSE],
+      temporary = TRUE,
+      overwrite = TRUE
+    )
+
+    quoted_cols <- vapply(cols_to_write, DBI::dbQuoteIdentifier, character(1), conn = con)
+    set_sql <- paste(
+      sprintf(
+        "%s = (SELECT t.%s FROM %s t WHERE t.cell_id = cells.cell_id)",
+        quoted_cols,
+        quoted_cols,
+        tmp_name
+      ),
+      collapse = ", "
+    )
+
+    DBI::dbExecute(
+      con,
+      sprintf(
+        "UPDATE cells
+            SET %s
+          WHERE cell_id IN (SELECT cell_id FROM %s);",
+        set_sql,
+        tmp_name
+      )
+    )
+    DBI::dbExecute(con, sprintf("DROP TABLE IF EXISTS %s;", tmp_name))
   }
 
   invisible(TRUE)

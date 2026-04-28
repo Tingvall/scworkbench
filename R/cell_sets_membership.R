@@ -16,6 +16,21 @@
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_csm_cell ON cell_set_membership(cell_id);")
   invisible(TRUE)
 }
+#' Create A Membership-Based Cell Set
+#'
+#' Create or overwrite a simple membership-backed cell set from explicit cell
+#' ids.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param set_name Set name without the `set:` prefix.
+#' @param cell_ids Cell ids to include.
+#' @param overwrite If `TRUE`, replace any existing membership first.
+#' @param source Optional provenance/source label.
+#' @param created_by Optional author.
+#' @param description Optional description.
+#'
+#' @return Invisibly returns a small summary list describing the created set.
+#'
 #' @export
 wb_set_create <- function(bundle,
                           set_name,
@@ -140,29 +155,41 @@ wb_cell_set_add <- function(bundle,
 wb_cell_set_remove <- function(bundle, cell_set, cell_ids = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set), "cell_set invalid")
-  if (!startsWith(cell_set, "set:")) cell_set <- paste0("set:", cell_set)
+  cell_set <- as.character(cell_set)[1]
+  aliases <- unique(c(
+    cell_set,
+    if (startsWith(cell_set, "set:")) sub("^set:", "", cell_set) else paste0("set:", cell_set)
+  ))
+  aliases <- aliases[nzchar(aliases)]
 
   con <- bundle$con
   .wb_ensure_cell_set_membership_table(con)
 
   if (is.null(cell_ids)) {
-    DBI::dbExecute(con, "DELETE FROM cell_set_membership WHERE cell_set = ?;",
-                   params = list(cell_set))
-    return(invisible(list(cell_set = cell_set, n_removed = NA_integer_)))
+    q <- .wb_sql_in_json(aliases)
+    DBI::dbExecute(
+      con,
+      paste0("DELETE FROM cell_set_membership WHERE cell_set IN ", q$sql, ";"),
+      params = q$params
+    )
+    return(invisible(list(cell_set = cell_set, aliases = aliases, n_removed = NA_integer_)))
   }
 
   cell_ids <- unique(as.character(cell_ids))
   js <- jsonlite::toJSON(as.list(cell_ids), auto_unbox = TRUE)
+  q <- .wb_sql_in_json(aliases)
 
   DBI::dbExecute(
     con,
-    "DELETE FROM cell_set_membership
-     WHERE cell_set = ?
-       AND cell_id IN (SELECT value FROM json_each(?));",
-    params = list(cell_set, js)
+    paste0(
+      "DELETE FROM cell_set_membership
+       WHERE cell_set IN ", q$sql, "
+         AND cell_id IN (SELECT value FROM json_each(?));"
+    ),
+    params = c(q$params, list(js))
   )
 
-  invisible(list(cell_set = cell_set, n_removed = length(cell_ids)))
+  invisible(list(cell_set = cell_set, aliases = aliases, n_removed = length(cell_ids)))
 }
 
 #' Overwrite membership for a set (replace with exactly cell_ids)
@@ -278,4 +305,3 @@ wb_cell_set_replace <- function(bundle,
     missing_head = head(missing, 20)
   ))
 }
-

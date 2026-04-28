@@ -2,6 +2,9 @@
 #'
 #' Returns membership-backed set names from `cell_set_membership`.
 #' The legacy `cells.cell_set` column is not used.
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.cell_sets
+# contract-note: canonical display ordering puts 'core' first
 #' @export
 wb_cell_sets <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -30,6 +33,9 @@ wb_cell_sets <- function(bundle) {
 
 
 #' Resolve a cell_set selector to cell_ids
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.resolve_cell_set
+# contract-note: keep 'all' semantics and stable ordering aligned with wb_cells()/membership path
 #' @export
 wb_resolve_cell_set <- function(bundle, cell_set = "core") {
   con <- bundle$con

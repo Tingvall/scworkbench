@@ -16,6 +16,8 @@ wb_plot_space_2d <- function(bundle,
                              label_groups = FALSE,
                              label_by = NULL,
                              label_min_n = 50,
+                             continuous_palette = "magma",
+                             continuous_na_color = "grey80",
                              debug = FALSE) {
 
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
@@ -24,6 +26,11 @@ wb_plot_space_2d <- function(bundle,
 
   `%||%` <- function(x, y) if (is.null(x)) y else x
   cell_set <- as.character(cell_set[1])
+  cont_pal <- tolower(as.character(continuous_palette %||% "magma")[1])
+  if (!nzchar(cont_pal)) cont_pal <- "magma"
+  cont_na <- as.character(continuous_na_color %||% "grey80")[1]
+  if (!nzchar(cont_na)) cont_na <- "grey80"
+  cont_pal_ok <- cont_pal %in% c("magma", "viridis", "plasma", "inferno", "cividis", "rocket", "mako", "turbo")
 
   # -------------------------
   # 1) Resolve base vs overlay cell IDs
@@ -79,6 +86,21 @@ wb_plot_space_2d <- function(bundle,
 
   df_ov_all <- if (length(overlay_cells)) .wb_space_2d_safe(bundle, space_id, overlay_cells) else empty_xy()
   df_ov_all$cell_id <- as.character(df_ov_all$cell_id)
+
+  # Defensive sanitization: malformed/partial space rows (NA/Inf coords) should not
+  # leak into ggplot layers and cause warning loops in reactive clients.
+  if (nrow(df_base)) {
+    keep_base <- is.finite(df_base$x) & is.finite(df_base$y)
+    keep_base[is.na(keep_base)] <- FALSE
+    df_base <- df_base[keep_base, , drop = FALSE]
+    rownames(df_base) <- NULL
+  }
+  if (nrow(df_ov_all)) {
+    keep_ov <- is.finite(df_ov_all$x) & is.finite(df_ov_all$y)
+    keep_ov[is.na(keep_ov)] <- FALSE
+    df_ov_all <- df_ov_all[keep_ov, , drop = FALSE]
+    rownames(df_ov_all) <- NULL
+  }
 
   if (!nrow(df_base) && !nrow(df_ov_all)) {
     stop("No cells found in this space for requested selection.", call. = FALSE)
@@ -255,9 +277,103 @@ wb_plot_space_2d <- function(bundle,
     lab <- color_label %||% legend_name %||% "value"
 
     if (is.numeric(c(df_base$value, df_ov_all$value))) {
-      p <- p + ggplot2::scale_color_continuous(na.value = "grey80") + ggplot2::labs(color = lab)
+      if (!identical(cont_pal, "default") && isTRUE(cont_pal_ok) && requireNamespace("viridisLite", quietly = TRUE)) {
+        p <- p +
+          ggplot2::scale_color_viridis_c(option = cont_pal, na.value = cont_na) +
+          ggplot2::scale_fill_viridis_c(option = cont_pal, na.value = cont_na) +
+          ggplot2::labs(color = lab, fill = lab)
+      } else {
+        p <- p +
+          ggplot2::scale_color_continuous(na.value = cont_na) +
+          ggplot2::scale_fill_continuous(na.value = cont_na) +
+          ggplot2::labs(color = lab, fill = lab)
+      }
     } else {
-      p <- p + ggplot2::scale_color_discrete(na.value = "grey80") + ggplot2::labs(color = lab)
+      p <- p +
+        ggplot2::scale_color_discrete(na.value = cont_na) +
+        ggplot2::scale_fill_discrete(na.value = cont_na) +
+        ggplot2::labs(color = lab, fill = lab)
+    }
+  }
+
+  # -------------------------
+  # 8) Optional centroid labels (typically for categorical overlays like Leiden)
+  # -------------------------
+  if (isTRUE(label_groups)) {
+    df_lbl <- rbind(
+      df_base[, c("cell_id", "x", "y", "value"), drop = FALSE],
+      df_ov_all[, c("cell_id", "x", "y", "value"), drop = FALSE]
+    )
+    rownames(df_lbl) <- NULL
+
+    if (nrow(df_lbl)) {
+      # label_by can override the grouping source. Supported forms mirror color_by.
+      if (!is.null(label_by)) {
+        df_lbl$label_value <- NA
+        if (is.character(label_by) && length(label_by) == 1L) {
+          col <- as.character(label_by)[1]
+          q <- sprintf('SELECT cell_id, "%s" AS label_value FROM cells;', col)
+          md <- DBI::dbGetQuery(bundle$con, q)
+          md$cell_id <- as.character(md$cell_id)
+          df_lbl$label_value <- md$label_value[match(df_lbl$cell_id, md$cell_id)]
+        } else if (is.data.frame(label_by)) {
+          .wb_assert(all(c("cell_id", "value") %in% colnames(label_by)),
+                     "label_by data.frame must have columns cell_id and value.")
+          md <- label_by[, c("cell_id", "value"), drop = FALSE]
+          md$cell_id <- as.character(md$cell_id)
+          df_lbl$label_value <- md$value[match(df_lbl$cell_id, md$cell_id)]
+        } else if (is.atomic(label_by) && !is.null(names(label_by))) {
+          vv <- label_by
+          df_lbl$label_value <- unname(vv[df_lbl$cell_id])
+        } else {
+          stop("label_by must be NULL, a metadata column name, a named vector, or data.frame(cell_id,value).",
+               call. = FALSE)
+        }
+      } else {
+        df_lbl$label_value <- df_lbl$value
+      }
+
+      keep_lbl <- is.finite(df_lbl$x) & is.finite(df_lbl$y) & !is.na(df_lbl$label_value)
+      keep_lbl[is.na(keep_lbl)] <- FALSE
+      df_lbl <- df_lbl[keep_lbl, , drop = FALSE]
+
+      # Avoid nonsense centroid labels for continuous scales unless caller explicitly supplies label_by
+      # and it is categorical.
+      if (nrow(df_lbl)) {
+        lab_is_numeric <- is.numeric(df_lbl$label_value)
+        if (!isTRUE(lab_is_numeric)) {
+          df_lbl$label_chr <- as.character(df_lbl$label_value)
+          df_lbl <- df_lbl[nzchar(df_lbl$label_chr), , drop = FALSE]
+          if (nrow(df_lbl)) {
+            split_idx <- split(seq_len(nrow(df_lbl)), df_lbl$label_chr)
+            cent <- do.call(rbind, lapply(names(split_idx), function(g) {
+              ii <- split_idx[[g]]
+              data.frame(
+                label = g,
+                n = length(ii),
+                x = mean(df_lbl$x[ii], na.rm = TRUE),
+                y = mean(df_lbl$y[ii], na.rm = TRUE),
+                stringsAsFactors = FALSE
+              )
+            }))
+            rownames(cent) <- NULL
+            cent <- cent[is.finite(cent$x) & is.finite(cent$y), , drop = FALSE]
+            cent <- cent[cent$n >= as.integer(label_min_n %||% 1L), , drop = FALSE]
+
+            if (nrow(cent)) {
+              p <- p + ggplot2::geom_text(
+                data = cent,
+                ggplot2::aes(x = x, y = y, label = label),
+                inherit.aes = FALSE,
+                size = 3.5,
+                color = "black",
+                fontface = "bold",
+                check_overlap = TRUE
+              )
+            }
+          }
+        }
+      }
     }
   }
 

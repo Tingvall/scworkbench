@@ -1,4 +1,4 @@
-#' Seurat-style module scoring (AddModuleScore)
+#' Compute Seurat-Style Module Scores
 #'
 #' Computes per-cell module scores as:
 #' mean(expression of module genes) - mean(expression of matched control genes)
@@ -6,15 +6,21 @@
 #' Control genes are sampled from expression bins (equal-frequency bins across a pool),
 #' matching Seurat's AddModuleScore strategy.
 #'
-#' @param bundle Bundle handle
-#' @param matrix_id Matrix identifier used as expression source
-#' @param features Character vector (single module) or list of character vectors (multiple modules)
-#' @param pool Optional character vector of feature_ids used as control-gene pool
-#' @param cells Explicit cell_ids (required in session context)
-#' @param nbin Number of expression bins for matching controls
-#' @param ctrl Number of control genes sampled per feature
-#' @param name Prefix for module names when `features` is unnamed
-#' @param seed RNG seed for control sampling
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix identifier used as expression source.
+#' @param features Character vector (single module) or list of character
+#'   vectors (multiple modules).
+#' @param pool Optional character vector of feature ids used as the control-gene
+#'   pool.
+#' @param cells Explicit cell ids. Required in session context.
+#' @param nbin Number of expression bins for matching controls.
+#' @param ctrl Number of control genes sampled per feature.
+#' @param name Prefix for module names when `features` is unnamed.
+#' @param seed RNG seed for control sampling.
+#'
+#' @return A standard op result list with `outputs$module_scores` and
+#'   normalized `params`.
+#'
 #' @export
 wb_op_addmodulescore <- function(bundle,
                                  matrix_id,

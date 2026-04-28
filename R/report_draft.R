@@ -44,12 +44,16 @@
   do.call(rbind, rows)
 }
 
-#' Draft a methods narrative from session runs
+#' Draft Methods Text From Session Runs
 #'
-#' @param session wb_session object
-#' @param bundle Optional bundle for enrichment
-#' @param run_ids Optional run_ids; default uses session DAG order
-#' @return list(title, text, lines, run_table)
+#' Build a lightweight methods-oriented narrative from recorded session runs.
+#'
+#' @param session `wb_session` object.
+#' @param bundle Optional bundle for enrichment.
+#' @param run_ids Optional run ids. By default, session DAG order is used.
+#'
+#' @return A named list with `title`, `text`, `lines`, and `run_table`.
+#'
 #' @export
 wb_report_methods <- function(session, bundle = NULL, run_ids = NULL) {
   .wb_assert(wb_is_session(session), "session must be wb_session")
@@ -114,15 +118,22 @@ wb_report_methods <- function(session, bundle = NULL, run_ids = NULL) {
   )
 }
 
-#' Build a structured analysis report draft from engine truth
+#' Build A Structured Analysis Report Draft
 #'
-#' @param bundle scworkbench bundle handle
-#' @param session wb_session object
-#' @param head_run_id Optional run_id to emphasize in summary
-#' @param question Optional research question string
-#' @param include_dag If TRUE, include `wb_session_dag()` payload
-#' @param style Optional style tags (e.g. c("methods","results"))
-#' @return list(metadata, summary, methods, results, dag)
+#' Assemble a compact report object from session truth, promoted artifacts, and
+#' optional DAG context. This is a structured intermediate suitable for
+#' Markdown rendering or other client-specific report outputs.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param session `wb_session` object.
+#' @param head_run_id Optional run id to emphasize in the summary.
+#' @param question Optional research question string.
+#' @param include_dag If `TRUE`, include [wb_session_dag()] output.
+#' @param style Optional style tags such as `c("methods", "results")`.
+#'
+#' @return A named list with `metadata`, `summary`, `methods`, `results`, and
+#'   optional `dag`.
+#'
 #' @export
 wb_report_draft <- function(bundle,
                             session,
@@ -208,11 +219,16 @@ wb_report_draft <- function(bundle,
   )
 }
 
-#' Render a report draft as Markdown
+#' Render A Report Draft As Markdown
 #'
-#' @param report Output from `wb_report_draft()`
-#' @param include_dag_text If TRUE, include a compact DAG summary section
-#' @return length-1 markdown string
+#' Convert a structured report draft from [wb_report_draft()] into a compact
+#' Markdown document.
+#'
+#' @param report Output from [wb_report_draft()].
+#' @param include_dag_text If `TRUE`, include a compact DAG summary section.
+#'
+#' @return Length-1 Markdown string.
+#'
 #' @export
 wb_report_render_md <- function(report, include_dag_text = TRUE) {
   .wb_assert(is.list(report), "report must be a list from wb_report_draft()")

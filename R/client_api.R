@@ -87,6 +87,9 @@ wb_client_run <- function(session, bundle, op_name, ..., inputs = list(), notes 
 
 #' Client Facade: Inspect Session and Bundle Runtime State
 #'
+#' Thin inspection wrapper that exposes bundle status, active session state,
+#' and optionally one run view without adding new engine semantics.
+#'
 #' @param bundle scworkbench bundle handle.
 #' @param session Optional wb_session.
 #' @param run_id Optional run_id to inspect.
@@ -134,6 +137,8 @@ wb_client_inspect <- function(bundle, session = NULL, run_id = NULL, include_run
 
 #' Client Facade: Promote Current Session Analysis
 #'
+#' Thin wrapper over [wb_session_promote_current()] for client code.
+#'
 #' @inheritParams wb_session_promote_current
 #' @return Result from `wb_session_promote_current()`.
 #' @export
@@ -155,7 +160,8 @@ wb_client_promote <- function(bundle,
 
 #' Client Facade: Load Primitive by Reference
 #'
-#' Accepts a primitive, artifact id, resolve-spec list, run ref, or artifact ref.
+#' Accepts a primitive, artifact id, resolve-spec list, run ref, or artifact
+#' ref, and routes all resolution through [wb_resolve_primitive()].
 #'
 #' @param bundle scworkbench bundle handle.
 #' @param ref Primitive-like reference.

@@ -1,0 +1,178 @@
+Bootstrap: docker
+From: bioconductor/bioconductor_docker:RELEASE_3_21
+
+%labels
+    Maintainer Dirk_de_Weerd
+    Package scworkbench
+    Stack full
+    Runtime apptainer
+
+%help
+    Full-stack scworkbench Apptainer image.
+
+    Includes:
+    - scworkbench engine
+    - scworkbenchShiny app tree
+    - pybench Python runtime tree
+    - R/Bioconductor method stack used by current ops
+    - Python analysis stack for scanpy/palantir/scvi/PeakVI CUDA-capable workloads
+
+    Build from the scworkbench repo root so the %files paths resolve:
+      apptainer build --fakeroot scworkbench_fullstack.sif containers/apptainer/scworkbench_fullstack.def
+
+%files
+    . /opt/scworkbench
+    ../scworkbenchShiny /opt/scworkbenchShiny
+    ../../pybench/pyproject.toml /opt/pybench/pyproject.toml
+    ../../pybench/README.md /opt/pybench/README.md
+    ../../pybench/src /opt/pybench/src
+    scripts/prepare_bpcells_python_fork.sh /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
+    third_party/patches/bpcells-python-noninteger-read.patch /opt/scworkbench/third_party/patches/bpcells-python-noninteger-read.patch
+    containers/apptainer/run-scworkbench-shiny /usr/local/bin/run-scworkbench-shiny
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    export PYTHONUNBUFFERED=1
+    export RETICULATE_PYTHON=/opt/pyenv/bin/python
+    export PYBENCH_MATRIX_READ_CHUNK_CELLS=1
+    export PATH=/opt/pyenv/bin:/usr/local/bin:$PATH
+
+%post
+    set -eux
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        gfortran \
+        git \
+        curl \
+        wget \
+        ca-certificates \
+        pkg-config \
+        cmake \
+        make \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libxml2-dev \
+        libgit2-dev \
+        libhdf5-dev \
+        libeigen3-dev \
+        libhwy-dev \
+        libharfbuzz-dev \
+        libfribidi-dev \
+        libfreetype6-dev \
+        libpng-dev \
+        libtiff5-dev \
+        libjpeg-dev \
+        zlib1g-dev \
+        libbz2-dev \
+        liblzma-dev \
+        libglpk-dev \
+        libgsl-dev \
+        libudunits2-dev \
+        libgeos-dev \
+        libproj-dev \
+        libgdal-dev \
+        libfftw3-dev \
+        libzmq3-dev \
+        libxt-dev \
+        libfontconfig1-dev \
+        libsqlite3-dev \
+        libx11-dev \
+        libglu1-mesa-dev \
+        libgl1-mesa-dev \
+        libopenblas-dev \
+        liblapack-dev \
+        python3 \
+        python3-dev \
+        python3-pip \
+        python3-venv \
+        python3-setuptools \
+        python3-wheel \
+        openjdk-17-jdk \
+        pandoc
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+    python3 -m venv /opt/pyenv
+    /opt/pyenv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel pybind11 setuptools-scm
+    export CPATH=/usr/include/eigen3:/usr/include/hdf5/serial:/usr/include
+    export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/hdf5/serial:/usr/lib/x86_64-linux-gnu
+    chmod +x /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
+    rm -rf /tmp/BPCells_python_fork_build
+    /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh /tmp/BPCells_python_fork_build
+    /opt/pyenv/bin/python -m pip install --no-cache-dir /tmp/BPCells_python_fork_build/python
+    rm -rf /tmp/BPCells_python_fork_build
+    /opt/pyenv/bin/python -m pip install --no-cache-dir \
+        numpy \
+        pandas \
+        scipy \
+        scikit-learn \
+        anndata \
+        scanpy \
+        palantir \
+        mudata \
+        jupyterlab
+    # Install a CUDA-capable PyTorch build. At runtime the container should be
+    # launched with --nv on hosts that provide a compatible NVIDIA driver.
+    /opt/pyenv/bin/python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu124 torch
+    /opt/pyenv/bin/python -m pip install --no-cache-dir scvi-tools
+    /opt/pyenv/bin/python -m pip install --no-cache-dir --no-deps /opt/pybench
+
+    # The container only needs installable source, not the large local report payloads.
+    # Keeping reports in the copied repo can push R's package tar step past the 8GB limit.
+    rm -rf /opt/scworkbench/reports
+
+    cat >/tmp/install_scworkbench_stack.R <<'EOF'
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+options(Ncpus = max(1L, parallel::detectCores()))
+
+install_if_missing <- function(pkgs) {
+  miss <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(miss)) install.packages(miss)
+}
+
+install_if_missing(c("BiocManager", "remotes", "devtools"))
+
+cran_pkgs <- c(
+  "DBI", "RSQLite", "jsonlite", "Seurat", "Matrix", "uwot", "igraph",
+  "RANN", "ggplot2", "viridisLite", "shiny", "shinyFiles", "magrittr",
+  "DT", "plotly", "visNetwork", "zip", "colourpicker"
+)
+install_if_missing(cran_pkgs)
+
+if (!requireNamespace("BPCells", quietly = TRUE)) {
+  try(install.packages("BPCells"), silent = TRUE)
+}
+if (!requireNamespace("BPCells", quietly = TRUE)) {
+  remotes::install_github("bnprks/BPCells/r")
+}
+
+bioc_pkgs <- c(
+  "BiocParallel", "S4Vectors", "IRanges", "Biostrings",
+  "SummarizedExperiment", "SingleCellExperiment", "GenomicRanges",
+  "GenomeInfoDb", "TFBSTools", "chromVAR", "motifmatchr", "JASPAR2020",
+  "BSgenome", "BSgenome.Mmusculus.UCSC.mm10",
+  "BSgenome.Hsapiens.UCSC.hg19", "slingshot", "monocle3"
+)
+miss_bioc <- bioc_pkgs[!vapply(bioc_pkgs, requireNamespace, logical(1), quietly = TRUE)]
+if (length(miss_bioc)) {
+  BiocManager::install(miss_bioc, ask = FALSE, update = FALSE)
+}
+
+if (!requireNamespace("monocle3", quietly = TRUE)) {
+  remotes::install_github("cole-trapnell-lab/monocle3")
+}
+
+remotes::install_local("/opt/scworkbench", upgrade = "never", dependencies = TRUE, build = FALSE)
+EOF
+
+    Rscript /tmp/install_scworkbench_stack.R
+    rm -f /tmp/install_scworkbench_stack.R
+
+    chmod +x /usr/local/bin/run-scworkbench-shiny
+
+%runscript
+    exec /bin/bash "$@"

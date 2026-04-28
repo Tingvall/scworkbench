@@ -29,18 +29,35 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
 
     # ---- cell_vector stored as artifact_labels (cell_id, label) ----
     "cell_vector" = {
-      df <- DBI::dbGetQuery(
-        con,
-        "SELECT cell_id, label
+      has_value_type <- .wb_db_has_column(con, "artifact_labels", "value_type")
+      has_value_num  <- .wb_db_has_column(con, "artifact_labels", "value_num")
+      q <- if (has_value_type || has_value_num) {
+        paste0(
+          "SELECT cell_id, label, ",
+          if (has_value_type) "value_type" else "NULL AS value_type", ", ",
+          if (has_value_num) "value_num" else "NULL AS value_num", "
+           FROM artifact_labels
+           WHERE artifact_id = ?;"
+        )
+      } else {
+        "SELECT cell_id, label, NULL AS value_type, NULL AS value_num
          FROM artifact_labels
-         WHERE artifact_id = ?;",
-        params = list(artifact_id)
-      )
+         WHERE artifact_id = ?;"
+      }
+      df <- DBI::dbGetQuery(con, q, params = list(artifact_id))
       .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_labels for ", artifact_id))
 
-      v <- as.character(df$label)
+      vt <- unique(as.character(stats::na.omit(df$value_type %||% character(0))))
+      inferred_type <- if ("continuous" %in% vt) "continuous" else "categorical"
+      if (identical(inferred_type, "continuous") && "value_num" %in% names(df)) {
+        v <- suppressWarnings(as.numeric(df$value_num))
+        bad <- is.na(v) & !is.na(df$label) & nzchar(as.character(df$label))
+        if (any(bad)) v[bad] <- suppressWarnings(as.numeric(df$label[bad]))
+      } else {
+        v <- as.character(df$label)
+      }
       names(v) <- as.character(df$cell_id)
-      wb_prim_cell_vector(v, value_type = "categorical")
+      wb_prim_cell_vector(v, value_type = inferred_type)
     },
 
     # ---- cell_vector_family stored as artifact_pseudotime (cell_id, lineage_id, pseudotime) ----
@@ -62,6 +79,29 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
       )
     },
 
+    # ---- relation_family stored as artifact_relation_rows ----
+    "relation_family" = {
+      df <- DBI::dbGetQuery(
+        con,
+        "SELECT relation_key, cell_id, weight, value, distance
+         FROM artifact_relation_rows
+         WHERE artifact_id = ?
+         ORDER BY relation_key, cell_id;",
+        params = list(artifact_id)
+      )
+      .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_relation_rows for ", artifact_id))
+
+      # Preserve optional columns semantically: all-NA columns become NULL.
+      all_na <- function(x) all(is.na(x))
+      wb_prim_relation_family(
+        key = df$relation_key,
+        cell_id = df$cell_id,
+        weight = if (all_na(df$weight)) NULL else df$weight,
+        value = if (all_na(df$value)) NULL else df$value,
+        distance = if (all_na(df$distance)) NULL else df$distance
+      )
+    },
+
     # ---- path_2d_family stored as artifact_curves_2d (lineage_id, point, x, y) ----
     "path_2d_family" = {
       df <- DBI::dbGetQuery(
@@ -79,6 +119,43 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
         point = df$point,
         x = df$x,
         y = df$y
+      )
+    },
+
+    # ---- space_path_family stored as artifact_space_path_rows/meta ----
+    "space_path_family" = {
+      df <- DBI::dbGetQuery(
+        con,
+        "SELECT space_id, path_id, point, dim, value
+         FROM artifact_space_path_rows
+         WHERE artifact_id = ?
+         ORDER BY path_id, point, dim;",
+        params = list(artifact_id)
+      )
+      .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_space_path_rows for ", artifact_id))
+
+      meta_info <- DBI::dbGetQuery(
+        con,
+        "SELECT meta_json
+         FROM artifact_space_path_meta
+         WHERE artifact_id = ?;",
+        params = list(artifact_id)
+      )
+      meta <- list()
+      if (nrow(meta_info) == 1L) {
+        mj <- as.character(meta_info$meta_json[[1]] %||% "")
+        if (nzchar(mj) && !identical(mj, "null")) {
+          meta <- tryCatch(jsonlite::fromJSON(mj, simplifyVector = FALSE), error = function(e) list())
+        }
+      }
+
+      wb_prim_space_path_family(
+        space_id = df$space_id,
+        path_id = df$path_id,
+        point = df$point,
+        dim = df$dim,
+        value = df$value,
+        meta = meta
       )
     },
 
@@ -118,6 +195,37 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
         artifact_id = artifact_id
       )
       p$model_path <- as.character(df$model_path[[1]])
+      p
+    },
+
+    # ---- generic model_ref artifacts (engine-tagged, e.g. slingshot/uwot) ----
+    "model_ref" = {
+      df <- DBI::dbGetQuery(
+        con,
+        "SELECT engine, model_space_id, in_space_id, model_type, model_path
+         FROM artifact_model_ref
+         WHERE artifact_id = ?;",
+        params = list(artifact_id)
+      )
+      .wb_assert(nrow(df) == 1, paste0("wb_art_load(): no row in artifact_model_ref for ", artifact_id))
+
+      engine <- as.character(df$engine[[1]] %||% "uwot")
+      model_path <- as.character(df$model_path[[1]] %||% "")
+      p <- wb_prim_model_ref(
+        model_space_id = as.character(df$model_space_id[[1]]),
+        in_space_id = as.character(df$in_space_id[[1]] %||% ""),
+        engine = engine,
+        artifact_id = artifact_id
+      )
+      p$model_type <- as.character(df$model_type[[1]] %||% engine)
+      p$model_path <- model_path
+
+      # Load in-memory object for engines with project/continue ops that require the model object.
+      if (engine %in% c("slingshot", "monocle3")) {
+        .wb_assert(nzchar(model_path) && file.exists(model_path),
+                   paste0("wb_art_load(): model file missing for engine='", engine, "': ", model_path))
+        p$model_obj <- readRDS(model_path)
+      }
       p
     },
 

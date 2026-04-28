@@ -3,9 +3,13 @@
 #' This is a client/view wrangler: it preserves primitive-native engine contracts,
 #' while projecting outputs to stable tabular shapes for display/export.
 #'
-#' @param prim wb_primitive
-#' @param key Optional key for `cell_vector_family` projection
-#' @param include_context If TRUE, append context columns (`kind`, `table_type`, `entity_kind`)
+#' @param prim `wb_primitive`.
+#' @param key Optional key for `cell_vector_family` projection.
+#' @param include_context If `TRUE`, append context columns such as `kind`,
+#'   `table_type`, and `entity_kind`.
+#'
+#' @return A normalized data frame representation of `prim`.
+#'
 #' @export
 wb_primitive_to_table <- function(prim, key = NULL, include_context = TRUE) {
   .wb_assert(.wb_is_primitive(prim), "prim must be a wb_primitive")
@@ -47,6 +51,36 @@ wb_primitive_to_table <- function(prim, key = NULL, include_context = TRUE) {
       }
       .wb_table_reorder_cols(x, priority = c("key", "cell_id"))
     },
+    relation_family = {
+      x <- data.frame(
+        key = as.character(prim$key),
+        cell_id = as.character(prim$cell_id),
+        stringsAsFactors = FALSE
+      )
+      if (!is.null(prim$weight)) x$weight <- as.numeric(prim$weight)
+      if (!is.null(prim$value)) x$value <- as.numeric(prim$value)
+      if (!is.null(prim$distance)) x$distance <- as.numeric(prim$distance)
+      if (!is.null(key)) {
+        kk <- as.character(key)[1]
+        x <- x[x$key == kk, , drop = FALSE]
+      }
+      .wb_table_reorder_cols(x, priority = c("key", "cell_id", "weight", "value", "distance"))
+    },
+    space_path_family = {
+      x <- data.frame(
+        space_id = as.character(prim$space_id),
+        path_id = as.character(prim$path_id),
+        point = as.integer(prim$point),
+        dim = as.integer(prim$dim),
+        value = as.numeric(prim$value),
+        stringsAsFactors = FALSE
+      )
+      if (!is.null(key)) {
+        kk <- as.character(key)[1]
+        x <- x[x$path_id == kk, , drop = FALSE]
+      }
+      .wb_table_reorder_cols(x, priority = c("space_id", "path_id", "point", "dim", "value"))
+    },
     space_2d = {
       if (is.data.frame(prim$df)) {
         x <- prim$df
@@ -79,13 +113,17 @@ wb_primitive_to_table <- function(prim, key = NULL, include_context = TRUE) {
 
 #' Client Facade: Load and wrangle reference into normalized table
 #'
-#' @param bundle scworkbench bundle handle
-#' @param ref Primitive-like reference accepted by `wb_client_load()`
-#' @param session Optional wb_session for run refs
-#' @param runs Optional runs list
-#' @param expected_kind Optional primitive kind assertion before wrangling
-#' @param key Optional key for `cell_vector_family`
-#' @param include_context If TRUE, append context columns (`kind`, `table_type`, `entity_kind`)
+#' @param bundle Open `scworkbench_bundle`.
+#' @param ref Primitive-like reference accepted by [wb_client_load()].
+#' @param session Optional `wb_session` for run refs.
+#' @param runs Optional runs list.
+#' @param expected_kind Optional primitive kind assertion before wrangling.
+#' @param key Optional key for `cell_vector_family`.
+#' @param include_context If `TRUE`, append context columns such as `kind`,
+#'   `table_type`, and `entity_kind`.
+#'
+#' @return A normalized data frame produced by [wb_primitive_to_table()].
+#'
 #' @export
 wb_client_load_table <- function(bundle,
                                  ref,
@@ -111,4 +149,3 @@ wb_client_load_table <- function(bundle,
   rest <- setdiff(nm, pri)
   df[, c(pri, rest), drop = FALSE]
 }
-

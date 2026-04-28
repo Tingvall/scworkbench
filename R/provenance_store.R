@@ -239,10 +239,14 @@
   sid
 }
 
-#' List persisted provenance snapshots
+#' List Persisted Provenance Snapshots
 #'
-#' @param bundle scworkbench bundle
-#' @return data.frame of provenance snapshot heads
+#' Return provenance snapshot heads recorded in the bundle.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#'
+#' @return A data frame of persisted provenance snapshot heads.
+#'
 #' @export
 wb_prov_list_heads <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -256,11 +260,17 @@ wb_prov_list_heads <- function(bundle) {
   )
 }
 
-#' Reconstruct persisted DAG for a promoted snapshot
+#' Reconstruct A Persisted Provenance DAG
 #'
-#' @param bundle scworkbench bundle
-#' @param snapshot_id Optional snapshot id (default latest)
-#' @return list(snapshot_id, head_run_ids, nodes, edges)
+#' Rebuild the persisted run/artifact DAG for one provenance snapshot.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot
+#'   is used.
+#'
+#' @return A named list with `snapshot_id`, `head_run_ids`, `nodes`, and
+#'   `edges`.
+#'
 #' @export
 wb_prov_dag <- function(bundle, snapshot_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -366,12 +376,18 @@ wb_prov_dag <- function(bundle, snapshot_id = NULL) {
   )
 }
 
-#' Inspect one persisted run from a provenance snapshot
+#' Inspect One Persisted Run From Provenance
 #'
-#' @param bundle scworkbench bundle
-#' @param run_id run_id inside snapshot
-#' @param snapshot_id Optional snapshot id (default latest)
-#' @return list(run, parents, children, outputs)
+#' Read one persisted run plus its local lineage and outputs from a provenance
+#' snapshot.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param run_id Run id inside the snapshot.
+#' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot
+#'   is used.
+#'
+#' @return A named list with `run`, `parents`, `children`, and `outputs`.
+#'
 #' @export
 wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -516,11 +532,17 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
 #' The generated script replays the persisted run order using `wb_session_run_op()`
 #' with stored params/inputs from the selected provenance snapshot.
 #'
-#' @param bundle scworkbench bundle
-#' @param snapshot_id Optional snapshot id (default latest)
-#' @param bundle_dir_literal Optional literal bundle path to embed in script; defaults to `<BUNDLE_DIR>`
-#' @param include_header If TRUE, include comments and setup header
-#' @return length-1 character string containing R script text
+#' @param bundle Open `scworkbench_bundle`.
+#' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot is
+#'   used.
+#' @param bundle_dir_literal Optional literal bundle path to embed in the script.
+#' @param include_header If `TRUE`, include comments and setup header.
+#' @param mode Replay input mode: `"symbolic"` or `"literal"`.
+#' @param sidecar_rds_path Sidecar `.rds` path used when `mode = "literal"`.
+#' @param style Replay script style: `"bench_pretty"` or `"raw_json"`.
+#'
+#' @return Length-1 character string containing the replay script text.
+#'
 #' @export
 wb_prov_emit_r_script <- function(bundle,
                                   snapshot_id = NULL,
@@ -536,83 +558,53 @@ wb_prov_emit_r_script <- function(bundle,
   con <- bundle$con
   .wb_migrate_provenance_tables(con)
 
-  sid <- as.character(snapshot_id %||% "")[1]
-  if (!nzchar(sid)) {
-    h <- DBI::dbGetQuery(con, "SELECT snapshot_id FROM prov_heads ORDER BY created_at DESC LIMIT 1;")
-    .wb_assert(nrow(h) == 1, "No provenance snapshots available.")
-    sid <- as.character(h$snapshot_id[1])
-  }
-
-  runs <- .wb_prov_select_runs(con, sid)
-  .wb_assert(nrow(runs) > 0, paste0("No runs for snapshot_id: ", sid))
-
-  edges <- DBI::dbGetQuery(
-    con,
-    "SELECT parent_run_id, child_run_id
-     FROM prov_run_edges
-     WHERE snapshot_id = ? AND edge_type IN ('depends_on_run','input_run_ref');",
-    params = list(sid)
+  sid <- .wb_prov_snapshot_id_or_latest(con, snapshot_id)
+  rr <- .wb_prov_get_runs_order(con, sid)
+  .wb_prov_emit_r_script_core(
+    runs = rr$runs,
+    run_order = rr$run_order,
+    snapshot_id = sid,
+    bundle_dir_literal = bundle_dir_literal,
+    include_header = include_header,
+    mode = mode,
+    sidecar_rds_path = sidecar_rds_path,
+    style = style,
+    target = NULL
   )
+}
 
-  run_ids <- as.character(runs$run_id)
-  if (nrow(edges)) {
-    indeg <- stats::setNames(integer(length(run_ids)), run_ids)
-    kids <- stats::setNames(vector("list", length(run_ids)), run_ids)
-    for (i in seq_len(nrow(edges))) {
-      p <- as.character(edges$parent_run_id[i])
-      c <- as.character(edges$child_run_id[i])
-      if (!(p %in% run_ids) || !(c %in% run_ids)) next
-      kids[[p]] <- c(kids[[p]], c)
-      indeg[[c]] <- indeg[[c]] + 1L
-    }
-    q <- sort(names(indeg[indeg == 0L]))
-    topo <- character(0)
-    while (length(q)) {
-      n <- q[1]
-      q <- q[-1]
-      topo <- c(topo, n)
-      ch <- unique(as.character(kids[[n]] %||% character(0)))
-      ch <- ch[ch %in% names(indeg)]
-      for (c in ch) {
-        indeg[[c]] <- indeg[[c]] - 1L
-      }
-      q <- sort(unique(c(q, names(indeg[indeg == 0L & !(names(indeg) %in% topo)]))))
-    }
-    run_order <- if (length(topo) == length(run_ids)) topo else run_ids
-  } else {
-    run_order <- run_ids
-  }
+.wb_prov_emit_r_script_core <- function(runs,
+                                        run_order,
+                                        snapshot_id,
+                                        bundle_dir_literal = "<BUNDLE_DIR>",
+                                        include_header = TRUE,
+                                        mode = c("symbolic", "literal"),
+                                        sidecar_rds_path = "replay_inputs.rds",
+                                        style = c("bench_pretty", "raw_json"),
+                                        target = NULL) {
+  .wb_require_pkg("jsonlite", "provenance replay script")
+  mode <- match.arg(mode)
+  style <- match.arg(style)
+  sid <- as.character(snapshot_id)[1]
+  .wb_assert(is.data.frame(runs) && nrow(runs) > 0, "runs must be a non-empty data.frame")
+  run_order <- as.character(run_order %||% character(0))
+  run_order <- run_order[nzchar(run_order)]
+  .wb_assert(length(run_order) > 0, "run_order is empty")
 
+  runs <- runs[match(run_order, as.character(runs$run_id)), , drop = FALSE]
+  runs <- runs[!is.na(runs$run_id), , drop = FALSE]
+  .wb_assert(nrow(runs) == length(run_order), "run_order contains run_ids not present in runs")
   run_idx <- stats::setNames(seq_len(nrow(runs)), as.character(runs$run_id))
-  payload <- list()
-  for (rid in run_order) {
-    i <- run_idx[[rid]]
-    sym_txt <- as.character(runs$symbolic_inputs_json[i] %||% "")[1]
-    if (nzchar(sym_txt)) {
-      inputs_use <- jsonlite::fromJSON(sym_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)
-      if (is.null(inputs_use)) inputs_use <- list()
-    } else {
-      inputs_stored <- jsonlite::fromJSON(
-        as.character(runs$inputs_json[i] %||% "{}"),
-        simplifyVector = TRUE,
-        simplifyDataFrame = FALSE
-      )
-      inputs_use <- .wb_prov_compact_inputs(inputs_stored)
-    }
-    if (identical(mode, "symbolic")) {
-      inputs_use <- .wb_drop_key_recursive(inputs_use, key = "cell_ids")
-    }
-    params_use <- jsonlite::fromJSON(
-      as.character(runs$params_json[i] %||% "{}"),
-      simplifyVector = TRUE,
-      simplifyDataFrame = FALSE
-    )
-    payload[[rid]] <- list(params = params_use, inputs = inputs_use)
-  }
+  payload <- .wb_prov_payload_from_runs(runs = runs, run_order = run_order, mode = mode)
 
   if (identical(mode, "literal")) {
     base::saveRDS(payload, file = sidecar_rds_path)
   }
+
+  tgt <- target %||% list()
+  tgt_artifact_id <- as.character(tgt$artifact_id %||% "")[1]
+  tgt_run_id <- as.character(tgt$run_id %||% "")[1]
+  tgt_output_name <- as.character(tgt$output_name %||% "")[1]
 
   lines <- character(0)
   if (isTRUE(include_header)) {
@@ -622,6 +614,9 @@ wb_prov_emit_r_script <- function(bundle,
       paste0("# snapshot_id: ", sid),
       paste0("# mode: ", mode),
       paste0("# style: ", style),
+      if (nzchar(tgt_artifact_id)) paste0("# target_artifact_id: ", tgt_artifact_id) else NULL,
+      if (nzchar(tgt_run_id)) paste0("# target_run_id: ", tgt_run_id) else NULL,
+      if (nzchar(tgt_output_name)) paste0("# target_output: ", tgt_output_name) else NULL,
       "library(scworkbench)",
       "library(jsonlite)",
       "",
@@ -630,6 +625,7 @@ wb_prov_emit_r_script <- function(bundle,
       "on.exit(wb_close_bundle(bundle), add = TRUE)",
       "sess <- wb_session_new()",
       "replay_map <- list()",
+      "target_res <- NULL",
       "",
       "rewrite_run_refs <- function(x, replay_map) {",
       "  if (!is.list(x)) return(x)",
@@ -669,42 +665,43 @@ wb_prov_emit_r_script <- function(bundle,
                "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
         "sess <- res$session",
         paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
+        if (nzchar(tgt_run_id) && identical(rid, tgt_run_id)) "target_res <- res" else NULL,
+        ""
+      )
+    } else if (identical(style, "bench_pretty")) {
+      lines <- c(
+        lines,
+        paste0("# run_id: ", rid, " op: ", op_name),
+        .wb_emit_r_object_assign("params", payload[[rid]]$params %||% list()),
+        .wb_emit_r_object_assign("inputs", payload[[rid]]$inputs %||% list()),
+        "inputs <- rewrite_run_refs(inputs, replay_map = replay_map)",
+        paste0("res <- do.call(wb_session_run_op, c(list(",
+               "session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
+               "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
+        "sess <- res$session",
+        paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
+        if (nzchar(tgt_run_id) && identical(rid, tgt_run_id)) "target_res <- res" else NULL,
         ""
       )
     } else {
-      if (identical(style, "bench_pretty")) {
-        lines <- c(
-          lines,
-          paste0("# run_id: ", rid, " op: ", op_name),
-          .wb_emit_r_object_assign("params", payload[[rid]]$params %||% list()),
-          .wb_emit_r_object_assign("inputs", payload[[rid]]$inputs %||% list()),
-          "inputs <- rewrite_run_refs(inputs, replay_map = replay_map)",
-          paste0("res <- do.call(wb_session_run_op, c(list(",
-                 "session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
-                 "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
-          "sess <- res$session",
-          paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
-          ""
-        )
-      } else {
-        params_json <- jsonlite::toJSON(payload[[rid]]$params %||% list(), auto_unbox = TRUE, null = "null")
-        inputs_json <- jsonlite::toJSON(payload[[rid]]$inputs %||% list(), auto_unbox = TRUE, null = "null")
-        lines <- c(
-          lines,
-          paste0("# run_id: ", rid, " op: ", op_name),
-          .wb_emit_r_paste0_chunks("params_json_txt", params_json),
-          .wb_emit_r_paste0_chunks("inputs_json_txt", inputs_json),
-          "params <- jsonlite::fromJSON(params_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
-          "inputs <- jsonlite::fromJSON(inputs_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
-          "inputs <- rewrite_run_refs(inputs, replay_map = replay_map)",
-          paste0("res <- do.call(wb_session_run_op, c(list(",
-                 "session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
-                 "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
-          "sess <- res$session",
-          paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
-          ""
-        )
-      }
+      params_json <- jsonlite::toJSON(payload[[rid]]$params %||% list(), auto_unbox = TRUE, null = "null")
+      inputs_json <- jsonlite::toJSON(payload[[rid]]$inputs %||% list(), auto_unbox = TRUE, null = "null")
+      lines <- c(
+        lines,
+        paste0("# run_id: ", rid, " op: ", op_name),
+        .wb_emit_r_paste0_chunks("params_json_txt", params_json),
+        .wb_emit_r_paste0_chunks("inputs_json_txt", inputs_json),
+        "params <- jsonlite::fromJSON(params_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
+        "inputs <- jsonlite::fromJSON(inputs_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
+        "inputs <- rewrite_run_refs(inputs, replay_map = replay_map)",
+        paste0("res <- do.call(wb_session_run_op, c(list(",
+               "session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
+               "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
+        "sess <- res$session",
+        paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
+        if (nzchar(tgt_run_id) && identical(rid, tgt_run_id)) "target_res <- res" else NULL,
+        ""
+      )
     }
   }
 
@@ -712,7 +709,11 @@ wb_prov_emit_r_script <- function(bundle,
     lines,
     "# replay complete",
     "cat('replay complete\\n')",
-    "cat('runs:', length(sess$runs), '\\n')"
+    "cat('runs:', length(sess$runs), '\\n')",
+    if (nzchar(tgt_artifact_id)) paste0("cat('target artifact: ', '", .wb_r_single_quote_escape(tgt_artifact_id), "', '\\n', sep='')") else NULL,
+    if (nzchar(tgt_run_id)) paste0("cat('target original run: ', '", .wb_r_single_quote_escape(tgt_run_id), "', '\\n', sep='')") else NULL,
+    if (nzchar(tgt_output_name)) paste0("cat('target output: ', '", .wb_r_single_quote_escape(tgt_output_name), "', '\\n', sep='')") else NULL,
+    "if (!is.null(target_res) && !is.null(target_res$run$outputs)) cat('target outputs replayed:', paste(names(target_res$run$outputs), collapse=', '), '\\n')"
   )
 
   paste(lines, collapse = "\n")
@@ -778,6 +779,72 @@ wb_prov_emit_r_script <- function(bundle,
   list(runs = runs, run_order = run_order)
 }
 
+.wb_prov_upstream_run_closure <- function(con, snapshot_id, target_run_id) {
+  sid <- as.character(snapshot_id)[1]
+  rid <- as.character(target_run_id)[1]
+  .wb_assert(nzchar(sid), "snapshot_id must be non-empty")
+  .wb_assert(nzchar(rid), "target_run_id must be non-empty")
+
+  edges <- DBI::dbGetQuery(
+    con,
+    "SELECT parent_run_id, child_run_id
+     FROM prov_run_edges
+     WHERE snapshot_id = ? AND edge_type IN ('depends_on_run','input_run_ref');",
+    params = list(sid)
+  )
+  if (!nrow(edges)) return(rid)
+
+  parents_by_child <- split(
+    as.character(edges$parent_run_id),
+    as.character(edges$child_run_id)
+  )
+
+  seen <- character(0)
+  stack <- rid
+  while (length(stack)) {
+    cur <- as.character(stack[[1]])
+    stack <- stack[-1]
+    if (!nzchar(cur) || cur %in% seen) next
+    seen <- c(seen, cur)
+    ps <- unique(as.character(parents_by_child[[cur]] %||% character(0)))
+    ps <- ps[nzchar(ps) & !(ps %in% seen)]
+    if (length(ps)) stack <- c(ps, stack)
+  }
+  unique(c(seen, rid))
+}
+
+.wb_prov_artifact_source_link <- function(bundle, artifact_id) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  aid <- as.character(artifact_id)[1]
+  .wb_assert(nzchar(aid), "artifact_id must be a non-empty string")
+
+  bc <- wb_art_birth_certificate(
+    bundle,
+    artifact_id = aid,
+    include_parents = FALSE,
+    include_children = FALSE,
+    include_snapshot_run = TRUE
+  )
+
+  link <- bc$persisted_provenance$selected_link %||% data.frame(stringsAsFactors = FALSE)
+  .wb_assert(is.data.frame(link) && nrow(link) >= 1, paste0("No persisted provenance link for artifact: ", aid))
+
+  row <- link[1, , drop = FALSE]
+  sid <- as.character(row$snapshot_id[1] %||% "")[1]
+  rid <- as.character(row$run_id[1] %||% "")[1]
+  out_nm <- as.character(row$output_name[1] %||% "")[1]
+  .wb_assert(nzchar(sid), paste0("Artifact has no snapshot_id linkage: ", aid))
+  .wb_assert(nzchar(rid), paste0("Artifact has no run_id linkage: ", aid))
+
+  list(
+    artifact_id = aid,
+    snapshot_id = sid,
+    run_id = rid,
+    output_name = out_nm,
+    birth_certificate = bc
+  )
+}
+
 .wb_prov_payload_from_runs <- function(runs, run_order, mode = "symbolic") {
   payload <- list()
   run_idx <- stats::setNames(seq_len(nrow(runs)), as.character(runs$run_id))
@@ -808,6 +875,60 @@ wb_prov_emit_r_script <- function(bundle,
   payload
 }
 
+#' Emit a minimal R replay script for a target artifact
+#'
+#' Emits only the producing run for `artifact_id` and its upstream run dependencies
+#' within the linked persisted provenance snapshot.
+#'
+#' @param bundle scworkbench bundle
+#' @param artifact_id artifact id
+#' @param bundle_dir_literal Optional literal bundle path to embed in script
+#' @param include_header If TRUE, include comments and setup header
+#' @param mode Replay input mode: `symbolic` (default) or `literal`
+#' @param sidecar_rds_path Sidecar `.rds` path when `mode = "literal"`
+#' @param style Replay script style (`bench_pretty` or `raw_json`)
+#' @return length-1 character string containing R script text
+#' @export
+wb_art_emit_r_script <- function(bundle,
+                                 artifact_id,
+                                 bundle_dir_literal = "<BUNDLE_DIR>",
+                                 include_header = TRUE,
+                                 mode = c("symbolic", "literal"),
+                                 sidecar_rds_path = "replay_inputs.rds",
+                                 style = c("bench_pretty", "raw_json")) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  mode <- match.arg(mode)
+  style <- match.arg(style)
+
+  con <- bundle$con
+  .wb_migrate_provenance_tables(con)
+
+  src <- .wb_prov_artifact_source_link(bundle, artifact_id = artifact_id)
+  rr <- .wb_prov_get_runs_order(con, src$snapshot_id)
+  need_run_ids <- .wb_prov_upstream_run_closure(con, src$snapshot_id, src$run_id)
+
+  keep <- as.character(rr$runs$run_id) %in% need_run_ids
+  runs_min <- rr$runs[keep, , drop = FALSE]
+  order_min <- as.character(rr$run_order)[as.character(rr$run_order) %in% need_run_ids]
+  .wb_assert(length(order_min) > 0, paste0("Failed to resolve upstream run subgraph for artifact: ", src$artifact_id))
+
+  .wb_prov_emit_r_script_core(
+    runs = runs_min,
+    run_order = order_min,
+    snapshot_id = src$snapshot_id,
+    bundle_dir_literal = bundle_dir_literal,
+    include_header = include_header,
+    mode = mode,
+    sidecar_rds_path = sidecar_rds_path,
+    style = style,
+    target = list(
+      artifact_id = src$artifact_id,
+      run_id = src$run_id,
+      output_name = src$output_name
+    )
+  )
+}
+
 .wb_prov_output_hash <- function(prim) {
   kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
   sum_txt <- if (.wb_is_primitive(prim)) {
@@ -818,16 +939,20 @@ wb_prov_emit_r_script <- function(bundle,
   .wb_hash_text(c(kind, sum_txt))
 }
 
-#' Validate reproducibility by replaying a persisted snapshot
+#' Validate Replay Of A Persisted Snapshot
 #'
 #' Replays persisted runs and compares output kind/hash against stored `prov_run_outputs`.
 #'
-#' @param bundle scworkbench bundle
-#' @param snapshot_id Optional snapshot id (default latest)
-#' @param mode Replay input mode: `symbolic` (default) or `literal`
-#' @param profile Validation profile: `strict` (kind+hash), `kind_only`, or `none`
-#' @param strict If TRUE, stop on first replay error
-#' @return list with summary, per_run table, per_output table, and replay session
+#' @param bundle Open `scworkbench_bundle`.
+#' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot is
+#'   used.
+#' @param mode Replay input mode: `"symbolic"` or `"literal"`.
+#' @param profile Validation profile: `"strict"`, `"kind_only"`, or `"none"`.
+#' @param strict If `TRUE`, stop on the first replay error.
+#'
+#' @return A named list with `summary`, `per_run`, `per_output`, and
+#'   `replay_session`.
+#'
 #' @export
 wb_prov_validate_replay <- function(bundle,
                                     snapshot_id = NULL,
@@ -994,18 +1119,23 @@ wb_prov_validate_replay <- function(bundle,
   )
 }
 
-#' Freeze a provenance snapshot into a reproducibility packet
+#' Freeze A Provenance Snapshot
 #'
 #' Writes replay scripts, DAG JSON, run tables, and manifest into `out_dir`.
 #'
-#' @param bundle scworkbench bundle
-#' @param out_dir Output directory (created if missing)
-#' @param snapshot_id Optional snapshot id (default latest)
-#' @param include_literal If TRUE, include literal replay sidecar (`.rds`)
-#' @param replay_style Replay script style (`bench_pretty` or `raw_json`)
-#' @param validate_replay If TRUE, run `wb_prov_validate_replay()` and write result files
-#' @param validation_profile Validation profile passed to `wb_prov_validate_replay()`
-#' @return list(snapshot_id, out_dir, files)
+#' @param bundle Open `scworkbench_bundle`.
+#' @param out_dir Output directory, created if missing.
+#' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot is
+#'   used.
+#' @param include_literal If `TRUE`, include the literal replay sidecar.
+#' @param replay_style Replay script style: `"bench_pretty"` or `"raw_json"`.
+#' @param validate_replay If `TRUE`, run [wb_prov_validate_replay()] and write
+#'   validation files.
+#' @param validation_profile Validation profile passed to
+#'   [wb_prov_validate_replay()].
+#'
+#' @return A named list with `snapshot_id`, `out_dir`, and `files`.
+#'
 #' @export
 wb_freeze_snapshot <- function(bundle,
                                out_dir,
@@ -1197,14 +1327,16 @@ wb_freeze_snapshot <- function(bundle,
   path
 }
 
-#' Freeze snapshot + report scaffold in one call
+#' Freeze A Provenance Packet
 #'
 #' Convenience wrapper for agent/client workflows. Runs `wb_freeze_snapshot()`
 #' and optionally adds a lightweight `report_draft.md` methods scaffold.
 #'
 #' @inheritParams wb_freeze_snapshot
-#' @param include_report If TRUE, emit `report_draft.md`
-#' @return list(snapshot_id, out_dir, files)
+#' @param include_report If `TRUE`, emit `report_draft.md`.
+#'
+#' @return A named list with `snapshot_id`, `out_dir`, and `files`.
+#'
 #' @export
 wb_freeze_packet <- function(bundle,
                              out_dir,

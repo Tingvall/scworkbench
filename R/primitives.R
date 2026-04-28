@@ -25,6 +25,34 @@ wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "contin
   )
 }
 
+#' Create a relation_family primitive
+#'
+#' Sparse long-form relation family (edge-table-like shape).
+#' Optional row-wise fields (`weight`, `value`, `distance`) must match the row count when provided.
+#'
+#' @export
+wb_prim_relation_family <- function(key, cell_id, weight = NULL, value = NULL, distance = NULL, meta = list()) {
+  n <- length(key)
+  .wb_assert(length(cell_id) == n, "relation_family: key/cell_id length mismatch")
+  if (!is.null(weight)) .wb_assert(length(weight) == n, "relation_family: key/weight length mismatch")
+  if (!is.null(value)) .wb_assert(length(value) == n, "relation_family: key/value length mismatch")
+  if (!is.null(distance)) .wb_assert(length(distance) == n, "relation_family: key/distance length mismatch")
+  if (is.null(meta)) meta <- list()
+
+  structure(
+    list(
+      kind = "relation_family",
+      key = as.character(key),
+      cell_id = as.character(cell_id),
+      weight = if (is.null(weight)) NULL else as.numeric(weight),
+      value = if (is.null(value)) NULL else as.numeric(value),
+      distance = if (is.null(distance)) NULL else as.numeric(distance),
+      meta = meta
+    ),
+    class = "wb_primitive"
+  )
+}
+
 #' Create a space primitive
 #' @export
 wb_prim_space  <- function(space_id)  structure(list(kind="space",  space_id=as.character(space_id)),  class="wb_primitive")
@@ -71,6 +99,30 @@ wb_prim_path_2d_family <- function(key, point, x, y) {
   )
 }
 
+#' Create a space_path_family primitive
+#' @export
+wb_prim_space_path_family <- function(space_id, path_id, point, dim, value, meta = list()) {
+  n <- length(path_id)
+  .wb_assert(length(space_id) == n, "space_path_family: space_id/path_id length mismatch")
+  .wb_assert(length(point) == n, "space_path_family: path_id/point length mismatch")
+  .wb_assert(length(dim) == n, "space_path_family: path_id/dim length mismatch")
+  .wb_assert(length(value) == n, "space_path_family: path_id/value length mismatch")
+  if (is.null(meta)) meta <- list()
+
+  structure(
+    list(
+      kind = "space_path_family",
+      space_id = as.character(space_id),
+      path_id = as.character(path_id),
+      point = as.integer(point),
+      dim = as.integer(dim),
+      value = as.numeric(value),
+      meta = meta
+    ),
+    class = "wb_primitive"
+  )
+}
+
 
 #' Create a model_ref primitive
 #' @export
@@ -87,7 +139,19 @@ wb_prim_model_ref <- function(model_space_id, in_space_id, engine = "uwot", arti
   )
 }
 
-#' Create a feature_table primitive
+#' Create A `feature_table` Primitive
+#'
+#' Wrap a data frame as a canonical `feature_table` primitive. Use
+#' `table_type` and `meta` to specialize the table contract while keeping the
+#' primitive kind stable.
+#'
+#' @param table Data frame payload.
+#' @param table_type Specialization label for downstream contracts, for example
+#'   `"trajectory_de"` or `"markers"`.
+#' @param meta Optional named list of additional contract metadata.
+#'
+#' @return A `wb_primitive` of kind `feature_table`.
+#'
 #' @export
 wb_prim_feature_table <- function(table, table_type = "generic", meta = list()) {
   .wb_assert(is.data.frame(table), "table must be a data.frame")
@@ -103,7 +167,20 @@ wb_prim_feature_table <- function(table, table_type = "generic", meta = list()) 
   )
 }
 
-#' Create an obs_table primitive
+#' Create An `obs_table` Primitive
+#'
+#' Wrap a data frame as a canonical `obs_table` primitive. Use `table_type`,
+#' `entity_kind`, and `meta` to describe specialized observation-style tables
+#' without inventing new primitive kinds.
+#'
+#' @param table Data frame payload.
+#' @param table_type Specialization label for downstream contracts, for example
+#'   `"trajectory_smooth"` or `"trajectory_signature_smooth"`.
+#' @param entity_kind Observation entity label used by downstream consumers.
+#' @param meta Optional named list of additional contract metadata.
+#'
+#' @return A `wb_primitive` of kind `obs_table`.
+#'
 #' @export
 wb_prim_obs_table <- function(table, table_type = "generic", entity_kind = "generic", meta = list()) {
   .wb_assert(is.data.frame(table), "table must be a data.frame")

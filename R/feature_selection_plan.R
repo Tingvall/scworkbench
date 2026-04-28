@@ -1,4 +1,4 @@
-#' Execute a feature selection plan into ordered feature IDs
+#' Execute A Feature Selection Plan
 #'
 #' Plan shape:
 #' - universe: matrix_id (required)
@@ -14,9 +14,11 @@
 #' - variance:
 #'     list(type="variance", cells=..., min=NULL, max=NULL, top_n=NULL, negate=FALSE)
 #'
-#' @param bundle scworkbench bundle
-#' @param plan list selection plan
-#' @return ordered character vector of feature_ids
+#' @param bundle Open `scworkbench_bundle`.
+#' @param plan Feature-selection plan as a list.
+#'
+#' @return Ordered character vector of selected `feature_id` values.
+#'
 #' @export
 wb_exec_feature_selection_plan <- function(bundle, plan) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")

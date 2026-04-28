@@ -10,7 +10,8 @@
       intent = as.character(x$intent %||% character(0)),
       inputs = x$inputs %||% list(),
       params = x$params %||% list(),
-      produces = x$interface_produces %||% list()
+      produces = x$interface_produces %||% list(),
+      chunking = x$chunking %||% NULL
     )
   })
 }
@@ -122,6 +123,16 @@ wb_op_interface <- function(op_name, bundle = NULL) {
   .wb_assert(is.list(spec$inputs), "spec$inputs must be a list")
   .wb_assert(is.list(spec$params), "spec$params must be a list")
   .wb_assert(is.list(spec$produces), "spec$produces must be a list")
+  if (!is.null(spec$chunking)) {
+    .wb_assert(is.list(spec$chunking), "spec$chunking must be NULL or a list")
+    axis <- spec$chunking$axis %||% NULL
+    if (!is.null(axis)) {
+      .wb_assert(
+        is.character(axis) && length(axis) == 1 && axis %in% c("cells", "features", "groups", "lineages"),
+        "spec$chunking$axis must be one of: cells, features, groups, lineages"
+      )
+    }
+  }
   invisible(TRUE)
 }
 

@@ -16,6 +16,14 @@ These contracts are intended to be stable for all clients:
 
 Ops/wranglers may evolve more quickly, but should build on these guarantees.
 
+This document now also names the extension surfaces that sit directly above the
+foundation and are expected to remain engine-owned:
+
+- op catalog
+- plot contracts / mappers
+- identity-card issuers
+- navigation resolvers
+
 ## Op/Wrangler Registration Contract
 
 There is one canonical registration point for operations and wranglers:
@@ -59,6 +67,71 @@ Additional tables are optional based on capabilities (spaces, artifacts, etc.).
 
 - Matrix columns are expected to align with canonical cell order.
 - Getter functions that read matrix slices/vectors must preserve requested cell order.
+- Peak matrices are expected to carry explicit genome metadata in the matrix
+  registry:
+  - `organism`
+  - `genome_build`
+  - optional `genome_provider`
+- Clients should not invent genome/build semantics for peak matrices ad hoc.
+
+### Motif Registry
+
+The engine now has a canonical motif-registry surface distinct from feature
+sets.
+
+- `motif_libraries` defines motif-library identity:
+  - `motif_library`
+  - `source_type`
+  - `organism`
+  - `genome_build`
+  - `collection`
+  - `source_id`
+  - `source_version`
+- `motifs` defines motif identity within a library:
+  - `motif_key` as the canonical engine identifier
+  - optional external `motif_id`
+  - `motif_name`
+  - `matrix_class`
+  - `payload_json`
+  - `metadata_json`
+
+Contract intent:
+
+- motif definitions are first-class engine objects
+- feature sets may cache motif-to-peak matches, but are not the canonical motif
+  definition surface
+- downstream ops (for example chromVAR, motif enrichment, regulatory summaries)
+  should consume motif-library or motif-definition contracts rather than raw
+  package-name strings as their final public shape
+
+### Motif Match Contract
+
+Motif-to-peak matches are a separate engine contract from motif definitions.
+
+- `motif_match_sets` defines identity and provenance for one materialized match
+  set:
+  - `motif_match_set`
+  - `matrix_id`
+  - `motif_library`
+  - `organism`
+  - `genome_build`
+  - `genome_provider`
+  - `match_engine`
+  - `match_params_json`
+- `motif_match_membership` stores the actual motif-to-feature edges:
+  - `motif_match_set`
+  - `motif_key`
+  - `feature_id`
+
+Contract intent:
+
+- motif definitions remain first-class biological objects
+- motif matches are matrix-specific materializations with explicit provenance
+- downstream ops may consume a `motif_match_set` when they need cached motif
+  annotations for a specific peak universe
+- sequence-backed motif ops should make seqlevel policy explicit; for chromVAR
+  the default policy is standard chromosomes unless the user opts into broader
+  inclusion
 
 ## Getter Layer Contracts
 
@@ -160,6 +233,46 @@ Wrangler contract:
 
 - outward clients should use `wb_primitive_to_table()` / `wb_client_load_table()`
   for normalized display tables instead of reading primitive internals directly.
+
+## Plot Contract Layer
+
+Plot compatibility is not a client guess.
+
+The engine owns:
+
+- plot contracts
+- plot mapper registry
+- plot compatibility discovery
+- normalized plot dataset wrangling
+
+Clients should ask the engine which plot types are compatible and then render the
+resulting normalized dataset/spec.
+
+Plot semantics should not be reimplemented in Shiny or scripts.
+
+## Identity Card Layer
+
+The engine distinguishes:
+
+- birth certificate: canonical provenance payload
+- identity card: human-facing issuer summary
+
+Identity-card issuers are an engine extensibility surface.
+
+Clients should render identity cards, not invent their own artifact summaries.
+
+## Navigation Layer
+
+Cross-artifact and cross-plot handoff is also an engine contract.
+
+The engine should declare:
+
+- what entities a source contains
+- what targets are valid
+- what handoff payload should be sent
+
+Clients should apply those payloads rather than inventing friendships from column
+names or local heuristics.
 
 ## Validation Strategy
 

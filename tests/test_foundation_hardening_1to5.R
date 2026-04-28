@@ -159,6 +159,14 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   sid_cov <- if (nrow(sp) > 0) sp$space_id[1] else NULL
   if (!is.null(sid_cov)) {
     cells_req <- head(cells_all, 250)
+    cov_req <- wb_cell_coverage(
+      b,
+      cell_set = "all",
+      inputs = list(cell_ids = cells_req, space_id = sid_cov)
+    )
+    stopifnot(identical(cov_req$requested, length(unique(as.character(cells_req)))))
+    stopifnot(cov_req$effective <= cov_req$requested)
+
     eff <- scworkbench:::.wb_effective_cells(
       bundle = b,
       cell_set = "all",
@@ -180,6 +188,15 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
     )
     stopifnot(inherits(err_min, "try-error"))
   }
+
+  cov_zero <- wb_cell_coverage(
+    b,
+    cell_set = "all",
+    inputs = list(cell_ids = character(0))
+  )
+  stopifnot(identical(cov_zero$requested, 0L))
+  stopifnot(identical(cov_zero$effective, 0L))
+  stopifnot(identical(cov_zero$percent, 0))
 
   # ---------------------------------------------------------
   # 5) Canonical reference model consistency
@@ -232,6 +249,26 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
     }
     stopifnot(identical(p_art$kind, "cell_vector"))
   }
+
+  run_cv_cont <- wb_new_run(
+    op_name = "test_vector",
+    inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
+    params = list(),
+    outputs = list(scores = wb_prim_cell_vector(vv, value_type = "continuous")),
+    notes = "continuous cell_vector roundtrip test"
+  )
+  aid_cv_cont <- scworkbench:::.wb_promote_cell_vector(
+    bundle = b,
+    run = run_cv_cont,
+    out_name = "scores",
+    prim = run_cv_cont$outputs$scores,
+    created_by = "test"
+  )
+  p_cv_cont <- wb_art_load(b, artifact_id = as.character(aid_cv_cont), expected_kind = "cell_vector")
+  stopifnot(identical(p_cv_cont$kind, "cell_vector"))
+  stopifnot(identical(as.character(p_cv_cont$value_type), "continuous"))
+  stopifnot(identical(as.character(p_cv_cont$cell_id), as.character(vv_cells)))
+  stopifnot(isTRUE(all.equal(suppressWarnings(as.numeric(p_cv_cont$value)), as.numeric(vv))))
 
   # ---------------------------------------------------------
   # 6) Tabular primitives are promotable and loadable

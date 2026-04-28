@@ -32,6 +32,16 @@ wb_geom_trajectory_2d <- function(bundle,
       params = list(trajectory)
     )
   } else {
+    # case 1b: direct path_2d_family primitive (preferred ergonomic path for agents/scripts)
+    if (inherits(trajectory, "wb_primitive") && identical(as.character(trajectory$kind %||% ""), "path_2d_family")) {
+      curves <- data.frame(
+        lineage_id = as.character(trajectory$key %||% character(0)),
+        point = as.integer(trajectory$point %||% integer(0)),
+        x = as.numeric(trajectory$x %||% numeric(0)),
+        y = as.numeric(trajectory$y %||% numeric(0)),
+        stringsAsFactors = FALSE
+      )
+    } else
     # case 2: session or run object
     # session: list with runs + head_run_id
     if (is.list(trajectory) && !is.null(trajectory$head_run_id) && !is.null(trajectory$runs)) {
