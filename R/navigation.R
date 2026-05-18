@@ -63,7 +63,45 @@
   if (identical(src_op, "trajectory_de") && identical(tt, "trajectory_de")) return("ranked_lollipop")
   if (identical(src_op, "trajectory_smooth") && identical(tt, "trajectory_smooth")) return("pseudotime_smooth_panel")
   if (identical(src_op, "trajectory_signature_smooth") && identical(tt, "trajectory_signature_smooth")) return("pseudotime_signature_line")
+  if (identical(src_op, "trajectory_geneset_dynamics") && tt %in% c("trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve")) return("pseudotime_signature_line")
+  if (identical(src_op, "trajectory_geneset_dynamics") && tt %in% c("trajectory_geneset_dynamics", "trajectory_geneset_dynamics_top", "trajectory_geneset_dynamics_drivers")) return("ranked_lollipop")
   NA_character_
+}
+
+.wb_nav_geneset_dynamics_related <- function(bundle, info) {
+  arts <- wb_art_list(bundle)
+  empty_df <- data.frame(stringsAsFactors = FALSE)
+  if (!is.data.frame(arts) || !nrow(arts)) {
+    return(list(dynamics = empty_df, curve = empty_df, top = empty_df, drivers = empty_df, driver_curve = empty_df, summary = empty_df))
+  }
+  tt <- DBI::dbGetQuery(
+    bundle$con,
+    "SELECT artifact_id, table_type
+     FROM artifact_tables
+     WHERE artifact_id IN (SELECT artifact_id FROM artifacts WHERE type = 'obs_table');"
+  )
+  arts2 <- merge(arts, tt, by = "artifact_id", all.x = TRUE, sort = FALSE)
+  src_name <- as.character(info$name[1] %||% "")[1]
+  src_matrix <- as.character(info$input_matrix_id[1] %||% "")[1]
+  src_cell_set <- as.character(info$cell_set[1] %||% "")[1]
+  ok <- as.character(arts2$source_op %||% "") == "trajectory_geneset_dynamics"
+  if (nzchar(src_name)) ok <- ok & as.character(arts2$name %||% "") == src_name
+  if (nzchar(src_matrix)) ok <- ok & as.character(arts2$input_matrix_id %||% "") == src_matrix
+  if (nzchar(src_cell_set)) ok <- ok & as.character(arts2$cell_set %||% "") == src_cell_set
+  keep_cols <- intersect(c("artifact_id", "name", "description", "created_at", "input_matrix_id", "cell_set", "source_op", "table_type"), names(arts2))
+  pick <- function(type) {
+    out <- arts2[ok & as.character(arts2$table_type %||% "") == type, keep_cols, drop = FALSE]
+    rownames(out) <- NULL
+    out
+  }
+  list(
+    dynamics = pick("trajectory_geneset_dynamics"),
+    curve = pick("trajectory_geneset_dynamics_curve"),
+    top = pick("trajectory_geneset_dynamics_top"),
+    drivers = pick("trajectory_geneset_dynamics_drivers"),
+    driver_curve = pick("trajectory_geneset_dynamics_driver_curve"),
+    summary = pick("trajectory_geneset_dynamics_summary")
+  )
 }
 
 #' List Navigable Entities For A Source
@@ -83,6 +121,7 @@
 #'   lineages first and lineage-specific features only when `lineage_id` is
 #'   supplied.
 #' @param lineage_id Optional lineage context for feature enumeration.
+#' @param feature_set Optional feature-set context for driver-gene enumeration.
 #' @param limit Maximum number of entities to return.
 #' @param search Optional case-insensitive substring filter applied to entity
 #'   identifiers where supported.
@@ -108,8 +147,9 @@
 #' @export
 wb_nav_entities <- function(source,
                             bundle,
-                            entity_kind = c("auto", "lineage", "feature"),
+                            entity_kind = c("auto", "lineage", "feature", "feature_set"),
                             lineage_id = NULL,
+                            feature_set = NULL,
                             limit = 100L,
                             search = NULL,
                             direction = c("any", "up", "down"),
@@ -223,6 +263,100 @@ wb_nav_entities <- function(source,
       label = as.character(sets %||% character(0)),
       group_kind = "lineage",
       group_id = lin,
+      source_ref = resolved$ref
+    )
+    return(out[nzchar(out$entity_id), , drop = FALSE])
+  }
+
+  if (identical(src_op, "trajectory_geneset_dynamics") && tt %in% c("trajectory_geneset_dynamics", "trajectory_geneset_dynamics_top")) {
+    if (identical(e_kind, "auto")) e_kind <- if (nzchar(as.character(lineage_id %||% "")[1])) "feature_set" else "lineage"
+    if (identical(e_kind, "lineage")) {
+      lineages <- wb_art_table_distinct(bundle, resolved$artifact_id, "lineage_id")
+      out <- .wb_nav_entity_df(
+        entity_kind = "lineage",
+        entity_id = as.character(lineages %||% character(0)),
+        label = as.character(lineages %||% character(0)),
+        source_ref = resolved$ref
+      )
+      return(out[nzchar(out$entity_id), , drop = FALSE])
+    }
+    lin <- as.character(lineage_id %||% "")[1]
+    .wb_assert(nzchar(lin), "lineage_id is required for feature_set navigation from trajectory_geneset_dynamics.")
+    tbl <- wb_art_table_slice(bundle, resolved$artifact_id, filters = list(lineage_id = lin))
+    if (!is.data.frame(tbl) || !nrow(tbl) || !("feature_set" %in% names(tbl))) {
+      return(.wb_nav_entity_df(entity_kind = character(0), entity_id = character(0)))
+    }
+    if (nzchar(as.character(search %||% "")[1])) {
+      tbl <- tbl[grepl(tolower(as.character(search)[1]), tolower(as.character(tbl$feature_set)), fixed = TRUE), , drop = FALSE]
+    }
+    score_col <- intersect(c("dynamic_score", "amplitude", "late_minus_early", "abs_spearman_rho"), names(tbl))[1] %||% NA_character_
+    ord <- if (!is.na(score_col)) order(suppressWarnings(as.numeric(tbl[[score_col]])), decreasing = TRUE, na.last = TRUE) else seq_len(nrow(tbl))
+    tbl <- tbl[ord, , drop = FALSE]
+    lim <- suppressWarnings(as.integer(limit %||% 100L))
+    if (is.finite(lim) && lim > 0L && nrow(tbl) > lim) tbl <- tbl[seq_len(lim), , drop = FALSE]
+    out <- .wb_nav_entity_df(
+      entity_kind = "feature_set",
+      entity_id = as.character(tbl$feature_set %||% ""),
+      label = as.character(tbl$feature_set %||% ""),
+      group_kind = "lineage",
+      group_id = lin,
+      score = if (!is.na(score_col)) suppressWarnings(as.numeric(tbl[[score_col]])) else NA_real_,
+      rank = seq_len(nrow(tbl)),
+      direction = as.character(tbl$curve_class %||% ""),
+      source_ref = resolved$ref
+    )
+    return(out[nzchar(out$entity_id), , drop = FALSE])
+  }
+
+  if (identical(src_op, "trajectory_geneset_dynamics") && identical(tt, "trajectory_geneset_dynamics_curve")) {
+    if (identical(e_kind, "auto")) e_kind <- if (nzchar(as.character(lineage_id %||% "")[1])) "feature_set" else "lineage"
+    if (identical(e_kind, "lineage")) {
+      lineages <- wb_art_table_distinct(bundle, resolved$artifact_id, "lineage_id")
+      out <- .wb_nav_entity_df("lineage", as.character(lineages %||% character(0)), source_ref = resolved$ref)
+      return(out[nzchar(out$entity_id), , drop = FALSE])
+    }
+    lin <- as.character(lineage_id %||% "")[1]
+    .wb_assert(nzchar(lin), "lineage_id is required for feature_set navigation from trajectory_geneset_dynamics_curve.")
+    sets <- wb_art_table_distinct(bundle, resolved$artifact_id, "feature_set", filters = list(lineage_id = lin), limit = limit)
+    if (nzchar(as.character(search %||% "")[1])) {
+      keep <- grepl(tolower(as.character(search)[1]), tolower(as.character(sets)), fixed = TRUE)
+      sets <- as.character(sets)[keep]
+    }
+    out <- .wb_nav_entity_df("feature_set", as.character(sets %||% character(0)), group_kind = "lineage", group_id = lin, source_ref = resolved$ref)
+    return(out[nzchar(out$entity_id), , drop = FALSE])
+  }
+
+  if (identical(src_op, "trajectory_geneset_dynamics") && tt %in% c("trajectory_geneset_dynamics_drivers", "trajectory_geneset_dynamics_driver_curve")) {
+    if (identical(e_kind, "auto")) e_kind <- if (nzchar(as.character(lineage_id %||% "")[1])) "feature" else "lineage"
+    if (identical(e_kind, "lineage")) {
+      lineages <- wb_art_table_distinct(bundle, resolved$artifact_id, "lineage_id")
+      out <- .wb_nav_entity_df("lineage", as.character(lineages %||% character(0)), source_ref = resolved$ref)
+      return(out[nzchar(out$entity_id), , drop = FALSE])
+    }
+    lin <- as.character(lineage_id %||% "")[1]
+    .wb_assert(nzchar(lin), "lineage_id is required for driver feature navigation.")
+    filters <- list(lineage_id = lin)
+    fs <- as.character(feature_set %||% "")[1]
+    if (nzchar(fs)) filters$feature_set <- fs
+    tbl <- wb_art_table_slice(bundle, resolved$artifact_id, filters = filters)
+    if (!is.data.frame(tbl) || !nrow(tbl) || !("feature_id" %in% names(tbl))) {
+      return(.wb_nav_entity_df(entity_kind = character(0), entity_id = character(0)))
+    }
+    if (nzchar(as.character(search %||% "")[1])) {
+      tbl <- tbl[grepl(tolower(as.character(search)[1]), tolower(as.character(tbl$feature_id)), fixed = TRUE), , drop = FALSE]
+    }
+    tbl <- tbl[!duplicated(paste(tbl$feature_set, tbl$feature_id, sep = "\r")), , drop = FALSE]
+    if ("driver_rank" %in% names(tbl)) tbl <- tbl[order(suppressWarnings(as.integer(tbl$driver_rank))), , drop = FALSE]
+    lim <- suppressWarnings(as.integer(limit %||% 100L))
+    if (is.finite(lim) && lim > 0L && nrow(tbl) > lim) tbl <- tbl[seq_len(lim), , drop = FALSE]
+    out <- .wb_nav_entity_df(
+      entity_kind = "feature",
+      entity_id = as.character(tbl$feature_id %||% ""),
+      label = as.character(tbl$feature_id %||% ""),
+      group_kind = "feature_set",
+      group_id = as.character(tbl$feature_set %||% ""),
+      score = suppressWarnings(as.numeric(tbl$dynamic_score %||% NA_real_)),
+      rank = suppressWarnings(as.integer(tbl$driver_rank %||% seq_len(nrow(tbl)))),
       source_ref = resolved$ref
     )
     return(out[nzchar(out$entity_id), , drop = FALSE])
@@ -355,6 +489,87 @@ wb_nav_targets <- function(source,
     return(out)
   }
 
+  if (identical(src_op, "trajectory_geneset_dynamics")) {
+    rel <- .wb_nav_geneset_dynamics_related(bundle, info)
+    if (tt %in% c("trajectory_geneset_dynamics", "trajectory_geneset_dynamics_top") &&
+        identical(entity_kind, "feature_set") && nzchar(entity_id) && nzchar(lin)) {
+      cv <- rel$curve %||% data.frame(stringsAsFactors = FALSE)
+      dr <- rel$drivers %||% data.frame(stringsAsFactors = FALSE)
+      if (is.data.frame(cv) && nrow(cv)) {
+        out <- rbind(out, .wb_nav_target_df(
+          target_kind = "artifact_plot",
+          target_id = paste0("artifact:", as.character(cv$artifact_id[1])),
+          action = "open_geneset_curve",
+          label = "Open gene-set curve",
+          reason = "Matching trajectory_geneset_dynamics_curve artifact",
+          priority = 10L
+        ))
+      }
+      if (is.data.frame(dr) && nrow(dr)) {
+        out <- rbind(out, .wb_nav_target_df(
+          target_kind = "artifact_table",
+          target_id = paste0("artifact:", as.character(dr$artifact_id[1])),
+          action = "open_driver_table",
+          label = "Open driver genes",
+          reason = "Matching trajectory_geneset_dynamics_drivers artifact",
+          priority = 15L
+        ))
+      }
+    }
+    if (identical(tt, "trajectory_geneset_dynamics_curve") &&
+        identical(entity_kind, "feature_set") && nzchar(entity_id) && nzchar(lin)) {
+      dr <- rel$drivers %||% data.frame(stringsAsFactors = FALSE)
+      dc <- rel$driver_curve %||% data.frame(stringsAsFactors = FALSE)
+      if (is.data.frame(dr) && nrow(dr)) {
+        out <- rbind(out, .wb_nav_target_df(
+          target_kind = "artifact_table",
+          target_id = paste0("artifact:", as.character(dr$artifact_id[1])),
+          action = "open_driver_table",
+          label = "Open driver genes",
+          reason = "Matching trajectory_geneset_dynamics_drivers artifact",
+          priority = 10L
+        ))
+      }
+      if (is.data.frame(dc) && nrow(dc)) {
+        out <- rbind(out, .wb_nav_target_df(
+          target_kind = "artifact_plot",
+          target_id = paste0("artifact:", as.character(dc$artifact_id[1])),
+          action = "open_driver_curve",
+          label = "Open driver-gene curves",
+          reason = "Matching trajectory_geneset_dynamics_driver_curve artifact",
+          priority = 15L
+        ))
+      }
+    }
+    if (tt %in% c("trajectory_geneset_dynamics_drivers", "trajectory_geneset_dynamics_driver_curve") &&
+        identical(entity_kind, "feature") && nzchar(entity_id) && nzchar(lin)) {
+      dc <- rel$driver_curve %||% data.frame(stringsAsFactors = FALSE)
+      cv <- rel$curve %||% data.frame(stringsAsFactors = FALSE)
+      if (is.data.frame(dc) && nrow(dc)) {
+        out <- rbind(out, .wb_nav_target_df(
+          target_kind = "artifact_plot",
+          target_id = paste0("artifact:", as.character(dc$artifact_id[1])),
+          action = "open_driver_curve",
+          label = "Open driver-gene curve",
+          reason = "Matching trajectory_geneset_dynamics_driver_curve artifact",
+          priority = 10L
+        ))
+      }
+      if (is.data.frame(cv) && nrow(cv)) {
+        out <- rbind(out, .wb_nav_target_df(
+          target_kind = "artifact_plot",
+          target_id = paste0("artifact:", as.character(cv$artifact_id[1])),
+          action = "open_geneset_curve",
+          label = "Open parent gene-set curve",
+          reason = "Matching trajectory_geneset_dynamics_curve artifact",
+          priority = 20L
+        ))
+      }
+    }
+    rownames(out) <- NULL
+    return(out)
+  }
+
   stop("No navigation resolver for source.", call. = FALSE)
 }
 
@@ -453,6 +668,31 @@ wb_nav_handoff <- function(source,
       ),
       selection = list(entity_kind = entity_kind, entity_id = entity_id, lineage_id = lin),
       notes = "same-artifact comparison target"
+    ),
+    open_geneset_curve = list(
+      ref = ref,
+      plot_type = "pseudotime_signature_line",
+      params = list(lineage = lin, feature_set = if (identical(entity_kind, "feature")) as.character(entity$group_id %||% "")[1] else entity_id),
+      selection = list(entity_kind = entity_kind, entity_id = entity_id, lineage_id = lin, feature_set = if (identical(entity_kind, "feature")) as.character(entity$group_id %||% "")[1] else entity_id),
+      notes = "trajectory_geneset_dynamics -> gene-set curve"
+    ),
+    open_driver_table = list(
+      ref = ref,
+      plot_type = "ranked_lollipop",
+      params = list(lineage = lin, feature_set = entity_id, score_col = "dynamic_score"),
+      selection = list(entity_kind = entity_kind, entity_id = entity_id, lineage_id = lin, feature_set = entity_id),
+      notes = "trajectory_geneset_dynamics -> driver genes"
+    ),
+    open_driver_curve = list(
+      ref = ref,
+      plot_type = "pseudotime_signature_line",
+      params = list(
+        lineage = lin,
+        feature_set = if (identical(entity_kind, "feature")) as.character(entity$group_id %||% "")[1] else entity_id,
+        feature = if (identical(entity_kind, "feature")) entity_id else NULL
+      ),
+      selection = list(entity_kind = entity_kind, entity_id = entity_id, lineage_id = lin, feature_set = if (identical(entity_kind, "feature")) as.character(entity$group_id %||% "")[1] else entity_id),
+      notes = "trajectory_geneset_dynamics -> driver-gene curve"
     ),
     stop("Unsupported navigation action.", call. = FALSE)
   )

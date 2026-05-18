@@ -184,7 +184,14 @@
         optional = c(
           lineage_id = "character",
           n_cells = "integer",
-          label = "character"
+          label = "character",
+          feature_id = "character",
+          driver_rank = "integer",
+          value_raw = "numeric",
+          value_smooth = "numeric",
+          value_se = "numeric",
+          value_ci_low = "numeric",
+          value_ci_high = "numeric"
         )
       )
     )
@@ -1389,10 +1396,10 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
   tbl <- try(wb_primitive_to_table(tt, include_context = FALSE), silent = TRUE)
   if (inherits(tbl, "try-error") || !is.data.frame(tbl)) return(FALSE)
   if (identical(tt$kind, "obs_table")) {
-    id_candidates <- c("group", "cluster", "label", "entity_id")
+    id_candidates <- c("feature_id", "feature_set", "group", "cluster", "label", "entity_id")
     score_candidates <- c(
       as.character(inputs$score_col %||% ""),
-      "mean", "median", "score", "value", "sd", "n"
+      "dynamic_score", "amplitude", "mean", "median", "score", "value", "sd", "n"
     )
     id_col <- intersect(id_candidates, colnames(tbl))[1] %||% NA_character_
     score_col <- intersect(score_candidates[nzchar(score_candidates)], colnames(tbl))[1] %||% NA_character_
@@ -1421,13 +1428,13 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
   p_raw_col <- NA_character_
 
   if (identical(tprim$kind, "obs_table")) {
-    id_candidates <- c("group", "cluster", "label", "entity_id")
+    id_candidates <- c("feature_id", "feature_set", "group", "cluster", "label", "entity_id")
     id_col <- intersect(id_candidates, colnames(tbl))[1] %||% NA_character_
     .wb_assert(!is.na(id_col) && nzchar(id_col), "Could not infer group/label column for ranked_lollipop obs_table mapping")
 
     score_candidates <- unique(c(
       as.character(inputs$score_col %||% ""),
-      "mean", "median", "score", "value", "sd", "n"
+      "dynamic_score", "amplitude", "mean", "median", "score", "value", "sd", "n"
     ))
     score_candidates <- score_candidates[nzchar(score_candidates)]
     score_col <- intersect(score_candidates, colnames(tbl))[1] %||% NA_character_
@@ -1907,9 +1914,24 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
 .wb_plot_mapper_pseudotime_signature_line_can <- function(bundle, inputs, runs, version) {
   tx <- .wb_plot_input_first(inputs, c("table", "signature_table", "obs_table"))
   if (is.null(tx)) return(FALSE)
+  if (is.character(tx) && length(tx) == 1L && startsWith(tx, "artifact:")) {
+    aid <- sub("^artifact:", "", tx)
+    info <- try(wb_art_table_info(bundle, aid), silent = TRUE)
+    return(!inherits(info, "try-error") &&
+             identical(as.character(info$type[1] %||% "")[1], "obs_table") &&
+             as.character(info$table_type[1] %||% "")[1] %in% c(
+               "trajectory_signature_smooth",
+               "trajectory_geneset_dynamics_curve",
+               "trajectory_geneset_dynamics_driver_curve"
+             ))
+  }
   tt <- try(.wb_plot_resolve_primitive(bundle, tx, runs = runs, expected_kind = "obs_table"), silent = TRUE)
   if (inherits(tt, "try-error") || !.wb_is_primitive(tt) || !identical(tt$kind, "obs_table")) return(FALSE)
-  if (!identical(as.character(tt$table_type %||% "")[1], "trajectory_signature_smooth")) return(FALSE)
+  if (!(as.character(tt$table_type %||% "")[1] %in% c(
+    "trajectory_signature_smooth",
+    "trajectory_geneset_dynamics_curve",
+    "trajectory_geneset_dynamics_driver_curve"
+  ))) return(FALSE)
   tbl <- try(wb_primitive_to_table(tt, include_context = FALSE), silent = TRUE)
   if (inherits(tbl, "try-error") || !is.data.frame(tbl) || !nrow(tbl)) return(FALSE)
   all(c("feature_set", "pseudotime", "value") %in% colnames(tbl))
@@ -1917,19 +1939,71 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
 
 .wb_plot_mapper_pseudotime_signature_line_map <- function(bundle, inputs, runs, version) {
   tx <- .wb_plot_input_first(inputs, c("table", "signature_table", "obs_table"))
-  tprim <- .wb_plot_resolve_primitive(bundle, tx, runs = runs, expected_kind = "obs_table")
-  .wb_assert(identical(as.character(tprim$table_type %||% "")[1], "trajectory_signature_smooth"),
-             "pseudotime_signature_line requires obs_table(table_type='trajectory_signature_smooth').")
-  tbl <- wb_primitive_to_table(tprim, include_context = FALSE)
+  feature_sets <- as.character(inputs$feature_sets %||% inputs$feature_set %||% character(0))
+  feature_sets <- feature_sets[!is.na(feature_sets) & nzchar(feature_sets)]
+  feature_ids <- as.character(inputs$features %||% inputs$feature_ids %||% character(0))
+  feature_ids <- feature_ids[!is.na(feature_ids) & nzchar(feature_ids)]
+  lineage <- as.character(inputs$lineage %||% inputs$lineages %||% character(0))
+  lineage <- lineage[!is.na(lineage) & nzchar(lineage)]
+  top_n <- suppressWarnings(as.integer(inputs$top_n_feature_sets %||% inputs$top_n %||% NA_integer_))
+  meta_src <- list()
+
+  if (is.character(tx) && length(tx) == 1L && startsWith(tx, "artifact:")) {
+    aid <- sub("^artifact:", "", tx)
+    info <- wb_art_table_info(bundle, aid)
+    table_type <- as.character(info$table_type[1] %||% "")[1]
+    .wb_assert(identical(as.character(info$type[1] %||% "")[1], "obs_table") &&
+                 table_type %in% c("trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve"),
+               "pseudotime_signature_line requires a trajectory signature/gene-set curve obs_table.")
+    filters <- list()
+    if (length(feature_sets)) filters$feature_set <- feature_sets
+    if (length(feature_ids)) filters$feature_id <- feature_ids
+    if (length(lineage)) filters$lineage_id <- lineage
+    tbl <- wb_art_table_slice(bundle, aid, filters = filters)
+    meta_src <- list(artifact_id = aid, sliced = TRUE)
+  } else {
+    tprim <- .wb_plot_resolve_primitive(bundle, tx, runs = runs, expected_kind = "obs_table")
+    table_type <- as.character(tprim$table_type %||% "")[1]
+    .wb_assert(table_type %in% c("trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve"),
+               "pseudotime_signature_line requires trajectory signature/gene-set curve obs_table.")
+    tbl <- wb_primitive_to_table(tprim, include_context = FALSE)
+    meta_src <- tprim$meta %||% list()
+    if (length(feature_sets) && "feature_set" %in% colnames(tbl)) {
+      tbl <- tbl[as.character(tbl$feature_set) %in% feature_sets, , drop = FALSE]
+    }
+    if (length(feature_ids) && "feature_id" %in% colnames(tbl)) {
+      tbl <- tbl[as.character(tbl$feature_id) %in% feature_ids, , drop = FALSE]
+    }
+    if (length(lineage) && "lineage_id" %in% colnames(tbl)) {
+      tbl <- tbl[as.character(tbl$lineage_id) %in% lineage, , drop = FALSE]
+    }
+  }
   .wb_assert(all(c("feature_set", "pseudotime", "value") %in% colnames(tbl)),
              "pseudotime_signature_line table requires feature_set, pseudotime, value columns.")
-  out <- tbl[, intersect(c("feature_set", "lineage_id", "bin", "pseudotime", "pseudotime_min", "pseudotime_max", "value", "n_cells", "label"), colnames(tbl)), drop = FALSE]
+  if (!length(feature_sets) && is.finite(top_n) && top_n > 0L && "feature_set" %in% colnames(tbl)) {
+    keep <- unique(as.character(tbl$feature_set))
+    keep <- utils::head(keep[nzchar(keep)], top_n)
+    tbl <- tbl[as.character(tbl$feature_set) %in% keep, , drop = FALSE]
+  }
+  out <- tbl[, intersect(c("feature_set", "feature_id", "driver_rank", "lineage_id", "bin",
+                           "pseudotime", "pseudotime_min", "pseudotime_max", "value",
+                           "value_raw", "value_smooth", "value_se", "value_ci_low",
+                           "value_ci_high", "n_cells", "label"), colnames(tbl)), drop = FALSE]
+  for (nm in intersect(c("bin", "pseudotime", "pseudotime_min", "pseudotime_max",
+                         "value", "value_raw", "value_smooth", "value_se", "value_ci_low",
+                         "value_ci_high"), colnames(out))) {
+    out[[nm]] <- suppressWarnings(as.numeric(out[[nm]]))
+  }
+  for (nm in intersect(c("driver_rank", "n_cells"), colnames(out))) {
+    out[[nm]] <- suppressWarnings(as.integer(out[[nm]]))
+  }
   out <- out[is.finite(suppressWarnings(as.numeric(out$pseudotime))) & is.finite(suppressWarnings(as.numeric(out$value))), , drop = FALSE]
   rownames(out) <- NULL
+  dataset_type <- table_type %||% "trajectory_signature_smooth"
 
   list(
     plot_type = "pseudotime_signature_line",
-    dataset_type = "trajectory_signature_smooth",
+    dataset_type = as.character(dataset_type)[1],
     contract_version = as.character(version)[1],
     table = out,
     schema = wb_plot_contract("pseudotime_signature_line", version = version),
@@ -1938,7 +2012,7 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
         n_feature_sets = length(unique(as.character(out$feature_set))),
         n_rows = nrow(out)
       ),
-      tprim$meta %||% list()
+      meta_src
     )
   )
 }
@@ -2388,22 +2462,23 @@ wb_plot_spec <- function(plot_type, dataset, style = "default", version = "v1") 
 
   if (identical(pt, "pseudotime_signature_line")) {
     tip <- c("feature_set", "pseudotime", "value")
-    for (nm in c("lineage_id", "n_cells", "label")) {
+    for (nm in c("feature_id", "driver_rank", "lineage_id", "n_cells", "label", "value_raw", "value_smooth", "value_ci_low", "value_ci_high")) {
       if (nm %in% names(df)) tip <- c(tip, nm)
     }
     spec <- list(
       plot_type = pt,
-      dataset_type = "trajectory_signature_smooth",
+      dataset_type = as.character(dataset$dataset_type %||% "trajectory_signature_smooth")[1],
       version = vv,
       style = as.character(style)[1],
       geom = "line",
       encoding = list(
         x = "pseudotime",
         y = "value",
-        color = if ("lineage_id" %in% names(df)) "lineage_id" else NULL,
-        group = if ("lineage_id" %in% names(df)) "lineage_id" else "feature_set"
+        color = if ("feature_id" %in% names(df)) "feature_id" else if ("lineage_id" %in% names(df)) "lineage_id" else NULL,
+        group = if ("feature_id" %in% names(df)) "feature_id" else if ("lineage_id" %in% names(df)) "lineage_id" else "feature_set",
+        facet = "feature_set"
       ),
-      guides = list(color = "lineage_id" %in% names(df)),
+      guides = list(color = any(c("feature_id", "lineage_id") %in% names(df))),
       tooltip_fields = unique(tip),
       meta = dataset$meta %||% list()
     )

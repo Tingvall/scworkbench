@@ -994,6 +994,48 @@
   raw
 }
 
+.wb_runner_trajectory_geneset_dynamics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "trajectory_geneset_dynamics runner: missing resolved$matrix.")
+  .wb_assert(!is.null(resolved$model), "trajectory_geneset_dynamics runner: missing resolved$model.")
+
+  raw <- wb_op_trajectory_geneset_dynamics(
+    bundle = bundle,
+    matrix_id = resolved$matrix$matrix_id,
+    model = resolved$model,
+    namespace = inputs$namespace,
+    cells = as.character(effective_cells),
+    lineage = inputs$lineage %||% NULL,
+    feature_sets = inputs$feature_sets %||% NULL,
+    score_method = inputs$score_method %||% "mean",
+    n_bins = inputs$n_bins %||% 50L,
+    summary_fun = inputs$summary_fun %||% "mean",
+    min_cells_per_bin = inputs$min_cells_per_bin %||% 5L,
+    min_set_size = inputs$min_set_size %||% 5L,
+    max_set_size = inputs$max_set_size %||% 5000L,
+    top_n = inputs$top_n %||% 50L,
+    on_off_min_delta = inputs$on_off_min_delta %||% 0,
+    monotonic_min_abs_rho = inputs$monotonic_min_abs_rho %||% 0.5,
+    top_driver_genes = inputs$top_driver_genes %||% 5L,
+    pseudotime_direction = inputs$pseudotime_direction %||% "as_is",
+    start_label = inputs$start_label %||% NULL,
+    end_label = inputs$end_label %||% NULL,
+    min_amplitude = inputs$min_amplitude %||% 0,
+    min_bins_observed = inputs$min_bins_observed %||% 5L,
+    min_features_detected = inputs$min_features_detected %||% 1L,
+    min_detected_fraction = inputs$min_detected_fraction %||% 0,
+    smooth_method = inputs$smooth_method %||% "none",
+    loess_span = inputs$loess_span %||% 0.5,
+    bootstrap_n = inputs$bootstrap_n %||% 0L,
+    bootstrap_seed = inputs$bootstrap_seed %||% 1L,
+    ci_level = inputs$ci_level %||% 0.95,
+    class_min_amplitude = inputs$class_min_amplitude %||% 0
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "trajectory_geneset_dynamics must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_trajectory_route_smooth <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "trajectory_route_smooth runner: missing resolved$matrix.")
   .wb_assert(!is.null(resolved$pseudotime), "trajectory_route_smooth runner: missing resolved$pseudotime.")
@@ -1961,6 +2003,111 @@
         fit_summary = list(
           kind = "obs_table",
           description = "Per-lineage signature smoothing diagnostics."
+        )
+      )
+    ),
+    trajectory_geneset_dynamics = list(
+      op_name = "trajectory_geneset_dynamics",
+      title = "Trajectory Gene-Set Dynamics",
+      description = "Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.",
+      intent = c("trajectory", "pathway", "discovery", "signature"),
+      requires = list(matrix = "matrix", model = "model_ref"),
+      produces = list(
+        signature_table = "obs_table",
+        dynamics_table = "obs_table",
+        top_sets = "obs_table",
+        driver_table = "obs_table",
+        driver_curve_table = "obs_table",
+        fit_summary = "obs_table"
+      ),
+      promotable = c("signature_table", "dynamics_table", "top_sets", "driver_table", "driver_curve_table", "fit_summary"),
+      runner = .wb_runner_trajectory_geneset_dynamics,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix"),
+        model = list(required = TRUE, kind = "model_ref")
+      ),
+      params = list(
+        list(name = "namespace", type = "string", default = NULL,
+             help = "Feature-set namespace from wb_feature_sets() to screen."),
+        list(name = "feature_sets", type = "string_vec", default = NULL,
+             help = "Optional feature-set subset within the namespace."),
+        list(name = "lineage", type = "string_vec", default = NULL,
+             help = "Optional lineage key subset."),
+        list(name = "score_method", type = "choice", default = "mean",
+             choices = c("mean", "sum", "rank_mean"),
+             help = "How to score each feature set within each cell."),
+        list(name = "pseudotime_direction", type = "choice", default = "as_is",
+             choices = c("as_is", "invert"),
+             help = "Use pseudotime as provided or invert it before binning and classification."),
+        list(name = "start_label", type = "string", default = NULL,
+             help = "Optional biological start label recorded in output metadata."),
+        list(name = "end_label", type = "string", default = NULL,
+             help = "Optional biological end label recorded in output metadata."),
+        list(name = "n_bins", type = "int", default = 50, min = 5, max = 1000,
+             help = "Number of pseudotime bins."),
+        list(name = "summary_fun", type = "choice", default = "mean",
+             choices = c("mean", "median"),
+             help = "Summary statistic across cells within each bin."),
+        list(name = "min_cells_per_bin", type = "int", default = 5, min = 1, max = 100000,
+             help = "Minimum cells required for an output bin."),
+        list(name = "min_set_size", type = "int", default = 5, min = 1, max = 100000,
+             help = "Minimum feature-set size after intersecting with the matrix."),
+        list(name = "max_set_size", type = "int", default = 5000, min = 1, max = 1000000,
+             help = "Maximum feature-set size after intersecting with the matrix."),
+        list(name = "top_n", type = "int", default = 50, min = 1, max = 10000,
+             help = "Number of top-ranked feature sets retained in top_sets."),
+        list(name = "on_off_min_delta", type = "dbl", default = 0, min = 0,
+             help = "Minimum absolute late-early delta for turns_on/turns_off classes."),
+        list(name = "monotonic_min_abs_rho", type = "dbl", default = 0.5, min = 0, max = 1,
+             help = "Minimum absolute Spearman rho for turns_on/turns_off classes."),
+        list(name = "top_driver_genes", type = "int", default = 5, min = 0, max = 1000,
+             help = "Number of top member genes retained as curve drivers per feature set."),
+        list(name = "min_amplitude", type = "dbl", default = 0, min = 0,
+             help = "Minimum curve amplitude required for passes_filters."),
+        list(name = "min_bins_observed", type = "int", default = 5, min = 1, max = 1000,
+             help = "Minimum retained bins required for passes_filters."),
+        list(name = "min_features_detected", type = "int", default = 1, min = 0, max = 100000,
+             help = "Minimum detected set members required for passes_filters."),
+        list(name = "min_detected_fraction", type = "dbl", default = 0, min = 0, max = 1,
+             help = "Minimum fraction of detected set members required for passes_filters."),
+        list(name = "smooth_method", type = "choice", default = "none",
+             choices = c("none", "loess", "spline"),
+             help = "Optional smoothing method applied to binned curves before metrics/classes."),
+        list(name = "loess_span", type = "dbl", default = 0.5, min = 0.01, max = 1,
+             help = "Span used when smooth_method='loess'."),
+        list(name = "bootstrap_n", type = "int", default = 0, min = 0, max = 10000,
+             help = "Bootstrap replicates per bin for confidence bands; 0 disables CIs."),
+        list(name = "bootstrap_seed", type = "int", default = 1, min = 1,
+             help = "Random seed for bootstrap confidence bands."),
+        list(name = "ci_level", type = "dbl", default = 0.95, min = 0.5, max = 0.999,
+             help = "Confidence level for bootstrap bands."),
+        list(name = "class_min_amplitude", type = "dbl", default = 0, min = 0,
+             help = "Minimum amplitude required before assigning non-flat curve classes.")
+      ),
+      interface_produces = list(
+        signature_table = list(
+          kind = "obs_table",
+          description = "Binned feature-set score curves along trajectory pseudotime."
+        ),
+        dynamics_table = list(
+          kind = "obs_table",
+          description = "Per-feature-set dynamic metrics and rank."
+        ),
+        top_sets = list(
+          kind = "obs_table",
+          description = "Top-ranked dynamic feature sets for report-first discovery."
+        ),
+        driver_table = list(
+          kind = "obs_table",
+          description = "Top dynamic member genes within each screened feature set."
+        ),
+        driver_curve_table = list(
+          kind = "obs_table",
+          description = "Binned curves for top driver genes within each screened feature set."
+        ),
+        fit_summary = list(
+          kind = "obs_table",
+          description = "Per-lineage screening diagnostics."
         )
       )
     ),

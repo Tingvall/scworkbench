@@ -453,6 +453,803 @@ wb_op_trajectory_signature_smooth <- function(bundle,
   )
 }
 
+#' @keywords internal
+.wb_trajectory_geneset_dynamic_metrics <- function(curve) {
+  yy <- suppressWarnings(as.numeric(curve$value))
+  xx <- suppressWarnings(as.numeric(curve$pseudotime))
+  bb <- suppressWarnings(as.integer(curve$bin))
+  keep <- is.finite(yy) & is.finite(xx) & is.finite(bb)
+  yy <- yy[keep]
+  xx <- xx[keep]
+  bb <- bb[keep]
+
+  if (!length(yy)) {
+    return(list(
+      n_bins_observed = 0L,
+      amplitude = NA_real_,
+      sd_value = NA_real_,
+      early_mean = NA_real_,
+      late_mean = NA_real_,
+      late_minus_early = NA_real_,
+      spearman_rho = NA_real_,
+      dynamic_score = NA_real_,
+      peak_bin = NA_integer_,
+      trough_bin = NA_integer_,
+      peak_pseudotime = NA_real_,
+      trough_pseudotime = NA_real_
+    ))
+  }
+
+  oo <- order(bb, xx)
+  yy <- yy[oo]
+  xx <- xx[oo]
+  bb <- bb[oo]
+
+  n <- length(yy)
+  qn <- max(1L, ceiling(n * 0.2))
+  early <- yy[seq_len(qn)]
+  late <- yy[seq.int(max(1L, n - qn + 1L), n)]
+  pk <- which.max(yy)
+  tr <- which.min(yy)
+  amp <- suppressWarnings(max(yy, na.rm = TRUE) - min(yy, na.rm = TRUE))
+  sdv <- if (n >= 2L) suppressWarnings(stats::sd(yy, na.rm = TRUE)) else 0
+  rho <- if (n >= 3L && stats::sd(xx) > 0 && stats::sd(yy) > 0) {
+    suppressWarnings(stats::cor(xx, yy, method = "spearman", use = "complete.obs"))
+  } else {
+    NA_real_
+  }
+  delta <- suppressWarnings(mean(late, na.rm = TRUE) - mean(early, na.rm = TRUE))
+  dyn <- amp + sdv + abs(delta) + if (is.finite(rho)) abs(rho) * sdv else 0
+
+  list(
+    n_bins_observed = as.integer(n),
+    amplitude = as.numeric(amp),
+    sd_value = as.numeric(sdv),
+    early_mean = as.numeric(mean(early, na.rm = TRUE)),
+    late_mean = as.numeric(mean(late, na.rm = TRUE)),
+    late_minus_early = as.numeric(delta),
+    spearman_rho = as.numeric(rho),
+    dynamic_score = as.numeric(dyn),
+    peak_bin = as.integer(bb[pk]),
+    trough_bin = as.integer(bb[tr]),
+    peak_pseudotime = as.numeric(xx[pk]),
+    trough_pseudotime = as.numeric(xx[tr])
+  )
+}
+
+#' @keywords internal
+.wb_trajectory_geneset_curve_class <- function(late_minus_early,
+                                               spearman_rho,
+                                               amplitude = NA_real_,
+                                               peak_bin,
+                                               trough_bin,
+                                               n_bins_observed,
+                                               on_off_min_delta = 0,
+                                               monotonic_min_abs_rho = 0.5,
+                                               class_min_amplitude = 0) {
+  delta <- suppressWarnings(as.numeric(late_minus_early)[1])
+  rho <- suppressWarnings(as.numeric(spearman_rho)[1])
+  amp <- suppressWarnings(as.numeric(amplitude)[1])
+  peak_bin <- suppressWarnings(as.integer(peak_bin)[1])
+  trough_bin <- suppressWarnings(as.integer(trough_bin)[1])
+  n_bins <- suppressWarnings(as.integer(n_bins_observed)[1])
+  if (!is.finite(delta)) delta <- 0
+  if (!is.finite(rho)) rho <- 0
+  if (!is.finite(amp)) amp <- 0
+  if (!is.finite(on_off_min_delta) || on_off_min_delta < 0) on_off_min_delta <- 0
+  if (!is.finite(monotonic_min_abs_rho) || monotonic_min_abs_rho < 0) monotonic_min_abs_rho <- 0.5
+  if (!is.finite(class_min_amplitude) || class_min_amplitude < 0) class_min_amplitude <- 0
+
+  peak_internal <- is.finite(peak_bin) && is.finite(n_bins) && peak_bin > 1L && peak_bin < n_bins
+  trough_internal <- is.finite(trough_bin) && is.finite(n_bins) && trough_bin > 1L && trough_bin < n_bins
+
+  if (amp < class_min_amplitude) return("flat_or_noisy")
+  if (abs(delta) >= on_off_min_delta && rho >= monotonic_min_abs_rho) return("turns_on")
+  if (abs(delta) >= on_off_min_delta && rho <= -monotonic_min_abs_rho) return("turns_off")
+  if (peak_internal && amp >= class_min_amplitude) return("transient_peak")
+  if (trough_internal && amp >= class_min_amplitude) return("transient_dip")
+  if (delta > 0) return("weak_on")
+  if (delta < 0) return("weak_off")
+  "flat_or_noisy"
+}
+
+#' @keywords internal
+.wb_trajectory_geneset_smooth_fun <- function(smooth_method) {
+  sm <- as.character(smooth_method %||% "none")[1]
+  if (!nzchar(sm)) sm <- "none"
+  .wb_assert(sm %in% c("none", "loess", "spline"),
+             "trajectory_geneset_dynamics: smooth_method must be 'none', 'loess', or 'spline'.")
+  sm
+}
+
+#' @keywords internal
+.wb_trajectory_geneset_score_values <- function(m, score_method, rank_bg = NULL) {
+  score_method <- as.character(score_method %||% "mean")[1]
+  if (!nzchar(score_method)) score_method <- "mean"
+  .wb_assert(score_method %in% c("mean", "sum", "rank_mean"),
+             "trajectory_geneset_dynamics: score_method must be 'mean', 'sum', or 'rank_mean'.")
+  if (identical(score_method, "sum")) return(colSums(m, na.rm = TRUE))
+  if (identical(score_method, "rank_mean")) {
+    bg <- rank_bg
+    if (is.null(bg)) bg <- m
+    .wb_assert(is.matrix(bg) || is.data.frame(bg), "trajectory_geneset_dynamics: rank_mean background must be matrix-like.")
+    bg <- as.matrix(bg)
+    rr <- apply(bg, 2L, function(z) rank(z, ties.method = "average", na.last = "keep"))
+    if (is.null(dim(rr))) rr <- matrix(rr, ncol = 1L, dimnames = list(rownames(bg), colnames(bg)))
+    idx <- match(rownames(m), rownames(rr))
+    idx <- idx[is.finite(idx)]
+    .wb_assert(length(idx) > 0L, "trajectory_geneset_dynamics: rank_mean set has no overlap with rank background.")
+    return(colMeans(rr[idx, , drop = FALSE], na.rm = TRUE))
+  }
+  colMeans(m, na.rm = TRUE)
+}
+
+#' @keywords internal
+.wb_trajectory_geneset_apply_smoothing <- function(agg, smooth_method = "none", loess_span = 0.5) {
+  if (is.null(agg) || !nrow(agg)) return(agg)
+  smooth_method <- .wb_trajectory_geneset_smooth_fun(smooth_method)
+  agg$value_raw <- suppressWarnings(as.numeric(agg$value))
+  agg$value_smooth <- agg$value_raw
+  if (!identical(smooth_method, "none") && nrow(agg) >= 5L) {
+    xx <- suppressWarnings(as.numeric(agg$pseudotime))
+    yy <- suppressWarnings(as.numeric(agg$value_raw))
+    keep <- is.finite(xx) & is.finite(yy)
+    if (sum(keep) >= 5L && stats::sd(xx[keep]) > 0 && stats::sd(yy[keep]) > 0) {
+      pred <- rep(NA_real_, length(yy))
+      if (identical(smooth_method, "loess")) {
+        sp <- suppressWarnings(as.numeric(loess_span)[1])
+        if (!is.finite(sp) || sp <= 0 || sp > 1) sp <- 0.5
+        fit <- try(stats::loess(yy[keep] ~ xx[keep], span = sp, degree = 2L, surface = "direct"), silent = TRUE)
+        if (!inherits(fit, "try-error")) pred[keep] <- suppressWarnings(stats::predict(fit, newdata = xx[keep]))
+      } else if (identical(smooth_method, "spline")) {
+        fit <- try(stats::smooth.spline(x = xx[keep], y = yy[keep]), silent = TRUE)
+        if (!inherits(fit, "try-error")) pred[keep] <- suppressWarnings(stats::predict(fit, x = xx[keep])$y)
+      }
+      ok <- is.finite(pred)
+      agg$value_smooth[ok] <- pred[ok]
+    }
+  }
+  agg$value <- if (identical(smooth_method, "none")) agg$value_raw else agg$value_smooth
+  agg
+}
+
+#' @keywords internal
+.wb_trajectory_geneset_bootstrap_ci <- function(pt,
+                                                values,
+                                                bins,
+                                                n_bins_used,
+                                                summary_fun = "mean",
+                                                bootstrap_n = 0L,
+                                                ci_level = 0.95,
+                                                seed = 1L) {
+  bootstrap_n <- suppressWarnings(as.integer(bootstrap_n))
+  if (!is.finite(bootstrap_n) || bootstrap_n <= 0L) {
+    return(data.frame(bin = seq_len(n_bins_used), value_se = NA_real_, value_ci_low = NA_real_,
+                      value_ci_high = NA_real_, stringsAsFactors = FALSE))
+  }
+  ci_level <- suppressWarnings(as.numeric(ci_level)[1])
+  if (!is.finite(ci_level) || ci_level <= 0 || ci_level >= 1) ci_level <- 0.95
+  ss_fun <- if (identical(summary_fun, "median")) stats::median else base::mean
+  alpha <- (1 - ci_level) / 2
+  old_seed <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) get(".Random.seed", envir = .GlobalEnv) else NULL
+  on.exit({
+    if (!is.null(old_seed)) assign(".Random.seed", old_seed, envir = .GlobalEnv)
+  }, add = TRUE)
+  seed <- suppressWarnings(as.integer(seed)[1])
+  if (!is.finite(seed)) seed <- 1L
+  set.seed(seed)
+  rows <- lapply(seq_len(n_bins_used), function(bb) {
+    idx <- which(is.finite(pt) & is.finite(values) & is.finite(bins) & bins == bb)
+    if (!length(idx)) {
+      return(data.frame(bin = bb, value_se = NA_real_, value_ci_low = NA_real_, value_ci_high = NA_real_))
+    }
+    vals <- as.numeric(values[idx])
+    boot <- replicate(bootstrap_n, ss_fun(sample(vals, length(vals), replace = TRUE), na.rm = TRUE))
+    data.frame(
+      bin = as.integer(bb),
+      value_se = as.numeric(stats::sd(boot, na.rm = TRUE)),
+      value_ci_low = as.numeric(stats::quantile(boot, probs = alpha, na.rm = TRUE, names = FALSE)),
+      value_ci_high = as.numeric(stats::quantile(boot, probs = 1 - alpha, na.rm = TRUE, names = FALSE)),
+      stringsAsFactors = FALSE
+    )
+  })
+  do.call(rbind, rows)
+}
+
+#' @keywords internal
+.wb_trajectory_geneset_curve <- function(entity_id,
+                                         lineage_id,
+                                         pt,
+                                         values,
+                                         bins,
+                                         n_bins_used,
+                                         min_cells_per_bin,
+                                         summary_fun,
+                                         smooth_method,
+                                         loess_span,
+                                         bootstrap_n,
+                                         ci_level,
+                                         seed) {
+  agg <- .wb_trajectory_smooth_aggregate_one(
+    entity_id = entity_id,
+    lineage_id = lineage_id,
+    pt = pt,
+    values = values,
+    bins = bins,
+    min_cells_per_bin = min_cells_per_bin,
+    value_col = "value",
+    summary_fun = summary_fun
+  )
+  if (is.null(agg) || !nrow(agg)) return(NULL)
+  agg <- .wb_trajectory_geneset_apply_smoothing(agg, smooth_method = smooth_method, loess_span = loess_span)
+  ci <- .wb_trajectory_geneset_bootstrap_ci(
+    pt = pt,
+    values = values,
+    bins = bins,
+    n_bins_used = n_bins_used,
+    summary_fun = summary_fun,
+    bootstrap_n = bootstrap_n,
+    ci_level = ci_level,
+    seed = seed
+  )
+  merge(agg, ci, by = "bin", all.x = TRUE, sort = FALSE)
+}
+
+#' Screen Feature-Set Dynamics Along A Trajectory
+#'
+#' Scores every feature set in a namespace per cell, smooths the scores over
+#' trajectory pseudotime bins, and ranks feature sets by dynamic behavior.
+#'
+#' This is a discovery op for broad pathway or GSEA-style libraries already
+#' imported into the bundle as feature sets.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix identifier.
+#' @param model A `model_ref` primitive from trajectory fitting.
+#' @param namespace Feature-set namespace to screen.
+#' @param cells Optional effective cell IDs to restrict analysis.
+#' @param lineage Optional lineage key subset.
+#' @param feature_sets Optional explicit feature-set subset within `namespace`.
+#' @param score_method One of `"mean"`, `"sum"`, or `"rank_mean"` across genes within each cell.
+#' @param n_bins Number of pseudotime bins.
+#' @param summary_fun One of `"mean"` or `"median"` across cells within each bin.
+#' @param min_cells_per_bin Minimum cells required for an output bin.
+#' @param min_set_size Minimum feature-set size after matrix intersection.
+#' @param max_set_size Maximum feature-set size after matrix intersection.
+#' @param top_n Optional number of top-ranked sets retained in `top_sets`.
+#' @param on_off_min_delta Minimum absolute late-early delta for on/off classes.
+#' @param monotonic_min_abs_rho Minimum absolute Spearman rho for on/off classes.
+#' @param top_driver_genes Number of top member genes retained as curve drivers.
+#' @param pseudotime_direction One of `"as_is"` or `"invert"`.
+#' @param start_label Optional label for the biological start of pseudotime.
+#' @param end_label Optional label for the biological end of pseudotime.
+#' @param min_amplitude Minimum amplitude required for `passes_filters`.
+#' @param min_bins_observed Minimum binned curve rows required for `passes_filters`.
+#' @param min_features_detected Minimum number of detected set members.
+#' @param min_detected_fraction Minimum fraction of detected set members.
+#' @param smooth_method One of `"none"`, `"loess"`, or `"spline"`.
+#' @param loess_span Span for loess smoothing.
+#' @param bootstrap_n Bootstrap replicates per bin for confidence bands. Disabled when 0.
+#' @param bootstrap_seed Random seed for bootstrap confidence bands.
+#' @param ci_level Confidence interval level for bootstrap bands.
+#' @param class_min_amplitude Minimum amplitude for non-flat curve classes.
+#'
+#' @return A standard op result list with `outputs` containing `signature_table`,
+#'   `dynamics_table`, `top_sets`, `driver_table`, `driver_curve_table`, and
+#'   `fit_summary`.
+#'
+#' @export
+wb_op_trajectory_geneset_dynamics <- function(bundle,
+                                              matrix_id,
+                                              model,
+                                              namespace,
+                                              cells = NULL,
+                                              lineage = NULL,
+                                              feature_sets = NULL,
+                                              score_method = "mean",
+                                              n_bins = 50L,
+                                              summary_fun = "mean",
+                                              min_cells_per_bin = 5L,
+                                              min_set_size = 5L,
+                                              max_set_size = 5000L,
+                                              top_n = 50L,
+                                              on_off_min_delta = 0,
+                                              monotonic_min_abs_rho = 0.5,
+                                              top_driver_genes = 5L,
+                                              pseudotime_direction = "as_is",
+                                              start_label = NULL,
+                                              end_label = NULL,
+                                              min_amplitude = 0,
+                                              min_bins_observed = 5L,
+                                              min_features_detected = 1L,
+                                              min_detected_fraction = 0,
+                                              smooth_method = "none",
+                                              loess_span = 0.5,
+                                              bootstrap_n = 0L,
+                                              bootstrap_seed = 1L,
+                                              ci_level = 0.95,
+                                              class_min_amplitude = 0) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
+  .wb_assert_kind(model, "model_ref")
+  .wb_assert(is.character(namespace) && length(namespace) == 1 && nzchar(namespace), "namespace invalid")
+
+  score_method <- as.character(score_method %||% "mean")[1]
+  if (!nzchar(score_method)) score_method <- "mean"
+  .wb_assert(score_method %in% c("mean", "sum", "rank_mean"),
+             "trajectory_geneset_dynamics: score_method must be 'mean', 'sum', or 'rank_mean'.")
+  summary_fun <- .wb_trajectory_smooth_summary_fun(summary_fun)
+  min_cells_per_bin <- suppressWarnings(as.integer(min_cells_per_bin))
+  min_set_size <- suppressWarnings(as.integer(min_set_size))
+  max_set_size <- suppressWarnings(as.integer(max_set_size))
+  top_n <- suppressWarnings(as.integer(top_n))
+  on_off_min_delta <- suppressWarnings(as.numeric(on_off_min_delta))
+  monotonic_min_abs_rho <- suppressWarnings(as.numeric(monotonic_min_abs_rho))
+  top_driver_genes <- suppressWarnings(as.integer(top_driver_genes))
+  pseudotime_direction <- as.character(pseudotime_direction %||% "as_is")[1]
+  if (!nzchar(pseudotime_direction)) pseudotime_direction <- "as_is"
+  .wb_assert(pseudotime_direction %in% c("as_is", "invert"),
+             "trajectory_geneset_dynamics: pseudotime_direction must be 'as_is' or 'invert'.")
+  start_label <- as.character(start_label %||% NA_character_)[1]
+  end_label <- as.character(end_label %||% NA_character_)[1]
+  min_amplitude <- suppressWarnings(as.numeric(min_amplitude)[1])
+  min_bins_observed <- suppressWarnings(as.integer(min_bins_observed)[1])
+  min_features_detected <- suppressWarnings(as.integer(min_features_detected)[1])
+  min_detected_fraction <- suppressWarnings(as.numeric(min_detected_fraction)[1])
+  smooth_method <- .wb_trajectory_geneset_smooth_fun(smooth_method)
+  loess_span <- suppressWarnings(as.numeric(loess_span)[1])
+  bootstrap_n <- suppressWarnings(as.integer(bootstrap_n)[1])
+  bootstrap_seed <- suppressWarnings(as.integer(bootstrap_seed)[1])
+  ci_level <- suppressWarnings(as.numeric(ci_level)[1])
+  class_min_amplitude <- suppressWarnings(as.numeric(class_min_amplitude)[1])
+  .wb_assert(is.finite(min_cells_per_bin) && min_cells_per_bin >= 1L,
+             "trajectory_geneset_dynamics: min_cells_per_bin must be >= 1.")
+  .wb_assert(is.finite(min_set_size) && min_set_size >= 1L,
+             "trajectory_geneset_dynamics: min_set_size must be >= 1.")
+  .wb_assert(is.finite(max_set_size) && max_set_size >= min_set_size,
+             "trajectory_geneset_dynamics: max_set_size must be >= min_set_size.")
+  if (!is.finite(top_n) || top_n < 1L) top_n <- 50L
+  if (!is.finite(on_off_min_delta) || on_off_min_delta < 0) on_off_min_delta <- 0
+  if (!is.finite(monotonic_min_abs_rho) || monotonic_min_abs_rho < 0) monotonic_min_abs_rho <- 0.5
+  if (!is.finite(top_driver_genes) || top_driver_genes < 0L) top_driver_genes <- 5L
+  if (!is.finite(min_amplitude) || min_amplitude < 0) min_amplitude <- 0
+  if (!is.finite(min_bins_observed) || min_bins_observed < 1L) min_bins_observed <- 5L
+  if (!is.finite(min_features_detected) || min_features_detected < 0L) min_features_detected <- 1L
+  if (!is.finite(min_detected_fraction) || min_detected_fraction < 0) min_detected_fraction <- 0
+  if (min_detected_fraction > 1) min_detected_fraction <- 1
+  if (!is.finite(loess_span) || loess_span <= 0 || loess_span > 1) loess_span <- 0.5
+  if (!is.finite(bootstrap_n) || bootstrap_n < 0L) bootstrap_n <- 0L
+  if (!is.finite(bootstrap_seed)) bootstrap_seed <- 1L
+  if (!is.finite(ci_level) || ci_level <= 0 || ci_level >= 1) ci_level <- 0.95
+  if (!is.finite(class_min_amplitude) || class_min_amplitude < 0) class_min_amplitude <- 0
+
+  fs_info <- wb_feature_sets(bundle, matrix_id = matrix_id, namespace = namespace)
+  .wb_assert(is.data.frame(fs_info) && nrow(fs_info) > 0L,
+             paste0("trajectory_geneset_dynamics: no feature sets found for namespace='", namespace, "'."))
+  set_names <- unique(as.character(fs_info$feature_set))
+  set_names <- set_names[nzchar(set_names)]
+  if (!is.null(feature_sets)) {
+    feature_sets <- unique(as.character(feature_sets))
+    feature_sets <- feature_sets[nzchar(feature_sets)]
+    .wb_assert(length(feature_sets) > 0L, "trajectory_geneset_dynamics: feature_sets is empty after cleaning.")
+    set_names <- intersect(set_names, feature_sets)
+  }
+  .wb_assert(length(set_names) > 0L, "trajectory_geneset_dynamics: no feature sets remain after filtering.")
+
+  universe <- unique(as.character(wb_feature_ids(bundle, matrix_id = matrix_id)))
+  universe <- universe[nzchar(universe)]
+  .wb_assert(length(universe) > 0L, "trajectory_geneset_dynamics: no feature universe for matrix_id.")
+
+  set_members <- list()
+  for (sn in set_names) {
+    feats <- unique(intersect(as.character(wb_feature_set_get(bundle, feature_set = sn, matrix_id = matrix_id)), universe))
+    feats <- feats[nzchar(feats)]
+    if (length(feats) < min_set_size || length(feats) > max_set_size) next
+    set_members[[sn]] <- feats
+  }
+  .wb_assert(length(set_members) > 0L, "trajectory_geneset_dynamics: no feature sets pass size filters.")
+
+  lineages <- .wb_trajectory_smooth_resolve_lineages(model = model, lineage = lineage, cells = cells)
+
+  curve_rows <- list()
+  dyn_rows <- list()
+  driver_rows <- list()
+  driver_curve_rows <- list()
+  fit_rows <- list()
+  ci <- 0L
+  di <- 0L
+  gi <- 0L
+  dci <- 0L
+  si <- 0L
+
+  for (lin in names(lineages)) {
+    df_lin <- lineages[[lin]]
+    pt <- suppressWarnings(as.numeric(df_lin$pseudotime))
+    names(pt) <- as.character(df_lin$cell_id)
+    keep <- is.finite(pt)
+    pt <- pt[keep]
+    if (identical(pseudotime_direction, "invert")) {
+      pt <- max(pt, na.rm = TRUE) - pt
+    }
+    cells_lin <- as.character(names(pt))
+    .wb_assert(length(cells_lin) >= 10L,
+               paste0("trajectory_geneset_dynamics: lineage '", lin, "' has <10 finite pseudotime cells."))
+    .wb_assert(stats::sd(pt) > 0,
+               paste0("trajectory_geneset_dynamics: lineage '", lin, "' has zero pseudotime variance."))
+
+    bb <- .wb_trajectory_smooth_bins(pt, n_bins = n_bins)
+    bins <- bb$bins
+    n_bins_used <- bb$n_bins
+    n_sets_with_rows <- 0L
+    n_curve_rows <- 0L
+    rank_bg <- NULL
+    if (identical(score_method, "rank_mean")) {
+      bg_feats <- unique(unlist(set_members, use.names = FALSE))
+      bg_feats <- bg_feats[nzchar(bg_feats)]
+      rank_bg <- as.matrix(wb_slice(bundle, matrix_id = matrix_id, features = bg_feats, cells = cells_lin))
+    }
+
+    for (sn in names(set_members)) {
+      feats <- set_members[[sn]]
+      x <- wb_slice(bundle, matrix_id = matrix_id, features = feats, cells = cells_lin)
+      m <- as.matrix(x)
+      n_features_detected <- as.integer(sum(rowSums(m > 0, na.rm = TRUE) > 0))
+      detected_fraction <- if (nrow(m) > 0L) n_features_detected / nrow(m) else 0
+      sig <- .wb_trajectory_geneset_score_values(m, score_method = score_method, rank_bg = rank_bg)
+
+      agg <- .wb_trajectory_geneset_curve(
+        entity_id = sn,
+        lineage_id = lin,
+        pt = pt,
+        values = as.numeric(sig),
+        bins = bins,
+        n_bins_used = n_bins_used,
+        min_cells_per_bin = min_cells_per_bin,
+        summary_fun = summary_fun,
+        smooth_method = smooth_method,
+        loess_span = loess_span,
+        bootstrap_n = bootstrap_n,
+        ci_level = ci_level,
+        seed = bootstrap_seed + di + 1L
+      )
+      if (is.null(agg) || !nrow(agg)) next
+
+      agg$feature_set <- as.character(agg$entity_id)
+      agg$namespace <- as.character(namespace)
+      agg$n_features <- as.integer(length(feats))
+      agg$n_features_detected <- as.integer(n_features_detected)
+      agg$detected_fraction <- as.numeric(detected_fraction)
+      agg$label <- as.character(agg$feature_set)
+      agg <- agg[, c("feature_set", "namespace", "lineage_id", "bin", "pseudotime", "pseudotime_min",
+                     "pseudotime_max", "value", "value_raw", "value_smooth", "value_se", "value_ci_low",
+                     "value_ci_high", "n_cells", "n_features", "n_features_detected",
+                     "detected_fraction", "label"), drop = FALSE]
+
+      mm <- .wb_trajectory_geneset_dynamic_metrics(agg)
+      curve_class <- .wb_trajectory_geneset_curve_class(
+        late_minus_early = mm$late_minus_early,
+        spearman_rho = mm$spearman_rho,
+        amplitude = mm$amplitude,
+        peak_bin = mm$peak_bin,
+        trough_bin = mm$trough_bin,
+        n_bins_observed = mm$n_bins_observed,
+        on_off_min_delta = on_off_min_delta,
+        monotonic_min_abs_rho = monotonic_min_abs_rho,
+        class_min_amplitude = class_min_amplitude
+      )
+      filter_reasons <- character(0)
+      if (!is.finite(mm$amplitude) || mm$amplitude < min_amplitude) filter_reasons <- c(filter_reasons, "low_amplitude")
+      if (!is.finite(mm$n_bins_observed) || mm$n_bins_observed < min_bins_observed) filter_reasons <- c(filter_reasons, "too_few_bins")
+      if (n_features_detected < min_features_detected) filter_reasons <- c(filter_reasons, "too_few_detected_features")
+      if (detected_fraction < min_detected_fraction) filter_reasons <- c(filter_reasons, "low_detected_fraction")
+      passes_filters <- length(filter_reasons) == 0L
+      di <- di + 1L
+      dyn_rows[[di]] <- data.frame(
+        feature_set = as.character(sn),
+        namespace = as.character(namespace),
+        lineage_id = as.character(lin),
+        curve_class = as.character(curve_class),
+        n_features = as.integer(length(feats)),
+        n_features_detected = as.integer(n_features_detected),
+        detected_fraction = as.numeric(detected_fraction),
+        n_bins_observed = as.integer(mm$n_bins_observed),
+        passes_filters = as.logical(passes_filters),
+        filter_reason = if (passes_filters) "" else paste(filter_reasons, collapse = ";"),
+        amplitude = as.numeric(mm$amplitude),
+        sd_value = as.numeric(mm$sd_value),
+        early_mean = as.numeric(mm$early_mean),
+        late_mean = as.numeric(mm$late_mean),
+        late_minus_early = as.numeric(mm$late_minus_early),
+        spearman_rho = as.numeric(mm$spearman_rho),
+        abs_spearman_rho = as.numeric(abs(mm$spearman_rho)),
+        dynamic_score = as.numeric(mm$dynamic_score),
+        peak_bin = as.integer(mm$peak_bin),
+        trough_bin = as.integer(mm$trough_bin),
+        peak_pseudotime = as.numeric(mm$peak_pseudotime),
+        trough_pseudotime = as.numeric(mm$trough_pseudotime),
+        stringsAsFactors = FALSE
+      )
+
+      if (top_driver_genes > 0L && length(feats) > 0L) {
+        gene_rows <- list()
+        gene_curve_by_feature <- list()
+        for (g in seq_len(nrow(m))) {
+          gagg <- .wb_trajectory_geneset_curve(
+            entity_id = rownames(m)[g],
+            lineage_id = lin,
+            pt = pt,
+            values = as.numeric(m[g, ]),
+            bins = bins,
+            n_bins_used = n_bins_used,
+            min_cells_per_bin = min_cells_per_bin,
+            summary_fun = summary_fun,
+            smooth_method = smooth_method,
+            loess_span = loess_span,
+            bootstrap_n = bootstrap_n,
+            ci_level = ci_level,
+            seed = bootstrap_seed + di + g + 1L
+          )
+          if (is.null(gagg) || !nrow(gagg)) next
+          gm <- .wb_trajectory_geneset_dynamic_metrics(gagg)
+          gene_curve_by_feature[[as.character(rownames(m)[g])]] <- gagg
+          gene_rows[[length(gene_rows) + 1L]] <- data.frame(
+            feature_set = as.character(sn),
+            namespace = as.character(namespace),
+            lineage_id = as.character(lin),
+            feature_id = as.character(rownames(m)[g]),
+            n_bins_observed = as.integer(gm$n_bins_observed),
+            amplitude = as.numeric(gm$amplitude),
+            late_minus_early = as.numeric(gm$late_minus_early),
+            spearman_rho = as.numeric(gm$spearman_rho),
+            dynamic_score = as.numeric(gm$dynamic_score),
+            stringsAsFactors = FALSE
+          )
+        }
+        if (length(gene_rows)) {
+          gt <- do.call(rbind, gene_rows)
+          gt <- gt[order(-gt$dynamic_score, -gt$amplitude), , drop = FALSE]
+          gt$driver_rank <- seq_len(nrow(gt))
+          gt <- head(gt, min(top_driver_genes, nrow(gt)))
+          gi <- gi + 1L
+          driver_rows[[gi]] <- gt
+          for (ii in seq_len(nrow(gt))) {
+            fid <- as.character(gt$feature_id[ii])
+            gcurve <- gene_curve_by_feature[[fid]]
+            if (is.null(gcurve) || !nrow(gcurve)) next
+            gcurve$feature_set <- as.character(sn)
+            gcurve$namespace <- as.character(namespace)
+            gcurve$feature_id <- fid
+            gcurve$driver_rank <- as.integer(gt$driver_rank[ii])
+            gcurve$label <- fid
+            gcurve <- gcurve[, c("feature_set", "namespace", "feature_id", "driver_rank", "lineage_id",
+                                 "bin", "pseudotime", "pseudotime_min", "pseudotime_max", "value",
+                                 "value_raw", "value_smooth", "value_se", "value_ci_low", "value_ci_high",
+                                 "n_cells", "label"), drop = FALSE]
+            dci <- dci + 1L
+            driver_curve_rows[[dci]] <- gcurve
+          }
+        }
+      }
+
+      ci <- ci + 1L
+      curve_rows[[ci]] <- agg
+      n_sets_with_rows <- n_sets_with_rows + 1L
+      n_curve_rows <- n_curve_rows + nrow(agg)
+    }
+
+    si <- si + 1L
+    fit_rows[[si]] <- data.frame(
+      lineage_id = as.character(lin),
+      namespace = as.character(namespace),
+      n_cells_used = as.integer(length(cells_lin)),
+      n_feature_sets_input = as.integer(length(set_names)),
+      n_feature_sets_screened = as.integer(length(set_members)),
+      n_feature_sets_with_rows = as.integer(n_sets_with_rows),
+      n_rows = as.integer(n_curve_rows),
+      n_bins = as.integer(n_bins_used),
+      score_method = as.character(score_method),
+      summary_fun = as.character(summary_fun),
+      min_cells_per_bin = as.integer(min_cells_per_bin),
+      min_set_size = as.integer(min_set_size),
+      max_set_size = as.integer(max_set_size),
+      on_off_min_delta = as.numeric(on_off_min_delta),
+      monotonic_min_abs_rho = as.numeric(monotonic_min_abs_rho),
+      pseudotime_direction = as.character(pseudotime_direction),
+      start_label = as.character(start_label),
+      end_label = as.character(end_label),
+      min_amplitude = as.numeric(min_amplitude),
+      min_bins_observed = as.integer(min_bins_observed),
+      min_features_detected = as.integer(min_features_detected),
+      min_detected_fraction = as.numeric(min_detected_fraction),
+      smooth_method = as.character(smooth_method),
+      loess_span = as.numeric(loess_span),
+      bootstrap_n = as.integer(bootstrap_n),
+      ci_level = as.numeric(ci_level),
+      class_min_amplitude = as.numeric(class_min_amplitude),
+      top_driver_genes = as.integer(top_driver_genes),
+      matrix_id = as.character(matrix_id),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  curve_tbl <- if (ci == 0L) {
+    data.frame(
+      feature_set = character(0), namespace = character(0), lineage_id = character(0),
+      bin = integer(0), pseudotime = numeric(0), pseudotime_min = numeric(0),
+      pseudotime_max = numeric(0), value = numeric(0), value_raw = numeric(0),
+      value_smooth = numeric(0), value_se = numeric(0), value_ci_low = numeric(0),
+      value_ci_high = numeric(0), n_cells = integer(0), n_features = integer(0),
+      n_features_detected = integer(0), detected_fraction = numeric(0),
+      label = character(0), stringsAsFactors = FALSE
+    )
+  } else {
+    out <- do.call(rbind, curve_rows[seq_len(ci)])
+    rownames(out) <- NULL
+    out
+  }
+  dyn_tbl <- if (di == 0L) {
+    data.frame(
+      feature_set = character(0), namespace = character(0), lineage_id = character(0),
+      curve_class = character(0), n_features = integer(0), n_features_detected = integer(0),
+      detected_fraction = numeric(0), n_bins_observed = integer(0), passes_filters = logical(0),
+      filter_reason = character(0), amplitude = numeric(0),
+      sd_value = numeric(0), early_mean = numeric(0), late_mean = numeric(0),
+      late_minus_early = numeric(0), spearman_rho = numeric(0), abs_spearman_rho = numeric(0),
+      dynamic_score = numeric(0), peak_bin = integer(0), trough_bin = integer(0),
+      peak_pseudotime = numeric(0), trough_pseudotime = numeric(0), rank = integer(0),
+      stringsAsFactors = FALSE
+    )
+  } else {
+    out <- do.call(rbind, dyn_rows[seq_len(di)])
+    out <- out[order(as.character(out$lineage_id), -out$dynamic_score, -out$amplitude, -out$sd_value), , drop = FALSE]
+    out$rank <- ave(seq_len(nrow(out)), as.character(out$lineage_id), FUN = seq_along)
+    rownames(out) <- NULL
+    out
+  }
+  eligible_dyn <- dyn_tbl[dyn_tbl$passes_filters %in% TRUE, , drop = FALSE]
+  if (!nrow(eligible_dyn)) eligible_dyn <- dyn_tbl
+  driver_tbl <- if (gi == 0L) {
+    data.frame(
+      feature_set = character(0), namespace = character(0), lineage_id = character(0),
+      feature_id = character(0), n_bins_observed = integer(0), amplitude = numeric(0),
+      late_minus_early = numeric(0), spearman_rho = numeric(0), dynamic_score = numeric(0),
+      driver_rank = integer(0), stringsAsFactors = FALSE
+    )
+  } else {
+    out <- do.call(rbind, driver_rows[seq_len(gi)])
+    rownames(out) <- NULL
+    out
+  }
+  driver_curve_tbl <- if (dci == 0L) {
+    data.frame(
+      feature_set = character(0), namespace = character(0), feature_id = character(0),
+      driver_rank = integer(0), lineage_id = character(0), bin = integer(0),
+      pseudotime = numeric(0), pseudotime_min = numeric(0), pseudotime_max = numeric(0),
+      value = numeric(0), value_raw = numeric(0), value_smooth = numeric(0),
+      value_se = numeric(0), value_ci_low = numeric(0), value_ci_high = numeric(0),
+      n_cells = integer(0), label = character(0), stringsAsFactors = FALSE
+    )
+  } else {
+    out <- do.call(rbind, driver_curve_rows[seq_len(dci)])
+    rownames(out) <- NULL
+    out
+  }
+  top_tbl <- head(eligible_dyn[order(as.character(eligible_dyn$lineage_id), eligible_dyn$rank), , drop = FALSE], top_n)
+  fit_summary <- do.call(rbind, fit_rows[seq_len(si)])
+  rownames(fit_summary) <- NULL
+
+  list(
+    outputs = list(
+      signature_table = wb_prim_obs_table(
+        table = curve_tbl,
+        table_type = "trajectory_geneset_dynamics_curve",
+        entity_kind = "trajectory_bin",
+        meta = list(
+          matrix_id = as.character(matrix_id),
+          namespace = as.character(namespace),
+          score_method = as.character(score_method),
+          summary_fun = as.character(summary_fun),
+          min_cells_per_bin = as.integer(min_cells_per_bin),
+          min_set_size = as.integer(min_set_size),
+          max_set_size = as.integer(max_set_size),
+          on_off_min_delta = as.numeric(on_off_min_delta),
+          monotonic_min_abs_rho = as.numeric(monotonic_min_abs_rho),
+          pseudotime_direction = as.character(pseudotime_direction),
+          start_label = as.character(start_label),
+          end_label = as.character(end_label),
+          min_amplitude = as.numeric(min_amplitude),
+          min_bins_observed = as.integer(min_bins_observed),
+          min_features_detected = as.integer(min_features_detected),
+          min_detected_fraction = as.numeric(min_detected_fraction),
+          smooth_method = as.character(smooth_method),
+          loess_span = as.numeric(loess_span),
+          bootstrap_n = as.integer(bootstrap_n),
+          ci_level = as.numeric(ci_level),
+          n_bins = as.integer(unique(fit_summary$n_bins %||% n_bins)[1] %||% n_bins)
+        )
+      ),
+      dynamics_table = wb_prim_obs_table(
+        table = dyn_tbl,
+        table_type = "trajectory_geneset_dynamics",
+        entity_kind = "feature_set",
+        meta = list(
+          matrix_id = as.character(matrix_id),
+          namespace = as.character(namespace),
+          dynamic_score = "amplitude + sd_value + abs(late_minus_early) + abs(spearman_rho) * sd_value",
+          curve_class = "turns_on/turns_off/transient_peak/transient_dip/weak_on/weak_off/flat_or_noisy",
+          passes_filters = "min_amplitude, min_bins_observed, min_features_detected, min_detected_fraction"
+        )
+      ),
+      top_sets = wb_prim_obs_table(
+        table = top_tbl,
+        table_type = "trajectory_geneset_dynamics_top",
+        entity_kind = "feature_set",
+        meta = list(
+          matrix_id = as.character(matrix_id),
+          namespace = as.character(namespace),
+          top_n = as.integer(top_n)
+        )
+      ),
+      driver_table = wb_prim_obs_table(
+        table = driver_tbl,
+        table_type = "trajectory_geneset_dynamics_drivers",
+        entity_kind = "feature",
+        meta = list(
+          matrix_id = as.character(matrix_id),
+          namespace = as.character(namespace),
+          top_driver_genes = as.integer(top_driver_genes)
+        )
+      ),
+      driver_curve_table = wb_prim_obs_table(
+        table = driver_curve_tbl,
+        table_type = "trajectory_geneset_dynamics_driver_curve",
+        entity_kind = "trajectory_bin",
+        meta = list(
+          matrix_id = as.character(matrix_id),
+          namespace = as.character(namespace),
+          top_driver_genes = as.integer(top_driver_genes),
+          smooth_method = as.character(smooth_method),
+          bootstrap_n = as.integer(bootstrap_n)
+        )
+      ),
+      fit_summary = wb_prim_obs_table(
+        table = fit_summary,
+        table_type = "trajectory_geneset_dynamics_summary",
+        entity_kind = "lineage"
+      )
+    ),
+    params = list(
+      matrix_id = as.character(matrix_id),
+      namespace = as.character(namespace),
+      n_feature_sets_input = as.integer(length(set_names)),
+      n_feature_sets_screened = as.integer(length(set_members)),
+      n_lineages = as.integer(length(lineages)),
+      n_bins = as.integer(unique(fit_summary$n_bins %||% n_bins)[1] %||% n_bins),
+      score_method = as.character(score_method),
+      summary_fun = as.character(summary_fun),
+      min_cells_per_bin = as.integer(min_cells_per_bin),
+      min_set_size = as.integer(min_set_size),
+      max_set_size = as.integer(max_set_size),
+      top_n = as.integer(top_n),
+      on_off_min_delta = as.numeric(on_off_min_delta),
+      monotonic_min_abs_rho = as.numeric(monotonic_min_abs_rho),
+      top_driver_genes = as.integer(top_driver_genes),
+      pseudotime_direction = as.character(pseudotime_direction),
+      start_label = as.character(start_label),
+      end_label = as.character(end_label),
+      min_amplitude = as.numeric(min_amplitude),
+      min_bins_observed = as.integer(min_bins_observed),
+      min_features_detected = as.integer(min_features_detected),
+      min_detected_fraction = as.numeric(min_detected_fraction),
+      smooth_method = as.character(smooth_method),
+      loess_span = as.numeric(loess_span),
+      bootstrap_n = as.integer(bootstrap_n),
+      ci_level = as.numeric(ci_level),
+      class_min_amplitude = as.numeric(class_min_amplitude)
+    )
+  )
+}
+
 #' Compute Trajectory Smoothing For Cell-Level Signals
 #'
 #' Summarizes one or more cell-level signals along lineage pseudotime from a

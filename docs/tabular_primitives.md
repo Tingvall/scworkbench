@@ -73,6 +73,7 @@ Examples:
 - `trajectory_de` -> `feature_table`
 - `trajectory_smooth` -> `obs_table`
 - `trajectory_signature_smooth` -> `obs_table`
+- `trajectory_geneset_dynamics` -> `obs_table`
 
 What makes them trajectory-specific is:
 
@@ -120,3 +121,4 @@ alone is usually not enough for the right display or navigation behavior.
 - `trajectory_de` -> output `de_table` (`feature_table`, promotable)
 - `trajectory_smooth` -> output `trend_table` (`obs_table`, promotable)
 - `trajectory_signature_smooth` -> output `signature_table` (`obs_table`, promotable)
+- `trajectory_geneset_dynamics` -> outputs `signature_table`, `dynamics_table`, `top_sets`, `driver_table`, `driver_curve_table`, `fit_summary` (`obs_table`, promotable)

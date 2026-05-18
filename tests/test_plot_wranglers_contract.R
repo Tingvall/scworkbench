@@ -322,6 +322,51 @@ test_plot_wranglers_contract <- function(bundle_dir) {
     stopifnot(identical(sp_sig$geom, "line"))
     stopifnot(identical(sp_sig$encoding$x, "pseudotime"))
     stopifnot(identical(sp_sig$encoding$y, "value"))
+
+    r5 <- wb_session_run_op(
+      session = r4$session,
+      bundle = b,
+      op_name = "trajectory_geneset_dynamics",
+      inputs = list(
+        cell_set = "all",
+        cell_ids = cells,
+        matrix = wb_prim_matrix(mid),
+        model = wb_ref_run(r2$run$run_id, "model"),
+        namespace = "user",
+        feature_sets = fs_name,
+        lineage = pt_key,
+        n_bins = 20L,
+        min_cells_per_bin = 5L,
+        top_driver_genes = 2L,
+        smooth_method = "loess"
+      ),
+      notes = "plot wrangler test: trajectory_geneset_dynamics"
+    )
+
+    gset_curve <- r5$run$outputs$signature_table
+    ds_gset <- wb_wrangle_plot_dataset(
+      plot_type = "pseudotime_signature_line",
+      inputs = list(table = gset_curve),
+      bundle = b
+    )
+    stopifnot(is.data.frame(ds_gset$table), nrow(ds_gset$table) > 0)
+    stopifnot(all(c("feature_set", "pseudotime", "value", "value_raw", "value_smooth") %in% colnames(ds_gset$table)))
+    stopifnot(identical(ds_gset$dataset_type, "trajectory_geneset_dynamics_curve"))
+    wb_plot_validate_dataset("pseudotime_signature_line", ds_gset)
+
+    driver_curve <- r5$run$outputs$driver_curve_table
+    ds_driver <- wb_wrangle_plot_dataset(
+      plot_type = "pseudotime_signature_line",
+      inputs = list(table = driver_curve),
+      bundle = b
+    )
+    stopifnot(is.data.frame(ds_driver$table), nrow(ds_driver$table) > 0)
+    stopifnot(all(c("feature_set", "feature_id", "driver_rank", "pseudotime", "value") %in% colnames(ds_driver$table)))
+    stopifnot(identical(ds_driver$dataset_type, "trajectory_geneset_dynamics_driver_curve"))
+    wb_plot_validate_dataset("pseudotime_signature_line", ds_driver)
+    sp_driver <- wb_plot_spec("pseudotime_signature_line", ds_driver)
+    stopifnot(identical(sp_driver$encoding$color, "feature_id"))
+    stopifnot(identical(sp_driver$encoding$facet, "feature_set"))
   }
 
   TRUE

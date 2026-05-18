@@ -340,11 +340,30 @@ Implement the first engine-backed navigation contract for:
 
 - `trajectory_de`
 - `trajectory_smooth`
+- `trajectory_signature_smooth`
+- `trajectory_geneset_dynamics`
 
 Then make Shiny consume it for:
 
 - DE -> smooth
 - smooth -> DE
 - compare-in-other-panel actions
+- gene-set dynamics table -> gene-set curve
+- gene-set curve -> driver genes / driver-gene curves
+- driver-gene table -> driver-gene curve
+
+For `trajectory_geneset_dynamics`, the current source/target intent is:
+
+- `trajectory_geneset_dynamics` / `trajectory_geneset_dynamics_top`:
+  ranked `feature_set` entities can navigate to the matching
+  `trajectory_geneset_dynamics_curve` plot and to the matching driver-gene
+  table.
+- `trajectory_geneset_dynamics_curve`:
+  selected `feature_set` entities can navigate to driver genes and
+  driver-gene curves.
+- `trajectory_geneset_dynamics_drivers` /
+  `trajectory_geneset_dynamics_driver_curve`:
+  selected driver `feature` entities can navigate to the matching
+  driver-gene curve and parent gene-set curve.
 
 If that contract stays clean, extend it to other plot families later.

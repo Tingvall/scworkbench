@@ -136,6 +136,7 @@ Note:
 - `wb_op_monocle3_project`: Project a Monocle3 trajectory into 2D
 - `wb_op_slingshot`: Slingshot trajectory inference (2D space like UMAP)
 - `wb_op_trajectory_de`: Run per-lineage trajectory DE
+- `wb_op_trajectory_geneset_dynamics`: Screen feature-set dynamics along trajectory pseudotime
 - `wb_op_trajectory_signature_smooth`: Compute feature-set trajectory signatures
 - `wb_op_trajectory_smooth`: Compute per-feature trajectory smoothing
 - `wb_op_trajectory_vector_smooth`: Compute trajectory smoothing for cell-level signal families

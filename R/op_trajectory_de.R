@@ -66,6 +66,20 @@
 
 #' @keywords internal
 .wb_trajectory_de_resolve_pt <- function(model) {
+  pt_tbl <- model$pseudotime_table %||% model$pseudotime_df %||% NULL
+  if (is.data.frame(pt_tbl)) {
+    .wb_assert(all(c("lineage_id", "cell_id", "pseudotime") %in% colnames(pt_tbl)),
+               "trajectory_de: model_ref pseudotime_table must contain lineage_id, cell_id, and pseudotime.")
+    out <- pt_tbl[, c("lineage_id", "cell_id", "pseudotime"), drop = FALSE]
+    out$lineage_id <- as.character(out$lineage_id)
+    out$cell_id <- as.character(out$cell_id)
+    out$pseudotime <- suppressWarnings(as.numeric(out$pseudotime))
+    out <- out[nzchar(out$lineage_id) & nzchar(out$cell_id) & is.finite(out$pseudotime), , drop = FALSE]
+    .wb_assert(nrow(out) > 0L, "trajectory_de: model_ref pseudotime_table has no finite pseudotime rows.")
+    rownames(out) <- NULL
+    return(out)
+  }
+
   engine <- as.character(model$engine %||% "")[1]
   .wb_assert(nzchar(engine), "trajectory_de: model_ref is missing engine.")
 
