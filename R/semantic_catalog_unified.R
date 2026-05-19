@@ -729,13 +729,38 @@ wb_write_semantic_catalog_reference <- function(path_md = "docs/semantic_catalog
 #' Refresh All Semantic Catalog Reference Files
 #'
 #' Regenerates operation, getter, plot, wrangler, primitive, artifact-type, and
-#' unified semantic catalog docs/JSON.
+#' unified semantic catalog docs/JSON, then validates every generated JSON file
+#' and requires the semantic audit to pass by default.
 #'
 #' @param bundle Optional open bundle, passed through to op catalog export.
 #' @param docs_dir Output directory.
+#' @param validate If `TRUE`, validate every generated JSON file with
+#'   `jsonlite::validate()`.
+#' @param fail_on_audit If `TRUE`, error when `wb_semantic_catalog_audit()` is
+#'   not `ok`.
 #' @return Invisibly returns the semantic catalog audit.
 #' @export
-wb_refresh_semantic_catalogs <- function(bundle = NULL, docs_dir = "docs") {
+wb_refresh_semantic_catalogs <- function(bundle = NULL,
+                                         docs_dir = "docs",
+                                         validate = TRUE,
+                                         fail_on_audit = TRUE) {
+  json_paths <- file.path(
+    docs_dir,
+    c(
+      "op_catalog_semantic.json",
+      "getter_catalog_semantic.json",
+      "plot_catalog_semantic.json",
+      "wrangler_catalog_semantic.json",
+      "primitive_catalog_semantic.json",
+      "artifact_type_catalog_semantic.json",
+      "parameter_semantics_catalog.json",
+      "recipe_semantics_catalog.json",
+      "semantic_catalog.json",
+      "semantic_compatibility_graph.json",
+      "semantic_catalog_audit.json"
+    )
+  )
+
   wb_write_op_catalog_reference(
     path_md = file.path(docs_dir, "op_catalog_reference.md"),
     path_json = file.path(docs_dir, "op_catalog_semantic.json"),
@@ -776,5 +801,24 @@ wb_refresh_semantic_catalogs <- function(bundle = NULL, docs_dir = "docs") {
     path_audit = file.path(docs_dir, "semantic_catalog_audit.json"),
     bundle = bundle
   )
-  invisible(wb_semantic_catalog_audit(bundle = bundle))
+  audit <- wb_semantic_catalog_audit(bundle = bundle)
+  if (isTRUE(fail_on_audit)) {
+    .wb_assert(isTRUE(audit$ok), "Semantic catalog audit failed; inspect docs/semantic_catalog_audit.json.")
+  }
+
+  if (isTRUE(validate)) {
+    .wb_require_pkg("jsonlite", "semantic catalog validation")
+    missing <- json_paths[!file.exists(json_paths)]
+    .wb_assert(!length(missing), paste0("Missing semantic JSON files: ", paste(missing, collapse = ", ")))
+
+    invalid <- character(0)
+    for (path in json_paths) {
+      txt <- paste(readLines(path, warn = FALSE), collapse = "\n")
+      if (!isTRUE(jsonlite::validate(txt))) invalid <- c(invalid, path)
+    }
+    .wb_assert(!length(invalid), paste0("Invalid semantic JSON files: ", paste(invalid, collapse = ", ")))
+    audit$json_validated <- json_paths
+  }
+
+  invisible(audit)
 }

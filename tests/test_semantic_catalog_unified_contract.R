@@ -38,6 +38,12 @@ test_semantic_catalog_unified_contract <- function() {
   md <- readLines(file.path(tmp, "semantic.md"), warn = FALSE)
   stopifnot(any(grepl("^### `op:trajectory_geneset_dynamics`", md)))
 
+  tmp_refresh <- tempfile("semantic_refresh_")
+  audit2 <- wb_refresh_semantic_catalogs(docs_dir = tmp_refresh)
+  stopifnot(isTRUE(audit2$ok))
+  stopifnot(length(audit2$json_validated) == 11)
+  stopifnot(all(file.exists(audit2$json_validated)))
+
   TRUE
 }
 

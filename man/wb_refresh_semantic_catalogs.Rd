@@ -4,17 +4,29 @@
 \alias{wb_refresh_semantic_catalogs}
 \title{Refresh All Semantic Catalog Reference Files}
 \usage{
-wb_refresh_semantic_catalogs(bundle = NULL, docs_dir = "docs")
+wb_refresh_semantic_catalogs(
+  bundle = NULL,
+  docs_dir = "docs",
+  validate = TRUE,
+  fail_on_audit = TRUE
+)
 }
 \arguments{
 \item{bundle}{Optional open bundle, passed through to op catalog export.}
 
 \item{docs_dir}{Output directory.}
+
+\item{validate}{If \code{TRUE}, validate every generated JSON file with
+\code{jsonlite::validate()}.}
+
+\item{fail_on_audit}{If \code{TRUE}, error when \code{wb_semantic_catalog_audit()} is
+not \code{ok}.}
 }
 \value{
 Invisibly returns the semantic catalog audit.
 }
 \description{
 Regenerates operation, getter, plot, wrangler, primitive, artifact-type, and
-unified semantic catalog docs/JSON.
+unified semantic catalog docs/JSON, then validates every generated JSON file
+and requires the semantic audit to pass by default.
 }

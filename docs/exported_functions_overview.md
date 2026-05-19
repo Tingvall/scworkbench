@@ -207,7 +207,7 @@ Note:
 - `wb_report_draft`: Build a structured analysis report draft
 - `wb_report_methods`: Draft methods text from session runs
 - `wb_report_render_md`: Render a report draft as Markdown
-- `wb_refresh_semantic_catalogs`: Refresh all semantic catalog reference files
+- `wb_refresh_semantic_catalogs`: Refresh and validate all semantic catalog reference files
 - `wb_semantic_catalog`: Export unified semantic catalog
 - `wb_semantic_catalog_audit`: Audit semantic catalog coverage
 - `wb_semantic_compatibility_graph`: Build semantic compatibility graph
