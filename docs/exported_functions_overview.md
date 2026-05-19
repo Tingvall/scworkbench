@@ -170,6 +170,7 @@ Note:
 - `wb_art_trajectory_de_top`: Get top-ranked `trajectory_de` rows for one lineage
 - `wb_art_trajectory_related`: Find related trajectory artifacts
 - `wb_art_trajectory_smooth_overview`: Summarize a promoted `trajectory_smooth` artifact
+- `wb_artifact_type_catalog_semantic`: Export artifact type catalog as semantic metadata
 - `wb_freeze_packet`: Freeze a provenance packet
 - `wb_freeze_snapshot`: Freeze a provenance snapshot
 - `wb_getter_catalog_semantic`: Export getter catalog as semantic metadata
@@ -193,6 +194,7 @@ Note:
 - `wb_prim_path_2d_family`: Create a path_2d_family primitive
 - `wb_prim_space`: Create a space primitive
 - `wb_prim_space_2d`: Create a space_2d primitive
+- `wb_primitive_catalog_semantic`: Export primitive catalog as semantic metadata
 - `wb_promote_analysis`: Promote a session analysis DAG to persisted artifacts
 - `wb_prov_dag`: Reconstruct a persisted provenance DAG
 - `wb_prov_emit_r_script`: Emit an R replay script from persisted provenance
@@ -204,8 +206,12 @@ Note:
 - `wb_report_methods`: Draft methods text from session runs
 - `wb_report_render_md`: Render a report draft as Markdown
 - `wb_wrangle_plot_dataset`: Wrangle inputs into a validated plot dataset
+- `wb_wrangler_catalog_semantic`: Export wrangler catalog as semantic metadata
+- `wb_write_artifact_type_catalog_reference`: Write artifact type catalog reference files
 - `wb_write_getter_catalog_reference`: Write getter catalog reference files
 - `wb_write_plot_catalog_reference`: Write plot/wrangler catalog reference files
+- `wb_write_primitive_catalog_reference`: Write primitive catalog reference files
+- `wb_write_wrangler_catalog_reference`: Write wrangler catalog reference files
 
 ## Session, Refs & Client API
 
