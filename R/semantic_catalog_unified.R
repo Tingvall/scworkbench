@@ -1,0 +1,432 @@
+# Unified semantic search/planning catalog.
+
+.wb_semantic_record_text <- function(parts) {
+  parts <- unlist(parts, recursive = TRUE, use.names = FALSE)
+  parts <- as.character(parts[!is.na(parts)])
+  parts <- parts[nzchar(parts)]
+  paste(unique(parts), collapse = "\n")
+}
+
+.wb_semantic_record <- function(record_id, record_type, name, title, description,
+                                search_text, tags = character(0), payload = list()) {
+  list(
+    record_id = as.character(record_id)[1],
+    record_type = as.character(record_type)[1],
+    name = as.character(name)[1],
+    title = as.character(title %||% "")[1],
+    description = as.character(description %||% "")[1],
+    search_text = .wb_semantic_record_text(search_text),
+    tags = as.character(tags %||% character(0)),
+    payload = payload %||% list()
+  )
+}
+
+.wb_semantic_edge <- function(from, to, edge_type, label = NULL) {
+  list(
+    from = as.character(from)[1],
+    to = as.character(to)[1],
+    edge_type = as.character(edge_type)[1],
+    label = as.character(label %||% edge_type)[1]
+  )
+}
+
+.wb_semantic_kind <- function(x) {
+  k <- as.character(x %||% "")[1]
+  if (!nzchar(k)) return("")
+  sub(":.*$", "", k)
+}
+
+.wb_semantic_catalog_records <- function(bundle = NULL) {
+  ops <- wb_op_catalog_semantic(bundle = bundle)$ops %||% list()
+  getters <- wb_getter_catalog_semantic()$getters %||% list()
+  plots <- wb_plot_catalog_semantic()$plots %||% list()
+  wranglers <- wb_wrangler_catalog_semantic()$wranglers %||% list()
+  primitives <- wb_primitive_catalog_semantic()$primitives %||% list()
+  artifact_types <- wb_artifact_type_catalog_semantic()$artifact_types %||% list()
+
+  records <- list()
+  add <- function(x) records[[length(records) + 1L]] <<- x
+
+  for (op in ops) {
+    nm <- as.character(op$op_name %||% "")[1]
+    add(.wb_semantic_record(
+      record_id = paste0("op:", nm),
+      record_type = "op",
+      name = nm,
+      title = op$title,
+      description = op$description,
+      search_text = list(op$title, op$description, op$intent, op$consumes, op$produces, op$params),
+      tags = c("op", as.character(op$intent %||% character(0))),
+      payload = op
+    ))
+  }
+  for (g in getters) {
+    nm <- as.character(g$function_name %||% "")[1]
+    add(.wb_semantic_record(
+      record_id = paste0("getter:", nm),
+      record_type = "getter",
+      name = nm,
+      title = g$title,
+      description = g$description,
+      search_text = list(g$title, g$description, g$category, g$returns, g$arguments, g$use_when),
+      tags = c("getter", as.character(g$category %||% "")),
+      payload = g
+    ))
+  }
+  for (p in plots) {
+    nm <- as.character(p$plot_type %||% "")[1]
+    add(.wb_semantic_record(
+      record_id = paste0("plot:", nm),
+      record_type = "plot",
+      name = nm,
+      title = p$title,
+      description = p$description,
+      search_text = list(p$title, p$description, p$use_when, p$compatible_refs, p$required_fields, p$optional_fields),
+      tags = c("plot", as.character(p$dataset_type %||% "")),
+      payload = p
+    ))
+  }
+  for (w in wranglers) {
+    nm <- as.character(w$wrangler_id %||% "")[1]
+    add(.wb_semantic_record(
+      record_id = paste0("wrangler:", nm),
+      record_type = "wrangler",
+      name = nm,
+      title = w$title,
+      description = w$description,
+      search_text = list(w$title, w$description, w$consumes, w$produces, w$plot_type, w$use_when),
+      tags = c("wrangler", as.character(w$category %||% ""), as.character(w$plot_type %||% "")),
+      payload = w
+    ))
+  }
+  for (p in primitives) {
+    nm <- as.character(p$primitive_kind %||% "")[1]
+    add(.wb_semantic_record(
+      record_id = paste0("primitive:", nm),
+      record_type = "primitive",
+      name = nm,
+      title = p$title,
+      description = p$description,
+      search_text = list(p$title, p$description, p$shape, p$payload_level, p$use_when),
+      tags = c("primitive", as.character(p$payload_level %||% "")),
+      payload = p
+    ))
+  }
+  for (a in artifact_types) {
+    nm <- as.character(a$artifact_type %||% "")[1]
+    add(.wb_semantic_record(
+      record_id = paste0("artifact_type:", nm),
+      record_type = "artifact_type",
+      name = nm,
+      title = a$title,
+      description = a$description,
+      search_text = list(a$title, a$description, a$primitive_kind, a$table_type, a$entity_kind, a$use_when),
+      tags = c("artifact_type", as.character(a$primitive_kind %||% ""), as.character(a$table_type %||% "")),
+      payload = a
+    ))
+  }
+
+  records
+}
+
+#' Build Semantic Compatibility Graph
+#'
+#' Builds deterministic graph edges between semantic records. This is the
+#' planning layer under semantic search: ops consume and produce primitives,
+#' artifact types load as primitives, wranglers consume primitives/artifacts,
+#' and plot wranglers feed plot contracts.
+#'
+#' @param bundle Optional open bundle, passed through to op catalog export.
+#' @return A named list containing `nodes` and `edges` records.
+#' @export
+wb_semantic_compatibility_graph <- function(bundle = NULL) {
+  records <- .wb_semantic_catalog_records(bundle = bundle)
+  node_ids <- vapply(records, function(x) as.character(x$record_id), character(1))
+  record_by_id <- stats::setNames(records, node_ids)
+
+  ops <- wb_op_catalog_semantic(bundle = bundle)$ops %||% list()
+  wranglers <- wb_wrangler_catalog_semantic()$wranglers %||% list()
+  artifact_types <- wb_artifact_type_catalog_semantic()$artifact_types %||% list()
+  plots <- wb_plot_catalog_semantic()$plots %||% list()
+
+  primitive_ids <- node_ids[grepl("^primitive:", node_ids)]
+  primitive_kinds <- sub("^primitive:", "", primitive_ids)
+  artifact_ids <- node_ids[grepl("^artifact_type:", node_ids)]
+  plot_ids <- node_ids[grepl("^plot:", node_ids)]
+
+  edges <- list()
+  add_edge <- function(from, to, edge_type, label = NULL) {
+    if (from %in% node_ids && to %in% node_ids) {
+      edges[[length(edges) + 1L]] <<- .wb_semantic_edge(from, to, edge_type, label)
+    }
+  }
+
+  for (op in ops) {
+    op_id <- paste0("op:", as.character(op$op_name %||% "")[1])
+    for (x in op$consumes %||% list()) {
+      k <- .wb_semantic_kind(x$kind)
+      if (k %in% primitive_kinds) add_edge(paste0("primitive:", k), op_id, "consumed_by", paste0("input:", x$name %||% ""))
+    }
+    for (x in op$produces %||% list()) {
+      k <- .wb_semantic_kind(x$kind)
+      if (k %in% primitive_kinds) add_edge(op_id, paste0("primitive:", k), "produces", paste0("output:", x$name %||% ""))
+    }
+    for (out_name in as.character(op$promotable %||% character(0))) {
+      produced <- op$produces %||% list()
+      hit <- NULL
+      for (x in produced) if (identical(as.character(x$name %||% "")[1], out_name)) hit <- x
+      k <- .wb_semantic_kind(hit$kind %||% "")
+      if (nzchar(k)) add_edge(op_id, paste0("artifact_type:", k), "promotes_as", paste0("promotable:", out_name))
+    }
+  }
+
+  for (a in artifact_types) {
+    aid <- paste0("artifact_type:", as.character(a$artifact_type %||% "")[1])
+    k <- as.character(a$primitive_kind %||% "")[1]
+    if (k %in% primitive_kinds) add_edge(aid, paste0("primitive:", k), "loads_as", "wb_art_load")
+  }
+
+  for (w in wranglers) {
+    wid <- paste0("wrangler:", as.character(w$wrangler_id %||% "")[1])
+    for (cns in as.character(w$consumes %||% character(0))) {
+      k <- .wb_semantic_kind(cns)
+      if (k %in% primitive_kinds) add_edge(paste0("primitive:", k), wid, "wrangled_by", cns)
+      exact_art <- paste0("artifact_type:", cns)
+      if (exact_art %in% artifact_ids) add_edge(exact_art, wid, "wrangled_by", cns)
+      if (grepl(":", cns, fixed = TRUE)) {
+        parts <- strsplit(cns, ":", fixed = TRUE)[[1]]
+        if (length(parts) >= 2L) {
+          table_art <- paste0("artifact_type:", parts[1], ":", parts[2])
+          if (table_art %in% artifact_ids) add_edge(table_art, wid, "wrangled_by", cns)
+        }
+      }
+    }
+    pt <- as.character(w$plot_type %||% "")[1]
+    if (paste0("plot:", pt) %in% plot_ids) add_edge(wid, paste0("plot:", pt), "feeds_plot", pt)
+  }
+
+  for (p in plots) {
+    pid <- paste0("plot:", as.character(p$plot_type %||% "")[1])
+    for (m in p$mappers %||% list()) {
+      mid <- paste0("wrangler:plot_mapper:", as.character(m$mapper_id %||% "")[1])
+      add_edge(mid, pid, "feeds_plot", as.character(p$plot_type %||% "")[1])
+    }
+  }
+
+  edge_keys <- vapply(edges, function(e) paste(e$from, e$to, e$edge_type, e$label, sep = "\r"), character(1))
+  edges <- edges[!duplicated(edge_keys)]
+  names(edges) <- NULL
+
+  .wb_semantic_catalog_clean(list(
+    schema_version = "scworkbench.semantic_compatibility_graph.v1",
+    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    node_count = length(records),
+    edge_count = length(edges),
+    nodes = lapply(records, function(x) {
+      list(
+        record_id = x$record_id,
+        record_type = x$record_type,
+        name = x$name,
+        title = x$title
+      )
+    }),
+    edges = edges
+  ))
+}
+
+#' Export Unified Semantic Catalog
+#'
+#' Combines op, getter, plot, wrangler, primitive, and artifact-type catalogs
+#' into a normalized search corpus and includes the compatibility graph.
+#'
+#' @param bundle Optional open bundle, passed through to op catalog export.
+#' @return A JSON-friendly semantic catalog list.
+#' @export
+wb_semantic_catalog <- function(bundle = NULL) {
+  records <- .wb_semantic_catalog_records(bundle = bundle)
+  graph <- wb_semantic_compatibility_graph(bundle = bundle)
+  type_counts <- table(vapply(records, function(x) as.character(x$record_type), character(1)))
+  type_count_list <- as.list(as.integer(type_counts))
+  names(type_count_list) <- names(type_counts)
+  .wb_semantic_catalog_clean(list(
+    schema_version = "scworkbench.semantic_catalog.v1",
+    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    record_count = length(records),
+    record_type_counts = type_count_list,
+    records = records,
+    graph = graph
+  ))
+}
+
+#' Audit Semantic Catalog Coverage
+#'
+#' Checks whether registered engine surfaces are represented in semantic
+#' catalogs and whether graph endpoints are valid.
+#'
+#' @param bundle Optional open bundle, passed through to op catalog export.
+#' @return A named list with audit tables and a boolean `ok`.
+#' @export
+wb_semantic_catalog_audit <- function(bundle = NULL) {
+  catalog <- wb_semantic_catalog(bundle = bundle)
+  records <- catalog$records %||% list()
+  record_ids <- vapply(records, function(x) as.character(x$record_id), character(1))
+
+  op_catalog_names <- sub("^op:", "", record_ids[grepl("^op:", record_ids)])
+  mapper_catalog_ids <- sub("^wrangler:plot_mapper:", "", record_ids[grepl("^wrangler:plot_mapper:", record_ids)])
+  primitive_catalog_kinds <- sub("^primitive:", "", record_ids[grepl("^primitive:", record_ids)])
+
+  missing_ops <- setdiff(wb_list_ops(), op_catalog_names)
+  missing_plot_mappers <- setdiff(as.character(wb_plot_mapper_list()$mapper_id), mapper_catalog_ids)
+  promoter_kinds <- names(.wb_promoters_by_kind())
+  missing_promoter_primitives <- setdiff(promoter_kinds, primitive_catalog_kinds)
+
+  graph <- catalog$graph
+  edges <- graph$edges %||% list()
+  bad_edges <- Filter(function(e) !(e$from %in% record_ids && e$to %in% record_ids), edges)
+
+  ops <- wb_op_catalog_semantic(bundle = bundle)$ops %||% list()
+  unknown_op_kinds <- character(0)
+  for (op in ops) {
+    for (x in c(op$consumes %||% list(), op$produces %||% list())) {
+      k <- .wb_semantic_kind(x$kind)
+      if (nzchar(k) && !(k %in% primitive_catalog_kinds) && !(k %in% c("select", "feature_set", "string", "numeric", "integer", "bool", "choice"))) {
+        unknown_op_kinds <- unique(c(unknown_op_kinds, paste0(op$op_name, ":", x$name, ":", k)))
+      }
+    }
+  }
+
+  ok <- length(missing_ops) == 0L &&
+    length(missing_plot_mappers) == 0L &&
+    length(missing_promoter_primitives) == 0L &&
+    length(bad_edges) == 0L &&
+    length(unknown_op_kinds) == 0L
+
+  .wb_semantic_catalog_clean(list(
+    schema_version = "scworkbench.semantic_catalog_audit.v1",
+    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    ok = ok,
+    missing_ops = missing_ops,
+    missing_plot_mappers = missing_plot_mappers,
+    missing_promoter_primitives = missing_promoter_primitives,
+    unknown_op_kinds = unknown_op_kinds,
+    bad_edge_count = length(bad_edges),
+    record_count = catalog$record_count,
+    edge_count = graph$edge_count
+  ))
+}
+
+.wb_semantic_catalog_reference_lines <- function(catalog) {
+  records <- catalog$records %||% list()
+  by_type <- split(records, vapply(records, function(x) as.character(x$record_type), character(1)))
+  lines <- c(
+    "# scworkbench Unified Semantic Catalog",
+    "",
+    "<!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->",
+    "",
+    paste0("Generated at: ", as.character(catalog$generated_at %||% "")),
+    "",
+    paste0("Record count: ", as.integer(catalog$record_count %||% length(records))),
+    "",
+    paste0("Graph edges: ", as.integer(catalog$graph$edge_count %||% 0L)),
+    ""
+  )
+  for (tp in sort(names(by_type))) {
+    lines <- c(lines, paste0("## ", tp), "")
+    for (rec in by_type[[tp]]) {
+      lines <- c(
+        lines,
+        paste0("### `", as.character(rec$record_id %||% "")[1], "`"),
+        "",
+        paste0("Title: ", as.character(rec$title %||% "")[1]),
+        "",
+        paste0("Description: ", as.character(rec$description %||% "")[1]),
+        ""
+      )
+    }
+  }
+  lines
+}
+
+#' Write Unified Semantic Catalog Reference Files
+#'
+#' Writes the unified semantic catalog, graph, and audit files. This does not
+#' generate embeddings; it creates the deterministic corpus that an embedding
+#' index can consume.
+#'
+#' @param path_md Markdown output path, or `NULL` to skip.
+#' @param path_json Unified catalog JSON output path, or `NULL` to skip.
+#' @param path_graph Compatibility graph JSON output path, or `NULL` to skip.
+#' @param path_audit Audit JSON output path, or `NULL` to skip.
+#' @param bundle Optional open bundle, passed through to op catalog export.
+#' @return Invisibly returns the unified semantic catalog.
+#' @export
+wb_write_semantic_catalog_reference <- function(path_md = "docs/semantic_catalog_reference.md",
+                                                path_json = "docs/semantic_catalog.json",
+                                                path_graph = "docs/semantic_compatibility_graph.json",
+                                                path_audit = "docs/semantic_catalog_audit.json",
+                                                bundle = NULL) {
+  catalog <- wb_semantic_catalog(bundle = bundle)
+  graph <- catalog$graph
+  audit <- wb_semantic_catalog_audit(bundle = bundle)
+  if (!is.null(path_md)) {
+    dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
+    writeLines(.wb_semantic_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+  }
+  .wb_require_pkg("jsonlite", "semantic catalog export")
+  for (spec in list(
+    list(path = path_json, value = catalog),
+    list(path = path_graph, value = graph),
+    list(path = path_audit, value = audit)
+  )) {
+    if (!is.null(spec$path)) {
+      dir.create(dirname(spec$path), recursive = TRUE, showWarnings = FALSE)
+      jsonlite::write_json(spec$value, path = spec$path, auto_unbox = TRUE, pretty = TRUE, null = "null")
+    }
+  }
+  invisible(catalog)
+}
+
+#' Refresh All Semantic Catalog Reference Files
+#'
+#' Regenerates operation, getter, plot, wrangler, primitive, artifact-type, and
+#' unified semantic catalog docs/JSON.
+#'
+#' @param bundle Optional open bundle, passed through to op catalog export.
+#' @param docs_dir Output directory.
+#' @return Invisibly returns the semantic catalog audit.
+#' @export
+wb_refresh_semantic_catalogs <- function(bundle = NULL, docs_dir = "docs") {
+  wb_write_op_catalog_reference(
+    path_md = file.path(docs_dir, "op_catalog_reference.md"),
+    path_json = file.path(docs_dir, "op_catalog_semantic.json"),
+    bundle = bundle
+  )
+  wb_write_getter_catalog_reference(
+    path_md = file.path(docs_dir, "getter_catalog_reference.md"),
+    path_json = file.path(docs_dir, "getter_catalog_semantic.json")
+  )
+  wb_write_plot_catalog_reference(
+    path_md = file.path(docs_dir, "plot_catalog_reference.md"),
+    path_json = file.path(docs_dir, "plot_catalog_semantic.json")
+  )
+  wb_write_wrangler_catalog_reference(
+    path_md = file.path(docs_dir, "wrangler_catalog_reference.md"),
+    path_json = file.path(docs_dir, "wrangler_catalog_semantic.json")
+  )
+  wb_write_primitive_catalog_reference(
+    path_md = file.path(docs_dir, "primitive_catalog_reference.md"),
+    path_json = file.path(docs_dir, "primitive_catalog_semantic.json")
+  )
+  wb_write_artifact_type_catalog_reference(
+    path_md = file.path(docs_dir, "artifact_type_catalog_reference.md"),
+    path_json = file.path(docs_dir, "artifact_type_catalog_semantic.json")
+  )
+  wb_write_semantic_catalog_reference(
+    path_md = file.path(docs_dir, "semantic_catalog_reference.md"),
+    path_json = file.path(docs_dir, "semantic_catalog.json"),
+    path_graph = file.path(docs_dir, "semantic_compatibility_graph.json"),
+    path_audit = file.path(docs_dir, "semantic_catalog_audit.json"),
+    bundle = bundle
+  )
+  invisible(wb_semantic_catalog_audit(bundle = bundle))
+}

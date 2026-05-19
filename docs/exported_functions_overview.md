@@ -205,12 +205,17 @@ Note:
 - `wb_report_draft`: Build a structured analysis report draft
 - `wb_report_methods`: Draft methods text from session runs
 - `wb_report_render_md`: Render a report draft as Markdown
+- `wb_refresh_semantic_catalogs`: Refresh all semantic catalog reference files
+- `wb_semantic_catalog`: Export unified semantic catalog
+- `wb_semantic_catalog_audit`: Audit semantic catalog coverage
+- `wb_semantic_compatibility_graph`: Build semantic compatibility graph
 - `wb_wrangle_plot_dataset`: Wrangle inputs into a validated plot dataset
 - `wb_wrangler_catalog_semantic`: Export wrangler catalog as semantic metadata
 - `wb_write_artifact_type_catalog_reference`: Write artifact type catalog reference files
 - `wb_write_getter_catalog_reference`: Write getter catalog reference files
 - `wb_write_plot_catalog_reference`: Write plot/wrangler catalog reference files
 - `wb_write_primitive_catalog_reference`: Write primitive catalog reference files
+- `wb_write_semantic_catalog_reference`: Write unified semantic catalog reference files
 - `wb_write_wrangler_catalog_reference`: Write wrangler catalog reference files
 
 ## Session, Refs & Client API

@@ -1,0 +1,994 @@
+# scworkbench Unified Semantic Catalog
+
+<!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
+
+Generated at: 2026-05-19T13:24:33+0200
+
+Record count: 162
+
+Graph edges: 256
+
+## artifact_type
+
+### `artifact_type:cell_vector`
+
+Title: Per-Cell Vector Artifact
+
+Description: Promoted per-cell scalar/categorical vector such as pseudotime, labels, entropy, or module score.
+
+### `artifact_type:cell_vector_family`
+
+Title: Per-Cell Vector Family Artifact
+
+Description: Promoted keyed family of per-cell vectors, for example UCell signatures or chromVAR deviations.
+
+### `artifact_type:relation_family`
+
+Title: Relation Family Artifact
+
+Description: Promoted sparse long-form cell-to-key relations such as branch membership.
+
+### `artifact_type:path_2d_family`
+
+Title: 2D Path Family Artifact
+
+Description: Promoted 2D trajectory or lineage curves.
+
+### `artifact_type:space_path_family`
+
+Title: Space Path Family Artifact
+
+Description: Promoted high-dimensional route/trajectory paths.
+
+### `artifact_type:space_2d`
+
+Title: 2D Space Artifact
+
+Description: Promoted reference to a 2D bundle space.
+
+### `artifact_type:model_ref`
+
+Title: Model Reference Artifact
+
+Description: Promoted model reference for projection or method-specific reuse.
+
+### `artifact_type:feature_table:de_wilcox`
+
+Title: Wilcoxon DE Table
+
+Description: Feature-level differential expression/accessibility statistics.
+
+### `artifact_type:feature_table:markers_topn`
+
+Title: Top Marker Table
+
+Description: Top-ranked marker features per group.
+
+### `artifact_type:feature_table:feature_trend_spearman`
+
+Title: Feature Trend Spearman Table
+
+Description: Feature-level association with a continuous vector such as pseudotime.
+
+### `artifact_type:feature_table:trajectory_de`
+
+Title: Trajectory DE Table
+
+Description: Feature-level differential or dynamic statistics along trajectory lineages.
+
+### `artifact_type:feature_table:trajectory_branch_compare`
+
+Title: Trajectory Branch Compare Table
+
+Description: Feature-level branch comparison statistics.
+
+### `artifact_type:obs_table:pathway_enrich`
+
+Title: Pathway Enrichment Table
+
+Description: Pathway or gene-set enrichment summary.
+
+### `artifact_type:obs_table:trajectory_smooth`
+
+Title: Trajectory Smooth Curve Table
+
+Description: Binned/smoothed per-gene expression curves along trajectory pseudotime.
+
+### `artifact_type:obs_table:trajectory_signature_smooth`
+
+Title: Trajectory Signature Smooth Table
+
+Description: Smoothed signature/module curves along trajectory pseudotime.
+
+### `artifact_type:obs_table:trajectory_geneset_dynamics_curve`
+
+Title: Trajectory Gene-Set Curve Table
+
+Description: Gene-set scores over pseudotime bins.
+
+### `artifact_type:obs_table:trajectory_geneset_dynamics`
+
+Title: Trajectory Gene-Set Dynamics Table
+
+Description: One row per gene set with dynamics metrics and curve class.
+
+### `artifact_type:obs_table:trajectory_geneset_dynamics_drivers`
+
+Title: Trajectory Gene-Set Driver Table
+
+Description: Top member genes contributing to dynamic gene-set behavior.
+
+### `artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve`
+
+Title: Trajectory Gene-Set Driver Curves
+
+Description: Driver-gene curves for selected dynamic gene sets.
+
+### `artifact_type:obs_table:trajectory_signal_dynamics_curve`
+
+Title: Trajectory Signal Curve Table
+
+Description: Precomputed signal/vector-family curves over pseudotime.
+
+### `artifact_type:obs_table:trajectory_signal_dynamics`
+
+Title: Trajectory Signal Dynamics Table
+
+Description: Dynamics metrics and classes for precomputed signals.
+
+### `artifact_type:obs_table:ucell_signature_summary`
+
+Title: UCell Signature Summary
+
+Description: Summary statistics for UCell signature scores.
+
+### `artifact_type:obs_table:chromvar_summary`
+
+Title: chromVAR Motif Summary
+
+Description: Summary statistics for chromVAR motif deviations.
+
+### `artifact_type:obs_table:knn_neighbors`
+
+Title: KNN Neighbor Table
+
+Description: Cell-neighbor relationships from a KNN graph/query.
+
+### `artifact_type:feature_table:knn_pseudobulk`
+
+Title: KNN Pseudobulk Feature Table
+
+Description: Feature summaries over KNN neighborhoods.
+
+## getter
+
+### `getter:wb_status`
+
+Title: Bundle Status
+
+Description: Summarize bundle health and high-level registry counts.
+
+### `getter:wb_manifest`
+
+Title: Bundle Manifest
+
+Description: Read the bundle manifest metadata.
+
+### `getter:wb_bundle_schema`
+
+Title: Bundle Schema
+
+Description: Inspect available SQLite schema objects in the bundle.
+
+### `getter:wb_list`
+
+Title: Registry List
+
+Description: List common registry tables such as matrices, features, spaces, or datasets.
+
+### `getter:wb_cells`
+
+Title: Cell IDs
+
+Description: Return cell IDs in canonical bundle order, optionally restricted to a cell set or dataset.
+
+### `getter:wb_cell_sets`
+
+Title: Cell Sets
+
+Description: List available cell sets in a bundle.
+
+### `getter:wb_resolve_cell_set`
+
+Title: Resolve Cell Set
+
+Description: Resolve a cell-set selector into concrete cell IDs.
+
+### `getter:wb_meta`
+
+Title: Cell Metadata
+
+Description: Read cell-level metadata for selected cells and columns.
+
+### `getter:wb_cell_coverage`
+
+Title: Cell Coverage
+
+Description: Summarize which cells are covered by matrices, spaces, and sets.
+
+### `getter:wb_cells_with_matrix`
+
+Title: Cells With Matrix
+
+Description: List cells available for a given matrix.
+
+### `getter:wb_cells_with_space`
+
+Title: Cells With Space
+
+Description: List cells available for a given space.
+
+### `getter:wb_matrices`
+
+Title: Matrices
+
+Description: List matrices available in the bundle.
+
+### `getter:wb_matrix_info`
+
+Title: Matrix Info
+
+Description: Read matrix registry metadata, optionally for one matrix.
+
+### `getter:wb_matrix_fragments`
+
+Title: Matrix Fragments
+
+Description: List physical storage fragments backing a logical matrix.
+
+### `getter:wb_matrix_resolve`
+
+Title: Resolve Matrix
+
+Description: Resolve matrix fragments to absolute storage paths.
+
+### `getter:wb_matrix`
+
+Title: Matrix Handle
+
+Description: Open a matrix handle for a matrix ID.
+
+### `getter:wb_slice`
+
+Title: Matrix Slice
+
+Description: Read a feature-by-cell matrix slice.
+
+### `getter:wb_matrix_read_feature`
+
+Title: Read One Feature
+
+Description: Read one feature vector across requested cells.
+
+### `getter:wb_matrix_read_features`
+
+Title: Read Features
+
+Description: Read multiple features across cells from a logical matrix.
+
+### `getter:wb_vector`
+
+Title: Feature Vector
+
+Description: Get a single feature vector across cells.
+
+### `getter:wb_features`
+
+Title: Features
+
+Description: Read feature registry rows, optionally filtered by matrix or feature type.
+
+### `getter:wb_feature_ids`
+
+Title: Feature IDs
+
+Description: Get feature IDs in canonical order for a matrix.
+
+### `getter:wb_search_features`
+
+Title: Search Features
+
+Description: Search feature IDs or feature metadata.
+
+### `getter:wb_feature_sets`
+
+Title: Feature Sets
+
+Description: List feature sets and namespaces in the bundle.
+
+### `getter:wb_feature_set_info`
+
+Title: Feature Set Info
+
+Description: Read metadata for one feature set.
+
+### `getter:wb_feature_set_get`
+
+Title: Feature Set Members
+
+Description: Get feature IDs from one feature set.
+
+### `getter:wb_spaces`
+
+Title: Spaces
+
+Description: List spaces in the bundle.
+
+### `getter:wb_space_info`
+
+Title: Space Info
+
+Description: Read space registry metadata, optionally for one space.
+
+### `getter:wb_space`
+
+Title: Space Coordinates
+
+Description: Read coordinates for a space, optionally restricted to cells and dimensions.
+
+### `getter:wb_spaces_with_model`
+
+Title: Spaces With Model
+
+Description: List space IDs that have a stored projection model.
+
+### `getter:wb_space_model`
+
+Title: Space Model Metadata
+
+Description: Get model metadata for a space.
+
+### `getter:wb_space_model_path`
+
+Title: Space Model Path
+
+Description: Get absolute path to a stored model file for a space.
+
+### `getter:wb_art_list`
+
+Title: Artifacts
+
+Description: List promoted artifacts, optionally filtered by type.
+
+### `getter:wb_art_load`
+
+Title: Load Artifact
+
+Description: Load a promoted artifact as a primitive.
+
+### `getter:wb_art_table_info`
+
+Title: Table Artifact Info
+
+Description: Read metadata for a promoted table artifact.
+
+### `getter:wb_art_table_slice`
+
+Title: Table Artifact Slice
+
+Description: Read a bounded row slice from a promoted feature_table or obs_table.
+
+### `getter:wb_art_table_distinct`
+
+Title: Table Artifact Distinct Values
+
+Description: List distinct values from one promoted table artifact column.
+
+### `getter:wb_art_identity_card`
+
+Title: Artifact Identity Card
+
+Description: Summarize artifact identity, provenance, labels, and display hints.
+
+### `getter:wb_art_birth_certificate`
+
+Title: Artifact Birth Certificate
+
+Description: Read provenance/birth metadata for a promoted artifact.
+
+### `getter:wb_art_dependencies`
+
+Title: Artifact Dependencies
+
+Description: Get dependency relationships for an artifact.
+
+### `getter:wb_art_trajectory_related`
+
+Title: Related Trajectory Artifacts
+
+Description: Find trajectory-related sibling artifacts for a source artifact.
+
+### `getter:wb_list_cell_vectors`
+
+Title: Cell Vectors
+
+Description: List available cell vectors from artifacts and optionally session outputs.
+
+### `getter:wb_list_vector_sources`
+
+Title: Vector Sources
+
+Description: List vector-like sources available for UI/agent selection.
+
+### `getter:wb_read_cell_vector`
+
+Title: Read Cell Vector
+
+Description: Read a scalar cell vector for a requested set of cells.
+
+### `getter:wb_read_cell_vector_family`
+
+Title: Read Cell Vector Family Member
+
+Description: Read one key/member from a cell_vector_family for requested cells.
+
+### `getter:wb_cell_vector_load`
+
+Title: Load Cell Vector Primitive
+
+Description: Load a cell vector primitive by artifact or session reference.
+
+### `getter:wb_motif_libraries`
+
+Title: Motif Libraries
+
+Description: List registered motif libraries.
+
+### `getter:wb_motifs`
+
+Title: Motifs
+
+Description: List motifs, optionally filtered by library.
+
+### `getter:wb_motif_match_sets`
+
+Title: Motif Match Sets
+
+Description: List motif match sets available for peak features.
+
+### `getter:wb_motif_match_get`
+
+Title: Motif Match Membership
+
+Description: Load motif match membership rows for a match set.
+
+### `getter:wb_prov_list_heads`
+
+Title: Provenance Heads
+
+Description: List persisted provenance snapshot heads.
+
+### `getter:wb_prov_dag`
+
+Title: Provenance DAG
+
+Description: Read a persisted provenance DAG.
+
+### `getter:wb_prov_run_details`
+
+Title: Provenance Run Details
+
+Description: Inspect one persisted run from provenance.
+
+### `getter:wb_session_dag`
+
+Title: Session DAG
+
+Description: Inspect an in-memory session DAG.
+
+### `getter:wb_session_dag_run_details`
+
+Title: Session DAG Run Details
+
+Description: Inspect one run node from an in-memory session DAG.
+
+### `getter:wb_nav_entities`
+
+Title: Navigation Entities
+
+Description: List entities that can be navigated from an artifact-backed source.
+
+### `getter:wb_nav_targets`
+
+Title: Navigation Targets
+
+Description: List compatible navigation targets for a selected source/entity.
+
+### `getter:wb_nav_handoff`
+
+Title: Navigation Handoff
+
+Description: Resolve a navigation target into a client-agnostic handoff payload.
+
+### `getter:wb_client_discover`
+
+Title: Client Discovery
+
+Description: Client facade for discovering bundle state and available operations.
+
+### `getter:wb_client_inspect`
+
+Title: Client Inspect
+
+Description: Client facade for inspecting session and bundle runtime state.
+
+### `getter:wb_client_load`
+
+Title: Client Load
+
+Description: Client facade for loading primitives by reference.
+
+### `getter:wb_client_load_table`
+
+Title: Client Load Table
+
+Description: Client facade for loading and wrangling references into normalized tables.
+
+## op
+
+### `op:leiden`
+
+Title: Leiden clustering
+
+Description: Graph clustering on a kNN graph derived from an embedding space.
+
+### `op:umap_fit`
+
+Title: UMAP fit (train model)
+
+Description: Fit a UMAP model on a space and store it for future projection.
+
+### `op:umap_transform`
+
+Title: UMAP transform (project cells)
+
+Description: Project cells into an existing UMAP using a stored model.
+
+### `op:addmodulescore`
+
+Title: Add module score
+
+Description: Seurat-style module scoring using matched control features by expression bin.
+
+### `op:ucell`
+
+Title: UCell Signature Scoring
+
+Description: Rank-based per-cell signature scoring using the UCell method.
+
+### `op:cell_vector_family_reduce`
+
+Title: Reduce Cell Vector Family
+
+Description: Compress a cell_vector_family into one categorical cell_vector using explicit reduction and abstention rules.
+
+### `op:cell_vector_family_calibrate`
+
+Title: Calibrate Cell Vector Family
+
+Description: Normalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.
+
+### `op:cell_vector_family_qc`
+
+Title: QC Cell Vector Family
+
+Description: Compute per-key and pairwise diagnostics for one keyed per-cell signal family.
+
+### `op:chromvar`
+
+Title: chromVAR deviations
+
+Description: Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
+
+### `op:de_wilcox`
+
+Title: Differential Expression (Wilcoxon)
+
+Description: Wilcoxon rank-sum DE between two cell groups (A vs B).
+
+### `op:markers_topn`
+
+Title: Top Markers Per Cluster
+
+Description: One-vs-rest Wilcoxon marker ranking for each cluster.
+
+### `op:pathway_enrich`
+
+Title: Pathway Enrichment (Namespace)
+
+Description: Hypergeometric enrichment against all feature sets in a namespace.
+
+### `op:cell_suffix_label`
+
+Title: Cell Labels From ID Suffix
+
+Description: Build a categorical cell vector by parsing cell_id suffix tokens.
+
+### `op:cell_vector_assoc`
+
+Title: Cell Vector Association
+
+Description: Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
+
+### `op:cell_vector_compare`
+
+Title: Cell Vector Comparison
+
+Description: Compare two cell-level signals on their shared cell universe in raw or rank space.
+
+### `op:feature_trend_spearman`
+
+Title: Feature Trends vs Continuous Vector
+
+Description: Feature-level Spearman trend testing against continuous pseudotime-like vectors.
+
+### `op:trajectory_de`
+
+Title: Trajectory DE
+
+Description: Lineage-aware feature trend testing against trajectory pseudotime from model_ref.
+
+### `op:trajectory_smooth`
+
+Title: Trajectory Feature Smoothing
+
+Description: Summarize per-feature expression along trajectory pseudotime into reusable trend tables.
+
+### `op:trajectory_branch_compare`
+
+Title: Trajectory Branch Compare
+
+Description: Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.
+
+### `op:trajectory_signature_smooth`
+
+Title: Trajectory Signature Smoothing
+
+Description: Summarize feature-set signature scores along trajectory pseudotime into reusable trend tables.
+
+### `op:trajectory_geneset_dynamics`
+
+Title: Trajectory Gene-Set Dynamics
+
+Description: Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.
+
+### `op:trajectory_route_smooth`
+
+Title: Trajectory Route Smoothing
+
+Description: Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.
+
+### `op:trajectory_vector_smooth`
+
+Title: Trajectory Signal Smoothing
+
+Description: Summarize cell-level signal families along trajectory pseudotime into reusable trend tables.
+
+### `op:trajectory_signal_dynamics`
+
+Title: Trajectory Signal Dynamics
+
+Description: Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.
+
+### `op:knn_pseudobulk`
+
+Title: kNN Pseudobulk Around Query Cell(s)
+
+Description: Find k nearest neighbors in latent space around query cells and aggregate matrix values.
+
+### `op:knn_neighbors`
+
+Title: kNN neighbors around query cell(s)
+
+Description: Find nearest neighbors in a latent space without requiring matrix aggregation.
+
+### `op:slingshot`
+
+Title: Slingshot trajectory
+
+Description: Infer lineage curves and pseudotime from clusters in a 2D space.
+
+### `op:slingshot_fit`
+
+Title: Slingshot fit
+
+Description: Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
+
+### `op:slingshot_project`
+
+Title: Slingshot project curves
+
+Description: Project a fitted Slingshot model into a 2D display space (e.g. UMAP).
+
+### `op:monocle3_fit`
+
+Title: Monocle3 fit (hybrid space)
+
+Description: Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
+
+### `op:monocle3_project`
+
+Title: Monocle3 project curves
+
+Description: Project a fitted monocle3 trajectory graph into a 2D display space.
+
+### `op:peakvi_fit`
+
+Title: PeakVI fit (pybench)
+
+Description: Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.
+
+### `op:peakvi_project`
+
+Title: PeakVI project (pybench)
+
+Description: Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
+
+### `op:space_path_define`
+
+Title: Define analytical space path
+
+Description: Contract scaffold for checkpoint-anchored path construction in a named analytical space.
+
+### `op:space_path_score`
+
+Title: Score cells against analytical path
+
+Description: Contract scaffold for path-relative scoring in a named analytical space.
+
+### `op:space_path_project_2d`
+
+Title: Project analytical path into 2D
+
+Description: Contract scaffold for projecting an analytical path into a drawable 2D path family.
+
+### `op:palantir_fit`
+
+Title: Palantir fit (pybench)
+
+Description: Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.
+
+### `op:palantir_project`
+
+Title: Palantir project trajectories
+
+Description: Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.
+
+## plot
+
+### `plot:embedding_overlay`
+
+Title: Embedding Overlay
+
+Description: Display cells in a 2D embedding with optional color, shape, size, alpha, or set overlays.
+
+### `plot:volcano`
+
+Title: Volcano Plot
+
+Description: Plot feature-level effect size against adjusted p-value for differential or trend-like feature tables.
+
+### `plot:trend_scatter`
+
+Title: Trend Scatter
+
+Description: Plot feature-level trend or association statistics as a scatter plot.
+
+### `plot:violin`
+
+Title: Violin Plot
+
+Description: Show distributions of per-cell vector values across groups.
+
+### `plot:category_count_bar`
+
+Title: Category Count Bar
+
+Description: Show counts and percentages for categorical cell-vector labels.
+
+### `plot:dotplot`
+
+Title: Dotplot
+
+Description: Show feature expression summaries across groups with percent-expressed and average-expression encodings.
+
+### `plot:pathway_bar`
+
+Title: Pathway Bar
+
+Description: Show ranked pathway or feature-set enrichment terms.
+
+### `plot:ranked_lollipop`
+
+Title: Ranked Lollipop
+
+Description: Show ranked entities from feature tables or obs_table summaries.
+
+### `plot:heatmap_ranked`
+
+Title: Ranked Heatmap
+
+Description: Show matrix-like feature-by-group values from ranked feature tables.
+
+### `plot:feature_rank_bar`
+
+Title: Feature Rank Bar
+
+Description: Show ranked feature values as bars.
+
+### `plot:pseudotime_smooth_panel`
+
+Title: Pseudotime Smooth Panel
+
+Description: Show per-feature smoothed expression curves along trajectory pseudotime.
+
+### `plot:pseudotime_signature_line`
+
+Title: Pseudotime Signature Line
+
+Description: Show feature-set or signal curves along trajectory pseudotime.
+
+## primitive
+
+### `primitive:matrix`
+
+Title: Matrix Reference
+
+Description: Symbolic reference to a feature-by-cell matrix stored in the bundle.
+
+### `primitive:space`
+
+Title: Space Reference
+
+Description: Symbolic reference to a cell embedding or latent space stored in the bundle.
+
+### `primitive:space_2d`
+
+Title: 2D Space Reference
+
+Description: Reference to a two-dimensional cell space, typically UMAP-like coordinates.
+
+### `primitive:cell_vector`
+
+Title: Cell Vector
+
+Description: One value per cell, continuous or categorical.
+
+### `primitive:cell_vector_family`
+
+Title: Cell Vector Family
+
+Description: Long-form collection of keyed per-cell vectors.
+
+### `primitive:relation_family`
+
+Title: Relation Family
+
+Description: Sparse long-form cell-to-key relations with optional weights, values, or distances.
+
+### `primitive:feature_table`
+
+Title: Feature Table
+
+Description: Data frame where rows are feature-centric results such as genes, peaks, or markers.
+
+### `primitive:obs_table`
+
+Title: Observation Table
+
+Description: Generic observation-style data frame specialized by table_type and entity_kind.
+
+### `primitive:model_ref`
+
+Title: Model Reference
+
+Description: Reference to a stored model artifact and the spaces it maps between.
+
+### `primitive:path_2d_family`
+
+Title: 2D Path Family
+
+Description: Lineage or curve coordinates in a 2D plotting space.
+
+### `primitive:space_path_family`
+
+Title: High-Dimensional Space Path Family
+
+Description: Curves in an arbitrary-dimensional bundle space, represented point-by-dimension.
+
+## wrangler
+
+### `wrangler:table:primitive_to_table`
+
+Title: Primitive To Table Wrangler
+
+Description: Projects primitive-native payloads to normalized data.frames for display, export, or light client use.
+
+### `wrangler:table:client_load_table`
+
+Title: Client Reference To Table Wrangler
+
+Description: Loads a session/artifact/reference through the client facade and converts the resolved primitive to a normalized table.
+
+### `wrangler:plot_mapper:space2d_overlay_v1`
+
+Title: Space + Vector Embedding Overlay Wrangler
+
+Description: Combines a 2D space with optional cell-vector overlays into an embedding_overlay dataset.
+
+### `wrangler:plot_mapper:feature_table_volcano_v1`
+
+Title: Feature Table Volcano Wrangler
+
+Description: Maps differential or trend-like feature tables to volcano plot columns.
+
+### `wrangler:plot_mapper:feature_table_trend_scatter_v1`
+
+Title: Feature Trend Scatter Wrangler
+
+Description: Maps feature trend statistics to a feature_scatter plot dataset.
+
+### `wrangler:plot_mapper:cell_vector_violin_v1`
+
+Title: Cell Vector Violin Wrangler
+
+Description: Combines a numeric cell vector with a grouping vector to form distribution data.
+
+### `wrangler:plot_mapper:cell_vector_category_count_bar_v1`
+
+Title: Categorical Cell Vector Count Wrangler
+
+Description: Counts categorical cell-vector labels for category bar plots.
+
+### `wrangler:plot_mapper:feature_table_dotplot_v1`
+
+Title: Feature Group Dotplot Wrangler
+
+Description: Maps marker-style feature group summaries to dotplot columns.
+
+### `wrangler:plot_mapper:feature_table_pathway_bar_v1`
+
+Title: Pathway Summary Wrangler
+
+Description: Maps pathway enrichment observation tables to ranked pathway bars.
+
+### `wrangler:plot_mapper:feature_table_ranked_lollipop_v1`
+
+Title: Ranked Table Lollipop Wrangler
+
+Description: Maps feature or observation tables with score-like columns to ranked entity data.
+
+### `wrangler:plot_mapper:feature_table_heatmap_ranked_v1`
+
+Title: Ranked Feature Heatmap Wrangler
+
+Description: Maps feature-by-group values to a matrix-like ranked heatmap dataset.
+
+### `wrangler:plot_mapper:feature_table_feature_rank_bar_v1`
+
+Title: Feature Rank Bar Wrangler
+
+Description: Maps feature tables with score-like values to ranked bar data.
+
+### `wrangler:plot_mapper:trajectory_pseudotime_smooth_panel_v1`
+
+Title: Pseudotime Smooth Wrangler
+
+Description: Maps trajectory_smooth tables to per-gene pseudotime curve panels.
+
+### `wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1`
+
+Title: Pseudotime Signature Wrangler
+
+Description: Maps signature, gene-set, signal, or driver curves to pseudotime line datasets.
+
