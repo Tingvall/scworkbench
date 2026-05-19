@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-05-19T13:45:03+0200",
+  "generated_at": "2026-05-19T13:49:26+0200",
   "record_count": 200,
   "record_type_counts": {
     "artifact_type": 25,
@@ -7807,9 +7807,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-05-19T13:45:03+0200",
+    "generated_at": "2026-05-19T13:49:26+0200",
     "node_count": 200,
-    "edge_count": 493,
+    "edge_count": 576,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -11480,10 +11480,22 @@
         "label": "getter:wb_feature_sets"
       },
       {
+        "from": "getter:wb_feature_sets",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "getter:wb_art_list",
         "edge_type": "uses",
         "label": "getter:wb_art_list"
+      },
+      {
+        "from": "getter:wb_art_list",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
@@ -11492,10 +11504,22 @@
         "label": "op:trajectory_geneset_dynamics"
       },
       {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "plot:pseudotime_signature_line",
         "edge_type": "uses",
         "label": "plot:pseudotime_signature_line"
+      },
+      {
+        "from": "plot:pseudotime_signature_line",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
@@ -11504,10 +11528,22 @@
         "label": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1"
       },
       {
+        "from": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "parameter:namespace",
         "edge_type": "uses",
         "label": "parameter:namespace"
+      },
+      {
+        "from": "parameter:namespace",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
@@ -11516,16 +11552,34 @@
         "label": "parameter:score_method"
       },
       {
+        "from": "parameter:score_method",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "parameter:pseudotime_direction",
         "edge_type": "uses",
         "label": "parameter:pseudotime_direction"
       },
       {
+        "from": "parameter:pseudotime_direction",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "parameter:min_amplitude",
         "edge_type": "uses",
         "label": "parameter:min_amplitude"
+      },
+      {
+        "from": "parameter:min_amplitude",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
@@ -11534,10 +11588,22 @@
         "label": "artifact_type:obs_table:trajectory_geneset_dynamics_curve"
       },
       {
+        "from": "artifact_type:obs_table:trajectory_geneset_dynamics_curve",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "artifact_type:obs_table:trajectory_geneset_dynamics",
         "edge_type": "recipe_produces",
         "label": "artifact_type:obs_table:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_geneset_dynamics",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
@@ -11546,10 +11612,22 @@
         "label": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers"
       },
       {
+        "from": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve",
         "edge_type": "recipe_produces",
         "label": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_signal_dynamics_discovery",
@@ -11558,10 +11636,22 @@
         "label": "getter:wb_art_list"
       },
       {
+        "from": "getter:wb_art_list",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_signal_dynamics_discovery",
         "to": "getter:wb_read_cell_vector_family",
         "edge_type": "uses",
         "label": "getter:wb_read_cell_vector_family"
+      },
+      {
+        "from": "getter:wb_read_cell_vector_family",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_signal_dynamics_discovery",
@@ -11570,10 +11660,22 @@
         "label": "op:trajectory_signal_dynamics"
       },
       {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_signal_dynamics_discovery",
         "to": "plot:pseudotime_signature_line",
         "edge_type": "uses",
         "label": "plot:pseudotime_signature_line"
+      },
+      {
+        "from": "plot:pseudotime_signature_line",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_signal_dynamics_discovery",
@@ -11582,10 +11684,22 @@
         "label": "parameter:signal_keys"
       },
       {
+        "from": "parameter:signal_keys",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_signal_dynamics_discovery",
         "to": "parameter:pseudotime_direction",
         "edge_type": "uses",
         "label": "parameter:pseudotime_direction"
+      },
+      {
+        "from": "parameter:pseudotime_direction",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_signal_dynamics_discovery",
@@ -11594,10 +11708,22 @@
         "label": "parameter:min_amplitude"
       },
       {
+        "from": "parameter:min_amplitude",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
+      },
+      {
         "from": "recipe:trajectory_signal_dynamics_discovery",
         "to": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
         "edge_type": "recipe_produces",
         "label": "artifact_type:obs_table:trajectory_signal_dynamics_curve"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
       },
       {
         "from": "recipe:trajectory_signal_dynamics_discovery",
@@ -11606,16 +11732,34 @@
         "label": "artifact_type:obs_table:trajectory_signal_dynamics"
       },
       {
+        "from": "artifact_type:obs_table:trajectory_signal_dynamics",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
+      },
+      {
         "from": "recipe:inspect_promoted_artifact",
         "to": "getter:wb_art_list",
         "edge_type": "uses",
         "label": "getter:wb_art_list"
       },
       {
+        "from": "getter:wb_art_list",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
+      },
+      {
         "from": "recipe:inspect_promoted_artifact",
         "to": "getter:wb_art_identity_card",
         "edge_type": "uses",
         "label": "getter:wb_art_identity_card"
+      },
+      {
+        "from": "getter:wb_art_identity_card",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
       },
       {
         "from": "recipe:inspect_promoted_artifact",
@@ -11624,10 +11768,22 @@
         "label": "getter:wb_art_birth_certificate"
       },
       {
+        "from": "getter:wb_art_birth_certificate",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
+      },
+      {
         "from": "recipe:inspect_promoted_artifact",
         "to": "getter:wb_art_table_info",
         "edge_type": "uses",
         "label": "getter:wb_art_table_info"
+      },
+      {
+        "from": "getter:wb_art_table_info",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
       },
       {
         "from": "recipe:inspect_promoted_artifact",
@@ -11636,16 +11792,34 @@
         "label": "getter:wb_art_table_slice"
       },
       {
+        "from": "getter:wb_art_table_slice",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
+      },
+      {
         "from": "recipe:inspect_promoted_artifact",
         "to": "getter:wb_art_load",
         "edge_type": "uses",
         "label": "getter:wb_art_load"
       },
       {
+        "from": "getter:wb_art_load",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
+      },
+      {
         "from": "recipe:inspect_promoted_artifact",
         "to": "wrangler:table:client_load_table",
         "edge_type": "uses",
         "label": "wrangler:table:client_load_table"
+      },
+      {
+        "from": "wrangler:table:client_load_table",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
       },
       {
         "from": "recipe:inspect_promoted_artifact",
@@ -11654,16 +11828,34 @@
         "label": "primitive:feature_table"
       },
       {
+        "from": "primitive:feature_table",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
+      },
+      {
         "from": "recipe:inspect_promoted_artifact",
         "to": "primitive:obs_table",
         "edge_type": "recipe_produces",
         "label": "primitive:obs_table"
       },
       {
+        "from": "primitive:obs_table",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
+      },
+      {
         "from": "recipe:inspect_promoted_artifact",
         "to": "primitive:cell_vector",
         "edge_type": "recipe_produces",
         "label": "primitive:cell_vector"
+      },
+      {
+        "from": "primitive:cell_vector",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
       },
       {
         "from": "recipe:inspect_promoted_artifact",
@@ -11672,10 +11864,22 @@
         "label": "primitive:cell_vector_family"
       },
       {
+        "from": "primitive:cell_vector_family",
+        "to": "recipe:inspect_promoted_artifact",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:inspect_promoted_artifact"
+      },
+      {
         "from": "recipe:plot_ucell_on_umap",
         "to": "op:ucell",
         "edge_type": "uses",
         "label": "op:ucell"
+      },
+      {
+        "from": "op:ucell",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
       },
       {
         "from": "recipe:plot_ucell_on_umap",
@@ -11684,10 +11888,22 @@
         "label": "getter:wb_spaces"
       },
       {
+        "from": "getter:wb_spaces",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
+      },
+      {
         "from": "recipe:plot_ucell_on_umap",
         "to": "getter:wb_read_cell_vector_family",
         "edge_type": "uses",
         "label": "getter:wb_read_cell_vector_family"
+      },
+      {
+        "from": "getter:wb_read_cell_vector_family",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
       },
       {
         "from": "recipe:plot_ucell_on_umap",
@@ -11696,10 +11912,22 @@
         "label": "plot:embedding_overlay"
       },
       {
+        "from": "plot:embedding_overlay",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
+      },
+      {
         "from": "recipe:plot_ucell_on_umap",
         "to": "plot:violin",
         "edge_type": "uses",
         "label": "plot:violin"
+      },
+      {
+        "from": "plot:violin",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
       },
       {
         "from": "recipe:plot_ucell_on_umap",
@@ -11708,16 +11936,34 @@
         "label": "wrangler:plot_mapper:space2d_overlay_v1"
       },
       {
+        "from": "wrangler:plot_mapper:space2d_overlay_v1",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
+      },
+      {
         "from": "recipe:plot_ucell_on_umap",
         "to": "wrangler:plot_mapper:cell_vector_violin_v1",
         "edge_type": "uses",
         "label": "wrangler:plot_mapper:cell_vector_violin_v1"
       },
       {
+        "from": "wrangler:plot_mapper:cell_vector_violin_v1",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
+      },
+      {
         "from": "recipe:plot_ucell_on_umap",
         "to": "parameter:space",
         "edge_type": "uses",
         "label": "parameter:space"
+      },
+      {
+        "from": "parameter:space",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
       },
       {
         "from": "recipe:plot_ucell_on_umap",
@@ -11726,10 +11972,22 @@
         "label": "artifact_type:cell_vector_family"
       },
       {
+        "from": "artifact_type:cell_vector_family",
+        "to": "recipe:plot_ucell_on_umap",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:plot_ucell_on_umap"
+      },
+      {
         "from": "recipe:plot_trajectory_on_umap",
         "to": "artifact_type:path_2d_family",
         "edge_type": "uses",
         "label": "artifact_type:path_2d_family"
+      },
+      {
+        "from": "artifact_type:path_2d_family",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
       },
       {
         "from": "recipe:plot_trajectory_on_umap",
@@ -11738,10 +11996,22 @@
         "label": "op:slingshot_project"
       },
       {
+        "from": "op:slingshot_project",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
+      },
+      {
         "from": "recipe:plot_trajectory_on_umap",
         "to": "op:monocle3_project",
         "edge_type": "uses",
         "label": "op:monocle3_project"
+      },
+      {
+        "from": "op:monocle3_project",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
       },
       {
         "from": "recipe:plot_trajectory_on_umap",
@@ -11750,16 +12020,34 @@
         "label": "op:palantir_project"
       },
       {
+        "from": "op:palantir_project",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
+      },
+      {
         "from": "recipe:plot_trajectory_on_umap",
         "to": "op:space_path_project_2d",
         "edge_type": "uses",
         "label": "op:space_path_project_2d"
       },
       {
+        "from": "op:space_path_project_2d",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
+      },
+      {
         "from": "recipe:plot_trajectory_on_umap",
         "to": "plot:embedding_overlay",
         "edge_type": "uses",
         "label": "plot:embedding_overlay"
+      },
+      {
+        "from": "plot:embedding_overlay",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
       },
       {
         "from": "recipe:plot_trajectory_on_umap",
@@ -11768,10 +12056,22 @@
         "label": "primitive:path_2d_family"
       },
       {
+        "from": "primitive:path_2d_family",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
+      },
+      {
         "from": "recipe:plot_trajectory_on_umap",
         "to": "parameter:lineage",
         "edge_type": "uses",
         "label": "parameter:lineage"
+      },
+      {
+        "from": "parameter:lineage",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
       },
       {
         "from": "recipe:plot_trajectory_on_umap",
@@ -11780,16 +12080,34 @@
         "label": "artifact_type:path_2d_family"
       },
       {
+        "from": "artifact_type:path_2d_family",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
+      },
+      {
         "from": "recipe:de_to_pathway_report",
         "to": "op:de_wilcox",
         "edge_type": "uses",
         "label": "op:de_wilcox"
       },
       {
+        "from": "op:de_wilcox",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
+      },
+      {
         "from": "recipe:de_to_pathway_report",
         "to": "op:pathway_enrich",
         "edge_type": "uses",
         "label": "op:pathway_enrich"
+      },
+      {
+        "from": "op:pathway_enrich",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
       },
       {
         "from": "recipe:de_to_pathway_report",
@@ -11798,10 +12116,22 @@
         "label": "plot:volcano"
       },
       {
+        "from": "plot:volcano",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
+      },
+      {
         "from": "recipe:de_to_pathway_report",
         "to": "plot:pathway_bar",
         "edge_type": "uses",
         "label": "plot:pathway_bar"
+      },
+      {
+        "from": "plot:pathway_bar",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
       },
       {
         "from": "recipe:de_to_pathway_report",
@@ -11810,10 +12140,22 @@
         "label": "artifact_type:feature_table:de_wilcox"
       },
       {
+        "from": "artifact_type:feature_table:de_wilcox",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
+      },
+      {
         "from": "recipe:de_to_pathway_report",
         "to": "artifact_type:obs_table:pathway_enrich",
         "edge_type": "uses",
         "label": "artifact_type:obs_table:pathway_enrich"
+      },
+      {
+        "from": "artifact_type:obs_table:pathway_enrich",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
       },
       {
         "from": "recipe:de_to_pathway_report",
@@ -11822,10 +12164,22 @@
         "label": "parameter:cell_set"
       },
       {
+        "from": "parameter:cell_set",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
+      },
+      {
         "from": "recipe:de_to_pathway_report",
         "to": "parameter:matrix",
         "edge_type": "uses",
         "label": "parameter:matrix"
+      },
+      {
+        "from": "parameter:matrix",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
       },
       {
         "from": "recipe:de_to_pathway_report",
@@ -11834,16 +12188,34 @@
         "label": "parameter:namespace"
       },
       {
+        "from": "parameter:namespace",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:de_to_pathway_report"
+      },
+      {
         "from": "recipe:de_to_pathway_report",
         "to": "artifact_type:feature_table:de_wilcox",
         "edge_type": "recipe_produces",
         "label": "artifact_type:feature_table:de_wilcox"
       },
       {
+        "from": "artifact_type:feature_table:de_wilcox",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:de_to_pathway_report"
+      },
+      {
         "from": "recipe:de_to_pathway_report",
         "to": "artifact_type:obs_table:pathway_enrich",
         "edge_type": "recipe_produces",
         "label": "artifact_type:obs_table:pathway_enrich"
+      },
+      {
+        "from": "artifact_type:obs_table:pathway_enrich",
+        "to": "recipe:de_to_pathway_report",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:de_to_pathway_report"
       },
       {
         "from": "recipe:cluster_markers_pathways",
@@ -11852,10 +12224,22 @@
         "label": "op:leiden"
       },
       {
+        "from": "op:leiden",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
+      },
+      {
         "from": "recipe:cluster_markers_pathways",
         "to": "op:markers_topn",
         "edge_type": "uses",
         "label": "op:markers_topn"
+      },
+      {
+        "from": "op:markers_topn",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
       },
       {
         "from": "recipe:cluster_markers_pathways",
@@ -11864,16 +12248,34 @@
         "label": "op:pathway_enrich"
       },
       {
+        "from": "op:pathway_enrich",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
+      },
+      {
         "from": "recipe:cluster_markers_pathways",
         "to": "plot:dotplot",
         "edge_type": "uses",
         "label": "plot:dotplot"
       },
       {
+        "from": "plot:dotplot",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
+      },
+      {
         "from": "recipe:cluster_markers_pathways",
         "to": "plot:ranked_lollipop",
         "edge_type": "uses",
         "label": "plot:ranked_lollipop"
+      },
+      {
+        "from": "plot:ranked_lollipop",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
       },
       {
         "from": "recipe:cluster_markers_pathways",
@@ -11882,10 +12284,22 @@
         "label": "plot:pathway_bar"
       },
       {
+        "from": "plot:pathway_bar",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
+      },
+      {
         "from": "recipe:cluster_markers_pathways",
         "to": "parameter:space",
         "edge_type": "uses",
         "label": "parameter:space"
+      },
+      {
+        "from": "parameter:space",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
       },
       {
         "from": "recipe:cluster_markers_pathways",
@@ -11894,16 +12308,34 @@
         "label": "parameter:cell_set"
       },
       {
+        "from": "parameter:cell_set",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
+      },
+      {
         "from": "recipe:cluster_markers_pathways",
         "to": "parameter:matrix",
         "edge_type": "uses",
         "label": "parameter:matrix"
       },
       {
+        "from": "parameter:matrix",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
+      },
+      {
         "from": "recipe:cluster_markers_pathways",
         "to": "artifact_type:cell_vector",
         "edge_type": "recipe_produces",
         "label": "artifact_type:cell_vector"
+      },
+      {
+        "from": "artifact_type:cell_vector",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
       },
       {
         "from": "recipe:cluster_markers_pathways",
@@ -11912,10 +12344,22 @@
         "label": "artifact_type:feature_table:markers_topn"
       },
       {
+        "from": "artifact_type:feature_table:markers_topn",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
+      },
+      {
         "from": "recipe:cluster_markers_pathways",
         "to": "artifact_type:obs_table:pathway_enrich",
         "edge_type": "recipe_produces",
         "label": "artifact_type:obs_table:pathway_enrich"
+      },
+      {
+        "from": "artifact_type:obs_table:pathway_enrich",
+        "to": "recipe:cluster_markers_pathways",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:cluster_markers_pathways"
       },
       {
         "from": "recipe:semantic_next_steps_from_artifact",
@@ -11924,10 +12368,22 @@
         "label": "getter:wb_art_identity_card"
       },
       {
+        "from": "getter:wb_art_identity_card",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
+      },
+      {
         "from": "recipe:semantic_next_steps_from_artifact",
         "to": "getter:wb_art_load",
         "edge_type": "uses",
         "label": "getter:wb_art_load"
+      },
+      {
+        "from": "getter:wb_art_load",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
       },
       {
         "from": "recipe:semantic_next_steps_from_artifact",
@@ -11936,10 +12392,22 @@
         "label": "artifact_type:cell_vector"
       },
       {
+        "from": "artifact_type:cell_vector",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
+      },
+      {
         "from": "recipe:semantic_next_steps_from_artifact",
         "to": "primitive:cell_vector",
         "edge_type": "uses",
         "label": "primitive:cell_vector"
+      },
+      {
+        "from": "primitive:cell_vector",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
       },
       {
         "from": "recipe:semantic_next_steps_from_artifact",
@@ -11948,16 +12416,34 @@
         "label": "wrangler:table:client_load_table"
       },
       {
+        "from": "wrangler:table:client_load_table",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
+      },
+      {
         "from": "recipe:semantic_next_steps_from_artifact",
         "to": "plot:embedding_overlay",
         "edge_type": "uses",
         "label": "plot:embedding_overlay"
       },
       {
+        "from": "plot:embedding_overlay",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
+      },
+      {
         "from": "recipe:semantic_next_steps_from_artifact",
         "to": "plot:embedding_overlay",
         "edge_type": "recipe_produces",
         "label": "plot:embedding_overlay"
+      },
+      {
+        "from": "plot:embedding_overlay",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
       },
       {
         "from": "recipe:semantic_next_steps_from_artifact",
@@ -11966,10 +12452,22 @@
         "label": "plot:violin"
       },
       {
+        "from": "plot:violin",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
+      },
+      {
         "from": "recipe:semantic_next_steps_from_artifact",
         "to": "plot:ranked_lollipop",
         "edge_type": "recipe_produces",
         "label": "plot:ranked_lollipop"
+      },
+      {
+        "from": "plot:ranked_lollipop",
+        "to": "recipe:semantic_next_steps_from_artifact",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:semantic_next_steps_from_artifact"
       }
     ]
   }

@@ -39,6 +39,9 @@ test_all <- function(bundle_dir){
   if (exists("test_recipe_semantics_catalog_contract", mode = "function")) {
     stopifnot(test_recipe_semantics_catalog_contract())
   }
+  if (exists("test_semantic_planning_artifact_contract", mode = "function")) {
+    stopifnot(test_semantic_planning_artifact_contract())
+  }
   if (exists("test_op_knn_neighbors_contract", mode = "function")) {
     stopifnot(test_op_knn_neighbors_contract(bundle_dir))
   }

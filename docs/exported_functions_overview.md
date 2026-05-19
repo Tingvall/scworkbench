@@ -211,6 +211,7 @@ Note:
 - `wb_semantic_catalog`: Export unified semantic catalog
 - `wb_semantic_catalog_audit`: Audit semantic catalog coverage
 - `wb_semantic_compatibility_graph`: Build semantic compatibility graph
+- `wb_semantic_plan_artifact_next_steps`: Plan next actions for a promoted artifact
 - `wb_wrangle_plot_dataset`: Wrangle inputs into a validated plot dataset
 - `wb_wrangler_catalog_semantic`: Export wrangler catalog as semantic metadata
 - `wb_write_artifact_type_catalog_reference`: Write artifact type catalog reference files

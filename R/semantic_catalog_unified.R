@@ -535,9 +535,11 @@ wb_semantic_compatibility_graph <- function(bundle = NULL) {
     rid <- paste0("recipe:", as.character(r$recipe_id %||% "")[1])
     for (u in as.character(r$uses %||% character(0))) {
       if (u %in% node_ids) add_edge(rid, u, "uses", u)
+      if (u %in% node_ids) add_edge(u, rid, "used_by_recipe", rid)
     }
     for (p in as.character(r$produces %||% character(0))) {
       if (p %in% node_ids) add_edge(rid, p, "recipe_produces", p)
+      if (p %in% node_ids) add_edge(p, rid, "produced_by_recipe", rid)
     }
   }
 
