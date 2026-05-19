@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-05-19T13:24:33+0200",
-  "node_count": 162,
-  "edge_count": 256,
+  "generated_at": "2026-05-19T13:40:27+0200",
+  "node_count": 192,
+  "edge_count": 410,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -975,6 +975,186 @@
       "record_type": "artifact_type",
       "name": "feature_table:knn_pseudobulk",
       "title": "KNN Pseudobulk Feature Table"
+    },
+    {
+      "record_id": "parameter:cell_set",
+      "record_type": "parameter",
+      "name": "cell_set",
+      "title": "Cell Set / Analysis Universe"
+    },
+    {
+      "record_id": "parameter:matrix",
+      "record_type": "parameter",
+      "name": "matrix",
+      "title": "Matrix Input"
+    },
+    {
+      "record_id": "parameter:space",
+      "record_type": "parameter",
+      "name": "space",
+      "title": "Embedding / Latent Space Input"
+    },
+    {
+      "record_id": "parameter:model",
+      "record_type": "parameter",
+      "name": "model",
+      "title": "Model Reference Input"
+    },
+    {
+      "record_id": "parameter:pseudotime",
+      "record_type": "parameter",
+      "name": "pseudotime",
+      "title": "Pseudotime Vector Input"
+    },
+    {
+      "record_id": "parameter:pseudotime_direction",
+      "record_type": "parameter",
+      "name": "pseudotime_direction",
+      "title": "Pseudotime Direction"
+    },
+    {
+      "record_id": "parameter:start_label",
+      "record_type": "parameter",
+      "name": "start_label",
+      "title": "Biological Start Label"
+    },
+    {
+      "record_id": "parameter:end_label",
+      "record_type": "parameter",
+      "name": "end_label",
+      "title": "Biological End Label"
+    },
+    {
+      "record_id": "parameter:lineage",
+      "record_type": "parameter",
+      "name": "lineage",
+      "title": "Lineage Subset"
+    },
+    {
+      "record_id": "parameter:score_method",
+      "record_type": "parameter",
+      "name": "score_method",
+      "title": "Feature-Set Scoring Method"
+    },
+    {
+      "record_id": "parameter:namespace",
+      "record_type": "parameter",
+      "name": "namespace",
+      "title": "Feature-Set Namespace"
+    },
+    {
+      "record_id": "parameter:feature_sets",
+      "record_type": "parameter",
+      "name": "feature_sets",
+      "title": "Feature-Set Subset"
+    },
+    {
+      "record_id": "parameter:signal_keys",
+      "record_type": "parameter",
+      "name": "signal_keys",
+      "title": "Signal Key Subset"
+    },
+    {
+      "record_id": "parameter:n_bins",
+      "record_type": "parameter",
+      "name": "n_bins",
+      "title": "Pseudotime Bin Count"
+    },
+    {
+      "record_id": "parameter:min_cells_per_bin",
+      "record_type": "parameter",
+      "name": "min_cells_per_bin",
+      "title": "Minimum Cells Per Bin"
+    },
+    {
+      "record_id": "parameter:summary_fun",
+      "record_type": "parameter",
+      "name": "summary_fun",
+      "title": "Bin Summary Function"
+    },
+    {
+      "record_id": "parameter:min_amplitude",
+      "record_type": "parameter",
+      "name": "min_amplitude",
+      "title": "Minimum Curve Amplitude Filter"
+    },
+    {
+      "record_id": "parameter:class_min_amplitude",
+      "record_type": "parameter",
+      "name": "class_min_amplitude",
+      "title": "Minimum Amplitude For Non-Flat Class"
+    },
+    {
+      "record_id": "parameter:min_bins_observed",
+      "record_type": "parameter",
+      "name": "min_bins_observed",
+      "title": "Minimum Observed Bins Filter"
+    },
+    {
+      "record_id": "parameter:min_features_detected",
+      "record_type": "parameter",
+      "name": "min_features_detected",
+      "title": "Minimum Detected Set Members"
+    },
+    {
+      "record_id": "parameter:min_detected_fraction",
+      "record_type": "parameter",
+      "name": "min_detected_fraction",
+      "title": "Minimum Detected Set Fraction"
+    },
+    {
+      "record_id": "parameter:on_off_min_delta",
+      "record_type": "parameter",
+      "name": "on_off_min_delta",
+      "title": "On/Off Delta Threshold"
+    },
+    {
+      "record_id": "parameter:monotonic_min_abs_rho",
+      "record_type": "parameter",
+      "name": "monotonic_min_abs_rho",
+      "title": "Monotonicity Threshold"
+    },
+    {
+      "record_id": "parameter:smooth_method",
+      "record_type": "parameter",
+      "name": "smooth_method",
+      "title": "Curve Smoothing Method"
+    },
+    {
+      "record_id": "parameter:loess_span",
+      "record_type": "parameter",
+      "name": "loess_span",
+      "title": "LOESS Span"
+    },
+    {
+      "record_id": "parameter:bootstrap_n",
+      "record_type": "parameter",
+      "name": "bootstrap_n",
+      "title": "Bootstrap Replicate Count"
+    },
+    {
+      "record_id": "parameter:ci_level",
+      "record_type": "parameter",
+      "name": "ci_level",
+      "title": "Confidence Interval Level"
+    },
+    {
+      "record_id": "parameter:mad_multiplier",
+      "record_type": "parameter",
+      "name": "mad_multiplier",
+      "title": "MAD Distance Inclusion Multiplier"
+    },
+    {
+      "record_id": "parameter:top_n",
+      "record_type": "parameter",
+      "name": "top_n",
+      "title": "Top-N Retention"
+    },
+    {
+      "record_id": "parameter:seed",
+      "record_type": "parameter",
+      "name": "seed",
+      "title": "Random Seed"
     }
   ],
   "edges": [
@@ -983,6 +1163,24 @@
       "to": "op:leiden",
       "edge_type": "consumed_by",
       "label": "input:space"
+    },
+    {
+      "from": "op:leiden",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:leiden",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:leiden",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
     },
     {
       "from": "op:leiden",
@@ -1001,6 +1199,18 @@
       "to": "op:umap_fit",
       "edge_type": "consumed_by",
       "label": "input:space"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:umap_fit",
@@ -1033,10 +1243,22 @@
       "label": "input:model"
     },
     {
+      "from": "op:umap_transform",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
       "from": "primitive:space",
       "to": "op:umap_transform",
       "edge_type": "consumed_by",
       "label": "input:in_space"
+    },
+    {
+      "from": "op:umap_transform",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:umap_transform",
@@ -1058,6 +1280,24 @@
     },
     {
       "from": "op:addmodulescore",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:addmodulescore",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:addmodulescore",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
+    },
+    {
+      "from": "op:addmodulescore",
       "to": "primitive:cell_vector_family",
       "edge_type": "produces",
       "label": "output:module_scores"
@@ -1073,6 +1313,18 @@
       "to": "op:ucell",
       "edge_type": "consumed_by",
       "label": "input:matrix"
+    },
+    {
+      "from": "op:ucell",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:ucell",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:ucell",
@@ -1097,6 +1349,18 @@
       "to": "op:cell_vector_family_reduce",
       "edge_type": "consumed_by",
       "label": "input:signal"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
     },
     {
       "from": "op:cell_vector_family_reduce",
@@ -1178,6 +1442,18 @@
     },
     {
       "from": "op:cell_vector_family_calibrate",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_family_calibrate",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:cell_vector_family_calibrate",
       "to": "primitive:cell_vector_family",
       "edge_type": "produces",
       "label": "output:calibrated_signal"
@@ -1208,6 +1484,18 @@
     },
     {
       "from": "op:cell_vector_family_qc",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_family_qc",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:cell_vector_family_qc",
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:key_summary"
@@ -1229,6 +1517,18 @@
       "to": "op:chromvar",
       "edge_type": "consumed_by",
       "label": "input:matrix"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:chromvar",
@@ -1268,6 +1568,18 @@
     },
     {
       "from": "op:de_wilcox",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:de_wilcox",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:de_wilcox",
       "to": "primitive:feature_table",
       "edge_type": "produces",
       "label": "output:de_table"
@@ -1279,10 +1591,28 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:markers_topn",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:cell_vector",
       "to": "op:markers_topn",
       "edge_type": "consumed_by",
       "label": "input:clusters"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "parameter:top_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:top_n"
     },
     {
       "from": "op:markers_topn",
@@ -1297,6 +1627,12 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:pathway_enrich",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:feature_table",
       "to": "op:pathway_enrich",
       "edge_type": "consumed_by",
@@ -1304,9 +1640,33 @@
     },
     {
       "from": "op:pathway_enrich",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:namespace"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:direction"
+    },
+    {
+      "from": "op:pathway_enrich",
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:pathways"
+    },
+    {
+      "from": "op:cell_suffix_label",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:cell_suffix_label",
@@ -1340,6 +1700,12 @@
     },
     {
       "from": "op:cell_vector_assoc",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_assoc",
       "to": "primitive:feature_table",
       "edge_type": "produces",
       "label": "output:assoc_summary"
@@ -1364,6 +1730,12 @@
     },
     {
       "from": "op:cell_vector_compare",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_compare",
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:summary"
@@ -1381,10 +1753,28 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:feature_trend_spearman",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:cell_vector",
       "to": "op:feature_trend_spearman",
       "edge_type": "consumed_by",
       "label": "input:pseudotime"
+    },
+    {
+      "from": "op:feature_trend_spearman",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:feature_trend_spearman",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:feature_trend_spearman",
@@ -1399,10 +1789,34 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:trajectory_de",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:model_ref",
       "to": "op:trajectory_de",
       "edge_type": "consumed_by",
       "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
     },
     {
       "from": "op:trajectory_de",
@@ -1423,10 +1837,52 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:model_ref",
       "to": "op:trajectory_smooth",
       "edge_type": "consumed_by",
       "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
     },
     {
       "from": "op:trajectory_smooth",
@@ -1447,9 +1903,21 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:cell_vector_family",
       "to": "op:trajectory_branch_compare",
       "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
       "label": "input:pseudotime"
     },
     {
@@ -1457,6 +1925,12 @@
       "to": "op:trajectory_branch_compare",
       "edge_type": "consumed_by",
       "label": "input:branch_membership"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:trajectory_branch_compare",
@@ -1477,10 +1951,58 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:model_ref",
       "to": "op:trajectory_signature_smooth",
       "edge_type": "consumed_by",
       "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:score_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:score_method"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
     },
     {
       "from": "op:trajectory_signature_smooth",
@@ -1501,10 +2023,166 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:model_ref",
       "to": "op:trajectory_geneset_dynamics",
       "edge_type": "consumed_by",
       "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:namespace"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:feature_sets",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:feature_sets"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:score_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:score_method"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:pseudotime_direction"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:start_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:start_label"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:end_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:end_label"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:top_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:top_n"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:on_off_min_delta",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:on_off_min_delta"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:monotonic_min_abs_rho",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:monotonic_min_abs_rho"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_amplitude"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_bins_observed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_bins_observed"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_features_detected",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_features_detected"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_detected_fraction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_detected_fraction"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:smooth_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:smooth_method"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:loess_span",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:loess_span"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:bootstrap_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_n"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_seed"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:ci_level",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:ci_level"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:class_min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:class_min_amplitude"
     },
     {
       "from": "op:trajectory_geneset_dynamics",
@@ -1549,9 +2227,21 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:cell_vector",
       "to": "op:trajectory_route_smooth",
       "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
       "label": "input:pseudotime"
     },
     {
@@ -1559,6 +2249,30 @@
       "to": "op:trajectory_route_smooth",
       "edge_type": "consumed_by",
       "label": "input:branch_membership"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
     },
     {
       "from": "op:trajectory_route_smooth",
@@ -1586,6 +2300,48 @@
     },
     {
       "from": "op:trajectory_vector_smooth",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:signal_table"
@@ -1607,6 +2363,132 @@
       "to": "op:trajectory_signal_dynamics",
       "edge_type": "consumed_by",
       "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:pseudotime_direction"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:start_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:start_label"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:end_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:end_label"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:top_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:top_n"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:on_off_min_delta",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:on_off_min_delta"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:monotonic_min_abs_rho",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:monotonic_min_abs_rho"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_amplitude"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:min_bins_observed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_bins_observed"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:smooth_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:smooth_method"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:loess_span",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:loess_span"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:bootstrap_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_n"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_seed"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:ci_level",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:ci_level"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:class_min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:class_min_amplitude"
     },
     {
       "from": "op:trajectory_signal_dynamics",
@@ -1639,10 +2521,28 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:knn_pseudobulk",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:space",
       "to": "op:knn_pseudobulk",
       "edge_type": "consumed_by",
       "label": "input:space"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:knn_pseudobulk",
@@ -1670,6 +2570,18 @@
     },
     {
       "from": "op:knn_neighbors",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:knn_neighbors",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:knn_neighbors",
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:neighbors"
@@ -1693,9 +2605,21 @@
       "label": "input:space"
     },
     {
+      "from": "op:slingshot",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
       "from": "primitive:space",
       "to": "op:slingshot",
       "edge_type": "consumed_by",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
       "label": "input:plot_space"
     },
     {
@@ -1703,6 +2627,12 @@
       "to": "op:slingshot",
       "edge_type": "consumed_by",
       "label": "input:clusters"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:slingshot",
@@ -1735,10 +2665,22 @@
       "label": "input:fit_space"
     },
     {
+      "from": "op:slingshot_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:fit_space"
+    },
+    {
       "from": "primitive:cell_vector",
       "to": "op:slingshot_fit",
       "edge_type": "consumed_by",
       "label": "input:clusters"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:slingshot_fit",
@@ -1771,10 +2713,28 @@
       "label": "input:model"
     },
     {
+      "from": "op:slingshot_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
       "from": "primitive:space_2d",
       "to": "op:slingshot_project",
       "edge_type": "consumed_by",
       "label": "input:plot_space"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:slingshot_project",
@@ -1793,6 +2753,24 @@
       "to": "op:monocle3_fit",
       "edge_type": "consumed_by",
       "label": "input:fit_space"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:random_seed"
     },
     {
       "from": "op:monocle3_fit",
@@ -1837,10 +2815,28 @@
       "label": "input:model"
     },
     {
+      "from": "op:monocle3_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
       "from": "primitive:space_2d",
       "to": "op:monocle3_project",
       "edge_type": "consumed_by",
       "label": "input:plot_space"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:monocle3_project",
@@ -1859,6 +2855,24 @@
       "to": "op:peakvi_fit",
       "edge_type": "consumed_by",
       "label": "input:matrix"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
     },
     {
       "from": "op:peakvi_fit",
@@ -1885,10 +2899,28 @@
       "label": "input:matrix"
     },
     {
+      "from": "op:peakvi_project",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
       "from": "primitive:model_ref",
       "to": "op:peakvi_project",
       "edge_type": "consumed_by",
       "label": "input:model"
+    },
+    {
+      "from": "op:peakvi_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:peakvi_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:peakvi_project",
@@ -1901,6 +2933,18 @@
       "to": "op:space_path_define",
       "edge_type": "consumed_by",
       "label": "input:space"
+    },
+    {
+      "from": "op:space_path_define",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:space_path_define",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:space_path_define",
@@ -1921,10 +2965,22 @@
       "label": "input:space"
     },
     {
+      "from": "op:space_path_score",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
       "from": "primitive:space_path_family",
       "to": "op:space_path_score",
       "edge_type": "consumed_by",
       "label": "input:path"
+    },
+    {
+      "from": "op:space_path_score",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:space_path_score",
@@ -1958,6 +3014,18 @@
     },
     {
       "from": "op:space_path_project_2d",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:space_path_project_2d",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:space_path_project_2d",
       "to": "primitive:path_2d_family",
       "edge_type": "produces",
       "label": "output:curves"
@@ -1973,6 +3041,24 @@
       "to": "op:palantir_fit",
       "edge_type": "consumed_by",
       "label": "input:fit_space"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
     },
     {
       "from": "op:palantir_fit",
@@ -2035,10 +3121,28 @@
       "label": "input:model"
     },
     {
+      "from": "op:palantir_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
       "from": "primitive:space_2d",
       "to": "op:palantir_project",
       "edge_type": "consumed_by",
       "label": "input:plot_space"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
     },
     {
       "from": "op:palantir_project",

@@ -1,11 +1,12 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-05-19T13:24:33+0200",
-  "record_count": 162,
+  "generated_at": "2026-05-19T13:40:27+0200",
+  "record_count": 192,
   "record_type_counts": {
     "artifact_type": 25,
     "getter": 62,
     "op": 38,
+    "parameter": 30,
     "plot": 12,
     "primitive": 11,
     "wrangler": 14
@@ -7063,13 +7064,583 @@
         "entity_kind": "feature",
         "use_when": "inspect local pseudobulk expression"
       }
+    },
+    {
+      "record_id": "parameter:cell_set",
+      "record_type": "parameter",
+      "name": "cell_set",
+      "title": "Cell Set / Analysis Universe",
+      "description": "Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.",
+      "search_text": "Cell Set / Analysis Universe\nRestricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.\nselection\nop inputs\ncell inclusion\nstatistics\nplots\nruntime\nUse a biologically justified set for focused analysis.\nUse all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment.\ncells\ncell_ids",
+      "tags": ["parameter", "selection", "cells", "cell_ids"],
+      "payload": {
+        "parameter_name": "cell_set",
+        "title": "Cell Set / Analysis Universe",
+        "category": "selection",
+        "description": "Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.",
+        "applies_to": "op inputs",
+        "affects": ["cell inclusion", "statistics", "plots", "runtime"],
+        "guidance": ["Use a biologically justified set for focused analysis.", "Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment."],
+        "aliases": ["cells", "cell_ids"]
+      }
+    },
+    {
+      "record_id": "parameter:matrix",
+      "record_type": "parameter",
+      "name": "matrix",
+      "title": "Matrix Input",
+      "description": "Symbolic matrix primitive consumed by an op. The matrix defines the feature universe and measurement scale.",
+      "search_text": "Matrix Input\nSymbolic matrix primitive consumed by an op. The matrix defines the feature universe and measurement scale.\ndata_source\nop inputs\nfeature universe\nmeasurement scale\ndetected features\nChoose RNA/ATAC/counts/normalized matrix intentionally.\nMatrix semantics are more important than the string id; future matrix metadata should formalize this.\nmatrix_id",
+      "tags": ["parameter", "data_source", "matrix_id"],
+      "payload": {
+        "parameter_name": "matrix",
+        "title": "Matrix Input",
+        "category": "data_source",
+        "description": "Symbolic matrix primitive consumed by an op. The matrix defines the feature universe and measurement scale.",
+        "applies_to": "op inputs",
+        "affects": ["feature universe", "measurement scale", "detected features"],
+        "guidance": ["Choose RNA/ATAC/counts/normalized matrix intentionally.", "Matrix semantics are more important than the string id; future matrix metadata should formalize this."],
+        "aliases": "matrix_id"
+      }
+    },
+    {
+      "record_id": "parameter:space",
+      "record_type": "parameter",
+      "name": "space",
+      "title": "Embedding / Latent Space Input",
+      "description": "Symbolic space primitive used for geometry, clustering, nearest-neighbor, projection, or trajectory operations.",
+      "search_text": "Embedding / Latent Space Input\nSymbolic space primitive used for geometry, clustering, nearest-neighbor, projection, or trajectory operations.\ndata_source\nop inputs\ngeometry\nneighborhoods\ntrajectory shape\nUse a space whose dimensions represent the biology under study.\nChanging space can change distances, branches, and inferred progress.\nspace_id\nfit_space\nplot_space",
+      "tags": ["parameter", "data_source", "space_id", "fit_space", "plot_space"],
+      "payload": {
+        "parameter_name": "space",
+        "title": "Embedding / Latent Space Input",
+        "category": "data_source",
+        "description": "Symbolic space primitive used for geometry, clustering, nearest-neighbor, projection, or trajectory operations.",
+        "applies_to": "op inputs",
+        "affects": ["geometry", "neighborhoods", "trajectory shape"],
+        "guidance": ["Use a space whose dimensions represent the biology under study.", "Changing space can change distances, branches, and inferred progress."],
+        "aliases": ["space_id", "fit_space", "plot_space"]
+      }
+    },
+    {
+      "record_id": "parameter:model",
+      "record_type": "parameter",
+      "name": "model",
+      "title": "Model Reference Input",
+      "description": "Reference to a fitted model or trajectory object used by downstream projection/smoothing/dynamics ops.",
+      "search_text": "Model Reference Input\nReference to a fitted model or trajectory object used by downstream projection/smoothing/dynamics ops.\ndata_source\nop inputs\npseudotime\nlineage keys\nprojection semantics\nModel provenance defines the biological orientation and branch structure.\nDo not treat models from different methods as interchangeable without checking semantics.\nmodel_ref",
+      "tags": ["parameter", "data_source", "model_ref"],
+      "payload": {
+        "parameter_name": "model",
+        "title": "Model Reference Input",
+        "category": "data_source",
+        "description": "Reference to a fitted model or trajectory object used by downstream projection/smoothing/dynamics ops.",
+        "applies_to": "op inputs",
+        "affects": ["pseudotime", "lineage keys", "projection semantics"],
+        "guidance": ["Model provenance defines the biological orientation and branch structure.", "Do not treat models from different methods as interchangeable without checking semantics."],
+        "aliases": "model_ref"
+      }
+    },
+    {
+      "record_id": "parameter:pseudotime",
+      "record_type": "parameter",
+      "name": "pseudotime",
+      "title": "Pseudotime Vector Input",
+      "description": "Continuous per-cell progress coordinate, usually inferred by a trajectory method or path-scoring op.",
+      "search_text": "Pseudotime Vector Input\nContinuous per-cell progress coordinate, usually inferred by a trajectory method or path-scoring op.\ntrajectory\nop inputs\nordering\ntrend tests\ndynamic classes\nPseudotime is relative to its root/orientation.\nCompare methods only after aligning orientation and intersecting cells when needed.\ntrajectory_time\nprogress",
+      "tags": ["parameter", "trajectory", "trajectory_time", "progress"],
+      "payload": {
+        "parameter_name": "pseudotime",
+        "title": "Pseudotime Vector Input",
+        "category": "trajectory",
+        "description": "Continuous per-cell progress coordinate, usually inferred by a trajectory method or path-scoring op.",
+        "applies_to": "op inputs",
+        "affects": ["ordering", "trend tests", "dynamic classes"],
+        "guidance": ["Pseudotime is relative to its root/orientation.", "Compare methods only after aligning orientation and intersecting cells when needed."],
+        "aliases": ["trajectory_time", "progress"]
+      }
+    },
+    {
+      "record_id": "parameter:pseudotime_direction",
+      "record_type": "parameter",
+      "name": "pseudotime_direction",
+      "title": "Pseudotime Direction",
+      "description": "Controls whether pseudotime is used as provided or inverted before binning, curve metrics, and class assignment.",
+      "search_text": "Pseudotime Direction\nControls whether pseudotime is used as provided or inverted before binning, curve metrics, and class assignment.\ntrajectory\nop params\nearly/late interpretation\nturns_on/turns_off labels\nreport captions\nSet this so early and late correspond to the biological start and endpoint.\nInversion changes interpretation, not the underlying cell scores.\norientation\ndirection",
+      "tags": ["parameter", "trajectory", "orientation", "direction"],
+      "payload": {
+        "parameter_name": "pseudotime_direction",
+        "title": "Pseudotime Direction",
+        "category": "trajectory",
+        "description": "Controls whether pseudotime is used as provided or inverted before binning, curve metrics, and class assignment.",
+        "applies_to": "op params",
+        "affects": ["early/late interpretation", "turns_on/turns_off labels", "report captions"],
+        "guidance": ["Set this so early and late correspond to the biological start and endpoint.", "Inversion changes interpretation, not the underlying cell scores."],
+        "aliases": ["orientation", "direction"]
+      }
+    },
+    {
+      "record_id": "parameter:start_label",
+      "record_type": "parameter",
+      "name": "start_label",
+      "title": "Biological Start Label",
+      "description": "Human-readable label for the intended biological start of a trajectory or dynamics analysis.",
+      "search_text": "Biological Start Label\nHuman-readable label for the intended biological start of a trajectory or dynamics analysis.\ntrajectory\nop params\nmetadata\nreports\ninterpretation\nUse this to make orientation explicit in reports.\nThis records intent; it does not root the trajectory by itself.\nroot_label\nearly_label",
+      "tags": ["parameter", "trajectory", "root_label", "early_label"],
+      "payload": {
+        "parameter_name": "start_label",
+        "title": "Biological Start Label",
+        "category": "trajectory",
+        "description": "Human-readable label for the intended biological start of a trajectory or dynamics analysis.",
+        "applies_to": "op params",
+        "affects": ["metadata", "reports", "interpretation"],
+        "guidance": ["Use this to make orientation explicit in reports.", "This records intent; it does not root the trajectory by itself."],
+        "aliases": ["root_label", "early_label"]
+      }
+    },
+    {
+      "record_id": "parameter:end_label",
+      "record_type": "parameter",
+      "name": "end_label",
+      "title": "Biological End Label",
+      "description": "Human-readable label for the intended biological endpoint of a trajectory or dynamics analysis.",
+      "search_text": "Biological End Label\nHuman-readable label for the intended biological endpoint of a trajectory or dynamics analysis.\ntrajectory\nop params\nmetadata\nreports\ninterpretation\nUse this to make endpoint interpretation explicit.\nThis records intent; it does not alter model geometry by itself.\nterminal_label\nlate_label",
+      "tags": ["parameter", "trajectory", "terminal_label", "late_label"],
+      "payload": {
+        "parameter_name": "end_label",
+        "title": "Biological End Label",
+        "category": "trajectory",
+        "description": "Human-readable label for the intended biological endpoint of a trajectory or dynamics analysis.",
+        "applies_to": "op params",
+        "affects": ["metadata", "reports", "interpretation"],
+        "guidance": ["Use this to make endpoint interpretation explicit.", "This records intent; it does not alter model geometry by itself."],
+        "aliases": ["terminal_label", "late_label"]
+      }
+    },
+    {
+      "record_id": "parameter:lineage",
+      "record_type": "parameter",
+      "name": "lineage",
+      "title": "Lineage Subset",
+      "description": "Restricts analysis to one or more lineage/path keys from a trajectory, relation, or path family.",
+      "search_text": "Lineage Subset\nRestricts analysis to one or more lineage/path keys from a trajectory, relation, or path family.\ntrajectory\nop params\nbranch selection\ncurve counts\nreported dynamics\nUse lineage keys that are present in the upstream model/artifact.\nDifferent methods may use different lineage/branch key semantics.\nbranch\npath_id\nlineage_id",
+      "tags": ["parameter", "trajectory", "branch", "path_id", "lineage_id"],
+      "payload": {
+        "parameter_name": "lineage",
+        "title": "Lineage Subset",
+        "category": "trajectory",
+        "description": "Restricts analysis to one or more lineage/path keys from a trajectory, relation, or path family.",
+        "applies_to": "op params",
+        "affects": ["branch selection", "curve counts", "reported dynamics"],
+        "guidance": ["Use lineage keys that are present in the upstream model/artifact.", "Different methods may use different lineage/branch key semantics."],
+        "aliases": ["branch", "path_id", "lineage_id"]
+      }
+    },
+    {
+      "record_id": "parameter:score_method",
+      "record_type": "parameter",
+      "name": "score_method",
+      "title": "Feature-Set Scoring Method",
+      "description": "Defines how member features are collapsed into a per-cell or per-bin feature-set score.",
+      "search_text": "Feature-Set Scoring Method\nDefines how member features are collapsed into a per-cell or per-bin feature-set score.\nsignature\nop params\nscore scale\ncurve shape\ndynamic ranking\nMean/sum depend on expression scale and set size.\nRank-based methods reduce scale sensitivity but change interpretation.\nscoring\nsignature_score_method",
+      "tags": ["parameter", "signature", "scoring", "signature_score_method"],
+      "payload": {
+        "parameter_name": "score_method",
+        "title": "Feature-Set Scoring Method",
+        "category": "signature",
+        "description": "Defines how member features are collapsed into a per-cell or per-bin feature-set score.",
+        "applies_to": "op params",
+        "affects": ["score scale", "curve shape", "dynamic ranking"],
+        "guidance": ["Mean/sum depend on expression scale and set size.", "Rank-based methods reduce scale sensitivity but change interpretation."],
+        "aliases": ["scoring", "signature_score_method"]
+      }
+    },
+    {
+      "record_id": "parameter:namespace",
+      "record_type": "parameter",
+      "name": "namespace",
+      "title": "Feature-Set Namespace",
+      "description": "Selects the registered collection of feature sets to screen or score.",
+      "search_text": "Feature-Set Namespace\nSelects the registered collection of feature sets to screen or score.\nsignature\nop params\ntested hypotheses\nmultiple testing universe\ndiscovery scope\nTreat namespace as the biological hypothesis library.\nReport the namespace because it defines what could have been discovered.\ngene_set_namespace\ncollection",
+      "tags": ["parameter", "signature", "gene_set_namespace", "collection"],
+      "payload": {
+        "parameter_name": "namespace",
+        "title": "Feature-Set Namespace",
+        "category": "signature",
+        "description": "Selects the registered collection of feature sets to screen or score.",
+        "applies_to": "op params",
+        "affects": ["tested hypotheses", "multiple testing universe", "discovery scope"],
+        "guidance": ["Treat namespace as the biological hypothesis library.", "Report the namespace because it defines what could have been discovered."],
+        "aliases": ["gene_set_namespace", "collection"]
+      }
+    },
+    {
+      "record_id": "parameter:feature_sets",
+      "record_type": "parameter",
+      "name": "feature_sets",
+      "title": "Feature-Set Subset",
+      "description": "Optional restriction to named feature sets within a namespace.",
+      "search_text": "Feature-Set Subset\nOptional restriction to named feature sets within a namespace.\nsignature\nop params\nscreening universe\nreported terms\nUse NULL for broad discovery.\nUse explicit subsets for targeted validation.\ngene_sets\nsignatures",
+      "tags": ["parameter", "signature", "gene_sets", "signatures"],
+      "payload": {
+        "parameter_name": "feature_sets",
+        "title": "Feature-Set Subset",
+        "category": "signature",
+        "description": "Optional restriction to named feature sets within a namespace.",
+        "applies_to": "op params",
+        "affects": ["screening universe", "reported terms"],
+        "guidance": ["Use NULL for broad discovery.", "Use explicit subsets for targeted validation."],
+        "aliases": ["gene_sets", "signatures"]
+      }
+    },
+    {
+      "record_id": "parameter:signal_keys",
+      "record_type": "parameter",
+      "name": "signal_keys",
+      "title": "Signal Key Subset",
+      "description": "Optional restriction to selected keys in a cell_vector_family, such as UCell signatures or chromVAR motifs.",
+      "search_text": "Signal Key Subset\nOptional restriction to selected keys in a cell_vector_family, such as UCell signatures or chromVAR motifs.\nsignal\nop params\nscreening universe\nreported signals\nUse NULL for broad signal-family screening.\nUse explicit keys for targeted follow-up.\nkeys\nsignature_keys\nmotif_keys",
+      "tags": ["parameter", "signal", "keys", "signature_keys", "motif_keys"],
+      "payload": {
+        "parameter_name": "signal_keys",
+        "title": "Signal Key Subset",
+        "category": "signal",
+        "description": "Optional restriction to selected keys in a cell_vector_family, such as UCell signatures or chromVAR motifs.",
+        "applies_to": "op params",
+        "affects": ["screening universe", "reported signals"],
+        "guidance": ["Use NULL for broad signal-family screening.", "Use explicit keys for targeted follow-up."],
+        "aliases": ["keys", "signature_keys", "motif_keys"]
+      }
+    },
+    {
+      "record_id": "parameter:n_bins",
+      "record_type": "parameter",
+      "name": "n_bins",
+      "title": "Pseudotime Bin Count",
+      "description": "Number of bins used to aggregate cells along pseudotime before curve summaries and dynamics metrics.",
+      "search_text": "Pseudotime Bin Count\nNumber of bins used to aggregate cells along pseudotime before curve summaries and dynamics metrics.\ntrajectory\nop params\ncurve resolution\nnoise\nruntime\nMore bins preserve detail but increase sparsity/noise.\nFewer bins smooth curves but may hide sharp transitions.\nbins",
+      "tags": ["parameter", "trajectory", "bins"],
+      "payload": {
+        "parameter_name": "n_bins",
+        "title": "Pseudotime Bin Count",
+        "category": "trajectory",
+        "description": "Number of bins used to aggregate cells along pseudotime before curve summaries and dynamics metrics.",
+        "applies_to": "op params",
+        "affects": ["curve resolution", "noise", "runtime"],
+        "guidance": ["More bins preserve detail but increase sparsity/noise.", "Fewer bins smooth curves but may hide sharp transitions."],
+        "aliases": "bins"
+      }
+    },
+    {
+      "record_id": "parameter:min_cells_per_bin",
+      "record_type": "parameter",
+      "name": "min_cells_per_bin",
+      "title": "Minimum Cells Per Bin",
+      "description": "Minimum number of cells required for a pseudotime bin to be retained.",
+      "search_text": "Minimum Cells Per Bin\nMinimum number of cells required for a pseudotime bin to be retained.\nfiltering\nop params\ncurve support\nmissing bins\nconfidence\nHigher values make curves more stable but can remove sparse terminal regions.\nReport this when interpreting missing or truncated curves.\nmin_bin_cells",
+      "tags": ["parameter", "filtering", "min_bin_cells"],
+      "payload": {
+        "parameter_name": "min_cells_per_bin",
+        "title": "Minimum Cells Per Bin",
+        "category": "filtering",
+        "description": "Minimum number of cells required for a pseudotime bin to be retained.",
+        "applies_to": "op params",
+        "affects": ["curve support", "missing bins", "confidence"],
+        "guidance": ["Higher values make curves more stable but can remove sparse terminal regions.", "Report this when interpreting missing or truncated curves."],
+        "aliases": "min_bin_cells"
+      }
+    },
+    {
+      "record_id": "parameter:summary_fun",
+      "record_type": "parameter",
+      "name": "summary_fun",
+      "title": "Bin Summary Function",
+      "description": "Statistic used to summarize cell-level values within each bin.",
+      "search_text": "Bin Summary Function\nStatistic used to summarize cell-level values within each bin.\nsummary\nop params\ncurve values\noutlier sensitivity\nMean is sensitive to outliers and abundance shifts.\nMedian is more robust but may compress sparse expression.\nsummary_function",
+      "tags": ["parameter", "summary", "summary_function"],
+      "payload": {
+        "parameter_name": "summary_fun",
+        "title": "Bin Summary Function",
+        "category": "summary",
+        "description": "Statistic used to summarize cell-level values within each bin.",
+        "applies_to": "op params",
+        "affects": ["curve values", "outlier sensitivity"],
+        "guidance": ["Mean is sensitive to outliers and abundance shifts.", "Median is more robust but may compress sparse expression."],
+        "aliases": "summary_function"
+      }
+    },
+    {
+      "record_id": "parameter:min_amplitude",
+      "record_type": "parameter",
+      "name": "min_amplitude",
+      "title": "Minimum Curve Amplitude Filter",
+      "description": "Minimum observed/smoothed curve range required for a signal or feature set to pass report filters.",
+      "search_text": "Minimum Curve Amplitude Filter\nMinimum observed/smoothed curve range required for a signal or feature set to pass report filters.\nfiltering\nop params\nreported dynamics\nnoise filtering\nThis is a reporting/filter threshold, not a p-value.\nSet it relative to score scale; amplitude units differ between mean expression, UCell, chromVAR, and ranks.\namplitude_threshold",
+      "tags": ["parameter", "filtering", "amplitude_threshold"],
+      "payload": {
+        "parameter_name": "min_amplitude",
+        "title": "Minimum Curve Amplitude Filter",
+        "category": "filtering",
+        "description": "Minimum observed/smoothed curve range required for a signal or feature set to pass report filters.",
+        "applies_to": "op params",
+        "affects": ["reported dynamics", "noise filtering"],
+        "guidance": ["This is a reporting/filter threshold, not a p-value.", "Set it relative to score scale; amplitude units differ between mean expression, UCell, chromVAR, and ranks."],
+        "aliases": "amplitude_threshold"
+      }
+    },
+    {
+      "record_id": "parameter:class_min_amplitude",
+      "record_type": "parameter",
+      "name": "class_min_amplitude",
+      "title": "Minimum Amplitude For Non-Flat Class",
+      "description": "Minimum curve range required before assigning a non-flat dynamic class.",
+      "search_text": "Minimum Amplitude For Non-Flat Class\nMinimum curve range required before assigning a non-flat dynamic class.\nclassification\nop params\nflat versus dynamic classes\nturns_on/turns_off/transient calls\nUse this to avoid classifying tiny numerical wiggles as biology.\nKeep distinct from min_amplitude if you want permissive reporting but conservative classes.\ndynamic_class_amplitude",
+      "tags": ["parameter", "classification", "dynamic_class_amplitude"],
+      "payload": {
+        "parameter_name": "class_min_amplitude",
+        "title": "Minimum Amplitude For Non-Flat Class",
+        "category": "classification",
+        "description": "Minimum curve range required before assigning a non-flat dynamic class.",
+        "applies_to": "op params",
+        "affects": ["flat versus dynamic classes", "turns_on/turns_off/transient calls"],
+        "guidance": ["Use this to avoid classifying tiny numerical wiggles as biology.", "Keep distinct from min_amplitude if you want permissive reporting but conservative classes."],
+        "aliases": "dynamic_class_amplitude"
+      }
+    },
+    {
+      "record_id": "parameter:min_bins_observed",
+      "record_type": "parameter",
+      "name": "min_bins_observed",
+      "title": "Minimum Observed Bins Filter",
+      "description": "Minimum number of retained pseudotime bins required for a curve to pass filters.",
+      "search_text": "Minimum Observed Bins Filter\nMinimum number of retained pseudotime bins required for a curve to pass filters.\nfiltering\nop params\ncurve completeness\nterminal-region confidence\nHigher values reduce fragmentary curves.\nSparse branches may fail this filter even if biologically interesting.\nmin_bins",
+      "tags": ["parameter", "filtering", "min_bins"],
+      "payload": {
+        "parameter_name": "min_bins_observed",
+        "title": "Minimum Observed Bins Filter",
+        "category": "filtering",
+        "description": "Minimum number of retained pseudotime bins required for a curve to pass filters.",
+        "applies_to": "op params",
+        "affects": ["curve completeness", "terminal-region confidence"],
+        "guidance": ["Higher values reduce fragmentary curves.", "Sparse branches may fail this filter even if biologically interesting."],
+        "aliases": "min_bins"
+      }
+    },
+    {
+      "record_id": "parameter:min_features_detected",
+      "record_type": "parameter",
+      "name": "min_features_detected",
+      "title": "Minimum Detected Set Members",
+      "description": "Minimum number of feature-set members detected in the matrix before a set passes filters.",
+      "search_text": "Minimum Detected Set Members\nMinimum number of feature-set members detected in the matrix before a set passes filters.\nfiltering\nop params\nfeature-set validity\ndropout robustness\nUse this to avoid interpreting gene sets represented by too few measured genes.\nImportant for targeted panels and cross-species or sparse feature spaces.\nmin_detected_genes",
+      "tags": ["parameter", "filtering", "min_detected_genes"],
+      "payload": {
+        "parameter_name": "min_features_detected",
+        "title": "Minimum Detected Set Members",
+        "category": "filtering",
+        "description": "Minimum number of feature-set members detected in the matrix before a set passes filters.",
+        "applies_to": "op params",
+        "affects": ["feature-set validity", "dropout robustness"],
+        "guidance": ["Use this to avoid interpreting gene sets represented by too few measured genes.", "Important for targeted panels and cross-species or sparse feature spaces."],
+        "aliases": "min_detected_genes"
+      }
+    },
+    {
+      "record_id": "parameter:min_detected_fraction",
+      "record_type": "parameter",
+      "name": "min_detected_fraction",
+      "title": "Minimum Detected Set Fraction",
+      "description": "Minimum fraction of feature-set members detected in the matrix before a set passes filters.",
+      "search_text": "Minimum Detected Set Fraction\nMinimum fraction of feature-set members detected in the matrix before a set passes filters.\nfiltering\nop params\nfeature-set validity\ndropout robustness\nComplements min_features_detected by scaling with set size.\nUseful when screening gene sets of very different sizes.\ndetected_fraction",
+      "tags": ["parameter", "filtering", "detected_fraction"],
+      "payload": {
+        "parameter_name": "min_detected_fraction",
+        "title": "Minimum Detected Set Fraction",
+        "category": "filtering",
+        "description": "Minimum fraction of feature-set members detected in the matrix before a set passes filters.",
+        "applies_to": "op params",
+        "affects": ["feature-set validity", "dropout robustness"],
+        "guidance": ["Complements min_features_detected by scaling with set size.", "Useful when screening gene sets of very different sizes."],
+        "aliases": "detected_fraction"
+      }
+    },
+    {
+      "record_id": "parameter:on_off_min_delta",
+      "record_type": "parameter",
+      "name": "on_off_min_delta",
+      "title": "On/Off Delta Threshold",
+      "description": "Minimum late-minus-early absolute difference required for turns_on or turns_off classes.",
+      "search_text": "On/Off Delta Threshold\nMinimum late-minus-early absolute difference required for turns_on or turns_off classes.\nclassification\nop params\nturns_on calls\nturns_off calls\nInterpret relative to score scale.\nA stricter threshold reduces weak monotonic calls.\ndelta_threshold",
+      "tags": ["parameter", "classification", "delta_threshold"],
+      "payload": {
+        "parameter_name": "on_off_min_delta",
+        "title": "On/Off Delta Threshold",
+        "category": "classification",
+        "description": "Minimum late-minus-early absolute difference required for turns_on or turns_off classes.",
+        "applies_to": "op params",
+        "affects": ["turns_on calls", "turns_off calls"],
+        "guidance": ["Interpret relative to score scale.", "A stricter threshold reduces weak monotonic calls."],
+        "aliases": "delta_threshold"
+      }
+    },
+    {
+      "record_id": "parameter:monotonic_min_abs_rho",
+      "record_type": "parameter",
+      "name": "monotonic_min_abs_rho",
+      "title": "Monotonicity Threshold",
+      "description": "Minimum absolute Spearman correlation with pseudotime required for monotonic on/off classes.",
+      "search_text": "Monotonicity Threshold\nMinimum absolute Spearman correlation with pseudotime required for monotonic on/off classes.\nclassification\nop params\nturns_on calls\nturns_off calls\ntransient calls\nHigher values require cleaner monotonic behavior.\nTransient or multi-phase curves should not be forced into monotonic classes.\nrho_threshold",
+      "tags": ["parameter", "classification", "rho_threshold"],
+      "payload": {
+        "parameter_name": "monotonic_min_abs_rho",
+        "title": "Monotonicity Threshold",
+        "category": "classification",
+        "description": "Minimum absolute Spearman correlation with pseudotime required for monotonic on/off classes.",
+        "applies_to": "op params",
+        "affects": ["turns_on calls", "turns_off calls", "transient calls"],
+        "guidance": ["Higher values require cleaner monotonic behavior.", "Transient or multi-phase curves should not be forced into monotonic classes."],
+        "aliases": "rho_threshold"
+      }
+    },
+    {
+      "record_id": "parameter:smooth_method",
+      "record_type": "parameter",
+      "name": "smooth_method",
+      "title": "Curve Smoothing Method",
+      "description": "Optional smoother applied to binned curves before metrics and class assignment.",
+      "search_text": "Curve Smoothing Method\nOptional smoother applied to binned curves before metrics and class assignment.\nsmoothing\nop params\ncurve shape\nclassification\nconfidence bands\nSmoothing can reveal broad dynamics but can also erase sharp transitions.\nReport the method because it affects classes.\nsmoother",
+      "tags": ["parameter", "smoothing", "smoother"],
+      "payload": {
+        "parameter_name": "smooth_method",
+        "title": "Curve Smoothing Method",
+        "category": "smoothing",
+        "description": "Optional smoother applied to binned curves before metrics and class assignment.",
+        "applies_to": "op params",
+        "affects": ["curve shape", "classification", "confidence bands"],
+        "guidance": ["Smoothing can reveal broad dynamics but can also erase sharp transitions.", "Report the method because it affects classes."],
+        "aliases": "smoother"
+      }
+    },
+    {
+      "record_id": "parameter:loess_span",
+      "record_type": "parameter",
+      "name": "loess_span",
+      "title": "LOESS Span",
+      "description": "Controls the locality of LOESS smoothing when smooth_method is loess.",
+      "search_text": "LOESS Span\nControls the locality of LOESS smoothing when smooth_method is loess.\nsmoothing\nop params\nsmoothness\nlocal transitions\nSmaller span follows local variation more closely.\nLarger span produces broader, smoother trends.\nspan",
+      "tags": ["parameter", "smoothing", "span"],
+      "payload": {
+        "parameter_name": "loess_span",
+        "title": "LOESS Span",
+        "category": "smoothing",
+        "description": "Controls the locality of LOESS smoothing when smooth_method is loess.",
+        "applies_to": "op params",
+        "affects": ["smoothness", "local transitions"],
+        "guidance": ["Smaller span follows local variation more closely.", "Larger span produces broader, smoother trends."],
+        "aliases": "span"
+      }
+    },
+    {
+      "record_id": "parameter:bootstrap_n",
+      "record_type": "parameter",
+      "name": "bootstrap_n",
+      "title": "Bootstrap Replicate Count",
+      "description": "Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals.",
+      "search_text": "Bootstrap Replicate Count\nNumber of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals.\nuncertainty\nop params\nconfidence bands\nruntime\nUse for report-quality uncertainty bands.\nLarge values increase runtime.\nn_bootstrap",
+      "tags": ["parameter", "uncertainty", "n_bootstrap"],
+      "payload": {
+        "parameter_name": "bootstrap_n",
+        "title": "Bootstrap Replicate Count",
+        "category": "uncertainty",
+        "description": "Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals.",
+        "applies_to": "op params",
+        "affects": ["confidence bands", "runtime"],
+        "guidance": ["Use for report-quality uncertainty bands.", "Large values increase runtime."],
+        "aliases": "n_bootstrap"
+      }
+    },
+    {
+      "record_id": "parameter:ci_level",
+      "record_type": "parameter",
+      "name": "ci_level",
+      "title": "Confidence Interval Level",
+      "description": "Nominal confidence level for bootstrap confidence bands.",
+      "search_text": "Confidence Interval Level\nNominal confidence level for bootstrap confidence bands.\nuncertainty\nop params\nconfidence band width\nHigher levels produce wider intervals.\nOnly meaningful when bootstrap_n is greater than zero.\nconfidence_level",
+      "tags": ["parameter", "uncertainty", "confidence_level"],
+      "payload": {
+        "parameter_name": "ci_level",
+        "title": "Confidence Interval Level",
+        "category": "uncertainty",
+        "description": "Nominal confidence level for bootstrap confidence bands.",
+        "applies_to": "op params",
+        "affects": "confidence band width",
+        "guidance": ["Higher levels produce wider intervals.", "Only meaningful when bootstrap_n is greater than zero."],
+        "aliases": "confidence_level"
+      }
+    },
+    {
+      "record_id": "parameter:mad_multiplier",
+      "record_type": "parameter",
+      "name": "mad_multiplier",
+      "title": "MAD Distance Inclusion Multiplier",
+      "description": "Threshold multiplier for median absolute deviation distance filters around a trajectory/path.",
+      "search_text": "MAD Distance Inclusion Multiplier\nThreshold multiplier for median absolute deviation distance filters around a trajectory/path.\ntrajectory_inclusion\nworkflow or op params\nincluded cells\ntrajectory tightness\nterminal contamination\nLower values create a tighter trajectory tube and exclude more distant cells.\nInterpret relative to the embedding/space; unlike fixed distance thresholds, MAD adapts to scale.\nNot yet universal in op interfaces; include when route inclusion becomes a first-class op parameter.\nmad_threshold\ndistance_mad_multiplier",
+      "tags": ["parameter", "trajectory_inclusion", "mad_threshold", "distance_mad_multiplier"],
+      "payload": {
+        "parameter_name": "mad_multiplier",
+        "title": "MAD Distance Inclusion Multiplier",
+        "category": "trajectory_inclusion",
+        "description": "Threshold multiplier for median absolute deviation distance filters around a trajectory/path.",
+        "applies_to": "workflow or op params",
+        "affects": ["included cells", "trajectory tightness", "terminal contamination"],
+        "guidance": ["Lower values create a tighter trajectory tube and exclude more distant cells.", "Interpret relative to the embedding/space; unlike fixed distance thresholds, MAD adapts to scale.", "Not yet universal in op interfaces; include when route inclusion becomes a first-class op parameter."],
+        "aliases": ["mad_threshold", "distance_mad_multiplier"]
+      }
+    },
+    {
+      "record_id": "parameter:top_n",
+      "record_type": "parameter",
+      "name": "top_n",
+      "title": "Top-N Retention",
+      "description": "Number of top-ranked records retained for compact outputs or reports.",
+      "search_text": "Top-N Retention\nNumber of top-ranked records retained for compact outputs or reports.\nreporting\nop params\nreport size\nvisible discoveries\nDoes not usually change the full underlying calculation unless explicitly documented.\nUse larger values for exploratory reports.\nn_top",
+      "tags": ["parameter", "reporting", "n_top"],
+      "payload": {
+        "parameter_name": "top_n",
+        "title": "Top-N Retention",
+        "category": "reporting",
+        "description": "Number of top-ranked records retained for compact outputs or reports.",
+        "applies_to": "op params",
+        "affects": ["report size", "visible discoveries"],
+        "guidance": ["Does not usually change the full underlying calculation unless explicitly documented.", "Use larger values for exploratory reports."],
+        "aliases": "n_top"
+      }
+    },
+    {
+      "record_id": "parameter:seed",
+      "record_type": "parameter",
+      "name": "seed",
+      "title": "Random Seed",
+      "description": "Seed used for stochastic algorithms or resampling.",
+      "search_text": "Random Seed\nSeed used for stochastic algorithms or resampling.\nreproducibility\nop params\nstochastic outputs\nSet explicitly for replayable reports.\nChanging seed can affect stochastic fits, bootstraps, or approximations.\nrandom_seed\nbootstrap_seed",
+      "tags": ["parameter", "reproducibility", "random_seed", "bootstrap_seed"],
+      "payload": {
+        "parameter_name": "seed",
+        "title": "Random Seed",
+        "category": "reproducibility",
+        "description": "Seed used for stochastic algorithms or resampling.",
+        "applies_to": "op params",
+        "affects": ["reproducibility", "stochastic outputs"],
+        "guidance": ["Set explicitly for replayable reports.", "Changing seed can affect stochastic fits, bootstraps, or approximations."],
+        "aliases": ["random_seed", "bootstrap_seed"]
+      }
     }
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-05-19T13:24:33+0200",
-    "node_count": 162,
-    "edge_count": 256,
+    "generated_at": "2026-05-19T13:40:27+0200",
+    "node_count": 192,
+    "edge_count": 410,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -8042,6 +8613,186 @@
         "record_type": "artifact_type",
         "name": "feature_table:knn_pseudobulk",
         "title": "KNN Pseudobulk Feature Table"
+      },
+      {
+        "record_id": "parameter:cell_set",
+        "record_type": "parameter",
+        "name": "cell_set",
+        "title": "Cell Set / Analysis Universe"
+      },
+      {
+        "record_id": "parameter:matrix",
+        "record_type": "parameter",
+        "name": "matrix",
+        "title": "Matrix Input"
+      },
+      {
+        "record_id": "parameter:space",
+        "record_type": "parameter",
+        "name": "space",
+        "title": "Embedding / Latent Space Input"
+      },
+      {
+        "record_id": "parameter:model",
+        "record_type": "parameter",
+        "name": "model",
+        "title": "Model Reference Input"
+      },
+      {
+        "record_id": "parameter:pseudotime",
+        "record_type": "parameter",
+        "name": "pseudotime",
+        "title": "Pseudotime Vector Input"
+      },
+      {
+        "record_id": "parameter:pseudotime_direction",
+        "record_type": "parameter",
+        "name": "pseudotime_direction",
+        "title": "Pseudotime Direction"
+      },
+      {
+        "record_id": "parameter:start_label",
+        "record_type": "parameter",
+        "name": "start_label",
+        "title": "Biological Start Label"
+      },
+      {
+        "record_id": "parameter:end_label",
+        "record_type": "parameter",
+        "name": "end_label",
+        "title": "Biological End Label"
+      },
+      {
+        "record_id": "parameter:lineage",
+        "record_type": "parameter",
+        "name": "lineage",
+        "title": "Lineage Subset"
+      },
+      {
+        "record_id": "parameter:score_method",
+        "record_type": "parameter",
+        "name": "score_method",
+        "title": "Feature-Set Scoring Method"
+      },
+      {
+        "record_id": "parameter:namespace",
+        "record_type": "parameter",
+        "name": "namespace",
+        "title": "Feature-Set Namespace"
+      },
+      {
+        "record_id": "parameter:feature_sets",
+        "record_type": "parameter",
+        "name": "feature_sets",
+        "title": "Feature-Set Subset"
+      },
+      {
+        "record_id": "parameter:signal_keys",
+        "record_type": "parameter",
+        "name": "signal_keys",
+        "title": "Signal Key Subset"
+      },
+      {
+        "record_id": "parameter:n_bins",
+        "record_type": "parameter",
+        "name": "n_bins",
+        "title": "Pseudotime Bin Count"
+      },
+      {
+        "record_id": "parameter:min_cells_per_bin",
+        "record_type": "parameter",
+        "name": "min_cells_per_bin",
+        "title": "Minimum Cells Per Bin"
+      },
+      {
+        "record_id": "parameter:summary_fun",
+        "record_type": "parameter",
+        "name": "summary_fun",
+        "title": "Bin Summary Function"
+      },
+      {
+        "record_id": "parameter:min_amplitude",
+        "record_type": "parameter",
+        "name": "min_amplitude",
+        "title": "Minimum Curve Amplitude Filter"
+      },
+      {
+        "record_id": "parameter:class_min_amplitude",
+        "record_type": "parameter",
+        "name": "class_min_amplitude",
+        "title": "Minimum Amplitude For Non-Flat Class"
+      },
+      {
+        "record_id": "parameter:min_bins_observed",
+        "record_type": "parameter",
+        "name": "min_bins_observed",
+        "title": "Minimum Observed Bins Filter"
+      },
+      {
+        "record_id": "parameter:min_features_detected",
+        "record_type": "parameter",
+        "name": "min_features_detected",
+        "title": "Minimum Detected Set Members"
+      },
+      {
+        "record_id": "parameter:min_detected_fraction",
+        "record_type": "parameter",
+        "name": "min_detected_fraction",
+        "title": "Minimum Detected Set Fraction"
+      },
+      {
+        "record_id": "parameter:on_off_min_delta",
+        "record_type": "parameter",
+        "name": "on_off_min_delta",
+        "title": "On/Off Delta Threshold"
+      },
+      {
+        "record_id": "parameter:monotonic_min_abs_rho",
+        "record_type": "parameter",
+        "name": "monotonic_min_abs_rho",
+        "title": "Monotonicity Threshold"
+      },
+      {
+        "record_id": "parameter:smooth_method",
+        "record_type": "parameter",
+        "name": "smooth_method",
+        "title": "Curve Smoothing Method"
+      },
+      {
+        "record_id": "parameter:loess_span",
+        "record_type": "parameter",
+        "name": "loess_span",
+        "title": "LOESS Span"
+      },
+      {
+        "record_id": "parameter:bootstrap_n",
+        "record_type": "parameter",
+        "name": "bootstrap_n",
+        "title": "Bootstrap Replicate Count"
+      },
+      {
+        "record_id": "parameter:ci_level",
+        "record_type": "parameter",
+        "name": "ci_level",
+        "title": "Confidence Interval Level"
+      },
+      {
+        "record_id": "parameter:mad_multiplier",
+        "record_type": "parameter",
+        "name": "mad_multiplier",
+        "title": "MAD Distance Inclusion Multiplier"
+      },
+      {
+        "record_id": "parameter:top_n",
+        "record_type": "parameter",
+        "name": "top_n",
+        "title": "Top-N Retention"
+      },
+      {
+        "record_id": "parameter:seed",
+        "record_type": "parameter",
+        "name": "seed",
+        "title": "Random Seed"
       }
     ],
     "edges": [
@@ -8050,6 +8801,24 @@
         "to": "op:leiden",
         "edge_type": "consumed_by",
         "label": "input:space"
+      },
+      {
+        "from": "op:leiden",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
+        "from": "op:leiden",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:leiden",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:seed"
       },
       {
         "from": "op:leiden",
@@ -8068,6 +8837,18 @@
         "to": "op:umap_fit",
         "edge_type": "consumed_by",
         "label": "input:space"
+      },
+      {
+        "from": "op:umap_fit",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
+        "from": "op:umap_fit",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:umap_fit",
@@ -8100,10 +8881,22 @@
         "label": "input:model"
       },
       {
+        "from": "op:umap_transform",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
         "from": "primitive:space",
         "to": "op:umap_transform",
         "edge_type": "consumed_by",
         "label": "input:in_space"
+      },
+      {
+        "from": "op:umap_transform",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:umap_transform",
@@ -8125,6 +8918,24 @@
       },
       {
         "from": "op:addmodulescore",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:addmodulescore",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:addmodulescore",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:seed"
+      },
+      {
+        "from": "op:addmodulescore",
         "to": "primitive:cell_vector_family",
         "edge_type": "produces",
         "label": "output:module_scores"
@@ -8140,6 +8951,18 @@
         "to": "op:ucell",
         "edge_type": "consumed_by",
         "label": "input:matrix"
+      },
+      {
+        "from": "op:ucell",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:ucell",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:ucell",
@@ -8164,6 +8987,18 @@
         "to": "op:cell_vector_family_reduce",
         "edge_type": "consumed_by",
         "label": "input:signal"
+      },
+      {
+        "from": "op:cell_vector_family_reduce",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_family_reduce",
+        "to": "parameter:signal_keys",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:signal_keys"
       },
       {
         "from": "op:cell_vector_family_reduce",
@@ -8245,6 +9080,18 @@
       },
       {
         "from": "op:cell_vector_family_calibrate",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_family_calibrate",
+        "to": "parameter:signal_keys",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:signal_keys"
+      },
+      {
+        "from": "op:cell_vector_family_calibrate",
         "to": "primitive:cell_vector_family",
         "edge_type": "produces",
         "label": "output:calibrated_signal"
@@ -8275,6 +9122,18 @@
       },
       {
         "from": "op:cell_vector_family_qc",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_family_qc",
+        "to": "parameter:signal_keys",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:signal_keys"
+      },
+      {
+        "from": "op:cell_vector_family_qc",
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:key_summary"
@@ -8296,6 +9155,18 @@
         "to": "op:chromvar",
         "edge_type": "consumed_by",
         "label": "input:matrix"
+      },
+      {
+        "from": "op:chromvar",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:chromvar",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:chromvar",
@@ -8335,6 +9206,18 @@
       },
       {
         "from": "op:de_wilcox",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:de_wilcox",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:de_wilcox",
         "to": "primitive:feature_table",
         "edge_type": "produces",
         "label": "output:de_table"
@@ -8346,10 +9229,28 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:markers_topn",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:cell_vector",
         "to": "op:markers_topn",
         "edge_type": "consumed_by",
         "label": "input:clusters"
+      },
+      {
+        "from": "op:markers_topn",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:markers_topn",
+        "to": "parameter:top_n",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:top_n"
       },
       {
         "from": "op:markers_topn",
@@ -8364,6 +9265,12 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:pathway_enrich",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:feature_table",
         "to": "op:pathway_enrich",
         "edge_type": "consumed_by",
@@ -8371,9 +9278,33 @@
       },
       {
         "from": "op:pathway_enrich",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:pathway_enrich",
+        "to": "parameter:namespace",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:namespace"
+      },
+      {
+        "from": "op:pathway_enrich",
+        "to": "parameter:pseudotime_direction",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:direction"
+      },
+      {
+        "from": "op:pathway_enrich",
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:pathways"
+      },
+      {
+        "from": "op:cell_suffix_label",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:cell_suffix_label",
@@ -8407,6 +9338,12 @@
       },
       {
         "from": "op:cell_vector_assoc",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_assoc",
         "to": "primitive:feature_table",
         "edge_type": "produces",
         "label": "output:assoc_summary"
@@ -8431,6 +9368,12 @@
       },
       {
         "from": "op:cell_vector_compare",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_compare",
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:summary"
@@ -8448,10 +9391,28 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:feature_trend_spearman",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:cell_vector",
         "to": "op:feature_trend_spearman",
         "edge_type": "consumed_by",
         "label": "input:pseudotime"
+      },
+      {
+        "from": "op:feature_trend_spearman",
+        "to": "parameter:pseudotime",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:pseudotime"
+      },
+      {
+        "from": "op:feature_trend_spearman",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:feature_trend_spearman",
@@ -8466,10 +9427,34 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:trajectory_de",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:model_ref",
         "to": "op:trajectory_de",
         "edge_type": "consumed_by",
         "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_de",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_de",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_de",
+        "to": "parameter:lineage",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:lineage"
       },
       {
         "from": "op:trajectory_de",
@@ -8490,10 +9475,52 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:trajectory_smooth",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:model_ref",
         "to": "op:trajectory_smooth",
         "edge_type": "consumed_by",
         "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_smooth",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_smooth",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_smooth",
+        "to": "parameter:lineage",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_smooth",
+        "to": "parameter:n_bins",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:n_bins"
+      },
+      {
+        "from": "op:trajectory_smooth",
+        "to": "parameter:summary_fun",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:summary_fun"
+      },
+      {
+        "from": "op:trajectory_smooth",
+        "to": "parameter:min_cells_per_bin",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_cells_per_bin"
       },
       {
         "from": "op:trajectory_smooth",
@@ -8514,9 +9541,21 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:trajectory_branch_compare",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:cell_vector_family",
         "to": "op:trajectory_branch_compare",
         "edge_type": "consumed_by",
+        "label": "input:pseudotime"
+      },
+      {
+        "from": "op:trajectory_branch_compare",
+        "to": "parameter:pseudotime",
+        "edge_type": "has_parameter_semantics",
         "label": "input:pseudotime"
       },
       {
@@ -8524,6 +9563,12 @@
         "to": "op:trajectory_branch_compare",
         "edge_type": "consumed_by",
         "label": "input:branch_membership"
+      },
+      {
+        "from": "op:trajectory_branch_compare",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:trajectory_branch_compare",
@@ -8544,10 +9589,58 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:model_ref",
         "to": "op:trajectory_signature_smooth",
         "edge_type": "consumed_by",
         "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:lineage",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:score_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:score_method"
+      },
+      {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:n_bins",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:n_bins"
+      },
+      {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:summary_fun",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:summary_fun"
+      },
+      {
+        "from": "op:trajectory_signature_smooth",
+        "to": "parameter:min_cells_per_bin",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_cells_per_bin"
       },
       {
         "from": "op:trajectory_signature_smooth",
@@ -8568,10 +9661,166 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:model_ref",
         "to": "op:trajectory_geneset_dynamics",
         "edge_type": "consumed_by",
         "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:namespace",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:namespace"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:feature_sets",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:feature_sets"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:lineage",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:score_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:score_method"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:pseudotime_direction",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:pseudotime_direction"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:start_label",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:start_label"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:end_label",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:end_label"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:n_bins",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:n_bins"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:summary_fun",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:summary_fun"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_cells_per_bin",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_cells_per_bin"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:top_n",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:top_n"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:on_off_min_delta",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:on_off_min_delta"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:monotonic_min_abs_rho",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:monotonic_min_abs_rho"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_amplitude",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_amplitude"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_bins_observed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_bins_observed"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_features_detected",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_features_detected"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_detected_fraction",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_detected_fraction"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:smooth_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:smooth_method"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:loess_span",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:loess_span"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:bootstrap_n",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:bootstrap_n"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:bootstrap_seed"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:ci_level",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:ci_level"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:class_min_amplitude",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:class_min_amplitude"
       },
       {
         "from": "op:trajectory_geneset_dynamics",
@@ -8616,9 +9865,21 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:trajectory_route_smooth",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:cell_vector",
         "to": "op:trajectory_route_smooth",
         "edge_type": "consumed_by",
+        "label": "input:pseudotime"
+      },
+      {
+        "from": "op:trajectory_route_smooth",
+        "to": "parameter:pseudotime",
+        "edge_type": "has_parameter_semantics",
         "label": "input:pseudotime"
       },
       {
@@ -8626,6 +9887,30 @@
         "to": "op:trajectory_route_smooth",
         "edge_type": "consumed_by",
         "label": "input:branch_membership"
+      },
+      {
+        "from": "op:trajectory_route_smooth",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_route_smooth",
+        "to": "parameter:n_bins",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:n_bins"
+      },
+      {
+        "from": "op:trajectory_route_smooth",
+        "to": "parameter:summary_fun",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:summary_fun"
+      },
+      {
+        "from": "op:trajectory_route_smooth",
+        "to": "parameter:min_cells_per_bin",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_cells_per_bin"
       },
       {
         "from": "op:trajectory_route_smooth",
@@ -8653,6 +9938,48 @@
       },
       {
         "from": "op:trajectory_vector_smooth",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_vector_smooth",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_vector_smooth",
+        "to": "parameter:signal_keys",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:signal_keys"
+      },
+      {
+        "from": "op:trajectory_vector_smooth",
+        "to": "parameter:lineage",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_vector_smooth",
+        "to": "parameter:n_bins",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:n_bins"
+      },
+      {
+        "from": "op:trajectory_vector_smooth",
+        "to": "parameter:summary_fun",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:summary_fun"
+      },
+      {
+        "from": "op:trajectory_vector_smooth",
+        "to": "parameter:min_cells_per_bin",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_cells_per_bin"
+      },
+      {
+        "from": "op:trajectory_vector_smooth",
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:signal_table"
@@ -8674,6 +10001,132 @@
         "to": "op:trajectory_signal_dynamics",
         "edge_type": "consumed_by",
         "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:signal_keys",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:signal_keys"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:lineage",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:pseudotime_direction",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:pseudotime_direction"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:start_label",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:start_label"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:end_label",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:end_label"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:n_bins",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:n_bins"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:summary_fun",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:summary_fun"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:min_cells_per_bin",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_cells_per_bin"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:top_n",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:top_n"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:on_off_min_delta",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:on_off_min_delta"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:monotonic_min_abs_rho",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:monotonic_min_abs_rho"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:min_amplitude",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_amplitude"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:min_bins_observed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_bins_observed"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:smooth_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:smooth_method"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:loess_span",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:loess_span"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:bootstrap_n",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:bootstrap_n"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:bootstrap_seed"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:ci_level",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:ci_level"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:class_min_amplitude",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:class_min_amplitude"
       },
       {
         "from": "op:trajectory_signal_dynamics",
@@ -8706,10 +10159,28 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:knn_pseudobulk",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:space",
         "to": "op:knn_pseudobulk",
         "edge_type": "consumed_by",
         "label": "input:space"
+      },
+      {
+        "from": "op:knn_pseudobulk",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
+        "from": "op:knn_pseudobulk",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:knn_pseudobulk",
@@ -8737,6 +10208,18 @@
       },
       {
         "from": "op:knn_neighbors",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
+        "from": "op:knn_neighbors",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:knn_neighbors",
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:neighbors"
@@ -8760,9 +10243,21 @@
         "label": "input:space"
       },
       {
+        "from": "op:slingshot",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
         "from": "primitive:space",
         "to": "op:slingshot",
         "edge_type": "consumed_by",
+        "label": "input:plot_space"
+      },
+      {
+        "from": "op:slingshot",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
         "label": "input:plot_space"
       },
       {
@@ -8770,6 +10265,12 @@
         "to": "op:slingshot",
         "edge_type": "consumed_by",
         "label": "input:clusters"
+      },
+      {
+        "from": "op:slingshot",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:slingshot",
@@ -8802,10 +10303,22 @@
         "label": "input:fit_space"
       },
       {
+        "from": "op:slingshot_fit",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:fit_space"
+      },
+      {
         "from": "primitive:cell_vector",
         "to": "op:slingshot_fit",
         "edge_type": "consumed_by",
         "label": "input:clusters"
+      },
+      {
+        "from": "op:slingshot_fit",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:slingshot_fit",
@@ -8838,10 +10351,28 @@
         "label": "input:model"
       },
       {
+        "from": "op:slingshot_project",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
         "from": "primitive:space_2d",
         "to": "op:slingshot_project",
         "edge_type": "consumed_by",
         "label": "input:plot_space"
+      },
+      {
+        "from": "op:slingshot_project",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:plot_space"
+      },
+      {
+        "from": "op:slingshot_project",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:slingshot_project",
@@ -8860,6 +10391,24 @@
         "to": "op:monocle3_fit",
         "edge_type": "consumed_by",
         "label": "input:fit_space"
+      },
+      {
+        "from": "op:monocle3_fit",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:fit_space"
+      },
+      {
+        "from": "op:monocle3_fit",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:monocle3_fit",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:random_seed"
       },
       {
         "from": "op:monocle3_fit",
@@ -8904,10 +10453,28 @@
         "label": "input:model"
       },
       {
+        "from": "op:monocle3_project",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
         "from": "primitive:space_2d",
         "to": "op:monocle3_project",
         "edge_type": "consumed_by",
         "label": "input:plot_space"
+      },
+      {
+        "from": "op:monocle3_project",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:plot_space"
+      },
+      {
+        "from": "op:monocle3_project",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:monocle3_project",
@@ -8926,6 +10493,24 @@
         "to": "op:peakvi_fit",
         "edge_type": "consumed_by",
         "label": "input:matrix"
+      },
+      {
+        "from": "op:peakvi_fit",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:peakvi_fit",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:peakvi_fit",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:seed"
       },
       {
         "from": "op:peakvi_fit",
@@ -8952,10 +10537,28 @@
         "label": "input:matrix"
       },
       {
+        "from": "op:peakvi_project",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
         "from": "primitive:model_ref",
         "to": "op:peakvi_project",
         "edge_type": "consumed_by",
         "label": "input:model"
+      },
+      {
+        "from": "op:peakvi_project",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:peakvi_project",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:peakvi_project",
@@ -8968,6 +10571,18 @@
         "to": "op:space_path_define",
         "edge_type": "consumed_by",
         "label": "input:space"
+      },
+      {
+        "from": "op:space_path_define",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
+        "from": "op:space_path_define",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:space_path_define",
@@ -8988,10 +10603,22 @@
         "label": "input:space"
       },
       {
+        "from": "op:space_path_score",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
         "from": "primitive:space_path_family",
         "to": "op:space_path_score",
         "edge_type": "consumed_by",
         "label": "input:path"
+      },
+      {
+        "from": "op:space_path_score",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:space_path_score",
@@ -9025,6 +10652,18 @@
       },
       {
         "from": "op:space_path_project_2d",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:plot_space"
+      },
+      {
+        "from": "op:space_path_project_2d",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:space_path_project_2d",
         "to": "primitive:path_2d_family",
         "edge_type": "produces",
         "label": "output:curves"
@@ -9040,6 +10679,24 @@
         "to": "op:palantir_fit",
         "edge_type": "consumed_by",
         "label": "input:fit_space"
+      },
+      {
+        "from": "op:palantir_fit",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:fit_space"
+      },
+      {
+        "from": "op:palantir_fit",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:palantir_fit",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:seed"
       },
       {
         "from": "op:palantir_fit",
@@ -9102,10 +10759,28 @@
         "label": "input:model"
       },
       {
+        "from": "op:palantir_project",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
         "from": "primitive:space_2d",
         "to": "op:palantir_project",
         "edge_type": "consumed_by",
         "label": "input:plot_space"
+      },
+      {
+        "from": "op:palantir_project",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:plot_space"
+      },
+      {
+        "from": "op:palantir_project",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
       },
       {
         "from": "op:palantir_project",

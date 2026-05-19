@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-05-19T13:24:33+0200
+Generated at: 2026-05-19T13:40:27+0200
 
-Record count: 162
+Record count: 192
 
-Graph edges: 256
+Graph edges: 410
 
 ## artifact_type
 
@@ -763,6 +763,188 @@ Description: Run Palantir pseudotime/branch probabilities on a scworkbench laten
 Title: Palantir project trajectories
 
 Description: Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.
+
+## parameter
+
+### `parameter:cell_set`
+
+Title: Cell Set / Analysis Universe
+
+Description: Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.
+
+### `parameter:matrix`
+
+Title: Matrix Input
+
+Description: Symbolic matrix primitive consumed by an op. The matrix defines the feature universe and measurement scale.
+
+### `parameter:space`
+
+Title: Embedding / Latent Space Input
+
+Description: Symbolic space primitive used for geometry, clustering, nearest-neighbor, projection, or trajectory operations.
+
+### `parameter:model`
+
+Title: Model Reference Input
+
+Description: Reference to a fitted model or trajectory object used by downstream projection/smoothing/dynamics ops.
+
+### `parameter:pseudotime`
+
+Title: Pseudotime Vector Input
+
+Description: Continuous per-cell progress coordinate, usually inferred by a trajectory method or path-scoring op.
+
+### `parameter:pseudotime_direction`
+
+Title: Pseudotime Direction
+
+Description: Controls whether pseudotime is used as provided or inverted before binning, curve metrics, and class assignment.
+
+### `parameter:start_label`
+
+Title: Biological Start Label
+
+Description: Human-readable label for the intended biological start of a trajectory or dynamics analysis.
+
+### `parameter:end_label`
+
+Title: Biological End Label
+
+Description: Human-readable label for the intended biological endpoint of a trajectory or dynamics analysis.
+
+### `parameter:lineage`
+
+Title: Lineage Subset
+
+Description: Restricts analysis to one or more lineage/path keys from a trajectory, relation, or path family.
+
+### `parameter:score_method`
+
+Title: Feature-Set Scoring Method
+
+Description: Defines how member features are collapsed into a per-cell or per-bin feature-set score.
+
+### `parameter:namespace`
+
+Title: Feature-Set Namespace
+
+Description: Selects the registered collection of feature sets to screen or score.
+
+### `parameter:feature_sets`
+
+Title: Feature-Set Subset
+
+Description: Optional restriction to named feature sets within a namespace.
+
+### `parameter:signal_keys`
+
+Title: Signal Key Subset
+
+Description: Optional restriction to selected keys in a cell_vector_family, such as UCell signatures or chromVAR motifs.
+
+### `parameter:n_bins`
+
+Title: Pseudotime Bin Count
+
+Description: Number of bins used to aggregate cells along pseudotime before curve summaries and dynamics metrics.
+
+### `parameter:min_cells_per_bin`
+
+Title: Minimum Cells Per Bin
+
+Description: Minimum number of cells required for a pseudotime bin to be retained.
+
+### `parameter:summary_fun`
+
+Title: Bin Summary Function
+
+Description: Statistic used to summarize cell-level values within each bin.
+
+### `parameter:min_amplitude`
+
+Title: Minimum Curve Amplitude Filter
+
+Description: Minimum observed/smoothed curve range required for a signal or feature set to pass report filters.
+
+### `parameter:class_min_amplitude`
+
+Title: Minimum Amplitude For Non-Flat Class
+
+Description: Minimum curve range required before assigning a non-flat dynamic class.
+
+### `parameter:min_bins_observed`
+
+Title: Minimum Observed Bins Filter
+
+Description: Minimum number of retained pseudotime bins required for a curve to pass filters.
+
+### `parameter:min_features_detected`
+
+Title: Minimum Detected Set Members
+
+Description: Minimum number of feature-set members detected in the matrix before a set passes filters.
+
+### `parameter:min_detected_fraction`
+
+Title: Minimum Detected Set Fraction
+
+Description: Minimum fraction of feature-set members detected in the matrix before a set passes filters.
+
+### `parameter:on_off_min_delta`
+
+Title: On/Off Delta Threshold
+
+Description: Minimum late-minus-early absolute difference required for turns_on or turns_off classes.
+
+### `parameter:monotonic_min_abs_rho`
+
+Title: Monotonicity Threshold
+
+Description: Minimum absolute Spearman correlation with pseudotime required for monotonic on/off classes.
+
+### `parameter:smooth_method`
+
+Title: Curve Smoothing Method
+
+Description: Optional smoother applied to binned curves before metrics and class assignment.
+
+### `parameter:loess_span`
+
+Title: LOESS Span
+
+Description: Controls the locality of LOESS smoothing when smooth_method is loess.
+
+### `parameter:bootstrap_n`
+
+Title: Bootstrap Replicate Count
+
+Description: Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals.
+
+### `parameter:ci_level`
+
+Title: Confidence Interval Level
+
+Description: Nominal confidence level for bootstrap confidence bands.
+
+### `parameter:mad_multiplier`
+
+Title: MAD Distance Inclusion Multiplier
+
+Description: Threshold multiplier for median absolute deviation distance filters around a trajectory/path.
+
+### `parameter:top_n`
+
+Title: Top-N Retention
+
+Description: Number of top-ranked records retained for compact outputs or reports.
+
+### `parameter:seed`
+
+Title: Random Seed
+
+Description: Seed used for stochastic algorithms or resampling.
 
 ## plot
 

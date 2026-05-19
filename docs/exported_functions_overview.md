@@ -175,6 +175,7 @@ Note:
 - `wb_freeze_snapshot`: Freeze a provenance snapshot
 - `wb_getter_catalog_semantic`: Export getter catalog as semantic metadata
 - `wb_migrate_artifacts`: Migrate artifact registry tables
+- `wb_parameter_semantics_catalog`: Export parameter semantics catalog
 - `wb_plot_contract`: Get a plot contract schema
 - `wb_plot_catalog_semantic`: Export plot/wrangler catalog as semantic metadata
 - `wb_plot_mapper_list`: List registered plot mappers
@@ -213,6 +214,7 @@ Note:
 - `wb_wrangler_catalog_semantic`: Export wrangler catalog as semantic metadata
 - `wb_write_artifact_type_catalog_reference`: Write artifact type catalog reference files
 - `wb_write_getter_catalog_reference`: Write getter catalog reference files
+- `wb_write_parameter_semantics_reference`: Write parameter semantics catalog reference files
 - `wb_write_plot_catalog_reference`: Write plot/wrangler catalog reference files
 - `wb_write_primitive_catalog_reference`: Write primitive catalog reference files
 - `wb_write_semantic_catalog_reference`: Write unified semantic catalog reference files
