@@ -33,6 +33,9 @@ test_all <- function(bundle_dir){
   if (exists("test_semantic_catalog_unified_contract", mode = "function")) {
     stopifnot(test_semantic_catalog_unified_contract())
   }
+  if (exists("test_semantic_graph_views_contract", mode = "function")) {
+    stopifnot(test_semantic_graph_views_contract())
+  }
   if (exists("test_parameter_semantics_catalog_contract", mode = "function")) {
     stopifnot(test_parameter_semantics_catalog_contract())
   }

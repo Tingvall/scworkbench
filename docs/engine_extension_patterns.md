@@ -143,7 +143,35 @@ Do not:
 
 - let ops, wranglers, or clients read storage internals directly
 
-## 6. Client Work
+## 6. Semantic Catalogs And Graph Views
+
+When you add or change an op, getter, primitive, artifact type, plot mapper, or
+wrangler, update the relevant semantic catalog record and run:
+
+```r
+wb_refresh_semantic_catalogs()
+```
+
+This regenerates searchable catalog docs/JSON and the SVG/DOT graph views in
+`docs/semantic_graphs/`.
+
+Use:
+
+- `wb_semantic_catalog_audit()` to catch missing semantic records
+- `wb_semantic_graph_tables()` to inspect node/edge tables
+- `wb_semantic_graph_dot()` for an ad hoc Graphviz DOT view
+- `wb_write_semantic_graph_views()` to refresh standard SVG/DOT/CSV graph exports
+
+Open the SVG files directly, or render DOT files with Graphviz, for example:
+
+```sh
+dot -Tpng docs/semantic_graphs/semantic_graph_artifact_plotting.dot -o artifact_plotting.png
+```
+
+The graph is for planning and inspection. It says what is technically
+compatible; it does not prove biological appropriateness.
+
+## 7. Client Work
 
 Clients are allowed to:
 

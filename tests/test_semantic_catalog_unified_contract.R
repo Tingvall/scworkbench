@@ -52,6 +52,49 @@ test_semantic_catalog_unified_contract <- function() {
   stopifnot(isTRUE(audit2$ok))
   stopifnot(length(audit2$json_validated) == 11)
   stopifnot(all(file.exists(audit2$json_validated)))
+  stopifnot(is.data.frame(audit2$graph_views))
+  stopifnot(any(grepl("semantic_graph_full[.]dot$", audit2$graph_views$file)))
+
+  TRUE
+}
+
+test_semantic_graph_views_contract <- function() {
+  tbl <- wb_semantic_graph_tables()
+  stopifnot(is.list(tbl), is.data.frame(tbl$nodes), is.data.frame(tbl$edges))
+  stopifnot(nrow(tbl$nodes) > 100, nrow(tbl$edges) > 20)
+  stopifnot(all(c("record_id", "record_type", "title", "description") %in% names(tbl$nodes)))
+  stopifnot(all(c("from", "to", "edge_type", "label") %in% names(tbl$edges)))
+
+  op_tbl <- wb_semantic_graph_tables(
+    record_types = c("op", "primitive"),
+    edge_types = c("consumed_by", "produces")
+  )
+  stopifnot(any(op_tbl$nodes$record_id == "op:trajectory_geneset_dynamics"))
+  stopifnot(any(op_tbl$nodes$record_id == "primitive:obs_table"))
+  stopifnot(all(op_tbl$edges$edge_type %in% c("consumed_by", "produces")))
+
+  dot <- wb_semantic_graph_dot(
+    node_regex = "trajectory_geneset_dynamics",
+    include_neighbors = TRUE,
+    title = "Trajectory Dynamics"
+  )
+  stopifnot(is.character(dot), length(dot) == 1)
+  stopifnot(grepl("^digraph scworkbench_semantic_graph", dot))
+  stopifnot(grepl("trajectory_geneset_dynamics", dot))
+
+  tmp <- tempfile("semantic_graph_views_")
+  manifest <- wb_write_semantic_graph_views(out_dir = tmp)
+  stopifnot(is.data.frame(manifest), nrow(manifest) >= 8)
+  stopifnot(file.exists(file.path(tmp, "semantic_graph_nodes.csv")))
+  stopifnot(file.exists(file.path(tmp, "semantic_graph_edges.csv")))
+  stopifnot(file.exists(file.path(tmp, "semantic_graph_full.dot")))
+  stopifnot(file.exists(file.path(tmp, "semantic_graph_full.svg")))
+  stopifnot(file.exists(file.path(tmp, "semantic_graph_artifact_plotting.dot")))
+  stopifnot(file.exists(file.path(tmp, "semantic_graph_artifact_plotting.svg")))
+  full_dot <- readLines(file.path(tmp, "semantic_graph_full.dot"), warn = FALSE)
+  stopifnot(any(grepl("Full Semantic Compatibility Graph", full_dot)))
+  full_svg <- readLines(file.path(tmp, "semantic_graph_full.svg"), warn = FALSE)
+  stopifnot(any(grepl("<svg", full_svg, fixed = TRUE)))
 
   TRUE
 }

@@ -211,6 +211,8 @@ Note:
 - `wb_semantic_catalog`: Export unified semantic catalog
 - `wb_semantic_catalog_audit`: Audit semantic catalog coverage
 - `wb_semantic_compatibility_graph`: Build semantic compatibility graph
+- `wb_semantic_graph_dot`: Export semantic compatibility graph as Graphviz DOT
+- `wb_semantic_graph_tables`: Export semantic compatibility graph tables
 - `wb_semantic_plan_artifact_next_steps`: Plan next actions for a promoted artifact
 - `wb_wrangle_plot_dataset`: Wrangle inputs into a validated plot dataset
 - `wb_wrangler_catalog_semantic`: Export wrangler catalog as semantic metadata
@@ -221,6 +223,7 @@ Note:
 - `wb_write_primitive_catalog_reference`: Write primitive catalog reference files
 - `wb_write_recipe_semantics_reference`: Write recipe semantics catalog reference files
 - `wb_write_semantic_catalog_reference`: Write unified semantic catalog reference files
+- `wb_write_semantic_graph_views`: Write semantic compatibility graph views
 - `wb_write_wrangler_catalog_reference`: Write wrangler catalog reference files
 
 ## Session, Refs & Client API

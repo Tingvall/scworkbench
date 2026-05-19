@@ -642,6 +642,9 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
     "wb_semantic_compatibility_graph",
     "wb_semantic_catalog_audit",
     "wb_semantic_plan_artifact_next_steps",
+    "wb_semantic_graph_tables",
+    "wb_semantic_graph_dot",
+    "wb_write_semantic_graph_views",
     "wb_refresh_semantic_catalogs"
   )
   missing_semantic_function_exports <- setdiff(semantic_export_names, exports)
@@ -787,12 +790,15 @@ wb_write_semantic_catalog_reference <- function(path_md = "docs/semantic_catalog
 #'   `jsonlite::validate()`.
 #' @param fail_on_audit If `TRUE`, error when `wb_semantic_catalog_audit()` is
 #'   not `ok`.
+#' @param write_graph_views If `TRUE`, write CSV node/edge tables and Graphviz
+#'   DOT views under `semantic_graphs/`.
 #' @return Invisibly returns the semantic catalog audit.
 #' @export
 wb_refresh_semantic_catalogs <- function(bundle = NULL,
                                          docs_dir = "docs",
                                          validate = TRUE,
-                                         fail_on_audit = TRUE) {
+                                         fail_on_audit = TRUE,
+                                         write_graph_views = TRUE) {
   json_paths <- file.path(
     docs_dir,
     c(
@@ -851,6 +857,12 @@ wb_refresh_semantic_catalogs <- function(bundle = NULL,
     bundle = bundle
   )
   audit <- wb_semantic_catalog_audit(bundle = bundle)
+  if (isTRUE(write_graph_views)) {
+    audit$graph_views <- wb_write_semantic_graph_views(
+      out_dir = file.path(docs_dir, "semantic_graphs"),
+      bundle = bundle
+    )
+  }
   if (isTRUE(fail_on_audit)) {
     .wb_assert(isTRUE(audit$ok), "Semantic catalog audit failed; inspect docs/semantic_catalog_audit.json.")
   }

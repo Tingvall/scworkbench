@@ -8,7 +8,8 @@ wb_refresh_semantic_catalogs(
   bundle = NULL,
   docs_dir = "docs",
   validate = TRUE,
-  fail_on_audit = TRUE
+  fail_on_audit = TRUE,
+  write_graph_views = TRUE
 )
 }
 \arguments{
@@ -21,6 +22,9 @@ wb_refresh_semantic_catalogs(
 
 \item{fail_on_audit}{If \code{TRUE}, error when \code{wb_semantic_catalog_audit()} is
 not \code{ok}.}
+
+\item{write_graph_views}{If \code{TRUE}, write CSV node/edge tables and Graphviz
+DOT views under \code{semantic_graphs/}.}
 }
 \value{
 Invisibly returns the semantic catalog audit.
