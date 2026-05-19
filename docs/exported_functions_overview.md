@@ -172,6 +172,7 @@ Note:
 - `wb_art_trajectory_smooth_overview`: Summarize a promoted `trajectory_smooth` artifact
 - `wb_freeze_packet`: Freeze a provenance packet
 - `wb_freeze_snapshot`: Freeze a provenance snapshot
+- `wb_getter_catalog_semantic`: Export getter catalog as semantic metadata
 - `wb_migrate_artifacts`: Migrate artifact registry tables
 - `wb_plot_contract`: Get a plot contract schema
 - `wb_plot_catalog_semantic`: Export plot/wrangler catalog as semantic metadata
@@ -203,6 +204,7 @@ Note:
 - `wb_report_methods`: Draft methods text from session runs
 - `wb_report_render_md`: Render a report draft as Markdown
 - `wb_wrangle_plot_dataset`: Wrangle inputs into a validated plot dataset
+- `wb_write_getter_catalog_reference`: Write getter catalog reference files
 - `wb_write_plot_catalog_reference`: Write plot/wrangler catalog reference files
 
 ## Session, Refs & Client API

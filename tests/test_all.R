@@ -24,6 +24,9 @@ test_all <- function(bundle_dir){
   if (exists("test_plot_catalog_semantic_contract", mode = "function")) {
     stopifnot(test_plot_catalog_semantic_contract())
   }
+  if (exists("test_getter_catalog_semantic_contract", mode = "function")) {
+    stopifnot(test_getter_catalog_semantic_contract())
+  }
   if (exists("test_op_knn_neighbors_contract", mode = "function")) {
     stopifnot(test_op_knn_neighbors_contract(bundle_dir))
   }
