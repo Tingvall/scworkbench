@@ -174,6 +174,7 @@ Note:
 - `wb_freeze_snapshot`: Freeze a provenance snapshot
 - `wb_migrate_artifacts`: Migrate artifact registry tables
 - `wb_plot_contract`: Get a plot contract schema
+- `wb_plot_catalog_semantic`: Export plot/wrangler catalog as semantic metadata
 - `wb_plot_mapper_list`: List registered plot mappers
 - `wb_plot_mapper_register`: Register a plot mapper
 - `wb_plot_compatible_types`: Discover compatible plot types
@@ -202,6 +203,7 @@ Note:
 - `wb_report_methods`: Draft methods text from session runs
 - `wb_report_render_md`: Render a report draft as Markdown
 - `wb_wrangle_plot_dataset`: Wrangle inputs into a validated plot dataset
+- `wb_write_plot_catalog_reference`: Write plot/wrangler catalog reference files
 
 ## Session, Refs & Client API
 

@@ -346,6 +346,225 @@ wb_plot_mapper_list <- function(plot_type = NULL) {
   out
 }
 
+.wb_plot_catalog_semantic_clean <- function(x) {
+  if (is.null(x)) return(NULL)
+  if (is.data.frame(x)) return(lapply(seq_len(nrow(x)), function(i) .wb_plot_catalog_semantic_clean(as.list(x[i, , drop = FALSE]))))
+  if (is.list(x)) return(lapply(x, .wb_plot_catalog_semantic_clean))
+  if (is.factor(x)) return(as.character(x))
+  if (length(x) == 0L) return(list())
+  if (length(x) == 1L && is.na(x)) return(NULL)
+  x
+}
+
+.wb_plot_catalog_fields <- function(x) {
+  if (is.null(x) || !length(x)) return(list())
+  nms <- names(x)
+  if (is.null(nms)) nms <- rep("", length(x))
+  out <- lapply(seq_along(x), function(i) {
+    list(name = as.character(nms[i]), type = as.character(x[[i]])[1])
+  })
+  names(out) <- NULL
+  out
+}
+
+.wb_plot_catalog_notes <- function(plot_type) {
+  notes <- list(
+    embedding_overlay = list(
+      title = "Embedding Overlay",
+      description = "Display cells in a 2D embedding with optional color, shape, size, alpha, or set overlays.",
+      use_when = c("show marker expression on UMAP", "show cell set membership in space", "inspect per-cell scores spatially"),
+      compatible_refs = c("space_2d", "cell_vector", "cell_vector_family", "artifact-backed cell vectors")
+    ),
+    volcano = list(
+      title = "Volcano Plot",
+      description = "Plot feature-level effect size against adjusted p-value for differential or trend-like feature tables.",
+      use_when = c("inspect DE results", "find significant feature effects"),
+      compatible_refs = c("feature_table with feature_id, effect/rho/logFC, p_adj")
+    ),
+    trend_scatter = list(
+      title = "Trend Scatter",
+      description = "Plot feature-level trend or association statistics as a scatter plot.",
+      use_when = c("inspect pseudotime trend statistics", "compare feature trend effect and significance"),
+      compatible_refs = c("feature_table with feature_id and numeric trend columns")
+    ),
+    violin = list(
+      title = "Violin Plot",
+      description = "Show distributions of per-cell vector values across groups.",
+      use_when = c("compare scores across labels", "show UCell/module/chromVAR distributions"),
+      compatible_refs = c("cell_vector", "cell_vector_family")
+    ),
+    category_count_bar = list(
+      title = "Category Count Bar",
+      description = "Show counts and percentages for categorical cell-vector labels.",
+      use_when = c("summarize label counts", "inspect winner label composition"),
+      compatible_refs = c("categorical cell_vector")
+    ),
+    dotplot = list(
+      title = "Dotplot",
+      description = "Show feature expression summaries across groups with percent-expressed and average-expression encodings.",
+      use_when = c("marker expression by cluster", "feature set marker summaries"),
+      compatible_refs = c("feature_table with group summaries")
+    ),
+    pathway_bar = list(
+      title = "Pathway Bar",
+      description = "Show ranked pathway or feature-set enrichment terms.",
+      use_when = c("inspect enrichment results", "rank pathways by adjusted p-value or score"),
+      compatible_refs = c("feature_table pathway enrichment output")
+    ),
+    ranked_lollipop = list(
+      title = "Ranked Lollipop",
+      description = "Show ranked entities from feature tables or obs_table summaries.",
+      use_when = c("show top genes", "show top pathways", "show dynamic gene sets", "show driver genes"),
+      compatible_refs = c("feature_table", "obs_table with entity and score columns")
+    ),
+    heatmap_ranked = list(
+      title = "Ranked Heatmap",
+      description = "Show matrix-like feature-by-group values from ranked feature tables.",
+      use_when = c("compare top feature values across groups"),
+      compatible_refs = c("feature_table with feature_id, group, value")
+    ),
+    feature_rank_bar = list(
+      title = "Feature Rank Bar",
+      description = "Show ranked feature values as bars.",
+      use_when = c("show top ranked features", "compact marker/trend summary"),
+      compatible_refs = c("feature_table with feature_id and value/score")
+    ),
+    pseudotime_smooth_panel = list(
+      title = "Pseudotime Smooth Panel",
+      description = "Show per-feature smoothed expression curves along trajectory pseudotime.",
+      use_when = c("plot gene dynamics along trajectory", "inspect trajectory_smooth outputs"),
+      compatible_refs = c("trajectory_smooth obs_table")
+    ),
+    pseudotime_signature_line = list(
+      title = "Pseudotime Signature Line",
+      description = "Show feature-set or signal curves along trajectory pseudotime.",
+      use_when = c("plot gene-set dynamics", "plot UCell/module score dynamics", "plot driver-gene curves"),
+      compatible_refs = c("trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_signal_dynamics_curve")
+    )
+  )
+  notes[[plot_type]] %||% list(title = plot_type, description = "", use_when = character(0), compatible_refs = character(0))
+}
+
+#' Export Plot/Wrangler Catalog As Semantic Metadata
+#'
+#' Returns a structured, JSON-friendly description of registered plot contracts
+#' and mapper wranglers. This is intended for agents, documentation generators,
+#' and semantic indexes that need to choose visualizations for primitives and
+#' artifacts.
+#'
+#' @return A named list with one record per plot type.
+#' @export
+wb_plot_catalog_semantic <- function() {
+  contracts <- .wb_plot_contracts()
+  mappers <- wb_plot_mapper_list()
+  plots <- lapply(names(contracts), function(pt) {
+    ct <- wb_plot_contract(pt)
+    note <- .wb_plot_catalog_notes(pt)
+    mm <- mappers[mappers$plot_type == pt, , drop = FALSE]
+    mapper_recs <- if (nrow(mm)) {
+      lapply(seq_len(nrow(mm)), function(i) {
+        list(
+          mapper_id = as.character(mm$mapper_id[i]),
+          priority = as.integer(mm$priority[i])
+        )
+      })
+    } else {
+      list()
+    }
+    list(
+      plot_type = as.character(pt),
+      title = as.character(note$title %||% pt)[1],
+      description = as.character(note$description %||% "")[1],
+      use_when = as.character(note$use_when %||% character(0)),
+      compatible_refs = as.character(note$compatible_refs %||% character(0)),
+      dataset_type = as.character(ct$dataset_type %||% "")[1],
+      version = as.character(ct$version %||% "v1")[1],
+      required_fields = .wb_plot_catalog_fields(ct$required %||% NULL),
+      optional_fields = .wb_plot_catalog_fields(ct$optional %||% NULL),
+      mappers = mapper_recs
+    )
+  })
+  names(plots) <- NULL
+  .wb_plot_catalog_semantic_clean(list(
+    schema_version = "scworkbench.plot_catalog.semantic.v1",
+    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    plot_count = length(plots),
+    plots = plots
+  ))
+}
+
+.wb_plot_catalog_reference_lines <- function(catalog) {
+  plots <- catalog$plots %||% list()
+  lines <- c(
+    "# scworkbench Plot/Wrangler Catalog",
+    "",
+    "<!-- Generated from wb_plot_catalog_semantic(); do not edit plot entries by hand. -->",
+    "",
+    paste0("Generated at: ", as.character(catalog$generated_at %||% "")),
+    "",
+    paste0("Plot count: ", as.integer(catalog$plot_count %||% length(plots))),
+    "",
+    "This document summarizes registered plot contracts and mapper wranglers for humans, agents, and semantic indexing.",
+    "The machine-readable companion is `docs/plot_catalog_semantic.json`.",
+    ""
+  )
+  for (plot in plots) {
+    lines <- c(
+      lines,
+      paste0("## `", as.character(plot$plot_type %||% "")[1], "`"),
+      "",
+      paste0("Title: ", as.character(plot$title %||% "")[1]),
+      "",
+      paste0("Dataset type: ", as.character(plot$dataset_type %||% "")[1]),
+      "",
+      paste0("Description: ", as.character(plot$description %||% "")[1]),
+      "",
+      "Use when:"
+    )
+    use_when <- as.character(plot$use_when %||% character(0))
+    lines <- c(lines, if (length(use_when)) paste0("- ", use_when) else "- (unspecified)")
+    refs <- as.character(plot$compatible_refs %||% character(0))
+    lines <- c(lines, "", "Compatible refs / data:", if (length(refs)) paste0("- ", refs) else "- (unspecified)", "", "Required fields:")
+    req <- plot$required_fields %||% list()
+    lines <- c(lines, if (length(req)) vapply(req, function(x) paste0("- `", x$name, "`: ", x$type), character(1)) else "- (none)")
+    opt <- plot$optional_fields %||% list()
+    lines <- c(lines, "", "Optional fields:", if (length(opt)) vapply(opt, function(x) paste0("- `", x$name, "`: ", x$type), character(1)) else "- (none)")
+    maps <- plot$mappers %||% list()
+    lines <- c(lines, "", "Mappers:")
+    if (length(maps)) {
+      lines <- c(lines, vapply(maps, function(x) paste0("- `", x$mapper_id, "` (priority=", x$priority, ")"), character(1)))
+    } else {
+      lines <- c(lines, "- (none)")
+    }
+    lines <- c(lines, "")
+  }
+  lines
+}
+
+#' Write Plot/Wrangler Catalog Reference Files
+#'
+#' Writes a human-readable markdown reference and/or machine-readable JSON
+#' export from the canonical plot contract and mapper registry.
+#'
+#' @param path_md Markdown output path, or `NULL` to skip.
+#' @param path_json JSON output path, or `NULL` to skip.
+#' @return Invisibly returns the semantic plot catalog list.
+#' @export
+wb_write_plot_catalog_reference <- function(path_md = "docs/plot_catalog_reference.md",
+                                            path_json = "docs/plot_catalog_semantic.json") {
+  catalog <- wb_plot_catalog_semantic()
+  if (!is.null(path_md)) {
+    dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
+    writeLines(.wb_plot_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+  }
+  if (!is.null(path_json)) {
+    .wb_require_pkg("jsonlite", "plot catalog semantic export")
+    dir.create(dirname(path_json), recursive = TRUE, showWarnings = FALSE)
+    jsonlite::write_json(catalog, path = path_json, auto_unbox = TRUE, pretty = TRUE, null = "null")
+  }
+  invisible(catalog)
+}
+
 .wb_plot_resolve_primitive <- function(bundle, x, runs = NULL, expected_kind = NULL) {
   if (is.null(x)) return(NULL)
 
