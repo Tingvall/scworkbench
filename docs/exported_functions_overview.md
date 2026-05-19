@@ -203,6 +203,7 @@ Note:
 - `wb_prov_run_details`: Inspect one persisted run from provenance
 - `wb_prov_validate_replay`: Validate replay of a persisted snapshot
 - `wb_recipe`: Get selector recipe metadata
+- `wb_recipe_semantics_catalog`: Export recipe semantics catalog
 - `wb_report_draft`: Build a structured analysis report draft
 - `wb_report_methods`: Draft methods text from session runs
 - `wb_report_render_md`: Render a report draft as Markdown
@@ -217,6 +218,7 @@ Note:
 - `wb_write_parameter_semantics_reference`: Write parameter semantics catalog reference files
 - `wb_write_plot_catalog_reference`: Write plot/wrangler catalog reference files
 - `wb_write_primitive_catalog_reference`: Write primitive catalog reference files
+- `wb_write_recipe_semantics_reference`: Write recipe semantics catalog reference files
 - `wb_write_semantic_catalog_reference`: Write unified semantic catalog reference files
 - `wb_write_wrangler_catalog_reference`: Write wrangler catalog reference files
 

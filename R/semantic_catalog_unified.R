@@ -138,6 +138,176 @@ wb_write_parameter_semantics_reference <- function(path_md = "docs/parameter_sem
   invisible(catalog)
 }
 
+.wb_recipe_semantics_entries <- function() {
+  list(
+    list(
+      recipe_id = "trajectory_geneset_dynamics_discovery",
+      title = "Run gene-set dynamics along a trajectory",
+      category = "trajectory_discovery",
+      question = "Which biological processes turn on, turn off, or behave transiently along a trajectory?",
+      description = "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
+      steps = c("Inspect available feature-set namespaces with wb_feature_sets().", "Choose trajectory model artifact/model_ref and matrix.", "Run trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."),
+      uses = c("getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_direction", "parameter:min_amplitude"),
+      produces = c("artifact_type:obs_table:trajectory_geneset_dynamics_curve", "artifact_type:obs_table:trajectory_geneset_dynamics", "artifact_type:obs_table:trajectory_geneset_dynamics_drivers", "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"),
+      use_when = c("collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"),
+      cautions = c("Gene-set universe and score_method define the biological meaning.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values.")
+    ),
+    list(
+      recipe_id = "trajectory_signal_dynamics_discovery",
+      title = "Run signal dynamics along a trajectory",
+      category = "trajectory_discovery",
+      question = "Which precomputed cell-level signals are dynamic along pseudotime?",
+      description = "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
+      steps = c("Load or identify a cell_vector_family artifact containing signals.", "Choose trajectory model artifact/model_ref and lineage/orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."),
+      uses = c("getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_direction", "parameter:min_amplitude"),
+      produces = c("artifact_type:obs_table:trajectory_signal_dynamics_curve", "artifact_type:obs_table:trajectory_signal_dynamics"),
+      use_when = c("UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"),
+      cautions = c("Signal scale depends on upstream scoring method.", "Only compare signals with compatible score semantics.")
+    ),
+    list(
+      recipe_id = "inspect_promoted_artifact",
+      title = "Inspect a promoted artifact",
+      category = "artifact_inspection",
+      question = "What is this artifact and how can I use or plot it?",
+      description = "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
+      steps = c("List artifacts with wb_art_list().", "Read identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."),
+      uses = c("getter:wb_art_list", "getter:wb_art_identity_card", "getter:wb_art_birth_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"),
+      produces = c("primitive:feature_table", "primitive:obs_table", "primitive:cell_vector", "primitive:cell_vector_family"),
+      use_when = c("agent needs to decide next step from artifact id", "human wants provenance before interpretation"),
+      cautions = c("Do not infer biology from artifact type alone; check source op and parameters.", "Prefer bounded table slices before loading large payloads.")
+    ),
+    list(
+      recipe_id = "plot_ucell_on_umap",
+      title = "Plot UCell signatures on UMAP",
+      category = "visualization",
+      question = "Where are signature-high cells located in a 2D embedding?",
+      description = "Overlay one or more UCell signature scores from a cell_vector_family onto a 2D space.",
+      steps = c("Run or locate ucell output signature_scores.", "Choose a 2D space with wb_spaces() or a space_2d artifact.", "Load/select the desired signature key from the cell_vector_family.", "Use wb_wrangle_plot_dataset for embedding_overlay or plot via compatible client.", "Inspect distribution with violin if group comparison is needed."),
+      uses = c("op:ucell", "getter:wb_spaces", "getter:wb_read_cell_vector_family", "plot:embedding_overlay", "plot:violin", "wrangler:plot_mapper:space2d_overlay_v1", "wrangler:plot_mapper:cell_vector_violin_v1", "parameter:space"),
+      produces = c("artifact_type:cell_vector_family"),
+      use_when = c("visualize signature activity spatially", "check whether a gene-set score follows known cell states"),
+      cautions = c("UCell scores are rank-based within cells; interpret as relative signature activity.", "Embedding overlay is a visualization, not a statistical test.")
+    ),
+    list(
+      recipe_id = "plot_trajectory_on_umap",
+      title = "Plot selected trajectory curves on UMAP",
+      category = "visualization",
+      question = "How does a selected trajectory or lineage sit in the 2D embedding?",
+      description = "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
+      steps = c("Locate trajectory curve artifact or project model/path into 2D.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."),
+      uses = c("artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"),
+      produces = c("artifact_type:path_2d_family"),
+      use_when = c("validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"),
+      cautions = c("2D curves are display projections and may not equal high-dimensional geometry.", "If dynamics use one lineage, do not display unrelated lineages as if they were used.")
+    ),
+    list(
+      recipe_id = "de_to_pathway_report",
+      title = "Differential expression to pathway report",
+      category = "differential_analysis",
+      question = "Which pathways explain differential genes between two cell sets?",
+      description = "Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.",
+      steps = c("Define or choose group_a and group_b cell sets.", "Run de_wilcox on the selected matrix.", "Promote de_table and inspect top features.", "Run pathway_enrich on selected up/down genes or ranked query policy.", "Plot pathway_bar and volcano summaries."),
+      uses = c("op:de_wilcox", "op:pathway_enrich", "plot:volcano", "plot:pathway_bar", "artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich", "parameter:cell_set", "parameter:matrix", "parameter:namespace"),
+      produces = c("artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich"),
+      use_when = c("compare two biological groups", "derive pathway interpretation from DE"),
+      cautions = c("Cell-set definitions control the comparison.", "Pathway output depends on the selected feature universe and query policy.")
+    ),
+    list(
+      recipe_id = "cluster_markers_pathways",
+      title = "Cluster to markers to pathways",
+      category = "discovery",
+      question = "What are the marker genes and pathway programs for clusters?",
+      description = "Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.",
+      steps = c("Run leiden on a biologically appropriate space and cell_set.", "Run markers_topn using the cluster labels.", "Promote marker table.", "Optionally run pathway_enrich per cluster marker subset.", "Plot dotplot, ranked lollipop, or pathway bars."),
+      uses = c("op:leiden", "op:markers_topn", "op:pathway_enrich", "plot:dotplot", "plot:ranked_lollipop", "plot:pathway_bar", "parameter:space", "parameter:cell_set", "parameter:matrix"),
+      produces = c("artifact_type:cell_vector", "artifact_type:feature_table:markers_topn", "artifact_type:obs_table:pathway_enrich"),
+      use_when = c("explore unknown populations", "summarize cluster identities"),
+      cautions = c("Cluster resolution changes biological granularity.", "Markers reflect selected matrix and cell universe.")
+    ),
+    list(
+      recipe_id = "semantic_next_steps_from_artifact",
+      title = "Find next steps from an artifact",
+      category = "agent_planning",
+      question = "Given an artifact, what can the agent do next?",
+      description = "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
+      steps = c("Inspect artifact_type and primitive_kind.", "Find graph edges from artifact_type to primitive via loads_as.", "Follow primitive to wranglers via wrangled_by and plots via feeds_plot.", "Follow primitive to ops via consumed_by for downstream analysis.", "Return candidates with provenance caveats."),
+      uses = c("getter:wb_art_identity_card", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"),
+      produces = c("plot:embedding_overlay", "plot:violin", "plot:ranked_lollipop"),
+      use_when = c("agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"),
+      cautions = c("Compatibility means technically possible, not biologically appropriate.", "Use provenance and parameter semantics before making claims.")
+    )
+  )
+}
+
+#' Export Recipe Semantics Catalog
+#'
+#' Returns agent-facing workflow examples as searchable semantic records.
+#' Recipes describe how ops, getters, artifacts, parameters, wranglers, and
+#' plots are composed for common scientific tasks.
+#'
+#' @return A named list with recipe semantic records.
+#' @export
+wb_recipe_semantics_catalog <- function() {
+  recipes <- .wb_recipe_semantics_entries()
+  .wb_semantic_catalog_clean(list(
+    schema_version = "scworkbench.recipe_semantics_catalog.v1",
+    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    recipe_count = length(recipes),
+    recipes = recipes
+  ))
+}
+
+.wb_recipe_semantics_reference_lines <- function(catalog) {
+  .wb_semantic_reference_lines(
+    title = "scworkbench Recipe Semantics Catalog",
+    generator = "wb_recipe_semantics_catalog()",
+    count_label = "Recipe count",
+    count = catalog$recipe_count,
+    records = catalog$recipes,
+    id_field = "recipe_id",
+    section_field = "category",
+    body_fn = function(x) {
+      c(
+        paste0("Title: ", as.character(x$title %||% "")[1]),
+        "",
+        paste0("Question: ", as.character(x$question %||% "")[1]),
+        "",
+        paste0("Description: ", as.character(x$description %||% "")[1]),
+        "",
+        "Steps:",
+        if (length(x$steps %||% character(0))) paste0("- ", as.character(x$steps)) else "- (unspecified)",
+        "",
+        "Uses:",
+        if (length(x$uses %||% character(0))) paste0("- `", as.character(x$uses), "`") else "- (unspecified)",
+        "",
+        "Cautions:",
+        if (length(x$cautions %||% character(0))) paste0("- ", as.character(x$cautions)) else "- (none)"
+      )
+    }
+  )
+}
+
+#' Write Recipe Semantics Catalog Reference Files
+#'
+#' @param path_md Markdown output path, or `NULL` to skip.
+#' @param path_json JSON output path, or `NULL` to skip.
+#' @return Invisibly returns the recipe semantics catalog.
+#' @export
+wb_write_recipe_semantics_reference <- function(path_md = "docs/recipe_semantics_reference.md",
+                                                path_json = "docs/recipe_semantics_catalog.json") {
+  catalog <- wb_recipe_semantics_catalog()
+  if (!is.null(path_md)) {
+    dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
+    writeLines(.wb_recipe_semantics_reference_lines(catalog), con = path_md, useBytes = TRUE)
+  }
+  if (!is.null(path_json)) {
+    .wb_require_pkg("jsonlite", "recipe semantics catalog export")
+    dir.create(dirname(path_json), recursive = TRUE, showWarnings = FALSE)
+    jsonlite::write_json(catalog, path = path_json, auto_unbox = TRUE, pretty = TRUE, null = "null")
+  }
+  invisible(catalog)
+}
+
 .wb_semantic_catalog_records <- function(bundle = NULL) {
   ops <- wb_op_catalog_semantic(bundle = bundle)$ops %||% list()
   getters <- wb_getter_catalog_semantic()$getters %||% list()
@@ -146,6 +316,7 @@ wb_write_parameter_semantics_reference <- function(path_md = "docs/parameter_sem
   primitives <- wb_primitive_catalog_semantic()$primitives %||% list()
   artifact_types <- wb_artifact_type_catalog_semantic()$artifact_types %||% list()
   parameters <- wb_parameter_semantics_catalog()$parameters %||% list()
+  recipes <- wb_recipe_semantics_catalog()$recipes %||% list()
 
   records <- list()
   add <- function(x) records[[length(records) + 1L]] <<- x
@@ -241,6 +412,19 @@ wb_write_parameter_semantics_reference <- function(path_md = "docs/parameter_sem
       payload = p
     ))
   }
+  for (r in recipes) {
+    nm <- as.character(r$recipe_id %||% "")[1]
+    add(.wb_semantic_record(
+      record_id = paste0("recipe:", nm),
+      record_type = "recipe",
+      name = nm,
+      title = r$title,
+      description = r$description,
+      search_text = list(r$title, r$question, r$description, r$category, r$steps, r$uses, r$produces, r$use_when, r$cautions),
+      tags = c("recipe", as.character(r$category %||% ""), as.character(r$use_when %||% character(0))),
+      payload = r
+    ))
+  }
 
   records
 }
@@ -265,6 +449,7 @@ wb_semantic_compatibility_graph <- function(bundle = NULL) {
   artifact_types <- wb_artifact_type_catalog_semantic()$artifact_types %||% list()
   plots <- wb_plot_catalog_semantic()$plots %||% list()
   parameters <- wb_parameter_semantics_catalog()$parameters %||% list()
+  recipes <- wb_recipe_semantics_catalog()$recipes %||% list()
 
   primitive_ids <- node_ids[grepl("^primitive:", node_ids)]
   primitive_kinds <- sub("^primitive:", "", primitive_ids)
@@ -272,6 +457,7 @@ wb_semantic_compatibility_graph <- function(bundle = NULL) {
   plot_ids <- node_ids[grepl("^plot:", node_ids)]
   parameter_ids <- node_ids[grepl("^parameter:", node_ids)]
   parameter_names <- sub("^parameter:", "", parameter_ids)
+  recipe_ids <- node_ids[grepl("^recipe:", node_ids)]
   parameter_aliases <- list()
   for (p in parameters) {
     pn <- as.character(p$parameter_name %||% "")[1]
@@ -345,6 +531,16 @@ wb_semantic_compatibility_graph <- function(bundle = NULL) {
     }
   }
 
+  for (r in recipes) {
+    rid <- paste0("recipe:", as.character(r$recipe_id %||% "")[1])
+    for (u in as.character(r$uses %||% character(0))) {
+      if (u %in% node_ids) add_edge(rid, u, "uses", u)
+    }
+    for (p in as.character(r$produces %||% character(0))) {
+      if (p %in% node_ids) add_edge(rid, p, "recipe_produces", p)
+    }
+  }
+
   edge_keys <- vapply(edges, function(e) paste(e$from, e$to, e$edge_type, e$label, sep = "\r"), character(1))
   edges <- edges[!duplicated(edge_keys)]
   names(edges) <- NULL
@@ -414,6 +610,9 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
   parameter_catalog_names <- sub("^parameter:", "", record_ids[grepl("^parameter:", record_ids)])
   required_parameters <- c("cell_set", "matrix", "pseudotime", "pseudotime_direction", "score_method", "min_amplitude", "mad_multiplier")
   missing_required_parameters <- setdiff(required_parameters, parameter_catalog_names)
+  recipe_catalog_names <- sub("^recipe:", "", record_ids[grepl("^recipe:", record_ids)])
+  required_recipes <- c("trajectory_geneset_dynamics_discovery", "inspect_promoted_artifact", "plot_ucell_on_umap")
+  missing_required_recipes <- setdiff(required_recipes, recipe_catalog_names)
 
   graph <- catalog$graph
   edges <- graph$edges %||% list()
@@ -434,6 +633,7 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
     length(missing_plot_mappers) == 0L &&
     length(missing_promoter_primitives) == 0L &&
     length(missing_required_parameters) == 0L &&
+    length(missing_required_recipes) == 0L &&
     length(bad_edges) == 0L &&
     length(unknown_op_kinds) == 0L
 
@@ -445,6 +645,7 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
     missing_plot_mappers = missing_plot_mappers,
     missing_promoter_primitives = missing_promoter_primitives,
     missing_required_parameters = missing_required_parameters,
+    missing_required_recipes = missing_required_recipes,
     unknown_op_kinds = unknown_op_kinds,
     bad_edge_count = length(bad_edges),
     record_count = catalog$record_count,
@@ -561,6 +762,10 @@ wb_refresh_semantic_catalogs <- function(bundle = NULL, docs_dir = "docs") {
   wb_write_parameter_semantics_reference(
     path_md = file.path(docs_dir, "parameter_semantics_reference.md"),
     path_json = file.path(docs_dir, "parameter_semantics_catalog.json")
+  )
+  wb_write_recipe_semantics_reference(
+    path_md = file.path(docs_dir, "recipe_semantics_reference.md"),
+    path_json = file.path(docs_dir, "recipe_semantics_catalog.json")
   )
   wb_write_semantic_catalog_reference(
     path_md = file.path(docs_dir, "semantic_catalog_reference.md"),

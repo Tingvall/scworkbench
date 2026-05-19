@@ -1,0 +1,103 @@
+{
+  "schema_version": "scworkbench.recipe_semantics_catalog.v1",
+  "generated_at": "2026-05-19T13:45:03+0200",
+  "recipe_count": 8,
+  "recipes": [
+    {
+      "recipe_id": "trajectory_geneset_dynamics_discovery",
+      "title": "Run gene-set dynamics along a trajectory",
+      "category": "trajectory_discovery",
+      "question": "Which biological processes turn on, turn off, or behave transiently along a trajectory?",
+      "description": "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
+      "steps": ["Inspect available feature-set namespaces with wb_feature_sets().", "Choose trajectory model artifact/model_ref and matrix.", "Run trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."],
+      "uses": ["getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+      "produces": ["artifact_type:obs_table:trajectory_geneset_dynamics_curve", "artifact_type:obs_table:trajectory_geneset_dynamics", "artifact_type:obs_table:trajectory_geneset_dynamics_drivers", "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"],
+      "use_when": ["collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
+      "cautions": ["Gene-set universe and score_method define the biological meaning.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
+    },
+    {
+      "recipe_id": "trajectory_signal_dynamics_discovery",
+      "title": "Run signal dynamics along a trajectory",
+      "category": "trajectory_discovery",
+      "question": "Which precomputed cell-level signals are dynamic along pseudotime?",
+      "description": "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
+      "steps": ["Load or identify a cell_vector_family artifact containing signals.", "Choose trajectory model artifact/model_ref and lineage/orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."],
+      "uses": ["getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+      "produces": ["artifact_type:obs_table:trajectory_signal_dynamics_curve", "artifact_type:obs_table:trajectory_signal_dynamics"],
+      "use_when": ["UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"],
+      "cautions": ["Signal scale depends on upstream scoring method.", "Only compare signals with compatible score semantics."]
+    },
+    {
+      "recipe_id": "inspect_promoted_artifact",
+      "title": "Inspect a promoted artifact",
+      "category": "artifact_inspection",
+      "question": "What is this artifact and how can I use or plot it?",
+      "description": "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
+      "steps": ["List artifacts with wb_art_list().", "Read identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."],
+      "uses": ["getter:wb_art_list", "getter:wb_art_identity_card", "getter:wb_art_birth_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"],
+      "produces": ["primitive:feature_table", "primitive:obs_table", "primitive:cell_vector", "primitive:cell_vector_family"],
+      "use_when": ["agent needs to decide next step from artifact id", "human wants provenance before interpretation"],
+      "cautions": ["Do not infer biology from artifact type alone; check source op and parameters.", "Prefer bounded table slices before loading large payloads."]
+    },
+    {
+      "recipe_id": "plot_ucell_on_umap",
+      "title": "Plot UCell signatures on UMAP",
+      "category": "visualization",
+      "question": "Where are signature-high cells located in a 2D embedding?",
+      "description": "Overlay one or more UCell signature scores from a cell_vector_family onto a 2D space.",
+      "steps": ["Run or locate ucell output signature_scores.", "Choose a 2D space with wb_spaces() or a space_2d artifact.", "Load/select the desired signature key from the cell_vector_family.", "Use wb_wrangle_plot_dataset for embedding_overlay or plot via compatible client.", "Inspect distribution with violin if group comparison is needed."],
+      "uses": ["op:ucell", "getter:wb_spaces", "getter:wb_read_cell_vector_family", "plot:embedding_overlay", "plot:violin", "wrangler:plot_mapper:space2d_overlay_v1", "wrangler:plot_mapper:cell_vector_violin_v1", "parameter:space"],
+      "produces": "artifact_type:cell_vector_family",
+      "use_when": ["visualize signature activity spatially", "check whether a gene-set score follows known cell states"],
+      "cautions": ["UCell scores are rank-based within cells; interpret as relative signature activity.", "Embedding overlay is a visualization, not a statistical test."]
+    },
+    {
+      "recipe_id": "plot_trajectory_on_umap",
+      "title": "Plot selected trajectory curves on UMAP",
+      "category": "visualization",
+      "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
+      "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
+      "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
+      "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+      "produces": "artifact_type:path_2d_family",
+      "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
+      "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
+    },
+    {
+      "recipe_id": "de_to_pathway_report",
+      "title": "Differential expression to pathway report",
+      "category": "differential_analysis",
+      "question": "Which pathways explain differential genes between two cell sets?",
+      "description": "Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.",
+      "steps": ["Define or choose group_a and group_b cell sets.", "Run de_wilcox on the selected matrix.", "Promote de_table and inspect top features.", "Run pathway_enrich on selected up/down genes or ranked query policy.", "Plot pathway_bar and volcano summaries."],
+      "uses": ["op:de_wilcox", "op:pathway_enrich", "plot:volcano", "plot:pathway_bar", "artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich", "parameter:cell_set", "parameter:matrix", "parameter:namespace"],
+      "produces": ["artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich"],
+      "use_when": ["compare two biological groups", "derive pathway interpretation from DE"],
+      "cautions": ["Cell-set definitions control the comparison.", "Pathway output depends on the selected feature universe and query policy."]
+    },
+    {
+      "recipe_id": "cluster_markers_pathways",
+      "title": "Cluster to markers to pathways",
+      "category": "discovery",
+      "question": "What are the marker genes and pathway programs for clusters?",
+      "description": "Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.",
+      "steps": ["Run leiden on a biologically appropriate space and cell_set.", "Run markers_topn using the cluster labels.", "Promote marker table.", "Optionally run pathway_enrich per cluster marker subset.", "Plot dotplot, ranked lollipop, or pathway bars."],
+      "uses": ["op:leiden", "op:markers_topn", "op:pathway_enrich", "plot:dotplot", "plot:ranked_lollipop", "plot:pathway_bar", "parameter:space", "parameter:cell_set", "parameter:matrix"],
+      "produces": ["artifact_type:cell_vector", "artifact_type:feature_table:markers_topn", "artifact_type:obs_table:pathway_enrich"],
+      "use_when": ["explore unknown populations", "summarize cluster identities"],
+      "cautions": ["Cluster resolution changes biological granularity.", "Markers reflect selected matrix and cell universe."]
+    },
+    {
+      "recipe_id": "semantic_next_steps_from_artifact",
+      "title": "Find next steps from an artifact",
+      "category": "agent_planning",
+      "question": "Given an artifact, what can the agent do next?",
+      "description": "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
+      "steps": ["Inspect artifact_type and primitive_kind.", "Find graph edges from artifact_type to primitive via loads_as.", "Follow primitive to wranglers via wrangled_by and plots via feeds_plot.", "Follow primitive to ops via consumed_by for downstream analysis.", "Return candidates with provenance caveats."],
+      "uses": ["getter:wb_art_identity_card", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"],
+      "produces": ["plot:embedding_overlay", "plot:violin", "plot:ranked_lollipop"],
+      "use_when": ["agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"],
+      "cautions": ["Compatibility means technically possible, not biologically appropriate.", "Use provenance and parameter semantics before making claims."]
+    }
+  ]
+}

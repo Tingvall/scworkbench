@@ -6,7 +6,7 @@ test_semantic_catalog_unified_contract <- function() {
 
   ids <- vapply(cat_sem$records, function(x) as.character(x$record_id %||% ""), character(1))
   stopifnot(all(nzchar(ids)), !anyDuplicated(ids))
-  stopifnot(all(c("op:trajectory_geneset_dynamics", "getter:wb_art_list", "primitive:cell_vector", "artifact_type:obs_table:trajectory_geneset_dynamics", "parameter:cell_set", "parameter:mad_multiplier") %in% ids))
+  stopifnot(all(c("op:trajectory_geneset_dynamics", "getter:wb_art_list", "primitive:cell_vector", "artifact_type:obs_table:trajectory_geneset_dynamics", "parameter:cell_set", "parameter:mad_multiplier", "recipe:trajectory_geneset_dynamics_discovery") %in% ids))
 
   graph <- wb_semantic_compatibility_graph()
   stopifnot(is.list(graph))
@@ -16,6 +16,7 @@ test_semantic_catalog_unified_contract <- function() {
   stopifnot(all(edge_ids %in% ids))
   edge_key <- vapply(graph$edges, function(e) paste(e$from, e$to, e$edge_type, sep = "|"), character(1))
   stopifnot(any(edge_key == "op:trajectory_geneset_dynamics|parameter:score_method|has_parameter_semantics"))
+  stopifnot(any(edge_key == "recipe:trajectory_geneset_dynamics_discovery|op:trajectory_geneset_dynamics|uses"))
 
   audit <- wb_semantic_catalog_audit()
   stopifnot(is.list(audit))
@@ -37,6 +38,32 @@ test_semantic_catalog_unified_contract <- function() {
   md <- readLines(file.path(tmp, "semantic.md"), warn = FALSE)
   stopifnot(any(grepl("^### `op:trajectory_geneset_dynamics`", md)))
 
+  TRUE
+}
+
+test_recipe_semantics_catalog_contract <- function() {
+  cat_sem <- wb_recipe_semantics_catalog()
+  stopifnot(is.list(cat_sem))
+  stopifnot(identical(as.character(cat_sem$schema_version), "scworkbench.recipe_semantics_catalog.v1"))
+  stopifnot(is.list(cat_sem$recipes), length(cat_sem$recipes) >= 6)
+  ids <- vapply(cat_sem$recipes, function(x) as.character(x$recipe_id %||% ""), character(1))
+  stopifnot(!anyDuplicated(ids))
+  stopifnot(all(c("trajectory_geneset_dynamics_discovery", "inspect_promoted_artifact", "plot_ucell_on_umap") %in% ids))
+  for (r in cat_sem$recipes) {
+    stopifnot(nzchar(as.character(r$recipe_id %||% "")[1]))
+    stopifnot(nzchar(as.character(r$title %||% "")[1]))
+    stopifnot(nzchar(as.character(r$description %||% "")[1]))
+    stopifnot(length(r$steps %||% character(0)) >= 1)
+    stopifnot(length(r$uses %||% character(0)) >= 1)
+  }
+  tmp_md <- tempfile("recipe_semantics_", fileext = ".md")
+  tmp_json <- tempfile("recipe_semantics_", fileext = ".json")
+  wb_write_recipe_semantics_reference(path_md = tmp_md, path_json = tmp_json)
+  stopifnot(file.exists(tmp_md), file.exists(tmp_json))
+  stopifnot(jsonlite::validate(paste(readLines(tmp_json, warn = FALSE), collapse = "\n")))
+  md <- readLines(tmp_md, warn = FALSE)
+  stopifnot(any(grepl("^### `trajectory_geneset_dynamics_discovery`", md)))
+  stopifnot(any(grepl("^### `plot_ucell_on_umap`", md)))
   TRUE
 }
 

@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-05-19T13:40:27+0200
+Generated at: 2026-05-19T13:45:03+0200
 
-Record count: 192
+Record count: 200
 
-Graph edges: 410
+Graph edges: 493
 
 ## artifact_type
 
@@ -1087,6 +1087,56 @@ Description: Lineage or curve coordinates in a 2D plotting space.
 Title: High-Dimensional Space Path Family
 
 Description: Curves in an arbitrary-dimensional bundle space, represented point-by-dimension.
+
+## recipe
+
+### `recipe:trajectory_geneset_dynamics_discovery`
+
+Title: Run gene-set dynamics along a trajectory
+
+Description: Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.
+
+### `recipe:trajectory_signal_dynamics_discovery`
+
+Title: Run signal dynamics along a trajectory
+
+Description: Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.
+
+### `recipe:inspect_promoted_artifact`
+
+Title: Inspect a promoted artifact
+
+Description: Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.
+
+### `recipe:plot_ucell_on_umap`
+
+Title: Plot UCell signatures on UMAP
+
+Description: Overlay one or more UCell signature scores from a cell_vector_family onto a 2D space.
+
+### `recipe:plot_trajectory_on_umap`
+
+Title: Plot selected trajectory curves on UMAP
+
+Description: Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.
+
+### `recipe:de_to_pathway_report`
+
+Title: Differential expression to pathway report
+
+Description: Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.
+
+### `recipe:cluster_markers_pathways`
+
+Title: Cluster to markers to pathways
+
+Description: Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.
+
+### `recipe:semantic_next_steps_from_artifact`
+
+Title: Find next steps from an artifact
+
+Description: Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.
 
 ## wrangler
 

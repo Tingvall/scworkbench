@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-05-19T13:40:27+0200",
-  "record_count": 192,
+  "generated_at": "2026-05-19T13:45:03+0200",
+  "record_count": 200,
   "record_type_counts": {
     "artifact_type": 25,
     "getter": 62,
@@ -9,6 +9,7 @@
     "parameter": 30,
     "plot": 12,
     "primitive": 11,
+    "recipe": 8,
     "wrangler": 14
   },
   "records": [
@@ -7634,13 +7635,181 @@
         "guidance": ["Set explicitly for replayable reports.", "Changing seed can affect stochastic fits, bootstraps, or approximations."],
         "aliases": ["random_seed", "bootstrap_seed"]
       }
+    },
+    {
+      "record_id": "recipe:trajectory_geneset_dynamics_discovery",
+      "record_type": "recipe",
+      "name": "trajectory_geneset_dynamics_discovery",
+      "title": "Run gene-set dynamics along a trajectory",
+      "description": "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
+      "search_text": "Run gene-set dynamics along a trajectory\nWhich biological processes turn on, turn off, or behave transiently along a trajectory?\nScreen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.\ntrajectory_discovery\nInspect available feature-set namespaces with wb_feature_sets().\nChoose trajectory model artifact/model_ref and matrix.\nRun trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.\nPromote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.\nPlot top dynamic terms and driver-gene curves with pseudotime_signature_line.\ngetter:wb_feature_sets\ngetter:wb_art_list\nop:trajectory_geneset_dynamics\nplot:pseudotime_signature_line\nwrangler:plot_mapper:trajectory_pseudotime_signature_line_v1\nparameter:namespace\nparameter:score_method\nparameter:pseudotime_direction\nparameter:min_amplitude\nartifact_type:obs_table:trajectory_geneset_dynamics_curve\nartifact_type:obs_table:trajectory_geneset_dynamics\nartifact_type:obs_table:trajectory_geneset_dynamics_drivers\nartifact_type:obs_table:trajectory_geneset_dynamics_driver_curve\ncollaborator asks for GSEA-like discovery along pseudotime\nfind metabolism/signaling/processes not preselected by marker intuition\nGene-set universe and score_method define the biological meaning.\nPseudotime orientation controls turns_on versus turns_off labels.\nAmplitude thresholds are scale-dependent filters, not p-values.",
+      "tags": ["recipe", "trajectory_discovery", "collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
+      "payload": {
+        "recipe_id": "trajectory_geneset_dynamics_discovery",
+        "title": "Run gene-set dynamics along a trajectory",
+        "category": "trajectory_discovery",
+        "question": "Which biological processes turn on, turn off, or behave transiently along a trajectory?",
+        "description": "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
+        "steps": ["Inspect available feature-set namespaces with wb_feature_sets().", "Choose trajectory model artifact/model_ref and matrix.", "Run trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."],
+        "uses": ["getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+        "produces": ["artifact_type:obs_table:trajectory_geneset_dynamics_curve", "artifact_type:obs_table:trajectory_geneset_dynamics", "artifact_type:obs_table:trajectory_geneset_dynamics_drivers", "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"],
+        "use_when": ["collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
+        "cautions": ["Gene-set universe and score_method define the biological meaning.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
+      }
+    },
+    {
+      "record_id": "recipe:trajectory_signal_dynamics_discovery",
+      "record_type": "recipe",
+      "name": "trajectory_signal_dynamics_discovery",
+      "title": "Run signal dynamics along a trajectory",
+      "description": "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
+      "search_text": "Run signal dynamics along a trajectory\nWhich precomputed cell-level signals are dynamic along pseudotime?\nRank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.\ntrajectory_discovery\nLoad or identify a cell_vector_family artifact containing signals.\nChoose trajectory model artifact/model_ref and lineage/orientation.\nRun trajectory_signal_dynamics with signal_keys or all keys.\nPromote signal_table, dynamics_table, top_signals, and fit_summary.\nPlot top signal curves with pseudotime_signature_line.\ngetter:wb_art_list\ngetter:wb_read_cell_vector_family\nop:trajectory_signal_dynamics\nplot:pseudotime_signature_line\nparameter:signal_keys\nparameter:pseudotime_direction\nparameter:min_amplitude\nartifact_type:obs_table:trajectory_signal_dynamics_curve\nartifact_type:obs_table:trajectory_signal_dynamics\nUCell or chromVAR scores already exist\nscreen signal families without recomputing gene-set scores\nSignal scale depends on upstream scoring method.\nOnly compare signals with compatible score semantics.",
+      "tags": ["recipe", "trajectory_discovery", "UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"],
+      "payload": {
+        "recipe_id": "trajectory_signal_dynamics_discovery",
+        "title": "Run signal dynamics along a trajectory",
+        "category": "trajectory_discovery",
+        "question": "Which precomputed cell-level signals are dynamic along pseudotime?",
+        "description": "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
+        "steps": ["Load or identify a cell_vector_family artifact containing signals.", "Choose trajectory model artifact/model_ref and lineage/orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."],
+        "uses": ["getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+        "produces": ["artifact_type:obs_table:trajectory_signal_dynamics_curve", "artifact_type:obs_table:trajectory_signal_dynamics"],
+        "use_when": ["UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"],
+        "cautions": ["Signal scale depends on upstream scoring method.", "Only compare signals with compatible score semantics."]
+      }
+    },
+    {
+      "record_id": "recipe:inspect_promoted_artifact",
+      "record_type": "recipe",
+      "name": "inspect_promoted_artifact",
+      "title": "Inspect a promoted artifact",
+      "description": "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
+      "search_text": "Inspect a promoted artifact\nWhat is this artifact and how can I use or plot it?\nUse artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.\nartifact_inspection\nList artifacts with wb_art_list().\nRead identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().\nIf table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().\nLoad as primitive with wb_art_load() only when payload access is needed.\nUse semantic_compatibility_graph to find compatible wranglers/plots.\ngetter:wb_art_list\ngetter:wb_art_identity_card\ngetter:wb_art_birth_certificate\ngetter:wb_art_table_info\ngetter:wb_art_table_slice\ngetter:wb_art_load\nwrangler:table:client_load_table\nprimitive:feature_table\nprimitive:obs_table\nprimitive:cell_vector\nprimitive:cell_vector_family\nagent needs to decide next step from artifact id\nhuman wants provenance before interpretation\nDo not infer biology from artifact type alone; check source op and parameters.\nPrefer bounded table slices before loading large payloads.",
+      "tags": ["recipe", "artifact_inspection", "agent needs to decide next step from artifact id", "human wants provenance before interpretation"],
+      "payload": {
+        "recipe_id": "inspect_promoted_artifact",
+        "title": "Inspect a promoted artifact",
+        "category": "artifact_inspection",
+        "question": "What is this artifact and how can I use or plot it?",
+        "description": "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
+        "steps": ["List artifacts with wb_art_list().", "Read identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."],
+        "uses": ["getter:wb_art_list", "getter:wb_art_identity_card", "getter:wb_art_birth_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"],
+        "produces": ["primitive:feature_table", "primitive:obs_table", "primitive:cell_vector", "primitive:cell_vector_family"],
+        "use_when": ["agent needs to decide next step from artifact id", "human wants provenance before interpretation"],
+        "cautions": ["Do not infer biology from artifact type alone; check source op and parameters.", "Prefer bounded table slices before loading large payloads."]
+      }
+    },
+    {
+      "record_id": "recipe:plot_ucell_on_umap",
+      "record_type": "recipe",
+      "name": "plot_ucell_on_umap",
+      "title": "Plot UCell signatures on UMAP",
+      "description": "Overlay one or more UCell signature scores from a cell_vector_family onto a 2D space.",
+      "search_text": "Plot UCell signatures on UMAP\nWhere are signature-high cells located in a 2D embedding?\nOverlay one or more UCell signature scores from a cell_vector_family onto a 2D space.\nvisualization\nRun or locate ucell output signature_scores.\nChoose a 2D space with wb_spaces() or a space_2d artifact.\nLoad/select the desired signature key from the cell_vector_family.\nUse wb_wrangle_plot_dataset for embedding_overlay or plot via compatible client.\nInspect distribution with violin if group comparison is needed.\nop:ucell\ngetter:wb_spaces\ngetter:wb_read_cell_vector_family\nplot:embedding_overlay\nplot:violin\nwrangler:plot_mapper:space2d_overlay_v1\nwrangler:plot_mapper:cell_vector_violin_v1\nparameter:space\nartifact_type:cell_vector_family\nvisualize signature activity spatially\ncheck whether a gene-set score follows known cell states\nUCell scores are rank-based within cells; interpret as relative signature activity.\nEmbedding overlay is a visualization, not a statistical test.",
+      "tags": ["recipe", "visualization", "visualize signature activity spatially", "check whether a gene-set score follows known cell states"],
+      "payload": {
+        "recipe_id": "plot_ucell_on_umap",
+        "title": "Plot UCell signatures on UMAP",
+        "category": "visualization",
+        "question": "Where are signature-high cells located in a 2D embedding?",
+        "description": "Overlay one or more UCell signature scores from a cell_vector_family onto a 2D space.",
+        "steps": ["Run or locate ucell output signature_scores.", "Choose a 2D space with wb_spaces() or a space_2d artifact.", "Load/select the desired signature key from the cell_vector_family.", "Use wb_wrangle_plot_dataset for embedding_overlay or plot via compatible client.", "Inspect distribution with violin if group comparison is needed."],
+        "uses": ["op:ucell", "getter:wb_spaces", "getter:wb_read_cell_vector_family", "plot:embedding_overlay", "plot:violin", "wrangler:plot_mapper:space2d_overlay_v1", "wrangler:plot_mapper:cell_vector_violin_v1", "parameter:space"],
+        "produces": "artifact_type:cell_vector_family",
+        "use_when": ["visualize signature activity spatially", "check whether a gene-set score follows known cell states"],
+        "cautions": ["UCell scores are rank-based within cells; interpret as relative signature activity.", "Embedding overlay is a visualization, not a statistical test."]
+      }
+    },
+    {
+      "record_id": "recipe:plot_trajectory_on_umap",
+      "record_type": "recipe",
+      "name": "plot_trajectory_on_umap",
+      "title": "Plot selected trajectory curves on UMAP",
+      "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
+      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:slingshot_project\nop:monocle3_project\nop:palantir_project\nop:space_path_project_2d\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
+      "tags": ["recipe", "visualization", "validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
+      "payload": {
+        "recipe_id": "plot_trajectory_on_umap",
+        "title": "Plot selected trajectory curves on UMAP",
+        "category": "visualization",
+        "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
+        "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
+        "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
+        "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+        "produces": "artifact_type:path_2d_family",
+        "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
+        "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
+      }
+    },
+    {
+      "record_id": "recipe:de_to_pathway_report",
+      "record_type": "recipe",
+      "name": "de_to_pathway_report",
+      "title": "Differential expression to pathway report",
+      "description": "Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.",
+      "search_text": "Differential expression to pathway report\nWhich pathways explain differential genes between two cell sets?\nRun DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.\ndifferential_analysis\nDefine or choose group_a and group_b cell sets.\nRun de_wilcox on the selected matrix.\nPromote de_table and inspect top features.\nRun pathway_enrich on selected up/down genes or ranked query policy.\nPlot pathway_bar and volcano summaries.\nop:de_wilcox\nop:pathway_enrich\nplot:volcano\nplot:pathway_bar\nartifact_type:feature_table:de_wilcox\nartifact_type:obs_table:pathway_enrich\nparameter:cell_set\nparameter:matrix\nparameter:namespace\ncompare two biological groups\nderive pathway interpretation from DE\nCell-set definitions control the comparison.\nPathway output depends on the selected feature universe and query policy.",
+      "tags": ["recipe", "differential_analysis", "compare two biological groups", "derive pathway interpretation from DE"],
+      "payload": {
+        "recipe_id": "de_to_pathway_report",
+        "title": "Differential expression to pathway report",
+        "category": "differential_analysis",
+        "question": "Which pathways explain differential genes between two cell sets?",
+        "description": "Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.",
+        "steps": ["Define or choose group_a and group_b cell sets.", "Run de_wilcox on the selected matrix.", "Promote de_table and inspect top features.", "Run pathway_enrich on selected up/down genes or ranked query policy.", "Plot pathway_bar and volcano summaries."],
+        "uses": ["op:de_wilcox", "op:pathway_enrich", "plot:volcano", "plot:pathway_bar", "artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich", "parameter:cell_set", "parameter:matrix", "parameter:namespace"],
+        "produces": ["artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich"],
+        "use_when": ["compare two biological groups", "derive pathway interpretation from DE"],
+        "cautions": ["Cell-set definitions control the comparison.", "Pathway output depends on the selected feature universe and query policy."]
+      }
+    },
+    {
+      "record_id": "recipe:cluster_markers_pathways",
+      "record_type": "recipe",
+      "name": "cluster_markers_pathways",
+      "title": "Cluster to markers to pathways",
+      "description": "Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.",
+      "search_text": "Cluster to markers to pathways\nWhat are the marker genes and pathway programs for clusters?\nCluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.\ndiscovery\nRun leiden on a biologically appropriate space and cell_set.\nRun markers_topn using the cluster labels.\nPromote marker table.\nOptionally run pathway_enrich per cluster marker subset.\nPlot dotplot, ranked lollipop, or pathway bars.\nop:leiden\nop:markers_topn\nop:pathway_enrich\nplot:dotplot\nplot:ranked_lollipop\nplot:pathway_bar\nparameter:space\nparameter:cell_set\nparameter:matrix\nartifact_type:cell_vector\nartifact_type:feature_table:markers_topn\nartifact_type:obs_table:pathway_enrich\nexplore unknown populations\nsummarize cluster identities\nCluster resolution changes biological granularity.\nMarkers reflect selected matrix and cell universe.",
+      "tags": ["recipe", "discovery", "explore unknown populations", "summarize cluster identities"],
+      "payload": {
+        "recipe_id": "cluster_markers_pathways",
+        "title": "Cluster to markers to pathways",
+        "category": "discovery",
+        "question": "What are the marker genes and pathway programs for clusters?",
+        "description": "Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.",
+        "steps": ["Run leiden on a biologically appropriate space and cell_set.", "Run markers_topn using the cluster labels.", "Promote marker table.", "Optionally run pathway_enrich per cluster marker subset.", "Plot dotplot, ranked lollipop, or pathway bars."],
+        "uses": ["op:leiden", "op:markers_topn", "op:pathway_enrich", "plot:dotplot", "plot:ranked_lollipop", "plot:pathway_bar", "parameter:space", "parameter:cell_set", "parameter:matrix"],
+        "produces": ["artifact_type:cell_vector", "artifact_type:feature_table:markers_topn", "artifact_type:obs_table:pathway_enrich"],
+        "use_when": ["explore unknown populations", "summarize cluster identities"],
+        "cautions": ["Cluster resolution changes biological granularity.", "Markers reflect selected matrix and cell universe."]
+      }
+    },
+    {
+      "record_id": "recipe:semantic_next_steps_from_artifact",
+      "record_type": "recipe",
+      "name": "semantic_next_steps_from_artifact",
+      "title": "Find next steps from an artifact",
+      "description": "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
+      "search_text": "Find next steps from an artifact\nGiven an artifact, what can the agent do next?\nUse the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.\nagent_planning\nInspect artifact_type and primitive_kind.\nFind graph edges from artifact_type to primitive via loads_as.\nFollow primitive to wranglers via wrangled_by and plots via feeds_plot.\nFollow primitive to ops via consumed_by for downstream analysis.\nReturn candidates with provenance caveats.\ngetter:wb_art_identity_card\ngetter:wb_art_load\nartifact_type:cell_vector\nprimitive:cell_vector\nwrangler:table:client_load_table\nplot:embedding_overlay\nplot:violin\nplot:ranked_lollipop\nagent receives artifact id and needs actionable options\nsemantic search needs planning, not just text matches\nCompatibility means technically possible, not biologically appropriate.\nUse provenance and parameter semantics before making claims.",
+      "tags": ["recipe", "agent_planning", "agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"],
+      "payload": {
+        "recipe_id": "semantic_next_steps_from_artifact",
+        "title": "Find next steps from an artifact",
+        "category": "agent_planning",
+        "question": "Given an artifact, what can the agent do next?",
+        "description": "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
+        "steps": ["Inspect artifact_type and primitive_kind.", "Find graph edges from artifact_type to primitive via loads_as.", "Follow primitive to wranglers via wrangled_by and plots via feeds_plot.", "Follow primitive to ops via consumed_by for downstream analysis.", "Return candidates with provenance caveats."],
+        "uses": ["getter:wb_art_identity_card", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"],
+        "produces": ["plot:embedding_overlay", "plot:violin", "plot:ranked_lollipop"],
+        "use_when": ["agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"],
+        "cautions": ["Compatibility means technically possible, not biologically appropriate.", "Use provenance and parameter semantics before making claims."]
+      }
     }
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-05-19T13:40:27+0200",
-    "node_count": 192,
-    "edge_count": 410,
+    "generated_at": "2026-05-19T13:45:03+0200",
+    "node_count": 200,
+    "edge_count": 493,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -8793,6 +8962,54 @@
         "record_type": "parameter",
         "name": "seed",
         "title": "Random Seed"
+      },
+      {
+        "record_id": "recipe:trajectory_geneset_dynamics_discovery",
+        "record_type": "recipe",
+        "name": "trajectory_geneset_dynamics_discovery",
+        "title": "Run gene-set dynamics along a trajectory"
+      },
+      {
+        "record_id": "recipe:trajectory_signal_dynamics_discovery",
+        "record_type": "recipe",
+        "name": "trajectory_signal_dynamics_discovery",
+        "title": "Run signal dynamics along a trajectory"
+      },
+      {
+        "record_id": "recipe:inspect_promoted_artifact",
+        "record_type": "recipe",
+        "name": "inspect_promoted_artifact",
+        "title": "Inspect a promoted artifact"
+      },
+      {
+        "record_id": "recipe:plot_ucell_on_umap",
+        "record_type": "recipe",
+        "name": "plot_ucell_on_umap",
+        "title": "Plot UCell signatures on UMAP"
+      },
+      {
+        "record_id": "recipe:plot_trajectory_on_umap",
+        "record_type": "recipe",
+        "name": "plot_trajectory_on_umap",
+        "title": "Plot selected trajectory curves on UMAP"
+      },
+      {
+        "record_id": "recipe:de_to_pathway_report",
+        "record_type": "recipe",
+        "name": "de_to_pathway_report",
+        "title": "Differential expression to pathway report"
+      },
+      {
+        "record_id": "recipe:cluster_markers_pathways",
+        "record_type": "recipe",
+        "name": "cluster_markers_pathways",
+        "title": "Cluster to markers to pathways"
+      },
+      {
+        "record_id": "recipe:semantic_next_steps_from_artifact",
+        "record_type": "recipe",
+        "name": "semantic_next_steps_from_artifact",
+        "title": "Find next steps from an artifact"
       }
     ],
     "edges": [
@@ -11255,6 +11472,504 @@
         "to": "plot:pseudotime_signature_line",
         "edge_type": "feeds_plot",
         "label": "pseudotime_signature_line"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "getter:wb_feature_sets",
+        "edge_type": "uses",
+        "label": "getter:wb_feature_sets"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "getter:wb_art_list",
+        "edge_type": "uses",
+        "label": "getter:wb_art_list"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "op:trajectory_geneset_dynamics",
+        "edge_type": "uses",
+        "label": "op:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "plot:pseudotime_signature_line",
+        "edge_type": "uses",
+        "label": "plot:pseudotime_signature_line"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+        "edge_type": "uses",
+        "label": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "parameter:namespace",
+        "edge_type": "uses",
+        "label": "parameter:namespace"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "parameter:score_method",
+        "edge_type": "uses",
+        "label": "parameter:score_method"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "parameter:pseudotime_direction",
+        "edge_type": "uses",
+        "label": "parameter:pseudotime_direction"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "parameter:min_amplitude",
+        "edge_type": "uses",
+        "label": "parameter:min_amplitude"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "artifact_type:obs_table:trajectory_geneset_dynamics_curve",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_geneset_dynamics_curve"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "artifact_type:obs_table:trajectory_geneset_dynamics",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "getter:wb_art_list",
+        "edge_type": "uses",
+        "label": "getter:wb_art_list"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "getter:wb_read_cell_vector_family",
+        "edge_type": "uses",
+        "label": "getter:wb_read_cell_vector_family"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "op:trajectory_signal_dynamics",
+        "edge_type": "uses",
+        "label": "op:trajectory_signal_dynamics"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "plot:pseudotime_signature_line",
+        "edge_type": "uses",
+        "label": "plot:pseudotime_signature_line"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "parameter:signal_keys",
+        "edge_type": "uses",
+        "label": "parameter:signal_keys"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "parameter:pseudotime_direction",
+        "edge_type": "uses",
+        "label": "parameter:pseudotime_direction"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "parameter:min_amplitude",
+        "edge_type": "uses",
+        "label": "parameter:min_amplitude"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_signal_dynamics_curve"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "artifact_type:obs_table:trajectory_signal_dynamics",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_signal_dynamics"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "getter:wb_art_list",
+        "edge_type": "uses",
+        "label": "getter:wb_art_list"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "getter:wb_art_identity_card",
+        "edge_type": "uses",
+        "label": "getter:wb_art_identity_card"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "getter:wb_art_birth_certificate",
+        "edge_type": "uses",
+        "label": "getter:wb_art_birth_certificate"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "getter:wb_art_table_info",
+        "edge_type": "uses",
+        "label": "getter:wb_art_table_info"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "getter:wb_art_table_slice",
+        "edge_type": "uses",
+        "label": "getter:wb_art_table_slice"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "getter:wb_art_load",
+        "edge_type": "uses",
+        "label": "getter:wb_art_load"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "wrangler:table:client_load_table",
+        "edge_type": "uses",
+        "label": "wrangler:table:client_load_table"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "primitive:feature_table",
+        "edge_type": "recipe_produces",
+        "label": "primitive:feature_table"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "primitive:obs_table",
+        "edge_type": "recipe_produces",
+        "label": "primitive:obs_table"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "primitive:cell_vector",
+        "edge_type": "recipe_produces",
+        "label": "primitive:cell_vector"
+      },
+      {
+        "from": "recipe:inspect_promoted_artifact",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "recipe_produces",
+        "label": "primitive:cell_vector_family"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "op:ucell",
+        "edge_type": "uses",
+        "label": "op:ucell"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "getter:wb_spaces",
+        "edge_type": "uses",
+        "label": "getter:wb_spaces"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "getter:wb_read_cell_vector_family",
+        "edge_type": "uses",
+        "label": "getter:wb_read_cell_vector_family"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "plot:embedding_overlay",
+        "edge_type": "uses",
+        "label": "plot:embedding_overlay"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "plot:violin",
+        "edge_type": "uses",
+        "label": "plot:violin"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "wrangler:plot_mapper:space2d_overlay_v1",
+        "edge_type": "uses",
+        "label": "wrangler:plot_mapper:space2d_overlay_v1"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "wrangler:plot_mapper:cell_vector_violin_v1",
+        "edge_type": "uses",
+        "label": "wrangler:plot_mapper:cell_vector_violin_v1"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "parameter:space",
+        "edge_type": "uses",
+        "label": "parameter:space"
+      },
+      {
+        "from": "recipe:plot_ucell_on_umap",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:cell_vector_family"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "artifact_type:path_2d_family",
+        "edge_type": "uses",
+        "label": "artifact_type:path_2d_family"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "op:slingshot_project",
+        "edge_type": "uses",
+        "label": "op:slingshot_project"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "op:monocle3_project",
+        "edge_type": "uses",
+        "label": "op:monocle3_project"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "op:palantir_project",
+        "edge_type": "uses",
+        "label": "op:palantir_project"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "op:space_path_project_2d",
+        "edge_type": "uses",
+        "label": "op:space_path_project_2d"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "plot:embedding_overlay",
+        "edge_type": "uses",
+        "label": "plot:embedding_overlay"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "primitive:path_2d_family",
+        "edge_type": "uses",
+        "label": "primitive:path_2d_family"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "parameter:lineage",
+        "edge_type": "uses",
+        "label": "parameter:lineage"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
+        "to": "artifact_type:path_2d_family",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:path_2d_family"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "op:de_wilcox",
+        "edge_type": "uses",
+        "label": "op:de_wilcox"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "op:pathway_enrich",
+        "edge_type": "uses",
+        "label": "op:pathway_enrich"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "plot:volcano",
+        "edge_type": "uses",
+        "label": "plot:volcano"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "plot:pathway_bar",
+        "edge_type": "uses",
+        "label": "plot:pathway_bar"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "artifact_type:feature_table:de_wilcox",
+        "edge_type": "uses",
+        "label": "artifact_type:feature_table:de_wilcox"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "artifact_type:obs_table:pathway_enrich",
+        "edge_type": "uses",
+        "label": "artifact_type:obs_table:pathway_enrich"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "parameter:cell_set",
+        "edge_type": "uses",
+        "label": "parameter:cell_set"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "parameter:matrix",
+        "edge_type": "uses",
+        "label": "parameter:matrix"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "parameter:namespace",
+        "edge_type": "uses",
+        "label": "parameter:namespace"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "artifact_type:feature_table:de_wilcox",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:feature_table:de_wilcox"
+      },
+      {
+        "from": "recipe:de_to_pathway_report",
+        "to": "artifact_type:obs_table:pathway_enrich",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:pathway_enrich"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "op:leiden",
+        "edge_type": "uses",
+        "label": "op:leiden"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "op:markers_topn",
+        "edge_type": "uses",
+        "label": "op:markers_topn"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "op:pathway_enrich",
+        "edge_type": "uses",
+        "label": "op:pathway_enrich"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "plot:dotplot",
+        "edge_type": "uses",
+        "label": "plot:dotplot"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "plot:ranked_lollipop",
+        "edge_type": "uses",
+        "label": "plot:ranked_lollipop"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "plot:pathway_bar",
+        "edge_type": "uses",
+        "label": "plot:pathway_bar"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "parameter:space",
+        "edge_type": "uses",
+        "label": "parameter:space"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "parameter:cell_set",
+        "edge_type": "uses",
+        "label": "parameter:cell_set"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "parameter:matrix",
+        "edge_type": "uses",
+        "label": "parameter:matrix"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "artifact_type:cell_vector",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:cell_vector"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "artifact_type:feature_table:markers_topn",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:feature_table:markers_topn"
+      },
+      {
+        "from": "recipe:cluster_markers_pathways",
+        "to": "artifact_type:obs_table:pathway_enrich",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:pathway_enrich"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "getter:wb_art_identity_card",
+        "edge_type": "uses",
+        "label": "getter:wb_art_identity_card"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "getter:wb_art_load",
+        "edge_type": "uses",
+        "label": "getter:wb_art_load"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "artifact_type:cell_vector",
+        "edge_type": "uses",
+        "label": "artifact_type:cell_vector"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "primitive:cell_vector",
+        "edge_type": "uses",
+        "label": "primitive:cell_vector"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "wrangler:table:client_load_table",
+        "edge_type": "uses",
+        "label": "wrangler:table:client_load_table"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "plot:embedding_overlay",
+        "edge_type": "uses",
+        "label": "plot:embedding_overlay"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "plot:embedding_overlay",
+        "edge_type": "recipe_produces",
+        "label": "plot:embedding_overlay"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "plot:violin",
+        "edge_type": "recipe_produces",
+        "label": "plot:violin"
+      },
+      {
+        "from": "recipe:semantic_next_steps_from_artifact",
+        "to": "plot:ranked_lollipop",
+        "edge_type": "recipe_produces",
+        "label": "plot:ranked_lollipop"
       }
     ]
   }
