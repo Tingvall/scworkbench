@@ -604,11 +604,49 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
   op_catalog_names <- sub("^op:", "", record_ids[grepl("^op:", record_ids)])
   mapper_catalog_ids <- sub("^wrangler:plot_mapper:", "", record_ids[grepl("^wrangler:plot_mapper:", record_ids)])
   primitive_catalog_kinds <- sub("^primitive:", "", record_ids[grepl("^primitive:", record_ids)])
+  artifact_catalog <- wb_artifact_type_catalog_semantic()$artifact_types %||% list()
+  artifact_catalog_table_types <- unique(vapply(artifact_catalog, function(x) as.character(x$table_type %||% ""), character(1)))
+  artifact_catalog_table_types <- artifact_catalog_table_types[nzchar(artifact_catalog_table_types)]
+  known_table_types <- as.character(.wb_known_source_table_types()$table_type)
+
+  exports <- tryCatch(getNamespaceExports("scworkbench"), error = function(e) character(0))
+  if (!length(exports) && file.exists("NAMESPACE")) {
+    ns <- readLines("NAMESPACE", warn = FALSE)
+    exports <- sub("^export\\((.*)\\)$", "\\1", ns[grepl("^export\\(", ns)])
+  }
 
   missing_ops <- setdiff(wb_list_ops(), op_catalog_names)
   missing_plot_mappers <- setdiff(as.character(wb_plot_mapper_list()$mapper_id), mapper_catalog_ids)
   promoter_kinds <- names(.wb_promoters_by_kind())
   missing_promoter_primitives <- setdiff(promoter_kinds, primitive_catalog_kinds)
+  primitive_catalog <- wb_primitive_catalog_semantic()$primitives %||% list()
+  primitive_constructors <- vapply(primitive_catalog, function(x) as.character(x$constructor %||% ""), character(1))
+  primitive_constructors <- primitive_constructors[nzchar(primitive_constructors)]
+  missing_primitive_constructor_exports <- setdiff(primitive_constructors, exports)
+  exported_primitive_constructors <- exports[grepl("^wb_prim_", exports)]
+  exported_primitive_kinds <- sub("^wb_prim_", "", exported_primitive_constructors)
+  missing_constructor_primitives <- setdiff(exported_primitive_kinds, primitive_catalog_kinds)
+
+  getter_catalog_names <- vapply(wb_getter_catalog_semantic()$getters, function(x) as.character(x$function_name %||% ""), character(1))
+  missing_cataloged_getter_exports <- setdiff(getter_catalog_names, exports)
+  semantic_export_names <- c(
+    "wb_op_catalog_semantic",
+    "wb_getter_catalog_semantic",
+    "wb_plot_catalog_semantic",
+    "wb_wrangler_catalog_semantic",
+    "wb_primitive_catalog_semantic",
+    "wb_artifact_type_catalog_semantic",
+    "wb_parameter_semantics_catalog",
+    "wb_recipe_semantics_catalog",
+    "wb_semantic_catalog",
+    "wb_semantic_compatibility_graph",
+    "wb_semantic_catalog_audit",
+    "wb_semantic_plan_artifact_next_steps",
+    "wb_refresh_semantic_catalogs"
+  )
+  missing_semantic_function_exports <- setdiff(semantic_export_names, exports)
+  missing_known_table_types <- setdiff(known_table_types, artifact_catalog_table_types)
+
   parameter_catalog_names <- sub("^parameter:", "", record_ids[grepl("^parameter:", record_ids)])
   required_parameters <- c("cell_set", "matrix", "pseudotime", "pseudotime_direction", "score_method", "min_amplitude", "mad_multiplier")
   missing_required_parameters <- setdiff(required_parameters, parameter_catalog_names)
@@ -634,6 +672,11 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
   ok <- length(missing_ops) == 0L &&
     length(missing_plot_mappers) == 0L &&
     length(missing_promoter_primitives) == 0L &&
+    length(missing_primitive_constructor_exports) == 0L &&
+    length(missing_constructor_primitives) == 0L &&
+    length(missing_cataloged_getter_exports) == 0L &&
+    length(missing_semantic_function_exports) == 0L &&
+    length(missing_known_table_types) == 0L &&
     length(missing_required_parameters) == 0L &&
     length(missing_required_recipes) == 0L &&
     length(bad_edges) == 0L &&
@@ -646,10 +689,16 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
     missing_ops = missing_ops,
     missing_plot_mappers = missing_plot_mappers,
     missing_promoter_primitives = missing_promoter_primitives,
+    missing_primitive_constructor_exports = missing_primitive_constructor_exports,
+    missing_constructor_primitives = missing_constructor_primitives,
+    missing_cataloged_getter_exports = missing_cataloged_getter_exports,
+    missing_semantic_function_exports = missing_semantic_function_exports,
+    missing_known_table_types = missing_known_table_types,
     missing_required_parameters = missing_required_parameters,
     missing_required_recipes = missing_required_recipes,
     unknown_op_kinds = unknown_op_kinds,
     bad_edge_count = length(bad_edges),
+    known_table_type_count = length(known_table_types),
     record_count = catalog$record_count,
     edge_count = graph$edge_count
   ))

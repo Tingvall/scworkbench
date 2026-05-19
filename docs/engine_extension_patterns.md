@@ -187,15 +187,54 @@ At minimum, consider:
 - dedicated draft contract docs for new surfaces
 - staged assembly docs if the change touches bundle creation / ingest / attach
 
-## 9. Common Failure Modes
+## 9. Semantic Catalog Updates
+
+Semantic catalogs are part of the engine contract. They are used by agents,
+docs, and planning helpers. If you add or change any of the surfaces below,
+update the semantic layer in the same change.
+
+Update these when adding:
+
+- new op -> `R/op_catalog.R`; then refresh `op_catalog_semantic.json`
+- new getter or inspection helper -> `R/getter_catalog.R`
+- new plot contract or plot mapper -> `R/wrangler_plots_contracts.R` and, if needed, `R/semantic_contract_catalogs.R`
+- new primitive kind or primitive constructor -> `R/primitives.R`, promotion support, and `wb_primitive_catalog_semantic()`
+- new promoted `table_type` -> `R/semantic_contract_catalogs.R` artifact type catalog / known table-type coverage
+- new recurring biological parameter -> `wb_parameter_semantics_catalog()`
+- new reusable workflow -> `wb_recipe_semantics_catalog()`
+- new graph-backed planning behavior -> `R/semantic_planning.R`
+
+After semantic changes, run:
+
+```r
+wb_refresh_semantic_catalogs()
+```
+
+This single command regenerates semantic Markdown/JSON files, validates all
+generated JSON, and fails if the semantic coverage audit fails.
+
+The audit currently checks:
+
+- registered ops are represented in the semantic op catalog
+- registered plot mappers are represented in wrangler records
+- primitive promoters and primitive constructors are represented in primitive records
+- cataloged getter functions and semantic public functions are exported
+- known source `table_type` values are represented in artifact-type records
+- required parameter and recipe records are present
+- op IO kinds resolve to known primitive kinds
+- compatibility graph edges point to existing records
+
+## 10. Common Failure Modes
 
 - putting compute in the client because it is faster to prototype
 - adding a second registration path
 - letting a plot convenience function become the real compute path
 - writing artifact-specific UI logic instead of an engine resolver
 - skipping docs because “the code is clear enough”
+- adding an op/wrangler/table type without updating semantic catalogs and
+  refreshing generated docs
 
-## 10. Current Important Surfaces
+## 11. Current Important Surfaces
 
 Today the main extensibility surfaces are:
 
@@ -204,6 +243,7 @@ Today the main extensibility surfaces are:
 - identity-card issuers
 - navigation contract
 - staged bundle assembly / source adapters
+- semantic catalogs / compatibility graph / planning helpers
 
 If a new feature does not fit one of these cleanly, stop and decide whether the
 surface model needs to expand before implementing it ad hoc.

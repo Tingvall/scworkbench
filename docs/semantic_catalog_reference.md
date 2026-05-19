@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-05-19T13:55:20+0200
+Generated at: 2026-05-19T14:08:13+0200
 
-Record count: 200
+Record count: 227
 
-Graph edges: 576
+Graph edges: 603
 
 ## artifact_type
 
@@ -159,6 +159,168 @@ Description: Cell-neighbor relationships from a KNN graph/query.
 Title: KNN Pseudobulk Feature Table
 
 Description: Feature summaries over KNN neighborhoods.
+
+### `artifact_type:obs_table:attach_report`
+
+Title: Table Type: attach_report
+
+Description: Promoted obs_table artifact with table_type='attach_report'.
+
+### `artifact_type:obs_table:cell_suffix_label`
+
+Title: Table Type: cell_suffix_label
+
+Description: Promoted obs_table artifact with table_type='cell_suffix_label'.
+
+### `artifact_type:feature_table:cell_vector_assoc`
+
+Title: Table Type: cell_vector_assoc
+
+Description: Promoted feature_table artifact with table_type='cell_vector_assoc'.
+
+### `artifact_type:obs_table:cell_vector_assoc_group_stats`
+
+Title: Table Type: cell_vector_assoc_group_stats
+
+Description: Promoted obs_table artifact with table_type='cell_vector_assoc_group_stats'.
+
+### `artifact_type:obs_table:cell_vector_compare`
+
+Title: Table Type: cell_vector_compare
+
+Description: Promoted obs_table artifact with table_type='cell_vector_compare'.
+
+### `artifact_type:obs_table:cell_vector_compare_summary`
+
+Title: Table Type: cell_vector_compare_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_compare_summary'.
+
+### `artifact_type:obs_table:cell_vector_family_calibration_summary`
+
+Title: Table Type: cell_vector_family_calibration_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_calibration_summary'.
+
+### `artifact_type:obs_table:cell_vector_family_qc_group_summary`
+
+Title: Table Type: cell_vector_family_qc_group_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_qc_group_summary'.
+
+### `artifact_type:obs_table:cell_vector_family_qc_key_summary`
+
+Title: Table Type: cell_vector_family_qc_key_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_qc_key_summary'.
+
+### `artifact_type:obs_table:cell_vector_family_qc_pairwise_summary`
+
+Title: Table Type: cell_vector_family_qc_pairwise_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_qc_pairwise_summary'.
+
+### `artifact_type:obs_table:cell_vector_family_reduce_decision_table`
+
+Title: Table Type: cell_vector_family_reduce_decision_table
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_reduce_decision_table'.
+
+### `artifact_type:obs_table:cell_vector_family_reduce_summary`
+
+Title: Table Type: cell_vector_family_reduce_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_reduce_summary'.
+
+### `artifact_type:obs_table:generic`
+
+Title: Table Type: generic
+
+Description: Promoted obs_table artifact with table_type='generic'.
+
+### `artifact_type:obs_table:ingest_report`
+
+Title: Table Type: ingest_report
+
+Description: Promoted obs_table artifact with table_type='ingest_report'.
+
+### `artifact_type:obs_table:space_path_score_summary`
+
+Title: Table Type: space_path_score_summary
+
+Description: Promoted obs_table artifact with table_type='space_path_score_summary'.
+
+### `artifact_type:obs_table:trajectory_branch_compare_summary`
+
+Title: Table Type: trajectory_branch_compare_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_branch_compare_summary'.
+
+### `artifact_type:obs_table:trajectory_de_summary`
+
+Title: Table Type: trajectory_de_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_de_summary'.
+
+### `artifact_type:obs_table:trajectory_geneset_dynamics_summary`
+
+Title: Table Type: trajectory_geneset_dynamics_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_geneset_dynamics_summary'.
+
+### `artifact_type:obs_table:trajectory_geneset_dynamics_top`
+
+Title: Table Type: trajectory_geneset_dynamics_top
+
+Description: Promoted obs_table artifact with table_type='trajectory_geneset_dynamics_top'.
+
+### `artifact_type:obs_table:trajectory_route_smooth`
+
+Title: Table Type: trajectory_route_smooth
+
+Description: Promoted obs_table artifact with table_type='trajectory_route_smooth'.
+
+### `artifact_type:obs_table:trajectory_route_smooth_summary`
+
+Title: Table Type: trajectory_route_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_route_smooth_summary'.
+
+### `artifact_type:obs_table:trajectory_signal_dynamics_summary`
+
+Title: Table Type: trajectory_signal_dynamics_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_signal_dynamics_summary'.
+
+### `artifact_type:obs_table:trajectory_signal_dynamics_top`
+
+Title: Table Type: trajectory_signal_dynamics_top
+
+Description: Promoted obs_table artifact with table_type='trajectory_signal_dynamics_top'.
+
+### `artifact_type:obs_table:trajectory_signature_smooth_summary`
+
+Title: Table Type: trajectory_signature_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_signature_smooth_summary'.
+
+### `artifact_type:obs_table:trajectory_smooth_summary`
+
+Title: Table Type: trajectory_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_smooth_summary'.
+
+### `artifact_type:obs_table:trajectory_vector_smooth`
+
+Title: Table Type: trajectory_vector_smooth
+
+Description: Promoted obs_table artifact with table_type='trajectory_vector_smooth'.
+
+### `artifact_type:obs_table:trajectory_vector_smooth_summary`
+
+Title: Table Type: trajectory_vector_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_vector_smooth_summary'.
 
 ## getter
 

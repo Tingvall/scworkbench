@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-05-19T13:55:19+0200",
-  "artifact_type_count": 25,
+  "generated_at": "2026-05-19T14:08:12+0200",
+  "artifact_type_count": 52,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -227,6 +227,249 @@
       "table_type": "knn_pseudobulk",
       "entity_kind": "feature",
       "use_when": "inspect local pseudobulk expression"
+    },
+    {
+      "artifact_type": "obs_table:attach_report",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: attach_report",
+      "description": "Promoted obs_table artifact with table_type='attach_report'.",
+      "table_type": "attach_report",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_suffix_label",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_suffix_label",
+      "description": "Promoted obs_table artifact with table_type='cell_suffix_label'.",
+      "table_type": "cell_suffix_label",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "feature_table:cell_vector_assoc",
+      "primitive_kind": "feature_table",
+      "title": "Table Type: cell_vector_assoc",
+      "description": "Promoted feature_table artifact with table_type='cell_vector_assoc'.",
+      "table_type": "cell_vector_assoc",
+      "entity_kind": "feature",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_assoc_group_stats",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_assoc_group_stats",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_assoc_group_stats'.",
+      "table_type": "cell_vector_assoc_group_stats",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_compare",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_compare",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_compare'.",
+      "table_type": "cell_vector_compare",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_compare_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_compare_summary",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_compare_summary'.",
+      "table_type": "cell_vector_compare_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_family_calibration_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_family_calibration_summary",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_family_calibration_summary'.",
+      "table_type": "cell_vector_family_calibration_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_family_qc_group_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_family_qc_group_summary",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_family_qc_group_summary'.",
+      "table_type": "cell_vector_family_qc_group_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_family_qc_key_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_family_qc_key_summary",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_family_qc_key_summary'.",
+      "table_type": "cell_vector_family_qc_key_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_family_qc_pairwise_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_family_qc_pairwise_summary",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_family_qc_pairwise_summary'.",
+      "table_type": "cell_vector_family_qc_pairwise_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_family_reduce_decision_table",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_family_reduce_decision_table",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_family_reduce_decision_table'.",
+      "table_type": "cell_vector_family_reduce_decision_table",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_family_reduce_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: cell_vector_family_reduce_summary",
+      "description": "Promoted obs_table artifact with table_type='cell_vector_family_reduce_summary'.",
+      "table_type": "cell_vector_family_reduce_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:generic",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: generic",
+      "description": "Promoted obs_table artifact with table_type='generic'.",
+      "table_type": "generic",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:ingest_report",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: ingest_report",
+      "description": "Promoted obs_table artifact with table_type='ingest_report'.",
+      "table_type": "ingest_report",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:space_path_score_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: space_path_score_summary",
+      "description": "Promoted obs_table artifact with table_type='space_path_score_summary'.",
+      "table_type": "space_path_score_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_branch_compare_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_branch_compare_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_branch_compare_summary'.",
+      "table_type": "trajectory_branch_compare_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_de_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_de_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_de_summary'.",
+      "table_type": "trajectory_de_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_geneset_dynamics_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_geneset_dynamics_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_geneset_dynamics_summary'.",
+      "table_type": "trajectory_geneset_dynamics_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_geneset_dynamics_top",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_geneset_dynamics_top",
+      "description": "Promoted obs_table artifact with table_type='trajectory_geneset_dynamics_top'.",
+      "table_type": "trajectory_geneset_dynamics_top",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_route_smooth",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_route_smooth",
+      "description": "Promoted obs_table artifact with table_type='trajectory_route_smooth'.",
+      "table_type": "trajectory_route_smooth",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_route_smooth_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_route_smooth_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_route_smooth_summary'.",
+      "table_type": "trajectory_route_smooth_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_signal_dynamics_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_signal_dynamics_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_signal_dynamics_summary'.",
+      "table_type": "trajectory_signal_dynamics_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_signal_dynamics_top",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_signal_dynamics_top",
+      "description": "Promoted obs_table artifact with table_type='trajectory_signal_dynamics_top'.",
+      "table_type": "trajectory_signal_dynamics_top",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_signature_smooth_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_signature_smooth_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_signature_smooth_summary'.",
+      "table_type": "trajectory_signature_smooth_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_smooth_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_smooth_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_smooth_summary'.",
+      "table_type": "trajectory_smooth_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_vector_smooth",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_vector_smooth",
+      "description": "Promoted obs_table artifact with table_type='trajectory_vector_smooth'.",
+      "table_type": "trajectory_vector_smooth",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_vector_smooth_summary",
+      "primitive_kind": "obs_table",
+      "title": "Table Type: trajectory_vector_smooth_summary",
+      "description": "Promoted obs_table artifact with table_type='trajectory_vector_smooth_summary'.",
+      "table_type": "trajectory_vector_smooth_summary",
+      "entity_kind": "generic",
+      "use_when": ["inspect promoted table payload", "route artifact through semantic planning"]
     }
   ]
 }

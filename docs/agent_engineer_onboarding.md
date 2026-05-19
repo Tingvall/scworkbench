@@ -44,7 +44,8 @@ Role: extend and stabilize engine + thin clients.
 3. Add tests.
 4. Smoke-run on bundle.
 5. Update client only if needed (thin adapter only).
-6. Update docs.
+6. Update semantic catalogs and docs.
+7. Run `wb_refresh_semantic_catalogs()` and fix any audit failure.
 
 When the change is not an op, map it to the right surface first:
 
@@ -54,10 +55,36 @@ When the change is not an op, map it to the right surface first:
 - new cross-surface handoff -> navigation contract
 - new storage access path -> getter only
 
+## Semantic Catalog Discipline
+
+Semantic catalogs are not optional documentation. Agents and planning helpers use
+them to discover engine capabilities.
+
+When adding or changing a surface, update the corresponding semantic contract:
+
+- ops: op interface and generated op catalog
+- getters: getter semantic catalog
+- plot mappers: plot/wrangler semantic catalogs
+- primitives: primitive catalog and promotion coverage
+- promoted table outputs: artifact type catalog / known table-type coverage
+- recurring parameters: parameter semantics catalog
+- reusable workflows: recipe semantics catalog
+
+Run this before considering the change complete:
+
+```r
+wb_refresh_semantic_catalogs()
+```
+
+The command regenerates semantic docs/JSON, validates generated JSON, and fails
+if the coverage audit detects a missing op, plot mapper, primitive constructor,
+known table type, required parameter/recipe, or invalid graph edge.
+
 ## Done Criteria
 
 - Primitive contracts are coherent.
 - Extension-point contracts are coherent.
 - Promotion works for produced primitives.
 - Provenance/DAG remain valid.
+- Semantic catalog audit passes via `wb_refresh_semantic_catalogs()`.
 - No thin-client violations introduced.

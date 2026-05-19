@@ -357,12 +357,133 @@ wb_write_primitive_catalog_reference <- function(path_md = "docs/primitive_catal
   )
 }
 
+.wb_known_source_table_types <- function() {
+  data.frame(
+    table_type = c(
+      "attach_report",
+      "cell_suffix_label",
+      "cell_vector_assoc",
+      "cell_vector_assoc_group_stats",
+      "cell_vector_compare",
+      "cell_vector_compare_summary",
+      "cell_vector_family_calibration_summary",
+      "cell_vector_family_qc_group_summary",
+      "cell_vector_family_qc_key_summary",
+      "cell_vector_family_qc_pairwise_summary",
+      "cell_vector_family_reduce_decision_table",
+      "cell_vector_family_reduce_summary",
+      "chromvar_summary",
+      "de_wilcox",
+      "feature_trend_spearman",
+      "generic",
+      "ingest_report",
+      "knn_neighbors",
+      "knn_pseudobulk",
+      "markers_topn",
+      "pathway_enrich",
+      "space_path_score_summary",
+      "trajectory_branch_compare",
+      "trajectory_branch_compare_summary",
+      "trajectory_de",
+      "trajectory_de_summary",
+      "trajectory_geneset_dynamics",
+      "trajectory_geneset_dynamics_curve",
+      "trajectory_geneset_dynamics_driver_curve",
+      "trajectory_geneset_dynamics_drivers",
+      "trajectory_geneset_dynamics_summary",
+      "trajectory_geneset_dynamics_top",
+      "trajectory_route_smooth",
+      "trajectory_route_smooth_summary",
+      "trajectory_signal_dynamics",
+      "trajectory_signal_dynamics_curve",
+      "trajectory_signal_dynamics_summary",
+      "trajectory_signal_dynamics_top",
+      "trajectory_signature_smooth",
+      "trajectory_signature_smooth_summary",
+      "trajectory_smooth",
+      "trajectory_smooth_summary",
+      "trajectory_vector_smooth",
+      "trajectory_vector_smooth_summary",
+      "ucell_signature_summary"
+    ),
+    primitive_kind = c(
+      "obs_table",
+      "obs_table",
+      "feature_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "feature_table",
+      "feature_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "feature_table",
+      "feature_table",
+      "obs_table",
+      "obs_table",
+      "feature_table",
+      "obs_table",
+      "feature_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table",
+      "obs_table"
+    ),
+    stringsAsFactors = FALSE
+  )
+}
+
+.wb_artifact_type_catalog_fill_known_tables <- function(entries) {
+  known <- .wb_known_source_table_types()
+  existing <- vapply(entries, function(x) as.character(x$table_type %||% ""), character(1))
+  for (i in seq_len(nrow(known))) {
+    tt <- as.character(known$table_type[i])
+    pk <- as.character(known$primitive_kind[i])
+    if (tt %in% existing) next
+    entries[[length(entries) + 1L]] <- list(
+      artifact_type = paste0(pk, ":", tt),
+      primitive_kind = pk,
+      title = paste0("Table Type: ", tt),
+      description = paste0("Promoted ", pk, " artifact with table_type='", tt, "'."),
+      table_type = tt,
+      entity_kind = if (identical(pk, "feature_table")) "feature" else "generic",
+      use_when = c("inspect promoted table payload", "route artifact through semantic planning")
+    )
+    existing <- c(existing, tt)
+  }
+  entries
+}
+
 #' Export Artifact Type Catalog As Semantic Metadata
 #'
 #' @return A named list with promoted artifact type and table-type records.
 #' @export
 wb_artifact_type_catalog_semantic <- function() {
-  artifact_types <- .wb_artifact_type_catalog_entries()
+  artifact_types <- .wb_artifact_type_catalog_fill_known_tables(.wb_artifact_type_catalog_entries())
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.artifact_type_catalog.semantic.v1",
     generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),

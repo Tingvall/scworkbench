@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 25
+Artifact type count: 52
 
 ## cell_vector
 
@@ -119,6 +119,20 @@ Entity kind: feature
 
 Use when:
 - inspect local pseudobulk expression
+
+### `feature_table:cell_vector_assoc`
+
+Title: Table Type: cell_vector_assoc
+
+Description: Promoted feature_table artifact with table_type='cell_vector_assoc'.
+
+Table type: cell_vector_assoc
+
+Entity kind: feature
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
 
 ## model_ref
 
@@ -297,6 +311,370 @@ Entity kind: neighbor
 
 Use when:
 - inspect local neighborhoods
+
+### `obs_table:attach_report`
+
+Title: Table Type: attach_report
+
+Description: Promoted obs_table artifact with table_type='attach_report'.
+
+Table type: attach_report
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_suffix_label`
+
+Title: Table Type: cell_suffix_label
+
+Description: Promoted obs_table artifact with table_type='cell_suffix_label'.
+
+Table type: cell_suffix_label
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_assoc_group_stats`
+
+Title: Table Type: cell_vector_assoc_group_stats
+
+Description: Promoted obs_table artifact with table_type='cell_vector_assoc_group_stats'.
+
+Table type: cell_vector_assoc_group_stats
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_compare`
+
+Title: Table Type: cell_vector_compare
+
+Description: Promoted obs_table artifact with table_type='cell_vector_compare'.
+
+Table type: cell_vector_compare
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_compare_summary`
+
+Title: Table Type: cell_vector_compare_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_compare_summary'.
+
+Table type: cell_vector_compare_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_family_calibration_summary`
+
+Title: Table Type: cell_vector_family_calibration_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_calibration_summary'.
+
+Table type: cell_vector_family_calibration_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_family_qc_group_summary`
+
+Title: Table Type: cell_vector_family_qc_group_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_qc_group_summary'.
+
+Table type: cell_vector_family_qc_group_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_family_qc_key_summary`
+
+Title: Table Type: cell_vector_family_qc_key_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_qc_key_summary'.
+
+Table type: cell_vector_family_qc_key_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_family_qc_pairwise_summary`
+
+Title: Table Type: cell_vector_family_qc_pairwise_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_qc_pairwise_summary'.
+
+Table type: cell_vector_family_qc_pairwise_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_family_reduce_decision_table`
+
+Title: Table Type: cell_vector_family_reduce_decision_table
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_reduce_decision_table'.
+
+Table type: cell_vector_family_reduce_decision_table
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:cell_vector_family_reduce_summary`
+
+Title: Table Type: cell_vector_family_reduce_summary
+
+Description: Promoted obs_table artifact with table_type='cell_vector_family_reduce_summary'.
+
+Table type: cell_vector_family_reduce_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:generic`
+
+Title: Table Type: generic
+
+Description: Promoted obs_table artifact with table_type='generic'.
+
+Table type: generic
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:ingest_report`
+
+Title: Table Type: ingest_report
+
+Description: Promoted obs_table artifact with table_type='ingest_report'.
+
+Table type: ingest_report
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:space_path_score_summary`
+
+Title: Table Type: space_path_score_summary
+
+Description: Promoted obs_table artifact with table_type='space_path_score_summary'.
+
+Table type: space_path_score_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_branch_compare_summary`
+
+Title: Table Type: trajectory_branch_compare_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_branch_compare_summary'.
+
+Table type: trajectory_branch_compare_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_de_summary`
+
+Title: Table Type: trajectory_de_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_de_summary'.
+
+Table type: trajectory_de_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_geneset_dynamics_summary`
+
+Title: Table Type: trajectory_geneset_dynamics_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_geneset_dynamics_summary'.
+
+Table type: trajectory_geneset_dynamics_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_geneset_dynamics_top`
+
+Title: Table Type: trajectory_geneset_dynamics_top
+
+Description: Promoted obs_table artifact with table_type='trajectory_geneset_dynamics_top'.
+
+Table type: trajectory_geneset_dynamics_top
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_route_smooth`
+
+Title: Table Type: trajectory_route_smooth
+
+Description: Promoted obs_table artifact with table_type='trajectory_route_smooth'.
+
+Table type: trajectory_route_smooth
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_route_smooth_summary`
+
+Title: Table Type: trajectory_route_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_route_smooth_summary'.
+
+Table type: trajectory_route_smooth_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_signal_dynamics_summary`
+
+Title: Table Type: trajectory_signal_dynamics_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_signal_dynamics_summary'.
+
+Table type: trajectory_signal_dynamics_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_signal_dynamics_top`
+
+Title: Table Type: trajectory_signal_dynamics_top
+
+Description: Promoted obs_table artifact with table_type='trajectory_signal_dynamics_top'.
+
+Table type: trajectory_signal_dynamics_top
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_signature_smooth_summary`
+
+Title: Table Type: trajectory_signature_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_signature_smooth_summary'.
+
+Table type: trajectory_signature_smooth_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_smooth_summary`
+
+Title: Table Type: trajectory_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_smooth_summary'.
+
+Table type: trajectory_smooth_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_vector_smooth`
+
+Title: Table Type: trajectory_vector_smooth
+
+Description: Promoted obs_table artifact with table_type='trajectory_vector_smooth'.
+
+Table type: trajectory_vector_smooth
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
+
+### `obs_table:trajectory_vector_smooth_summary`
+
+Title: Table Type: trajectory_vector_smooth_summary
+
+Description: Promoted obs_table artifact with table_type='trajectory_vector_smooth_summary'.
+
+Table type: trajectory_vector_smooth_summary
+
+Entity kind: generic
+
+Use when:
+- inspect promoted table payload
+- route artifact through semantic planning
 
 ## path_2d_family
 
