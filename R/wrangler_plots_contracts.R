@@ -1922,7 +1922,8 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
              as.character(info$table_type[1] %||% "")[1] %in% c(
                "trajectory_signature_smooth",
                "trajectory_geneset_dynamics_curve",
-               "trajectory_geneset_dynamics_driver_curve"
+               "trajectory_geneset_dynamics_driver_curve",
+               "trajectory_signal_dynamics_curve"
              ))
   }
   tt <- try(.wb_plot_resolve_primitive(bundle, tx, runs = runs, expected_kind = "obs_table"), silent = TRUE)
@@ -1930,7 +1931,8 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
   if (!(as.character(tt$table_type %||% "")[1] %in% c(
     "trajectory_signature_smooth",
     "trajectory_geneset_dynamics_curve",
-    "trajectory_geneset_dynamics_driver_curve"
+    "trajectory_geneset_dynamics_driver_curve",
+    "trajectory_signal_dynamics_curve"
   ))) return(FALSE)
   tbl <- try(wb_primitive_to_table(tt, include_context = FALSE), silent = TRUE)
   if (inherits(tbl, "try-error") || !is.data.frame(tbl) || !nrow(tbl)) return(FALSE)
@@ -1953,7 +1955,7 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
     info <- wb_art_table_info(bundle, aid)
     table_type <- as.character(info$table_type[1] %||% "")[1]
     .wb_assert(identical(as.character(info$type[1] %||% "")[1], "obs_table") &&
-                 table_type %in% c("trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve"),
+                 table_type %in% c("trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve", "trajectory_signal_dynamics_curve"),
                "pseudotime_signature_line requires a trajectory signature/gene-set curve obs_table.")
     filters <- list()
     if (length(feature_sets)) filters$feature_set <- feature_sets
@@ -1964,7 +1966,7 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
   } else {
     tprim <- .wb_plot_resolve_primitive(bundle, tx, runs = runs, expected_kind = "obs_table")
     table_type <- as.character(tprim$table_type %||% "")[1]
-    .wb_assert(table_type %in% c("trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve"),
+    .wb_assert(table_type %in% c("trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve", "trajectory_signal_dynamics_curve"),
                "pseudotime_signature_line requires trajectory signature/gene-set curve obs_table.")
     tbl <- wb_primitive_to_table(tprim, include_context = FALSE)
     meta_src <- tprim$meta %||% list()
@@ -1985,7 +1987,7 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
     keep <- utils::head(keep[nzchar(keep)], top_n)
     tbl <- tbl[as.character(tbl$feature_set) %in% keep, , drop = FALSE]
   }
-  out <- tbl[, intersect(c("feature_set", "feature_id", "driver_rank", "lineage_id", "bin",
+  out <- tbl[, intersect(c("feature_set", "signal_key", "feature_id", "driver_rank", "lineage_id", "bin",
                            "pseudotime", "pseudotime_min", "pseudotime_max", "value",
                            "value_raw", "value_smooth", "value_se", "value_ci_low",
                            "value_ci_high", "n_cells", "label"), colnames(tbl)), drop = FALSE]

@@ -65,6 +65,8 @@
   if (identical(src_op, "trajectory_signature_smooth") && identical(tt, "trajectory_signature_smooth")) return("pseudotime_signature_line")
   if (identical(src_op, "trajectory_geneset_dynamics") && tt %in% c("trajectory_geneset_dynamics_curve", "trajectory_geneset_dynamics_driver_curve")) return("pseudotime_signature_line")
   if (identical(src_op, "trajectory_geneset_dynamics") && tt %in% c("trajectory_geneset_dynamics", "trajectory_geneset_dynamics_top", "trajectory_geneset_dynamics_drivers")) return("ranked_lollipop")
+  if (identical(src_op, "trajectory_signal_dynamics") && identical(tt, "trajectory_signal_dynamics_curve")) return("pseudotime_signature_line")
+  if (identical(src_op, "trajectory_signal_dynamics") && tt %in% c("trajectory_signal_dynamics", "trajectory_signal_dynamics_top")) return("ranked_lollipop")
   NA_character_
 }
 
@@ -101,6 +103,38 @@
     drivers = pick("trajectory_geneset_dynamics_drivers"),
     driver_curve = pick("trajectory_geneset_dynamics_driver_curve"),
     summary = pick("trajectory_geneset_dynamics_summary")
+  )
+}
+
+.wb_nav_signal_dynamics_related <- function(bundle, info) {
+  arts <- wb_art_list(bundle)
+  empty_df <- data.frame(stringsAsFactors = FALSE)
+  if (!is.data.frame(arts) || !nrow(arts)) {
+    return(list(dynamics = empty_df, curve = empty_df, top = empty_df, summary = empty_df))
+  }
+  tt <- DBI::dbGetQuery(
+    bundle$con,
+    "SELECT artifact_id, table_type
+     FROM artifact_tables
+     WHERE artifact_id IN (SELECT artifact_id FROM artifacts WHERE type = 'obs_table');"
+  )
+  arts2 <- merge(arts, tt, by = "artifact_id", all.x = TRUE, sort = FALSE)
+  src_name <- as.character(info$name[1] %||% "")[1]
+  src_cell_set <- as.character(info$cell_set[1] %||% "")[1]
+  ok <- as.character(arts2$source_op %||% "") == "trajectory_signal_dynamics"
+  if (nzchar(src_name)) ok <- ok & as.character(arts2$name %||% "") == src_name
+  if (nzchar(src_cell_set)) ok <- ok & as.character(arts2$cell_set %||% "") == src_cell_set
+  keep_cols <- intersect(c("artifact_id", "name", "description", "created_at", "cell_set", "source_op", "table_type"), names(arts2))
+  pick <- function(type) {
+    out <- arts2[ok & as.character(arts2$table_type %||% "") == type, keep_cols, drop = FALSE]
+    rownames(out) <- NULL
+    out
+  }
+  list(
+    dynamics = pick("trajectory_signal_dynamics"),
+    curve = pick("trajectory_signal_dynamics_curve"),
+    top = pick("trajectory_signal_dynamics_top"),
+    summary = pick("trajectory_signal_dynamics_summary")
   )
 }
 
@@ -362,6 +396,59 @@ wb_nav_entities <- function(source,
     return(out[nzchar(out$entity_id), , drop = FALSE])
   }
 
+  if (identical(src_op, "trajectory_signal_dynamics") && tt %in% c("trajectory_signal_dynamics", "trajectory_signal_dynamics_top")) {
+    if (identical(e_kind, "auto")) e_kind <- if (nzchar(as.character(lineage_id %||% "")[1])) "feature_set" else "lineage"
+    if (identical(e_kind, "lineage")) {
+      lineages <- wb_art_table_distinct(bundle, resolved$artifact_id, "lineage_id")
+      out <- .wb_nav_entity_df("lineage", as.character(lineages %||% character(0)), source_ref = resolved$ref)
+      return(out[nzchar(out$entity_id), , drop = FALSE])
+    }
+    lin <- as.character(lineage_id %||% "")[1]
+    .wb_assert(nzchar(lin), "lineage_id is required for signal navigation from trajectory_signal_dynamics.")
+    tbl <- wb_art_table_slice(bundle, resolved$artifact_id, filters = list(lineage_id = lin))
+    if (!is.data.frame(tbl) || !nrow(tbl) || !("signal_key" %in% names(tbl))) {
+      return(.wb_nav_entity_df(entity_kind = character(0), entity_id = character(0)))
+    }
+    if (nzchar(as.character(search %||% "")[1])) {
+      tbl <- tbl[grepl(tolower(as.character(search)[1]), tolower(as.character(tbl$signal_key)), fixed = TRUE), , drop = FALSE]
+    }
+    score_col <- intersect(c("dynamic_score", "amplitude", "late_minus_early", "abs_spearman_rho"), names(tbl))[1] %||% NA_character_
+    ord <- if (!is.na(score_col)) order(suppressWarnings(as.numeric(tbl[[score_col]])), decreasing = TRUE, na.last = TRUE) else seq_len(nrow(tbl))
+    tbl <- tbl[ord, , drop = FALSE]
+    lim <- suppressWarnings(as.integer(limit %||% 100L))
+    if (is.finite(lim) && lim > 0L && nrow(tbl) > lim) tbl <- tbl[seq_len(lim), , drop = FALSE]
+    out <- .wb_nav_entity_df(
+      entity_kind = "feature_set",
+      entity_id = as.character(tbl$signal_key %||% ""),
+      label = as.character(tbl$signal_key %||% ""),
+      group_kind = "lineage",
+      group_id = lin,
+      score = if (!is.na(score_col)) suppressWarnings(as.numeric(tbl[[score_col]])) else NA_real_,
+      rank = seq_len(nrow(tbl)),
+      direction = as.character(tbl$curve_class %||% ""),
+      source_ref = resolved$ref
+    )
+    return(out[nzchar(out$entity_id), , drop = FALSE])
+  }
+
+  if (identical(src_op, "trajectory_signal_dynamics") && identical(tt, "trajectory_signal_dynamics_curve")) {
+    if (identical(e_kind, "auto")) e_kind <- if (nzchar(as.character(lineage_id %||% "")[1])) "feature_set" else "lineage"
+    if (identical(e_kind, "lineage")) {
+      lineages <- wb_art_table_distinct(bundle, resolved$artifact_id, "lineage_id")
+      out <- .wb_nav_entity_df("lineage", as.character(lineages %||% character(0)), source_ref = resolved$ref)
+      return(out[nzchar(out$entity_id), , drop = FALSE])
+    }
+    lin <- as.character(lineage_id %||% "")[1]
+    .wb_assert(nzchar(lin), "lineage_id is required for signal navigation from trajectory_signal_dynamics_curve.")
+    sets <- wb_art_table_distinct(bundle, resolved$artifact_id, "signal_key", filters = list(lineage_id = lin), limit = limit)
+    if (nzchar(as.character(search %||% "")[1])) {
+      keep <- grepl(tolower(as.character(search)[1]), tolower(as.character(sets)), fixed = TRUE)
+      sets <- as.character(sets)[keep]
+    }
+    out <- .wb_nav_entity_df("feature_set", as.character(sets %||% character(0)), group_kind = "lineage", group_id = lin, source_ref = resolved$ref)
+    return(out[nzchar(out$entity_id), , drop = FALSE])
+  }
+
   stop("No navigation resolver for source.", call. = FALSE)
 }
 
@@ -570,6 +657,37 @@ wb_nav_targets <- function(source,
     return(out)
   }
 
+  if (identical(src_op, "trajectory_signal_dynamics")) {
+    rel <- .wb_nav_signal_dynamics_related(bundle, info)
+    if (tt %in% c("trajectory_signal_dynamics", "trajectory_signal_dynamics_top") &&
+        identical(entity_kind, "feature_set") && nzchar(entity_id) && nzchar(lin)) {
+      cv <- rel$curve %||% data.frame(stringsAsFactors = FALSE)
+      if (is.data.frame(cv) && nrow(cv)) {
+        out <- rbind(out, .wb_nav_target_df(
+          target_kind = "artifact_plot",
+          target_id = paste0("artifact:", as.character(cv$artifact_id[1])),
+          action = "open_signal_curve",
+          label = "Open signal curve",
+          reason = "Matching trajectory_signal_dynamics_curve artifact",
+          priority = 10L
+        ))
+      }
+    }
+    if (identical(tt, "trajectory_signal_dynamics_curve") &&
+        identical(entity_kind, "feature_set") && nzchar(entity_id) && nzchar(lin)) {
+      out <- rbind(out, .wb_nav_target_df(
+        target_kind = "artifact_plot",
+        target_id = resolved$ref,
+        action = "compare_other_lineage",
+        label = "Compare in other lineage",
+        reason = "Same trajectory_signal_dynamics_curve artifact",
+        priority = 20L
+      ))
+    }
+    rownames(out) <- NULL
+    return(out)
+  }
+
   stop("No navigation resolver for source.", call. = FALSE)
 }
 
@@ -693,6 +811,13 @@ wb_nav_handoff <- function(source,
       ),
       selection = list(entity_kind = entity_kind, entity_id = entity_id, lineage_id = lin, feature_set = if (identical(entity_kind, "feature")) as.character(entity$group_id %||% "")[1] else entity_id),
       notes = "trajectory_geneset_dynamics -> driver-gene curve"
+    ),
+    open_signal_curve = list(
+      ref = ref,
+      plot_type = "pseudotime_signature_line",
+      params = list(lineage = lin, feature_set = entity_id, signal_key = entity_id),
+      selection = list(entity_kind = entity_kind, entity_id = entity_id, lineage_id = lin, signal_key = entity_id),
+      notes = "trajectory_signal_dynamics -> signal curve"
     ),
     stop("Unsupported navigation action.", call. = FALSE)
   )

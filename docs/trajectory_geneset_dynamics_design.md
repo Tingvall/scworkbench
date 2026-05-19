@@ -168,6 +168,24 @@ enrichment.
 Classical enrichment still belongs in `pathway_enrich`, typically downstream of
 DE tables or trajectory DE tables.
 
+## Relationship To Precomputed Signals
+
+`trajectory_signal_dynamics` is the sibling op for already-computed per-cell
+signals. It consumes a `cell_vector_family` plus the same trajectory `model_ref`
+and produces the same style of curve and dynamics tables for signal keys.
+
+Typical workflow:
+
+1. Run `ucell`, `chromvar`, `addmodulescore`, or another signal-producing op.
+2. Use the resulting `cell_vector_family` as `signal`.
+3. Run `trajectory_signal_dynamics` to rank signals that turn on, turn off, or
+   peak transiently along pseudotime.
+
+This is the right route when scores already exist or when scoring is not
+gene-set mean/sum/rank based. It does not emit driver genes, because a generic
+`cell_vector_family` does not necessarily know which genes or features produced
+each key.
+
 ## Report Workflow
 
 A useful report should:

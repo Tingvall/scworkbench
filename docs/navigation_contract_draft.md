@@ -342,6 +342,7 @@ Implement the first engine-backed navigation contract for:
 - `trajectory_smooth`
 - `trajectory_signature_smooth`
 - `trajectory_geneset_dynamics`
+- `trajectory_signal_dynamics`
 
 Then make Shiny consume it for:
 
@@ -351,6 +352,7 @@ Then make Shiny consume it for:
 - gene-set dynamics table -> gene-set curve
 - gene-set curve -> driver genes / driver-gene curves
 - driver-gene table -> driver-gene curve
+- signal dynamics table -> signal curve
 
 For `trajectory_geneset_dynamics`, the current source/target intent is:
 
@@ -365,5 +367,13 @@ For `trajectory_geneset_dynamics`, the current source/target intent is:
   `trajectory_geneset_dynamics_driver_curve`:
   selected driver `feature` entities can navigate to the matching
   driver-gene curve and parent gene-set curve.
+
+For `trajectory_signal_dynamics`, the current source/target intent is:
+
+- `trajectory_signal_dynamics` / `trajectory_signal_dynamics_top`:
+  ranked signal entities can navigate to the matching
+  `trajectory_signal_dynamics_curve` plot.
+- `trajectory_signal_dynamics_curve`:
+  selected signal entities can use the same-artifact compare target.
 
 If that contract stays clean, extend it to other plot families later.

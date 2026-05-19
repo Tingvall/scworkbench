@@ -210,5 +210,74 @@ test_navigation_contract <- function(bundle_dir) {
   stopifnot(identical(as.character(drv_ho$plot_type), "pseudotime_signature_line"))
   stopifnot(identical(as.character(drv_ho$params$feature), as.character(drv_feats$entity_id[1])))
 
+  sig_keys <- c("score_a", "score_b")
+  sig_curve_tbl <- data.frame(
+    signal_key = rep(sig_keys, each = 4),
+    feature_set = rep(sig_keys, each = 4),
+    lineage_id = lin2,
+    bin = rep(seq_len(4), times = 2),
+    pseudotime = rep(seq(0, 1, length.out = 4), times = 2),
+    value = c(0, 1, 2, 3, 3, 2, 1, 0),
+    value_raw = c(0, 1, 2, 3, 3, 2, 1, 0),
+    value_smooth = c(0, 1, 2, 3, 3, 2, 1, 0),
+    n_cells = 10L,
+    stringsAsFactors = FALSE
+  )
+  sig_dyn_tbl <- data.frame(
+    signal_key = sig_keys,
+    feature_set = sig_keys,
+    lineage_id = lin2,
+    curve_class = c("turns_on", "turns_off"),
+    dynamic_score = c(3, 2),
+    amplitude = c(3, 3),
+    rank = c(1L, 2L),
+    passes_filters = TRUE,
+    stringsAsFactors = FALSE
+  )
+  run_sig <- wb_new_run(
+    op_name = "trajectory_signal_dynamics",
+    inputs = list(
+      cell_set = "all",
+      effective_n = 20L,
+      parents = character(0),
+      user_inputs = list(signal = "module_scores")
+    ),
+    params = list(n_signal_keys_input = 2L),
+    outputs = list(
+      signal_table = wb_prim_obs_table(sig_curve_tbl, table_type = "trajectory_signal_dynamics_curve", entity_kind = "trajectory_bin"),
+      dynamics_table = wb_prim_obs_table(sig_dyn_tbl, table_type = "trajectory_signal_dynamics", entity_kind = "signal")
+    ),
+    notes = "synthetic trajectory signal navigation"
+  )
+  runs_sig <- list()
+  runs_sig[[run_sig$run_id]] <- run_sig
+  prom_sig <- wb_promote_analysis(
+    bundle = b2,
+    runs = runs_sig,
+    head_run_id = run_sig$run_id,
+    name_prefix = "nav_signal",
+    created_by = "test",
+    fail_fast = TRUE
+  )
+  stopifnot(is.data.frame(prom_sig$promoted), nrow(prom_sig$promoted) >= 2L)
+  arts_sig <- wb_art_list(b2)
+  tt_sig <- DBI::dbGetQuery(
+    b2$con,
+    "SELECT artifact_id, table_type FROM artifact_tables WHERE artifact_id IN (SELECT artifact_id FROM artifacts WHERE type = 'obs_table');"
+  )
+  arts_sig <- merge(arts_sig, tt_sig, by = "artifact_id", all.x = TRUE, sort = FALSE)
+  sig_dyn_id <- as.character(arts_sig$artifact_id[as.character(arts_sig$table_type) == "trajectory_signal_dynamics"][1])
+  stopifnot(nzchar(sig_dyn_id))
+
+  sig_lin <- wb_nav_entities(sig_dyn_id, b2, entity_kind = "lineage")
+  stopifnot(is.data.frame(sig_lin), nrow(sig_lin) == 1L, identical(as.character(sig_lin$entity_id[1]), lin2))
+  sig_entities <- wb_nav_entities(sig_dyn_id, b2, entity_kind = "feature_set", lineage_id = lin2)
+  stopifnot(is.data.frame(sig_entities), nrow(sig_entities) >= 2L)
+  sig_tg <- wb_nav_targets(sig_dyn_id, b2, entity = sig_entities[1, , drop = FALSE], lineage_id = lin2)
+  stopifnot(any(as.character(sig_tg$action) == "open_signal_curve"))
+  sig_ho <- wb_nav_handoff(sig_dyn_id, "open_signal_curve", b2, entity = sig_entities[1, , drop = FALSE], lineage_id = lin2)
+  stopifnot(identical(as.character(sig_ho$plot_type), "pseudotime_signature_line"))
+  stopifnot(identical(as.character(sig_ho$params$signal_key), as.character(sig_entities$entity_id[1])))
+
   TRUE
 }

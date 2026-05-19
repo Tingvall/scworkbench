@@ -138,6 +138,7 @@ Note:
 - `wb_op_trajectory_de`: Run per-lineage trajectory DE
 - `wb_op_trajectory_geneset_dynamics`: Screen feature-set dynamics along trajectory pseudotime
 - `wb_op_trajectory_signature_smooth`: Compute feature-set trajectory signatures
+- `wb_op_trajectory_signal_dynamics`: Screen cell-level signal dynamics along trajectory pseudotime
 - `wb_op_trajectory_smooth`: Compute per-feature trajectory smoothing
 - `wb_op_trajectory_vector_smooth`: Compute trajectory smoothing for cell-level signal families
 - `wb_op_umap_fit`: Fit UMAP from a high-D space and persist model for later transform

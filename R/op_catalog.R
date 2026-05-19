@@ -1084,6 +1084,41 @@
   raw
 }
 
+.wb_runner_trajectory_signal_dynamics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$signal), "trajectory_signal_dynamics runner: missing resolved$signal.")
+  .wb_assert(!is.null(resolved$model), "trajectory_signal_dynamics runner: missing resolved$model.")
+
+  raw <- wb_op_trajectory_signal_dynamics(
+    bundle = bundle,
+    signal = resolved$signal,
+    model = resolved$model,
+    cells = as.character(effective_cells),
+    lineage = inputs$lineage %||% NULL,
+    signal_keys = inputs$signal_keys %||% NULL,
+    n_bins = inputs$n_bins %||% 50L,
+    summary_fun = inputs$summary_fun %||% "mean",
+    min_cells_per_bin = inputs$min_cells_per_bin %||% 5L,
+    top_n = inputs$top_n %||% 50L,
+    on_off_min_delta = inputs$on_off_min_delta %||% 0,
+    monotonic_min_abs_rho = inputs$monotonic_min_abs_rho %||% 0.5,
+    pseudotime_direction = inputs$pseudotime_direction %||% "as_is",
+    start_label = inputs$start_label %||% NULL,
+    end_label = inputs$end_label %||% NULL,
+    min_amplitude = inputs$min_amplitude %||% 0,
+    min_bins_observed = inputs$min_bins_observed %||% 5L,
+    smooth_method = inputs$smooth_method %||% "none",
+    loess_span = inputs$loess_span %||% 0.5,
+    bootstrap_n = inputs$bootstrap_n %||% 0L,
+    bootstrap_seed = inputs$bootstrap_seed %||% 1L,
+    ci_level = inputs$ci_level %||% 0.95,
+    class_min_amplitude = inputs$class_min_amplitude %||% 0
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "trajectory_signal_dynamics must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_space_path_define <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$space), "space_path_define runner: missing resolved$space.")
   .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
@@ -2202,6 +2237,86 @@
         fit_summary = list(
           kind = "obs_table",
           description = "Per-lineage signal smoothing diagnostics."
+        )
+      )
+    ),
+    trajectory_signal_dynamics = list(
+      op_name = "trajectory_signal_dynamics",
+      title = "Trajectory Signal Dynamics",
+      description = "Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.",
+      intent = c("trajectory", "signal", "discovery", "dynamics"),
+      requires = list(signal = "cell_vector_family", model = "model_ref"),
+      produces = list(
+        signal_table = "obs_table",
+        dynamics_table = "obs_table",
+        top_signals = "obs_table",
+        fit_summary = "obs_table"
+      ),
+      promotable = c("signal_table", "dynamics_table", "top_signals", "fit_summary"),
+      runner = .wb_runner_trajectory_signal_dynamics,
+      inputs = list(
+        signal = list(required = TRUE, kind = "cell_vector_family"),
+        model = list(required = TRUE, kind = "model_ref")
+      ),
+      params = list(
+        list(name = "signal_keys", type = "string_vec", default = NULL,
+             help = "Optional signal-key subset within the cell_vector_family."),
+        list(name = "lineage", type = "string_vec", default = NULL,
+             help = "Optional lineage key subset."),
+        list(name = "pseudotime_direction", type = "choice", default = "as_is",
+             choices = c("as_is", "invert"),
+             help = "Use pseudotime as provided or invert it before binning and classification."),
+        list(name = "start_label", type = "string", default = NULL,
+             help = "Optional biological start label recorded in output metadata."),
+        list(name = "end_label", type = "string", default = NULL,
+             help = "Optional biological end label recorded in output metadata."),
+        list(name = "n_bins", type = "int", default = 50, min = 5, max = 1000,
+             help = "Number of pseudotime bins."),
+        list(name = "summary_fun", type = "choice", default = "mean",
+             choices = c("mean", "median"),
+             help = "Summary statistic across cells within each bin."),
+        list(name = "min_cells_per_bin", type = "int", default = 5, min = 1, max = 100000,
+             help = "Minimum cells required for an output bin."),
+        list(name = "top_n", type = "int", default = 50, min = 1, max = 10000,
+             help = "Number of top-ranked signals retained in top_signals."),
+        list(name = "on_off_min_delta", type = "dbl", default = 0, min = 0,
+             help = "Minimum absolute late-early delta for turns_on/turns_off classes."),
+        list(name = "monotonic_min_abs_rho", type = "dbl", default = 0.5, min = 0, max = 1,
+             help = "Minimum absolute Spearman rho for turns_on/turns_off classes."),
+        list(name = "min_amplitude", type = "dbl", default = 0, min = 0,
+             help = "Minimum curve amplitude required for passes_filters."),
+        list(name = "min_bins_observed", type = "int", default = 5, min = 1, max = 1000,
+             help = "Minimum retained bins required for passes_filters."),
+        list(name = "smooth_method", type = "choice", default = "none",
+             choices = c("none", "loess", "spline"),
+             help = "Optional smoothing method applied to binned curves before metrics/classes."),
+        list(name = "loess_span", type = "dbl", default = 0.5, min = 0.01, max = 1,
+             help = "Span used when smooth_method='loess'."),
+        list(name = "bootstrap_n", type = "int", default = 0, min = 0, max = 10000,
+             help = "Bootstrap replicates per bin for confidence bands; 0 disables CIs."),
+        list(name = "bootstrap_seed", type = "int", default = 1, min = 1,
+             help = "Random seed for bootstrap confidence bands."),
+        list(name = "ci_level", type = "dbl", default = 0.95, min = 0.5, max = 0.999,
+             help = "Confidence level for bootstrap bands."),
+        list(name = "class_min_amplitude", type = "dbl", default = 0, min = 0,
+             help = "Minimum amplitude required before assigning non-flat curve classes.")
+      ),
+      interface_produces = list(
+        signal_table = list(
+          kind = "obs_table",
+          description = "Binned signal-score curves along trajectory pseudotime."
+        ),
+        dynamics_table = list(
+          kind = "obs_table",
+          description = "Per-signal dynamic metrics and rank."
+        ),
+        top_signals = list(
+          kind = "obs_table",
+          description = "Top-ranked dynamic signals for report-first discovery."
+        ),
+        fit_summary = list(
+          kind = "obs_table",
+          description = "Per-lineage signal dynamics diagnostics."
         )
       )
     ),

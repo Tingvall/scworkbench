@@ -354,6 +354,319 @@ test_op_trajectory_vector_smooth_contract <- function(bundle_dir) {
   TRUE
 }
 
+test_op_trajectory_signal_dynamics_contract <- function(bundle_dir) {
+  if (!requireNamespace("slingshot", quietly = TRUE)) {
+    message("Skipping trajectory_signal_dynamics contract test: slingshot not installed.")
+    return(TRUE)
+  }
+
+  b <- wb_open_bundle(bundle_dir)
+  on.exit(wb_close_bundle(b), add = TRUE)
+
+  iface <- wb_op_interface("trajectory_signal_dynamics", bundle = b)
+  stopifnot(is.list(iface))
+  stopifnot(identical(as.character(iface$produces$signal_table$kind), "obs_table"))
+  stopifnot(identical(as.character(iface$produces$dynamics_table$kind), "obs_table"))
+  stopifnot(identical(as.character(iface$produces$top_signals$kind), "obs_table"))
+  stopifnot(identical(as.character(iface$produces$fit_summary$kind), "obs_table"))
+  stopifnot("trajectory_signal_dynamics" %in% wb_list_ops())
+
+  mats <- wb_matrices(b)
+  stopifnot(is.data.frame(mats), nrow(mats) >= 1L)
+  matrix_id <- as.character(mats$matrix_id[1])
+  feats <- as.character(head(wb_feature_ids(b, matrix_id = matrix_id), 12))
+  stopifnot(length(feats) >= 6L)
+
+  cells <- tryCatch(wb_cells(b, cell_set = "core"), error = function(e) character(0))
+  if (length(cells) < 300L) cells <- wb_cells(b, cell_set = "all")
+  stopifnot(length(cells) >= 300L)
+  cells <- as.character(head(cells, 600))
+
+  sp_tbl <- wb_spaces(b)
+  fit_space_id <- NA_character_
+  for (sid in as.character(sp_tbl$space_id)) {
+    sp <- tryCatch(wb_space(b, space_id = sid, cells = head(cells, 40)), error = function(e) NULL)
+    if (is.null(sp)) next
+    if (is.matrix(sp) && ncol(sp) >= 2L) {
+      fit_space_id <- sid
+      break
+    }
+    if (is.data.frame(sp) && all(c("x", "y") %in% colnames(sp))) {
+      fit_space_id <- sid
+      break
+    }
+  }
+  stopifnot(nzchar(fit_space_id))
+
+  s <- wb_session_new()
+  r1 <- wb_session_run_op(
+    session = s,
+    bundle = b,
+    op_name = "leiden",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      space = wb_prim_space(fit_space_id),
+      k = 20,
+      resolution = 0.3
+    ),
+    notes = "test trajectory_signal_dynamics: leiden"
+  )
+  r2 <- wb_session_run_op(
+    session = r1$session,
+    bundle = b,
+    op_name = "slingshot_fit",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      fit_space = wb_prim_space(fit_space_id),
+      clusters = wb_ref_run(r1$run$run_id, "clusters")
+    ),
+    notes = "test trajectory_signal_dynamics: slingshot fit"
+  )
+  r3 <- wb_session_run_op(
+    session = r2$session,
+    bundle = b,
+    op_name = "addmodulescore",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      matrix = wb_prim_matrix(matrix_id),
+      features = list(sig_a = feats[1:3], sig_b = feats[4:6]),
+      nbin = 12L,
+      ctrl = 10L,
+      seed = 1L
+    ),
+    notes = "test trajectory_signal_dynamics: module scores"
+  )
+
+  pt <- r2$run$outputs$pseudotime
+  lineage <- as.character(unique(pt$key))[1]
+  stopifnot(nzchar(lineage))
+
+  r4 <- wb_session_run_op(
+    session = r3$session,
+    bundle = b,
+    op_name = "trajectory_signal_dynamics",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      signal = wb_ref_run(r3$run$run_id, "module_scores"),
+      model = wb_ref_run(r2$run$run_id, "model"),
+      lineage = lineage,
+      signal_keys = c("sig_a", "sig_b"),
+      n_bins = 20L,
+      summary_fun = "mean",
+      min_cells_per_bin = 5L,
+      top_n = 2L,
+      smooth_method = "loess",
+      bootstrap_n = 3L
+    ),
+    notes = "test trajectory_signal_dynamics: run"
+  )
+
+  sig <- r4$run$outputs$signal_table
+  dyn <- r4$run$outputs$dynamics_table
+  top <- r4$run$outputs$top_signals
+  sm <- r4$run$outputs$fit_summary
+  stopifnot(inherits(sig, "wb_primitive"), identical(as.character(sig$kind), "obs_table"))
+  stopifnot(inherits(dyn, "wb_primitive"), identical(as.character(dyn$kind), "obs_table"))
+  stopifnot(inherits(top, "wb_primitive"), identical(as.character(top$kind), "obs_table"))
+  stopifnot(inherits(sm, "wb_primitive"), identical(as.character(sm$kind), "obs_table"))
+  stopifnot(identical(as.character(sig$table_type), "trajectory_signal_dynamics_curve"))
+  stopifnot(identical(as.character(dyn$table_type), "trajectory_signal_dynamics"))
+  stopifnot(identical(as.character(top$table_type), "trajectory_signal_dynamics_top"))
+
+  sig_tbl <- sig$table
+  dyn_tbl <- dyn$table
+  top_tbl <- top$table
+  sm_tbl <- sm$table
+  stopifnot(is.data.frame(sig_tbl), nrow(sig_tbl) > 0L)
+  stopifnot(all(c("signal_key", "feature_set", "lineage_id", "bin", "pseudotime", "value", "value_raw", "value_smooth", "value_ci_low", "value_ci_high", "n_cells") %in% colnames(sig_tbl)))
+  stopifnot(is.data.frame(dyn_tbl), nrow(dyn_tbl) == 2L)
+  stopifnot(all(c("signal_key", "curve_class", "passes_filters", "dynamic_score", "amplitude", "late_minus_early", "spearman_rho", "rank") %in% colnames(dyn_tbl)))
+  stopifnot(is.data.frame(top_tbl), nrow(top_tbl) <= 2L)
+  stopifnot(setequal(unique(as.character(dyn_tbl$signal_key)), c("sig_a", "sig_b")))
+  stopifnot(is.data.frame(sm_tbl), nrow(sm_tbl) >= 1L)
+  stopifnot(all(c("lineage_id", "n_signal_keys_input", "n_signal_keys_with_rows", "n_bins") %in% colnames(sm_tbl)))
+
+  ds <- wb_wrangle_plot_dataset(
+    plot_type = "pseudotime_signature_line",
+    inputs = list(table = sig),
+    bundle = b
+  )
+  stopifnot(is.data.frame(ds$table), nrow(ds$table) > 0L)
+  stopifnot(identical(as.character(ds$dataset_type), "trajectory_signal_dynamics_curve"))
+  wb_plot_validate_dataset("pseudotime_signature_line", ds)
+
+  TRUE
+}
+
+test_op_trajectory_signal_dynamics_promoted_contract <- function(bundle_dir) {
+  if (!requireNamespace("slingshot", quietly = TRUE)) {
+    message("Skipping trajectory_signal_dynamics promoted contract test: slingshot not installed.")
+    return(TRUE)
+  }
+
+  b <- wb_open_bundle(bundle_dir)
+  cleanup_artifacts <- character(0)
+  on.exit({
+    for (artifact_id in cleanup_artifacts) {
+      try(wb_art_delete(b, artifact_id = artifact_id, recursive = TRUE, force = TRUE), silent = TRUE)
+    }
+    try(wb_close_bundle(b), silent = TRUE)
+  }, add = TRUE)
+
+  mats <- wb_matrices(b)
+  stopifnot(is.data.frame(mats), nrow(mats) >= 1L)
+  matrix_id <- as.character(mats$matrix_id[1])
+  feats <- as.character(head(wb_feature_ids(b, matrix_id = matrix_id), 12))
+  stopifnot(length(feats) >= 6L)
+
+  cells <- tryCatch(wb_cells(b, cell_set = "core"), error = function(e) character(0))
+  if (length(cells) < 300L) cells <- wb_cells(b, cell_set = "all")
+  stopifnot(length(cells) >= 300L)
+  cells <- as.character(head(cells, 600))
+
+  sp_tbl <- wb_spaces(b)
+  fit_space_id <- NA_character_
+  for (sid in as.character(sp_tbl$space_id)) {
+    sp <- tryCatch(wb_space(b, space_id = sid, cells = head(cells, 40)), error = function(e) NULL)
+    if (is.null(sp)) next
+    if (is.matrix(sp) && ncol(sp) >= 2L) {
+      fit_space_id <- sid
+      break
+    }
+    if (is.data.frame(sp) && all(c("x", "y") %in% colnames(sp))) {
+      fit_space_id <- sid
+      break
+    }
+  }
+  stopifnot(nzchar(fit_space_id))
+
+  prom_name <- paste0(".__test_trajectory_signal_promoted__.", as.integer(Sys.time()))
+  s <- wb_session_new()
+  r1 <- wb_session_run_op(
+    session = s,
+    bundle = b,
+    op_name = "leiden",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      space = wb_prim_space(fit_space_id),
+      k = 20,
+      resolution = 0.3
+    ),
+    notes = "test promoted trajectory_signal_dynamics: leiden"
+  )
+  r2 <- wb_session_run_op(
+    session = r1$session,
+    bundle = b,
+    op_name = "slingshot_fit",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      fit_space = wb_prim_space(fit_space_id),
+      clusters = wb_ref_run(r1$run$run_id, "clusters")
+    ),
+    notes = "test promoted trajectory_signal_dynamics: slingshot fit"
+  )
+  r3 <- wb_session_run_op(
+    session = r2$session,
+    bundle = b,
+    op_name = "addmodulescore",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      matrix = wb_prim_matrix(matrix_id),
+      features = list(sig_a = feats[1:3], sig_b = feats[4:6]),
+      nbin = 12L,
+      ctrl = 10L,
+      seed = 1L
+    ),
+    notes = "test promoted trajectory_signal_dynamics: module scores"
+  )
+  pt <- r2$run$outputs$pseudotime
+  lineage <- as.character(unique(pt$key))[1]
+  stopifnot(nzchar(lineage))
+
+  r4 <- wb_session_run_op(
+    session = r3$session,
+    bundle = b,
+    op_name = "trajectory_signal_dynamics",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      signal = wb_ref_run(r3$run$run_id, "module_scores"),
+      model = wb_ref_run(r2$run$run_id, "model"),
+      lineage = lineage,
+      signal_keys = c("sig_a", "sig_b"),
+      n_bins = 20L,
+      min_cells_per_bin = 5L,
+      top_n = 2L,
+      smooth_method = "loess",
+      min_bins_observed = 5L
+    ),
+    notes = "test promoted trajectory_signal_dynamics: run"
+  )
+
+  prom <- wb_promote_analysis(
+    bundle = b,
+    runs = r4$session$runs,
+    head_run_id = r4$run$run_id,
+    name_prefix = prom_name,
+    created_by = "test",
+    fail_fast = TRUE
+  )
+  stopifnot(is.data.frame(prom$promoted), nrow(prom$promoted) >= 4L)
+  if ("artifact_id" %in% colnames(prom$promoted)) {
+    cleanup_artifacts <- unique(stats::na.omit(as.character(prom$promoted$artifact_id)))
+  }
+
+  arts <- wb_art_list(b)
+  tt <- DBI::dbGetQuery(
+    b$con,
+    "SELECT artifact_id, table_type FROM artifact_tables WHERE artifact_id IN (SELECT artifact_id FROM artifacts WHERE type = 'obs_table');"
+  )
+  arts <- merge(arts, tt, by = "artifact_id", all.x = TRUE, sort = FALSE)
+  arts <- arts[as.character(arts$artifact_id) %in% cleanup_artifacts | as.character(arts$name) == prom_name, , drop = FALSE]
+  curve_id <- as.character(arts$artifact_id[as.character(arts$table_type) == "trajectory_signal_dynamics_curve"][1])
+  dyn_id <- as.character(arts$artifact_id[as.character(arts$table_type) == "trajectory_signal_dynamics"][1])
+  top_id <- as.character(arts$artifact_id[as.character(arts$table_type) == "trajectory_signal_dynamics_top"][1])
+  stopifnot(nzchar(curve_id), nzchar(dyn_id), nzchar(top_id))
+
+  ds_curve <- wb_wrangle_plot_dataset(
+    plot_type = "pseudotime_signature_line",
+    inputs = list(table = paste0("artifact:", curve_id), top_n = 2L),
+    bundle = b
+  )
+  stopifnot(is.data.frame(ds_curve$table), nrow(ds_curve$table) > 0L)
+  stopifnot(identical(as.character(ds_curve$dataset_type), "trajectory_signal_dynamics_curve"))
+  stopifnot("signal_key" %in% colnames(ds_curve$table))
+  wb_plot_validate_dataset("pseudotime_signature_line", ds_curve)
+
+  ds_dyn <- wb_wrangle_plot_dataset(
+    plot_type = "ranked_lollipop",
+    inputs = list(table = paste0("artifact:", dyn_id), score_col = "dynamic_score"),
+    bundle = b
+  )
+  stopifnot(is.data.frame(ds_dyn$table), nrow(ds_dyn$table) > 0L)
+  wb_plot_validate_dataset("ranked_lollipop", ds_dyn)
+
+  nav_signals <- wb_nav_entities(dyn_id, b, entity_kind = "feature_set", lineage_id = lineage, limit = 3L)
+  stopifnot(is.data.frame(nav_signals), nrow(nav_signals) >= 1L)
+  nav_targets <- wb_nav_targets(dyn_id, b, entity = nav_signals[1, , drop = FALSE], lineage_id = lineage)
+  stopifnot(any(as.character(nav_targets$action) == "open_signal_curve"))
+  nav_curve <- wb_nav_handoff(dyn_id, "open_signal_curve", b, entity = nav_signals[1, , drop = FALSE], lineage_id = lineage)
+  stopifnot(identical(as.character(nav_curve$plot_type), "pseudotime_signature_line"))
+  stopifnot(identical(as.character(nav_curve$params$signal_key), as.character(nav_signals$entity_id[1])))
+
+  nav_top <- wb_nav_entities(top_id, b, entity_kind = "feature_set", lineage_id = lineage, limit = 3L)
+  stopifnot(is.data.frame(nav_top), nrow(nav_top) >= 1L)
+
+  TRUE
+}
+
 test_op_trajectory_geneset_dynamics_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
     message("Skipping trajectory_geneset_dynamics contract test: slingshot not installed.")

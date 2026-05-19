@@ -84,6 +84,12 @@ test_all <- function(bundle_dir){
   if (exists("test_op_trajectory_vector_smooth_contract", mode = "function")) {
     stopifnot(test_op_trajectory_vector_smooth_contract(bundle_dir))
   }
+  if (exists("test_op_trajectory_signal_dynamics_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_signal_dynamics_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_signal_dynamics_promoted_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_signal_dynamics_promoted_contract(bundle_dir))
+  }
   if (exists("test_op_trajectory_geneset_dynamics_contract", mode = "function")) {
     stopifnot(test_op_trajectory_geneset_dynamics_contract(bundle_dir))
   }
