@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 52
+Artifact type count: 53
 
 ## cell_vector
 
@@ -311,6 +311,20 @@ Entity kind: neighbor
 
 Use when:
 - inspect local neighborhoods
+
+### `obs_table:matrix_log_normalize_summary`
+
+Title: Matrix Log-Normalization Summary
+
+Description: Summary of a persisted log-normalized matrix transform, including source matrix, output matrix, scale factor, dimensions, and library-size diagnostics.
+
+Table type: matrix_log_normalize_summary
+
+Entity kind: matrix
+
+Use when:
+- inspect normalized matrix provenance
+- choose a reusable expression matrix for downstream ops
 
 ### `obs_table:attach_report`
 

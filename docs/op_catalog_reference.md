@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-05-19T14:19:47+0200
+Generated at: 2026-05-22T10:45:50+0200
 
-Operation count: 38
+Operation count: 39
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -31,6 +31,30 @@ Key parameters:
 - `k` (int, default=30): Number of neighbors for kNN graph.
 - `resolution` (dbl, default=1): Leiden resolution parameter.
 - `seed` (int, default=1): Random seed.
+
+## `matrix_log_normalize`
+
+Title: Log-normalize count matrix
+
+Intent: matrix, normalize, rna, transform
+
+Description: Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
+
+Consumes:
+- `matrix`: matrix
+- `cell_set`: select
+
+Produces:
+- `matrix`: matrix - Reference to the newly registered log-normalized matrix.
+- `summary`: obs_table - Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.
+
+Promotable outputs: summary
+
+Key parameters:
+- `output_matrix_id` (string, default=NULL): Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.
+- `scale_factor` (dbl, default=10000): Per-cell target count scale before log1p; 10000 is the common CP10K convention.
+- `overwrite` (bool, default=FALSE): If TRUE, replace an existing output matrix with the same id.
+- `cell_set` (cell_set, default=all): Must be 'all' in v1 because the output matrix is registered as a full bundle matrix.
 
 ## `umap_fit`
 
@@ -574,12 +598,19 @@ Key parameters:
 - `min_bins_observed` (int, default=5): Minimum retained bins required for passes_filters.
 - `min_features_detected` (int, default=1): Minimum detected set members required for passes_filters.
 - `min_detected_fraction` (dbl, default=0): Minimum fraction of detected set members required for passes_filters.
+- `min_mean_score` (dbl, default=0): Optional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics.
+- `min_max_score` (dbl, default=0): Optional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves.
+- `min_signal_to_noise` (dbl, default=0): Optional minimum amplitude divided by mean bootstrap SE required for passes_filters.
+- `low_abundance_max_score` (dbl, default=0.1): Curves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set.
 - `smooth_method` (choice, default=none): Optional smoothing method applied to binned curves before metrics/classes.
 - `loess_span` (dbl, default=0.5): Span used when smooth_method='loess'.
 - `bootstrap_n` (int, default=0): Bootstrap replicates per bin for confidence bands; 0 disables CIs.
 - `bootstrap_seed` (int, default=1): Random seed for bootstrap confidence bands.
 - `ci_level` (dbl, default=0.95): Confidence level for bootstrap bands.
 - `class_min_amplitude` (dbl, default=0): Minimum amplitude required before assigning non-flat curve classes.
+- `n_permutations` (int, default=0): Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing.
+- `permutation_seed` (int, default=1): Random seed for empirical dynamic-score permutations.
+- `p_adjust_method` (choice, default=BH): Multiple-testing correction method for q_dynamic.
 
 ## `trajectory_route_smooth`
 

@@ -1,2 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.Rhistory$
+^\.tmp_exports_overview\.csv$
+^\.agents$
+^\.codex$
+^reports$
+^scripts/reports$
+^containers/.*\.sif$
+^scworkbench_.*\.tar\.gz$

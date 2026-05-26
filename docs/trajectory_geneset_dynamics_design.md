@@ -22,8 +22,13 @@ example `msigdb_h`, `go_bp`, `reactome`, `immgen`, or a project-local namespace.
 - Optional `top_driver_genes`: number of member genes retained in `driver_table`.
 - Optional orientation fields: `pseudotime_direction`, `start_label`, `end_label`.
 - Optional filters: `min_amplitude`, `min_bins_observed`,
-  `min_features_detected`, `min_detected_fraction`.
+  `min_features_detected`, `min_detected_fraction`, `min_mean_score`,
+  `min_max_score`, `min_signal_to_noise`.
+- Low-abundance curves are flagged with `low_abundance_flag` using
+  `low_abundance_max_score`; by default this is a flag, not a hard filter.
 - Optional curve modeling: `smooth_method`, `bootstrap_n`, `ci_level`.
+- Optional empirical support: `n_permutations`, `permutation_seed`,
+  `p_adjust_method`.
 
 Feature-set import is intentionally outside this op. The bundle owns its
 feature-set registry. The op only consumes a namespace that already exists in
@@ -40,7 +45,9 @@ For each lineage and feature set:
 5. Summarize feature-set score per bin.
 6. Optionally smooth the binned curve.
 7. Optionally bootstrap cells within bins for confidence bands.
-8. Compute dynamic metrics from the selected curve (`value_smooth` when
+8. Optionally permute cell-level scores relative to the fixed pseudotime/bin
+   structure to estimate empirical dynamic-score support.
+9. Compute dynamic metrics from the selected curve (`value_smooth` when
    smoothing is enabled; otherwise `value_raw`).
 
 The current default score is the mean expression/accessibility value across
@@ -52,6 +59,53 @@ alternative that ranks the union of screened genes within each cell and averages
 the ranks for the set members. Full UCell can still be added later as either an
 explicit scoring mode or as a chained workflow that first creates a
 `cell_vector_family` and then smooths it over pseudotime.
+
+## Plain-Language Method Explanation
+
+The op turns a trajectory into a discovery screen for biological programs. A
+trajectory gives each cell a pseudotime coordinate, meaning an ordered position
+along development. For every gene set, the op first calculates one score per
+cell from the genes detected in that set. With the default `mean` method, this
+score is the average value of the member genes in the chosen matrix, for example
+log-normalized RNA expression. Other scoring modes can be used when the biology
+or matrix scale calls for them.
+
+Cells are then grouped along pseudotime into bins. Within each bin, the op
+summarizes the gene-set score and optionally smooths the resulting curve. The
+curve answers a simple question: does this gene set stay flat, increase, decrease,
+or peak transiently as cells move along the trajectory?
+
+The main `dynamic_score` is a ranking score, not a classical enrichment p-value.
+It combines four interpretable curve properties:
+
+- How large the total change is across pseudotime (`amplitude`).
+- How much the curve varies across pseudotime (`sd_value`).
+- How different the late trajectory is from the early trajectory
+  (`late_minus_early`).
+- Whether the change follows pseudotime monotonically (`spearman_rho`).
+
+The exact formula is:
+
+```text
+dynamic_score =
+  amplitude +
+  sd_value +
+  abs(late_minus_early) +
+  abs(spearman_rho) * sd_value
+```
+
+If permutation testing is enabled, the op keeps the same cells, same pseudotime
+axis, and same gene-set scores, but randomly shuffles which cell gets which
+score. It then recomputes the dynamic score many times. The empirical
+`p_dynamic` asks how often a shuffled score-pseudotime pairing looks at least as
+dynamic as the observed pairing. `q_dynamic` is the multiple-testing adjusted
+version across the screened gene sets.
+
+The output should be read as a prioritized discovery report. A significant or
+high-ranking gene set means that its score changes reproducibly along the chosen
+trajectory. It does not by itself prove mechanism. Driver-gene curves and
+orthogonal evidence, such as spatial localization or perturbation data, should
+be used to decide whether the biological interpretation is convincing.
 
 ## Curve Classes
 
@@ -140,6 +194,18 @@ The first-version ranking is intentionally generous and report-friendly:
 - `spearman_rho`: monotonic association with pseudotime.
 - `peak_bin` / `trough_bin`: where the curve reaches maximum/minimum.
 - `dynamic_score`: `amplitude + sd_value + abs(late_minus_early) + abs(spearman_rho) * sd_value`.
+- `mean_score`, `max_score`, `min_score`, `auc_score`: abundance/support metrics
+  for the smoothed curve on the chosen score scale.
+- `relative_amplitude`: amplitude divided by mean score. This is diagnostic only;
+  it can become large near zero.
+- `mean_se`: mean bootstrap standard error when bootstrap is enabled.
+- `signal_to_noise`: amplitude divided by `mean_se` when finite.
+- `low_abundance_flag`: `TRUE` when `max_score < low_abundance_max_score`.
+- `p_dynamic`: empirical p-value for the observed dynamic score under permuted
+  score-pseudotime association when `n_permutations > 0`.
+- `q_dynamic`: multiple-testing adjusted `p_dynamic` across screened gene sets.
+- `null_mean_dynamic_score`, `null_sd_dynamic_score`, `z_dynamic_score`:
+  diagnostics for the permutation null distribution.
 - `passes_filters`: whether the set passed report/discovery filters.
 - `filter_reason`: semicolon-separated reason for failing filters.
 - `curve_class`: coarse behavior label:

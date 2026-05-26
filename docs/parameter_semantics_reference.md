@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 30
+Parameter count: 40
 
 ## classification
 
@@ -71,6 +71,22 @@ Guidance:
 - Matrix semantics are more important than the string id; future matrix metadata should formalize this.
 
 Aliases: matrix_id
+
+### `output_matrix_id`
+
+Title: Output Matrix Identifier
+
+Description: Matrix id assigned to a newly created bundle matrix.
+
+Applies to: matrix-producing op params
+
+Affects: downstream matrix selection, replay, artifact interpretation
+
+Guidance:
+- Use a name that records the transform and scale, for example RNA_log1p_cp10k.
+- Do not reuse an existing matrix id unless overwrite behavior is intentional.
+
+Aliases: new_matrix_id, target_matrix_id
 
 ### `space`
 
@@ -186,6 +202,106 @@ Guidance:
 
 Aliases: detected_fraction
 
+### `min_mean_score`
+
+Title: Minimum Mean Score Filter
+
+Description: Minimum mean smoothed curve score required before a gene set or signal passes report filters.
+
+Applies to: op params
+
+Affects: low-abundance filtering, reported dynamics
+
+Guidance:
+- Use this to avoid over-interpreting tiny but smooth low-expression changes.
+- Thresholds are score-scale dependent; keep disabled for broad discovery if unsure.
+
+Aliases: mean_score_threshold
+
+### `min_max_score`
+
+Title: Minimum Maximum Score Filter
+
+Description: Minimum maximum smoothed curve score required before a gene set or signal passes report filters.
+
+Applies to: op params
+
+Affects: low-abundance filtering, reported dynamics
+
+Guidance:
+- For log1p CP10K mean scores, a small threshold such as 0.1 can separate robust programs from near-zero wiggles.
+- Do not reuse the same number for UCell, chromVAR, or other score scales without checking distributions.
+
+Aliases: max_score_threshold
+
+### `min_signal_to_noise`
+
+Title: Minimum Signal-To-Noise Filter
+
+Description: Minimum amplitude divided by mean bootstrap standard error required before a curve passes filters.
+
+Applies to: op params
+
+Affects: uncertainty-aware filtering, reported dynamics
+
+Guidance:
+- Requires bootstrap-derived standard errors to be meaningful.
+- Use as a support filter, not as a formal p-value.
+
+Aliases: snr_threshold, min_snr
+
+### `low_abundance_max_score`
+
+Title: Low-Abundance Flag Threshold
+
+Description: Maximum score threshold below which dynamic-looking curves are flagged as low abundance.
+
+Applies to: op params
+
+Affects: interpretation, report triage
+
+Guidance:
+- This flag warns about low-expression dynamics without removing them by default.
+- Set relative to the selected matrix or score method.
+
+Aliases: low_expression_threshold, low_signal_threshold
+
+## mutation
+
+### `overwrite`
+
+Title: Overwrite Existing Output
+
+Description: Controls whether an op may replace an existing persisted bundle object with the same identifier.
+
+Applies to: mutating op params
+
+Affects: bundle state, reproducibility, rerun safety
+
+Guidance:
+- Keep FALSE for safety when creating named outputs.
+- Set TRUE only for deliberate deterministic reruns or temporary development outputs.
+
+Aliases: replace, force
+
+## normalization
+
+### `scale_factor`
+
+Title: Library-Size Normalization Scale
+
+Description: Target per-cell total used when converting raw counts to scaled expression before log transformation.
+
+Applies to: matrix normalization params
+
+Affects: expression scale, dynamic curves, feature-set scores
+
+Guidance:
+- 10000 is the common log1p(CP10K) convention for scRNA-seq.
+- Changing this value changes numeric scale but usually preserves rank-like patterns after log1p.
+
+Aliases: target_sum, counts_per_cell, cp_scale
+
 ## reporting
 
 ### `top_n`
@@ -205,6 +321,22 @@ Guidance:
 Aliases: n_top
 
 ## reproducibility
+
+### `permutation_seed`
+
+Title: Permutation Random Seed
+
+Description: Seed used for empirical score-pseudotime permutation tests.
+
+Applies to: trajectory dynamics op params
+
+Affects: p_dynamic reproducibility, q_dynamic reproducibility
+
+Guidance:
+- Set explicitly for replayable reports.
+- Changing the seed can slightly change empirical p-values when n_permutations is modest.
+
+Aliases: perm_seed
 
 ### `seed`
 
@@ -341,6 +473,41 @@ Guidance:
 - Larger span produces broader, smoother trends.
 
 Aliases: span
+
+## statistics
+
+### `n_permutations`
+
+Title: Empirical Permutation Count
+
+Description: Number of score-pseudotime permutations used to estimate empirical dynamic-score p-values.
+
+Applies to: trajectory dynamics op params
+
+Affects: p_dynamic, q_dynamic, runtime
+
+Guidance:
+- Use 0 for fast exploratory discovery.
+- Use hundreds to thousands for final reports when runtime is acceptable.
+- Permutation p-values support dynamic-score ranking but do not replace effect-size and abundance filters.
+
+Aliases: n_perm, permutations
+
+### `p_adjust_method`
+
+Title: P-Value Adjustment Method
+
+Description: Multiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.
+
+Applies to: statistical op params
+
+Affects: FDR calls, reported statistical support
+
+Guidance:
+- BH is the usual default for discovery-style FDR control.
+- Correction is across the screened feature-set universe, so namespace/subset choice matters.
+
+Aliases: fdr_method, multiple_testing_method
 
 ## summary
 

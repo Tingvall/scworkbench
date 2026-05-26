@@ -1,12 +1,12 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-05-19T14:19:48+0200",
-  "record_count": 227,
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "record_count": 239,
   "record_type_counts": {
-    "artifact_type": 52,
+    "artifact_type": 53,
     "getter": 62,
-    "op": 38,
-    "parameter": 30,
+    "op": 39,
+    "parameter": 40,
     "plot": 12,
     "primitive": 11,
     "recipe": 8,
@@ -88,6 +88,86 @@
           }
         ],
         "promotable": "clusters",
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:matrix_log_normalize",
+      "record_type": "op",
+      "name": "matrix_log_normalize",
+      "title": "Log-normalize count matrix",
+      "description": "Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.",
+      "search_text": "Log-normalize count matrix\nCreate a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.\nmatrix\nnormalize\nrna\ntransform\nTRUE\ncell_set\nselect\nReference to the newly registered log-normalized matrix.\nsummary\nobs_table\nTransform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.\noutput_matrix_id\nstring\nMatrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.\nscale_factor\ndbl\n10000\n1\n1e+09\nPer-cell target count scale before log1p; 10000 is the common CP10K convention.\noverwrite\nbool\nFALSE\nIf TRUE, replace an existing output matrix with the same id.\nall\nMust be 'all' in v1 because the output matrix is registered as a full bundle matrix.",
+      "tags": ["op", "matrix", "normalize", "rna", "transform"],
+      "payload": {
+        "op_name": "matrix_log_normalize",
+        "title": "Log-normalize count matrix",
+        "description": "Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.",
+        "intent": ["matrix", "normalize", "rna", "transform"],
+        "consumes": [
+          {
+            "name": "matrix",
+            "kind": "matrix",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "matrix",
+            "kind": "matrix",
+            "description": "Reference to the newly registered log-normalized matrix."
+          },
+          {
+            "name": "summary",
+            "kind": "obs_table",
+            "description": "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
+          }
+        ],
+        "inputs": {
+          "matrix": {
+            "required": true,
+            "kind": "matrix"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "output_matrix_id",
+            "type": "string",
+            "default": null,
+            "help": "Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>."
+          },
+          {
+            "name": "scale_factor",
+            "type": "dbl",
+            "default": 10000,
+            "min": 1,
+            "max": 1000000000,
+            "help": "Per-cell target count scale before log1p; 10000 is the common CP10K convention."
+          },
+          {
+            "name": "overwrite",
+            "type": "bool",
+            "default": false,
+            "help": "If TRUE, replace an existing output matrix with the same id."
+          },
+          {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "help": "Must be 'all' in v1 because the output matrix is registered as a full bundle matrix."
+          }
+        ],
+        "promotable": "summary",
         "chunking": null
       }
     },
@@ -2000,7 +2080,7 @@
       "name": "trajectory_geneset_dynamics",
       "title": "Trajectory Gene-Set Dynamics",
       "description": "Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.",
-      "search_text": "Trajectory Gene-Set Dynamics\nScreen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.\ntrajectory\npathway\ndiscovery\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignature_table\nobs_table\nBinned feature-set score curves along trajectory pseudotime.\ndynamics_table\nPer-feature-set dynamic metrics and rank.\ntop_sets\nTop-ranked dynamic feature sets for report-first discovery.\ndriver_table\nTop dynamic member genes within each screened feature set.\ndriver_curve_table\nBinned curves for top driver genes within each screened feature set.\nfit_summary\nPer-lineage screening diagnostics.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() to screen.\nfeature_sets\nstring_vec\nOptional feature-set subset within the namespace.\nlineage\nOptional lineage key subset.\nscore_method\nchoice\nmean\nsum\nrank_mean\nHow to score each feature set within each cell.\npseudotime_direction\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nmin_set_size\nMinimum feature-set size after intersecting with the matrix.\nmax_set_size\n5000\n1e+06\nMaximum feature-set size after intersecting with the matrix.\ntop_n\n10000\nNumber of top-ranked feature sets retained in top_sets.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\ntop_driver_genes\nNumber of top member genes retained as curve drivers per feature set.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nmin_features_detected\nMinimum detected set members required for passes_filters.\nmin_detected_fraction\nMinimum fraction of detected set members required for passes_filters.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.",
+      "search_text": "Trajectory Gene-Set Dynamics\nScreen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.\ntrajectory\npathway\ndiscovery\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignature_table\nobs_table\nBinned feature-set score curves along trajectory pseudotime.\ndynamics_table\nPer-feature-set dynamic metrics and rank.\ntop_sets\nTop-ranked dynamic feature sets for report-first discovery.\ndriver_table\nTop dynamic member genes within each screened feature set.\ndriver_curve_table\nBinned curves for top driver genes within each screened feature set.\nfit_summary\nPer-lineage screening diagnostics.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() to screen.\nfeature_sets\nstring_vec\nOptional feature-set subset within the namespace.\nlineage\nOptional lineage key subset.\nscore_method\nchoice\nmean\nsum\nrank_mean\nHow to score each feature set within each cell.\npseudotime_direction\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nmin_set_size\nMinimum feature-set size after intersecting with the matrix.\nmax_set_size\n5000\n1e+06\nMaximum feature-set size after intersecting with the matrix.\ntop_n\n10000\nNumber of top-ranked feature sets retained in top_sets.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\ntop_driver_genes\nNumber of top member genes retained as curve drivers per feature set.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nmin_features_detected\nMinimum detected set members required for passes_filters.\nmin_detected_fraction\nMinimum fraction of detected set members required for passes_filters.\nmin_mean_score\nOptional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics.\nmin_max_score\nOptional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves.\nmin_signal_to_noise\nOptional minimum amplitude divided by mean bootstrap SE required for passes_filters.\nlow_abundance_max_score\n0.1\nCurves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.\nn_permutations\nNumber of empirical permutations for dynamic-score p-values; 0 disables permutation testing.\npermutation_seed\nRandom seed for empirical dynamic-score permutations.\np_adjust_method\nBH\nholm\nhochberg\nhommel\nbonferroni\nBY\nfdr\nMultiple-testing correction method for q_dynamic.",
       "tags": ["op", "trajectory", "pathway", "discovery", "signature"],
       "payload": {
         "op_name": "trajectory_geneset_dynamics",
@@ -2218,6 +2298,34 @@
             "help": "Minimum fraction of detected set members required for passes_filters."
           },
           {
+            "name": "min_mean_score",
+            "type": "dbl",
+            "default": 0,
+            "min": 0,
+            "help": "Optional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics."
+          },
+          {
+            "name": "min_max_score",
+            "type": "dbl",
+            "default": 0,
+            "min": 0,
+            "help": "Optional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves."
+          },
+          {
+            "name": "min_signal_to_noise",
+            "type": "dbl",
+            "default": 0,
+            "min": 0,
+            "help": "Optional minimum amplitude divided by mean bootstrap SE required for passes_filters."
+          },
+          {
+            "name": "low_abundance_max_score",
+            "type": "dbl",
+            "default": 0.1,
+            "min": 0,
+            "help": "Curves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set."
+          },
+          {
             "name": "smooth_method",
             "type": "choice",
             "default": "none",
@@ -2261,6 +2369,28 @@
             "default": 0,
             "min": 0,
             "help": "Minimum amplitude required before assigning non-flat curve classes."
+          },
+          {
+            "name": "n_permutations",
+            "type": "int",
+            "default": 0,
+            "min": 0,
+            "max": 100000,
+            "help": "Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing."
+          },
+          {
+            "name": "permutation_seed",
+            "type": "int",
+            "default": 1,
+            "min": 1,
+            "help": "Random seed for empirical dynamic-score permutations."
+          },
+          {
+            "name": "p_adjust_method",
+            "type": "choice",
+            "default": "BH",
+            "choices": ["holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none"],
+            "help": "Multiple-testing correction method for q_dynamic."
           }
         ],
         "promotable": ["signature_table", "dynamics_table", "top_sets", "driver_table", "driver_curve_table", "fit_summary"],
@@ -7067,6 +7197,24 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:matrix_log_normalize_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:matrix_log_normalize_summary",
+      "title": "Matrix Log-Normalization Summary",
+      "description": "Summary of a persisted log-normalized matrix transform, including source matrix, output matrix, scale factor, dimensions, and library-size diagnostics.",
+      "search_text": "Matrix Log-Normalization Summary\nSummary of a persisted log-normalized matrix transform, including source matrix, output matrix, scale factor, dimensions, and library-size diagnostics.\nobs_table\nmatrix_log_normalize_summary\nmatrix\ninspect normalized matrix provenance\nchoose a reusable expression matrix for downstream ops",
+      "tags": ["artifact_type", "obs_table", "matrix_log_normalize_summary"],
+      "payload": {
+        "artifact_type": "obs_table:matrix_log_normalize_summary",
+        "primitive_kind": "obs_table",
+        "title": "Matrix Log-Normalization Summary",
+        "description": "Summary of a persisted log-normalized matrix transform, including source matrix, output matrix, scale factor, dimensions, and library-size diagnostics.",
+        "table_type": "matrix_log_normalize_summary",
+        "entity_kind": "matrix",
+        "use_when": ["inspect normalized matrix provenance", "choose a reusable expression matrix for downstream ops"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:attach_report",
       "record_type": "artifact_type",
       "name": "obs_table:attach_report",
@@ -7591,6 +7739,63 @@
       }
     },
     {
+      "record_id": "parameter:output_matrix_id",
+      "record_type": "parameter",
+      "name": "output_matrix_id",
+      "title": "Output Matrix Identifier",
+      "description": "Matrix id assigned to a newly created bundle matrix.",
+      "search_text": "Output Matrix Identifier\nMatrix id assigned to a newly created bundle matrix.\ndata_source\nmatrix-producing op params\ndownstream matrix selection\nreplay\nartifact interpretation\nUse a name that records the transform and scale, for example RNA_log1p_cp10k.\nDo not reuse an existing matrix id unless overwrite behavior is intentional.\nnew_matrix_id\ntarget_matrix_id",
+      "tags": ["parameter", "data_source", "new_matrix_id", "target_matrix_id"],
+      "payload": {
+        "parameter_name": "output_matrix_id",
+        "title": "Output Matrix Identifier",
+        "category": "data_source",
+        "description": "Matrix id assigned to a newly created bundle matrix.",
+        "applies_to": "matrix-producing op params",
+        "affects": ["downstream matrix selection", "replay", "artifact interpretation"],
+        "guidance": ["Use a name that records the transform and scale, for example RNA_log1p_cp10k.", "Do not reuse an existing matrix id unless overwrite behavior is intentional."],
+        "aliases": ["new_matrix_id", "target_matrix_id"]
+      }
+    },
+    {
+      "record_id": "parameter:scale_factor",
+      "record_type": "parameter",
+      "name": "scale_factor",
+      "title": "Library-Size Normalization Scale",
+      "description": "Target per-cell total used when converting raw counts to scaled expression before log transformation.",
+      "search_text": "Library-Size Normalization Scale\nTarget per-cell total used when converting raw counts to scaled expression before log transformation.\nnormalization\nmatrix normalization params\nexpression scale\ndynamic curves\nfeature-set scores\n10000 is the common log1p(CP10K) convention for scRNA-seq.\nChanging this value changes numeric scale but usually preserves rank-like patterns after log1p.\ntarget_sum\ncounts_per_cell\ncp_scale",
+      "tags": ["parameter", "normalization", "target_sum", "counts_per_cell", "cp_scale"],
+      "payload": {
+        "parameter_name": "scale_factor",
+        "title": "Library-Size Normalization Scale",
+        "category": "normalization",
+        "description": "Target per-cell total used when converting raw counts to scaled expression before log transformation.",
+        "applies_to": "matrix normalization params",
+        "affects": ["expression scale", "dynamic curves", "feature-set scores"],
+        "guidance": ["10000 is the common log1p(CP10K) convention for scRNA-seq.", "Changing this value changes numeric scale but usually preserves rank-like patterns after log1p."],
+        "aliases": ["target_sum", "counts_per_cell", "cp_scale"]
+      }
+    },
+    {
+      "record_id": "parameter:overwrite",
+      "record_type": "parameter",
+      "name": "overwrite",
+      "title": "Overwrite Existing Output",
+      "description": "Controls whether an op may replace an existing persisted bundle object with the same identifier.",
+      "search_text": "Overwrite Existing Output\nControls whether an op may replace an existing persisted bundle object with the same identifier.\nmutation\nmutating op params\nbundle state\nreproducibility\nrerun safety\nKeep FALSE for safety when creating named outputs.\nSet TRUE only for deliberate deterministic reruns or temporary development outputs.\nreplace\nforce",
+      "tags": ["parameter", "mutation", "replace", "force"],
+      "payload": {
+        "parameter_name": "overwrite",
+        "title": "Overwrite Existing Output",
+        "category": "mutation",
+        "description": "Controls whether an op may replace an existing persisted bundle object with the same identifier.",
+        "applies_to": "mutating op params",
+        "affects": ["bundle state", "reproducibility", "rerun safety"],
+        "guidance": ["Keep FALSE for safety when creating named outputs.", "Set TRUE only for deliberate deterministic reruns or temporary development outputs."],
+        "aliases": ["replace", "force"]
+      }
+    },
+    {
       "record_id": "parameter:space",
       "record_type": "parameter",
       "name": "space",
@@ -7952,6 +8157,82 @@
       }
     },
     {
+      "record_id": "parameter:min_mean_score",
+      "record_type": "parameter",
+      "name": "min_mean_score",
+      "title": "Minimum Mean Score Filter",
+      "description": "Minimum mean smoothed curve score required before a gene set or signal passes report filters.",
+      "search_text": "Minimum Mean Score Filter\nMinimum mean smoothed curve score required before a gene set or signal passes report filters.\nfiltering\nop params\nlow-abundance filtering\nreported dynamics\nUse this to avoid over-interpreting tiny but smooth low-expression changes.\nThresholds are score-scale dependent; keep disabled for broad discovery if unsure.\nmean_score_threshold",
+      "tags": ["parameter", "filtering", "mean_score_threshold"],
+      "payload": {
+        "parameter_name": "min_mean_score",
+        "title": "Minimum Mean Score Filter",
+        "category": "filtering",
+        "description": "Minimum mean smoothed curve score required before a gene set or signal passes report filters.",
+        "applies_to": "op params",
+        "affects": ["low-abundance filtering", "reported dynamics"],
+        "guidance": ["Use this to avoid over-interpreting tiny but smooth low-expression changes.", "Thresholds are score-scale dependent; keep disabled for broad discovery if unsure."],
+        "aliases": "mean_score_threshold"
+      }
+    },
+    {
+      "record_id": "parameter:min_max_score",
+      "record_type": "parameter",
+      "name": "min_max_score",
+      "title": "Minimum Maximum Score Filter",
+      "description": "Minimum maximum smoothed curve score required before a gene set or signal passes report filters.",
+      "search_text": "Minimum Maximum Score Filter\nMinimum maximum smoothed curve score required before a gene set or signal passes report filters.\nfiltering\nop params\nlow-abundance filtering\nreported dynamics\nFor log1p CP10K mean scores, a small threshold such as 0.1 can separate robust programs from near-zero wiggles.\nDo not reuse the same number for UCell, chromVAR, or other score scales without checking distributions.\nmax_score_threshold",
+      "tags": ["parameter", "filtering", "max_score_threshold"],
+      "payload": {
+        "parameter_name": "min_max_score",
+        "title": "Minimum Maximum Score Filter",
+        "category": "filtering",
+        "description": "Minimum maximum smoothed curve score required before a gene set or signal passes report filters.",
+        "applies_to": "op params",
+        "affects": ["low-abundance filtering", "reported dynamics"],
+        "guidance": ["For log1p CP10K mean scores, a small threshold such as 0.1 can separate robust programs from near-zero wiggles.", "Do not reuse the same number for UCell, chromVAR, or other score scales without checking distributions."],
+        "aliases": "max_score_threshold"
+      }
+    },
+    {
+      "record_id": "parameter:min_signal_to_noise",
+      "record_type": "parameter",
+      "name": "min_signal_to_noise",
+      "title": "Minimum Signal-To-Noise Filter",
+      "description": "Minimum amplitude divided by mean bootstrap standard error required before a curve passes filters.",
+      "search_text": "Minimum Signal-To-Noise Filter\nMinimum amplitude divided by mean bootstrap standard error required before a curve passes filters.\nfiltering\nop params\nuncertainty-aware filtering\nreported dynamics\nRequires bootstrap-derived standard errors to be meaningful.\nUse as a support filter, not as a formal p-value.\nsnr_threshold\nmin_snr",
+      "tags": ["parameter", "filtering", "snr_threshold", "min_snr"],
+      "payload": {
+        "parameter_name": "min_signal_to_noise",
+        "title": "Minimum Signal-To-Noise Filter",
+        "category": "filtering",
+        "description": "Minimum amplitude divided by mean bootstrap standard error required before a curve passes filters.",
+        "applies_to": "op params",
+        "affects": ["uncertainty-aware filtering", "reported dynamics"],
+        "guidance": ["Requires bootstrap-derived standard errors to be meaningful.", "Use as a support filter, not as a formal p-value."],
+        "aliases": ["snr_threshold", "min_snr"]
+      }
+    },
+    {
+      "record_id": "parameter:low_abundance_max_score",
+      "record_type": "parameter",
+      "name": "low_abundance_max_score",
+      "title": "Low-Abundance Flag Threshold",
+      "description": "Maximum score threshold below which dynamic-looking curves are flagged as low abundance.",
+      "search_text": "Low-Abundance Flag Threshold\nMaximum score threshold below which dynamic-looking curves are flagged as low abundance.\nfiltering\nop params\ninterpretation\nreport triage\nThis flag warns about low-expression dynamics without removing them by default.\nSet relative to the selected matrix or score method.\nlow_expression_threshold\nlow_signal_threshold",
+      "tags": ["parameter", "filtering", "low_expression_threshold", "low_signal_threshold"],
+      "payload": {
+        "parameter_name": "low_abundance_max_score",
+        "title": "Low-Abundance Flag Threshold",
+        "category": "filtering",
+        "description": "Maximum score threshold below which dynamic-looking curves are flagged as low abundance.",
+        "applies_to": "op params",
+        "affects": ["interpretation", "report triage"],
+        "guidance": ["This flag warns about low-expression dynamics without removing them by default.", "Set relative to the selected matrix or score method."],
+        "aliases": ["low_expression_threshold", "low_signal_threshold"]
+      }
+    },
+    {
       "record_id": "parameter:on_off_min_delta",
       "record_type": "parameter",
       "name": "on_off_min_delta",
@@ -8063,6 +8344,63 @@
         "affects": "confidence band width",
         "guidance": ["Higher levels produce wider intervals.", "Only meaningful when bootstrap_n is greater than zero."],
         "aliases": "confidence_level"
+      }
+    },
+    {
+      "record_id": "parameter:n_permutations",
+      "record_type": "parameter",
+      "name": "n_permutations",
+      "title": "Empirical Permutation Count",
+      "description": "Number of score-pseudotime permutations used to estimate empirical dynamic-score p-values.",
+      "search_text": "Empirical Permutation Count\nNumber of score-pseudotime permutations used to estimate empirical dynamic-score p-values.\nstatistics\ntrajectory dynamics op params\np_dynamic\nq_dynamic\nruntime\nUse 0 for fast exploratory discovery.\nUse hundreds to thousands for final reports when runtime is acceptable.\nPermutation p-values support dynamic-score ranking but do not replace effect-size and abundance filters.\nn_perm\npermutations",
+      "tags": ["parameter", "statistics", "n_perm", "permutations"],
+      "payload": {
+        "parameter_name": "n_permutations",
+        "title": "Empirical Permutation Count",
+        "category": "statistics",
+        "description": "Number of score-pseudotime permutations used to estimate empirical dynamic-score p-values.",
+        "applies_to": "trajectory dynamics op params",
+        "affects": ["p_dynamic", "q_dynamic", "runtime"],
+        "guidance": ["Use 0 for fast exploratory discovery.", "Use hundreds to thousands for final reports when runtime is acceptable.", "Permutation p-values support dynamic-score ranking but do not replace effect-size and abundance filters."],
+        "aliases": ["n_perm", "permutations"]
+      }
+    },
+    {
+      "record_id": "parameter:permutation_seed",
+      "record_type": "parameter",
+      "name": "permutation_seed",
+      "title": "Permutation Random Seed",
+      "description": "Seed used for empirical score-pseudotime permutation tests.",
+      "search_text": "Permutation Random Seed\nSeed used for empirical score-pseudotime permutation tests.\nreproducibility\ntrajectory dynamics op params\np_dynamic reproducibility\nq_dynamic reproducibility\nSet explicitly for replayable reports.\nChanging the seed can slightly change empirical p-values when n_permutations is modest.\nperm_seed",
+      "tags": ["parameter", "reproducibility", "perm_seed"],
+      "payload": {
+        "parameter_name": "permutation_seed",
+        "title": "Permutation Random Seed",
+        "category": "reproducibility",
+        "description": "Seed used for empirical score-pseudotime permutation tests.",
+        "applies_to": "trajectory dynamics op params",
+        "affects": ["p_dynamic reproducibility", "q_dynamic reproducibility"],
+        "guidance": ["Set explicitly for replayable reports.", "Changing the seed can slightly change empirical p-values when n_permutations is modest."],
+        "aliases": "perm_seed"
+      }
+    },
+    {
+      "record_id": "parameter:p_adjust_method",
+      "record_type": "parameter",
+      "name": "p_adjust_method",
+      "title": "P-Value Adjustment Method",
+      "description": "Multiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.",
+      "search_text": "P-Value Adjustment Method\nMultiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.\nstatistics\nstatistical op params\nFDR calls\nreported statistical support\nBH is the usual default for discovery-style FDR control.\nCorrection is across the screened feature-set universe, so namespace/subset choice matters.\nfdr_method\nmultiple_testing_method",
+      "tags": ["parameter", "statistics", "fdr_method", "multiple_testing_method"],
+      "payload": {
+        "parameter_name": "p_adjust_method",
+        "title": "P-Value Adjustment Method",
+        "category": "statistics",
+        "description": "Multiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.",
+        "applies_to": "statistical op params",
+        "affects": ["FDR calls", "reported statistical support"],
+        "guidance": ["BH is the usual default for discovery-style FDR control.", "Correction is across the screened feature-set universe, so namespace/subset choice matters."],
+        "aliases": ["fdr_method", "multiple_testing_method"]
       }
     },
     {
@@ -8293,15 +8631,21 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-05-19T14:19:48+0200",
-    "node_count": 227,
-    "edge_count": 603,
+    "generated_at": "2026-05-22T10:45:50+0200",
+    "node_count": 239,
+    "edge_count": 628,
     "nodes": [
       {
         "record_id": "op:leiden",
         "record_type": "op",
         "name": "leiden",
         "title": "Leiden clustering"
+      },
+      {
+        "record_id": "op:matrix_log_normalize",
+        "record_type": "op",
+        "name": "matrix_log_normalize",
+        "title": "Log-normalize count matrix"
       },
       {
         "record_id": "op:umap_fit",
@@ -9270,6 +9614,12 @@
         "title": "KNN Pseudobulk Feature Table"
       },
       {
+        "record_id": "artifact_type:obs_table:matrix_log_normalize_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:matrix_log_normalize_summary",
+        "title": "Matrix Log-Normalization Summary"
+      },
+      {
         "record_id": "artifact_type:obs_table:attach_report",
         "record_type": "artifact_type",
         "name": "obs_table:attach_report",
@@ -9444,6 +9794,24 @@
         "title": "Matrix Input"
       },
       {
+        "record_id": "parameter:output_matrix_id",
+        "record_type": "parameter",
+        "name": "output_matrix_id",
+        "title": "Output Matrix Identifier"
+      },
+      {
+        "record_id": "parameter:scale_factor",
+        "record_type": "parameter",
+        "name": "scale_factor",
+        "title": "Library-Size Normalization Scale"
+      },
+      {
+        "record_id": "parameter:overwrite",
+        "record_type": "parameter",
+        "name": "overwrite",
+        "title": "Overwrite Existing Output"
+      },
+      {
         "record_id": "parameter:space",
         "record_type": "parameter",
         "name": "space",
@@ -9558,6 +9926,30 @@
         "title": "Minimum Detected Set Fraction"
       },
       {
+        "record_id": "parameter:min_mean_score",
+        "record_type": "parameter",
+        "name": "min_mean_score",
+        "title": "Minimum Mean Score Filter"
+      },
+      {
+        "record_id": "parameter:min_max_score",
+        "record_type": "parameter",
+        "name": "min_max_score",
+        "title": "Minimum Maximum Score Filter"
+      },
+      {
+        "record_id": "parameter:min_signal_to_noise",
+        "record_type": "parameter",
+        "name": "min_signal_to_noise",
+        "title": "Minimum Signal-To-Noise Filter"
+      },
+      {
+        "record_id": "parameter:low_abundance_max_score",
+        "record_type": "parameter",
+        "name": "low_abundance_max_score",
+        "title": "Low-Abundance Flag Threshold"
+      },
+      {
         "record_id": "parameter:on_off_min_delta",
         "record_type": "parameter",
         "name": "on_off_min_delta",
@@ -9592,6 +9984,24 @@
         "record_type": "parameter",
         "name": "ci_level",
         "title": "Confidence Interval Level"
+      },
+      {
+        "record_id": "parameter:n_permutations",
+        "record_type": "parameter",
+        "name": "n_permutations",
+        "title": "Empirical Permutation Count"
+      },
+      {
+        "record_id": "parameter:permutation_seed",
+        "record_type": "parameter",
+        "name": "permutation_seed",
+        "title": "Permutation Random Seed"
+      },
+      {
+        "record_id": "parameter:p_adjust_method",
+        "record_type": "parameter",
+        "name": "p_adjust_method",
+        "title": "P-Value Adjustment Method"
       },
       {
         "record_id": "parameter:mad_multiplier",
@@ -9698,6 +10108,60 @@
         "label": "promotable:clusters"
       },
       {
+        "from": "primitive:matrix",
+        "to": "op:matrix_log_normalize",
+        "edge_type": "consumed_by",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "parameter:output_matrix_id",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:output_matrix_id"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "parameter:scale_factor",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:scale_factor"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:overwrite"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:cell_set"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "primitive:matrix",
+        "edge_type": "produces",
+        "label": "output:matrix"
+      },
+      {
+        "from": "op:matrix_log_normalize",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:summary"
+      },
+      {
         "from": "primitive:space",
         "to": "op:umap_fit",
         "edge_type": "consumed_by",
@@ -9714,6 +10178,12 @@
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
         "label": "input:cell_set"
+      },
+      {
+        "from": "op:umap_fit",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:overwrite"
       },
       {
         "from": "op:umap_fit",
@@ -9762,6 +10232,12 @@
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
         "label": "input:cell_set"
+      },
+      {
+        "from": "op:umap_transform",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:overwrite"
       },
       {
         "from": "op:umap_transform",
@@ -10083,6 +10559,12 @@
       },
       {
         "from": "op:de_wilcox",
+        "to": "parameter:p_adjust_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:p_adjust_method"
+      },
+      {
+        "from": "op:de_wilcox",
         "to": "primitive:feature_table",
         "edge_type": "produces",
         "label": "output:de_table"
@@ -10116,6 +10598,12 @@
         "to": "parameter:top_n",
         "edge_type": "has_parameter_semantics",
         "label": "param:top_n"
+      },
+      {
+        "from": "op:markers_topn",
+        "to": "parameter:p_adjust_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:p_adjust_method"
       },
       {
         "from": "op:markers_topn",
@@ -10158,6 +10646,12 @@
         "to": "parameter:pseudotime_direction",
         "edge_type": "has_parameter_semantics",
         "label": "param:direction"
+      },
+      {
+        "from": "op:pathway_enrich",
+        "to": "parameter:p_adjust_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:p_adjust_method"
       },
       {
         "from": "op:pathway_enrich",
@@ -10281,6 +10775,12 @@
       },
       {
         "from": "op:feature_trend_spearman",
+        "to": "parameter:p_adjust_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:p_adjust_method"
+      },
+      {
+        "from": "op:feature_trend_spearman",
         "to": "primitive:feature_table",
         "edge_type": "produces",
         "label": "output:trend_table"
@@ -10320,6 +10820,12 @@
         "to": "parameter:lineage",
         "edge_type": "has_parameter_semantics",
         "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_de",
+        "to": "parameter:p_adjust_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:p_adjust_method"
       },
       {
         "from": "op:trajectory_de",
@@ -10434,6 +10940,12 @@
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
         "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_branch_compare",
+        "to": "parameter:p_adjust_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:p_adjust_method"
       },
       {
         "from": "op:trajectory_branch_compare",
@@ -10653,6 +11165,30 @@
       },
       {
         "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_mean_score",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_mean_score"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_max_score",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_max_score"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:min_signal_to_noise",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_signal_to_noise"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:low_abundance_max_score",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:low_abundance_max_score"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
         "to": "parameter:smooth_method",
         "edge_type": "has_parameter_semantics",
         "label": "param:smooth_method"
@@ -10686,6 +11222,24 @@
         "to": "parameter:class_min_amplitude",
         "edge_type": "has_parameter_semantics",
         "label": "param:class_min_amplitude"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:n_permutations",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:n_permutations"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:permutation_seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:permutation_seed"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:p_adjust_method",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:p_adjust_method"
       },
       {
         "from": "op:trajectory_geneset_dynamics",
@@ -11806,6 +12360,12 @@
       {
         "from": "artifact_type:feature_table:knn_pseudobulk",
         "to": "primitive:feature_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:matrix_log_normalize_summary",
+        "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"
       },

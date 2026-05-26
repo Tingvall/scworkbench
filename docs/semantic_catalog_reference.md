@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-05-19T14:19:48+0200
+Generated at: 2026-05-22T10:45:50+0200
 
-Record count: 227
+Record count: 239
 
-Graph edges: 603
+Graph edges: 628
 
 ## artifact_type
 
@@ -159,6 +159,12 @@ Description: Cell-neighbor relationships from a KNN graph/query.
 Title: KNN Pseudobulk Feature Table
 
 Description: Feature summaries over KNN neighborhoods.
+
+### `artifact_type:obs_table:matrix_log_normalize_summary`
+
+Title: Matrix Log-Normalization Summary
+
+Description: Summary of a persisted log-normalized matrix transform, including source matrix, output matrix, scale factor, dimensions, and library-size diagnostics.
 
 ### `artifact_type:obs_table:attach_report`
 
@@ -704,6 +710,12 @@ Title: Leiden clustering
 
 Description: Graph clustering on a kNN graph derived from an embedding space.
 
+### `op:matrix_log_normalize`
+
+Title: Log-normalize count matrix
+
+Description: Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
+
 ### `op:umap_fit`
 
 Title: UMAP fit (train model)
@@ -940,6 +952,24 @@ Title: Matrix Input
 
 Description: Symbolic matrix primitive consumed by an op. The matrix defines the feature universe and measurement scale.
 
+### `parameter:output_matrix_id`
+
+Title: Output Matrix Identifier
+
+Description: Matrix id assigned to a newly created bundle matrix.
+
+### `parameter:scale_factor`
+
+Title: Library-Size Normalization Scale
+
+Description: Target per-cell total used when converting raw counts to scaled expression before log transformation.
+
+### `parameter:overwrite`
+
+Title: Overwrite Existing Output
+
+Description: Controls whether an op may replace an existing persisted bundle object with the same identifier.
+
 ### `parameter:space`
 
 Title: Embedding / Latent Space Input
@@ -1054,6 +1084,30 @@ Title: Minimum Detected Set Fraction
 
 Description: Minimum fraction of feature-set members detected in the matrix before a set passes filters.
 
+### `parameter:min_mean_score`
+
+Title: Minimum Mean Score Filter
+
+Description: Minimum mean smoothed curve score required before a gene set or signal passes report filters.
+
+### `parameter:min_max_score`
+
+Title: Minimum Maximum Score Filter
+
+Description: Minimum maximum smoothed curve score required before a gene set or signal passes report filters.
+
+### `parameter:min_signal_to_noise`
+
+Title: Minimum Signal-To-Noise Filter
+
+Description: Minimum amplitude divided by mean bootstrap standard error required before a curve passes filters.
+
+### `parameter:low_abundance_max_score`
+
+Title: Low-Abundance Flag Threshold
+
+Description: Maximum score threshold below which dynamic-looking curves are flagged as low abundance.
+
 ### `parameter:on_off_min_delta`
 
 Title: On/Off Delta Threshold
@@ -1089,6 +1143,24 @@ Description: Number of bootstrap resamples per bin for confidence intervals; zer
 Title: Confidence Interval Level
 
 Description: Nominal confidence level for bootstrap confidence bands.
+
+### `parameter:n_permutations`
+
+Title: Empirical Permutation Count
+
+Description: Number of score-pseudotime permutations used to estimate empirical dynamic-score p-values.
+
+### `parameter:permutation_seed`
+
+Title: Permutation Random Seed
+
+Description: Seed used for empirical score-pseudotime permutation tests.
+
+### `parameter:p_adjust_method`
+
+Title: P-Value Adjustment Method
+
+Description: Multiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.
 
 ### `parameter:mad_multiplier`
 

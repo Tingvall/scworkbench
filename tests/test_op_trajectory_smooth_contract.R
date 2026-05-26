@@ -502,6 +502,45 @@ test_op_trajectory_signal_dynamics_contract <- function(bundle_dir) {
   TRUE
 }
 
+test_trajectory_geneset_dynamic_metrics_contract <- function() {
+  curve <- data.frame(
+    bin = seq_len(5),
+    pseudotime = seq(0, 1, length.out = 5),
+    value = c(0.01, 0.03, 0.08, 0.12, 0.20),
+    value_se = c(0.01, 0.02, 0.02, 0.03, 0.04),
+    stringsAsFactors = FALSE
+  )
+  mm <- .wb_trajectory_geneset_dynamic_metrics(curve)
+  stopifnot(identical(as.integer(mm$n_bins_observed), 5L))
+  stopifnot(is.finite(mm$min_score), is.finite(mm$max_score), is.finite(mm$mean_score))
+  stopifnot(is.finite(mm$auc_score), is.finite(mm$relative_amplitude))
+  stopifnot(is.finite(mm$mean_se), is.finite(mm$signal_to_noise))
+  stopifnot(mm$max_score > mm$min_score)
+
+  curve_no_se <- curve[, c("bin", "pseudotime", "value"), drop = FALSE]
+  mm_no_se <- .wb_trajectory_geneset_dynamic_metrics(curve_no_se)
+  stopifnot(is.na(mm_no_se$mean_se))
+  stopifnot(is.na(mm_no_se$signal_to_noise))
+
+  set.seed(1)
+  null_scores <- .wb_trajectory_geneset_null_dynamic_scores(
+    entity_id = "test_set",
+    lineage_id = "L1",
+    pt = curve$pseudotime,
+    values = curve$value,
+    bins = curve$bin,
+    min_cells_per_bin = 1L,
+    summary_fun = "mean",
+    smooth_method = "none",
+    loess_span = 0.5,
+    n_permutations = 5L
+  )
+  stopifnot(length(null_scores) == 5L)
+  stopifnot(any(is.finite(null_scores)))
+
+  TRUE
+}
+
 test_op_trajectory_signal_dynamics_promoted_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
     message("Skipping trajectory_signal_dynamics promoted contract test: slingshot not installed.")
@@ -844,6 +883,9 @@ test_op_trajectory_geneset_dynamics_contract <- function(bundle_dir) {
   stopifnot(is.data.frame(top_tbl), nrow(top_tbl) <= 2L)
   stopifnot(all(c("feature_set", "namespace", "lineage_id", "bin", "pseudotime", "value", "value_raw", "value_smooth", "value_ci_low", "value_ci_high", "n_cells") %in% colnames(curve_tbl)))
   stopifnot(all(c("feature_set", "curve_class", "passes_filters", "filter_reason", "dynamic_score", "amplitude", "late_minus_early", "spearman_rho", "rank") %in% colnames(dyn_tbl)))
+  stopifnot(all(c("mean_score", "max_score", "min_score", "auc_score", "relative_amplitude", "mean_se", "signal_to_noise", "low_abundance_flag") %in% colnames(dyn_tbl)))
+  stopifnot(all(c("p_dynamic", "q_dynamic", "null_mean_dynamic_score", "null_sd_dynamic_score", "z_dynamic_score", "n_permutations") %in% colnames(dyn_tbl)))
+  stopifnot(is.logical(dyn_tbl$low_abundance_flag))
   stopifnot(is.data.frame(driver_tbl), nrow(driver_tbl) > 0L)
   stopifnot(all(c("feature_set", "feature_id", "dynamic_score", "driver_rank") %in% colnames(driver_tbl)))
   stopifnot(is.data.frame(driver_curve_tbl), nrow(driver_curve_tbl) > 0L)

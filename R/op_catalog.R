@@ -21,6 +21,28 @@
   raw
 }
 
+.wb_runner_matrix_log_normalize <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "matrix_log_normalize runner: missing resolved$matrix.")
+  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
+  .wb_assert(nzchar(matrix_id), "matrix_log_normalize runner: resolved matrix primitive missing matrix_id.")
+
+  all_cells <- wb_cells(bundle, cell_set = "all")
+  .wb_assert(identical(as.character(effective_cells), as.character(all_cells)),
+             "matrix_log_normalize currently writes full bundle matrices only; use cell_set='all'.")
+
+  raw <- wb_op_matrix_log_normalize(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    output_matrix_id = inputs$output_matrix_id %||% NULL,
+    scale_factor = inputs$scale_factor %||% 10000,
+    overwrite = inputs$overwrite %||% FALSE
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "matrix_log_normalize must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_slingshot <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$space_2d), "slingshot runner: missing resolved$space_2d.")
   .wb_assert(!is.null(resolved$clusters), "slingshot runner: missing resolved$clusters.")
@@ -1023,12 +1045,19 @@
     min_bins_observed = inputs$min_bins_observed %||% 5L,
     min_features_detected = inputs$min_features_detected %||% 1L,
     min_detected_fraction = inputs$min_detected_fraction %||% 0,
+    min_mean_score = inputs$min_mean_score %||% 0,
+    min_max_score = inputs$min_max_score %||% 0,
+    min_signal_to_noise = inputs$min_signal_to_noise %||% 0,
+    low_abundance_max_score = inputs$low_abundance_max_score %||% 0.1,
     smooth_method = inputs$smooth_method %||% "none",
     loess_span = inputs$loess_span %||% 0.5,
     bootstrap_n = inputs$bootstrap_n %||% 0L,
     bootstrap_seed = inputs$bootstrap_seed %||% 1L,
     ci_level = inputs$ci_level %||% 0.95,
-    class_min_amplitude = inputs$class_min_amplitude %||% 0
+    class_min_amplitude = inputs$class_min_amplitude %||% 0,
+    n_permutations = inputs$n_permutations %||% 0L,
+    permutation_seed = inputs$permutation_seed %||% 1L,
+    p_adjust_method = inputs$p_adjust_method %||% "BH"
   )
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -1214,6 +1243,43 @@
           colorable = TRUE,
           color_type = "categorical",
           label = "Leiden clusters"
+        )
+      )
+    ),
+    matrix_log_normalize = list(
+      op_name = "matrix_log_normalize",
+      title = "Log-normalize count matrix",
+      description = "Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.",
+      intent = c("matrix", "normalize", "rna", "transform"),
+      requires = list(matrix = "matrix"),
+      produces = list(
+        matrix = "matrix",
+        summary = "obs_table"
+      ),
+      promotable = c("summary"),
+      runner = .wb_runner_matrix_log_normalize,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix")
+      ),
+      params = list(
+        list(name = "output_matrix_id", type = "string", default = NULL,
+             help = "Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>."),
+        list(name = "scale_factor", type = "dbl", default = 10000, min = 1, max = 1e9,
+             help = "Per-cell target count scale before log1p; 10000 is the common CP10K convention."),
+        list(name = "overwrite", type = "bool", default = FALSE,
+             help = "If TRUE, replace an existing output matrix with the same id."),
+        list(name = "cell_set", type = "cell_set", default = "all",
+             help = "Must be 'all' in v1 because the output matrix is registered as a full bundle matrix.")
+      ),
+      interface_produces = list(
+        matrix = list(
+          kind = "matrix",
+          description = "Reference to the newly registered log-normalized matrix."
+        ),
+        summary = list(
+          kind = "obs_table",
+          table_type = "matrix_log_normalize_summary",
+          description = "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
         )
       )
     ),
@@ -2105,6 +2171,14 @@
              help = "Minimum detected set members required for passes_filters."),
         list(name = "min_detected_fraction", type = "dbl", default = 0, min = 0, max = 1,
              help = "Minimum fraction of detected set members required for passes_filters."),
+        list(name = "min_mean_score", type = "dbl", default = 0, min = 0,
+             help = "Optional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics."),
+        list(name = "min_max_score", type = "dbl", default = 0, min = 0,
+             help = "Optional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves."),
+        list(name = "min_signal_to_noise", type = "dbl", default = 0, min = 0,
+             help = "Optional minimum amplitude divided by mean bootstrap SE required for passes_filters."),
+        list(name = "low_abundance_max_score", type = "dbl", default = 0.1, min = 0,
+             help = "Curves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set."),
         list(name = "smooth_method", type = "choice", default = "none",
              choices = c("none", "loess", "spline"),
              help = "Optional smoothing method applied to binned curves before metrics/classes."),
@@ -2117,7 +2191,14 @@
         list(name = "ci_level", type = "dbl", default = 0.95, min = 0.5, max = 0.999,
              help = "Confidence level for bootstrap bands."),
         list(name = "class_min_amplitude", type = "dbl", default = 0, min = 0,
-             help = "Minimum amplitude required before assigning non-flat curve classes.")
+             help = "Minimum amplitude required before assigning non-flat curve classes."),
+        list(name = "n_permutations", type = "int", default = 0, min = 0, max = 100000,
+             help = "Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing."),
+        list(name = "permutation_seed", type = "int", default = 1, min = 1,
+             help = "Random seed for empirical dynamic-score permutations."),
+        list(name = "p_adjust_method", type = "choice", default = "BH",
+             choices = stats::p.adjust.methods,
+             help = "Multiple-testing correction method for q_dynamic.")
       ),
       interface_produces = list(
         signature_table = list(

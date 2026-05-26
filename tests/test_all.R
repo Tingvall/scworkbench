@@ -48,6 +48,9 @@ test_all <- function(bundle_dir){
   if (exists("test_op_knn_neighbors_contract", mode = "function")) {
     stopifnot(test_op_knn_neighbors_contract(bundle_dir))
   }
+  if (exists("test_op_matrix_log_normalize_contract", mode = "function")) {
+    stopifnot(test_op_matrix_log_normalize_contract())
+  }
   if (exists("test_op_chromvar_contract", mode = "function")) {
     stopifnot(test_op_chromvar_contract(bundle_dir))
   }
@@ -113,6 +116,9 @@ test_all <- function(bundle_dir){
   }
   if (exists("test_op_trajectory_signal_dynamics_contract", mode = "function")) {
     stopifnot(test_op_trajectory_signal_dynamics_contract(bundle_dir))
+  }
+  if (exists("test_trajectory_geneset_dynamic_metrics_contract", mode = "function")) {
+    stopifnot(test_trajectory_geneset_dynamic_metrics_contract())
   }
   if (exists("test_op_trajectory_signal_dynamics_promoted_contract", mode = "function")) {
     stopifnot(test_op_trajectory_signal_dynamics_promoted_contract(bundle_dir))

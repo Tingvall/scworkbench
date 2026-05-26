@@ -29,12 +29,19 @@ wb_op_trajectory_geneset_dynamics(
   min_bins_observed = 5L,
   min_features_detected = 1L,
   min_detected_fraction = 0,
+  min_mean_score = 0,
+  min_max_score = 0,
+  min_signal_to_noise = 0,
+  low_abundance_max_score = 0.1,
   smooth_method = "none",
   loess_span = 0.5,
   bootstrap_n = 0L,
   bootstrap_seed = 1L,
   ci_level = 0.95,
-  class_min_amplitude = 0
+  class_min_amplitude = 0,
+  n_permutations = 0L,
+  permutation_seed = 1L,
+  p_adjust_method = "BH"
 )
 }
 \arguments{
@@ -86,6 +93,14 @@ wb_op_trajectory_geneset_dynamics(
 
 \item{min_detected_fraction}{Minimum fraction of detected set members.}
 
+\item{min_mean_score}{Optional minimum mean smoothed score required for \code{passes_filters}.}
+
+\item{min_max_score}{Optional minimum maximum smoothed score required for \code{passes_filters}.}
+
+\item{min_signal_to_noise}{Optional minimum amplitude divided by mean bootstrap SE required for \code{passes_filters}.}
+
+\item{low_abundance_max_score}{Maximum score threshold used to flag low-abundance dynamic candidates.}
+
 \item{smooth_method}{One of \code{"none"}, \code{"loess"}, or \code{"spline"}.}
 
 \item{loess_span}{Span for loess smoothing.}
@@ -97,6 +112,13 @@ wb_op_trajectory_geneset_dynamics(
 \item{ci_level}{Confidence interval level for bootstrap bands.}
 
 \item{class_min_amplitude}{Minimum amplitude for non-flat curve classes.}
+
+\item{n_permutations}{Number of pseudotime-association permutations for
+empirical dynamic-score p-values. Disabled when 0.}
+
+\item{permutation_seed}{Random seed for empirical dynamic-score permutations.}
+
+\item{p_adjust_method}{Multiple-testing correction method for \code{q_dynamic}.}
 }
 \value{
 A standard op result list with \code{outputs} containing \code{signature_table},

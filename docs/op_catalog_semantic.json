@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-05-19T14:19:47+0200",
-  "op_count": 38,
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "op_count": 39,
   "ops": [
     {
       "op_name": "leiden",
@@ -70,6 +70,77 @@
         }
       ],
       "promotable": "clusters",
+      "chunking": null
+    },
+    {
+      "op_name": "matrix_log_normalize",
+      "title": "Log-normalize count matrix",
+      "description": "Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.",
+      "intent": ["matrix", "normalize", "rna", "transform"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "description": "Reference to the newly registered log-normalized matrix."
+        },
+        {
+          "name": "summary",
+          "kind": "obs_table",
+          "description": "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "output_matrix_id",
+          "type": "string",
+          "default": null,
+          "help": "Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>."
+        },
+        {
+          "name": "scale_factor",
+          "type": "dbl",
+          "default": 10000,
+          "min": 1,
+          "max": 1000000000,
+          "help": "Per-cell target count scale before log1p; 10000 is the common CP10K convention."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": false,
+          "help": "If TRUE, replace an existing output matrix with the same id."
+        },
+        {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "help": "Must be 'all' in v1 because the output matrix is registered as a full bundle matrix."
+        }
+      ],
+      "promotable": "summary",
       "chunking": null
     },
     {
@@ -2020,6 +2091,34 @@
           "help": "Minimum fraction of detected set members required for passes_filters."
         },
         {
+          "name": "min_mean_score",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Optional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics."
+        },
+        {
+          "name": "min_max_score",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Optional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves."
+        },
+        {
+          "name": "min_signal_to_noise",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Optional minimum amplitude divided by mean bootstrap SE required for passes_filters."
+        },
+        {
+          "name": "low_abundance_max_score",
+          "type": "dbl",
+          "default": 0.1,
+          "min": 0,
+          "help": "Curves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set."
+        },
+        {
           "name": "smooth_method",
           "type": "choice",
           "default": "none",
@@ -2063,6 +2162,28 @@
           "default": 0,
           "min": 0,
           "help": "Minimum amplitude required before assigning non-flat curve classes."
+        },
+        {
+          "name": "n_permutations",
+          "type": "int",
+          "default": 0,
+          "min": 0,
+          "max": 100000,
+          "help": "Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing."
+        },
+        {
+          "name": "permutation_seed",
+          "type": "int",
+          "default": 1,
+          "min": 1,
+          "help": "Random seed for empirical dynamic-score permutations."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "choice",
+          "default": "BH",
+          "choices": ["holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none"],
+          "help": "Multiple-testing correction method for q_dynamic."
         }
       ],
       "promotable": ["signature_table", "dynamics_table", "top_sets", "driver_table", "driver_curve_table", "fit_summary"],

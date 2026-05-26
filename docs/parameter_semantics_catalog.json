@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-05-19T14:19:47+0200",
-  "parameter_count": 30,
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "parameter_count": 40,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -22,6 +22,36 @@
       "affects": ["feature universe", "measurement scale", "detected features"],
       "guidance": ["Choose RNA/ATAC/counts/normalized matrix intentionally.", "Matrix semantics are more important than the string id; future matrix metadata should formalize this."],
       "aliases": "matrix_id"
+    },
+    {
+      "parameter_name": "output_matrix_id",
+      "title": "Output Matrix Identifier",
+      "category": "data_source",
+      "description": "Matrix id assigned to a newly created bundle matrix.",
+      "applies_to": "matrix-producing op params",
+      "affects": ["downstream matrix selection", "replay", "artifact interpretation"],
+      "guidance": ["Use a name that records the transform and scale, for example RNA_log1p_cp10k.", "Do not reuse an existing matrix id unless overwrite behavior is intentional."],
+      "aliases": ["new_matrix_id", "target_matrix_id"]
+    },
+    {
+      "parameter_name": "scale_factor",
+      "title": "Library-Size Normalization Scale",
+      "category": "normalization",
+      "description": "Target per-cell total used when converting raw counts to scaled expression before log transformation.",
+      "applies_to": "matrix normalization params",
+      "affects": ["expression scale", "dynamic curves", "feature-set scores"],
+      "guidance": ["10000 is the common log1p(CP10K) convention for scRNA-seq.", "Changing this value changes numeric scale but usually preserves rank-like patterns after log1p."],
+      "aliases": ["target_sum", "counts_per_cell", "cp_scale"]
+    },
+    {
+      "parameter_name": "overwrite",
+      "title": "Overwrite Existing Output",
+      "category": "mutation",
+      "description": "Controls whether an op may replace an existing persisted bundle object with the same identifier.",
+      "applies_to": "mutating op params",
+      "affects": ["bundle state", "reproducibility", "rerun safety"],
+      "guidance": ["Keep FALSE for safety when creating named outputs.", "Set TRUE only for deliberate deterministic reruns or temporary development outputs."],
+      "aliases": ["replace", "force"]
     },
     {
       "parameter_name": "space",
@@ -214,6 +244,46 @@
       "aliases": "detected_fraction"
     },
     {
+      "parameter_name": "min_mean_score",
+      "title": "Minimum Mean Score Filter",
+      "category": "filtering",
+      "description": "Minimum mean smoothed curve score required before a gene set or signal passes report filters.",
+      "applies_to": "op params",
+      "affects": ["low-abundance filtering", "reported dynamics"],
+      "guidance": ["Use this to avoid over-interpreting tiny but smooth low-expression changes.", "Thresholds are score-scale dependent; keep disabled for broad discovery if unsure."],
+      "aliases": "mean_score_threshold"
+    },
+    {
+      "parameter_name": "min_max_score",
+      "title": "Minimum Maximum Score Filter",
+      "category": "filtering",
+      "description": "Minimum maximum smoothed curve score required before a gene set or signal passes report filters.",
+      "applies_to": "op params",
+      "affects": ["low-abundance filtering", "reported dynamics"],
+      "guidance": ["For log1p CP10K mean scores, a small threshold such as 0.1 can separate robust programs from near-zero wiggles.", "Do not reuse the same number for UCell, chromVAR, or other score scales without checking distributions."],
+      "aliases": "max_score_threshold"
+    },
+    {
+      "parameter_name": "min_signal_to_noise",
+      "title": "Minimum Signal-To-Noise Filter",
+      "category": "filtering",
+      "description": "Minimum amplitude divided by mean bootstrap standard error required before a curve passes filters.",
+      "applies_to": "op params",
+      "affects": ["uncertainty-aware filtering", "reported dynamics"],
+      "guidance": ["Requires bootstrap-derived standard errors to be meaningful.", "Use as a support filter, not as a formal p-value."],
+      "aliases": ["snr_threshold", "min_snr"]
+    },
+    {
+      "parameter_name": "low_abundance_max_score",
+      "title": "Low-Abundance Flag Threshold",
+      "category": "filtering",
+      "description": "Maximum score threshold below which dynamic-looking curves are flagged as low abundance.",
+      "applies_to": "op params",
+      "affects": ["interpretation", "report triage"],
+      "guidance": ["This flag warns about low-expression dynamics without removing them by default.", "Set relative to the selected matrix or score method."],
+      "aliases": ["low_expression_threshold", "low_signal_threshold"]
+    },
+    {
       "parameter_name": "on_off_min_delta",
       "title": "On/Off Delta Threshold",
       "category": "classification",
@@ -272,6 +342,36 @@
       "affects": "confidence band width",
       "guidance": ["Higher levels produce wider intervals.", "Only meaningful when bootstrap_n is greater than zero."],
       "aliases": "confidence_level"
+    },
+    {
+      "parameter_name": "n_permutations",
+      "title": "Empirical Permutation Count",
+      "category": "statistics",
+      "description": "Number of score-pseudotime permutations used to estimate empirical dynamic-score p-values.",
+      "applies_to": "trajectory dynamics op params",
+      "affects": ["p_dynamic", "q_dynamic", "runtime"],
+      "guidance": ["Use 0 for fast exploratory discovery.", "Use hundreds to thousands for final reports when runtime is acceptable.", "Permutation p-values support dynamic-score ranking but do not replace effect-size and abundance filters."],
+      "aliases": ["n_perm", "permutations"]
+    },
+    {
+      "parameter_name": "permutation_seed",
+      "title": "Permutation Random Seed",
+      "category": "reproducibility",
+      "description": "Seed used for empirical score-pseudotime permutation tests.",
+      "applies_to": "trajectory dynamics op params",
+      "affects": ["p_dynamic reproducibility", "q_dynamic reproducibility"],
+      "guidance": ["Set explicitly for replayable reports.", "Changing the seed can slightly change empirical p-values when n_permutations is modest."],
+      "aliases": "perm_seed"
+    },
+    {
+      "parameter_name": "p_adjust_method",
+      "title": "P-Value Adjustment Method",
+      "category": "statistics",
+      "description": "Multiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.",
+      "applies_to": "statistical op params",
+      "affects": ["FDR calls", "reported statistical support"],
+      "guidance": ["BH is the usual default for discovery-style FDR control.", "Correction is across the screened feature-set universe, so namespace/subset choice matters."],
+      "aliases": ["fdr_method", "multiple_testing_method"]
     },
     {
       "parameter_name": "mad_multiplier",

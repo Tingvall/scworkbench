@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-05-19T14:19:47+0200",
-  "artifact_type_count": 52,
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "artifact_type_count": 53,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -227,6 +227,15 @@
       "table_type": "knn_pseudobulk",
       "entity_kind": "feature",
       "use_when": "inspect local pseudobulk expression"
+    },
+    {
+      "artifact_type": "obs_table:matrix_log_normalize_summary",
+      "primitive_kind": "obs_table",
+      "title": "Matrix Log-Normalization Summary",
+      "description": "Summary of a persisted log-normalized matrix transform, including source matrix, output matrix, scale factor, dimensions, and library-size diagnostics.",
+      "table_type": "matrix_log_normalize_summary",
+      "entity_kind": "matrix",
+      "use_when": ["inspect normalized matrix provenance", "choose a reusable expression matrix for downstream ops"]
     },
     {
       "artifact_type": "obs_table:attach_report",

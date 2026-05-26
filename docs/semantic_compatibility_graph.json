@@ -1,14 +1,20 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-05-19T14:19:48+0200",
-  "node_count": 227,
-  "edge_count": 603,
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "node_count": 239,
+  "edge_count": 628,
   "nodes": [
     {
       "record_id": "op:leiden",
       "record_type": "op",
       "name": "leiden",
       "title": "Leiden clustering"
+    },
+    {
+      "record_id": "op:matrix_log_normalize",
+      "record_type": "op",
+      "name": "matrix_log_normalize",
+      "title": "Log-normalize count matrix"
     },
     {
       "record_id": "op:umap_fit",
@@ -977,6 +983,12 @@
       "title": "KNN Pseudobulk Feature Table"
     },
     {
+      "record_id": "artifact_type:obs_table:matrix_log_normalize_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:matrix_log_normalize_summary",
+      "title": "Matrix Log-Normalization Summary"
+    },
+    {
       "record_id": "artifact_type:obs_table:attach_report",
       "record_type": "artifact_type",
       "name": "obs_table:attach_report",
@@ -1151,6 +1163,24 @@
       "title": "Matrix Input"
     },
     {
+      "record_id": "parameter:output_matrix_id",
+      "record_type": "parameter",
+      "name": "output_matrix_id",
+      "title": "Output Matrix Identifier"
+    },
+    {
+      "record_id": "parameter:scale_factor",
+      "record_type": "parameter",
+      "name": "scale_factor",
+      "title": "Library-Size Normalization Scale"
+    },
+    {
+      "record_id": "parameter:overwrite",
+      "record_type": "parameter",
+      "name": "overwrite",
+      "title": "Overwrite Existing Output"
+    },
+    {
       "record_id": "parameter:space",
       "record_type": "parameter",
       "name": "space",
@@ -1265,6 +1295,30 @@
       "title": "Minimum Detected Set Fraction"
     },
     {
+      "record_id": "parameter:min_mean_score",
+      "record_type": "parameter",
+      "name": "min_mean_score",
+      "title": "Minimum Mean Score Filter"
+    },
+    {
+      "record_id": "parameter:min_max_score",
+      "record_type": "parameter",
+      "name": "min_max_score",
+      "title": "Minimum Maximum Score Filter"
+    },
+    {
+      "record_id": "parameter:min_signal_to_noise",
+      "record_type": "parameter",
+      "name": "min_signal_to_noise",
+      "title": "Minimum Signal-To-Noise Filter"
+    },
+    {
+      "record_id": "parameter:low_abundance_max_score",
+      "record_type": "parameter",
+      "name": "low_abundance_max_score",
+      "title": "Low-Abundance Flag Threshold"
+    },
+    {
       "record_id": "parameter:on_off_min_delta",
       "record_type": "parameter",
       "name": "on_off_min_delta",
@@ -1299,6 +1353,24 @@
       "record_type": "parameter",
       "name": "ci_level",
       "title": "Confidence Interval Level"
+    },
+    {
+      "record_id": "parameter:n_permutations",
+      "record_type": "parameter",
+      "name": "n_permutations",
+      "title": "Empirical Permutation Count"
+    },
+    {
+      "record_id": "parameter:permutation_seed",
+      "record_type": "parameter",
+      "name": "permutation_seed",
+      "title": "Permutation Random Seed"
+    },
+    {
+      "record_id": "parameter:p_adjust_method",
+      "record_type": "parameter",
+      "name": "p_adjust_method",
+      "title": "P-Value Adjustment Method"
     },
     {
       "record_id": "parameter:mad_multiplier",
@@ -1405,6 +1477,60 @@
       "label": "promotable:clusters"
     },
     {
+      "from": "primitive:matrix",
+      "to": "op:matrix_log_normalize",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:output_matrix_id",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:output_matrix_id"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:scale_factor",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:scale_factor"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:cell_set"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "primitive:matrix",
+      "edge_type": "produces",
+      "label": "output:matrix"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:summary"
+    },
+    {
       "from": "primitive:space",
       "to": "op:umap_fit",
       "edge_type": "consumed_by",
@@ -1421,6 +1547,12 @@
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
       "label": "input:cell_set"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
     },
     {
       "from": "op:umap_fit",
@@ -1469,6 +1601,12 @@
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
       "label": "input:cell_set"
+    },
+    {
+      "from": "op:umap_transform",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
     },
     {
       "from": "op:umap_transform",
@@ -1790,6 +1928,12 @@
     },
     {
       "from": "op:de_wilcox",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:de_wilcox",
       "to": "primitive:feature_table",
       "edge_type": "produces",
       "label": "output:de_table"
@@ -1823,6 +1967,12 @@
       "to": "parameter:top_n",
       "edge_type": "has_parameter_semantics",
       "label": "param:top_n"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
     },
     {
       "from": "op:markers_topn",
@@ -1865,6 +2015,12 @@
       "to": "parameter:pseudotime_direction",
       "edge_type": "has_parameter_semantics",
       "label": "param:direction"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
     },
     {
       "from": "op:pathway_enrich",
@@ -1988,6 +2144,12 @@
     },
     {
       "from": "op:feature_trend_spearman",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:feature_trend_spearman",
       "to": "primitive:feature_table",
       "edge_type": "produces",
       "label": "output:trend_table"
@@ -2027,6 +2189,12 @@
       "to": "parameter:lineage",
       "edge_type": "has_parameter_semantics",
       "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
     },
     {
       "from": "op:trajectory_de",
@@ -2141,6 +2309,12 @@
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
       "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
     },
     {
       "from": "op:trajectory_branch_compare",
@@ -2360,6 +2534,30 @@
     },
     {
       "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_mean_score",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_mean_score"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_max_score",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_max_score"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_signal_to_noise",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_signal_to_noise"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:low_abundance_max_score",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:low_abundance_max_score"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
       "to": "parameter:smooth_method",
       "edge_type": "has_parameter_semantics",
       "label": "param:smooth_method"
@@ -2393,6 +2591,24 @@
       "to": "parameter:class_min_amplitude",
       "edge_type": "has_parameter_semantics",
       "label": "param:class_min_amplitude"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:n_permutations",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_permutations"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:permutation_seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:permutation_seed"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
     },
     {
       "from": "op:trajectory_geneset_dynamics",
@@ -3513,6 +3729,12 @@
     {
       "from": "artifact_type:feature_table:knn_pseudobulk",
       "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:matrix_log_normalize_summary",
+      "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"
     },

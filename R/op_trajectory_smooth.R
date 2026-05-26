@@ -456,10 +456,16 @@ wb_op_trajectory_signature_smooth <- function(bundle,
 #' @keywords internal
 .wb_trajectory_geneset_dynamic_metrics <- function(curve) {
   yy <- suppressWarnings(as.numeric(curve$value))
+  se <- if ("value_se" %in% colnames(curve)) {
+    suppressWarnings(as.numeric(curve$value_se))
+  } else {
+    rep(NA_real_, length(yy))
+  }
   xx <- suppressWarnings(as.numeric(curve$pseudotime))
   bb <- suppressWarnings(as.integer(curve$bin))
   keep <- is.finite(yy) & is.finite(xx) & is.finite(bb)
   yy <- yy[keep]
+  se <- se[keep]
   xx <- xx[keep]
   bb <- bb[keep]
 
@@ -467,7 +473,14 @@ wb_op_trajectory_signature_smooth <- function(bundle,
     return(list(
       n_bins_observed = 0L,
       amplitude = NA_real_,
+      min_score = NA_real_,
+      max_score = NA_real_,
+      mean_score = NA_real_,
+      auc_score = NA_real_,
+      relative_amplitude = NA_real_,
       sd_value = NA_real_,
+      mean_se = NA_real_,
+      signal_to_noise = NA_real_,
       early_mean = NA_real_,
       late_mean = NA_real_,
       late_minus_early = NA_real_,
@@ -492,7 +505,15 @@ wb_op_trajectory_signature_smooth <- function(bundle,
   pk <- which.max(yy)
   tr <- which.min(yy)
   amp <- suppressWarnings(max(yy, na.rm = TRUE) - min(yy, na.rm = TRUE))
+  min_score <- suppressWarnings(min(yy, na.rm = TRUE))
+  max_score <- suppressWarnings(max(yy, na.rm = TRUE))
+  mean_score <- suppressWarnings(mean(yy, na.rm = TRUE))
+  auc_score <- mean_score
+  relative_amplitude <- if (is.finite(mean_score)) amp / (abs(mean_score) + 1e-8) else NA_real_
   sdv <- if (n >= 2L) suppressWarnings(stats::sd(yy, na.rm = TRUE)) else 0
+  mean_se <- suppressWarnings(mean(se[is.finite(se)], na.rm = TRUE))
+  if (!is.finite(mean_se)) mean_se <- NA_real_
+  signal_to_noise <- if (is.finite(mean_se) && mean_se > 0) amp / mean_se else NA_real_
   rho <- if (n >= 3L && stats::sd(xx) > 0 && stats::sd(yy) > 0) {
     suppressWarnings(stats::cor(xx, yy, method = "spearman", use = "complete.obs"))
   } else {
@@ -504,7 +525,14 @@ wb_op_trajectory_signature_smooth <- function(bundle,
   list(
     n_bins_observed = as.integer(n),
     amplitude = as.numeric(amp),
+    min_score = as.numeric(min_score),
+    max_score = as.numeric(max_score),
+    mean_score = as.numeric(mean_score),
+    auc_score = as.numeric(auc_score),
+    relative_amplitude = as.numeric(relative_amplitude),
     sd_value = as.numeric(sdv),
+    mean_se = as.numeric(mean_se),
+    signal_to_noise = as.numeric(signal_to_noise),
     early_mean = as.numeric(mean(early, na.rm = TRUE)),
     late_mean = as.numeric(mean(late, na.rm = TRUE)),
     late_minus_early = as.numeric(delta),
@@ -695,6 +723,45 @@ wb_op_trajectory_signature_smooth <- function(bundle,
   merge(agg, ci, by = "bin", all.x = TRUE, sort = FALSE)
 }
 
+#' @keywords internal
+.wb_trajectory_geneset_null_dynamic_scores <- function(entity_id,
+                                                       lineage_id,
+                                                       pt,
+                                                       values,
+                                                       bins,
+                                                       min_cells_per_bin,
+                                                       summary_fun,
+                                                       smooth_method,
+                                                       loess_span,
+                                                       n_permutations) {
+  n_permutations <- suppressWarnings(as.integer(n_permutations)[1])
+  if (!is.finite(n_permutations) || n_permutations <= 0L) return(numeric(0))
+  values <- suppressWarnings(as.numeric(values))
+  ok <- is.finite(values) & is.finite(pt) & is.finite(bins)
+  if (sum(ok) < min_cells_per_bin) return(rep(NA_real_, n_permutations))
+
+  out <- rep(NA_real_, n_permutations)
+  for (ii in seq_len(n_permutations)) {
+    perm_values <- values
+    perm_values[ok] <- sample(values[ok], length(values[ok]), replace = FALSE)
+    agg <- .wb_trajectory_smooth_aggregate_one(
+      entity_id = entity_id,
+      lineage_id = lineage_id,
+      pt = pt,
+      values = perm_values,
+      bins = bins,
+      min_cells_per_bin = min_cells_per_bin,
+      value_col = "value",
+      summary_fun = summary_fun
+    )
+    if (is.null(agg) || !nrow(agg)) next
+    agg <- .wb_trajectory_geneset_apply_smoothing(agg, smooth_method = smooth_method, loess_span = loess_span)
+    mm <- .wb_trajectory_geneset_dynamic_metrics(agg)
+    out[ii] <- suppressWarnings(as.numeric(mm$dynamic_score)[1])
+  }
+  out
+}
+
 #' Screen Feature-Set Dynamics Along A Trajectory
 #'
 #' Scores every feature set in a namespace per cell, smooths the scores over
@@ -727,12 +794,20 @@ wb_op_trajectory_signature_smooth <- function(bundle,
 #' @param min_bins_observed Minimum binned curve rows required for `passes_filters`.
 #' @param min_features_detected Minimum number of detected set members.
 #' @param min_detected_fraction Minimum fraction of detected set members.
+#' @param min_mean_score Optional minimum mean smoothed score required for `passes_filters`.
+#' @param min_max_score Optional minimum maximum smoothed score required for `passes_filters`.
+#' @param min_signal_to_noise Optional minimum amplitude divided by mean bootstrap SE required for `passes_filters`.
+#' @param low_abundance_max_score Maximum score threshold used to flag low-abundance dynamic candidates.
 #' @param smooth_method One of `"none"`, `"loess"`, or `"spline"`.
 #' @param loess_span Span for loess smoothing.
 #' @param bootstrap_n Bootstrap replicates per bin for confidence bands. Disabled when 0.
 #' @param bootstrap_seed Random seed for bootstrap confidence bands.
 #' @param ci_level Confidence interval level for bootstrap bands.
 #' @param class_min_amplitude Minimum amplitude for non-flat curve classes.
+#' @param n_permutations Number of pseudotime-association permutations for
+#'   empirical dynamic-score p-values. Disabled when 0.
+#' @param permutation_seed Random seed for empirical dynamic-score permutations.
+#' @param p_adjust_method Multiple-testing correction method for `q_dynamic`.
 #'
 #' @return A standard op result list with `outputs` containing `signature_table`,
 #'   `dynamics_table`, `top_sets`, `driver_table`, `driver_curve_table`, and
@@ -763,12 +838,19 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
                                               min_bins_observed = 5L,
                                               min_features_detected = 1L,
                                               min_detected_fraction = 0,
+                                              min_mean_score = 0,
+                                              min_max_score = 0,
+                                              min_signal_to_noise = 0,
+                                              low_abundance_max_score = 0.1,
                                               smooth_method = "none",
                                               loess_span = 0.5,
                                               bootstrap_n = 0L,
                                               bootstrap_seed = 1L,
                                               ci_level = 0.95,
-                                              class_min_amplitude = 0) {
+                                              class_min_amplitude = 0,
+                                              n_permutations = 0L,
+                                              permutation_seed = 1L,
+                                              p_adjust_method = "BH") {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
   .wb_assert_kind(model, "model_ref")
@@ -796,12 +878,20 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
   min_bins_observed <- suppressWarnings(as.integer(min_bins_observed)[1])
   min_features_detected <- suppressWarnings(as.integer(min_features_detected)[1])
   min_detected_fraction <- suppressWarnings(as.numeric(min_detected_fraction)[1])
+  min_mean_score <- suppressWarnings(as.numeric(min_mean_score)[1])
+  min_max_score <- suppressWarnings(as.numeric(min_max_score)[1])
+  min_signal_to_noise <- suppressWarnings(as.numeric(min_signal_to_noise)[1])
+  low_abundance_max_score <- suppressWarnings(as.numeric(low_abundance_max_score)[1])
   smooth_method <- .wb_trajectory_geneset_smooth_fun(smooth_method)
   loess_span <- suppressWarnings(as.numeric(loess_span)[1])
   bootstrap_n <- suppressWarnings(as.integer(bootstrap_n)[1])
   bootstrap_seed <- suppressWarnings(as.integer(bootstrap_seed)[1])
   ci_level <- suppressWarnings(as.numeric(ci_level)[1])
   class_min_amplitude <- suppressWarnings(as.numeric(class_min_amplitude)[1])
+  n_permutations <- suppressWarnings(as.integer(n_permutations)[1])
+  permutation_seed <- suppressWarnings(as.integer(permutation_seed)[1])
+  p_adjust_method <- as.character(p_adjust_method %||% "BH")[1]
+  if (!nzchar(p_adjust_method)) p_adjust_method <- "BH"
   .wb_assert(is.finite(min_cells_per_bin) && min_cells_per_bin >= 1L,
              "trajectory_geneset_dynamics: min_cells_per_bin must be >= 1.")
   .wb_assert(is.finite(min_set_size) && min_set_size >= 1L,
@@ -817,11 +907,19 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
   if (!is.finite(min_features_detected) || min_features_detected < 0L) min_features_detected <- 1L
   if (!is.finite(min_detected_fraction) || min_detected_fraction < 0) min_detected_fraction <- 0
   if (min_detected_fraction > 1) min_detected_fraction <- 1
+  if (!is.finite(min_mean_score) || min_mean_score < 0) min_mean_score <- 0
+  if (!is.finite(min_max_score) || min_max_score < 0) min_max_score <- 0
+  if (!is.finite(min_signal_to_noise) || min_signal_to_noise < 0) min_signal_to_noise <- 0
+  if (!is.finite(low_abundance_max_score) || low_abundance_max_score < 0) low_abundance_max_score <- 0.1
   if (!is.finite(loess_span) || loess_span <= 0 || loess_span > 1) loess_span <- 0.5
   if (!is.finite(bootstrap_n) || bootstrap_n < 0L) bootstrap_n <- 0L
   if (!is.finite(bootstrap_seed)) bootstrap_seed <- 1L
   if (!is.finite(ci_level) || ci_level <= 0 || ci_level >= 1) ci_level <- 0.95
   if (!is.finite(class_min_amplitude) || class_min_amplitude < 0) class_min_amplitude <- 0
+  if (!is.finite(n_permutations) || n_permutations < 0L) n_permutations <- 0L
+  if (!is.finite(permutation_seed)) permutation_seed <- 1L
+  .wb_assert(p_adjust_method %in% stats::p.adjust.methods,
+             "trajectory_geneset_dynamics: p_adjust_method must be one of stats::p.adjust.methods.")
 
   fs_info <- wb_feature_sets(bundle, matrix_id = matrix_id, namespace = namespace)
   .wb_assert(is.data.frame(fs_info) && nrow(fs_info) > 0L,
@@ -861,6 +959,13 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
   gi <- 0L
   dci <- 0L
   si <- 0L
+  if (n_permutations > 0L) {
+    old_seed <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) get(".Random.seed", envir = .GlobalEnv) else NULL
+    on.exit({
+      if (!is.null(old_seed)) assign(".Random.seed", old_seed, envir = .GlobalEnv)
+    }, add = TRUE)
+    set.seed(permutation_seed)
+  }
 
   for (lin in names(lineages)) {
     df_lin <- lineages[[lin]]
@@ -926,6 +1031,31 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
                      "detected_fraction", "label"), drop = FALSE]
 
       mm <- .wb_trajectory_geneset_dynamic_metrics(agg)
+      null_scores <- .wb_trajectory_geneset_null_dynamic_scores(
+        entity_id = sn,
+        lineage_id = lin,
+        pt = pt,
+        values = as.numeric(sig),
+        bins = bins,
+        min_cells_per_bin = min_cells_per_bin,
+        summary_fun = summary_fun,
+        smooth_method = smooth_method,
+        loess_span = loess_span,
+        n_permutations = n_permutations
+      )
+      null_scores <- null_scores[is.finite(null_scores)]
+      p_dynamic <- if (length(null_scores) > 0L && is.finite(mm$dynamic_score)) {
+        (1 + sum(null_scores >= mm$dynamic_score, na.rm = TRUE)) / (1 + length(null_scores))
+      } else {
+        NA_real_
+      }
+      null_mean_dynamic_score <- if (length(null_scores)) mean(null_scores, na.rm = TRUE) else NA_real_
+      null_sd_dynamic_score <- if (length(null_scores) >= 2L) stats::sd(null_scores, na.rm = TRUE) else NA_real_
+      z_dynamic_score <- if (is.finite(null_sd_dynamic_score) && null_sd_dynamic_score > 0) {
+        (mm$dynamic_score - null_mean_dynamic_score) / null_sd_dynamic_score
+      } else {
+        NA_real_
+      }
       curve_class <- .wb_trajectory_geneset_curve_class(
         late_minus_early = mm$late_minus_early,
         spearman_rho = mm$spearman_rho,
@@ -942,7 +1072,11 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
       if (!is.finite(mm$n_bins_observed) || mm$n_bins_observed < min_bins_observed) filter_reasons <- c(filter_reasons, "too_few_bins")
       if (n_features_detected < min_features_detected) filter_reasons <- c(filter_reasons, "too_few_detected_features")
       if (detected_fraction < min_detected_fraction) filter_reasons <- c(filter_reasons, "low_detected_fraction")
+      if (min_mean_score > 0 && (!is.finite(mm$mean_score) || mm$mean_score < min_mean_score)) filter_reasons <- c(filter_reasons, "low_mean_score")
+      if (min_max_score > 0 && (!is.finite(mm$max_score) || mm$max_score < min_max_score)) filter_reasons <- c(filter_reasons, "low_max_score")
+      if (min_signal_to_noise > 0 && (!is.finite(mm$signal_to_noise) || mm$signal_to_noise < min_signal_to_noise)) filter_reasons <- c(filter_reasons, "low_signal_to_noise")
       passes_filters <- length(filter_reasons) == 0L
+      low_abundance_flag <- is.finite(mm$max_score) && mm$max_score < low_abundance_max_score
       di <- di + 1L
       dyn_rows[[di]] <- data.frame(
         feature_set = as.character(sn),
@@ -956,13 +1090,27 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
         passes_filters = as.logical(passes_filters),
         filter_reason = if (passes_filters) "" else paste(filter_reasons, collapse = ";"),
         amplitude = as.numeric(mm$amplitude),
+        min_score = as.numeric(mm$min_score),
+        max_score = as.numeric(mm$max_score),
+        mean_score = as.numeric(mm$mean_score),
+        auc_score = as.numeric(mm$auc_score),
+        relative_amplitude = as.numeric(mm$relative_amplitude),
         sd_value = as.numeric(mm$sd_value),
+        mean_se = as.numeric(mm$mean_se),
+        signal_to_noise = as.numeric(mm$signal_to_noise),
+        low_abundance_flag = as.logical(low_abundance_flag),
         early_mean = as.numeric(mm$early_mean),
         late_mean = as.numeric(mm$late_mean),
         late_minus_early = as.numeric(mm$late_minus_early),
         spearman_rho = as.numeric(mm$spearman_rho),
         abs_spearman_rho = as.numeric(abs(mm$spearman_rho)),
         dynamic_score = as.numeric(mm$dynamic_score),
+        p_dynamic = as.numeric(p_dynamic),
+        q_dynamic = NA_real_,
+        null_mean_dynamic_score = as.numeric(null_mean_dynamic_score),
+        null_sd_dynamic_score = as.numeric(null_sd_dynamic_score),
+        z_dynamic_score = as.numeric(z_dynamic_score),
+        n_permutations = as.integer(length(null_scores)),
         peak_bin = as.integer(mm$peak_bin),
         trough_bin = as.integer(mm$trough_bin),
         peak_pseudotime = as.numeric(mm$peak_pseudotime),
@@ -1061,11 +1209,18 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
       min_bins_observed = as.integer(min_bins_observed),
       min_features_detected = as.integer(min_features_detected),
       min_detected_fraction = as.numeric(min_detected_fraction),
+      min_mean_score = as.numeric(min_mean_score),
+      min_max_score = as.numeric(min_max_score),
+      min_signal_to_noise = as.numeric(min_signal_to_noise),
+      low_abundance_max_score = as.numeric(low_abundance_max_score),
       smooth_method = as.character(smooth_method),
       loess_span = as.numeric(loess_span),
       bootstrap_n = as.integer(bootstrap_n),
       ci_level = as.numeric(ci_level),
       class_min_amplitude = as.numeric(class_min_amplitude),
+      n_permutations = as.integer(n_permutations),
+      permutation_seed = as.integer(permutation_seed),
+      p_adjust_method = as.character(p_adjust_method),
       top_driver_genes = as.integer(top_driver_genes),
       matrix_id = as.character(matrix_id),
       stringsAsFactors = FALSE
@@ -1093,14 +1248,22 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
       curve_class = character(0), n_features = integer(0), n_features_detected = integer(0),
       detected_fraction = numeric(0), n_bins_observed = integer(0), passes_filters = logical(0),
       filter_reason = character(0), amplitude = numeric(0),
-      sd_value = numeric(0), early_mean = numeric(0), late_mean = numeric(0),
+      min_score = numeric(0), max_score = numeric(0), mean_score = numeric(0),
+      auc_score = numeric(0), relative_amplitude = numeric(0),
+      sd_value = numeric(0), mean_se = numeric(0), signal_to_noise = numeric(0),
+      low_abundance_flag = logical(0), early_mean = numeric(0), late_mean = numeric(0),
       late_minus_early = numeric(0), spearman_rho = numeric(0), abs_spearman_rho = numeric(0),
       dynamic_score = numeric(0), peak_bin = integer(0), trough_bin = integer(0),
+      p_dynamic = numeric(0), q_dynamic = numeric(0), null_mean_dynamic_score = numeric(0),
+      null_sd_dynamic_score = numeric(0), z_dynamic_score = numeric(0), n_permutations = integer(0),
       peak_pseudotime = numeric(0), trough_pseudotime = numeric(0), rank = integer(0),
       stringsAsFactors = FALSE
     )
   } else {
     out <- do.call(rbind, dyn_rows[seq_len(di)])
+    out$q_dynamic <- NA_real_
+    finite_p <- is.finite(out$p_dynamic)
+    if (any(finite_p)) out$q_dynamic[finite_p] <- stats::p.adjust(out$p_dynamic[finite_p], method = p_adjust_method)
     out <- out[order(as.character(out$lineage_id), -out$dynamic_score, -out$amplitude, -out$sd_value), , drop = FALSE]
     out$rank <- ave(seq_len(nrow(out)), as.character(out$lineage_id), FUN = seq_along)
     rownames(out) <- NULL
@@ -1161,10 +1324,17 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
           min_bins_observed = as.integer(min_bins_observed),
           min_features_detected = as.integer(min_features_detected),
           min_detected_fraction = as.numeric(min_detected_fraction),
+          min_mean_score = as.numeric(min_mean_score),
+          min_max_score = as.numeric(min_max_score),
+          min_signal_to_noise = as.numeric(min_signal_to_noise),
+          low_abundance_max_score = as.numeric(low_abundance_max_score),
           smooth_method = as.character(smooth_method),
           loess_span = as.numeric(loess_span),
           bootstrap_n = as.integer(bootstrap_n),
           ci_level = as.numeric(ci_level),
+          n_permutations = as.integer(n_permutations),
+          permutation_seed = as.integer(permutation_seed),
+          p_adjust_method = as.character(p_adjust_method),
           n_bins = as.integer(unique(fit_summary$n_bins %||% n_bins)[1] %||% n_bins)
         )
       ),
@@ -1176,8 +1346,10 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
           matrix_id = as.character(matrix_id),
           namespace = as.character(namespace),
           dynamic_score = "amplitude + sd_value + abs(late_minus_early) + abs(spearman_rho) * sd_value",
+          abundance_metrics = "mean_score, max_score, min_score, auc_score, relative_amplitude, mean_se, signal_to_noise, low_abundance_flag",
+          empirical_significance = "p_dynamic and q_dynamic from permuting cell-level scores relative to fixed pseudotime/bin structure; disabled when n_permutations=0",
           curve_class = "turns_on/turns_off/transient_peak/transient_dip/weak_on/weak_off/flat_or_noisy",
-          passes_filters = "min_amplitude, min_bins_observed, min_features_detected, min_detected_fraction"
+          passes_filters = "min_amplitude, min_bins_observed, min_features_detected, min_detected_fraction, min_mean_score, min_max_score, min_signal_to_noise"
         )
       ),
       top_sets = wb_prim_obs_table(
@@ -1241,11 +1413,18 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
       min_bins_observed = as.integer(min_bins_observed),
       min_features_detected = as.integer(min_features_detected),
       min_detected_fraction = as.numeric(min_detected_fraction),
+      min_mean_score = as.numeric(min_mean_score),
+      min_max_score = as.numeric(min_max_score),
+      min_signal_to_noise = as.numeric(min_signal_to_noise),
+      low_abundance_max_score = as.numeric(low_abundance_max_score),
       smooth_method = as.character(smooth_method),
       loess_span = as.numeric(loess_span),
       bootstrap_n = as.integer(bootstrap_n),
       ci_level = as.numeric(ci_level),
-      class_min_amplitude = as.numeric(class_min_amplitude)
+      class_min_amplitude = as.numeric(class_min_amplitude),
+      n_permutations = as.integer(n_permutations),
+      permutation_seed = as.integer(permutation_seed),
+      p_adjust_method = as.character(p_adjust_method)
     )
   )
 }
