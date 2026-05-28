@@ -1,4 +1,4 @@
-#' Apply runtime compute profile options
+#' Apply A Runtime Compute Profile
 #'
 #' Sets package runtime options for memory/performance tradeoffs.
 #' Use conservative defaults for local development and higher limits on
@@ -52,4 +52,3 @@ wb_compute_profile <- function(profile = c("local", "cluster", "custom"),
     scworkbench.feature_plan_chunk_size = getOption("scworkbench.feature_plan_chunk_size")
   )
 }
-

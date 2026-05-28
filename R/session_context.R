@@ -14,9 +14,11 @@
   lapply(cat, function(x) {
     list(
       requires = x$requires %||% list(),
+      optional_requires = x$optional_requires %||% list(),
       produces = x$produces %||% list(),
       runner = x$runner,
-      promotable = x$promotable %||% character(0)
+      promotable = x$promotable %||% character(0),
+      chunking = x$chunking %||% NULL
     )
   })
 }
@@ -106,8 +108,17 @@ wb_session_add_run <- function(session, run) {
   val <- inputs[[name]] %||% (if (!is.null(alias)) inputs[[alias]] else NULL)
   ref <- NULL
 
+  # Ergonomics: allow refs directly in inputs[[name]] in addition to inputs[[paste0(name, "_ref")]].
+  # This keeps programmatic chaining natural for agents and humans:
+  #   inputs = list(feature_table = wb_ref_run(...))
+  if (!is.null(val) && is.list(val) && !is.null(val$ref_type)) {
+    ref <- val
+    val <- NULL
+  }
+
   if (is.null(val)) {
-    ref <- inputs[[paste0(name, "_ref")]] %||%
+    ref <- ref %||%
+      inputs[[paste0(name, "_ref")]] %||%
       (if (!is.null(alias)) inputs[[paste0(alias, "_ref")]] else NULL) %||%
       session$active[[name]] %||%
       (if (!is.null(alias)) session$active[[alias]] else NULL) %||%
@@ -175,6 +186,31 @@ wb_session_add_run <- function(session, run) {
   list(value = val, parents = parents, prov_refs = prov_refs)
 }
 
+.wb_optional_input_present <- function(session, name, inputs) {
+  alias <- switch(
+    name,
+    space       = "space_id",
+    space_2d    = "space_id",
+    matrix      = "matrix_id",
+    in_space    = "in_space_id",
+    model_space = "model_space_id",
+    NULL
+  )
+
+  candidates <- list(
+    inputs[[name]],
+    if (!is.null(alias)) inputs[[alias]] else NULL,
+    inputs[[paste0(name, "_ref")]],
+    if (!is.null(alias)) inputs[[paste0(alias, "_ref")]] else NULL,
+    session$active[[name]],
+    if (!is.null(alias)) session$active[[alias]] else NULL,
+    if (name == "space") session$active$space_id else NULL,
+    if (name == "matrix") session$active$matrix_id else NULL
+  )
+
+  any(vapply(candidates, function(x) !is.null(x), logical(1)))
+}
+
 
 
 # ---------- Run op ----------
@@ -205,6 +241,18 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   if (length(req)) {
     for (nm in names(req)) {
       kind <- req[[nm]]
+      rr <- .wb_resolve_input(bundle, session, nm, kind, inputs)
+      resolved[[nm]] <- rr$value
+      parents <- unique(c(parents, rr$parents))
+      prov_refs <- c(prov_refs, rr$prov_refs)
+    }
+  }
+
+  opt_req <- op$optional_requires %||% list()
+  if (length(opt_req)) {
+    for (nm in names(opt_req)) {
+      if (!.wb_optional_input_present(session, nm, inputs)) next
+      kind <- opt_req[[nm]]
       rr <- .wb_resolve_input(bundle, session, nm, kind, inputs)
       resolved[[nm]] <- rr$value
       parents <- unique(c(parents, rr$parents))

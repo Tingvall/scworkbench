@@ -1,162 +1,173 @@
-# Adding an op
+# Adding an Op
 
-To add an op, do the following steps:
+Current engine rule:
 
-## Implement the op
+- add ops through one canonical path
+- do not edit parallel registries by hand
 
+The canonical registration point is:
+
+- `R/op_catalog.R`
+
+An op should be added as:
+
+1. a `wb_op_*()` implementation function
+2. a runner in `R/op_catalog.R`
+3. one `trajectory_de = list(...)`-style op entry in `.wb_op_catalog()`
+4. contract tests
+5. optional client adaptation
+
+## 1. Implement the op function
 
 Conventions:
 
-- name should be _wb_op_foo()_
-- file should be _R/ops_foo.R_
-- contract should be _wb_op_foo(bundle, <resolved required inputs>, ...)_
-- returns a list with named fields: 
-  - outputs, containing one or more of the following:
-      - _labels_ (data.frame: cell_id + cluster) 
-      - _pseudotime_ (data.frame: cell_id + lineage_id + pseudotime)
-      - _curves_ (data.frame: lineage_id + point + x + y)
-      - _scores_ (data.frame: cell_id + scores)
-  - _params_ list of resolved parameters actually used (for provenance)
+- name: `wb_op_foo()`
+- file: `R/op_foo.R` or nearby domain file
+- inputs: resolved engine objects, not client-shaped UI payloads
+- output: `list(outputs = <named primitives>, params = <list>)`
 
-example skeleton:
+Example skeleton:
 
-```{r}
+```r
 #' @export
-wb_op_foo <- function(bundle, space_id, ..., seed = 1) {
-  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) set.seed(seed)
+wb_op_foo <- function(bundle, matrix_id, cells = NULL, seed = 1L) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
 
   # compute ...
-  res <- list(
-    labels = labels_df,          # if produces labels
-    pseudotime = pseudotime_df,  # if produces trajectory
-    curves = curves_df,          # if produces trajectory
-    scores = scores_vec,         # if produces scores
-    params = list(seed = seed, ...)  # always include params
+
+  list(
+    outputs = list(
+      summary = wb_prim_obs_table(
+        table = out_tbl,
+        table_type = "foo_summary",
+        entity_kind = "generic"
+      )
+    ),
+    params = list(
+      matrix_id = matrix_id,
+      seed = as.integer(seed)
+    )
   )
-  res
 }
-```
-
-## Declare it in the session op spec
-
-File: _R/session_context.R_
-
-
-Add:
-
-```{r}
-foo = list(
-  requires = c("space"),     # or "matrix", "labels"
-  produces = c("scores")     # or "labels", "trajectory"
-)
 ```
 
 Rules:
 
-_requires_ controls what _wb_session_run_op()_ resolves (_space_id, matrix_id, labels_)
+- outputs must be named primitives
+- primitive kinds must already be engine-supported
+- `params` must reflect resolved values actually used
 
-_produces_ controls what _wb_session_run_op()_ stores in _run$outputs_ and sets active refs
+## 2. Add the runner in `R/op_catalog.R`
 
+The runner adapts resolved session inputs to the op function.
 
-## Add its UI/agent interface spec
+Example:
 
-File: _R/op_interface.R_
+```r
+.wb_runner_foo <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "foo runner: missing resolved$matrix.")
 
-Add a new entry to _.wb_op_interface_registry()_:
+  raw <- wb_op_foo(
+    bundle = bundle,
+    matrix_id = as.character(resolved$matrix$matrix_id)[1],
+    cells = effective_cells,
+    seed = as.integer(inputs$seed %||% 1L)
+  )
 
-```{r}
+  .wb_assert(is.list(raw) && is.list(raw$outputs) && is.list(raw$params),
+             "foo must return list(outputs=<list>, params=<list>).")
+  raw
+}
+```
+
+## 3. Register the op in `.wb_op_catalog()`
+
+Define together:
+
+- required inputs
+- produced primitive kinds
+- promotable outputs
+- interface metadata
+- runner
+
+Example shape:
+
+```r
 foo = list(
   op_name = "foo",
-  title = "Foo scoring",
-  description = "…",
-  intent = c("score"),
+  title = "Foo summary",
+  description = "Compute foo from a resolved matrix.",
+  intent = c("summary"),
+  requires = list(matrix = "matrix"),
+  produces = list(summary = "obs_table"),
+  promotable = c("summary"),
   inputs = list(
-    space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
+    matrix = list(required = TRUE)
   ),
   params = list(
-    list(name="seed", type="int", default=1, help="Random seed.")
+    list(name = "seed", type = "int", default = 1, help = "Random seed.")
   ),
-  produces = list(
-    scores = list(kind="scores", description="Per-cell numeric score.")
-  )
+  interface_produces = list(
+    summary = list(kind = "obs_table", description = "Foo summary table.")
+  ),
+  runner = .wb_runner_foo
 )
 ```
 
+Do not add separate interface or dispatch entries elsewhere.
 
-## Add to promotion registry
+Those are derived from the catalog.
 
-File: _R/op_registry.R_
+## 4. Promotion
 
-Add:
+If the op emits an existing primitive kind and includes the output name in
+`promotable`, promotion should work through the existing promoter map.
 
-```{r}
-foo = list(
-  saveable_outputs = list(
-    scores = list(
-      artifact_type = "scores",
-      promoter = ".wb_promote_scores"
-    )
-  )
-)
-```
+If the op needs a new primitive kind:
 
-Then implement the promoter if it doesn’t exist:
+- stop first
+- define the primitive contract before adding the op
 
-_.wb_promote_scores(bundle, run, ...)_ writes to DB artifact tables
+Do not smuggle a new output type through an existing primitive casually.
 
-returns new _artifact_id_
+## 5. Tests
 
-## Register the op in the dispatch registry 
+Minimum:
 
-Each op must be registered in the dispatch registry, which defines how inputs are mapped to the op function.
+- contract test for the op
+- real-bundle smoke run if the op touches substantial engine behavior
 
-File: _R/op_dispatch.R_
+Typical places:
 
-What to add
+- `tests/test_op_<name>_contract.R`
+- `tests/test_all.R`
 
-Add a runner function for your op to .wb_op_dispatch_registry().
+Test:
 
-Example for a simple space-based op (foo):
+- interface shape
+- output primitive kind(s)
+- required columns / metadata
+- promotion, if promotable
 
-```{r}
-.wb_op_dispatch_registry <- function() {
-  list(
-    # existing runners ...
+## 6. Docs
 
-    foo = function(bundle, space_id, ..., inputs, matrix_id = NULL, labels_df = NULL) {
-      wb_op_foo(
-        bundle = bundle,
-        space_id = space_id,
-        ...
-      )
-    }
-  )
-}
-```
+Update:
 
-Example for an op that requires labels (slingshot-like):
+- roxygen on exported helpers
+- relevant contract docs
+- extension docs if this introduces a new extensibility surface
 
-```{r}
-slingshot = function(bundle, space_id, ..., inputs, matrix_id = NULL, labels_df) {
-  wb_op_slingshot(
-    bundle = bundle,
-    space_id = space_id,
-    labels = labels_df,
-    ...
-  )
-}
-```
+## Anti-Patterns
 
-Example for an op that requires a matrix (meanexpr-like):
+Do not:
 
-```{r}
-meanexpr = function(bundle, space_id = NULL, ..., inputs, matrix_id, labels_df = NULL) {
-  wb_op_meanexpr(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    features = inputs$features,
-    ...
-  )
-}
-```
+- add separate manual interface registries
+- add client-specific behavior into the op
+- return raw data frames instead of primitives
+- hide major analysis decisions in plot mappers instead of ops
 
+## Related Docs
+
+- `inst/foundation_contracts.md`
+- `docs/engine_extension_patterns.md`
+- `docs/navigation_contract_draft.md`

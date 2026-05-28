@@ -1,0 +1,5212 @@
+{
+  "schema_version": "scworkbench.semantic_compatibility_graph.v1",
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "node_count": 239,
+  "edge_count": 628,
+  "nodes": [
+    {
+      "record_id": "op:leiden",
+      "record_type": "op",
+      "name": "leiden",
+      "title": "Leiden clustering"
+    },
+    {
+      "record_id": "op:matrix_log_normalize",
+      "record_type": "op",
+      "name": "matrix_log_normalize",
+      "title": "Log-normalize count matrix"
+    },
+    {
+      "record_id": "op:umap_fit",
+      "record_type": "op",
+      "name": "umap_fit",
+      "title": "UMAP fit (train model)"
+    },
+    {
+      "record_id": "op:umap_transform",
+      "record_type": "op",
+      "name": "umap_transform",
+      "title": "UMAP transform (project cells)"
+    },
+    {
+      "record_id": "op:addmodulescore",
+      "record_type": "op",
+      "name": "addmodulescore",
+      "title": "Add module score"
+    },
+    {
+      "record_id": "op:ucell",
+      "record_type": "op",
+      "name": "ucell",
+      "title": "UCell Signature Scoring"
+    },
+    {
+      "record_id": "op:cell_vector_family_reduce",
+      "record_type": "op",
+      "name": "cell_vector_family_reduce",
+      "title": "Reduce Cell Vector Family"
+    },
+    {
+      "record_id": "op:cell_vector_family_calibrate",
+      "record_type": "op",
+      "name": "cell_vector_family_calibrate",
+      "title": "Calibrate Cell Vector Family"
+    },
+    {
+      "record_id": "op:cell_vector_family_qc",
+      "record_type": "op",
+      "name": "cell_vector_family_qc",
+      "title": "QC Cell Vector Family"
+    },
+    {
+      "record_id": "op:chromvar",
+      "record_type": "op",
+      "name": "chromvar",
+      "title": "chromVAR deviations"
+    },
+    {
+      "record_id": "op:de_wilcox",
+      "record_type": "op",
+      "name": "de_wilcox",
+      "title": "Differential Expression (Wilcoxon)"
+    },
+    {
+      "record_id": "op:markers_topn",
+      "record_type": "op",
+      "name": "markers_topn",
+      "title": "Top Markers Per Cluster"
+    },
+    {
+      "record_id": "op:pathway_enrich",
+      "record_type": "op",
+      "name": "pathway_enrich",
+      "title": "Pathway Enrichment (Namespace)"
+    },
+    {
+      "record_id": "op:cell_suffix_label",
+      "record_type": "op",
+      "name": "cell_suffix_label",
+      "title": "Cell Labels From ID Suffix"
+    },
+    {
+      "record_id": "op:cell_vector_assoc",
+      "record_type": "op",
+      "name": "cell_vector_assoc",
+      "title": "Cell Vector Association"
+    },
+    {
+      "record_id": "op:cell_vector_compare",
+      "record_type": "op",
+      "name": "cell_vector_compare",
+      "title": "Cell Vector Comparison"
+    },
+    {
+      "record_id": "op:feature_trend_spearman",
+      "record_type": "op",
+      "name": "feature_trend_spearman",
+      "title": "Feature Trends vs Continuous Vector"
+    },
+    {
+      "record_id": "op:trajectory_de",
+      "record_type": "op",
+      "name": "trajectory_de",
+      "title": "Trajectory DE"
+    },
+    {
+      "record_id": "op:trajectory_smooth",
+      "record_type": "op",
+      "name": "trajectory_smooth",
+      "title": "Trajectory Feature Smoothing"
+    },
+    {
+      "record_id": "op:trajectory_branch_compare",
+      "record_type": "op",
+      "name": "trajectory_branch_compare",
+      "title": "Trajectory Branch Compare"
+    },
+    {
+      "record_id": "op:trajectory_signature_smooth",
+      "record_type": "op",
+      "name": "trajectory_signature_smooth",
+      "title": "Trajectory Signature Smoothing"
+    },
+    {
+      "record_id": "op:trajectory_geneset_dynamics",
+      "record_type": "op",
+      "name": "trajectory_geneset_dynamics",
+      "title": "Trajectory Gene-Set Dynamics"
+    },
+    {
+      "record_id": "op:trajectory_route_smooth",
+      "record_type": "op",
+      "name": "trajectory_route_smooth",
+      "title": "Trajectory Route Smoothing"
+    },
+    {
+      "record_id": "op:trajectory_vector_smooth",
+      "record_type": "op",
+      "name": "trajectory_vector_smooth",
+      "title": "Trajectory Signal Smoothing"
+    },
+    {
+      "record_id": "op:trajectory_signal_dynamics",
+      "record_type": "op",
+      "name": "trajectory_signal_dynamics",
+      "title": "Trajectory Signal Dynamics"
+    },
+    {
+      "record_id": "op:knn_pseudobulk",
+      "record_type": "op",
+      "name": "knn_pseudobulk",
+      "title": "kNN Pseudobulk Around Query Cell(s)"
+    },
+    {
+      "record_id": "op:knn_neighbors",
+      "record_type": "op",
+      "name": "knn_neighbors",
+      "title": "kNN neighbors around query cell(s)"
+    },
+    {
+      "record_id": "op:slingshot",
+      "record_type": "op",
+      "name": "slingshot",
+      "title": "Slingshot trajectory"
+    },
+    {
+      "record_id": "op:slingshot_fit",
+      "record_type": "op",
+      "name": "slingshot_fit",
+      "title": "Slingshot fit"
+    },
+    {
+      "record_id": "op:slingshot_project",
+      "record_type": "op",
+      "name": "slingshot_project",
+      "title": "Slingshot project curves"
+    },
+    {
+      "record_id": "op:monocle3_fit",
+      "record_type": "op",
+      "name": "monocle3_fit",
+      "title": "Monocle3 fit (hybrid space)"
+    },
+    {
+      "record_id": "op:monocle3_project",
+      "record_type": "op",
+      "name": "monocle3_project",
+      "title": "Monocle3 project curves"
+    },
+    {
+      "record_id": "op:peakvi_fit",
+      "record_type": "op",
+      "name": "peakvi_fit",
+      "title": "PeakVI fit (pybench)"
+    },
+    {
+      "record_id": "op:peakvi_project",
+      "record_type": "op",
+      "name": "peakvi_project",
+      "title": "PeakVI project (pybench)"
+    },
+    {
+      "record_id": "op:space_path_define",
+      "record_type": "op",
+      "name": "space_path_define",
+      "title": "Define analytical space path"
+    },
+    {
+      "record_id": "op:space_path_score",
+      "record_type": "op",
+      "name": "space_path_score",
+      "title": "Score cells against analytical path"
+    },
+    {
+      "record_id": "op:space_path_project_2d",
+      "record_type": "op",
+      "name": "space_path_project_2d",
+      "title": "Project analytical path into 2D"
+    },
+    {
+      "record_id": "op:palantir_fit",
+      "record_type": "op",
+      "name": "palantir_fit",
+      "title": "Palantir fit (pybench)"
+    },
+    {
+      "record_id": "op:palantir_project",
+      "record_type": "op",
+      "name": "palantir_project",
+      "title": "Palantir project trajectories"
+    },
+    {
+      "record_id": "getter:wb_status",
+      "record_type": "getter",
+      "name": "wb_status",
+      "title": "Bundle Status"
+    },
+    {
+      "record_id": "getter:wb_manifest",
+      "record_type": "getter",
+      "name": "wb_manifest",
+      "title": "Bundle Manifest"
+    },
+    {
+      "record_id": "getter:wb_bundle_schema",
+      "record_type": "getter",
+      "name": "wb_bundle_schema",
+      "title": "Bundle Schema"
+    },
+    {
+      "record_id": "getter:wb_list",
+      "record_type": "getter",
+      "name": "wb_list",
+      "title": "Registry List"
+    },
+    {
+      "record_id": "getter:wb_cells",
+      "record_type": "getter",
+      "name": "wb_cells",
+      "title": "Cell IDs"
+    },
+    {
+      "record_id": "getter:wb_cell_sets",
+      "record_type": "getter",
+      "name": "wb_cell_sets",
+      "title": "Cell Sets"
+    },
+    {
+      "record_id": "getter:wb_resolve_cell_set",
+      "record_type": "getter",
+      "name": "wb_resolve_cell_set",
+      "title": "Resolve Cell Set"
+    },
+    {
+      "record_id": "getter:wb_meta",
+      "record_type": "getter",
+      "name": "wb_meta",
+      "title": "Cell Metadata"
+    },
+    {
+      "record_id": "getter:wb_cell_coverage",
+      "record_type": "getter",
+      "name": "wb_cell_coverage",
+      "title": "Cell Coverage"
+    },
+    {
+      "record_id": "getter:wb_cells_with_matrix",
+      "record_type": "getter",
+      "name": "wb_cells_with_matrix",
+      "title": "Cells With Matrix"
+    },
+    {
+      "record_id": "getter:wb_cells_with_space",
+      "record_type": "getter",
+      "name": "wb_cells_with_space",
+      "title": "Cells With Space"
+    },
+    {
+      "record_id": "getter:wb_matrices",
+      "record_type": "getter",
+      "name": "wb_matrices",
+      "title": "Matrices"
+    },
+    {
+      "record_id": "getter:wb_matrix_info",
+      "record_type": "getter",
+      "name": "wb_matrix_info",
+      "title": "Matrix Info"
+    },
+    {
+      "record_id": "getter:wb_matrix_fragments",
+      "record_type": "getter",
+      "name": "wb_matrix_fragments",
+      "title": "Matrix Fragments"
+    },
+    {
+      "record_id": "getter:wb_matrix_resolve",
+      "record_type": "getter",
+      "name": "wb_matrix_resolve",
+      "title": "Resolve Matrix"
+    },
+    {
+      "record_id": "getter:wb_matrix",
+      "record_type": "getter",
+      "name": "wb_matrix",
+      "title": "Matrix Handle"
+    },
+    {
+      "record_id": "getter:wb_slice",
+      "record_type": "getter",
+      "name": "wb_slice",
+      "title": "Matrix Slice"
+    },
+    {
+      "record_id": "getter:wb_matrix_read_feature",
+      "record_type": "getter",
+      "name": "wb_matrix_read_feature",
+      "title": "Read One Feature"
+    },
+    {
+      "record_id": "getter:wb_matrix_read_features",
+      "record_type": "getter",
+      "name": "wb_matrix_read_features",
+      "title": "Read Features"
+    },
+    {
+      "record_id": "getter:wb_vector",
+      "record_type": "getter",
+      "name": "wb_vector",
+      "title": "Feature Vector"
+    },
+    {
+      "record_id": "getter:wb_features",
+      "record_type": "getter",
+      "name": "wb_features",
+      "title": "Features"
+    },
+    {
+      "record_id": "getter:wb_feature_ids",
+      "record_type": "getter",
+      "name": "wb_feature_ids",
+      "title": "Feature IDs"
+    },
+    {
+      "record_id": "getter:wb_search_features",
+      "record_type": "getter",
+      "name": "wb_search_features",
+      "title": "Search Features"
+    },
+    {
+      "record_id": "getter:wb_feature_sets",
+      "record_type": "getter",
+      "name": "wb_feature_sets",
+      "title": "Feature Sets"
+    },
+    {
+      "record_id": "getter:wb_feature_set_info",
+      "record_type": "getter",
+      "name": "wb_feature_set_info",
+      "title": "Feature Set Info"
+    },
+    {
+      "record_id": "getter:wb_feature_set_get",
+      "record_type": "getter",
+      "name": "wb_feature_set_get",
+      "title": "Feature Set Members"
+    },
+    {
+      "record_id": "getter:wb_spaces",
+      "record_type": "getter",
+      "name": "wb_spaces",
+      "title": "Spaces"
+    },
+    {
+      "record_id": "getter:wb_space_info",
+      "record_type": "getter",
+      "name": "wb_space_info",
+      "title": "Space Info"
+    },
+    {
+      "record_id": "getter:wb_space",
+      "record_type": "getter",
+      "name": "wb_space",
+      "title": "Space Coordinates"
+    },
+    {
+      "record_id": "getter:wb_spaces_with_model",
+      "record_type": "getter",
+      "name": "wb_spaces_with_model",
+      "title": "Spaces With Model"
+    },
+    {
+      "record_id": "getter:wb_space_model",
+      "record_type": "getter",
+      "name": "wb_space_model",
+      "title": "Space Model Metadata"
+    },
+    {
+      "record_id": "getter:wb_space_model_path",
+      "record_type": "getter",
+      "name": "wb_space_model_path",
+      "title": "Space Model Path"
+    },
+    {
+      "record_id": "getter:wb_art_list",
+      "record_type": "getter",
+      "name": "wb_art_list",
+      "title": "Artifacts"
+    },
+    {
+      "record_id": "getter:wb_art_load",
+      "record_type": "getter",
+      "name": "wb_art_load",
+      "title": "Load Artifact"
+    },
+    {
+      "record_id": "getter:wb_art_table_info",
+      "record_type": "getter",
+      "name": "wb_art_table_info",
+      "title": "Table Artifact Info"
+    },
+    {
+      "record_id": "getter:wb_art_table_slice",
+      "record_type": "getter",
+      "name": "wb_art_table_slice",
+      "title": "Table Artifact Slice"
+    },
+    {
+      "record_id": "getter:wb_art_table_distinct",
+      "record_type": "getter",
+      "name": "wb_art_table_distinct",
+      "title": "Table Artifact Distinct Values"
+    },
+    {
+      "record_id": "getter:wb_art_identity_card",
+      "record_type": "getter",
+      "name": "wb_art_identity_card",
+      "title": "Artifact Identity Card"
+    },
+    {
+      "record_id": "getter:wb_art_birth_certificate",
+      "record_type": "getter",
+      "name": "wb_art_birth_certificate",
+      "title": "Artifact Birth Certificate"
+    },
+    {
+      "record_id": "getter:wb_art_dependencies",
+      "record_type": "getter",
+      "name": "wb_art_dependencies",
+      "title": "Artifact Dependencies"
+    },
+    {
+      "record_id": "getter:wb_art_trajectory_related",
+      "record_type": "getter",
+      "name": "wb_art_trajectory_related",
+      "title": "Related Trajectory Artifacts"
+    },
+    {
+      "record_id": "getter:wb_list_cell_vectors",
+      "record_type": "getter",
+      "name": "wb_list_cell_vectors",
+      "title": "Cell Vectors"
+    },
+    {
+      "record_id": "getter:wb_list_vector_sources",
+      "record_type": "getter",
+      "name": "wb_list_vector_sources",
+      "title": "Vector Sources"
+    },
+    {
+      "record_id": "getter:wb_read_cell_vector",
+      "record_type": "getter",
+      "name": "wb_read_cell_vector",
+      "title": "Read Cell Vector"
+    },
+    {
+      "record_id": "getter:wb_read_cell_vector_family",
+      "record_type": "getter",
+      "name": "wb_read_cell_vector_family",
+      "title": "Read Cell Vector Family Member"
+    },
+    {
+      "record_id": "getter:wb_cell_vector_load",
+      "record_type": "getter",
+      "name": "wb_cell_vector_load",
+      "title": "Load Cell Vector Primitive"
+    },
+    {
+      "record_id": "getter:wb_motif_libraries",
+      "record_type": "getter",
+      "name": "wb_motif_libraries",
+      "title": "Motif Libraries"
+    },
+    {
+      "record_id": "getter:wb_motifs",
+      "record_type": "getter",
+      "name": "wb_motifs",
+      "title": "Motifs"
+    },
+    {
+      "record_id": "getter:wb_motif_match_sets",
+      "record_type": "getter",
+      "name": "wb_motif_match_sets",
+      "title": "Motif Match Sets"
+    },
+    {
+      "record_id": "getter:wb_motif_match_get",
+      "record_type": "getter",
+      "name": "wb_motif_match_get",
+      "title": "Motif Match Membership"
+    },
+    {
+      "record_id": "getter:wb_prov_list_heads",
+      "record_type": "getter",
+      "name": "wb_prov_list_heads",
+      "title": "Provenance Heads"
+    },
+    {
+      "record_id": "getter:wb_prov_dag",
+      "record_type": "getter",
+      "name": "wb_prov_dag",
+      "title": "Provenance DAG"
+    },
+    {
+      "record_id": "getter:wb_prov_run_details",
+      "record_type": "getter",
+      "name": "wb_prov_run_details",
+      "title": "Provenance Run Details"
+    },
+    {
+      "record_id": "getter:wb_session_dag",
+      "record_type": "getter",
+      "name": "wb_session_dag",
+      "title": "Session DAG"
+    },
+    {
+      "record_id": "getter:wb_session_dag_run_details",
+      "record_type": "getter",
+      "name": "wb_session_dag_run_details",
+      "title": "Session DAG Run Details"
+    },
+    {
+      "record_id": "getter:wb_nav_entities",
+      "record_type": "getter",
+      "name": "wb_nav_entities",
+      "title": "Navigation Entities"
+    },
+    {
+      "record_id": "getter:wb_nav_targets",
+      "record_type": "getter",
+      "name": "wb_nav_targets",
+      "title": "Navigation Targets"
+    },
+    {
+      "record_id": "getter:wb_nav_handoff",
+      "record_type": "getter",
+      "name": "wb_nav_handoff",
+      "title": "Navigation Handoff"
+    },
+    {
+      "record_id": "getter:wb_client_discover",
+      "record_type": "getter",
+      "name": "wb_client_discover",
+      "title": "Client Discovery"
+    },
+    {
+      "record_id": "getter:wb_client_inspect",
+      "record_type": "getter",
+      "name": "wb_client_inspect",
+      "title": "Client Inspect"
+    },
+    {
+      "record_id": "getter:wb_client_load",
+      "record_type": "getter",
+      "name": "wb_client_load",
+      "title": "Client Load"
+    },
+    {
+      "record_id": "getter:wb_client_load_table",
+      "record_type": "getter",
+      "name": "wb_client_load_table",
+      "title": "Client Load Table"
+    },
+    {
+      "record_id": "plot:embedding_overlay",
+      "record_type": "plot",
+      "name": "embedding_overlay",
+      "title": "Embedding Overlay"
+    },
+    {
+      "record_id": "plot:volcano",
+      "record_type": "plot",
+      "name": "volcano",
+      "title": "Volcano Plot"
+    },
+    {
+      "record_id": "plot:trend_scatter",
+      "record_type": "plot",
+      "name": "trend_scatter",
+      "title": "Trend Scatter"
+    },
+    {
+      "record_id": "plot:violin",
+      "record_type": "plot",
+      "name": "violin",
+      "title": "Violin Plot"
+    },
+    {
+      "record_id": "plot:category_count_bar",
+      "record_type": "plot",
+      "name": "category_count_bar",
+      "title": "Category Count Bar"
+    },
+    {
+      "record_id": "plot:dotplot",
+      "record_type": "plot",
+      "name": "dotplot",
+      "title": "Dotplot"
+    },
+    {
+      "record_id": "plot:pathway_bar",
+      "record_type": "plot",
+      "name": "pathway_bar",
+      "title": "Pathway Bar"
+    },
+    {
+      "record_id": "plot:ranked_lollipop",
+      "record_type": "plot",
+      "name": "ranked_lollipop",
+      "title": "Ranked Lollipop"
+    },
+    {
+      "record_id": "plot:heatmap_ranked",
+      "record_type": "plot",
+      "name": "heatmap_ranked",
+      "title": "Ranked Heatmap"
+    },
+    {
+      "record_id": "plot:feature_rank_bar",
+      "record_type": "plot",
+      "name": "feature_rank_bar",
+      "title": "Feature Rank Bar"
+    },
+    {
+      "record_id": "plot:pseudotime_smooth_panel",
+      "record_type": "plot",
+      "name": "pseudotime_smooth_panel",
+      "title": "Pseudotime Smooth Panel"
+    },
+    {
+      "record_id": "plot:pseudotime_signature_line",
+      "record_type": "plot",
+      "name": "pseudotime_signature_line",
+      "title": "Pseudotime Signature Line"
+    },
+    {
+      "record_id": "wrangler:table:primitive_to_table",
+      "record_type": "wrangler",
+      "name": "table:primitive_to_table",
+      "title": "Primitive To Table Wrangler"
+    },
+    {
+      "record_id": "wrangler:table:client_load_table",
+      "record_type": "wrangler",
+      "name": "table:client_load_table",
+      "title": "Client Reference To Table Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:space2d_overlay_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:space2d_overlay_v1",
+      "title": "Space + Vector Embedding Overlay Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:feature_table_volcano_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:feature_table_volcano_v1",
+      "title": "Feature Table Volcano Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:feature_table_trend_scatter_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:feature_table_trend_scatter_v1",
+      "title": "Feature Trend Scatter Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:cell_vector_violin_v1",
+      "title": "Cell Vector Violin Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:cell_vector_category_count_bar_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:cell_vector_category_count_bar_v1",
+      "title": "Categorical Cell Vector Count Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:feature_table_dotplot_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:feature_table_dotplot_v1",
+      "title": "Feature Group Dotplot Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:feature_table_pathway_bar_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:feature_table_pathway_bar_v1",
+      "title": "Pathway Summary Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:feature_table_ranked_lollipop_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:feature_table_ranked_lollipop_v1",
+      "title": "Ranked Table Lollipop Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:feature_table_heatmap_ranked_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:feature_table_heatmap_ranked_v1",
+      "title": "Ranked Feature Heatmap Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:feature_table_feature_rank_bar_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:feature_table_feature_rank_bar_v1",
+      "title": "Feature Rank Bar Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:trajectory_pseudotime_smooth_panel_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:trajectory_pseudotime_smooth_panel_v1",
+      "title": "Pseudotime Smooth Wrangler"
+    },
+    {
+      "record_id": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "record_type": "wrangler",
+      "name": "plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "title": "Pseudotime Signature Wrangler"
+    },
+    {
+      "record_id": "primitive:matrix",
+      "record_type": "primitive",
+      "name": "matrix",
+      "title": "Matrix Reference"
+    },
+    {
+      "record_id": "primitive:space",
+      "record_type": "primitive",
+      "name": "space",
+      "title": "Space Reference"
+    },
+    {
+      "record_id": "primitive:space_2d",
+      "record_type": "primitive",
+      "name": "space_2d",
+      "title": "2D Space Reference"
+    },
+    {
+      "record_id": "primitive:cell_vector",
+      "record_type": "primitive",
+      "name": "cell_vector",
+      "title": "Cell Vector"
+    },
+    {
+      "record_id": "primitive:cell_vector_family",
+      "record_type": "primitive",
+      "name": "cell_vector_family",
+      "title": "Cell Vector Family"
+    },
+    {
+      "record_id": "primitive:relation_family",
+      "record_type": "primitive",
+      "name": "relation_family",
+      "title": "Relation Family"
+    },
+    {
+      "record_id": "primitive:feature_table",
+      "record_type": "primitive",
+      "name": "feature_table",
+      "title": "Feature Table"
+    },
+    {
+      "record_id": "primitive:obs_table",
+      "record_type": "primitive",
+      "name": "obs_table",
+      "title": "Observation Table"
+    },
+    {
+      "record_id": "primitive:model_ref",
+      "record_type": "primitive",
+      "name": "model_ref",
+      "title": "Model Reference"
+    },
+    {
+      "record_id": "primitive:path_2d_family",
+      "record_type": "primitive",
+      "name": "path_2d_family",
+      "title": "2D Path Family"
+    },
+    {
+      "record_id": "primitive:space_path_family",
+      "record_type": "primitive",
+      "name": "space_path_family",
+      "title": "High-Dimensional Space Path Family"
+    },
+    {
+      "record_id": "artifact_type:cell_vector",
+      "record_type": "artifact_type",
+      "name": "cell_vector",
+      "title": "Per-Cell Vector Artifact"
+    },
+    {
+      "record_id": "artifact_type:cell_vector_family",
+      "record_type": "artifact_type",
+      "name": "cell_vector_family",
+      "title": "Per-Cell Vector Family Artifact"
+    },
+    {
+      "record_id": "artifact_type:relation_family",
+      "record_type": "artifact_type",
+      "name": "relation_family",
+      "title": "Relation Family Artifact"
+    },
+    {
+      "record_id": "artifact_type:path_2d_family",
+      "record_type": "artifact_type",
+      "name": "path_2d_family",
+      "title": "2D Path Family Artifact"
+    },
+    {
+      "record_id": "artifact_type:space_path_family",
+      "record_type": "artifact_type",
+      "name": "space_path_family",
+      "title": "Space Path Family Artifact"
+    },
+    {
+      "record_id": "artifact_type:space_2d",
+      "record_type": "artifact_type",
+      "name": "space_2d",
+      "title": "2D Space Artifact"
+    },
+    {
+      "record_id": "artifact_type:model_ref",
+      "record_type": "artifact_type",
+      "name": "model_ref",
+      "title": "Model Reference Artifact"
+    },
+    {
+      "record_id": "artifact_type:feature_table:de_wilcox",
+      "record_type": "artifact_type",
+      "name": "feature_table:de_wilcox",
+      "title": "Wilcoxon DE Table"
+    },
+    {
+      "record_id": "artifact_type:feature_table:markers_topn",
+      "record_type": "artifact_type",
+      "name": "feature_table:markers_topn",
+      "title": "Top Marker Table"
+    },
+    {
+      "record_id": "artifact_type:feature_table:feature_trend_spearman",
+      "record_type": "artifact_type",
+      "name": "feature_table:feature_trend_spearman",
+      "title": "Feature Trend Spearman Table"
+    },
+    {
+      "record_id": "artifact_type:feature_table:trajectory_de",
+      "record_type": "artifact_type",
+      "name": "feature_table:trajectory_de",
+      "title": "Trajectory DE Table"
+    },
+    {
+      "record_id": "artifact_type:feature_table:trajectory_branch_compare",
+      "record_type": "artifact_type",
+      "name": "feature_table:trajectory_branch_compare",
+      "title": "Trajectory Branch Compare Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:pathway_enrich",
+      "record_type": "artifact_type",
+      "name": "obs_table:pathway_enrich",
+      "title": "Pathway Enrichment Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_smooth",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_smooth",
+      "title": "Trajectory Smooth Curve Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_signature_smooth",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_signature_smooth",
+      "title": "Trajectory Signature Smooth Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_geneset_dynamics_curve",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_geneset_dynamics_curve",
+      "title": "Trajectory Gene-Set Curve Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_geneset_dynamics",
+      "title": "Trajectory Gene-Set Dynamics Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_geneset_dynamics_drivers",
+      "title": "Trajectory Gene-Set Driver Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_geneset_dynamics_driver_curve",
+      "title": "Trajectory Gene-Set Driver Curves"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_signal_dynamics_curve",
+      "title": "Trajectory Signal Curve Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_signal_dynamics",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_signal_dynamics",
+      "title": "Trajectory Signal Dynamics Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:ucell_signature_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:ucell_signature_summary",
+      "title": "UCell Signature Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:chromvar_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:chromvar_summary",
+      "title": "chromVAR Motif Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:knn_neighbors",
+      "record_type": "artifact_type",
+      "name": "obs_table:knn_neighbors",
+      "title": "KNN Neighbor Table"
+    },
+    {
+      "record_id": "artifact_type:feature_table:knn_pseudobulk",
+      "record_type": "artifact_type",
+      "name": "feature_table:knn_pseudobulk",
+      "title": "KNN Pseudobulk Feature Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:matrix_log_normalize_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:matrix_log_normalize_summary",
+      "title": "Matrix Log-Normalization Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:attach_report",
+      "record_type": "artifact_type",
+      "name": "obs_table:attach_report",
+      "title": "Table Type: attach_report"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_suffix_label",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_suffix_label",
+      "title": "Table Type: cell_suffix_label"
+    },
+    {
+      "record_id": "artifact_type:feature_table:cell_vector_assoc",
+      "record_type": "artifact_type",
+      "name": "feature_table:cell_vector_assoc",
+      "title": "Table Type: cell_vector_assoc"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_assoc_group_stats",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_assoc_group_stats",
+      "title": "Table Type: cell_vector_assoc_group_stats"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_compare",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_compare",
+      "title": "Table Type: cell_vector_compare"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_compare_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_compare_summary",
+      "title": "Table Type: cell_vector_compare_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_family_calibration_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_calibration_summary",
+      "title": "Table Type: cell_vector_family_calibration_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_family_qc_group_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_qc_group_summary",
+      "title": "Table Type: cell_vector_family_qc_group_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_family_qc_key_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_qc_key_summary",
+      "title": "Table Type: cell_vector_family_qc_key_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_family_qc_pairwise_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_qc_pairwise_summary",
+      "title": "Table Type: cell_vector_family_qc_pairwise_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_family_reduce_decision_table",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_reduce_decision_table",
+      "title": "Table Type: cell_vector_family_reduce_decision_table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_family_reduce_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_reduce_summary",
+      "title": "Table Type: cell_vector_family_reduce_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:generic",
+      "record_type": "artifact_type",
+      "name": "obs_table:generic",
+      "title": "Table Type: generic"
+    },
+    {
+      "record_id": "artifact_type:obs_table:ingest_report",
+      "record_type": "artifact_type",
+      "name": "obs_table:ingest_report",
+      "title": "Table Type: ingest_report"
+    },
+    {
+      "record_id": "artifact_type:obs_table:space_path_score_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:space_path_score_summary",
+      "title": "Table Type: space_path_score_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_branch_compare_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_branch_compare_summary",
+      "title": "Table Type: trajectory_branch_compare_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_de_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_de_summary",
+      "title": "Table Type: trajectory_de_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_geneset_dynamics_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_geneset_dynamics_summary",
+      "title": "Table Type: trajectory_geneset_dynamics_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_geneset_dynamics_top",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_geneset_dynamics_top",
+      "title": "Table Type: trajectory_geneset_dynamics_top"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_route_smooth",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_route_smooth",
+      "title": "Table Type: trajectory_route_smooth"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_route_smooth_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_route_smooth_summary",
+      "title": "Table Type: trajectory_route_smooth_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_signal_dynamics_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_signal_dynamics_summary",
+      "title": "Table Type: trajectory_signal_dynamics_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_signal_dynamics_top",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_signal_dynamics_top",
+      "title": "Table Type: trajectory_signal_dynamics_top"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_signature_smooth_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_signature_smooth_summary",
+      "title": "Table Type: trajectory_signature_smooth_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_smooth_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_smooth_summary",
+      "title": "Table Type: trajectory_smooth_summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_vector_smooth",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_vector_smooth",
+      "title": "Table Type: trajectory_vector_smooth"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_vector_smooth_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_vector_smooth_summary",
+      "title": "Table Type: trajectory_vector_smooth_summary"
+    },
+    {
+      "record_id": "parameter:cell_set",
+      "record_type": "parameter",
+      "name": "cell_set",
+      "title": "Cell Set / Analysis Universe"
+    },
+    {
+      "record_id": "parameter:matrix",
+      "record_type": "parameter",
+      "name": "matrix",
+      "title": "Matrix Input"
+    },
+    {
+      "record_id": "parameter:output_matrix_id",
+      "record_type": "parameter",
+      "name": "output_matrix_id",
+      "title": "Output Matrix Identifier"
+    },
+    {
+      "record_id": "parameter:scale_factor",
+      "record_type": "parameter",
+      "name": "scale_factor",
+      "title": "Library-Size Normalization Scale"
+    },
+    {
+      "record_id": "parameter:overwrite",
+      "record_type": "parameter",
+      "name": "overwrite",
+      "title": "Overwrite Existing Output"
+    },
+    {
+      "record_id": "parameter:space",
+      "record_type": "parameter",
+      "name": "space",
+      "title": "Embedding / Latent Space Input"
+    },
+    {
+      "record_id": "parameter:model",
+      "record_type": "parameter",
+      "name": "model",
+      "title": "Model Reference Input"
+    },
+    {
+      "record_id": "parameter:pseudotime",
+      "record_type": "parameter",
+      "name": "pseudotime",
+      "title": "Pseudotime Vector Input"
+    },
+    {
+      "record_id": "parameter:pseudotime_direction",
+      "record_type": "parameter",
+      "name": "pseudotime_direction",
+      "title": "Pseudotime Direction"
+    },
+    {
+      "record_id": "parameter:start_label",
+      "record_type": "parameter",
+      "name": "start_label",
+      "title": "Biological Start Label"
+    },
+    {
+      "record_id": "parameter:end_label",
+      "record_type": "parameter",
+      "name": "end_label",
+      "title": "Biological End Label"
+    },
+    {
+      "record_id": "parameter:lineage",
+      "record_type": "parameter",
+      "name": "lineage",
+      "title": "Lineage Subset"
+    },
+    {
+      "record_id": "parameter:score_method",
+      "record_type": "parameter",
+      "name": "score_method",
+      "title": "Feature-Set Scoring Method"
+    },
+    {
+      "record_id": "parameter:namespace",
+      "record_type": "parameter",
+      "name": "namespace",
+      "title": "Feature-Set Namespace"
+    },
+    {
+      "record_id": "parameter:feature_sets",
+      "record_type": "parameter",
+      "name": "feature_sets",
+      "title": "Feature-Set Subset"
+    },
+    {
+      "record_id": "parameter:signal_keys",
+      "record_type": "parameter",
+      "name": "signal_keys",
+      "title": "Signal Key Subset"
+    },
+    {
+      "record_id": "parameter:n_bins",
+      "record_type": "parameter",
+      "name": "n_bins",
+      "title": "Pseudotime Bin Count"
+    },
+    {
+      "record_id": "parameter:min_cells_per_bin",
+      "record_type": "parameter",
+      "name": "min_cells_per_bin",
+      "title": "Minimum Cells Per Bin"
+    },
+    {
+      "record_id": "parameter:summary_fun",
+      "record_type": "parameter",
+      "name": "summary_fun",
+      "title": "Bin Summary Function"
+    },
+    {
+      "record_id": "parameter:min_amplitude",
+      "record_type": "parameter",
+      "name": "min_amplitude",
+      "title": "Minimum Curve Amplitude Filter"
+    },
+    {
+      "record_id": "parameter:class_min_amplitude",
+      "record_type": "parameter",
+      "name": "class_min_amplitude",
+      "title": "Minimum Amplitude For Non-Flat Class"
+    },
+    {
+      "record_id": "parameter:min_bins_observed",
+      "record_type": "parameter",
+      "name": "min_bins_observed",
+      "title": "Minimum Observed Bins Filter"
+    },
+    {
+      "record_id": "parameter:min_features_detected",
+      "record_type": "parameter",
+      "name": "min_features_detected",
+      "title": "Minimum Detected Set Members"
+    },
+    {
+      "record_id": "parameter:min_detected_fraction",
+      "record_type": "parameter",
+      "name": "min_detected_fraction",
+      "title": "Minimum Detected Set Fraction"
+    },
+    {
+      "record_id": "parameter:min_mean_score",
+      "record_type": "parameter",
+      "name": "min_mean_score",
+      "title": "Minimum Mean Score Filter"
+    },
+    {
+      "record_id": "parameter:min_max_score",
+      "record_type": "parameter",
+      "name": "min_max_score",
+      "title": "Minimum Maximum Score Filter"
+    },
+    {
+      "record_id": "parameter:min_signal_to_noise",
+      "record_type": "parameter",
+      "name": "min_signal_to_noise",
+      "title": "Minimum Signal-To-Noise Filter"
+    },
+    {
+      "record_id": "parameter:low_abundance_max_score",
+      "record_type": "parameter",
+      "name": "low_abundance_max_score",
+      "title": "Low-Abundance Flag Threshold"
+    },
+    {
+      "record_id": "parameter:on_off_min_delta",
+      "record_type": "parameter",
+      "name": "on_off_min_delta",
+      "title": "On/Off Delta Threshold"
+    },
+    {
+      "record_id": "parameter:monotonic_min_abs_rho",
+      "record_type": "parameter",
+      "name": "monotonic_min_abs_rho",
+      "title": "Monotonicity Threshold"
+    },
+    {
+      "record_id": "parameter:smooth_method",
+      "record_type": "parameter",
+      "name": "smooth_method",
+      "title": "Curve Smoothing Method"
+    },
+    {
+      "record_id": "parameter:loess_span",
+      "record_type": "parameter",
+      "name": "loess_span",
+      "title": "LOESS Span"
+    },
+    {
+      "record_id": "parameter:bootstrap_n",
+      "record_type": "parameter",
+      "name": "bootstrap_n",
+      "title": "Bootstrap Replicate Count"
+    },
+    {
+      "record_id": "parameter:ci_level",
+      "record_type": "parameter",
+      "name": "ci_level",
+      "title": "Confidence Interval Level"
+    },
+    {
+      "record_id": "parameter:n_permutations",
+      "record_type": "parameter",
+      "name": "n_permutations",
+      "title": "Empirical Permutation Count"
+    },
+    {
+      "record_id": "parameter:permutation_seed",
+      "record_type": "parameter",
+      "name": "permutation_seed",
+      "title": "Permutation Random Seed"
+    },
+    {
+      "record_id": "parameter:p_adjust_method",
+      "record_type": "parameter",
+      "name": "p_adjust_method",
+      "title": "P-Value Adjustment Method"
+    },
+    {
+      "record_id": "parameter:mad_multiplier",
+      "record_type": "parameter",
+      "name": "mad_multiplier",
+      "title": "MAD Distance Inclusion Multiplier"
+    },
+    {
+      "record_id": "parameter:top_n",
+      "record_type": "parameter",
+      "name": "top_n",
+      "title": "Top-N Retention"
+    },
+    {
+      "record_id": "parameter:seed",
+      "record_type": "parameter",
+      "name": "seed",
+      "title": "Random Seed"
+    },
+    {
+      "record_id": "recipe:trajectory_geneset_dynamics_discovery",
+      "record_type": "recipe",
+      "name": "trajectory_geneset_dynamics_discovery",
+      "title": "Run gene-set dynamics along a trajectory"
+    },
+    {
+      "record_id": "recipe:trajectory_signal_dynamics_discovery",
+      "record_type": "recipe",
+      "name": "trajectory_signal_dynamics_discovery",
+      "title": "Run signal dynamics along a trajectory"
+    },
+    {
+      "record_id": "recipe:inspect_promoted_artifact",
+      "record_type": "recipe",
+      "name": "inspect_promoted_artifact",
+      "title": "Inspect a promoted artifact"
+    },
+    {
+      "record_id": "recipe:plot_ucell_on_umap",
+      "record_type": "recipe",
+      "name": "plot_ucell_on_umap",
+      "title": "Plot UCell signatures on UMAP"
+    },
+    {
+      "record_id": "recipe:plot_trajectory_on_umap",
+      "record_type": "recipe",
+      "name": "plot_trajectory_on_umap",
+      "title": "Plot selected trajectory curves on UMAP"
+    },
+    {
+      "record_id": "recipe:de_to_pathway_report",
+      "record_type": "recipe",
+      "name": "de_to_pathway_report",
+      "title": "Differential expression to pathway report"
+    },
+    {
+      "record_id": "recipe:cluster_markers_pathways",
+      "record_type": "recipe",
+      "name": "cluster_markers_pathways",
+      "title": "Cluster to markers to pathways"
+    },
+    {
+      "record_id": "recipe:semantic_next_steps_from_artifact",
+      "record_type": "recipe",
+      "name": "semantic_next_steps_from_artifact",
+      "title": "Find next steps from an artifact"
+    }
+  ],
+  "edges": [
+    {
+      "from": "primitive:space",
+      "to": "op:leiden",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:leiden",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:leiden",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:leiden",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
+    },
+    {
+      "from": "op:leiden",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:clusters"
+    },
+    {
+      "from": "op:leiden",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:clusters"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:matrix_log_normalize",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:output_matrix_id",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:output_matrix_id"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:scale_factor",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:scale_factor"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:cell_set"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "primitive:matrix",
+      "edge_type": "produces",
+      "label": "output:matrix"
+    },
+    {
+      "from": "op:matrix_log_normalize",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:summary"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:umap_fit",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "primitive:model_ref",
+      "edge_type": "produces",
+      "label": "output:model"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "primitive:space_2d",
+      "edge_type": "produces",
+      "label": "output:space_2d"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "artifact_type:space_2d",
+      "edge_type": "promotes_as",
+      "label": "promotable:space_2d"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "artifact_type:model_ref",
+      "edge_type": "promotes_as",
+      "label": "promotable:model"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:umap_transform",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:umap_transform",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:umap_transform",
+      "edge_type": "consumed_by",
+      "label": "input:in_space"
+    },
+    {
+      "from": "op:umap_transform",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:umap_transform",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:umap_transform",
+      "to": "primitive:space_2d",
+      "edge_type": "produces",
+      "label": "output:space_2d"
+    },
+    {
+      "from": "op:umap_transform",
+      "to": "artifact_type:space_2d",
+      "edge_type": "promotes_as",
+      "label": "promotable:space_2d"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:addmodulescore",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:addmodulescore",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:addmodulescore",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:addmodulescore",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
+    },
+    {
+      "from": "op:addmodulescore",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:module_scores"
+    },
+    {
+      "from": "op:addmodulescore",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:module_scores"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:ucell",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:ucell",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:ucell",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:ucell",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:signature_scores"
+    },
+    {
+      "from": "op:ucell",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:signature_summary"
+    },
+    {
+      "from": "op:ucell",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:signature_scores"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:cell_vector_family_reduce",
+      "edge_type": "consumed_by",
+      "label": "input:signal"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:label"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:top_score"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:runner_up_score"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:score_margin"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:abstain_reason"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:decision_table"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:label_summary"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:label"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:top_score"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:runner_up_score"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:score_margin"
+    },
+    {
+      "from": "op:cell_vector_family_reduce",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:abstain_reason"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:cell_vector_family_calibrate",
+      "edge_type": "consumed_by",
+      "label": "input:signal"
+    },
+    {
+      "from": "op:cell_vector_family_calibrate",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_family_calibrate",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:cell_vector_family_calibrate",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:calibrated_signal"
+    },
+    {
+      "from": "op:cell_vector_family_calibrate",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:calibration_summary"
+    },
+    {
+      "from": "op:cell_vector_family_calibrate",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:calibrated_signal"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:cell_vector_family_qc",
+      "edge_type": "consumed_by",
+      "label": "input:signal"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:cell_vector_family_qc",
+      "edge_type": "consumed_by",
+      "label": "input:grouping"
+    },
+    {
+      "from": "op:cell_vector_family_qc",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_family_qc",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:cell_vector_family_qc",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:key_summary"
+    },
+    {
+      "from": "op:cell_vector_family_qc",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:pairwise_summary"
+    },
+    {
+      "from": "op:cell_vector_family_qc",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:group_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:chromvar",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:deviation_z"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:deviation_raw"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:motif_summary"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:deviation_z"
+    },
+    {
+      "from": "op:chromvar",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:deviation_raw"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:de_wilcox",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:de_wilcox",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:de_wilcox",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:de_wilcox",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:de_wilcox",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:de_table"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:markers_topn",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:markers_topn",
+      "edge_type": "consumed_by",
+      "label": "input:clusters"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "parameter:top_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:top_n"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:markers"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:pathway_enrich",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "op:pathway_enrich",
+      "edge_type": "consumed_by",
+      "label": "input:feature_table"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:namespace"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:direction"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:pathways"
+    },
+    {
+      "from": "op:cell_suffix_label",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_suffix_label",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:labels"
+    },
+    {
+      "from": "op:cell_suffix_label",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:label_table"
+    },
+    {
+      "from": "op:cell_suffix_label",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:labels"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:cell_vector_assoc",
+      "edge_type": "consumed_by",
+      "label": "input:vector_cont"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:cell_vector_assoc",
+      "edge_type": "consumed_by",
+      "label": "input:vector_group"
+    },
+    {
+      "from": "op:cell_vector_assoc",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_assoc",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:assoc_summary"
+    },
+    {
+      "from": "op:cell_vector_assoc",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:group_stats"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:cell_vector_compare",
+      "edge_type": "consumed_by",
+      "label": "input:a"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:cell_vector_compare",
+      "edge_type": "consumed_by",
+      "label": "input:b"
+    },
+    {
+      "from": "op:cell_vector_compare",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_compare",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:summary"
+    },
+    {
+      "from": "op:cell_vector_compare",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:comparison"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:feature_trend_spearman",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:feature_trend_spearman",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:feature_trend_spearman",
+      "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:feature_trend_spearman",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:feature_trend_spearman",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:feature_trend_spearman",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:feature_trend_spearman",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:trend_table"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:trajectory_de",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:trajectory_de",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:de_table"
+    },
+    {
+      "from": "op:trajectory_de",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:trajectory_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:trajectory_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:trend_table"
+    },
+    {
+      "from": "op:trajectory_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:trajectory_branch_compare",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_branch_compare",
+      "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "primitive:relation_family",
+      "to": "op:trajectory_branch_compare",
+      "edge_type": "consumed_by",
+      "label": "input:branch_membership"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:branch_de_table"
+    },
+    {
+      "from": "op:trajectory_branch_compare",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:branch_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:trajectory_signature_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:trajectory_signature_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:score_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:score_method"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:signature_table"
+    },
+    {
+      "from": "op:trajectory_signature_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:trajectory_geneset_dynamics",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:trajectory_geneset_dynamics",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:namespace"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:feature_sets",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:feature_sets"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:score_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:score_method"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:pseudotime_direction"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:start_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:start_label"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:end_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:end_label"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:top_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:top_n"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:on_off_min_delta",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:on_off_min_delta"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:monotonic_min_abs_rho",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:monotonic_min_abs_rho"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_amplitude"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_bins_observed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_bins_observed"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_features_detected",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_features_detected"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_detected_fraction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_detected_fraction"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_mean_score",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_mean_score"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_max_score",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_max_score"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:min_signal_to_noise",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_signal_to_noise"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:low_abundance_max_score",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:low_abundance_max_score"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:smooth_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:smooth_method"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:loess_span",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:loess_span"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:bootstrap_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_n"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_seed"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:ci_level",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:ci_level"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:class_min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:class_min_amplitude"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:n_permutations",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_permutations"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:permutation_seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:permutation_seed"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:p_adjust_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:p_adjust_method"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:signature_table"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:dynamics_table"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:top_sets"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:driver_table"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:driver_curve_table"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:trajectory_route_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:trajectory_route_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "primitive:relation_family",
+      "to": "op:trajectory_route_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:branch_membership"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:trend_table"
+    },
+    {
+      "from": "op:trajectory_route_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_vector_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:signal"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:trajectory_vector_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:signal_table"
+    },
+    {
+      "from": "op:trajectory_vector_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_signal_dynamics",
+      "edge_type": "consumed_by",
+      "label": "input:signal"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:trajectory_signal_dynamics",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:pseudotime_direction"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:start_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:start_label"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:end_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:end_label"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:n_bins",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:n_bins"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:summary_fun",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:summary_fun"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:min_cells_per_bin",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_cells_per_bin"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:top_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:top_n"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:on_off_min_delta",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:on_off_min_delta"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:monotonic_min_abs_rho",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:monotonic_min_abs_rho"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_amplitude"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:min_bins_observed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_bins_observed"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:smooth_method",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:smooth_method"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:loess_span",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:loess_span"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:bootstrap_n",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_n"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:bootstrap_seed"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:ci_level",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:ci_level"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:class_min_amplitude",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:class_min_amplitude"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:signal_table"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:dynamics_table"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:top_signals"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:knn_pseudobulk",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:knn_pseudobulk",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:pseudobulk_table"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:neighbor_distance"
+    },
+    {
+      "from": "op:knn_pseudobulk",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:neighbor_distance"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:knn_neighbors",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:knn_neighbors",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:knn_neighbors",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:knn_neighbors",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:neighbors"
+    },
+    {
+      "from": "op:knn_neighbors",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:neighbor_distance"
+    },
+    {
+      "from": "op:knn_neighbors",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:neighbor_distance"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:slingshot",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:slingshot",
+      "edge_type": "consumed_by",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:slingshot",
+      "edge_type": "consumed_by",
+      "label": "input:clusters"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:pseudotime"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "primitive:path_2d_family",
+      "edge_type": "produces",
+      "label": "output:curves"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:slingshot",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:curves"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:slingshot_fit",
+      "edge_type": "consumed_by",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:slingshot_fit",
+      "edge_type": "consumed_by",
+      "label": "input:clusters"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:pseudotime"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "primitive:model_ref",
+      "edge_type": "produces",
+      "label": "output:model"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "artifact_type:model_ref",
+      "edge_type": "promotes_as",
+      "label": "promotable:model"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:slingshot_project",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "primitive:space_2d",
+      "to": "op:slingshot_project",
+      "edge_type": "consumed_by",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "primitive:path_2d_family",
+      "edge_type": "produces",
+      "label": "output:curves"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:curves"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:monocle3_fit",
+      "edge_type": "consumed_by",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:random_seed"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:pseudotime"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "primitive:relation_family",
+      "edge_type": "produces",
+      "label": "output:branch_membership"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "primitive:model_ref",
+      "edge_type": "produces",
+      "label": "output:model"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "artifact_type:relation_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:branch_membership"
+    },
+    {
+      "from": "op:monocle3_fit",
+      "to": "artifact_type:model_ref",
+      "edge_type": "promotes_as",
+      "label": "promotable:model"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:monocle3_project",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "primitive:space_2d",
+      "to": "op:monocle3_project",
+      "edge_type": "consumed_by",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "primitive:path_2d_family",
+      "edge_type": "produces",
+      "label": "output:curves"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:curves"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:peakvi_fit",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "primitive:space",
+      "edge_type": "produces",
+      "label": "output:space"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "primitive:model_ref",
+      "edge_type": "produces",
+      "label": "output:model"
+    },
+    {
+      "from": "op:peakvi_fit",
+      "to": "artifact_type:model_ref",
+      "edge_type": "promotes_as",
+      "label": "promotable:model"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:peakvi_project",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:peakvi_project",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:peakvi_project",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:peakvi_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:peakvi_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:peakvi_project",
+      "to": "primitive:space",
+      "edge_type": "produces",
+      "label": "output:space"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:space_path_define",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:space_path_define",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:space_path_define",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:space_path_define",
+      "to": "primitive:space_path_family",
+      "edge_type": "produces",
+      "label": "output:path"
+    },
+    {
+      "from": "op:space_path_define",
+      "to": "artifact_type:space_path_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:path"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:space_path_score",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:space_path_score",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "primitive:space_path_family",
+      "to": "op:space_path_score",
+      "edge_type": "consumed_by",
+      "label": "input:path"
+    },
+    {
+      "from": "op:space_path_score",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:space_path_score",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:path_scores"
+    },
+    {
+      "from": "op:space_path_score",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "op:space_path_score",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:path_scores"
+    },
+    {
+      "from": "primitive:space_path_family",
+      "to": "op:space_path_project_2d",
+      "edge_type": "consumed_by",
+      "label": "input:path"
+    },
+    {
+      "from": "primitive:space_2d",
+      "to": "op:space_path_project_2d",
+      "edge_type": "consumed_by",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:space_path_project_2d",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:space_path_project_2d",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:space_path_project_2d",
+      "to": "primitive:path_2d_family",
+      "edge_type": "produces",
+      "label": "output:curves"
+    },
+    {
+      "from": "op:space_path_project_2d",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:curves"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:palantir_fit",
+      "edge_type": "consumed_by",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:fit_space"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:pseudotime"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "primitive:relation_family",
+      "edge_type": "produces",
+      "label": "output:branch_membership"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:branch_summary"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:entropy"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "primitive:model_ref",
+      "edge_type": "produces",
+      "label": "output:model"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "artifact_type:relation_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:branch_membership"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:entropy"
+    },
+    {
+      "from": "op:palantir_fit",
+      "to": "artifact_type:model_ref",
+      "edge_type": "promotes_as",
+      "label": "promotable:model"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:palantir_project",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "primitive:space_2d",
+      "to": "op:palantir_project",
+      "edge_type": "consumed_by",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:plot_space"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "primitive:path_2d_family",
+      "edge_type": "produces",
+      "label": "output:curves"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:curves"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "primitive:cell_vector",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:cell_vector_family",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:relation_family",
+      "to": "primitive:relation_family",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:path_2d_family",
+      "to": "primitive:path_2d_family",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:space_path_family",
+      "to": "primitive:space_path_family",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:space_2d",
+      "to": "primitive:space_2d",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:model_ref",
+      "to": "primitive:model_ref",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:de_wilcox",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:markers_topn",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:feature_trend_spearman",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:trajectory_de",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:trajectory_branch_compare",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:pathway_enrich",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signature_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_curve",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signal_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:ucell_signature_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:chromvar_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:knn_neighbors",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:knn_pseudobulk",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:matrix_log_normalize_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:attach_report",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_suffix_label",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:cell_vector_assoc",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_assoc_group_stats",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_compare",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_compare_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_family_calibration_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_family_qc_group_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_family_qc_key_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_family_qc_pairwise_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_family_reduce_decision_table",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_family_reduce_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:generic",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:ingest_report",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:space_path_score_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_branch_compare_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_de_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_top",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_route_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_route_smooth_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signal_dynamics_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signal_dynamics_top",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signature_smooth_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_smooth_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_vector_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_vector_smooth_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "feature_table"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "obs_table"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector_family"
+    },
+    {
+      "from": "artifact_type:cell_vector_family",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector_family"
+    },
+    {
+      "from": "primitive:relation_family",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "relation_family"
+    },
+    {
+      "from": "artifact_type:relation_family",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "relation_family"
+    },
+    {
+      "from": "primitive:space_path_family",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "space_path_family"
+    },
+    {
+      "from": "artifact_type:space_path_family",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "space_path_family"
+    },
+    {
+      "from": "primitive:space_2d",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "space_2d"
+    },
+    {
+      "from": "artifact_type:space_2d",
+      "to": "wrangler:table:primitive_to_table",
+      "edge_type": "wrangled_by",
+      "label": "space_2d"
+    },
+    {
+      "from": "primitive:space_2d",
+      "to": "wrangler:plot_mapper:space2d_overlay_v1",
+      "edge_type": "wrangled_by",
+      "label": "space_2d"
+    },
+    {
+      "from": "artifact_type:space_2d",
+      "to": "wrangler:plot_mapper:space2d_overlay_v1",
+      "edge_type": "wrangled_by",
+      "label": "space_2d"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "wrangler:plot_mapper:space2d_overlay_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "wrangler:plot_mapper:space2d_overlay_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "wrangler:plot_mapper:space2d_overlay_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector_family"
+    },
+    {
+      "from": "artifact_type:cell_vector_family",
+      "to": "wrangler:plot_mapper:space2d_overlay_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector_family"
+    },
+    {
+      "from": "wrangler:plot_mapper:space2d_overlay_v1",
+      "to": "plot:embedding_overlay",
+      "edge_type": "feeds_plot",
+      "label": "embedding_overlay"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "wrangler:plot_mapper:feature_table_volcano_v1",
+      "edge_type": "wrangled_by",
+      "label": "feature_table"
+    },
+    {
+      "from": "wrangler:plot_mapper:feature_table_volcano_v1",
+      "to": "plot:volcano",
+      "edge_type": "feeds_plot",
+      "label": "volcano"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "wrangler:plot_mapper:feature_table_trend_scatter_v1",
+      "edge_type": "wrangled_by",
+      "label": "feature_table"
+    },
+    {
+      "from": "wrangler:plot_mapper:feature_table_trend_scatter_v1",
+      "to": "plot:trend_scatter",
+      "edge_type": "feeds_plot",
+      "label": "trend_scatter"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector_family"
+    },
+    {
+      "from": "artifact_type:cell_vector_family",
+      "to": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector_family"
+    },
+    {
+      "from": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "to": "plot:violin",
+      "edge_type": "feeds_plot",
+      "label": "violin"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "wrangler:plot_mapper:cell_vector_category_count_bar_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "wrangler:plot_mapper:cell_vector_category_count_bar_v1",
+      "edge_type": "wrangled_by",
+      "label": "cell_vector"
+    },
+    {
+      "from": "wrangler:plot_mapper:cell_vector_category_count_bar_v1",
+      "to": "plot:category_count_bar",
+      "edge_type": "feeds_plot",
+      "label": "category_count_bar"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "wrangler:plot_mapper:feature_table_dotplot_v1",
+      "edge_type": "wrangled_by",
+      "label": "feature_table"
+    },
+    {
+      "from": "wrangler:plot_mapper:feature_table_dotplot_v1",
+      "to": "plot:dotplot",
+      "edge_type": "feeds_plot",
+      "label": "dotplot"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "wrangler:plot_mapper:feature_table_pathway_bar_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table"
+    },
+    {
+      "from": "wrangler:plot_mapper:feature_table_pathway_bar_v1",
+      "to": "plot:pathway_bar",
+      "edge_type": "feeds_plot",
+      "label": "pathway_bar"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "wrangler:plot_mapper:feature_table_ranked_lollipop_v1",
+      "edge_type": "wrangled_by",
+      "label": "feature_table"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "wrangler:plot_mapper:feature_table_ranked_lollipop_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table"
+    },
+    {
+      "from": "wrangler:plot_mapper:feature_table_ranked_lollipop_v1",
+      "to": "plot:ranked_lollipop",
+      "edge_type": "feeds_plot",
+      "label": "ranked_lollipop"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "wrangler:plot_mapper:feature_table_heatmap_ranked_v1",
+      "edge_type": "wrangled_by",
+      "label": "feature_table"
+    },
+    {
+      "from": "wrangler:plot_mapper:feature_table_heatmap_ranked_v1",
+      "to": "plot:heatmap_ranked",
+      "edge_type": "feeds_plot",
+      "label": "heatmap_ranked"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "wrangler:plot_mapper:feature_table_feature_rank_bar_v1",
+      "edge_type": "wrangled_by",
+      "label": "feature_table"
+    },
+    {
+      "from": "wrangler:plot_mapper:feature_table_feature_rank_bar_v1",
+      "to": "plot:feature_rank_bar",
+      "edge_type": "feeds_plot",
+      "label": "feature_rank_bar"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_smooth_panel_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_smooth"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_smooth",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_smooth_panel_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_smooth"
+    },
+    {
+      "from": "wrangler:plot_mapper:trajectory_pseudotime_smooth_panel_v1",
+      "to": "plot:pseudotime_smooth_panel",
+      "edge_type": "feeds_plot",
+      "label": "pseudotime_smooth_panel"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_signature_smooth"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signature_smooth",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_signature_smooth"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_geneset_dynamics_curve"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_curve",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_geneset_dynamics_curve"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_signal_dynamics_curve"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "edge_type": "wrangled_by",
+      "label": "obs_table:trajectory_signal_dynamics_curve"
+    },
+    {
+      "from": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "to": "plot:pseudotime_signature_line",
+      "edge_type": "feeds_plot",
+      "label": "pseudotime_signature_line"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "getter:wb_feature_sets",
+      "edge_type": "uses",
+      "label": "getter:wb_feature_sets"
+    },
+    {
+      "from": "getter:wb_feature_sets",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "getter:wb_art_list",
+      "edge_type": "uses",
+      "label": "getter:wb_art_list"
+    },
+    {
+      "from": "getter:wb_art_list",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "op:trajectory_geneset_dynamics",
+      "edge_type": "uses",
+      "label": "op:trajectory_geneset_dynamics"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "plot:pseudotime_signature_line",
+      "edge_type": "uses",
+      "label": "plot:pseudotime_signature_line"
+    },
+    {
+      "from": "plot:pseudotime_signature_line",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "edge_type": "uses",
+      "label": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1"
+    },
+    {
+      "from": "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "parameter:namespace",
+      "edge_type": "uses",
+      "label": "parameter:namespace"
+    },
+    {
+      "from": "parameter:namespace",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "parameter:score_method",
+      "edge_type": "uses",
+      "label": "parameter:score_method"
+    },
+    {
+      "from": "parameter:score_method",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "uses",
+      "label": "parameter:pseudotime_direction"
+    },
+    {
+      "from": "parameter:pseudotime_direction",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "parameter:min_amplitude",
+      "edge_type": "uses",
+      "label": "parameter:min_amplitude"
+    },
+    {
+      "from": "parameter:min_amplitude",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "artifact_type:obs_table:trajectory_geneset_dynamics_curve",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_geneset_dynamics_curve"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_curve",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_geneset_dynamics"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_drivers",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "getter:wb_art_list",
+      "edge_type": "uses",
+      "label": "getter:wb_art_list"
+    },
+    {
+      "from": "getter:wb_art_list",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "getter:wb_read_cell_vector_family",
+      "edge_type": "uses",
+      "label": "getter:wb_read_cell_vector_family"
+    },
+    {
+      "from": "getter:wb_read_cell_vector_family",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "op:trajectory_signal_dynamics",
+      "edge_type": "uses",
+      "label": "op:trajectory_signal_dynamics"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "plot:pseudotime_signature_line",
+      "edge_type": "uses",
+      "label": "plot:pseudotime_signature_line"
+    },
+    {
+      "from": "plot:pseudotime_signature_line",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "parameter:signal_keys",
+      "edge_type": "uses",
+      "label": "parameter:signal_keys"
+    },
+    {
+      "from": "parameter:signal_keys",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "parameter:pseudotime_direction",
+      "edge_type": "uses",
+      "label": "parameter:pseudotime_direction"
+    },
+    {
+      "from": "parameter:pseudotime_direction",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "parameter:min_amplitude",
+      "edge_type": "uses",
+      "label": "parameter:min_amplitude"
+    },
+    {
+      "from": "parameter:min_amplitude",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_signal_dynamics_curve"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signal_dynamics_curve",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "artifact_type:obs_table:trajectory_signal_dynamics",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_signal_dynamics"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_signal_dynamics",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "getter:wb_art_list",
+      "edge_type": "uses",
+      "label": "getter:wb_art_list"
+    },
+    {
+      "from": "getter:wb_art_list",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "getter:wb_art_identity_card",
+      "edge_type": "uses",
+      "label": "getter:wb_art_identity_card"
+    },
+    {
+      "from": "getter:wb_art_identity_card",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "getter:wb_art_birth_certificate",
+      "edge_type": "uses",
+      "label": "getter:wb_art_birth_certificate"
+    },
+    {
+      "from": "getter:wb_art_birth_certificate",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "getter:wb_art_table_info",
+      "edge_type": "uses",
+      "label": "getter:wb_art_table_info"
+    },
+    {
+      "from": "getter:wb_art_table_info",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "getter:wb_art_table_slice",
+      "edge_type": "uses",
+      "label": "getter:wb_art_table_slice"
+    },
+    {
+      "from": "getter:wb_art_table_slice",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "getter:wb_art_load",
+      "edge_type": "uses",
+      "label": "getter:wb_art_load"
+    },
+    {
+      "from": "getter:wb_art_load",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "wrangler:table:client_load_table",
+      "edge_type": "uses",
+      "label": "wrangler:table:client_load_table"
+    },
+    {
+      "from": "wrangler:table:client_load_table",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "primitive:feature_table",
+      "edge_type": "recipe_produces",
+      "label": "primitive:feature_table"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "primitive:obs_table",
+      "edge_type": "recipe_produces",
+      "label": "primitive:obs_table"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "primitive:cell_vector",
+      "edge_type": "recipe_produces",
+      "label": "primitive:cell_vector"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:inspect_promoted_artifact",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "recipe_produces",
+      "label": "primitive:cell_vector_family"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "recipe:inspect_promoted_artifact",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:inspect_promoted_artifact"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "op:ucell",
+      "edge_type": "uses",
+      "label": "op:ucell"
+    },
+    {
+      "from": "op:ucell",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "getter:wb_spaces",
+      "edge_type": "uses",
+      "label": "getter:wb_spaces"
+    },
+    {
+      "from": "getter:wb_spaces",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "getter:wb_read_cell_vector_family",
+      "edge_type": "uses",
+      "label": "getter:wb_read_cell_vector_family"
+    },
+    {
+      "from": "getter:wb_read_cell_vector_family",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "plot:embedding_overlay",
+      "edge_type": "uses",
+      "label": "plot:embedding_overlay"
+    },
+    {
+      "from": "plot:embedding_overlay",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "plot:violin",
+      "edge_type": "uses",
+      "label": "plot:violin"
+    },
+    {
+      "from": "plot:violin",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "wrangler:plot_mapper:space2d_overlay_v1",
+      "edge_type": "uses",
+      "label": "wrangler:plot_mapper:space2d_overlay_v1"
+    },
+    {
+      "from": "wrangler:plot_mapper:space2d_overlay_v1",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "edge_type": "uses",
+      "label": "wrangler:plot_mapper:cell_vector_violin_v1"
+    },
+    {
+      "from": "wrangler:plot_mapper:cell_vector_violin_v1",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "parameter:space",
+      "edge_type": "uses",
+      "label": "parameter:space"
+    },
+    {
+      "from": "parameter:space",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_ucell_on_umap",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:cell_vector_family"
+    },
+    {
+      "from": "artifact_type:cell_vector_family",
+      "to": "recipe:plot_ucell_on_umap",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:plot_ucell_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "uses",
+      "label": "artifact_type:path_2d_family"
+    },
+    {
+      "from": "artifact_type:path_2d_family",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "op:slingshot_project",
+      "edge_type": "uses",
+      "label": "op:slingshot_project"
+    },
+    {
+      "from": "op:slingshot_project",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "op:monocle3_project",
+      "edge_type": "uses",
+      "label": "op:monocle3_project"
+    },
+    {
+      "from": "op:monocle3_project",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "op:palantir_project",
+      "edge_type": "uses",
+      "label": "op:palantir_project"
+    },
+    {
+      "from": "op:palantir_project",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "op:space_path_project_2d",
+      "edge_type": "uses",
+      "label": "op:space_path_project_2d"
+    },
+    {
+      "from": "op:space_path_project_2d",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "plot:embedding_overlay",
+      "edge_type": "uses",
+      "label": "plot:embedding_overlay"
+    },
+    {
+      "from": "plot:embedding_overlay",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "primitive:path_2d_family",
+      "edge_type": "uses",
+      "label": "primitive:path_2d_family"
+    },
+    {
+      "from": "primitive:path_2d_family",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "parameter:lineage",
+      "edge_type": "uses",
+      "label": "parameter:lineage"
+    },
+    {
+      "from": "parameter:lineage",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:path_2d_family"
+    },
+    {
+      "from": "artifact_type:path_2d_family",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "op:de_wilcox",
+      "edge_type": "uses",
+      "label": "op:de_wilcox"
+    },
+    {
+      "from": "op:de_wilcox",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "op:pathway_enrich",
+      "edge_type": "uses",
+      "label": "op:pathway_enrich"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "plot:volcano",
+      "edge_type": "uses",
+      "label": "plot:volcano"
+    },
+    {
+      "from": "plot:volcano",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "plot:pathway_bar",
+      "edge_type": "uses",
+      "label": "plot:pathway_bar"
+    },
+    {
+      "from": "plot:pathway_bar",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "artifact_type:feature_table:de_wilcox",
+      "edge_type": "uses",
+      "label": "artifact_type:feature_table:de_wilcox"
+    },
+    {
+      "from": "artifact_type:feature_table:de_wilcox",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "artifact_type:obs_table:pathway_enrich",
+      "edge_type": "uses",
+      "label": "artifact_type:obs_table:pathway_enrich"
+    },
+    {
+      "from": "artifact_type:obs_table:pathway_enrich",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "parameter:cell_set",
+      "edge_type": "uses",
+      "label": "parameter:cell_set"
+    },
+    {
+      "from": "parameter:cell_set",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "parameter:matrix",
+      "edge_type": "uses",
+      "label": "parameter:matrix"
+    },
+    {
+      "from": "parameter:matrix",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "parameter:namespace",
+      "edge_type": "uses",
+      "label": "parameter:namespace"
+    },
+    {
+      "from": "parameter:namespace",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "artifact_type:feature_table:de_wilcox",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:feature_table:de_wilcox"
+    },
+    {
+      "from": "artifact_type:feature_table:de_wilcox",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:de_to_pathway_report",
+      "to": "artifact_type:obs_table:pathway_enrich",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:pathway_enrich"
+    },
+    {
+      "from": "artifact_type:obs_table:pathway_enrich",
+      "to": "recipe:de_to_pathway_report",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:de_to_pathway_report"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "op:leiden",
+      "edge_type": "uses",
+      "label": "op:leiden"
+    },
+    {
+      "from": "op:leiden",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "op:markers_topn",
+      "edge_type": "uses",
+      "label": "op:markers_topn"
+    },
+    {
+      "from": "op:markers_topn",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "op:pathway_enrich",
+      "edge_type": "uses",
+      "label": "op:pathway_enrich"
+    },
+    {
+      "from": "op:pathway_enrich",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "plot:dotplot",
+      "edge_type": "uses",
+      "label": "plot:dotplot"
+    },
+    {
+      "from": "plot:dotplot",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "plot:ranked_lollipop",
+      "edge_type": "uses",
+      "label": "plot:ranked_lollipop"
+    },
+    {
+      "from": "plot:ranked_lollipop",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "plot:pathway_bar",
+      "edge_type": "uses",
+      "label": "plot:pathway_bar"
+    },
+    {
+      "from": "plot:pathway_bar",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "parameter:space",
+      "edge_type": "uses",
+      "label": "parameter:space"
+    },
+    {
+      "from": "parameter:space",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "parameter:cell_set",
+      "edge_type": "uses",
+      "label": "parameter:cell_set"
+    },
+    {
+      "from": "parameter:cell_set",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "parameter:matrix",
+      "edge_type": "uses",
+      "label": "parameter:matrix"
+    },
+    {
+      "from": "parameter:matrix",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:cell_vector"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "artifact_type:feature_table:markers_topn",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:feature_table:markers_topn"
+    },
+    {
+      "from": "artifact_type:feature_table:markers_topn",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:cluster_markers_pathways",
+      "to": "artifact_type:obs_table:pathway_enrich",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:pathway_enrich"
+    },
+    {
+      "from": "artifact_type:obs_table:pathway_enrich",
+      "to": "recipe:cluster_markers_pathways",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:cluster_markers_pathways"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "getter:wb_art_identity_card",
+      "edge_type": "uses",
+      "label": "getter:wb_art_identity_card"
+    },
+    {
+      "from": "getter:wb_art_identity_card",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "getter:wb_art_load",
+      "edge_type": "uses",
+      "label": "getter:wb_art_load"
+    },
+    {
+      "from": "getter:wb_art_load",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "uses",
+      "label": "artifact_type:cell_vector"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "primitive:cell_vector",
+      "edge_type": "uses",
+      "label": "primitive:cell_vector"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "wrangler:table:client_load_table",
+      "edge_type": "uses",
+      "label": "wrangler:table:client_load_table"
+    },
+    {
+      "from": "wrangler:table:client_load_table",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "plot:embedding_overlay",
+      "edge_type": "uses",
+      "label": "plot:embedding_overlay"
+    },
+    {
+      "from": "plot:embedding_overlay",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "plot:embedding_overlay",
+      "edge_type": "recipe_produces",
+      "label": "plot:embedding_overlay"
+    },
+    {
+      "from": "plot:embedding_overlay",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "plot:violin",
+      "edge_type": "recipe_produces",
+      "label": "plot:violin"
+    },
+    {
+      "from": "plot:violin",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    },
+    {
+      "from": "recipe:semantic_next_steps_from_artifact",
+      "to": "plot:ranked_lollipop",
+      "edge_type": "recipe_produces",
+      "label": "plot:ranked_lollipop"
+    },
+    {
+      "from": "plot:ranked_lollipop",
+      "to": "recipe:semantic_next_steps_from_artifact",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:semantic_next_steps_from_artifact"
+    }
+  ]
+}

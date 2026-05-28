@@ -5,8 +5,12 @@
 #' @param bundle Bundle handle from `wb_bundle_open()`.
 #'
 #' @return A data.frame with columns:
-#'   matrix_id, layer, feature_type, n_features, n_cells, storage, path
+#'   matrix_id, layer, feature_type, n_features, n_cells, storage, path,
+#'   organism, genome_build, genome_provider
 #'
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.matrices
+# contract-note: ordered by matrix_id
 #' @export
 wb_matrices <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"),
@@ -16,6 +20,7 @@ wb_matrices <- function(bundle) {
   .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
   .wb_assert(.wb_table_exists(con, "matrices"),
              "matrices table not found in SQLite")
+  .wb_ensure_matrix_contract_columns(con)
 
   # Strict schema: no dynamic column negotiation.
   q <- "
@@ -25,7 +30,10 @@ wb_matrices <- function(bundle) {
            n_features,
            n_cells,
            storage,
-           path
+           path,
+           organism,
+           genome_build,
+           genome_provider
     FROM matrices
     ORDER BY matrix_id;
   "
@@ -34,6 +42,22 @@ wb_matrices <- function(bundle) {
 }
 
 
+#' Read Multiple Features Across Cells
+#'
+#' Read a feature-by-cell block from a virtual matrix assembled from registered
+#' fragments.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix id.
+#' @param feature_ids Requested feature ids.
+#' @param cell_ids Requested cell ids.
+#' @param missing How to represent missing entries: `"zero"` or `"NA"`.
+#' @param prefer_newest If `TRUE`, newer fragments overwrite older values when
+#'   overlaps exist.
+#'
+#' @return A feature-by-cell matrix-like object aligned to `feature_ids` and
+#'   `cell_ids`.
+#'
 #' @export
 wb_matrix_read_features <- function(bundle,
                                     matrix_id,

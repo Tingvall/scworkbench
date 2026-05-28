@@ -10,6 +10,8 @@ Many ops produce tabular outputs that are neither per-cell vectors nor geometry:
 - marker tables
 - QC summaries
 - pathway/sample/cluster summaries
+- trajectory DE tables
+- trajectory-smoothed summary tables
 
 To avoid ad-hoc output kinds, the engine supports two canonical tabular primitives.
 
@@ -63,6 +65,24 @@ Promoted tabular primitives are persisted using:
 
 This keeps the promotion path generic while preserving provenance in `artifacts`.
 
+Trajectory outputs intentionally use these existing primitive kinds rather than
+introducing trajectory-specific primitive types.
+
+Examples:
+
+- `trajectory_de` -> `feature_table`
+- `trajectory_smooth` -> `obs_table`
+- `trajectory_signature_smooth` -> `obs_table`
+- `trajectory_geneset_dynamics` -> `obs_table`
+- `trajectory_signal_dynamics` -> `obs_table`
+
+What makes them trajectory-specific is:
+
+- `table_type`
+- table column schema
+- `meta`
+- provenance / source op
+
 ## Loading
 
 `wb_art_load(bundle, artifact_id, expected_kind=...)` reconstructs:
@@ -86,6 +106,9 @@ This returns normalized `data.frame` output with stable ordering:
 `include_context=TRUE` appends display-safe context columns like `kind`,
 `table_type`, and `entity_kind`.
 
+Clients should treat `table_type` as an important contract signal. Primitive kind
+alone is usually not enough for the right display or navigation behavior.
+
 ## Promotion Rules
 
 - Only outputs declared in op `promotable` are promoted by `wb_promote_analysis()`.
@@ -96,3 +119,8 @@ This returns normalized `data.frame` output with stable ordering:
 
 - `de_wilcox` -> output `de_table` (`feature_table`, promotable)
 - `markers_topn` -> output `markers` (`feature_table`, promotable)
+- `trajectory_de` -> output `de_table` (`feature_table`, promotable)
+- `trajectory_smooth` -> output `trend_table` (`obs_table`, promotable)
+- `trajectory_signature_smooth` -> output `signature_table` (`obs_table`, promotable)
+- `trajectory_geneset_dynamics` -> outputs `signature_table`, `dynamics_table`, `top_sets`, `driver_table`, `driver_curve_table`, `fit_summary` (`obs_table`, promotable)
+- `trajectory_signal_dynamics` -> outputs `signal_table`, `dynamics_table`, `top_signals`, `fit_summary` (`obs_table`, promotable)

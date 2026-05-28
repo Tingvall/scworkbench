@@ -18,11 +18,128 @@ test_all <- function(bundle_dir){
   if (exists("test_op_contract_conformance", mode = "function")) {
     stopifnot(test_op_contract_conformance())
   }
+  if (exists("test_op_catalog_semantic_contract", mode = "function")) {
+    stopifnot(test_op_catalog_semantic_contract())
+  }
+  if (exists("test_plot_catalog_semantic_contract", mode = "function")) {
+    stopifnot(test_plot_catalog_semantic_contract())
+  }
+  if (exists("test_getter_catalog_semantic_contract", mode = "function")) {
+    stopifnot(test_getter_catalog_semantic_contract())
+  }
+  if (exists("test_contract_catalogs_semantic", mode = "function")) {
+    stopifnot(test_contract_catalogs_semantic())
+  }
+  if (exists("test_semantic_catalog_unified_contract", mode = "function")) {
+    stopifnot(test_semantic_catalog_unified_contract())
+  }
+  if (exists("test_semantic_graph_views_contract", mode = "function")) {
+    stopifnot(test_semantic_graph_views_contract())
+  }
+  if (exists("test_parameter_semantics_catalog_contract", mode = "function")) {
+    stopifnot(test_parameter_semantics_catalog_contract())
+  }
+  if (exists("test_recipe_semantics_catalog_contract", mode = "function")) {
+    stopifnot(test_recipe_semantics_catalog_contract())
+  }
+  if (exists("test_semantic_planning_artifact_contract", mode = "function")) {
+    stopifnot(test_semantic_planning_artifact_contract())
+  }
   if (exists("test_op_knn_neighbors_contract", mode = "function")) {
     stopifnot(test_op_knn_neighbors_contract(bundle_dir))
   }
+  if (exists("test_op_matrix_log_normalize_contract", mode = "function")) {
+    stopifnot(test_op_matrix_log_normalize_contract())
+  }
+  if (exists("test_op_chromvar_contract", mode = "function")) {
+    stopifnot(test_op_chromvar_contract(bundle_dir))
+  }
+  if (exists("test_op_cell_vector_family_reduce_contract", mode = "function")) {
+    stopifnot(test_op_cell_vector_family_reduce_contract())
+  }
+  if (exists("test_op_cell_vector_family_calibrate_contract", mode = "function")) {
+    stopifnot(test_op_cell_vector_family_calibrate_contract())
+  }
+  if (exists("test_op_cell_vector_family_qc_contract", mode = "function")) {
+    stopifnot(test_op_cell_vector_family_qc_contract())
+  }
+  if (exists("test_op_chunking_metadata_contract", mode = "function")) {
+    stopifnot(test_op_chunking_metadata_contract())
+  }
+  if (exists("test_op_chunking_helper_contract", mode = "function")) {
+    stopifnot(test_op_chunking_helper_contract())
+  }
+  if (exists("test_op_feature_trend_spearman_chunking_contract", mode = "function")) {
+    stopifnot(test_op_feature_trend_spearman_chunking_contract())
+  }
+  if (exists("test_op_cell_vector_compare_contract", mode = "function")) {
+    stopifnot(test_op_cell_vector_compare_contract())
+  }
+  if (exists("test_op_ucell_contract", mode = "function")) {
+    stopifnot(test_op_ucell_contract())
+  }
+  if (exists("test_op_ucell_chunking_contract", mode = "function")) {
+    stopifnot(test_op_ucell_chunking_contract())
+  }
+  if (exists("test_chromvar_seqlevels_contract", mode = "function")) {
+    stopifnot(test_chromvar_seqlevels_contract(bundle_dir))
+  }
+  if (exists("test_op_pathway_enrich_contract", mode = "function")) {
+    stopifnot(test_op_pathway_enrich_contract(bundle_dir))
+  }
+  if (exists("test_op_slingshot_fit_project_contract", mode = "function")) {
+    stopifnot(test_op_slingshot_fit_project_contract(bundle_dir))
+  }
+  if (exists("test_op_peakvi_fit_contract", mode = "function")) {
+    stopifnot(test_op_peakvi_fit_contract(bundle_dir))
+  }
+  if (exists("test_op_space_path_contract", mode = "function")) {
+    stopifnot(test_op_space_path_contract(bundle_dir))
+  }
+  if (exists("test_op_slingshot_promoted_model_project_contract", mode = "function")) {
+    stopifnot(test_op_slingshot_promoted_model_project_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_de_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_de_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_branch_compare_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_branch_compare_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_smooth_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_smooth_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_signature_smooth_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_signature_smooth_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_vector_smooth_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_vector_smooth_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_signal_dynamics_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_signal_dynamics_contract(bundle_dir))
+  }
+  if (exists("test_trajectory_geneset_dynamic_metrics_contract", mode = "function")) {
+    stopifnot(test_trajectory_geneset_dynamic_metrics_contract())
+  }
+  if (exists("test_op_trajectory_signal_dynamics_promoted_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_signal_dynamics_promoted_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_geneset_dynamics_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_geneset_dynamics_contract(bundle_dir))
+  }
+  if (exists("test_op_trajectory_geneset_dynamics_promoted_contract", mode = "function")) {
+    stopifnot(test_op_trajectory_geneset_dynamics_promoted_contract(bundle_dir))
+  }
+  if (exists("test_trajectory_family_helpers_contract", mode = "function")) {
+    stopifnot(test_trajectory_family_helpers_contract(bundle_dir))
+  }
   if (exists("test_feature_sets_contract", mode = "function")) {
     stopifnot(test_feature_sets_contract(bundle_dir))
+  }
+  if (exists("test_motif_registry_contract", mode = "function")) {
+    stopifnot(test_motif_registry_contract(bundle_dir))
+  }
+  if (exists("test_motif_match_contract", mode = "function")) {
+    stopifnot(test_motif_match_contract(bundle_dir))
   }
   if (exists("test_feature_selection_plan_contract", mode = "function")) {
     stopifnot(test_feature_selection_plan_contract(bundle_dir))
@@ -33,14 +150,29 @@ test_all <- function(bundle_dir){
   if (exists("test_session_dag_contract", mode = "function")) {
     stopifnot(test_session_dag_contract(bundle_dir))
   }
+  if (exists("test_session_input_ref_ergonomics_contract", mode = "function")) {
+    stopifnot(test_session_input_ref_ergonomics_contract())
+  }
   if (exists("test_report_draft_contract", mode = "function")) {
     stopifnot(test_report_draft_contract(bundle_dir))
   }
   if (exists("test_provenance_snapshot_contract", mode = "function")) {
     stopifnot(test_provenance_snapshot_contract(bundle_dir))
   }
+  if (exists("test_chunked_provenance_replay_contract", mode = "function")) {
+    stopifnot(test_chunked_provenance_replay_contract())
+  }
+  if (exists("test_space_path_promotion_contract", mode = "function")) {
+    stopifnot(test_space_path_promotion_contract())
+  }
+  if (exists("test_promoted_workflow_continue_replay_contract", mode = "function")) {
+    stopifnot(test_promoted_workflow_continue_replay_contract(bundle_dir))
+  }
   if (exists("test_plot_wranglers_contract", mode = "function")) {
     stopifnot(test_plot_wranglers_contract(bundle_dir))
+  }
+  if (exists("test_navigation_contract", mode = "function")) {
+    stopifnot(test_navigation_contract(bundle_dir))
   }
 
   cat("Opening bundle\n")

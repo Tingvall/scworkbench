@@ -503,7 +503,10 @@ wb_matrix_spec <- function(matrix_id,
       n_cells      INTEGER,
       storage      TEXT,
       path         TEXT,
-      description  TEXT
+      description  TEXT,
+      organism     TEXT,
+      genome_build TEXT,
+      genome_provider TEXT
     );
   ")
 
@@ -615,11 +618,27 @@ wb_matrix_spec <- function(matrix_id,
 }
 
 .get_assay_counts <- function(seurat, assay, layer_or_slot = "counts") {
-  fmls <- names(formals(Seurat::GetAssayData))
-  if ("layer" %in% fmls) {
-    m <- Seurat::GetAssayData(seurat, assay = assay, layer = layer_or_slot)
+  a <- seurat@assays[[assay]]
+  .wb_assert(!is.null(a), paste0("Unknown assay: ", assay))
+
+  if (inherits(a, "Assay5")) {
+    m <- SeuratObject::LayerData(a, layer = layer_or_slot)
+  } else if (methods::is(a, "Assay") && layer_or_slot %in% methods::slotNames(a)) {
+    m <- methods::slot(a, layer_or_slot)
+  } else if (requireNamespace("Seurat", quietly = TRUE)) {
+    fmls <- names(formals(Seurat::GetAssayData))
+    if ("layer" %in% fmls) {
+      m <- Seurat::GetAssayData(seurat, assay = assay, layer = layer_or_slot)
+    } else {
+      m <- Seurat::GetAssayData(seurat, assay = assay, slot = layer_or_slot)
+    }
   } else {
-    m <- Seurat::GetAssayData(seurat, assay = assay, slot = layer_or_slot)
+    stop(
+      "Could not resolve assay data for assay '", assay,
+      "' layer/slot '", layer_or_slot,
+      "'. Install Seurat or use a SeuratObject-supported assay layout.",
+      call. = FALSE
+    )
   }
   if (!inherits(m, "Matrix")) m <- Matrix::Matrix(m, sparse = TRUE)
   m

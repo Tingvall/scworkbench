@@ -139,6 +139,10 @@
 #' @export
 wb_manifest <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
+  man_path <- file.path(bundle$dir, "manifest.json")
+  if (file.exists(man_path)) {
+    return(jsonlite::read_json(man_path, simplifyVector = TRUE))
+  }
   bundle$manifest
 }
 
@@ -163,6 +167,9 @@ wb_list <- function(bundle, what = c("matrices", "features", "spaces", "datasets
 #' @param bundle scworkbench bundle handle
 #' @param dataset_id Optional dataset filter
 #' @param cell_set Which cell set to use: "core" (default), "all", or "set:<name>"
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.cells
+# contract-note: canonical ordering is cells.rowid (including set membership joins)
 #' @export
 wb_cells <- function(bundle, cell_set = "core", dataset_id = NULL) {
   con <- bundle$con
@@ -203,6 +210,9 @@ wb_cells <- function(bundle, cell_set = "core", dataset_id = NULL) {
 #' @param cols Optional metadata columns to select (default all columns)
 #' @param dataset_id Optional dataset filter applied before `cells` alignment
 #' @return A data.frame
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.meta
+# contract-note: default ORDER BY rowid; explicit cells vector must define output order
 #' @export
 wb_meta <- function(bundle, cells = NULL, cols = NULL, dataset_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
@@ -226,6 +236,7 @@ wb_meta <- function(bundle, cells = NULL, cols = NULL, dataset_id = NULL) {
     q <- paste0(q, " WHERE dataset_id = ?")
     params <- c(params, list(dataset_id))
   }
+  q <- paste0(q, " ORDER BY rowid;")
 
   df <- if (length(params) == 0) DBI::dbGetQuery(con, q) else DBI::dbGetQuery(con, q, params = params)
 
@@ -248,6 +259,9 @@ wb_meta <- function(bundle, cells = NULL, cols = NULL, dataset_id = NULL) {
 #'
 #' @return A data.frame with columns:
 #'   matrix_id, feature_id, feature_type, chr, start, end
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.features
+# contract-note: canonical ordering uses features.rowid within matrix_id
 #' @export
 wb_features <- function(bundle, matrix_id = NULL, feature_type = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"),
@@ -300,6 +314,9 @@ wb_features <- function(bundle, matrix_id = NULL, feature_type = NULL) {
 #'   returns features of that type within the matrix.
 #'
 #' @return Character vector of `feature_id`s in canonical row order.
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.feature_ids
+# contract-note: rowid order is canonical and must match matrix row order semantics
 #' @export
 wb_feature_ids <- function(bundle, matrix_id, feature_type = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"),
@@ -336,6 +353,8 @@ wb_feature_ids <- function(bundle, matrix_id, feature_type = NULL) {
 #' @param bundle Bundle handle from `wb_open_bundle()`
 #' @param space_id Optional space_id to filter (exact match)
 #' @return A data.frame of spaces
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.space_info
 #' @export
 wb_space_info <- function(bundle, space_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
@@ -361,6 +380,9 @@ wb_space_info <- function(bundle, space_id = NULL) {
 #' @param cells Optional cell_ids to subset/align (order preserved)
 #' @param dims Optional integer vector of dims (only for long storage)
 #' @return If 2D: data.frame with columns cell_id,x,y. If >2D: numeric matrix (cells x dims).
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.space
+# contract-note: unified storage read + alignment to requested cells order is contract-critical
 #' @export
 wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
@@ -433,6 +455,9 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
 }
 
 #' List spaces in the bundle
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.spaces
+# contract-note: filter phantom/empty space_id rows
 #' @export
 wb_spaces <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -455,11 +480,14 @@ wb_spaces <- function(bundle) {
 #' @param bundle Bundle handle from `wb_open_bundle()`
 #' @param matrix_id Optional matrix_id to filter (exact match)
 #' @return A data.frame of matrices
+# pybench-parity: yes
+# pybench-counterpart: pybench.getters.matrix_info
 #' @export
 wb_matrix_info <- function(bundle, matrix_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
   con <- bundle$con
   .wb_assert(.wb_table_exists(con, "matrices"), "matrices table not found in SQLite")
+  .wb_ensure_matrix_contract_columns(con)
 
   if (is.null(matrix_id)) return(DBI::dbReadTable(con, "matrices"))
   DBI::dbGetQuery(con, "SELECT * FROM matrices WHERE matrix_id = ?;", params = list(matrix_id))

@@ -21,11 +21,32 @@
     ))
   }
 
+  if (identical(kind, "relation_family")) {
+    return(list(
+      kind = "relation_family",
+      n = length(p$cell_id %||% character(0)),
+      n_keys = length(unique(p$key %||% character(0))),
+      has_weight = !is.null(p$weight),
+      has_value = !is.null(p$value),
+      has_distance = !is.null(p$distance)
+    ))
+  }
+
   if (identical(kind, "path_2d_family")) {
     return(list(
       kind = "path_2d_family",
       n = length(p$point %||% integer(0)),
       n_keys = length(unique(p$key %||% character(0)))
+    ))
+  }
+
+  if (identical(kind, "space_path_family")) {
+    return(list(
+      kind = "space_path_family",
+      n = length(p$point %||% integer(0)),
+      n_paths = length(unique(p$path_id %||% character(0))),
+      n_dims = length(unique(p$dim %||% integer(0))),
+      space_id = unique(as.character(p$space_id %||% NA_character_))[1]
     ))
   }
 
@@ -48,7 +69,10 @@
   if (identical(kind, "model_ref")) {
     return(list(
       kind = "model_ref",
-      space_id = p$space_id %||% NA_character_,
+      engine = p$engine %||% NA_character_,
+      model_space_id = p$model_space_id %||% p$space_id %||% NA_character_,
+      in_space_id = p$in_space_id %||% NA_character_,
+      model_type = p$model_type %||% NA_character_,
       model_path = p$model_path %||% NA_character_
     ))
   }

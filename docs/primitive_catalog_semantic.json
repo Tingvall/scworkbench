@@ -1,0 +1,117 @@
+{
+  "schema_version": "scworkbench.primitive_catalog.semantic.v1",
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "primitive_count": 11,
+  "primitives": [
+    {
+      "primitive_kind": "matrix",
+      "constructor": "wb_prim_matrix",
+      "title": "Matrix Reference",
+      "description": "Symbolic reference to a feature-by-cell matrix stored in the bundle.",
+      "shape": "matrix_id",
+      "payload_level": "reference",
+      "use_when": ["select expression/accessibility matrix", "pass matrix identity to ops"],
+      "promotable": false
+    },
+    {
+      "primitive_kind": "space",
+      "constructor": "wb_prim_space",
+      "title": "Space Reference",
+      "description": "Symbolic reference to a cell embedding or latent space stored in the bundle.",
+      "shape": "space_id",
+      "payload_level": "reference",
+      "use_when": "select latent/embedding space for ops",
+      "promotable": false
+    },
+    {
+      "primitive_kind": "space_2d",
+      "constructor": "wb_prim_space_2d",
+      "title": "2D Space Reference",
+      "description": "Reference to a two-dimensional cell space, typically UMAP-like coordinates.",
+      "shape": "space_id or table with cell_id/x/y",
+      "payload_level": "reference/table",
+      "use_when": ["plot cells in 2D", "overlay scores or sets"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "cell_vector",
+      "constructor": "wb_prim_cell_vector",
+      "title": "Cell Vector",
+      "description": "One value per cell, continuous or categorical.",
+      "shape": "cell_id, value, value_type",
+      "payload_level": "payload",
+      "use_when": ["store pseudotime", "store labels", "store per-cell scores"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "cell_vector_family",
+      "constructor": "wb_prim_cell_vector_family",
+      "title": "Cell Vector Family",
+      "description": "Long-form collection of keyed per-cell vectors.",
+      "shape": "key, cell_id, value, value_type",
+      "payload_level": "payload",
+      "use_when": ["store UCell signatures", "store chromVAR motif scores", "store per-lineage or per-feature vectors"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "relation_family",
+      "constructor": "wb_prim_relation_family",
+      "title": "Relation Family",
+      "description": "Sparse long-form cell-to-key relations with optional weights, values, or distances.",
+      "shape": "key, cell_id, optional weight/value/distance",
+      "payload_level": "payload",
+      "use_when": ["store branch membership", "store fuzzy assignments", "store edge-like relations"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "feature_table",
+      "constructor": "wb_prim_feature_table",
+      "title": "Feature Table",
+      "description": "Data frame where rows are feature-centric results such as genes, peaks, or markers.",
+      "shape": "table with feature_id plus table_type",
+      "payload_level": "payload",
+      "use_when": ["store DE tables", "store marker tables", "store feature trend results"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "obs_table",
+      "constructor": "wb_prim_obs_table",
+      "title": "Observation Table",
+      "description": "Generic observation-style data frame specialized by table_type and entity_kind.",
+      "shape": "table plus table_type/entity_kind",
+      "payload_level": "payload",
+      "use_when": ["store summaries", "store trajectory curves", "store pathway results", "store dynamics tables"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "model_ref",
+      "constructor": "wb_prim_model_ref",
+      "title": "Model Reference",
+      "description": "Reference to a stored model artifact and the spaces it maps between.",
+      "shape": "engine, model_space_id, in_space_id, artifact_id",
+      "payload_level": "reference",
+      "use_when": ["store projection models", "project new data into fitted space"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "path_2d_family",
+      "constructor": "wb_prim_path_2d_family",
+      "title": "2D Path Family",
+      "description": "Lineage or curve coordinates in a 2D plotting space.",
+      "shape": "key, point, x, y",
+      "payload_level": "payload",
+      "use_when": ["draw trajectory curves on UMAP", "inspect fitted lineages"],
+      "promotable": true
+    },
+    {
+      "primitive_kind": "space_path_family",
+      "constructor": "wb_prim_space_path_family",
+      "title": "High-Dimensional Space Path Family",
+      "description": "Curves in an arbitrary-dimensional bundle space, represented point-by-dimension.",
+      "shape": "space_id, path_id, point, dim, value",
+      "payload_level": "payload",
+      "use_when": ["represent checkpoint paths", "score cells against high-dimensional trajectories"],
+      "promotable": true
+    }
+  ]
+}

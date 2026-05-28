@@ -88,16 +88,19 @@
   if (!nzchar(rid)) NA_character_ else rid
 }
 
-#' Build a session DAG view for clients
+#' Build A Session DAG View
 #'
 #' Returns a canonical graph payload with run nodes as the primary vertices.
 #' Optional artifact and active-binding nodes are attached when requested.
 #'
-#' @param session wb_session object
-#' @param bundle Optional bundle, used for artifact linkage
-#' @param include_artifacts If TRUE and bundle provided, attach promoted artifact nodes
-#' @param include_active If TRUE, attach active-binding nodes
-#' @return list(nodes=<data.frame>, edges=<data.frame>, head_run_id, run_order)
+#' @param session `wb_session` object.
+#' @param bundle Optional bundle, used for artifact linkage.
+#' @param include_artifacts If `TRUE` and `bundle` is provided, attach promoted
+#'   artifact nodes.
+#' @param include_active If `TRUE`, attach active-binding nodes.
+#'
+#' @return A named list with `nodes`, `edges`, `head_run_id`, and `run_order`.
+#'
 #' @export
 wb_session_dag <- function(session,
                            bundle = NULL,
@@ -278,12 +281,20 @@ wb_session_dag <- function(session,
   )
 }
 
-#' Inspect one run node in session DAG form
+#' Inspect One Session DAG Run Node
 #'
-#' @param session wb_session object
-#' @param run_id run_id present in session$runs
-#' @param bundle Optional bundle; when provided, includes promoted artifacts from this run
-#' @return list with run metadata, refs, output summaries, neighborhood info
+#' Read one run in the same vocabulary used by [wb_session_dag()], including
+#' parent/child relationships, input refs, outputs, active bindings, and
+#' promoted artifacts when available.
+#'
+#' @param session `wb_session` object.
+#' @param run_id Run id present in `session$runs`.
+#' @param bundle Optional bundle; when provided, includes promoted artifacts
+#'   from this run.
+#'
+#' @return A named list with run metadata, refs, output summaries, and local
+#'   neighborhood info.
+#'
 #' @export
 wb_session_dag_run_details <- function(session, run_id, bundle = NULL) {
   .wb_assert(wb_is_session(session), "session must be wb_session")

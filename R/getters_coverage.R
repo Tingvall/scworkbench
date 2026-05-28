@@ -82,13 +82,19 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
 #' @param bundle scworkbench bundle handle.
 #' @param cell_set Cell set selector (e.g. `"core"`, `"all"`, `"set:<name>"`).
 #' @param inputs Named list of required inputs. Recognized keys include
-#'   `space_id`, `matrix_id`, and optional `dims` for space coverage.
+#'   `space_id`, `matrix_id`, optional `dims` for space coverage, and optional
+#'   `cell_ids` to override the requested cell universe.
 #'
 #' @return List with fields:
 #'   `requested`, `per_input`, `effective`, `percent`.
 #' @export
 wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
-  cells <- wb_cells(bundle, cell_set = cell_set)
+  if (!is.null(inputs$cell_ids)) {
+    cells <- unique(as.character(inputs$cell_ids))
+    cells <- cells[nzchar(cells)]
+  } else {
+    cells <- wb_cells(bundle, cell_set = cell_set)
+  }
   res <- list(
     requested = length(cells),
     per_input = list()
@@ -96,8 +102,8 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
 
   current <- cells
 
-  if (!is.null(inputs$space_id)) {
-    have <- wb_cells_with_space(bundle, inputs$space_id, inputs$dims %||% NULL)
+  if (!is.null(inputs[["space_id"]])) {
+    have <- wb_cells_with_space(bundle, inputs[["space_id"]], inputs[["dims"]] %||% NULL)
     res$per_input$space <- list(
       have = length(have),
       intersect = length(intersect(current, have))
@@ -105,8 +111,8 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
     current <- intersect(current, have)
   }
 
-  if (!is.null(inputs$matrix_id)) {
-    have <- wb_cells_with_matrix(bundle, inputs$matrix_id)
+  if (!is.null(inputs[["matrix_id"]])) {
+    have <- wb_cells_with_matrix(bundle, inputs[["matrix_id"]])
     res$per_input$matrix <- list(
       have = length(have),
       intersect = length(intersect(current, have))
@@ -115,7 +121,11 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   }
 
   res$effective <- length(current)
-  res$percent <- round(100 * res$effective / res$requested, 1)
+  res$percent <- if (res$requested > 0) {
+    round(100 * res$effective / res$requested, 1)
+  } else {
+    0
+  }
   res
 }
 
@@ -132,7 +142,7 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
     requested_cells <- wb_cells(bundle, cell_set = cell_set)
   }
 
-  cov <- wb_cell_coverage(bundle, cell_set, inputs)  # you may want to also let coverage use cell_ids (optional)
+  cov <- wb_cell_coverage(bundle, cell_set, inputs)
 
   if (cov$effective < min_cells) {
     msg <- paste0(
@@ -157,10 +167,10 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
   # apply per-input availability intersections
   for (k in names(inputs)) {
     if (k == "space_id") {
-      cells <- intersect(cells, wb_cells_with_space(bundle, inputs$space_id, inputs$dims %||% NULL))
+      cells <- intersect(cells, wb_cells_with_space(bundle, inputs[["space_id"]], inputs[["dims"]] %||% NULL))
     }
     if (k == "matrix_id") {
-      cells <- intersect(cells, wb_cells_with_matrix(bundle, inputs$matrix_id))
+      cells <- intersect(cells, wb_cells_with_matrix(bundle, inputs[["matrix_id"]]))
     }
   }
 
@@ -187,5 +197,4 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
     min_cells = min_cells
   )
 }
-
 

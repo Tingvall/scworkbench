@@ -12,12 +12,20 @@
       input_space_id TEXT,
       input_matrix_id TEXT,
       cell_set TEXT,
+      provenance_snapshot_id TEXT,
+      lineage_status TEXT,
       provenance_json TEXT NOT NULL,
       scworkbench_version TEXT
     );
   ")
 
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_artifacts_type ON artifacts(type);")
+  if (!.wb_db_has_column(con, "artifacts", "provenance_snapshot_id")) {
+    DBI::dbExecute(con, "ALTER TABLE artifacts ADD COLUMN provenance_snapshot_id TEXT;")
+  }
+  if (!.wb_db_has_column(con, "artifacts", "lineage_status")) {
+    DBI::dbExecute(con, "ALTER TABLE artifacts ADD COLUMN lineage_status TEXT;")
+  }
 
   # cell_vector stored as per-cell labels (string)
   DBI::dbExecute(con, "
@@ -28,6 +36,12 @@
       PRIMARY KEY (artifact_id, cell_id)
     );
   ")
+  if (!.wb_db_has_column(con, "artifact_labels", "value_type")) {
+    DBI::dbExecute(con, "ALTER TABLE artifact_labels ADD COLUMN value_type TEXT;")
+  }
+  if (!.wb_db_has_column(con, "artifact_labels", "value_num")) {
+    DBI::dbExecute(con, "ALTER TABLE artifact_labels ADD COLUMN value_num REAL;")
+  }
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_labels_artifact ON artifact_labels(artifact_id);")
 
   # cell_vector_family stored as pseudotime-like (numeric)
@@ -42,6 +56,20 @@
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_pt_artifact ON artifact_pseudotime(artifact_id);")
 
+  # generic long relation rows (relation_family)
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS artifact_relation_rows (
+      artifact_id TEXT NOT NULL,
+      relation_key TEXT NOT NULL,
+      cell_id TEXT NOT NULL,
+      weight REAL,
+      value REAL,
+      distance REAL,
+      PRIMARY KEY (artifact_id, relation_key, cell_id)
+    );
+  ")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_relation_rows_artifact ON artifact_relation_rows(artifact_id);")
+
   # path_2d_family
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS artifact_curves_2d (
@@ -54,6 +82,26 @@
     );
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_curve_artifact ON artifact_curves_2d(artifact_id);")
+
+  # analytical high-dimensional paths
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS artifact_space_path_meta (
+      artifact_id TEXT PRIMARY KEY,
+      meta_json TEXT
+    );
+  ")
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS artifact_space_path_rows (
+      artifact_id TEXT NOT NULL,
+      space_id TEXT NOT NULL,
+      path_id TEXT NOT NULL,
+      point INTEGER NOT NULL,
+      dim INTEGER NOT NULL,
+      value REAL NOT NULL,
+      PRIMARY KEY (artifact_id, path_id, point, dim)
+    );
+  ")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_path_rows_artifact ON artifact_space_path_rows(artifact_id);")
 
   # optional snapshot of 2D space
   DBI::dbExecute(con, "
@@ -76,6 +124,20 @@
     );
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_umap_model_space ON artifact_umap_model(space_id);")
+
+  # generic model references (engine-tagged; supports non-UMAP models such as slingshot fits)
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS artifact_model_ref (
+      artifact_id TEXT PRIMARY KEY,
+      engine TEXT NOT NULL,
+      model_space_id TEXT NOT NULL,
+      in_space_id TEXT,
+      model_type TEXT,
+      model_path TEXT NOT NULL
+    );
+  ")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_model_ref_engine ON artifact_model_ref(engine);")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_model_ref_space ON artifact_model_ref(model_space_id);")
 
   # generic tabular outputs (feature_table / obs_table)
   DBI::dbExecute(con, "

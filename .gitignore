@@ -2,3 +2,20 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# Local agent / editor state
+.codex
+.codex/
+
+# Generated analysis outputs
+reports/
+scripts/
+
+# Large built container artifacts; keep container build recipes tracked
+containers/*.sif
+
+# Local scratch / exports
+.tmp_exports_overview.csv
+
+# Backup files
+*.backup

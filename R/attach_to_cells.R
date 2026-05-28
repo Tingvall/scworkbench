@@ -198,10 +198,12 @@ wb_attach_to_cells <- function(
         report$spaces[[space_id]] <- list(type = "2d", n = nrow(df))
 
       } else if (all(c("dim", "value") %in% colnames(df))) {
+        dims_n <- suppressWarnings(as.integer(max(df$dim, na.rm = TRUE)))
+        if (is.na(dims_n) || dims_n < 1L) dims_n <- 1L
         DBI::dbExecute(
           con,
           "INSERT OR IGNORE INTO spaces(space_id, source, dims, storage, description) VALUES(?, ?, ?, ?, ?);",
-          params = list(space_id, source, NA_integer_, "long:space_coords", space_id)
+          params = list(space_id, source, dims_n, "long:space_coords", space_id)
         )
 
         df$dim <- as.integer(df$dim)
@@ -229,6 +231,18 @@ wb_attach_to_cells <- function(
             stringsAsFactors = FALSE
           ),
           append = TRUE
+        )
+
+        # Ensure long-space metadata stays complete for ingested spaces.
+        DBI::dbExecute(
+          con,
+          "UPDATE spaces
+             SET dims = CASE WHEN dims IS NULL OR dims < ? THEN ? ELSE dims END,
+                 storage = 'long:space_coords',
+                 source = COALESCE(source, ?),
+                 description = COALESCE(description, ?)
+           WHERE space_id = ?;",
+          params = list(dims_n, dims_n, source, space_id, space_id)
         )
 
         report$spaces[[space_id]] <- list(type = "long", n = nrow(df))
@@ -315,6 +329,61 @@ wb_attach_to_cells <- function(
         source = source,
         created_at = format(Sys.time(), "%Y-%m-%d %H:%M:%S")
       )
+
+      # Keep the logical matrix registry usable when a matrix is first created
+      # via attach. For staged assembly, many bundles will introduce each
+      # modality exactly once through this path.
+      DBI::dbExecute(
+        con,
+        "UPDATE matrices
+           SET n_features = COALESCE(n_features, ?),
+               n_cells = COALESCE(n_cells, ?),
+               path = COALESCE(path, ?)
+         WHERE matrix_id = ?;",
+        params = list(
+          as.integer(length(feature_ids)),
+          as.integer(length(keep_cols)),
+          rel_path,
+          matrix_id
+        )
+      )
+
+      feats_df <- if (identical(feature_type, "peak")) {
+        peak_df <- .wb_parse_peak_ids(feature_ids)
+        data.frame(
+          matrix_id = matrix_id,
+          feature_id = feature_ids,
+          feature_type = "peak",
+          chr = peak_df$chr,
+          start = peak_df$start,
+          end = peak_df$end,
+          stringsAsFactors = FALSE
+        )
+      } else {
+        data.frame(
+          matrix_id = matrix_id,
+          feature_id = feature_ids,
+          feature_type = feature_type,
+          chr = NA_character_,
+          start = NA_integer_,
+          end = NA_integer_,
+          stringsAsFactors = FALSE
+        )
+      }
+
+      existing_feats <- DBI::dbGetQuery(
+        con,
+        "SELECT matrix_id, feature_id, feature_type, chr, start, end
+           FROM features
+          WHERE matrix_id = ?;",
+        params = list(matrix_id)
+      )
+      if (nrow(existing_feats)) {
+        feats_df <- rbind(existing_feats, feats_df)
+        feats_df <- feats_df[!duplicated(feats_df$feature_id, fromLast = TRUE), , drop = FALSE]
+      }
+      DBI::dbExecute(con, "DELETE FROM features WHERE matrix_id = ?;", params = list(matrix_id))
+      DBI::dbWriteTable(con, "features", feats_df, append = TRUE)
 
       report$matrices[[matrix_id]] <- list(
         fragment_id = frag_id,

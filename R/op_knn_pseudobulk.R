@@ -1,17 +1,22 @@
-#' kNN pseudobulk around query cells in latent space
+#' Compute kNN Pseudobulk Around Query Cells
 #'
 #' Treats query cells (for example projected bulk samples) as anchors in a shared
 #' latent space, finds nearest neighbors, and aggregates expression in a matrix.
 #'
-#' @param bundle Bundle handle
-#' @param matrix_id Matrix identifier for aggregation
-#' @param space_id Space identifier used for kNN search
-#' @param query_cells Character vector of query cell IDs
-#' @param candidate_cells Optional candidate pool for neighbors (defaults to effective cells)
-#' @param features Optional feature IDs (default all matrix features)
-#' @param k Number of neighbors per query cell
-#' @param include_query Include the query cell itself in neighbor pool if present
-#' @param aggregate Aggregation mode: "sum" or "mean"
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix identifier for aggregation.
+#' @param space_id Space identifier used for kNN search.
+#' @param query_cells Character vector of query cell ids.
+#' @param candidate_cells Optional candidate pool for neighbors.
+#' @param features Optional feature ids. Defaults to all matrix features.
+#' @param k Number of neighbors per query cell.
+#' @param include_query Include the query cell itself in the neighbor pool when
+#'   present.
+#' @param aggregate Aggregation mode: `"sum"` or `"mean"`.
+#'
+#' @return A standard op result list with `outputs$pseudobulk_table`,
+#'   `outputs$neighbor_distance`, and normalized `params`.
+#'
 #' @export
 wb_op_knn_pseudobulk <- function(bundle,
                                  matrix_id,
@@ -195,18 +200,23 @@ wb_op_knn_pseudobulk <- function(bundle,
   )
 }
 
-#' kNN neighbor search in latent space (space-only)
+#' Find kNN Neighbors In A Space
 #'
 #' Finds nearest neighbors around query cells using a selected space embedding.
 #' This op does not require a matrix and is useful for geometry-only workflows
 #' (for example PeakVI latent-space neighborhood lookup).
 #'
-#' @param bundle Bundle handle
-#' @param space_id Space identifier used for kNN search
-#' @param query_cells Character vector of query cell IDs
-#' @param candidate_cells Optional candidate pool for neighbors (defaults to all cells)
-#' @param k Number of neighbors per query cell
-#' @param include_query Include query cells themselves when they are in candidate pool
+#' @param bundle Open `scworkbench_bundle`.
+#' @param space_id Space identifier used for kNN search.
+#' @param query_cells Character vector of query cell ids.
+#' @param candidate_cells Optional candidate pool for neighbors.
+#' @param k Number of neighbors per query cell.
+#' @param include_query Include query cells themselves when they are in the
+#'   candidate pool.
+#'
+#' @return A standard op result list with `outputs$neighbors`,
+#'   `outputs$neighbor_distance`, and normalized `params`.
+#'
 #' @export
 wb_op_knn_neighbors <- function(bundle,
                                 space_id,

@@ -1,0 +1,3886 @@
+{
+  "schema_version": "scworkbench.op_catalog.semantic.v1",
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "op_count": 39,
+  "ops": [
+    {
+      "op_name": "leiden",
+      "title": "Leiden clustering",
+      "description": "Graph clustering on a kNN graph derived from an embedding space.",
+      "intent": "cluster",
+      "consumes": [
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "clusters",
+          "kind": "cell_vector",
+          "description": "Cluster label per cell (categorical cell vector)."
+        }
+      ],
+      "inputs": {
+        "space": {
+          "required": true,
+          "must_be_2d": false,
+          "dims_min": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "dims",
+          "type": "int_range",
+          "default": "1:30",
+          "help": "Which dimensions of the space to use (1-indexed)."
+        },
+        {
+          "name": "k",
+          "type": "int",
+          "default": 30,
+          "min": 5,
+          "max": 200,
+          "help": "Number of neighbors for kNN graph."
+        },
+        {
+          "name": "resolution",
+          "type": "dbl",
+          "default": 1,
+          "min": 0.01,
+          "max": 10,
+          "help": "Leiden resolution parameter."
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "default": 1,
+          "help": "Random seed."
+        }
+      ],
+      "promotable": "clusters",
+      "chunking": null
+    },
+    {
+      "op_name": "matrix_log_normalize",
+      "title": "Log-normalize count matrix",
+      "description": "Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.",
+      "intent": ["matrix", "normalize", "rna", "transform"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "description": "Reference to the newly registered log-normalized matrix."
+        },
+        {
+          "name": "summary",
+          "kind": "obs_table",
+          "description": "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "output_matrix_id",
+          "type": "string",
+          "default": null,
+          "help": "Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>."
+        },
+        {
+          "name": "scale_factor",
+          "type": "dbl",
+          "default": 10000,
+          "min": 1,
+          "max": 1000000000,
+          "help": "Per-cell target count scale before log1p; 10000 is the common CP10K convention."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": false,
+          "help": "If TRUE, replace an existing output matrix with the same id."
+        },
+        {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "help": "Must be 'all' in v1 because the output matrix is registered as a full bundle matrix."
+        }
+      ],
+      "promotable": "summary",
+      "chunking": null
+    },
+    {
+      "op_name": "umap_fit",
+      "title": "UMAP fit (train model)",
+      "description": "Fit a UMAP model on a space and store it for future projection.",
+      "intent": ["umap", "fit"],
+      "consumes": [
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "description": "Reference to the fitted UMAP model."
+        },
+        {
+          "name": "space_2d",
+          "kind": "space_2d",
+          "description": "The fitted 2D embedding space id."
+        }
+      ],
+      "inputs": {
+        "space": {
+          "required": true,
+          "must_be_2d": false,
+          "dims_min": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "dims",
+          "type": "int_range",
+          "default": null,
+          "help": "Dims to use (e.g. 2:30)."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": true,
+          "help": "Overwrite existing model/coords."
+        }
+      ],
+      "promotable": ["space_2d", "model"],
+      "chunking": null
+    },
+    {
+      "op_name": "umap_transform",
+      "title": "UMAP transform (project cells)",
+      "description": "Project cells into an existing UMAP using a stored model.",
+      "intent": ["projection", "umap"],
+      "consumes": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "in_space",
+          "kind": "space",
+          "required": false
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "space_2d",
+          "kind": "space_2d",
+          "description": "Projected x/y in the target UMAP space."
+        }
+      ],
+      "inputs": {
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "in_space": {
+          "required": false,
+          "must_be_2d": false,
+          "dims_min": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "set:"
+        }
+      },
+      "params": [
+        {
+          "name": "dims",
+          "type": "int_range",
+          "default": null,
+          "help": "Dims to use from the input space (e.g. 2:30)."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": true,
+          "help": "Overwrite existing projected coordinates for those cells."
+        }
+      ],
+      "promotable": "space_2d",
+      "chunking": null
+    },
+    {
+      "op_name": "addmodulescore",
+      "title": "Add module score",
+      "description": "Seurat-style module scoring using matched control features by expression bin.",
+      "intent": ["expression", "signature", "score"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "module_scores",
+          "kind": "cell_vector_family",
+          "description": "Per-cell module scores for one or more signatures."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "features",
+          "type": "string_vec_or_list",
+          "default": null,
+          "help": "Module feature IDs: character vector or list of vectors."
+        },
+        {
+          "name": "pool",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional control feature pool; defaults to all matrix features."
+        },
+        {
+          "name": "nbin",
+          "type": "int",
+          "default": 24,
+          "min": 2,
+          "max": 200,
+          "help": "Number of expression bins for control matching."
+        },
+        {
+          "name": "ctrl",
+          "type": "int",
+          "default": 100,
+          "min": 1,
+          "max": 1000,
+          "help": "Control features sampled per module feature."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": "Module",
+          "help": "Prefix for module names when features are unnamed."
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "default": 1,
+          "help": "Random seed for control sampling."
+        }
+      ],
+      "promotable": "module_scores",
+      "chunking": null
+    },
+    {
+      "op_name": "ucell",
+      "title": "UCell Signature Scoring",
+      "description": "Rank-based per-cell signature scoring using the UCell method.",
+      "intent": ["expression", "signature", "score"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "signature_scores",
+          "kind": "cell_vector_family",
+          "description": "Per-cell UCell scores for one or more signatures."
+        },
+        {
+          "name": "signature_summary",
+          "kind": "obs_table",
+          "description": "Per-signature scoring summary and feature-match diagnostics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "features",
+          "type": "string_vec_or_list",
+          "default": null,
+          "help": "Signature feature IDs: character vector or list of vectors."
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": "Signature",
+          "help": "Prefix for signature names when features are unnamed."
+        },
+        {
+          "name": "max_rank",
+          "type": "int",
+          "default": 1500,
+          "min": 1,
+          "max": 1000000,
+          "help": "Maximum rank considered by UCell."
+        },
+        {
+          "name": "ncores",
+          "type": "int",
+          "default": 1,
+          "min": 1,
+          "max": 1024,
+          "help": "Number of worker processes requested by UCell."
+        },
+        {
+          "name": "parallel_backend",
+          "type": "choice",
+          "default": "auto",
+          "choices": ["auto", "serial"],
+          "help": "Execution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems."
+        },
+        {
+          "name": "chunk_size",
+          "type": "int",
+          "default": null,
+          "min": 8,
+          "max": 1000000,
+          "help": "Reserved chunk size hint for future engine-owned cell-axis chunking; currently ignored."
+        },
+        {
+          "name": "missing_features_policy",
+          "type": "choice",
+          "default": "drop",
+          "choices": ["drop", "error"],
+          "help": "How to handle signature features missing from the matrix."
+        }
+      ],
+      "promotable": ["signature_scores", "signature_summary"],
+      "chunking": {
+        "chunkable": true,
+        "axis": "cells",
+        "chunk_size_param": "chunk_size",
+        "chunk_size_default": 2000,
+        "merge": {
+          "signature_scores": "row_bind_cell_vector_family",
+          "signature_summary": "recompute_summary"
+        },
+        "status": "planned"
+      }
+    },
+    {
+      "op_name": "cell_vector_family_reduce",
+      "title": "Reduce Cell Vector Family",
+      "description": "Compress a cell_vector_family into one categorical cell_vector using explicit reduction and abstention rules.",
+      "intent": ["label", "reduce", "signal"],
+      "consumes": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "label",
+          "kind": "cell_vector",
+          "description": "Per-cell categorical labels after reducing the signal family."
+        },
+        {
+          "name": "top_score",
+          "kind": "cell_vector",
+          "description": "Winning score for each cell."
+        },
+        {
+          "name": "runner_up_score",
+          "kind": "cell_vector",
+          "description": "Second-best score for each cell."
+        },
+        {
+          "name": "score_margin",
+          "kind": "cell_vector",
+          "description": "Winning minus runner-up score for each cell."
+        },
+        {
+          "name": "abstain_reason",
+          "kind": "cell_vector",
+          "description": "Per-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`)."
+        },
+        {
+          "name": "decision_table",
+          "kind": "obs_table",
+          "description": "Per-cell reduction diagnostics including label, scores, margin, and abstention reason."
+        },
+        {
+          "name": "label_summary",
+          "kind": "obs_table",
+          "description": "Per-label counts and score summaries after reduction."
+        }
+      ],
+      "inputs": {
+        "signal": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "signal_keys",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional signal-key subset within the cell_vector_family."
+        },
+        {
+          "name": "rule",
+          "type": "choice",
+          "default": "argmax",
+          "choices": "argmax",
+          "help": "Reduction rule used to choose one label per cell."
+        },
+        {
+          "name": "min_score",
+          "type": "dbl",
+          "default": null,
+          "min": -1000000000,
+          "max": 1000000000,
+          "help": "Optional minimum winning score required to emit a non-unknown label."
+        },
+        {
+          "name": "min_margin",
+          "type": "dbl",
+          "default": null,
+          "min": 0,
+          "max": 1000000000,
+          "help": "Optional minimum top-vs-second margin required to emit a non-unknown label."
+        },
+        {
+          "name": "unknown_label",
+          "type": "string",
+          "default": "unknown",
+          "help": "Fallback label emitted when thresholds or ties abstain."
+        },
+        {
+          "name": "ties",
+          "type": "choice",
+          "default": "unknown",
+          "choices": ["unknown", "first"],
+          "help": "How to handle tied top scores."
+        },
+        {
+          "name": "tie_tol",
+          "type": "dbl",
+          "default": 1e-08,
+          "min": 0,
+          "max": 1,
+          "help": "Tolerance used when detecting ties."
+        }
+      ],
+      "promotable": ["label", "top_score", "runner_up_score", "score_margin", "abstain_reason", "decision_table", "label_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "cell_vector_family_calibrate",
+      "title": "Calibrate Cell Vector Family",
+      "description": "Normalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.",
+      "intent": ["signal", "calibrate", "normalize"],
+      "consumes": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "calibrated_signal",
+          "kind": "cell_vector_family",
+          "description": "Calibrated per-cell values for each key in the signal family."
+        },
+        {
+          "name": "calibration_summary",
+          "kind": "obs_table",
+          "description": "Per-key calibration statistics for raw and calibrated values."
+        }
+      ],
+      "inputs": {
+        "signal": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "signal_keys",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional signal-key subset within the cell_vector_family."
+        },
+        {
+          "name": "method",
+          "type": "choice",
+          "default": "percentile",
+          "choices": ["percentile", "zscore", "robust_zscore"],
+          "help": "Calibration method applied independently within each key."
+        },
+        {
+          "name": "center",
+          "type": "bool",
+          "default": true,
+          "help": "For z-score calibration, subtract the fitted center."
+        },
+        {
+          "name": "scale",
+          "type": "bool",
+          "default": true,
+          "help": "For z-score calibration, divide by the fitted scale."
+        },
+        {
+          "name": "ties_method",
+          "type": "choice",
+          "default": "average",
+          "choices": ["average", "first", "random", "max", "min"],
+          "help": "Rank tie handling for percentile calibration."
+        },
+        {
+          "name": "na_rm",
+          "type": "bool",
+          "default": true,
+          "help": "Ignore non-finite values when fitting calibration."
+        }
+      ],
+      "promotable": ["calibrated_signal", "calibration_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "cell_vector_family_qc",
+      "title": "QC Cell Vector Family",
+      "description": "Compute per-key and pairwise diagnostics for one keyed per-cell signal family.",
+      "intent": ["signal", "qc", "diagnostics"],
+      "consumes": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "grouping",
+          "kind": "cell_vector",
+          "required": false
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "key_summary",
+          "kind": "obs_table",
+          "description": "Per-key QC summaries including score distribution, finite coverage, and winner frequencies."
+        },
+        {
+          "name": "pairwise_summary",
+          "kind": "obs_table",
+          "description": "Pairwise key relationships including overlap counts and correlations."
+        },
+        {
+          "name": "group_summary",
+          "kind": "obs_table",
+          "description": "Per-group per-key QC summaries when an optional grouping vector is supplied."
+        }
+      ],
+      "inputs": {
+        "signal": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "grouping": {
+          "required": false,
+          "kind": "cell_vector"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "signal_keys",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional signal-key subset within the cell_vector_family."
+        },
+        {
+          "name": "correlation_methods",
+          "type": "string_vec",
+          "default": ["pearson", "spearman"],
+          "help": "Pairwise correlation methods to compute between keys."
+        },
+        {
+          "name": "tie_tol",
+          "type": "dbl",
+          "default": 1e-08,
+          "min": 0,
+          "max": 1,
+          "help": "Tolerance used when counting tied top-key winners."
+        }
+      ],
+      "promotable": ["key_summary", "pairwise_summary", "group_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "chromvar",
+      "title": "chromVAR deviations",
+      "description": "Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.",
+      "intent": ["atac", "motif", "signature", "score"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "deviation_z",
+          "kind": "cell_vector_family",
+          "description": "Per-cell chromVAR z-scores keyed by motif."
+        },
+        {
+          "name": "deviation_raw",
+          "kind": "cell_vector_family",
+          "description": "Per-cell raw chromVAR deviations keyed by motif."
+        },
+        {
+          "name": "motif_summary",
+          "kind": "obs_table",
+          "description": "Per-motif chromVAR summary statistics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "motif_library",
+          "type": "string",
+          "default": null,
+          "help": "Canonical motif-library key from the motif registry."
+        },
+        {
+          "name": "motifs",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional motif-key subset within motif_library."
+        },
+        {
+          "name": "motif_match_set",
+          "type": "string",
+          "default": null,
+          "help": "Optional canonical motif-match-set key to reuse cached motif-to-peak matches."
+        },
+        {
+          "name": "min_motif_peaks",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum number of matched peaks per retained motif."
+        },
+        {
+          "name": "max_motif_peaks",
+          "type": "int",
+          "default": null,
+          "min": 1,
+          "max": 1000000,
+          "help": "Optional maximum number of matched peaks per retained motif."
+        },
+        {
+          "name": "motif_p_cutoff",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Motifmatchr p-value cutoff."
+        },
+        {
+          "name": "motif_w",
+          "type": "int",
+          "default": 7,
+          "min": 1,
+          "max": 100,
+          "help": "Motifmatchr background window width."
+        },
+        {
+          "name": "seqlevels_mode",
+          "type": "choice",
+          "default": "standard",
+          "choices": ["standard", "all"],
+          "help": "Seqlevel policy; standard chromosomes are the default."
+        },
+        {
+          "name": "seqlevels_include",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit seqlevels to keep after applying seqlevels_mode."
+        },
+        {
+          "name": "seqlevels_exclude",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit seqlevels to drop after applying seqlevels_mode."
+        },
+        {
+          "name": "background_iterations",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "max": 1000,
+          "help": "Number of chromVAR background iterations."
+        },
+        {
+          "name": "background_w",
+          "type": "dbl",
+          "default": 0.1,
+          "min": 0,
+          "max": 10,
+          "help": "Background peak matching window width."
+        },
+        {
+          "name": "background_bs",
+          "type": "int",
+          "default": 50,
+          "min": 2,
+          "max": 1000,
+          "help": "Background peak matching bin count."
+        }
+      ],
+      "promotable": ["deviation_z", "deviation_raw", "motif_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "de_wilcox",
+      "title": "Differential Expression (Wilcoxon)",
+      "description": "Wilcoxon rank-sum DE between two cell groups (A vs B).",
+      "intent": ["de", "markers", "comparison"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "de_table",
+          "kind": "feature_table",
+          "description": "Feature-level DE statistics table."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "group_a",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Group A cells: vector of cell IDs or 'set:<name>'."
+        },
+        {
+          "name": "group_b",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Group B cells: vector of cell IDs or 'set:<name>'."
+        },
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature subset."
+        },
+        {
+          "name": "min_pct",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum detection fraction in either group."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "string",
+          "default": "BH",
+          "help": "Method passed to p.adjust."
+        }
+      ],
+      "promotable": "de_table",
+      "chunking": null
+    },
+    {
+      "op_name": "markers_topn",
+      "title": "Top Markers Per Cluster",
+      "description": "One-vs-rest Wilcoxon marker ranking for each cluster.",
+      "intent": ["markers", "cluster"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "clusters",
+          "kind": "cell_vector",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "markers",
+          "kind": "feature_table",
+          "description": "Cluster-marker table with per-feature statistics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "clusters": {
+          "required": true,
+          "kind": "cell_vector"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature subset."
+        },
+        {
+          "name": "top_n",
+          "type": "int",
+          "default": 20,
+          "min": 1,
+          "max": 1000,
+          "help": "Top markers retained per cluster."
+        },
+        {
+          "name": "min_pct",
+          "type": "dbl",
+          "default": 0.1,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum detection fraction in either group."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "string",
+          "default": "BH",
+          "help": "Method passed to p.adjust."
+        }
+      ],
+      "promotable": "markers",
+      "chunking": null
+    },
+    {
+      "op_name": "pathway_enrich",
+      "title": "Pathway Enrichment (Namespace)",
+      "description": "Hypergeometric enrichment against all feature sets in a namespace.",
+      "intent": ["pathway", "enrichment"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "feature_table",
+          "kind": "feature_table",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pathways",
+          "kind": "obs_table",
+          "description": "Pathway enrichment statistics for one namespace."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "feature_table": {
+          "required": true,
+          "kind": "feature_table",
+          "label": "Input feature table (e.g. DE/marker results)"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "namespace",
+          "type": "string",
+          "default": null,
+          "help": "Feature-set namespace from wb_feature_sets() (e.g. bcell_gsea)."
+        },
+        {
+          "name": "feature_col",
+          "type": "string",
+          "default": "feature_id",
+          "help": "Column in input feature table containing feature IDs (usually feature_id)."
+        },
+        {
+          "name": "p_adj_col",
+          "type": "string",
+          "default": "p_val_adj",
+          "help": "Adjusted p-value column used for query filtering."
+        },
+        {
+          "name": "p_adj_max",
+          "type": "dbl",
+          "default": 0.05,
+          "min": 0,
+          "max": 1,
+          "help": "Maximum adjusted p-value for query features."
+        },
+        {
+          "name": "lfc_col",
+          "type": "string",
+          "default": "avg_log1p_fc",
+          "help": "Effect-size column used for directional filtering."
+        },
+        {
+          "name": "direction",
+          "type": "string",
+          "default": "any",
+          "help": "Directional filter: any|up|down."
+        },
+        {
+          "name": "lfc_min_abs",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Minimum |effect| when direction='any'."
+        },
+        {
+          "name": "lfc_min",
+          "type": "dbl",
+          "default": 0.25,
+          "min": 0,
+          "help": "Minimum effect for direction='up'/'down'."
+        },
+        {
+          "name": "min_set_size",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "help": "Minimum pathway size to test."
+        },
+        {
+          "name": "max_set_size",
+          "type": "int",
+          "default": 5000,
+          "min": 1,
+          "help": "Maximum pathway size to test."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "string",
+          "default": "BH",
+          "help": "Method passed to p.adjust."
+        }
+      ],
+      "promotable": "pathways",
+      "chunking": null
+    },
+    {
+      "op_name": "cell_suffix_label",
+      "title": "Cell Labels From ID Suffix",
+      "description": "Build a categorical cell vector by parsing cell_id suffix tokens.",
+      "intent": ["annotation", "metadata"],
+      "consumes": [
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "labels",
+          "kind": "cell_vector",
+          "description": "Categorical label per cell from suffix parsing."
+        },
+        {
+          "name": "label_table",
+          "kind": "obs_table",
+          "description": "Per-cell suffix/label table."
+        }
+      ],
+      "inputs": {
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "sep",
+          "type": "string",
+          "default": "-",
+          "help": "Separator used in cell IDs before suffix token."
+        },
+        {
+          "name": "mapping",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional named mapping suffix->label."
+        },
+        {
+          "name": "default_label",
+          "type": "string",
+          "default": "UNKNOWN",
+          "help": "Fallback label for unmapped suffixes."
+        }
+      ],
+      "promotable": ["labels", "label_table"],
+      "chunking": null
+    },
+    {
+      "op_name": "cell_vector_assoc",
+      "title": "Cell Vector Association",
+      "description": "Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.",
+      "intent": ["statistics", "association", "confounding"],
+      "consumes": [
+        {
+          "name": "vector_cont",
+          "kind": "cell_vector",
+          "required": true,
+          "description": "Examples: pseudotime, module score, gene-program score."
+        },
+        {
+          "name": "vector_group",
+          "kind": "cell_vector",
+          "required": true,
+          "description": "Examples: cluster labels, cell type labels, condition labels."
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "assoc_summary",
+          "kind": "feature_table",
+          "description": "Omnibus association test summary (Kruskal/ANOVA)."
+        },
+        {
+          "name": "group_stats",
+          "kind": "obs_table",
+          "description": "Per-group descriptive statistics."
+        }
+      ],
+      "inputs": {
+        "vector_cont": {
+          "required": true,
+          "kind": "cell_vector",
+          "label": "Continuous vector (numeric per cell)",
+          "help": "Examples: pseudotime, module score, gene-program score."
+        },
+        "vector_group": {
+          "required": true,
+          "kind": "cell_vector",
+          "label": "Grouping vector (categorical per cell)",
+          "help": "Examples: cluster labels, cell type labels, condition labels."
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "min_n_per_group",
+          "type": "int",
+          "default": 3,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells per group."
+        }
+      ],
+      "promotable": ["assoc_summary", "group_stats"],
+      "chunking": null
+    },
+    {
+      "op_name": "cell_vector_compare",
+      "title": "Cell Vector Comparison",
+      "description": "Compare two cell-level signals on their shared cell universe in raw or rank space.",
+      "intent": ["statistics", "comparison", "signal"],
+      "consumes": [
+        {
+          "name": "a",
+          "kind": "cell_vector",
+          "required": true,
+          "description": "Continuous or rankable numeric signal per cell."
+        },
+        {
+          "name": "b",
+          "kind": "cell_vector",
+          "required": true,
+          "description": "Continuous or rankable numeric signal per cell."
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "summary",
+          "kind": "obs_table",
+          "description": "One-row comparison summary with concordance and delta metrics."
+        },
+        {
+          "name": "comparison",
+          "kind": "obs_table",
+          "description": "Per-cell comparison table with original values, compared values, and deltas."
+        }
+      ],
+      "inputs": {
+        "a": {
+          "required": true,
+          "kind": "cell_vector",
+          "label": "Signal A",
+          "help": "Continuous or rankable numeric signal per cell."
+        },
+        "b": {
+          "required": true,
+          "kind": "cell_vector",
+          "label": "Signal B",
+          "help": "Continuous or rankable numeric signal per cell."
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "compare_space",
+          "type": "choice",
+          "default": "rank",
+          "choices": ["raw", "rank"],
+          "help": "Whether to compare original numeric values or cell ranks."
+        },
+        {
+          "name": "ties_method",
+          "type": "choice",
+          "default": "average",
+          "choices": ["average", "first", "last", "random", "max", "min"],
+          "help": "Tie handling rule used when compare_space='rank'."
+        },
+        {
+          "name": "signal_a",
+          "type": "string",
+          "default": "a",
+          "help": "Optional label recorded in the summary table for signal A."
+        },
+        {
+          "name": "signal_b",
+          "type": "string",
+          "default": "b",
+          "help": "Optional label recorded in the summary table for signal B."
+        }
+      ],
+      "promotable": ["summary", "comparison"],
+      "chunking": null
+    },
+    {
+      "op_name": "feature_trend_spearman",
+      "title": "Feature Trends vs Continuous Vector",
+      "description": "Feature-level Spearman trend testing against continuous pseudotime-like vectors.",
+      "intent": ["trend", "statistics", "trajectory"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "trend_table",
+          "kind": "feature_table",
+          "description": "Per-feature trend statistics (rho, p, adjusted p)."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "pseudotime": {
+          "required": true,
+          "kind": "cell_vector"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature subset."
+        },
+        {
+          "name": "min_pct_nonzero",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum non-zero fraction filter."
+        },
+        {
+          "name": "min_sd",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1000000,
+          "help": "Minimum per-feature standard deviation filter."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "string",
+          "default": "BH",
+          "help": "Method passed to p.adjust."
+        },
+        {
+          "name": "chunk_size",
+          "type": "int",
+          "default": 128,
+          "min": 8,
+          "max": 4096,
+          "help": "Chunk size for matrix slicing."
+        }
+      ],
+      "promotable": "trend_table",
+      "chunking": {
+        "chunkable": true,
+        "axis": "features",
+        "chunk_size_param": "chunk_size",
+        "chunk_size_default": 128,
+        "merge": {
+          "trend_table": "row_bind_feature_table"
+        },
+        "status": "implemented_generic"
+      }
+    },
+    {
+      "op_name": "trajectory_de",
+      "title": "Trajectory DE",
+      "description": "Lineage-aware feature trend testing against trajectory pseudotime from model_ref.",
+      "intent": ["trajectory", "trend", "statistics"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "de_table",
+          "kind": "feature_table",
+          "description": "Per-lineage feature trend statistics (rho, p, adjusted p)."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Per-lineage input and filtering diagnostics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "lineage",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional lineage key subset."
+        },
+        {
+          "name": "feature_set",
+          "type": "string",
+          "default": null,
+          "help": "Optional feature set name from wb_feature_sets() for matrix."
+        },
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit feature subset (intersected with feature_set when both provided)."
+        },
+        {
+          "name": "test",
+          "type": "choice",
+          "default": "spearman",
+          "choices": "spearman",
+          "help": "Statistical test. v1 supports spearman."
+        },
+        {
+          "name": "min_pct_nonzero",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum non-zero fraction filter."
+        },
+        {
+          "name": "min_sd",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1000000,
+          "help": "Minimum per-feature standard deviation filter."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "string",
+          "default": "BH",
+          "help": "Method passed to p.adjust."
+        },
+        {
+          "name": "chunk_size",
+          "type": "int",
+          "default": 128,
+          "min": 8,
+          "max": 4096,
+          "help": "Chunk size for matrix slicing."
+        }
+      ],
+      "promotable": ["de_table", "fit_summary"],
+      "chunking": {
+        "chunkable": true,
+        "axis": "features",
+        "chunk_size_param": "chunk_size",
+        "chunk_size_default": 128,
+        "merge": {
+          "de_table": "row_bind_feature_table",
+          "fit_summary": "row_bind_obs_table"
+        },
+        "status": "implemented_op_local"
+      }
+    },
+    {
+      "op_name": "trajectory_smooth",
+      "title": "Trajectory Feature Smoothing",
+      "description": "Summarize per-feature expression along trajectory pseudotime into reusable trend tables.",
+      "intent": ["trajectory", "summary", "expression"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "trend_table",
+          "kind": "obs_table",
+          "description": "Per-feature binned expression summaries along trajectory pseudotime."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Per-lineage smoothing diagnostics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "lineage",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional lineage key subset."
+        },
+        {
+          "name": "feature_set",
+          "type": "string",
+          "default": null,
+          "help": "Optional feature set name from wb_feature_sets() for matrix."
+        },
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit feature subset (intersected with feature_set when both provided)."
+        },
+        {
+          "name": "n_bins",
+          "type": "int",
+          "default": 50,
+          "min": 5,
+          "max": 1000,
+          "help": "Number of pseudotime bins."
+        },
+        {
+          "name": "summary_fun",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "median"],
+          "help": "Summary statistic across cells within each bin."
+        },
+        {
+          "name": "min_cells_per_bin",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells required for an output bin."
+        },
+        {
+          "name": "chunk_size",
+          "type": "int",
+          "default": 128,
+          "min": 8,
+          "max": 4096,
+          "help": "Chunk size for matrix slicing."
+        }
+      ],
+      "promotable": ["trend_table", "fit_summary"],
+      "chunking": {
+        "chunkable": true,
+        "axis": "features",
+        "chunk_size_param": "chunk_size",
+        "chunk_size_default": 128,
+        "merge": {
+          "trend_table": "row_bind_obs_table",
+          "fit_summary": "row_bind_obs_table"
+        },
+        "status": "implemented_op_local"
+      }
+    },
+    {
+      "op_name": "trajectory_branch_compare",
+      "title": "Trajectory Branch Compare",
+      "description": "Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.",
+      "intent": ["trajectory", "comparison", "statistics"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "branch_membership",
+          "kind": "relation_family",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "branch_de_table",
+          "kind": "feature_table",
+          "description": "Per-feature branch comparison statistics and effect sizes."
+        },
+        {
+          "name": "branch_summary",
+          "kind": "obs_table",
+          "description": "Branch-pair cell counts and pseudotime summary diagnostics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "pseudotime": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "branch_membership": {
+          "required": true,
+          "kind": "relation_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "branch_a",
+          "type": "string",
+          "default": null,
+          "help": "Branch/lineage key A."
+        },
+        {
+          "name": "branch_b",
+          "type": "string",
+          "default": null,
+          "help": "Branch/lineage key B."
+        },
+        {
+          "name": "feature_set",
+          "type": "string",
+          "default": null,
+          "help": "Optional feature set name from wb_feature_sets() for matrix."
+        },
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit feature subset (intersected with feature_set when both provided)."
+        },
+        {
+          "name": "min_pct",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum detection fraction in either branch."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "string",
+          "default": "BH",
+          "help": "Method passed to p.adjust."
+        }
+      ],
+      "promotable": ["branch_de_table", "branch_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_signature_smooth",
+      "title": "Trajectory Signature Smoothing",
+      "description": "Summarize feature-set signature scores along trajectory pseudotime into reusable trend tables.",
+      "intent": ["trajectory", "summary", "signature"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "signature_table",
+          "kind": "obs_table",
+          "description": "Per-signature binned summaries along trajectory pseudotime."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Per-lineage signature smoothing diagnostics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "feature_set",
+          "type": "string",
+          "default": null,
+          "help": "Required feature set name from wb_feature_sets() for matrix."
+        },
+        {
+          "name": "lineage",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional lineage key subset."
+        },
+        {
+          "name": "score_method",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "sum"],
+          "help": "How to score the feature set within each cell."
+        },
+        {
+          "name": "n_bins",
+          "type": "int",
+          "default": 50,
+          "min": 5,
+          "max": 1000,
+          "help": "Number of pseudotime bins."
+        },
+        {
+          "name": "summary_fun",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "median"],
+          "help": "Summary statistic across cells within each bin."
+        },
+        {
+          "name": "min_cells_per_bin",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells required for an output bin."
+        }
+      ],
+      "promotable": ["signature_table", "fit_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_geneset_dynamics",
+      "title": "Trajectory Gene-Set Dynamics",
+      "description": "Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.",
+      "intent": ["trajectory", "pathway", "discovery", "signature"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "signature_table",
+          "kind": "obs_table",
+          "description": "Binned feature-set score curves along trajectory pseudotime."
+        },
+        {
+          "name": "dynamics_table",
+          "kind": "obs_table",
+          "description": "Per-feature-set dynamic metrics and rank."
+        },
+        {
+          "name": "top_sets",
+          "kind": "obs_table",
+          "description": "Top-ranked dynamic feature sets for report-first discovery."
+        },
+        {
+          "name": "driver_table",
+          "kind": "obs_table",
+          "description": "Top dynamic member genes within each screened feature set."
+        },
+        {
+          "name": "driver_curve_table",
+          "kind": "obs_table",
+          "description": "Binned curves for top driver genes within each screened feature set."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Per-lineage screening diagnostics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "namespace",
+          "type": "string",
+          "default": null,
+          "help": "Feature-set namespace from wb_feature_sets() to screen."
+        },
+        {
+          "name": "feature_sets",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature-set subset within the namespace."
+        },
+        {
+          "name": "lineage",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional lineage key subset."
+        },
+        {
+          "name": "score_method",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "sum", "rank_mean"],
+          "help": "How to score each feature set within each cell."
+        },
+        {
+          "name": "pseudotime_direction",
+          "type": "choice",
+          "default": "as_is",
+          "choices": ["as_is", "invert"],
+          "help": "Use pseudotime as provided or invert it before binning and classification."
+        },
+        {
+          "name": "start_label",
+          "type": "string",
+          "default": null,
+          "help": "Optional biological start label recorded in output metadata."
+        },
+        {
+          "name": "end_label",
+          "type": "string",
+          "default": null,
+          "help": "Optional biological end label recorded in output metadata."
+        },
+        {
+          "name": "n_bins",
+          "type": "int",
+          "default": 50,
+          "min": 5,
+          "max": 1000,
+          "help": "Number of pseudotime bins."
+        },
+        {
+          "name": "summary_fun",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "median"],
+          "help": "Summary statistic across cells within each bin."
+        },
+        {
+          "name": "min_cells_per_bin",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells required for an output bin."
+        },
+        {
+          "name": "min_set_size",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum feature-set size after intersecting with the matrix."
+        },
+        {
+          "name": "max_set_size",
+          "type": "int",
+          "default": 5000,
+          "min": 1,
+          "max": 1000000,
+          "help": "Maximum feature-set size after intersecting with the matrix."
+        },
+        {
+          "name": "top_n",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "max": 10000,
+          "help": "Number of top-ranked feature sets retained in top_sets."
+        },
+        {
+          "name": "on_off_min_delta",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Minimum absolute late-early delta for turns_on/turns_off classes."
+        },
+        {
+          "name": "monotonic_min_abs_rho",
+          "type": "dbl",
+          "default": 0.5,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum absolute Spearman rho for turns_on/turns_off classes."
+        },
+        {
+          "name": "top_driver_genes",
+          "type": "int",
+          "default": 5,
+          "min": 0,
+          "max": 1000,
+          "help": "Number of top member genes retained as curve drivers per feature set."
+        },
+        {
+          "name": "min_amplitude",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Minimum curve amplitude required for passes_filters."
+        },
+        {
+          "name": "min_bins_observed",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 1000,
+          "help": "Minimum retained bins required for passes_filters."
+        },
+        {
+          "name": "min_features_detected",
+          "type": "int",
+          "default": 1,
+          "min": 0,
+          "max": 100000,
+          "help": "Minimum detected set members required for passes_filters."
+        },
+        {
+          "name": "min_detected_fraction",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum fraction of detected set members required for passes_filters."
+        },
+        {
+          "name": "min_mean_score",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Optional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics."
+        },
+        {
+          "name": "min_max_score",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Optional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves."
+        },
+        {
+          "name": "min_signal_to_noise",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Optional minimum amplitude divided by mean bootstrap SE required for passes_filters."
+        },
+        {
+          "name": "low_abundance_max_score",
+          "type": "dbl",
+          "default": 0.1,
+          "min": 0,
+          "help": "Curves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set."
+        },
+        {
+          "name": "smooth_method",
+          "type": "choice",
+          "default": "none",
+          "choices": ["none", "loess", "spline"],
+          "help": "Optional smoothing method applied to binned curves before metrics/classes."
+        },
+        {
+          "name": "loess_span",
+          "type": "dbl",
+          "default": 0.5,
+          "min": 0.01,
+          "max": 1,
+          "help": "Span used when smooth_method='loess'."
+        },
+        {
+          "name": "bootstrap_n",
+          "type": "int",
+          "default": 0,
+          "min": 0,
+          "max": 10000,
+          "help": "Bootstrap replicates per bin for confidence bands; 0 disables CIs."
+        },
+        {
+          "name": "bootstrap_seed",
+          "type": "int",
+          "default": 1,
+          "min": 1,
+          "help": "Random seed for bootstrap confidence bands."
+        },
+        {
+          "name": "ci_level",
+          "type": "dbl",
+          "default": 0.95,
+          "min": 0.5,
+          "max": 0.999,
+          "help": "Confidence level for bootstrap bands."
+        },
+        {
+          "name": "class_min_amplitude",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Minimum amplitude required before assigning non-flat curve classes."
+        },
+        {
+          "name": "n_permutations",
+          "type": "int",
+          "default": 0,
+          "min": 0,
+          "max": 100000,
+          "help": "Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing."
+        },
+        {
+          "name": "permutation_seed",
+          "type": "int",
+          "default": 1,
+          "min": 1,
+          "help": "Random seed for empirical dynamic-score permutations."
+        },
+        {
+          "name": "p_adjust_method",
+          "type": "choice",
+          "default": "BH",
+          "choices": ["holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none"],
+          "help": "Multiple-testing correction method for q_dynamic."
+        }
+      ],
+      "promotable": ["signature_table", "dynamics_table", "top_sets", "driver_table", "driver_curve_table", "fit_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_route_smooth",
+      "title": "Trajectory Route Smoothing",
+      "description": "Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.",
+      "intent": ["trajectory", "summary", "route"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector",
+          "required": true
+        },
+        {
+          "name": "branch_membership",
+          "kind": "relation_family",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "trend_table",
+          "kind": "obs_table",
+          "description": "Per-feature binned summaries along a selected route."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Route smoothing diagnostics."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "pseudotime": {
+          "required": true,
+          "kind": "cell_vector"
+        },
+        "branch_membership": {
+          "required": true,
+          "kind": "relation_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "route_key",
+          "type": "string",
+          "default": null,
+          "help": "Required route/branch key within branch_membership."
+        },
+        {
+          "name": "feature_set",
+          "type": "string",
+          "default": null,
+          "help": "Optional feature set name from wb_feature_sets() for matrix."
+        },
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit feature subset (intersected with feature_set when both provided)."
+        },
+        {
+          "name": "n_bins",
+          "type": "int",
+          "default": 50,
+          "min": 5,
+          "max": 1000,
+          "help": "Number of pseudotime bins."
+        },
+        {
+          "name": "summary_fun",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "median"],
+          "help": "Summary statistic across cells within each bin. Weighted routes currently support mean only."
+        },
+        {
+          "name": "min_cells_per_bin",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells required for an output bin."
+        },
+        {
+          "name": "weight_mode",
+          "type": "choice",
+          "default": "probability",
+          "choices": ["probability", "binary_threshold"],
+          "help": "Use route probabilities directly or threshold to a binary route membership."
+        },
+        {
+          "name": "prob_min",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum route probability required to include a cell."
+        },
+        {
+          "name": "chunk_size",
+          "type": "int",
+          "default": 128,
+          "min": 1,
+          "max": 100000,
+          "help": "Feature chunk size for matrix slicing."
+        }
+      ],
+      "promotable": ["trend_table", "fit_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_vector_smooth",
+      "title": "Trajectory Signal Smoothing",
+      "description": "Summarize cell-level signal families along trajectory pseudotime into reusable trend tables.",
+      "intent": ["trajectory", "summary", "signal"],
+      "consumes": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "signal_table",
+          "kind": "obs_table",
+          "description": "Per-signal binned summaries along trajectory pseudotime."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Per-lineage signal smoothing diagnostics."
+        }
+      ],
+      "inputs": {
+        "signal": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "signal_keys",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional signal-key subset within the cell_vector_family."
+        },
+        {
+          "name": "lineage",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional lineage key subset."
+        },
+        {
+          "name": "n_bins",
+          "type": "int",
+          "default": 50,
+          "min": 5,
+          "max": 1000,
+          "help": "Number of pseudotime bins."
+        },
+        {
+          "name": "summary_fun",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "median"],
+          "help": "Summary statistic across cells within each bin."
+        },
+        {
+          "name": "min_cells_per_bin",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells required for an output bin."
+        }
+      ],
+      "promotable": ["signal_table", "fit_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_signal_dynamics",
+      "title": "Trajectory Signal Dynamics",
+      "description": "Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.",
+      "intent": ["trajectory", "signal", "discovery", "dynamics"],
+      "consumes": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "signal_table",
+          "kind": "obs_table",
+          "description": "Binned signal-score curves along trajectory pseudotime."
+        },
+        {
+          "name": "dynamics_table",
+          "kind": "obs_table",
+          "description": "Per-signal dynamic metrics and rank."
+        },
+        {
+          "name": "top_signals",
+          "kind": "obs_table",
+          "description": "Top-ranked dynamic signals for report-first discovery."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Per-lineage signal dynamics diagnostics."
+        }
+      ],
+      "inputs": {
+        "signal": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "signal_keys",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional signal-key subset within the cell_vector_family."
+        },
+        {
+          "name": "lineage",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional lineage key subset."
+        },
+        {
+          "name": "pseudotime_direction",
+          "type": "choice",
+          "default": "as_is",
+          "choices": ["as_is", "invert"],
+          "help": "Use pseudotime as provided or invert it before binning and classification."
+        },
+        {
+          "name": "start_label",
+          "type": "string",
+          "default": null,
+          "help": "Optional biological start label recorded in output metadata."
+        },
+        {
+          "name": "end_label",
+          "type": "string",
+          "default": null,
+          "help": "Optional biological end label recorded in output metadata."
+        },
+        {
+          "name": "n_bins",
+          "type": "int",
+          "default": 50,
+          "min": 5,
+          "max": 1000,
+          "help": "Number of pseudotime bins."
+        },
+        {
+          "name": "summary_fun",
+          "type": "choice",
+          "default": "mean",
+          "choices": ["mean", "median"],
+          "help": "Summary statistic across cells within each bin."
+        },
+        {
+          "name": "min_cells_per_bin",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells required for an output bin."
+        },
+        {
+          "name": "top_n",
+          "type": "int",
+          "default": 50,
+          "min": 1,
+          "max": 10000,
+          "help": "Number of top-ranked signals retained in top_signals."
+        },
+        {
+          "name": "on_off_min_delta",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Minimum absolute late-early delta for turns_on/turns_off classes."
+        },
+        {
+          "name": "monotonic_min_abs_rho",
+          "type": "dbl",
+          "default": 0.5,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum absolute Spearman rho for turns_on/turns_off classes."
+        },
+        {
+          "name": "min_amplitude",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Minimum curve amplitude required for passes_filters."
+        },
+        {
+          "name": "min_bins_observed",
+          "type": "int",
+          "default": 5,
+          "min": 1,
+          "max": 1000,
+          "help": "Minimum retained bins required for passes_filters."
+        },
+        {
+          "name": "smooth_method",
+          "type": "choice",
+          "default": "none",
+          "choices": ["none", "loess", "spline"],
+          "help": "Optional smoothing method applied to binned curves before metrics/classes."
+        },
+        {
+          "name": "loess_span",
+          "type": "dbl",
+          "default": 0.5,
+          "min": 0.01,
+          "max": 1,
+          "help": "Span used when smooth_method='loess'."
+        },
+        {
+          "name": "bootstrap_n",
+          "type": "int",
+          "default": 0,
+          "min": 0,
+          "max": 10000,
+          "help": "Bootstrap replicates per bin for confidence bands; 0 disables CIs."
+        },
+        {
+          "name": "bootstrap_seed",
+          "type": "int",
+          "default": 1,
+          "min": 1,
+          "help": "Random seed for bootstrap confidence bands."
+        },
+        {
+          "name": "ci_level",
+          "type": "dbl",
+          "default": 0.95,
+          "min": 0.5,
+          "max": 0.999,
+          "help": "Confidence level for bootstrap bands."
+        },
+        {
+          "name": "class_min_amplitude",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "help": "Minimum amplitude required before assigning non-flat curve classes."
+        }
+      ],
+      "promotable": ["signal_table", "dynamics_table", "top_signals", "fit_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "knn_pseudobulk",
+      "title": "kNN Pseudobulk Around Query Cell(s)",
+      "description": "Find k nearest neighbors in latent space around query cells and aggregate matrix values.",
+      "intent": ["pseudobulk", "neighbors", "projection"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudobulk_table",
+          "kind": "feature_table",
+          "description": "Feature-level pseudobulk values keyed by query cell."
+        },
+        {
+          "name": "neighbor_distance",
+          "kind": "cell_vector_family",
+          "description": "Neighbor distances per query cell."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "space": {
+          "required": true,
+          "kind": "space"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "query_cells",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Query cells: explicit IDs or 'set:<name>'"
+        },
+        {
+          "name": "candidate_cells",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Optional candidate neighbor pool; defaults to all cells."
+        },
+        {
+          "name": "features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature subset for pseudobulk output."
+        },
+        {
+          "name": "k",
+          "type": "int",
+          "default": 100,
+          "min": 1,
+          "max": 50000,
+          "help": "Nearest neighbors per query cell."
+        },
+        {
+          "name": "include_query",
+          "type": "bool",
+          "default": false,
+          "help": "Include query cells themselves when they are in candidate pool."
+        },
+        {
+          "name": "aggregate",
+          "type": "string",
+          "default": "sum",
+          "help": "Aggregation mode: sum or mean."
+        }
+      ],
+      "promotable": ["pseudobulk_table", "neighbor_distance"],
+      "chunking": null
+    },
+    {
+      "op_name": "knn_neighbors",
+      "title": "kNN neighbors around query cell(s)",
+      "description": "Find nearest neighbors in a latent space without requiring matrix aggregation.",
+      "intent": ["neighbors", "geometry", "projection"],
+      "consumes": [
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "neighbors",
+          "kind": "obs_table",
+          "description": "Per-query neighbor table (cell_id, rank, distance)."
+        },
+        {
+          "name": "neighbor_distance",
+          "kind": "cell_vector_family",
+          "description": "Neighbor distances per query cell."
+        }
+      ],
+      "inputs": {
+        "space": {
+          "required": true,
+          "kind": "space"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "query_cells",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Query cells: explicit IDs or 'set:<name>'"
+        },
+        {
+          "name": "candidate_cells",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Optional candidate neighbor pool; defaults to all cells."
+        },
+        {
+          "name": "k",
+          "type": "int",
+          "default": 100,
+          "min": 1,
+          "max": 50000,
+          "help": "Nearest neighbors per query cell."
+        },
+        {
+          "name": "include_query",
+          "type": "bool",
+          "default": false,
+          "help": "Include query cells themselves when they are in candidate pool."
+        }
+      ],
+      "promotable": ["neighbors", "neighbor_distance"],
+      "chunking": null
+    },
+    {
+      "op_name": "slingshot",
+      "title": "Slingshot trajectory",
+      "description": "Infer lineage curves and pseudotime from clusters in a 2D space.",
+      "intent": "trajectory",
+      "consumes": [
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "plot_space",
+          "kind": "space",
+          "required": false
+        },
+        {
+          "name": "clusters",
+          "kind": "cell_vector",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "description": "Lineage-specific pseudotime values per cell."
+        },
+        {
+          "name": "curves",
+          "kind": "path_2d_family",
+          "description": "Lineage curve paths in 2D."
+        }
+      ],
+      "inputs": {
+        "space": {
+          "required": true,
+          "must_be_2d": false,
+          "dims_min": 2
+        },
+        "plot_space": {
+          "required": false,
+          "must_be_2d": true,
+          "dims_min": 2,
+          "dims_max": 2
+        },
+        "clusters": {
+          "required": true,
+          "kind": "cell_vector"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "start.clus",
+          "type": "string",
+          "default": null,
+          "help": "Starting cluster id."
+        },
+        {
+          "name": "end.clus",
+          "type": "string_vec",
+          "default": null,
+          "help": "Ending cluster id(s)."
+        },
+        {
+          "name": "exclude_clusters",
+          "type": "string_vec",
+          "default": [],
+          "help": "Cluster id(s) to exclude before fitting."
+        },
+        {
+          "name": "stretch",
+          "type": "dbl",
+          "default": 2,
+          "min": 0,
+          "max": 10,
+          "help": "Slingshot curve stretching."
+        },
+        {
+          "name": "reweight",
+          "type": "bool",
+          "default": true,
+          "help": "Whether to reweight assignments during fitting."
+        }
+      ],
+      "promotable": ["pseudotime", "curves"],
+      "chunking": null
+    },
+    {
+      "op_name": "slingshot_fit",
+      "title": "Slingshot fit",
+      "description": "Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).",
+      "intent": "trajectory",
+      "consumes": [
+        {
+          "name": "fit_space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "clusters",
+          "kind": "cell_vector",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "description": "Lineage-specific pseudotime values per cell (fit space inference)."
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "description": "Session-chainable Slingshot fit model (engine='slingshot')."
+        }
+      ],
+      "inputs": {
+        "fit_space": {
+          "required": true,
+          "must_be_2d": false,
+          "dims_min": 2
+        },
+        "clusters": {
+          "required": true,
+          "kind": "cell_vector"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "start.clus",
+          "type": "string",
+          "default": null,
+          "help": "Starting cluster id."
+        },
+        {
+          "name": "end.clus",
+          "type": "string_vec",
+          "default": null,
+          "help": "Ending cluster id(s)."
+        },
+        {
+          "name": "include_clusters",
+          "type": "string_vec",
+          "default": null,
+          "help": "Restrict fitting to these cluster id(s)."
+        },
+        {
+          "name": "exclude_clusters",
+          "type": "string_vec",
+          "default": [],
+          "help": "Cluster id(s) to exclude before fitting."
+        },
+        {
+          "name": "exclude_cells",
+          "type": "cell_ids",
+          "default": null,
+          "help": "Optional cell IDs to exclude before fitting."
+        },
+        {
+          "name": "stretch",
+          "type": "dbl",
+          "default": 2,
+          "min": 0,
+          "max": 10,
+          "help": "Slingshot curve stretching."
+        },
+        {
+          "name": "reweight",
+          "type": "bool",
+          "default": true,
+          "help": "Whether to reweight assignments during fitting."
+        },
+        {
+          "name": "shrink",
+          "type": "dbl",
+          "default": 1,
+          "min": 0,
+          "max": 1,
+          "help": "Curve shrinkage toward shared segments."
+        },
+        {
+          "name": "maxit",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "max": 200,
+          "help": "Maximum fitting iterations."
+        }
+      ],
+      "promotable": ["pseudotime", "model"],
+      "chunking": null
+    },
+    {
+      "op_name": "slingshot_project",
+      "title": "Slingshot project curves",
+      "description": "Project a fitted Slingshot model into a 2D display space (e.g. UMAP).",
+      "intent": "trajectory",
+      "consumes": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "plot_space",
+          "kind": "space_2d",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "curves",
+          "kind": "path_2d_family",
+          "description": "Projected Slingshot lineage curves in the chosen 2D display space."
+        }
+      ],
+      "inputs": {
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "plot_space": {
+          "required": true,
+          "must_be_2d": true,
+          "dims_min": 2,
+          "dims_max": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "stretch",
+          "type": "dbl",
+          "default": null,
+          "min": 0,
+          "max": 10,
+          "help": "Optional override of stretch during embedding."
+        },
+        {
+          "name": "shrink",
+          "type": "dbl",
+          "default": null,
+          "min": 0,
+          "max": 1,
+          "help": "Optional override of shrink during embedding."
+        },
+        {
+          "name": "approx_points",
+          "type": "int",
+          "default": 200,
+          "min": 0,
+          "max": 5000,
+          "help": "Target max curve points per lineage for display (0/NULL = no compaction)."
+        }
+      ],
+      "promotable": "curves",
+      "chunking": null
+    },
+    {
+      "op_name": "monocle3_fit",
+      "title": "Monocle3 fit (hybrid space)",
+      "description": "Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.",
+      "intent": "trajectory",
+      "consumes": [
+        {
+          "name": "fit_space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector",
+          "description": "Rooted global pseudotime per cell from monocle3."
+        },
+        {
+          "name": "branch_membership",
+          "kind": "relation_family",
+          "description": "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in v1)."
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "description": "Session-chainable monocle3 CDS model (engine='monocle3')."
+        }
+      ],
+      "inputs": {
+        "fit_space": {
+          "required": true,
+          "must_be_2d": false,
+          "dims_min": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "dims",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional fit-space dimensions to use (e.g. 1:20 as explicit integer vector)."
+        },
+        {
+          "name": "root_cells",
+          "type": "cell_ids",
+          "default": null,
+          "help": "Root cell IDs (exactly one of root_cells or root_pr_nodes)."
+        },
+        {
+          "name": "root_pr_nodes",
+          "type": "string_vec",
+          "default": null,
+          "help": "Principal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes)."
+        },
+        {
+          "name": "k",
+          "type": "int",
+          "default": 20,
+          "min": 2,
+          "max": 500,
+          "help": "kNN size for monocle3 clustering."
+        },
+        {
+          "name": "cluster_method",
+          "type": "choice",
+          "default": "leiden",
+          "choices": ["leiden", "louvain"],
+          "help": "Monocle3 clustering backend."
+        },
+        {
+          "name": "num_iter",
+          "type": "int",
+          "default": 2,
+          "min": 1,
+          "max": 200,
+          "help": "Monocle3 clustering iterations."
+        },
+        {
+          "name": "partition_qval",
+          "type": "dbl",
+          "default": 0.05,
+          "min": 0,
+          "max": 1,
+          "help": "Partition significance threshold."
+        },
+        {
+          "name": "weight",
+          "type": "bool",
+          "default": false,
+          "help": "Use weighted nearest-neighbor graph for monocle3 clustering."
+        },
+        {
+          "name": "resolution",
+          "type": "dbl",
+          "default": null,
+          "min": 0,
+          "max": 100,
+          "help": "Optional clustering resolution (NULL lets monocle3 choose)."
+        },
+        {
+          "name": "random_seed",
+          "type": "int",
+          "default": 42,
+          "min": 1,
+          "max": 999999,
+          "help": "Random seed for clustering."
+        },
+        {
+          "name": "use_partition",
+          "type": "bool",
+          "default": false,
+          "help": "Learn graph per partition. FALSE is recommended for v1 tree semantics."
+        },
+        {
+          "name": "close_loop",
+          "type": "bool",
+          "default": false,
+          "help": "Allow loop closure in graph learning. FALSE required for v1 tree-derived lineages."
+        },
+        {
+          "name": "verbose",
+          "type": "bool",
+          "default": false,
+          "help": "Verbose monocle3 output."
+        }
+      ],
+      "promotable": ["pseudotime", "branch_membership", "model"],
+      "chunking": null
+    },
+    {
+      "op_name": "monocle3_project",
+      "title": "Monocle3 project curves",
+      "description": "Project a fitted monocle3 trajectory graph into a 2D display space.",
+      "intent": "trajectory",
+      "consumes": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "plot_space",
+          "kind": "space_2d",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "curves",
+          "kind": "path_2d_family",
+          "description": "Projected monocle3 root-qualified lineage curves in the chosen 2D display space."
+        }
+      ],
+      "inputs": {
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "plot_space": {
+          "required": true,
+          "must_be_2d": true,
+          "dims_min": 2,
+          "dims_max": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "approx_points",
+          "type": "int",
+          "default": 200,
+          "min": 0,
+          "max": 5000,
+          "help": "Target max curve points per lineage for display (0/NULL = no compaction)."
+        }
+      ],
+      "promotable": "curves",
+      "chunking": null
+    },
+    {
+      "op_name": "peakvi_fit",
+      "title": "PeakVI fit (pybench)",
+      "description": "Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.",
+      "intent": ["latent", "model", "python"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "space",
+          "kind": "space",
+          "description": "PeakVI latent space written into the bundle spaces registry."
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "description": "Serialized PeakVI Python model payload (engine='peakvi')."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "n_latent",
+          "type": "int",
+          "default": 20,
+          "min": 2,
+          "max": 1024,
+          "help": "Target latent dimensionality for the emitted PeakVI space."
+        },
+        {
+          "name": "n_layers",
+          "type": "int",
+          "default": 2,
+          "min": 1,
+          "max": 32,
+          "help": "Number of hidden layers passed to the PeakVI model constructor."
+        },
+        {
+          "name": "n_hidden",
+          "type": "int",
+          "default": 256,
+          "min": 1,
+          "max": 8192,
+          "help": "Hidden width passed to the PeakVI model constructor."
+        },
+        {
+          "name": "dropout",
+          "type": "number",
+          "default": 0.2,
+          "min": 0,
+          "max": 1,
+          "help": "Dropout rate passed to the PeakVI model constructor."
+        },
+        {
+          "name": "batch_key",
+          "type": "string",
+          "default": null,
+          "help": "Optional observation field used as the PeakVI batch covariate."
+        },
+        {
+          "name": "max_epochs",
+          "type": "int",
+          "default": 500,
+          "min": 1,
+          "max": 100000,
+          "help": "Maximum training epochs passed through to scvi-tools."
+        },
+        {
+          "name": "lr",
+          "type": "number",
+          "default": 0.001,
+          "min": 0,
+          "help": "Optional learning rate passed through in train plan_kwargs."
+        },
+        {
+          "name": "early_stopping",
+          "type": "bool",
+          "default": true,
+          "help": "If TRUE, enable scvi-tools early stopping during PeakVI training."
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "default": 1,
+          "min": 0,
+          "max": 999999,
+          "help": "Random seed for PeakVI training."
+        },
+        {
+          "name": "use_gpu",
+          "type": "bool",
+          "default": false,
+          "help": "If TRUE, request GPU-backed training in scvi-tools."
+        },
+        {
+          "name": "space_id_out",
+          "type": "string",
+          "default": "peakvi_space",
+          "help": "Space id to write for the learned PeakVI latent embedding."
+        }
+      ],
+      "promotable": "model",
+      "chunking": null
+    },
+    {
+      "op_name": "peakvi_project",
+      "title": "PeakVI project (pybench)",
+      "description": "Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.",
+      "intent": ["projection", "latent", "python"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "space",
+          "kind": "space",
+          "description": "Projected PeakVI latent space written into the bundle spaces registry."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "batch_key",
+          "type": "string",
+          "default": null,
+          "help": "Optional observation field used as the PeakVI batch covariate during projection."
+        },
+        {
+          "name": "use_gpu",
+          "type": "bool",
+          "default": false,
+          "help": "If TRUE, request GPU-backed model loading/projection in scvi-tools."
+        },
+        {
+          "name": "space_id_out",
+          "type": "string",
+          "default": "peakvi_project_space",
+          "help": "Space id to write for the projected PeakVI latent embedding."
+        }
+      ],
+      "promotable": [],
+      "chunking": null
+    },
+    {
+      "op_name": "space_path_define",
+      "title": "Define analytical space path",
+      "description": "Contract scaffold for checkpoint-anchored path construction in a named analytical space.",
+      "intent": ["trajectory", "geometry", "path"],
+      "consumes": [
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "path",
+          "kind": "space_path_family",
+          "description": "Analytical path in the original latent space."
+        }
+      ],
+      "inputs": {
+        "space": {
+          "required": true,
+          "kind": "space"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "checkpoint_sets",
+          "type": "string_vec",
+          "default": null,
+          "help": "Ordered checkpoint cell-set refs that anchor the path definition."
+        },
+        {
+          "name": "fit_mode",
+          "type": "choice",
+          "default": "linear",
+          "choices": ["linear", "manifold_smooth"],
+          "help": "Path fitting mode. V1 supports linear and a first conservative manifold smoothing mode."
+        },
+        {
+          "name": "checkpoint_summary",
+          "type": "choice",
+          "default": "centroid",
+          "choices": "centroid",
+          "help": "Checkpoint summarization rule used to derive anchors from checkpoint cells."
+        },
+        {
+          "name": "n_path_points",
+          "type": "int",
+          "default": null,
+          "min": 2,
+          "max": 50000,
+          "help": "Optional explicit number of fitted path points."
+        },
+        {
+          "name": "smooth_k",
+          "type": "int",
+          "default": 30,
+          "min": 2,
+          "max": 5000,
+          "help": "For fit_mode='manifold_smooth', number of nearest cells used per provisional path point."
+        },
+        {
+          "name": "smooth_n_iter",
+          "type": "int",
+          "default": 2,
+          "min": 1,
+          "max": 50,
+          "help": "For fit_mode='manifold_smooth', number of refinement passes."
+        },
+        {
+          "name": "smooth_weight",
+          "type": "choice",
+          "default": "inverse_distance",
+          "choices": ["inverse_distance", "gaussian"],
+          "help": "For fit_mode='manifold_smooth', distance-weighting rule for local cell pull."
+        },
+        {
+          "name": "path_id_out",
+          "type": "string",
+          "default": "space_path",
+          "help": "Path id to record for the emitted analytical path."
+        }
+      ],
+      "promotable": "path",
+      "chunking": null
+    },
+    {
+      "op_name": "space_path_score",
+      "title": "Score cells against analytical path",
+      "description": "Contract scaffold for path-relative scoring in a named analytical space.",
+      "intent": ["trajectory", "geometry", "path"],
+      "consumes": [
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "path",
+          "kind": "space_path_family",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "path_scores",
+          "kind": "cell_vector_family",
+          "description": "Per-cell path-relative scores such as progress and distance."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Compact path-level scoring diagnostics."
+        }
+      ],
+      "inputs": {
+        "space": {
+          "required": true,
+          "kind": "space"
+        },
+        "path": {
+          "required": true,
+          "kind": "space_path_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "score_mode",
+          "type": "choice",
+          "default": "orthogonal_projection",
+          "choices": "orthogonal_projection",
+          "help": "Scoring mode. V1 scaffolding standardizes on orthogonal projection semantics."
+        },
+        {
+          "name": "distance_metric",
+          "type": "choice",
+          "default": "euclidean",
+          "choices": "euclidean",
+          "help": "Distance metric used for path-relative scoring."
+        },
+        {
+          "name": "score_prefix",
+          "type": "string",
+          "default": null,
+          "help": "Optional prefix for emitted score-family keys."
+        }
+      ],
+      "promotable": ["path_scores", "fit_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "space_path_project_2d",
+      "title": "Project analytical path into 2D",
+      "description": "Contract scaffold for projecting an analytical path into a drawable 2D path family.",
+      "intent": ["trajectory", "geometry", "path", "display"],
+      "consumes": [
+        {
+          "name": "path",
+          "kind": "space_path_family",
+          "required": true
+        },
+        {
+          "name": "plot_space",
+          "kind": "space_2d",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "curves",
+          "kind": "path_2d_family",
+          "description": "Approximate 2D rendering of the analytical path."
+        }
+      ],
+      "inputs": {
+        "path": {
+          "required": true,
+          "kind": "space_path_family"
+        },
+        "plot_space": {
+          "required": true,
+          "kind": "space_2d"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "project_mode",
+          "type": "choice",
+          "default": "local_interpolation",
+          "choices": "local_interpolation",
+          "help": "Projection mode used to approximate the analytical path in a 2D plot space."
+        },
+        {
+          "name": "approx_points",
+          "type": "int",
+          "default": null,
+          "min": 2,
+          "max": 50000,
+          "help": "Optional target point count for display compaction."
+        }
+      ],
+      "promotable": "curves",
+      "chunking": null
+    },
+    {
+      "op_name": "palantir_fit",
+      "title": "Palantir fit (pybench)",
+      "description": "Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.",
+      "intent": "trajectory",
+      "consumes": [
+        {
+          "name": "fit_space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector",
+          "description": "Palantir pseudotime (single-root, global)."
+        },
+        {
+          "name": "branch_membership",
+          "kind": "relation_family",
+          "description": "Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities)."
+        },
+        {
+          "name": "branch_summary",
+          "kind": "obs_table",
+          "description": "Palantir branch probability summary table."
+        },
+        {
+          "name": "entropy",
+          "kind": "cell_vector",
+          "description": "Palantir entropy per cell."
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "description": "Palantir Python model payload (engine='palantir')."
+        }
+      ],
+      "inputs": {
+        "fit_space": {
+          "required": true,
+          "must_be_2d": false,
+          "dims_min": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "root_cell",
+          "type": "string",
+          "default": null,
+          "help": "Single Palantir early/root cell ID (Palantir-native single-root semantics)."
+        },
+        {
+          "name": "terminal_cells",
+          "type": "cell_ids",
+          "default": null,
+          "help": "Optional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities)."
+        },
+        {
+          "name": "dims",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional fit-space dimensions to use (for example 1:20 as explicit integer vector)."
+        },
+        {
+          "name": "knn",
+          "type": "int",
+          "default": 30,
+          "min": 2,
+          "max": 1000,
+          "help": "kNN size for Palantir diffusion graph and pseudotime."
+        },
+        {
+          "name": "n_diffusion_components",
+          "type": "int",
+          "default": 10,
+          "min": 2,
+          "max": 200,
+          "help": "Number of diffusion components for Palantir."
+        },
+        {
+          "name": "n_waypoints",
+          "type": "int",
+          "default": 300,
+          "min": 10,
+          "max": 10000,
+          "help": "Number of Palantir waypoints."
+        },
+        {
+          "name": "use_early_cell_as_start",
+          "type": "bool",
+          "default": true,
+          "help": "Pass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start."
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "default": 20,
+          "min": 0,
+          "max": 999999,
+          "help": "Random seed for Palantir stochastic steps."
+        }
+      ],
+      "promotable": ["pseudotime", "branch_membership", "branch_summary", "entropy", "model"],
+      "chunking": null
+    },
+    {
+      "op_name": "palantir_project",
+      "title": "Palantir project trajectories",
+      "description": "Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.",
+      "intent": "trajectory",
+      "consumes": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "plot_space",
+          "kind": "space_2d",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "curves",
+          "kind": "path_2d_family",
+          "description": "Palantir-style smoothed branch trajectories projected into the chosen 2D display space."
+        }
+      ],
+      "inputs": {
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "plot_space": {
+          "required": true,
+          "must_be_2d": true,
+          "dims_min": 2,
+          "dims_max": 2
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "prob_min",
+          "type": "dbl",
+          "default": 0.05,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum branch probability mask threshold for branch trajectory interpolation."
+        },
+        {
+          "name": "smoothness",
+          "type": "dbl",
+          "default": 1,
+          "min": 0.05,
+          "max": 20,
+          "help": "Palantir-style mellon trajectory smoothing multiplier (higher = smoother)."
+        },
+        {
+          "name": "min_cells_per_branch",
+          "type": "int",
+          "default": 50,
+          "min": 2,
+          "max": 1000000,
+          "help": "Minimum eligible cells required to derive a branch trajectory."
+        },
+        {
+          "name": "approx_points",
+          "type": "int",
+          "default": 200,
+          "min": 0,
+          "max": 5000,
+          "help": "Number of trajectory sample points per branch (curve resolution)."
+        }
+      ],
+      "promotable": "curves",
+      "chunking": null
+    }
+  ]
+}

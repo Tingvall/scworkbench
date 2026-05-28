@@ -1,14 +1,15 @@
-#' Coerce input into a wb_primitive
+#' Coerce Input Into A `wb_primitive`
 #'
 #' Accepts:
 #' - wb_primitive → returned as-is
 #' - artifact_id (character scalar) → loaded via wb_art_load()
 #'
-#' @param bundle scworkbench_bundle
-#' @param x wb_primitive or artifact_id string
-#' @param expected_kind optional primitive kind check (e.g. "cell_vector")
+#' @param bundle Open `scworkbench_bundle`.
+#' @param x `wb_primitive` or artifact id string.
+#' @param expected_kind Optional primitive kind check such as `"cell_vector"`.
 #'
-#' @return wb_primitive
+#' @return A `wb_primitive`.
+#'
 #' @export
 wb_as_primitive <- function(bundle, x, expected_kind = NULL) {
 

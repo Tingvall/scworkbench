@@ -8,6 +8,9 @@
 #' @param bundle_dir Path to bundle directory
 #' @param validate If TRUE, run wb_validate_bundle()
 #' @return A bundle handle
+# pybench-parity: yes
+# pybench-counterpart: pybench.bundle.open_bundle
+# contract-note: manifest.json + manifest$storage$sqlite$path resolution must stay aligned
 #' @export
 wb_open_bundle <- function(bundle_dir, validate = FALSE) {
   if (!dir.exists(bundle_dir)) stop("Bundle directory does not exist: ", bundle_dir)
@@ -42,6 +45,8 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE) {
 
 #' Close an scworkbench bundle
 #' @param bundle Bundle handle from wb_open_bundle()
+# pybench-parity: yes
+# pybench-counterpart: pybench.bundle.close_bundle
 #' @export
 wb_close_bundle <- function(bundle) {
   if (inherits(bundle, "scworkbench_bundle") && !is.null(bundle$con)) {
@@ -49,4 +54,3 @@ wb_close_bundle <- function(bundle) {
   }
   invisible(TRUE)
 }
-

@@ -1,0 +1,631 @@
+{
+  "schema_version": "scworkbench.plot_catalog.semantic.v1",
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "plot_count": 12,
+  "plots": [
+    {
+      "plot_type": "embedding_overlay",
+      "title": "Embedding Overlay",
+      "description": "Display cells in a 2D embedding with optional color, shape, size, alpha, or set overlays.",
+      "use_when": ["show marker expression on UMAP", "show cell set membership in space", "inspect per-cell scores spatially"],
+      "compatible_refs": ["space_2d", "cell_vector", "cell_vector_family", "artifact-backed cell vectors"],
+      "dataset_type": "embedding_overlay",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "cell_id",
+          "type": "character"
+        },
+        {
+          "name": "x",
+          "type": "numeric"
+        },
+        {
+          "name": "y",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "color_value",
+          "type": "any"
+        },
+        {
+          "name": "color_type",
+          "type": "character"
+        },
+        {
+          "name": "shape_value",
+          "type": "any"
+        },
+        {
+          "name": "size_value",
+          "type": "numeric"
+        },
+        {
+          "name": "alpha_value",
+          "type": "numeric"
+        },
+        {
+          "name": "set_name",
+          "type": "character"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "space2d_overlay_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "volcano",
+      "title": "Volcano Plot",
+      "description": "Plot feature-level effect size against adjusted p-value for differential or trend-like feature tables.",
+      "use_when": ["inspect DE results", "find significant feature effects"],
+      "compatible_refs": "feature_table with feature_id, effect/rho/logFC, p_adj",
+      "dataset_type": "ranked_features",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "effect",
+          "type": "numeric"
+        },
+        {
+          "name": "p_adj",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "p_raw",
+          "type": "numeric"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        },
+        {
+          "name": "significant",
+          "type": "logical"
+        },
+        {
+          "name": "direction",
+          "type": "character"
+        },
+        {
+          "name": "rank",
+          "type": "numeric"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "feature_table_volcano_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "trend_scatter",
+      "title": "Trend Scatter",
+      "description": "Plot feature-level trend or association statistics as a scatter plot.",
+      "use_when": ["inspect pseudotime trend statistics", "compare feature trend effect and significance"],
+      "compatible_refs": "feature_table with feature_id and numeric trend columns",
+      "dataset_type": "feature_scatter",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "x",
+          "type": "numeric"
+        },
+        {
+          "name": "y",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "p_adj",
+          "type": "numeric"
+        },
+        {
+          "name": "p_raw",
+          "type": "numeric"
+        },
+        {
+          "name": "direction",
+          "type": "character"
+        },
+        {
+          "name": "significant",
+          "type": "logical"
+        },
+        {
+          "name": "rank",
+          "type": "numeric"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        },
+        {
+          "name": "color_value",
+          "type": "any"
+        },
+        {
+          "name": "size_value",
+          "type": "numeric"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "feature_table_trend_scatter_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "violin",
+      "title": "Violin Plot",
+      "description": "Show distributions of per-cell vector values across groups.",
+      "use_when": ["compare scores across labels", "show UCell/module/chromVAR distributions"],
+      "compatible_refs": ["cell_vector", "cell_vector_family"],
+      "dataset_type": "distribution",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "entity_id",
+          "type": "character"
+        },
+        {
+          "name": "group",
+          "type": "character"
+        },
+        {
+          "name": "value",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "color_value",
+          "type": "any"
+        },
+        {
+          "name": "facet",
+          "type": "character"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "cell_vector_violin_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "category_count_bar",
+      "title": "Category Count Bar",
+      "description": "Show counts and percentages for categorical cell-vector labels.",
+      "use_when": ["summarize label counts", "inspect winner label composition"],
+      "compatible_refs": "categorical cell_vector",
+      "dataset_type": "category_summary",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "category",
+          "type": "character"
+        },
+        {
+          "name": "count",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "pct",
+          "type": "numeric"
+        },
+        {
+          "name": "rank",
+          "type": "numeric"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "cell_vector_category_count_bar_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "dotplot",
+      "title": "Dotplot",
+      "description": "Show feature expression summaries across groups with percent-expressed and average-expression encodings.",
+      "use_when": ["marker expression by cluster", "feature set marker summaries"],
+      "compatible_refs": "feature_table with group summaries",
+      "dataset_type": "feature_group_summary",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "group",
+          "type": "character"
+        },
+        {
+          "name": "pct_expr",
+          "type": "numeric"
+        },
+        {
+          "name": "avg_expr",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "rank",
+          "type": "numeric"
+        },
+        {
+          "name": "significant",
+          "type": "logical"
+        },
+        {
+          "name": "direction",
+          "type": "character"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "feature_table_dotplot_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "pathway_bar",
+      "title": "Pathway Bar",
+      "description": "Show ranked pathway or feature-set enrichment terms.",
+      "use_when": ["inspect enrichment results", "rank pathways by adjusted p-value or score"],
+      "compatible_refs": "feature_table pathway enrichment output",
+      "dataset_type": "pathway_summary",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "pathway",
+          "type": "character"
+        },
+        {
+          "name": "p_adj",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "score",
+          "type": "numeric"
+        },
+        {
+          "name": "overlap",
+          "type": "numeric"
+        },
+        {
+          "name": "set_size",
+          "type": "numeric"
+        },
+        {
+          "name": "query_size",
+          "type": "numeric"
+        },
+        {
+          "name": "namespace",
+          "type": "character"
+        },
+        {
+          "name": "significant",
+          "type": "logical"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "feature_table_pathway_bar_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "ranked_lollipop",
+      "title": "Ranked Lollipop",
+      "description": "Show ranked entities from feature tables or obs_table summaries.",
+      "use_when": ["show top genes", "show top pathways", "show dynamic gene sets", "show driver genes"],
+      "compatible_refs": ["feature_table", "obs_table with entity and score columns"],
+      "dataset_type": "ranked_entities",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "score",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "p_adj",
+          "type": "numeric"
+        },
+        {
+          "name": "p_raw",
+          "type": "numeric"
+        },
+        {
+          "name": "direction",
+          "type": "character"
+        },
+        {
+          "name": "significant",
+          "type": "logical"
+        },
+        {
+          "name": "rank",
+          "type": "numeric"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "feature_table_ranked_lollipop_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "heatmap_ranked",
+      "title": "Ranked Heatmap",
+      "description": "Show matrix-like feature-by-group values from ranked feature tables.",
+      "use_when": "compare top feature values across groups",
+      "compatible_refs": "feature_table with feature_id, group, value",
+      "dataset_type": "matrix_like",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "group",
+          "type": "character"
+        },
+        {
+          "name": "value",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "rank",
+          "type": "numeric"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        },
+        {
+          "name": "direction",
+          "type": "character"
+        },
+        {
+          "name": "significant",
+          "type": "logical"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "feature_table_heatmap_ranked_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "feature_rank_bar",
+      "title": "Feature Rank Bar",
+      "description": "Show ranked feature values as bars.",
+      "use_when": ["show top ranked features", "compact marker/trend summary"],
+      "compatible_refs": "feature_table with feature_id and value/score",
+      "dataset_type": "ranked_features",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "value",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "rank",
+          "type": "numeric"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        },
+        {
+          "name": "direction",
+          "type": "character"
+        },
+        {
+          "name": "significant",
+          "type": "logical"
+        },
+        {
+          "name": "p_adj",
+          "type": "numeric"
+        },
+        {
+          "name": "p_raw",
+          "type": "numeric"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "feature_table_feature_rank_bar_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "pseudotime_smooth_panel",
+      "title": "Pseudotime Smooth Panel",
+      "description": "Show per-feature smoothed expression curves along trajectory pseudotime.",
+      "use_when": ["plot gene dynamics along trajectory", "inspect trajectory_smooth outputs"],
+      "compatible_refs": "trajectory_smooth obs_table",
+      "dataset_type": "trajectory_smooth",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "pseudotime",
+          "type": "numeric"
+        },
+        {
+          "name": "expr",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "lineage_id",
+          "type": "character"
+        },
+        {
+          "name": "n_cells",
+          "type": "integer"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "trajectory_pseudotime_smooth_panel_v1",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "plot_type": "pseudotime_signature_line",
+      "title": "Pseudotime Signature Line",
+      "description": "Show feature-set or signal curves along trajectory pseudotime.",
+      "use_when": ["plot gene-set dynamics", "plot UCell/module score dynamics", "plot driver-gene curves"],
+      "compatible_refs": ["trajectory_signature_smooth", "trajectory_geneset_dynamics_curve", "trajectory_signal_dynamics_curve"],
+      "dataset_type": "trajectory_signature_smooth",
+      "version": "v1",
+      "required_fields": [
+        {
+          "name": "feature_set",
+          "type": "character"
+        },
+        {
+          "name": "pseudotime",
+          "type": "numeric"
+        },
+        {
+          "name": "value",
+          "type": "numeric"
+        }
+      ],
+      "optional_fields": [
+        {
+          "name": "lineage_id",
+          "type": "character"
+        },
+        {
+          "name": "n_cells",
+          "type": "integer"
+        },
+        {
+          "name": "label",
+          "type": "character"
+        },
+        {
+          "name": "feature_id",
+          "type": "character"
+        },
+        {
+          "name": "driver_rank",
+          "type": "integer"
+        },
+        {
+          "name": "value_raw",
+          "type": "numeric"
+        },
+        {
+          "name": "value_smooth",
+          "type": "numeric"
+        },
+        {
+          "name": "value_se",
+          "type": "numeric"
+        },
+        {
+          "name": "value_ci_low",
+          "type": "numeric"
+        },
+        {
+          "name": "value_ci_high",
+          "type": "numeric"
+        }
+      ],
+      "mappers": [
+        {
+          "mapper_id": "trajectory_pseudotime_signature_line_v1",
+          "priority": 10
+        }
+      ]
+    }
+  ]
+}

@@ -17,6 +17,9 @@
 #' @param source Optional source label (e.g., "PeakVI", "Scanpy")
 #' @param overwrite If TRUE, replaces an existing space with same space_id
 #' @param chunk Long-format write chunk size (only used for dims > 2)
+# pybench-parity: yes
+# pybench-counterpart: pybench.spaces_write.add_space / pybench.add_space
+# contract-note: writes spaces + (space_2d|space_coords), validates cell IDs, and refreshes manifest spaces
 #' @export
 wb_add_space <- function(bundle,
                          space_id,
@@ -78,75 +81,73 @@ wb_add_space <- function(bundle,
   }
 
   # ---- handle overwrite / conflicts ----
-  exists_space <- DBI::dbGetQuery(con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id))
-  if (nrow(exists_space) > 0) {
-    if (!isTRUE(overwrite)) stop("space_id already exists: ", space_id, " (set overwrite=TRUE to replace)", call. = FALSE)
-
-    # delete old rows
-    DBI::dbExecute(con, "DELETE FROM space_2d WHERE space_id = ?;", params = list(space_id))
-    DBI::dbExecute(con, "DELETE FROM space_coords WHERE space_id = ?;", params = list(space_id))
-    DBI::dbExecute(con, "DELETE FROM spaces WHERE space_id = ?;", params = list(space_id))
-  }
-
-  # ---- insert into spaces registry ----
   created_source <- if (is.null(source)) "ingest" else as.character(source)
   created_desc <- if (is.null(description)) space_id else as.character(description)
 
-  if (dims == 2) {
-    DBI::dbExecute(con, "
-      INSERT INTO spaces(space_id, source, dims, storage, description)
-      VALUES(?, ?, ?, ?, ?);
-    ", params = list(
-      .wb_scalar_chr(space_id),
-      .wb_scalar_chr(created_source),
-      .wb_scalar_int(dims),
-      .wb_scalar_chr("wide:space_2d"),
-      .wb_scalar_chr(created_desc)
-    ))
+  DBI::dbWithTransaction(con, {
+    exists_space <- DBI::dbGetQuery(con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id))
+    if (nrow(exists_space) > 0) {
+      if (!isTRUE(overwrite)) stop("space_id already exists: ", space_id, " (set overwrite=TRUE to replace)", call. = FALSE)
 
-    # write space_2d
-    df2 <- data.frame(
-      space_id = space_id,
-      cell_id  = cell_ids,
-      x        = as.numeric(mat[, 1]),
-      y        = as.numeric(mat[, 2]),
-      stringsAsFactors = FALSE
-    )
-    DBI::dbWriteTable(con, "space_2d", df2, append = TRUE)
-
-  } else {
-    DBI::dbExecute(con, "
-      INSERT INTO spaces(space_id, source, dims, storage, description)
-      VALUES(?, ?, ?, ?, ?);
-    ", params = list(
-      .wb_scalar_chr(space_id),
-      .wb_scalar_chr(created_source),
-      .wb_scalar_int(dims),
-      .wb_scalar_chr("long:space_coords"),
-      .wb_scalar_chr(created_desc)
-    ))
-
-    # write space_coords in chunks
-    n <- nrow(mat)
-    idx <- seq_len(n)
-
-    for (s in seq(1, n, by = chunk)) {
-      ii <- idx[s:min(s + chunk - 1, n)]
-      sub <- mat[ii, , drop = FALSE]
-
-      df_long <- do.call(rbind, lapply(seq_len(dims), function(d) {
-        data.frame(
-          space_id = space_id,
-          cell_id  = rownames(sub),
-          dim      = d,
-          value    = as.numeric(sub[, d]),
-          stringsAsFactors = FALSE
-        )
-      }))
-
-      DBI::dbWriteTable(con, "space_coords", df_long, append = TRUE)
+      DBI::dbExecute(con, "DELETE FROM space_2d WHERE space_id = ?;", params = list(space_id))
+      DBI::dbExecute(con, "DELETE FROM space_coords WHERE space_id = ?;", params = list(space_id))
+      DBI::dbExecute(con, "DELETE FROM spaces WHERE space_id = ?;", params = list(space_id))
     }
-  }
+
+    if (dims == 2) {
+      DBI::dbExecute(con, "
+        INSERT INTO spaces(space_id, source, dims, storage, description)
+        VALUES(?, ?, ?, ?, ?);
+      ", params = list(
+        .wb_scalar_chr(space_id),
+        .wb_scalar_chr(created_source),
+        .wb_scalar_int(dims),
+        .wb_scalar_chr("wide:space_2d"),
+        .wb_scalar_chr(created_desc)
+      ))
+
+      df2 <- data.frame(
+        space_id = space_id,
+        cell_id  = cell_ids,
+        x        = as.numeric(mat[, 1]),
+        y        = as.numeric(mat[, 2]),
+        stringsAsFactors = FALSE
+      )
+      DBI::dbWriteTable(con, "space_2d", df2, append = TRUE)
+
+    } else {
+      DBI::dbExecute(con, "
+        INSERT INTO spaces(space_id, source, dims, storage, description)
+        VALUES(?, ?, ?, ?, ?);
+      ", params = list(
+        .wb_scalar_chr(space_id),
+        .wb_scalar_chr(created_source),
+        .wb_scalar_int(dims),
+        .wb_scalar_chr("long:space_coords"),
+        .wb_scalar_chr(created_desc)
+      ))
+
+      n <- nrow(mat)
+      idx <- seq_len(n)
+
+      for (s in seq(1, n, by = chunk)) {
+        ii <- idx[s:min(s + chunk - 1, n)]
+        sub <- mat[ii, , drop = FALSE]
+
+        df_long <- do.call(rbind, lapply(seq_len(dims), function(d) {
+          data.frame(
+            space_id = space_id,
+            cell_id  = rownames(sub),
+            dim      = d,
+            value    = as.numeric(sub[, d]),
+            stringsAsFactors = FALSE
+          )
+        }))
+
+        DBI::dbWriteTable(con, "space_coords", df_long, append = TRUE)
+      }
+    }
+  })
 
   # ---- indexes ----
   # If these already exist, SQLite will error. So wrap in try.
@@ -155,18 +156,10 @@ wb_add_space <- function(bundle,
   try(DBI::dbExecute(con, "CREATE INDEX idx_space_coords_space ON space_coords(space_id);"), silent = TRUE)
   try(DBI::dbExecute(con, "CREATE INDEX idx_space_coords_cell ON space_coords(cell_id);"), silent = TRUE)
 
-  # ---- update manifest.json (best-effort; keep it simple) ----
-  man_path <- file.path(bundle$dir, "manifest.json")
-
-  if (file.exists(man_path)) {
-    man <- jsonlite::read_json(man_path, simplifyVector = TRUE)
-
-    # refresh spaces from DB (authoritative)
-    man$spaces <- as.list(DBI::dbReadTable(con, "spaces"))
-
-    jsonlite::write_json(man, man_path, pretty = TRUE, auto_unbox = TRUE)
+  # ---- update manifest.json from authoritative storage ----
+  if (exists("wb_refresh_manifest", mode = "function")) {
+    try(wb_refresh_manifest(bundle), silent = TRUE)
   }
-  bundle$manifest <- jsonlite::read_json(man_path, simplifyVector = TRUE)
 
 
   invisible(list(

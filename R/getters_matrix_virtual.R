@@ -1,4 +1,12 @@
-#' List matrix fragments for a matrix
+#' List Matrix Fragments For A Matrix
+#'
+#' Return fragment registry rows for one logical matrix in the bundle.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix id.
+#'
+#' @return A data frame of fragment registry rows ordered by creation time.
+#'
 #' @export
 wb_matrix_fragments <- function(bundle, matrix_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -22,7 +30,18 @@ wb_matrix_fragments <- function(bundle, matrix_id) {
 
 # Read ONE feature vector for a set of cells, resolving across fragments.
 # Returns: named numeric vector (names = requested cell_ids), NA where missing.
-#' Read one feature vector across cells from virtual matrix fragments
+#' Read One Feature Vector From Virtual Matrix Fragments
+#'
+#' Resolve one feature across a requested cell set by reading and merging the
+#' relevant matrix fragments.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix id.
+#' @param feature_id Feature id to read.
+#' @param cell_ids Requested cell ids.
+#'
+#' @return Named numeric vector aligned to `cell_ids`.
+#'
 #' @export
 wb_matrix_read_feature <- function(bundle, matrix_id, feature_id, cell_ids) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")

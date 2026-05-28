@@ -1,0 +1,407 @@
+{
+  "schema_version": "scworkbench.parameter_semantics_catalog.v1",
+  "generated_at": "2026-05-22T10:45:50+0200",
+  "parameter_count": 40,
+  "parameters": [
+    {
+      "parameter_name": "cell_set",
+      "title": "Cell Set / Analysis Universe",
+      "category": "selection",
+      "description": "Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.",
+      "applies_to": "op inputs",
+      "affects": ["cell inclusion", "statistics", "plots", "runtime"],
+      "guidance": ["Use a biologically justified set for focused analysis.", "Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment."],
+      "aliases": ["cells", "cell_ids"]
+    },
+    {
+      "parameter_name": "matrix",
+      "title": "Matrix Input",
+      "category": "data_source",
+      "description": "Symbolic matrix primitive consumed by an op. The matrix defines the feature universe and measurement scale.",
+      "applies_to": "op inputs",
+      "affects": ["feature universe", "measurement scale", "detected features"],
+      "guidance": ["Choose RNA/ATAC/counts/normalized matrix intentionally.", "Matrix semantics are more important than the string id; future matrix metadata should formalize this."],
+      "aliases": "matrix_id"
+    },
+    {
+      "parameter_name": "output_matrix_id",
+      "title": "Output Matrix Identifier",
+      "category": "data_source",
+      "description": "Matrix id assigned to a newly created bundle matrix.",
+      "applies_to": "matrix-producing op params",
+      "affects": ["downstream matrix selection", "replay", "artifact interpretation"],
+      "guidance": ["Use a name that records the transform and scale, for example RNA_log1p_cp10k.", "Do not reuse an existing matrix id unless overwrite behavior is intentional."],
+      "aliases": ["new_matrix_id", "target_matrix_id"]
+    },
+    {
+      "parameter_name": "scale_factor",
+      "title": "Library-Size Normalization Scale",
+      "category": "normalization",
+      "description": "Target per-cell total used when converting raw counts to scaled expression before log transformation.",
+      "applies_to": "matrix normalization params",
+      "affects": ["expression scale", "dynamic curves", "feature-set scores"],
+      "guidance": ["10000 is the common log1p(CP10K) convention for scRNA-seq.", "Changing this value changes numeric scale but usually preserves rank-like patterns after log1p."],
+      "aliases": ["target_sum", "counts_per_cell", "cp_scale"]
+    },
+    {
+      "parameter_name": "overwrite",
+      "title": "Overwrite Existing Output",
+      "category": "mutation",
+      "description": "Controls whether an op may replace an existing persisted bundle object with the same identifier.",
+      "applies_to": "mutating op params",
+      "affects": ["bundle state", "reproducibility", "rerun safety"],
+      "guidance": ["Keep FALSE for safety when creating named outputs.", "Set TRUE only for deliberate deterministic reruns or temporary development outputs."],
+      "aliases": ["replace", "force"]
+    },
+    {
+      "parameter_name": "space",
+      "title": "Embedding / Latent Space Input",
+      "category": "data_source",
+      "description": "Symbolic space primitive used for geometry, clustering, nearest-neighbor, projection, or trajectory operations.",
+      "applies_to": "op inputs",
+      "affects": ["geometry", "neighborhoods", "trajectory shape"],
+      "guidance": ["Use a space whose dimensions represent the biology under study.", "Changing space can change distances, branches, and inferred progress."],
+      "aliases": ["space_id", "fit_space", "plot_space"]
+    },
+    {
+      "parameter_name": "model",
+      "title": "Model Reference Input",
+      "category": "data_source",
+      "description": "Reference to a fitted model or trajectory object used by downstream projection/smoothing/dynamics ops.",
+      "applies_to": "op inputs",
+      "affects": ["pseudotime", "lineage keys", "projection semantics"],
+      "guidance": ["Model provenance defines the biological orientation and branch structure.", "Do not treat models from different methods as interchangeable without checking semantics."],
+      "aliases": "model_ref"
+    },
+    {
+      "parameter_name": "pseudotime",
+      "title": "Pseudotime Vector Input",
+      "category": "trajectory",
+      "description": "Continuous per-cell progress coordinate, usually inferred by a trajectory method or path-scoring op.",
+      "applies_to": "op inputs",
+      "affects": ["ordering", "trend tests", "dynamic classes"],
+      "guidance": ["Pseudotime is relative to its root/orientation.", "Compare methods only after aligning orientation and intersecting cells when needed."],
+      "aliases": ["trajectory_time", "progress"]
+    },
+    {
+      "parameter_name": "pseudotime_direction",
+      "title": "Pseudotime Direction",
+      "category": "trajectory",
+      "description": "Controls whether pseudotime is used as provided or inverted before binning, curve metrics, and class assignment.",
+      "applies_to": "op params",
+      "affects": ["early/late interpretation", "turns_on/turns_off labels", "report captions"],
+      "guidance": ["Set this so early and late correspond to the biological start and endpoint.", "Inversion changes interpretation, not the underlying cell scores."],
+      "aliases": ["orientation", "direction"]
+    },
+    {
+      "parameter_name": "start_label",
+      "title": "Biological Start Label",
+      "category": "trajectory",
+      "description": "Human-readable label for the intended biological start of a trajectory or dynamics analysis.",
+      "applies_to": "op params",
+      "affects": ["metadata", "reports", "interpretation"],
+      "guidance": ["Use this to make orientation explicit in reports.", "This records intent; it does not root the trajectory by itself."],
+      "aliases": ["root_label", "early_label"]
+    },
+    {
+      "parameter_name": "end_label",
+      "title": "Biological End Label",
+      "category": "trajectory",
+      "description": "Human-readable label for the intended biological endpoint of a trajectory or dynamics analysis.",
+      "applies_to": "op params",
+      "affects": ["metadata", "reports", "interpretation"],
+      "guidance": ["Use this to make endpoint interpretation explicit.", "This records intent; it does not alter model geometry by itself."],
+      "aliases": ["terminal_label", "late_label"]
+    },
+    {
+      "parameter_name": "lineage",
+      "title": "Lineage Subset",
+      "category": "trajectory",
+      "description": "Restricts analysis to one or more lineage/path keys from a trajectory, relation, or path family.",
+      "applies_to": "op params",
+      "affects": ["branch selection", "curve counts", "reported dynamics"],
+      "guidance": ["Use lineage keys that are present in the upstream model/artifact.", "Different methods may use different lineage/branch key semantics."],
+      "aliases": ["branch", "path_id", "lineage_id"]
+    },
+    {
+      "parameter_name": "score_method",
+      "title": "Feature-Set Scoring Method",
+      "category": "signature",
+      "description": "Defines how member features are collapsed into a per-cell or per-bin feature-set score.",
+      "applies_to": "op params",
+      "affects": ["score scale", "curve shape", "dynamic ranking"],
+      "guidance": ["Mean/sum depend on expression scale and set size.", "Rank-based methods reduce scale sensitivity but change interpretation."],
+      "aliases": ["scoring", "signature_score_method"]
+    },
+    {
+      "parameter_name": "namespace",
+      "title": "Feature-Set Namespace",
+      "category": "signature",
+      "description": "Selects the registered collection of feature sets to screen or score.",
+      "applies_to": "op params",
+      "affects": ["tested hypotheses", "multiple testing universe", "discovery scope"],
+      "guidance": ["Treat namespace as the biological hypothesis library.", "Report the namespace because it defines what could have been discovered."],
+      "aliases": ["gene_set_namespace", "collection"]
+    },
+    {
+      "parameter_name": "feature_sets",
+      "title": "Feature-Set Subset",
+      "category": "signature",
+      "description": "Optional restriction to named feature sets within a namespace.",
+      "applies_to": "op params",
+      "affects": ["screening universe", "reported terms"],
+      "guidance": ["Use NULL for broad discovery.", "Use explicit subsets for targeted validation."],
+      "aliases": ["gene_sets", "signatures"]
+    },
+    {
+      "parameter_name": "signal_keys",
+      "title": "Signal Key Subset",
+      "category": "signal",
+      "description": "Optional restriction to selected keys in a cell_vector_family, such as UCell signatures or chromVAR motifs.",
+      "applies_to": "op params",
+      "affects": ["screening universe", "reported signals"],
+      "guidance": ["Use NULL for broad signal-family screening.", "Use explicit keys for targeted follow-up."],
+      "aliases": ["keys", "signature_keys", "motif_keys"]
+    },
+    {
+      "parameter_name": "n_bins",
+      "title": "Pseudotime Bin Count",
+      "category": "trajectory",
+      "description": "Number of bins used to aggregate cells along pseudotime before curve summaries and dynamics metrics.",
+      "applies_to": "op params",
+      "affects": ["curve resolution", "noise", "runtime"],
+      "guidance": ["More bins preserve detail but increase sparsity/noise.", "Fewer bins smooth curves but may hide sharp transitions."],
+      "aliases": "bins"
+    },
+    {
+      "parameter_name": "min_cells_per_bin",
+      "title": "Minimum Cells Per Bin",
+      "category": "filtering",
+      "description": "Minimum number of cells required for a pseudotime bin to be retained.",
+      "applies_to": "op params",
+      "affects": ["curve support", "missing bins", "confidence"],
+      "guidance": ["Higher values make curves more stable but can remove sparse terminal regions.", "Report this when interpreting missing or truncated curves."],
+      "aliases": "min_bin_cells"
+    },
+    {
+      "parameter_name": "summary_fun",
+      "title": "Bin Summary Function",
+      "category": "summary",
+      "description": "Statistic used to summarize cell-level values within each bin.",
+      "applies_to": "op params",
+      "affects": ["curve values", "outlier sensitivity"],
+      "guidance": ["Mean is sensitive to outliers and abundance shifts.", "Median is more robust but may compress sparse expression."],
+      "aliases": "summary_function"
+    },
+    {
+      "parameter_name": "min_amplitude",
+      "title": "Minimum Curve Amplitude Filter",
+      "category": "filtering",
+      "description": "Minimum observed/smoothed curve range required for a signal or feature set to pass report filters.",
+      "applies_to": "op params",
+      "affects": ["reported dynamics", "noise filtering"],
+      "guidance": ["This is a reporting/filter threshold, not a p-value.", "Set it relative to score scale; amplitude units differ between mean expression, UCell, chromVAR, and ranks."],
+      "aliases": "amplitude_threshold"
+    },
+    {
+      "parameter_name": "class_min_amplitude",
+      "title": "Minimum Amplitude For Non-Flat Class",
+      "category": "classification",
+      "description": "Minimum curve range required before assigning a non-flat dynamic class.",
+      "applies_to": "op params",
+      "affects": ["flat versus dynamic classes", "turns_on/turns_off/transient calls"],
+      "guidance": ["Use this to avoid classifying tiny numerical wiggles as biology.", "Keep distinct from min_amplitude if you want permissive reporting but conservative classes."],
+      "aliases": "dynamic_class_amplitude"
+    },
+    {
+      "parameter_name": "min_bins_observed",
+      "title": "Minimum Observed Bins Filter",
+      "category": "filtering",
+      "description": "Minimum number of retained pseudotime bins required for a curve to pass filters.",
+      "applies_to": "op params",
+      "affects": ["curve completeness", "terminal-region confidence"],
+      "guidance": ["Higher values reduce fragmentary curves.", "Sparse branches may fail this filter even if biologically interesting."],
+      "aliases": "min_bins"
+    },
+    {
+      "parameter_name": "min_features_detected",
+      "title": "Minimum Detected Set Members",
+      "category": "filtering",
+      "description": "Minimum number of feature-set members detected in the matrix before a set passes filters.",
+      "applies_to": "op params",
+      "affects": ["feature-set validity", "dropout robustness"],
+      "guidance": ["Use this to avoid interpreting gene sets represented by too few measured genes.", "Important for targeted panels and cross-species or sparse feature spaces."],
+      "aliases": "min_detected_genes"
+    },
+    {
+      "parameter_name": "min_detected_fraction",
+      "title": "Minimum Detected Set Fraction",
+      "category": "filtering",
+      "description": "Minimum fraction of feature-set members detected in the matrix before a set passes filters.",
+      "applies_to": "op params",
+      "affects": ["feature-set validity", "dropout robustness"],
+      "guidance": ["Complements min_features_detected by scaling with set size.", "Useful when screening gene sets of very different sizes."],
+      "aliases": "detected_fraction"
+    },
+    {
+      "parameter_name": "min_mean_score",
+      "title": "Minimum Mean Score Filter",
+      "category": "filtering",
+      "description": "Minimum mean smoothed curve score required before a gene set or signal passes report filters.",
+      "applies_to": "op params",
+      "affects": ["low-abundance filtering", "reported dynamics"],
+      "guidance": ["Use this to avoid over-interpreting tiny but smooth low-expression changes.", "Thresholds are score-scale dependent; keep disabled for broad discovery if unsure."],
+      "aliases": "mean_score_threshold"
+    },
+    {
+      "parameter_name": "min_max_score",
+      "title": "Minimum Maximum Score Filter",
+      "category": "filtering",
+      "description": "Minimum maximum smoothed curve score required before a gene set or signal passes report filters.",
+      "applies_to": "op params",
+      "affects": ["low-abundance filtering", "reported dynamics"],
+      "guidance": ["For log1p CP10K mean scores, a small threshold such as 0.1 can separate robust programs from near-zero wiggles.", "Do not reuse the same number for UCell, chromVAR, or other score scales without checking distributions."],
+      "aliases": "max_score_threshold"
+    },
+    {
+      "parameter_name": "min_signal_to_noise",
+      "title": "Minimum Signal-To-Noise Filter",
+      "category": "filtering",
+      "description": "Minimum amplitude divided by mean bootstrap standard error required before a curve passes filters.",
+      "applies_to": "op params",
+      "affects": ["uncertainty-aware filtering", "reported dynamics"],
+      "guidance": ["Requires bootstrap-derived standard errors to be meaningful.", "Use as a support filter, not as a formal p-value."],
+      "aliases": ["snr_threshold", "min_snr"]
+    },
+    {
+      "parameter_name": "low_abundance_max_score",
+      "title": "Low-Abundance Flag Threshold",
+      "category": "filtering",
+      "description": "Maximum score threshold below which dynamic-looking curves are flagged as low abundance.",
+      "applies_to": "op params",
+      "affects": ["interpretation", "report triage"],
+      "guidance": ["This flag warns about low-expression dynamics without removing them by default.", "Set relative to the selected matrix or score method."],
+      "aliases": ["low_expression_threshold", "low_signal_threshold"]
+    },
+    {
+      "parameter_name": "on_off_min_delta",
+      "title": "On/Off Delta Threshold",
+      "category": "classification",
+      "description": "Minimum late-minus-early absolute difference required for turns_on or turns_off classes.",
+      "applies_to": "op params",
+      "affects": ["turns_on calls", "turns_off calls"],
+      "guidance": ["Interpret relative to score scale.", "A stricter threshold reduces weak monotonic calls."],
+      "aliases": "delta_threshold"
+    },
+    {
+      "parameter_name": "monotonic_min_abs_rho",
+      "title": "Monotonicity Threshold",
+      "category": "classification",
+      "description": "Minimum absolute Spearman correlation with pseudotime required for monotonic on/off classes.",
+      "applies_to": "op params",
+      "affects": ["turns_on calls", "turns_off calls", "transient calls"],
+      "guidance": ["Higher values require cleaner monotonic behavior.", "Transient or multi-phase curves should not be forced into monotonic classes."],
+      "aliases": "rho_threshold"
+    },
+    {
+      "parameter_name": "smooth_method",
+      "title": "Curve Smoothing Method",
+      "category": "smoothing",
+      "description": "Optional smoother applied to binned curves before metrics and class assignment.",
+      "applies_to": "op params",
+      "affects": ["curve shape", "classification", "confidence bands"],
+      "guidance": ["Smoothing can reveal broad dynamics but can also erase sharp transitions.", "Report the method because it affects classes."],
+      "aliases": "smoother"
+    },
+    {
+      "parameter_name": "loess_span",
+      "title": "LOESS Span",
+      "category": "smoothing",
+      "description": "Controls the locality of LOESS smoothing when smooth_method is loess.",
+      "applies_to": "op params",
+      "affects": ["smoothness", "local transitions"],
+      "guidance": ["Smaller span follows local variation more closely.", "Larger span produces broader, smoother trends."],
+      "aliases": "span"
+    },
+    {
+      "parameter_name": "bootstrap_n",
+      "title": "Bootstrap Replicate Count",
+      "category": "uncertainty",
+      "description": "Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals.",
+      "applies_to": "op params",
+      "affects": ["confidence bands", "runtime"],
+      "guidance": ["Use for report-quality uncertainty bands.", "Large values increase runtime."],
+      "aliases": "n_bootstrap"
+    },
+    {
+      "parameter_name": "ci_level",
+      "title": "Confidence Interval Level",
+      "category": "uncertainty",
+      "description": "Nominal confidence level for bootstrap confidence bands.",
+      "applies_to": "op params",
+      "affects": "confidence band width",
+      "guidance": ["Higher levels produce wider intervals.", "Only meaningful when bootstrap_n is greater than zero."],
+      "aliases": "confidence_level"
+    },
+    {
+      "parameter_name": "n_permutations",
+      "title": "Empirical Permutation Count",
+      "category": "statistics",
+      "description": "Number of score-pseudotime permutations used to estimate empirical dynamic-score p-values.",
+      "applies_to": "trajectory dynamics op params",
+      "affects": ["p_dynamic", "q_dynamic", "runtime"],
+      "guidance": ["Use 0 for fast exploratory discovery.", "Use hundreds to thousands for final reports when runtime is acceptable.", "Permutation p-values support dynamic-score ranking but do not replace effect-size and abundance filters."],
+      "aliases": ["n_perm", "permutations"]
+    },
+    {
+      "parameter_name": "permutation_seed",
+      "title": "Permutation Random Seed",
+      "category": "reproducibility",
+      "description": "Seed used for empirical score-pseudotime permutation tests.",
+      "applies_to": "trajectory dynamics op params",
+      "affects": ["p_dynamic reproducibility", "q_dynamic reproducibility"],
+      "guidance": ["Set explicitly for replayable reports.", "Changing the seed can slightly change empirical p-values when n_permutations is modest."],
+      "aliases": "perm_seed"
+    },
+    {
+      "parameter_name": "p_adjust_method",
+      "title": "P-Value Adjustment Method",
+      "category": "statistics",
+      "description": "Multiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.",
+      "applies_to": "statistical op params",
+      "affects": ["FDR calls", "reported statistical support"],
+      "guidance": ["BH is the usual default for discovery-style FDR control.", "Correction is across the screened feature-set universe, so namespace/subset choice matters."],
+      "aliases": ["fdr_method", "multiple_testing_method"]
+    },
+    {
+      "parameter_name": "mad_multiplier",
+      "title": "MAD Distance Inclusion Multiplier",
+      "category": "trajectory_inclusion",
+      "description": "Threshold multiplier for median absolute deviation distance filters around a trajectory/path.",
+      "applies_to": "workflow or op params",
+      "affects": ["included cells", "trajectory tightness", "terminal contamination"],
+      "guidance": ["Lower values create a tighter trajectory tube and exclude more distant cells.", "Interpret relative to the embedding/space; unlike fixed distance thresholds, MAD adapts to scale.", "Not yet universal in op interfaces; include when route inclusion becomes a first-class op parameter."],
+      "aliases": ["mad_threshold", "distance_mad_multiplier"]
+    },
+    {
+      "parameter_name": "top_n",
+      "title": "Top-N Retention",
+      "category": "reporting",
+      "description": "Number of top-ranked records retained for compact outputs or reports.",
+      "applies_to": "op params",
+      "affects": ["report size", "visible discoveries"],
+      "guidance": ["Does not usually change the full underlying calculation unless explicitly documented.", "Use larger values for exploratory reports."],
+      "aliases": "n_top"
+    },
+    {
+      "parameter_name": "seed",
+      "title": "Random Seed",
+      "category": "reproducibility",
+      "description": "Seed used for stochastic algorithms or resampling.",
+      "applies_to": "op params",
+      "affects": ["reproducibility", "stochastic outputs"],
+      "guidance": ["Set explicitly for replayable reports.", "Changing seed can affect stochastic fits, bootstraps, or approximations."],
+      "aliases": ["random_seed", "bootstrap_seed"]
+    }
+  ]
+}

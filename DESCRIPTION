@@ -16,4 +16,5 @@ Imports:
     Seurat,
     Matrix
 Suggests:
-    BPCells
+    BPCells,
+    UCell

@@ -2,13 +2,17 @@
 #'
 #' Returns one row per feature with effect and significance metrics.
 #'
-#' @param bundle Bundle handle
-#' @param matrix_id Matrix identifier
-#' @param cells_a Character vector of group-A cell IDs
-#' @param cells_b Character vector of group-B cell IDs
-#' @param features Optional feature IDs (default: all features in matrix)
-#' @param min_pct Optional minimum detection fraction in either group
-#' @param p_adjust_method P-value adjustment method
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix identifier.
+#' @param cells_a Character vector of group-A cell ids.
+#' @param cells_b Character vector of group-B cell ids.
+#' @param features Optional feature ids. Defaults to all matrix features.
+#' @param min_pct Optional minimum detection fraction in either group.
+#' @param p_adjust_method P-value adjustment method.
+#'
+#' @return A standard op result list with `outputs$de_table` and normalized
+#'   `params`.
+#'
 #' @export
 wb_op_de_wilcox <- function(bundle,
                             matrix_id,
@@ -75,14 +79,19 @@ wb_op_de_wilcox <- function(bundle,
 
 #' Marker genes per cluster via one-vs-rest Wilcoxon DE
 #'
-#' @param bundle Bundle handle
-#' @param matrix_id Matrix identifier
-#' @param clusters Named vector: names=cell_id, values=cluster label
-#' @param cells Cell universe to evaluate
-#' @param features Optional feature IDs
-#' @param top_n Top markers per cluster
-#' @param min_pct Minimum detection fraction in either side
-#' @param p_adjust_method P-value adjustment method
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Matrix identifier.
+#' @param clusters Named vector with `names = cell_id` and cluster labels as
+#'   values.
+#' @param cells Cell universe to evaluate.
+#' @param features Optional feature ids.
+#' @param top_n Top markers per cluster.
+#' @param min_pct Minimum detection fraction in either side.
+#' @param p_adjust_method P-value adjustment method.
+#'
+#' @return A standard op result list with `outputs$markers` and normalized
+#'   `params`.
+#'
 #' @export
 wb_op_markers_topn <- function(bundle,
                                matrix_id,

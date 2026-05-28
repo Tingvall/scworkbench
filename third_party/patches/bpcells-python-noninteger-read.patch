@@ -1,0 +1,409 @@
+diff --git a/python/src/bindings.cpp b/python/src/bindings.cpp
+index 7090b12..f93e052 100644
+--- a/python/src/bindings.cpp
++++ b/python/src/bindings.cpp
+@@ -41,11 +41,17 @@ PYBIND11_MODULE(cpp, m) {
+     m.def("write_matrix_dir_from_concat", &BPCells::py::write_matrix_dir_from_concat);
+     m.def("write_matrix_dir_from_h5ad", &BPCells::py::write_matrix_dir_from_h5ad);
+     
+-    m.def("load_matrix_dir_subset", &BPCells::py::load_matrix_dir_subset);
++    m.def("load_matrix_dir_subset_uint32", &BPCells::py::load_matrix_dir_subset_uint32);
++    m.def("load_matrix_dir_subset_float", &BPCells::py::load_matrix_dir_subset_float);
++    m.def("load_matrix_dir_subset_double", &BPCells::py::load_matrix_dir_subset_double);
+     m.def("dims_matrix_dir", &BPCells::py::dims_matrix_dir);
+ 
+-    m.def("load_matrix_dir_to_memory", &BPCells::py::load_matrix_dir_to_memory);
+-    m.def("load_matrix_memory_subset", &BPCells::py::load_matrix_memory_subset);
++    m.def("load_matrix_dir_to_memory_uint32", &BPCells::py::load_matrix_dir_to_memory_uint32);
++    m.def("load_matrix_dir_to_memory_float", &BPCells::py::load_matrix_dir_to_memory_float);
++    m.def("load_matrix_dir_to_memory_double", &BPCells::py::load_matrix_dir_to_memory_double);
++    m.def("load_matrix_memory_subset_uint32", &BPCells::py::load_matrix_memory_subset_uint32);
++    m.def("load_matrix_memory_subset_float", &BPCells::py::load_matrix_memory_subset_float);
++    m.def("load_matrix_memory_subset_double", &BPCells::py::load_matrix_memory_subset_double);
+     pybind11::class_<VecReaderWriterBuilder, std::shared_ptr<VecReaderWriterBuilder>>(m, "VecReaderWriterBuilder");
+     
+     m.def("simd_current_target", &BPCells::simd::current_target);
+diff --git a/python/src/bpcells/experimental/matrix.py b/python/src/bpcells/experimental/matrix.py
+index 7487bbc..0377b0b 100644
+--- a/python/src/bpcells/experimental/matrix.py
++++ b/python/src/bpcells/experimental/matrix.py
+@@ -18,9 +18,42 @@ import scipy
+ 
+ from ._slicing import normalize_index
+ 
++
++_VERSION_TO_DTYPE = {
++    "packed-uint-matrix-v1": np.uint32,
++    "packed-uint-matrix-v2": np.uint32,
++    "unpacked-uint-matrix-v1": np.uint32,
++    "unpacked-uint-matrix-v2": np.uint32,
++    "packed-float-matrix-v1": np.float32,
++    "packed-float-matrix-v2": np.float32,
++    "unpacked-float-matrix-v1": np.float32,
++    "unpacked-float-matrix-v2": np.float32,
++    "packed-double-matrix-v1": np.float64,
++    "packed-double-matrix-v2": np.float64,
++    "unpacked-double-matrix-v1": np.float64,
++    "unpacked-double-matrix-v2": np.float64,
++}
++
++
++def _matrix_dtype(dir: str):
++    version = open(os.path.join(dir, "version"), "r").readline().strip()
++    if version not in _VERSION_TO_DTYPE:
++        raise RuntimeError(f"Unsupported BPCells matrix version: {version}")
++    return _VERSION_TO_DTYPE[version]
++
++
++def _dtype_suffix(dtype):
++    if dtype == np.uint32:
++        return "uint32"
++    if dtype == np.float32:
++        return "float"
++    if dtype == np.float64:
++        return "double"
++    raise RuntimeError(f"Unsupported BPCells dtype: {dtype}")
++
+ class DirMatrix:
+     """
+-    Disk-backed BPCells integer matrix
++    Disk-backed BPCells sparse matrix
+ 
+     This reads BPCells-format matrices, returning scipy.sparse.csc_matrix objects when sliced.
+ 
+@@ -44,7 +77,7 @@ class DirMatrix:
+         if self._transpose:
+             self.shape = (self.shape[1], self.shape[0])
+         
+-        self.dtype = np.uint32
++        self.dtype = _matrix_dtype(self.dir)
+         self.threads = 0
+         """int: Number of threads to use for reading (default=1)"""
+     
+@@ -81,7 +114,8 @@ class DirMatrix:
+             else:
+                 row = None
+         
+-        res = scipy.sparse.hstack(bpcells.cpp.load_matrix_dir_subset(self.dir, row, col, self.threads))
++        fn = getattr(bpcells.cpp, f"load_matrix_dir_subset_{_dtype_suffix(self.dtype)}")
++        res = scipy.sparse.hstack(fn(self.dir, row, col, self.threads))
+         
+         if self._transpose:
+             return res.T
+@@ -191,7 +225,7 @@ class DirMatrix:
+ 
+ class MemMatrix:
+     """
+-    In-memory BPCells integer matrix
++    In-memory BPCells sparse matrix
+ 
+     This reads BPCells-format matrices from disk, returning scipy.sparse.csc_matrix objects when sliced.
+     It is much more memory-intensive, but consistently fast for random reads
+@@ -219,11 +253,12 @@ class MemMatrix:
+         if self._transpose:
+             self.shape[0], self.shape[1] = self.shape[1], self.shape[0]
+         
+-        self.dtype = np.uint32
++        self.dtype = _matrix_dtype(dir)
+         self.threads = 0
+         """Threads used for reads (default=1)"""
+ 
+-        self._data = bpcells.cpp.load_matrix_dir_to_memory(dir)
++        fn = getattr(bpcells.cpp, f"load_matrix_dir_to_memory_{_dtype_suffix(self.dtype)}")
++        self._data = fn(dir)
+         
+     def transpose(self) -> 'MemMatrix':
+         """Return at transposed view of the matrix"""
+@@ -258,9 +293,10 @@ class MemMatrix:
+             else:
+                 row = None
+         
+-        res = scipy.sparse.hstack(bpcells.cpp.load_matrix_memory_subset(self._data, row, col, self.threads))
++        fn = getattr(bpcells.cpp, f"load_matrix_memory_subset_{_dtype_suffix(self.dtype)}")
++        res = scipy.sparse.hstack(fn(self._data, row, col, self.threads))
+         
+         if self._transpose:
+             return res.T
+         else:
+-            return res
+\ No newline at end of file
++            return res
+diff --git a/python/src/matrix.cpp b/python/src/matrix.cpp
+index 0237f89..f028837 100644
+--- a/python/src/matrix.cpp
++++ b/python/src/matrix.cpp
+@@ -32,6 +32,29 @@
+ 
+ namespace BPCells::py {
+ 
++enum class MatrixValueType {
++    UInt32,
++    Float32,
++    Float64,
++};
++
++static MatrixValueType matrix_value_type(std::string matrix_path) {
++    FileReaderBuilder rb(matrix_path);
++    const std::string version = rb.readVersion();
++
++    if (version.rfind("packed-uint-matrix-", 0) == 0 || version.rfind("unpacked-uint-matrix-", 0) == 0) {
++        return MatrixValueType::UInt32;
++    }
++    if (version.rfind("packed-float-matrix-", 0) == 0 || version.rfind("unpacked-float-matrix-", 0) == 0) {
++        return MatrixValueType::Float32;
++    }
++    if (version.rfind("packed-double-matrix-", 0) == 0 || version.rfind("unpacked-double-matrix-", 0) == 0) {
++        return MatrixValueType::Float64;
++    }
++
++    throw std::runtime_error("Unsupported BPCells matrix version: " + version);
++}
++
+ void write_matrix_dir_from_memory(
+     const Eigen::SparseMatrix<uint32_t> in, std::string out_path, bool row_major
+ ) {
+@@ -157,42 +180,57 @@ std::vector<T> parallel_map_helper(std::vector<std::future<T>> &futures, size_t
+     return result;
+ }
+ 
+-VecReaderWriterBuilder load_matrix_dir_to_memory(std::string matrix_path) {
++template <typename T>
++VecReaderWriterBuilder load_matrix_dir_to_memory_t(std::string matrix_path) {
+     FileReaderBuilder rb(matrix_path);
+-    std::unique_ptr<MatrixLoader<uint32_t>> mat =
+-        std::make_unique<StoredMatrix<uint32_t>>(StoredMatrix<uint32_t>::openPacked(rb));
++    std::unique_ptr<MatrixLoader<T>> mat =
++        std::make_unique<StoredMatrix<T>>(StoredMatrix<T>::openPacked(rb));
+ 
+     VecReaderWriterBuilder wb;
+     run_with_py_interrupt_check(
+-        &StoredMatrixWriter<uint32_t>::write,
+-        StoredMatrixWriter<uint32_t>::createPacked(wb),
++        &StoredMatrixWriter<T>::write,
++        StoredMatrixWriter<T>::createPacked(wb),
+         std::ref(*mat)
+     );
+     return wb;
+ }
+ 
+-Eigen::SparseMatrix<uint32_t> load_matrix_subset_helper(
++VecReaderWriterBuilder load_matrix_dir_to_memory_uint32(std::string matrix_path) {
++    return load_matrix_dir_to_memory_t<uint32_t>(matrix_path);
++}
++
++VecReaderWriterBuilder load_matrix_dir_to_memory_float(std::string matrix_path) {
++    return load_matrix_dir_to_memory_t<float>(matrix_path);
++}
++
++VecReaderWriterBuilder load_matrix_dir_to_memory_double(std::string matrix_path) {
++    return load_matrix_dir_to_memory_t<double>(matrix_path);
++}
++
++template <typename T>
++Eigen::SparseMatrix<T> load_matrix_subset_helper(
+     ReaderBuilder &rb,
+     std::optional<std::vector<uint32_t>> rows,
+     std::vector<uint32_t> columns,
+     std::atomic<bool> *user_interrupt
+ ) {
+-    std::unique_ptr<MatrixLoader<uint32_t>> mat =
+-        std::make_unique<StoredMatrix<uint32_t>>(StoredMatrix<uint32_t>::openPacked(rb));
++    std::unique_ptr<MatrixLoader<T>> mat =
++        std::make_unique<StoredMatrix<T>>(StoredMatrix<T>::openPacked(rb));
+ 
+-    mat = std::make_unique<MatrixColSelect<uint32_t>>(std::move(mat), columns);
++    mat = std::make_unique<MatrixColSelect<T>>(std::move(mat), columns);
+     if (rows) {
+-        mat = std::make_unique<MatrixRowSelect<uint32_t>>(std::move(mat), rows.value());
++        mat = std::make_unique<MatrixRowSelect<T>>(std::move(mat), rows.value());
+     }
+ 
+-    CSparseMatrixWriter<uint32_t> writer;
++    CSparseMatrixWriter<T> writer;
+     run_with_py_interrupt_check(
+-        &CSparseMatrixWriter<uint32_t>::write, std::ref(writer), std::ref(*mat)
++        &CSparseMatrixWriter<T>::write, std::ref(writer), std::ref(*mat)
+     );
+     return writer.getMat();
+ }
+ 
+-std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_subset(
++template <typename T>
++std::vector<Eigen::SparseMatrix<T>> load_matrix_subset(
+     ReaderBuilder &rb,
+     std::optional<std::vector<uint32_t>> rows,
+     std::vector<uint32_t> columns,
+@@ -215,11 +253,11 @@ std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_subset(
+     // Perform multi-threaded reads
+     return run_with_py_interrupt_check(
+         [&rb, &rows, &col_splits, threads](std::atomic<bool> *user_interrupt) {
+-            std::vector<std::future<Eigen::SparseMatrix<uint32_t>>> task_vec;
++            std::vector<std::future<Eigen::SparseMatrix<T>>> task_vec;
+             for (size_t i = 0; i < col_splits.size(); i++) {
+                 task_vec.push_back(std::async(
+                     std::launch::deferred,
+-                    &load_matrix_subset_helper,
++                    &load_matrix_subset_helper<T>,
+                     std::ref(rb),
+                     rows,
+                     col_splits[i],
+@@ -232,31 +270,86 @@ std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_subset(
+     );
+ }
+ 
+-std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_dir_subset(
++std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_dir_subset_uint32(
++    std::string matrix_path,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++) {
++    FileReaderBuilder rb(matrix_path);
++    return load_matrix_subset<uint32_t>(rb, rows, columns, threads);
++}
++
++std::vector<Eigen::SparseMatrix<float>> load_matrix_dir_subset_float(
+     std::string matrix_path,
+     std::optional<std::vector<uint32_t>> rows,
+     std::vector<uint32_t> columns,
+     uint32_t threads
+ ) {
+     FileReaderBuilder rb(matrix_path);
+-    return load_matrix_subset(rb, rows, columns, threads);
++    return load_matrix_subset<float>(rb, rows, columns, threads);
+ }
+ 
+-std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_memory_subset(
++std::vector<Eigen::SparseMatrix<double>> load_matrix_dir_subset_double(
++    std::string matrix_path,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++) {
++    FileReaderBuilder rb(matrix_path);
++    return load_matrix_subset<double>(rb, rows, columns, threads);
++}
++
++std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_memory_subset_uint32(
+     VecReaderWriterBuilder &rb,
+     std::optional<std::vector<uint32_t>> rows,
+     std::vector<uint32_t> columns,
+     uint32_t threads
+ ) {
+-    return load_matrix_subset(rb, rows, columns, threads);
++    return load_matrix_subset<uint32_t>(rb, rows, columns, threads);
++}
++
++std::vector<Eigen::SparseMatrix<float>> load_matrix_memory_subset_float(
++    VecReaderWriterBuilder &rb,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++) {
++    return load_matrix_subset<float>(rb, rows, columns, threads);
++}
++
++std::vector<Eigen::SparseMatrix<double>> load_matrix_memory_subset_double(
++    VecReaderWriterBuilder &rb,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++) {
++    return load_matrix_subset<double>(rb, rows, columns, threads);
+ }
+ 
+ std::tuple<uint32_t, uint32_t> dims_matrix_dir(std::string matrix_path) {
+-    FileReaderBuilder rb(matrix_path);
+-    std::unique_ptr<MatrixLoader<uint32_t>> mat =
+-        std::make_unique<StoredMatrix<uint32_t>>(StoredMatrix<uint32_t>::openPacked(rb));
++    switch (matrix_value_type(matrix_path)) {
++    case MatrixValueType::UInt32: {
++        FileReaderBuilder rb(matrix_path);
++        std::unique_ptr<MatrixLoader<uint32_t>> mat =
++            std::make_unique<StoredMatrix<uint32_t>>(StoredMatrix<uint32_t>::openPacked(rb));
++        return {mat->rows(), mat->cols()};
++    }
++    case MatrixValueType::Float32: {
++        FileReaderBuilder rb(matrix_path);
++        std::unique_ptr<MatrixLoader<float>> mat =
++            std::make_unique<StoredMatrix<float>>(StoredMatrix<float>::openPacked(rb));
++        return {mat->rows(), mat->cols()};
++    }
++    case MatrixValueType::Float64: {
++        FileReaderBuilder rb(matrix_path);
++        std::unique_ptr<MatrixLoader<double>> mat =
++            std::make_unique<StoredMatrix<double>>(StoredMatrix<double>::openPacked(rb));
++        return {mat->rows(), mat->cols()};
++    }
++    }
+ 
+-    return {mat->rows(), mat->cols()};
++    throw std::runtime_error("Unsupported BPCells matrix type");
+ }
+ 
+-} // namespace BPCells::py
+\ No newline at end of file
++} // namespace BPCells::py
+diff --git a/python/src/matrix.hpp b/python/src/matrix.hpp
+index a40651e..fb8dfdb 100644
+--- a/python/src/matrix.hpp
++++ b/python/src/matrix.hpp
+@@ -25,7 +25,21 @@ void write_matrix_dir_from_concat(std::vector<std::string> in_paths, std::string
+ 
+ void write_matrix_dir_from_h5ad(std::string h5ad_path, std::string out_path, std::string group);
+ 
+-std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_dir_subset(
++std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_dir_subset_uint32(
++    std::string matrix_path,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++);
++
++std::vector<Eigen::SparseMatrix<float>> load_matrix_dir_subset_float(
++    std::string matrix_path,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++);
++
++std::vector<Eigen::SparseMatrix<double>> load_matrix_dir_subset_double(
+     std::string matrix_path,
+     std::optional<std::vector<uint32_t>> rows,
+     std::vector<uint32_t> columns,
+@@ -34,13 +48,31 @@ std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_dir_subset(
+ 
+ std::tuple<uint32_t, uint32_t> dims_matrix_dir(std::string matrix_path);
+ 
+-VecReaderWriterBuilder load_matrix_dir_to_memory(std::string matrix_path);
++VecReaderWriterBuilder load_matrix_dir_to_memory_uint32(std::string matrix_path);
++
++VecReaderWriterBuilder load_matrix_dir_to_memory_float(std::string matrix_path);
++
++VecReaderWriterBuilder load_matrix_dir_to_memory_double(std::string matrix_path);
++
++std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_memory_subset_uint32(
++    VecReaderWriterBuilder &rb,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++);
++
++std::vector<Eigen::SparseMatrix<float>> load_matrix_memory_subset_float(
++    VecReaderWriterBuilder &rb,
++    std::optional<std::vector<uint32_t>> rows,
++    std::vector<uint32_t> columns,
++    uint32_t threads
++);
+ 
+-std::vector<Eigen::SparseMatrix<uint32_t>> load_matrix_memory_subset(
++std::vector<Eigen::SparseMatrix<double>> load_matrix_memory_subset_double(
+     VecReaderWriterBuilder &rb,
+     std::optional<std::vector<uint32_t>> rows,
+     std::vector<uint32_t> columns,
+     uint32_t threads
+ );
+ 
+-} // namespace BPCells::py
+\ No newline at end of file
++} // namespace BPCells::py

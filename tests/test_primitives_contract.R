@@ -10,6 +10,15 @@ test_primitives_contract <- function() {
   )
   stopifnot(.wb_is_primitive(cvf), identical(cvf$kind, "cell_vector_family"))
 
+  rf <- wb_prim_relation_family(
+    key = c("B1", "B2", "B2"),
+    cell_id = c("c1", "c1", "c2"),
+    weight = c(0.8, 0.2, 1.0),
+    value = c(0.4, 0.1, 0.7)
+  )
+  stopifnot(.wb_is_primitive(rf), identical(rf$kind, "relation_family"))
+  stopifnot(identical(length(rf$key), 3L), identical(length(rf$weight), 3L))
+
   p2 <- wb_prim_path_2d_family(
     key = c("L1", "L1"),
     point = c(1L, 2L),
@@ -17,6 +26,21 @@ test_primitives_contract <- function() {
     y = c(0, 1)
   )
   stopifnot(.wb_is_primitive(p2), identical(p2$kind, "path_2d_family"))
+
+  spf <- wb_prim_space_path_family(
+    space_id = c("peakvi_space", "peakvi_space", "peakvi_space", "peakvi_space"),
+    path_id = c("P1", "P1", "P1", "P1"),
+    point = c(1L, 1L, 2L, 2L),
+    dim = c(1L, 2L, 1L, 2L),
+    value = c(0, 0, 1, 1),
+    meta = list(
+      fit_mode = "linear",
+      anchor_label = c("A", "B"),
+      anchor_order = c(1L, 2L)
+    )
+  )
+  stopifnot(.wb_is_primitive(spf), identical(spf$kind, "space_path_family"))
+  stopifnot(identical(length(spf$space_id), 4L), identical(length(spf$path_id), 4L))
 
   mr <- wb_prim_model_ref(model_space_id = "umap.lsi", in_space_id = "lsi")
   stopifnot(
@@ -38,6 +62,14 @@ test_primitives_contract <- function() {
     entity_kind = "sample"
   )
   stopifnot(.wb_is_primitive(ot), identical(ot$kind, "obs_table"))
+
+  rf_tbl <- wb_primitive_to_table(rf, include_context = TRUE)
+  stopifnot(is.data.frame(rf_tbl), nrow(rf_tbl) == 3L)
+  stopifnot(all(c("key", "cell_id", "weight", "value", "kind") %in% names(rf_tbl)))
+
+  spf_tbl <- wb_primitive_to_table(spf, include_context = TRUE)
+  stopifnot(is.data.frame(spf_tbl), nrow(spf_tbl) == 4L)
+  stopifnot(all(c("space_id", "path_id", "point", "dim", "value", "kind") %in% names(spf_tbl)))
 
   # Op contract invariants
   ops <- .wb_ops()
@@ -69,6 +101,20 @@ test_primitives_contract <- function() {
       stopifnot(identical(as.character(iface_out[[nm]]$kind), as.character(op$produces[[nm]])))
     }
   }
+
+  sp_def <- wb_op_interface("space_path_define")
+  stopifnot(identical(as.character(sp_def$produces$path$kind), "space_path_family"))
+
+  sp_score <- wb_op_interface("space_path_score")
+  stopifnot(identical(as.character(sp_score$produces$path_scores$kind), "cell_vector_family"))
+  stopifnot(identical(as.character(sp_score$produces$fit_summary$kind), "obs_table"))
+
+  sp_proj <- wb_op_interface("space_path_project_2d")
+  stopifnot(identical(as.character(sp_proj$produces$curves$kind), "path_2d_family"))
+
+  cvc <- wb_op_interface("cell_vector_compare")
+  stopifnot(identical(as.character(cvc$produces$summary$kind), "obs_table"))
+  stopifnot(identical(as.character(cvc$produces$comparison$kind), "obs_table"))
 
   TRUE
 }
