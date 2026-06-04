@@ -155,6 +155,22 @@ Request payloads should prefer:
 
 over large literal vectors.
 
+## PeakVI Matrix Handoff Note
+
+For production/cluster PeakVI, the bench should provide staged sparse chunks
+through `inputs.matrix_chunks_dir`. In that path, R reads the bundle matrix
+through the R BPCells stack, stages sparse chunks plus manifest metadata, and
+pybench assembles the staged chunks before running PeakVI.
+
+`peakvi_fit` in pybench also supports native bundle matrix reads when
+`matrix_chunks_dir` is absent. That path is local/development capable, but it is
+not the current cluster production default because the native/forked Python
+BPCells double-matrix path has hit segmentation faults on Tetralith. Returning
+native BPCells reads to production requires a passing cluster smoke for that
+forked/double-matrix path.
+
+`peakvi_project` currently requires staged chunks.
+
 ## Idempotency Rule (payload writes)
 
 Pybench payload writers should be safe for retry on the same artifact ID:

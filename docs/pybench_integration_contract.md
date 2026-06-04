@@ -89,20 +89,33 @@ Meaning:
 - Python getters remain the right path for Python-native consumers that can
   safely read matrices in-process
 
-Important exception:
+PeakVI production exception:
 
-- `peakvi_fit` no longer uses direct Python BPCells reads on the production
-  path
-- `peakvi_fit` now uses an R-staged sparse chunk bridge:
+- `peakvi_fit` uses an R-staged sparse chunk bridge as the production-safe
+  cluster path:
   - R reads the matrix through the mature R BPCells path
   - R stages sparse chunk files plus manifest metadata
   - Python assembles from those staged chunks before training PeakVI
+- `peakvi_fit` still supports native bundle matrix reads when
+  `matrix_chunks_dir` is absent; that path is local/development capable, not the
+  current cluster production default.
+- `peakvi_project` currently requires staged chunks.
+
+Historical reason:
+
+- native Python BPCells reads were pursued because upstream Python BPCells could
+  not handle double matrices
+- a fork fixed double-matrix reads and worked locally
+- the native/forked BPCells path hit segmentation faults on Tetralith
+- re-promoting native BPCells reads to production requires a cluster smoke that
+  exercises the forked/double-matrix path without segmentation faults
 
 Implications:
 
 - keep Python getter behavior deterministic in feature/cell ordering
 - do not assume every Python-native op must read matrices directly from BPCells
-- for cluster-critical paths, prefer the more robust bridge over the more elegant one
+- for cluster-critical PeakVI paths, prefer the staged sparse chunk bridge until
+  native cluster reads are revalidated
 
 ## Parity Discipline
 

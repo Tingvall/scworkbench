@@ -179,9 +179,17 @@ This script is intentionally a tripwire, not a replacement for full package
 test suites. It checks that the sibling repos still agree on the core bundle,
 tool, semantic catalog, and KG JSONL contracts.
 
-## Known Drift To Resolve
+## PeakVI Matrix Path Contract
 
-- `docs/pybench_integration_contract.md` describes production `peakvi_fit` as
-  using an R-staged sparse chunk bridge, while `../../pybench/README.md`
-  describes PeakVI as using native bundle matrix reads. Treat this as an open
-  contract decision until code and docs are reconciled.
+Current controller contract:
+
+- `peakvi_fit` uses R-staged sparse chunks as the production-safe cluster path.
+- `pybench` native BPCells matrix reads remain supported for local/development
+  `peakvi_fit` runs when `matrix_chunks_dir` is absent, but they are not the
+  current cluster production default.
+- `peakvi_project` remains staged-only.
+- Native Python BPCells reads were pursued because upstream Python BPCells could
+  not handle double matrices. A fork fixed double-matrix reads locally, but the
+  native/forked path hit segmentation faults on Tetralith.
+- Re-promoting native BPCells reads to production requires a cluster smoke that
+  exercises the forked/double-matrix BPCells path without segmentation faults.

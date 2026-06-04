@@ -4,14 +4,23 @@ Date: 2026-04-22
 
 Audience: engine work on `scworkbench` + sibling `pybench`
 
+Status as of 2026-06-04: superseded as a production plan. The forked/native
+Python BPCells route worked on the workstation, but later produced segmentation
+faults on Tetralith/cluster runtime. Production/cluster PeakVI therefore uses
+R-staged sparse chunks until a new cluster smoke validates the forked
+double-matrix path without segfaults. Keep this document as historical
+engineering context, not as the current production contract.
+
 Goal: replace the current `peakvi_fit` Matrix Market staging path with direct
 Python reads from bundle-native BPCells matrix payloads.
 
-## Current Status
+## Historical Status Recorded At The Time
 
-This route is now working in practice.
+At the time this plan was written, this route was reported as working in
+practice. That status was later superseded by cluster segmentation faults; see
+the status note above.
 
-Verified outcomes:
+Outcomes recorded at the time:
 
 - Python `bpcells` fork can read `packed-double-matrix-v2` bundle matrices
 - `pybench` now exposes a native bundle matrix getter and `peakvi_fit` uses it

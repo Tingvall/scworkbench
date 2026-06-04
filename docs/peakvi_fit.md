@@ -79,7 +79,7 @@ The latent space is the main reusable analytical result.
 
 ## Current Execution Path
 
-The current production path is:
+The current production/cluster path is:
 
 1. R resolves the effective cells and matrix metadata.
 2. R reads the selected matrix slice through the mature R BPCells path.
@@ -90,16 +90,23 @@ The current production path is:
 
 Important:
 
-- `peakvi_fit` no longer depends on direct Python BPCells reads on the
-  cluster-critical path
-- the direct Python BPCells path remains relevant as engineering history, but it
-  is not the intended production path for this op
+- `peakvi_fit` in `pybench` still supports native bundle matrix reads when
+  `matrix_chunks_dir` is absent
+- native Python BPCells reads are local/development capable, but not currently
+  the production cluster default
+- the R/scworkbench production path supplies staged sparse chunks
+- `peakvi_project` currently requires staged sparse chunks
 
 ## Why The Staged Chunk Bridge Exists
 
-Direct Python BPCells reads for non-integer bundle matrices proved unstable on
-the target cluster environment, even after multiple batching and isolation
-attempts.
+Upstream Python BPCells did not handle the double-matrix bundle payloads needed
+for this use case. A fork added double-matrix read support and worked on the
+workstation, but the native/forked path later produced segmentation faults on
+the Tetralith/cluster runtime.
+
+Until that forked/double-matrix path passes a real cluster smoke without
+segmentation faults, staged sparse chunks are the production-safe PeakVI
+transport.
 
 The staged bridge keeps:
 
@@ -125,6 +132,12 @@ Recommended smoke pattern:
 
 `peakvi_project` reuses a saved PeakVI `model_ref` to place new cells into that
 existing latent space without refitting the model.
+
+Current contract:
+
+- `peakvi_fit`: staged sparse chunks for production/cluster; native pybench
+  bundle reads remain available only when `matrix_chunks_dir` is absent
+- `peakvi_project`: staged-only
 
 That pairing is the intended workflow for:
 
