@@ -23,9 +23,9 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
 %files
     . /opt/scworkbench
     ../scworkbenchShiny /opt/scworkbenchShiny
-    ../../pybench/pyproject.toml /opt/pybench/pyproject.toml
-    ../../pybench/README.md /opt/pybench/README.md
-    ../../pybench/src /opt/pybench/src
+    ../pybench/pyproject.toml /opt/pybench/pyproject.toml
+    ../pybench/README.md /opt/pybench/README.md
+    ../pybench/src /opt/pybench/src
     scripts/prepare_bpcells_python_fork.sh /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
     third_party/patches/bpcells-python-noninteger-read.patch /opt/scworkbench/third_party/patches/bpcells-python-noninteger-read.patch
     containers/apptainer/run-scworkbench-shiny /usr/local/bin/run-scworkbench-shiny
@@ -86,6 +86,7 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
         libopenblas-dev \
         liblapack-dev \
         python3 \
+        python-is-python3 \
         python3-dev \
         python3-pip \
         python3-venv \
@@ -98,8 +99,9 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
 
     python3 -m venv /opt/pyenv
     /opt/pyenv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel pybind11 setuptools-scm
+    DEB_MULTIARCH="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
     export CPATH=/usr/include/eigen3:/usr/include/hdf5/serial:/usr/include
-    export LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/hdf5/serial:/usr/lib/x86_64-linux-gnu
+    export LIBRARY_PATH=/usr/lib/${DEB_MULTIARCH}/hdf5/serial:/usr/lib/${DEB_MULTIARCH}
     chmod +x /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
     rm -rf /tmp/BPCells_python_fork_build
     /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh /tmp/BPCells_python_fork_build
