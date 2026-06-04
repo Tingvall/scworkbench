@@ -142,6 +142,43 @@ wb_feature_set_replace(
   created_by = "make_golden_bundle"
 )
 
+# Add one tiny promoted artifact so the generated fixture exercises artifact
+# registry, primitive load, promotion, and persisted provenance contracts.
+cluster_labels <- setNames(
+  rep(c("golden_A", "golden_B", "golden_C"), each = 4),
+  cells
+)
+cluster_run <- wb_new_run(
+  op_name = "leiden",
+  inputs = list(
+    cell_set = "core",
+    effective_n = length(cells),
+    parents = character(0),
+    provenance_refs = list(),
+    user_inputs = list(space_id = "umap_golden")
+  ),
+  params = list(
+    space_id = "umap_golden",
+    resolution = 0.10,
+    fixture = TRUE
+  ),
+  outputs = list(
+    clusters = wb_prim_cell_vector(cluster_labels, value_type = "categorical")
+  ),
+  notes = "golden bundle promoted artifact fixture"
+)
+runs <- list()
+runs[[cluster_run$run_id]] <- cluster_run
+invisible(wb_promote_analysis(
+  bundle = b,
+  runs = runs,
+  head_run_id = cluster_run$run_id,
+  name_prefix = "golden_fixture",
+  description = "Tiny deterministic cell_vector artifact for cross-repo contract checks.",
+  created_by = "make_golden_bundle",
+  fail_fast = TRUE
+))
+
 wb_refresh_manifest(b)
 
 cat("golden_bundle=", out_dir, "\n", sep = "")

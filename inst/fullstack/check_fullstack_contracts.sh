@@ -65,6 +65,29 @@ stopifnot(nrow(wb_feature_sets(b, matrix_id = 'RNA_counts')) >= 2)
 stopifnot('de_wilcox' %in% wb_list_ops())
 iface <- wb_op_interface('de_wilcox', bundle = b)
 stopifnot(is.list(iface), identical(iface\$name, 'de_wilcox') || identical(iface\$op_name, 'de_wilcox') || !is.null(iface\$inputs))
+arts <- wb_art_list(b)
+stopifnot(is.data.frame(arts), nrow(arts) >= 1)
+golden_art <- arts[
+  as.character(arts\$source_op %||% '') == 'leiden' &
+    as.character(arts\$type %||% '') == 'cell_vector',
+  ,
+  drop = FALSE
+]
+stopifnot(nrow(golden_art) >= 1)
+aid <- as.character(golden_art\$artifact_id[1])
+prim <- wb_art_load(b, aid, expected_kind = 'cell_vector')
+stopifnot(identical(as.character(prim\$kind), 'cell_vector'))
+stopifnot(length(prim\$cell_id) == 12)
+stopifnot(setequal(as.character(prim\$cell_id), wb_cells(b, 'core')))
+stopifnot(all(c('golden_A', 'golden_B', 'golden_C') %in% unique(as.character(prim\$value))))
+id <- wb_art_identity_card(b, aid)
+stopifnot(is.list(id), identical(as.character(id\$core\$artifact_id), aid))
+bc <- wb_art_birth_certificate(b, aid)
+stopifnot(is.list(bc), identical(as.character(bc\$schema), 'artifact_birth_certificate_v1'))
+stopifnot(is.data.frame(bc\$persisted_provenance\$links), nrow(bc\$persisted_provenance\$links) >= 1)
+stopifnot(is.list(bc\$persisted_provenance\$run_details))
+heads <- wb_prov_list_heads(b)
+stopifnot(is.data.frame(heads), nrow(heads) >= 1)
 cat('scworkbench smoke ok\n')
 "
 
