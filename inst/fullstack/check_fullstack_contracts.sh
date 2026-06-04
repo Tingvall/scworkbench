@@ -121,6 +121,15 @@ echo "[fullstack] generated semantic catalog freshness"
   done
 )
 
+echo "[fullstack] scworkbench pybench payload parity"
+Rscript -e "
+if (!requireNamespace('devtools', quietly = TRUE) && !requireNamespace('pkgload', quietly = TRUE)) stop('devtools or pkgload required')
+if (requireNamespace('devtools', quietly = TRUE)) devtools::load_all('$ROOT/scworkbench', quiet = TRUE) else pkgload::load_all('$ROOT/scworkbench', quiet = TRUE)
+source('$ROOT/scworkbench/tests/test_pybench_payload_parity.R')
+stopifnot(test_pybench_payload_parity())
+cat('scworkbench pybench payload parity ok\n')
+"
+
 echo "[fullstack] Shiny thin-client tripwire"
 (
   cd "$ROOT"
