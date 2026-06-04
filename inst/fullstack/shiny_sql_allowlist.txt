@@ -1,0 +1,3 @@
+scworkbenchShiny/R/helpers.R:35:  cols <- try(DBI::dbGetQuery(bundle$con, "PRAGMA table_info(cells);"), silent = TRUE)
+scworkbenchShiny/R/mod_sets.R:83:      raw <- try(DBI::dbGetQuery(
+scworkbenchShiny/R/mod_sets.R:85:        "SELECT feature_set, matrix_id, COUNT(feature_id) AS n_features

@@ -45,6 +45,9 @@ test_all <- function(bundle_dir){
   if (exists("test_semantic_planning_artifact_contract", mode = "function")) {
     stopifnot(test_semantic_planning_artifact_contract())
   }
+  if (exists("test_knowledge_graph_contract", mode = "function")) {
+    stopifnot(test_knowledge_graph_contract(bundle_dir))
+  }
   if (exists("test_op_knn_neighbors_contract", mode = "function")) {
     stopifnot(test_op_knn_neighbors_contract(bundle_dir))
   }
