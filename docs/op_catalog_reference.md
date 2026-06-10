@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-10T17:53:53+0200
+Generated at: 2026-06-10T21:16:18+0200
 
-Operation count: 39
+Operation count: 41
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -234,6 +234,57 @@ Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
 - `correlation_methods` (string_vec, default=pearson|spearman): Pairwise correlation methods to compute between keys.
 - `tie_tol` (dbl, default=1e-08): Tolerance used when counting tied top-key winners.
+
+## `cell_vector_winners`
+
+Title: Cell Vector Winner Assignment
+
+Intent: signal, labeling, winner
+
+Description: Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.
+
+Consumes:
+- `signal`: cell_vector_family
+- `cell_set`: select
+
+Produces:
+- `winners`: obs_table - Per-cell winner, runner-up, confidence, and pruning table.
+
+Promotable outputs: winners
+
+Key parameters:
+- `signal_keys` (string_vec, default=NULL): Optional key subset within the cell_vector_family.
+- `min_winners` (int, default=10): Minimum raw winner count required for a winner label to pass pruning.
+- `tie_method` (choice, default=first): Deterministic tie handling for top-score winners.
+- `source_score_artifact_id` (string, default=NULL): Optional source cell_vector_family artifact ID copied into winner table metadata.
+- `source_run_id` (string, default=NULL): Optional source run ID copied into winner table metadata.
+- `source_snapshot_id` (string, default=NULL): Optional source provenance snapshot ID copied into winner table metadata.
+
+## `winner_cell_sets`
+
+Title: Winner Cell-Set Registration
+
+Intent: signal, labeling, cell_sets
+
+Description: Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.
+
+Consumes:
+- `winners`: obs_table
+- `cell_set`: select
+
+Produces:
+- `manifest`: obs_table - One row per registered winner cell set.
+
+Promotable outputs: manifest
+
+Key parameters:
+- `source_winner_artifact_id` (string, default=NULL): Optional source winner obs_table artifact ID copied into manifest metadata.
+- `cell_set_prefix` (string, default=winner_): Prefix used after set: when creating winner cell-set names.
+- `winner_col` (string, default=winner): Winner-label column in the winner table.
+- `passes_col` (string, default=passes_pruning): Logical pruning-pass column in the winner table.
+- `source` (string, default=cell_vector_winners): Source label stored on cell-set membership rows.
+- `created_by` (string, default=NULL): Optional actor stored on cell-set membership rows.
+- `replace` (logical, default=TRUE): If TRUE, replace existing winner cell-set memberships.
 
 ## `chromvar`
 

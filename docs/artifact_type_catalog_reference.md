@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 53
+Artifact type count: 55
 
 ## cell_vector
 
@@ -285,6 +285,34 @@ Entity kind: signature
 
 Use when:
 - inspect signature score distributions
+
+### `obs_table:cell_vector_winners`
+
+Title: Cell Vector Winner Table
+
+Description: Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.
+
+Table type: cell_vector_winners
+
+Entity kind: cell
+
+Use when:
+- inspect UCell winner labels
+- register winner cell sets
+
+### `obs_table:winner_cell_set_manifest`
+
+Title: Winner Cell-Set Manifest
+
+Description: One row per registered winner-derived bundle cell set.
+
+Table type: winner_cell_set_manifest
+
+Entity kind: cell_set
+
+Use when:
+- audit winner cell sets
+- report derived label sets
 
 ### `obs_table:chromvar_summary`
 

@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-10T17:53:54+0200
+Generated at: 2026-06-10T21:16:19+0200
 
-Record count: 243
+Record count: 247
 
-Graph edges: 628
+Graph edges: 638
 
 ## artifact_type
 
@@ -141,6 +141,18 @@ Description: Dynamics metrics and classes for precomputed signals.
 Title: UCell Signature Summary
 
 Description: Summary statistics for UCell signature scores.
+
+### `artifact_type:obs_table:cell_vector_winners`
+
+Title: Cell Vector Winner Table
+
+Description: Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.
+
+### `artifact_type:obs_table:winner_cell_set_manifest`
+
+Title: Winner Cell-Set Manifest
+
+Description: One row per registered winner-derived bundle cell set.
 
 ### `artifact_type:obs_table:chromvar_summary`
 
@@ -781,6 +793,18 @@ Description: Normalize one keyed per-cell signal family within keys so cross-key
 Title: QC Cell Vector Family
 
 Description: Compute per-key and pairwise diagnostics for one keyed per-cell signal family.
+
+### `op:cell_vector_winners`
+
+Title: Cell Vector Winner Assignment
+
+Description: Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.
+
+### `op:winner_cell_sets`
+
+Title: Winner Cell-Set Registration
+
+Description: Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.
 
 ### `op:chromvar`
 

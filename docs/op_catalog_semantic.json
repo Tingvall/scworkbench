@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-10T17:53:53+0200",
-  "op_count": 39,
+  "generated_at": "2026-06-10T21:16:18+0200",
+  "op_count": 41,
   "ops": [
     {
       "op_name": "leiden",
@@ -728,6 +728,167 @@
         }
       ],
       "promotable": ["key_summary", "pairwise_summary", "group_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "cell_vector_winners",
+      "title": "Cell Vector Winner Assignment",
+      "description": "Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.",
+      "intent": ["signal", "labeling", "winner"],
+      "consumes": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "winners",
+          "kind": "obs_table",
+          "description": "Per-cell winner, runner-up, confidence, and pruning table."
+        }
+      ],
+      "inputs": {
+        "signal": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "signal_keys",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional key subset within the cell_vector_family."
+        },
+        {
+          "name": "min_winners",
+          "type": "int",
+          "default": 10,
+          "min": 0,
+          "max": 100000000,
+          "help": "Minimum raw winner count required for a winner label to pass pruning."
+        },
+        {
+          "name": "tie_method",
+          "type": "choice",
+          "default": "first",
+          "choices": ["first", "last"],
+          "help": "Deterministic tie handling for top-score winners."
+        },
+        {
+          "name": "source_score_artifact_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source cell_vector_family artifact ID copied into winner table metadata."
+        },
+        {
+          "name": "source_run_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source run ID copied into winner table metadata."
+        },
+        {
+          "name": "source_snapshot_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source provenance snapshot ID copied into winner table metadata."
+        }
+      ],
+      "promotable": "winners",
+      "chunking": null
+    },
+    {
+      "op_name": "winner_cell_sets",
+      "title": "Winner Cell-Set Registration",
+      "description": "Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.",
+      "intent": ["signal", "labeling", "cell_sets"],
+      "consumes": [
+        {
+          "name": "winners",
+          "kind": "obs_table",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "manifest",
+          "kind": "obs_table",
+          "description": "One row per registered winner cell set."
+        }
+      ],
+      "inputs": {
+        "winners": {
+          "required": true,
+          "kind": "obs_table"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "source_winner_artifact_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source winner obs_table artifact ID copied into manifest metadata."
+        },
+        {
+          "name": "cell_set_prefix",
+          "type": "string",
+          "default": "winner_",
+          "help": "Prefix used after set: when creating winner cell-set names."
+        },
+        {
+          "name": "winner_col",
+          "type": "string",
+          "default": "winner",
+          "help": "Winner-label column in the winner table."
+        },
+        {
+          "name": "passes_col",
+          "type": "string",
+          "default": "passes_pruning",
+          "help": "Logical pruning-pass column in the winner table."
+        },
+        {
+          "name": "source",
+          "type": "string",
+          "default": "cell_vector_winners",
+          "help": "Source label stored on cell-set membership rows."
+        },
+        {
+          "name": "created_by",
+          "type": "string",
+          "default": null,
+          "help": "Optional actor stored on cell-set membership rows."
+        },
+        {
+          "name": "replace",
+          "type": "logical",
+          "default": true,
+          "help": "If TRUE, replace existing winner cell-set memberships."
+        }
+      ],
+      "promotable": "manifest",
       "chunking": null
     },
     {

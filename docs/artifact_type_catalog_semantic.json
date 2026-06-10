@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-10T17:53:53+0200",
-  "artifact_type_count": 53,
+  "generated_at": "2026-06-10T21:16:18+0200",
+  "artifact_type_count": 55,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -200,6 +200,24 @@
       "table_type": "ucell_signature_summary",
       "entity_kind": "signature",
       "use_when": "inspect signature score distributions"
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_winners",
+      "primitive_kind": "obs_table",
+      "title": "Cell Vector Winner Table",
+      "description": "Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.",
+      "table_type": "cell_vector_winners",
+      "entity_kind": "cell",
+      "use_when": ["inspect UCell winner labels", "register winner cell sets"]
+    },
+    {
+      "artifact_type": "obs_table:winner_cell_set_manifest",
+      "primitive_kind": "obs_table",
+      "title": "Winner Cell-Set Manifest",
+      "description": "One row per registered winner-derived bundle cell set.",
+      "table_type": "winner_cell_set_manifest",
+      "entity_kind": "cell_set",
+      "use_when": ["audit winner cell sets", "report derived label sets"]
     },
     {
       "artifact_type": "obs_table:chromvar_summary",

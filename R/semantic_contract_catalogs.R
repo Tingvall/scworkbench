@@ -351,6 +351,8 @@ wb_write_primitive_catalog_reference <- function(path_md = "docs/primitive_catal
     list(artifact_type = "obs_table:trajectory_signal_dynamics_curve", primitive_kind = "obs_table", title = "Trajectory Signal Curve Table", description = "Precomputed signal/vector-family curves over pseudotime.", table_type = "trajectory_signal_dynamics_curve", entity_kind = "trajectory_bin", use_when = c("plot UCell/chromVAR/signal dynamics")),
     list(artifact_type = "obs_table:trajectory_signal_dynamics", primitive_kind = "obs_table", title = "Trajectory Signal Dynamics Table", description = "Dynamics metrics and classes for precomputed signals.", table_type = "trajectory_signal_dynamics", entity_kind = "signal", use_when = c("rank dynamic UCell or chromVAR signals")),
     list(artifact_type = "obs_table:ucell_signature_summary", primitive_kind = "obs_table", title = "UCell Signature Summary", description = "Summary statistics for UCell signature scores.", table_type = "ucell_signature_summary", entity_kind = "signature", use_when = c("inspect signature score distributions")),
+    list(artifact_type = "obs_table:cell_vector_winners", primitive_kind = "obs_table", title = "Cell Vector Winner Table", description = "Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.", table_type = "cell_vector_winners", entity_kind = "cell", use_when = c("inspect UCell winner labels", "register winner cell sets")),
+    list(artifact_type = "obs_table:winner_cell_set_manifest", primitive_kind = "obs_table", title = "Winner Cell-Set Manifest", description = "One row per registered winner-derived bundle cell set.", table_type = "winner_cell_set_manifest", entity_kind = "cell_set", use_when = c("audit winner cell sets", "report derived label sets")),
     list(artifact_type = "obs_table:chromvar_summary", primitive_kind = "obs_table", title = "chromVAR Motif Summary", description = "Summary statistics for chromVAR motif deviations.", table_type = "chromvar_summary", entity_kind = "motif", use_when = c("inspect motif activity summaries")),
     list(artifact_type = "obs_table:knn_neighbors", primitive_kind = "obs_table", title = "KNN Neighbor Table", description = "Cell-neighbor relationships from a KNN graph/query.", table_type = "knn_neighbors", entity_kind = "neighbor", use_when = c("inspect local neighborhoods")),
     list(artifact_type = "feature_table:knn_pseudobulk", primitive_kind = "feature_table", title = "KNN Pseudobulk Feature Table", description = "Feature summaries over KNN neighborhoods.", table_type = "knn_pseudobulk", entity_kind = "feature", use_when = c("inspect local pseudobulk expression")),
@@ -372,6 +374,7 @@ wb_write_primitive_catalog_reference <- function(path_md = "docs/primitive_catal
     c("cell_vector_family_qc_pairwise_summary", "obs_table"),
     c("cell_vector_family_reduce_decision_table", "obs_table"),
     c("cell_vector_family_reduce_summary", "obs_table"),
+    c("cell_vector_winners", "obs_table"),
     c("chromvar_summary", "obs_table"),
     c("de_wilcox", "feature_table"),
     c("feature_trend_spearman", "feature_table"),
@@ -405,7 +408,8 @@ wb_write_primitive_catalog_reference <- function(path_md = "docs/primitive_catal
     c("trajectory_smooth_summary", "obs_table"),
     c("trajectory_vector_smooth", "obs_table"),
     c("trajectory_vector_smooth_summary", "obs_table"),
-    c("ucell_signature_summary", "obs_table")
+    c("ucell_signature_summary", "obs_table"),
+    c("winner_cell_set_manifest", "obs_table")
   )
   out <- as.data.frame(do.call(rbind, entries), stringsAsFactors = FALSE)
   names(out) <- c("table_type", "primitive_kind")

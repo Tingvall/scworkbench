@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-10T17:53:54+0200",
-  "record_count": 243,
+  "generated_at": "2026-06-10T21:16:19+0200",
+  "record_count": 247,
   "record_type_counts": {
-    "artifact_type": 53,
+    "artifact_type": 55,
     "getter": 66,
-    "op": 39,
+    "op": 41,
     "parameter": 40,
     "plot": 12,
     "primitive": 11,
@@ -818,6 +818,185 @@
           }
         ],
         "promotable": ["key_summary", "pairwise_summary", "group_summary"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:cell_vector_winners",
+      "record_type": "op",
+      "name": "cell_vector_winners",
+      "title": "Cell Vector Winner Assignment",
+      "description": "Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.",
+      "search_text": "Cell Vector Winner Assignment\nAssign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.\nsignal\nlabeling\nwinner\ncell_vector_family\nTRUE\ncell_set\nselect\nwinners\nobs_table\nPer-cell winner, runner-up, confidence, and pruning table.\nsignal_keys\nstring_vec\nOptional key subset within the cell_vector_family.\nmin_winners\nint\n10\n0\n1e+08\nMinimum raw winner count required for a winner label to pass pruning.\ntie_method\nchoice\nfirst\nlast\nDeterministic tie handling for top-score winners.\nsource_score_artifact_id\nstring\nOptional source cell_vector_family artifact ID copied into winner table metadata.\nsource_run_id\nOptional source run ID copied into winner table metadata.\nsource_snapshot_id\nOptional source provenance snapshot ID copied into winner table metadata.",
+      "tags": ["op", "signal", "labeling", "winner"],
+      "payload": {
+        "op_name": "cell_vector_winners",
+        "title": "Cell Vector Winner Assignment",
+        "description": "Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.",
+        "intent": ["signal", "labeling", "winner"],
+        "consumes": [
+          {
+            "name": "signal",
+            "kind": "cell_vector_family",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "winners",
+            "kind": "obs_table",
+            "description": "Per-cell winner, runner-up, confidence, and pruning table."
+          }
+        ],
+        "inputs": {
+          "signal": {
+            "required": true,
+            "kind": "cell_vector_family"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "signal_keys",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional key subset within the cell_vector_family."
+          },
+          {
+            "name": "min_winners",
+            "type": "int",
+            "default": 10,
+            "min": 0,
+            "max": 100000000,
+            "help": "Minimum raw winner count required for a winner label to pass pruning."
+          },
+          {
+            "name": "tie_method",
+            "type": "choice",
+            "default": "first",
+            "choices": ["first", "last"],
+            "help": "Deterministic tie handling for top-score winners."
+          },
+          {
+            "name": "source_score_artifact_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source cell_vector_family artifact ID copied into winner table metadata."
+          },
+          {
+            "name": "source_run_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source run ID copied into winner table metadata."
+          },
+          {
+            "name": "source_snapshot_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source provenance snapshot ID copied into winner table metadata."
+          }
+        ],
+        "promotable": "winners",
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:winner_cell_sets",
+      "record_type": "op",
+      "name": "winner_cell_sets",
+      "title": "Winner Cell-Set Registration",
+      "description": "Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.",
+      "search_text": "Winner Cell-Set Registration\nRegister bundle cell sets from a cell_vector_winners obs_table and return a manifest table.\nsignal\nlabeling\ncell_sets\nwinners\nobs_table\nTRUE\ncell_set\nselect\nmanifest\nOne row per registered winner cell set.\nsource_winner_artifact_id\nstring\nOptional source winner obs_table artifact ID copied into manifest metadata.\ncell_set_prefix\nwinner_\nPrefix used after set: when creating winner cell-set names.\nwinner_col\nwinner\nWinner-label column in the winner table.\npasses_col\npasses_pruning\nLogical pruning-pass column in the winner table.\nsource\ncell_vector_winners\nSource label stored on cell-set membership rows.\ncreated_by\nOptional actor stored on cell-set membership rows.\nreplace\nlogical\nIf TRUE, replace existing winner cell-set memberships.",
+      "tags": ["op", "signal", "labeling", "cell_sets"],
+      "payload": {
+        "op_name": "winner_cell_sets",
+        "title": "Winner Cell-Set Registration",
+        "description": "Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.",
+        "intent": ["signal", "labeling", "cell_sets"],
+        "consumes": [
+          {
+            "name": "winners",
+            "kind": "obs_table",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "manifest",
+            "kind": "obs_table",
+            "description": "One row per registered winner cell set."
+          }
+        ],
+        "inputs": {
+          "winners": {
+            "required": true,
+            "kind": "obs_table"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "source_winner_artifact_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source winner obs_table artifact ID copied into manifest metadata."
+          },
+          {
+            "name": "cell_set_prefix",
+            "type": "string",
+            "default": "winner_",
+            "help": "Prefix used after set: when creating winner cell-set names."
+          },
+          {
+            "name": "winner_col",
+            "type": "string",
+            "default": "winner",
+            "help": "Winner-label column in the winner table."
+          },
+          {
+            "name": "passes_col",
+            "type": "string",
+            "default": "passes_pruning",
+            "help": "Logical pruning-pass column in the winner table."
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "default": "cell_vector_winners",
+            "help": "Source label stored on cell-set membership rows."
+          },
+          {
+            "name": "created_by",
+            "type": "string",
+            "default": null,
+            "help": "Optional actor stored on cell-set membership rows."
+          },
+          {
+            "name": "replace",
+            "type": "logical",
+            "default": true,
+            "help": "If TRUE, replace existing winner cell-set memberships."
+          }
+        ],
+        "promotable": "manifest",
         "chunking": null
       }
     },
@@ -7223,6 +7402,42 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:cell_vector_winners",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_winners",
+      "title": "Cell Vector Winner Table",
+      "description": "Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.",
+      "search_text": "Cell Vector Winner Table\nPer-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.\nobs_table\ncell_vector_winners\ncell\ninspect UCell winner labels\nregister winner cell sets",
+      "tags": ["artifact_type", "obs_table", "cell_vector_winners"],
+      "payload": {
+        "artifact_type": "obs_table:cell_vector_winners",
+        "primitive_kind": "obs_table",
+        "title": "Cell Vector Winner Table",
+        "description": "Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.",
+        "table_type": "cell_vector_winners",
+        "entity_kind": "cell",
+        "use_when": ["inspect UCell winner labels", "register winner cell sets"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:winner_cell_set_manifest",
+      "title": "Winner Cell-Set Manifest",
+      "description": "One row per registered winner-derived bundle cell set.",
+      "search_text": "Winner Cell-Set Manifest\nOne row per registered winner-derived bundle cell set.\nobs_table\nwinner_cell_set_manifest\ncell_set\naudit winner cell sets\nreport derived label sets",
+      "tags": ["artifact_type", "obs_table", "winner_cell_set_manifest"],
+      "payload": {
+        "artifact_type": "obs_table:winner_cell_set_manifest",
+        "primitive_kind": "obs_table",
+        "title": "Winner Cell-Set Manifest",
+        "description": "One row per registered winner-derived bundle cell set.",
+        "table_type": "winner_cell_set_manifest",
+        "entity_kind": "cell_set",
+        "use_when": ["audit winner cell sets", "report derived label sets"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:chromvar_summary",
       "record_type": "artifact_type",
       "name": "obs_table:chromvar_summary",
@@ -8711,9 +8926,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-10T17:53:54+0200",
-    "node_count": 243,
-    "edge_count": 628,
+    "generated_at": "2026-06-10T21:16:19+0200",
+    "node_count": 247,
+    "edge_count": 638,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -8768,6 +8983,18 @@
         "record_type": "op",
         "name": "cell_vector_family_qc",
         "title": "QC Cell Vector Family"
+      },
+      {
+        "record_id": "op:cell_vector_winners",
+        "record_type": "op",
+        "name": "cell_vector_winners",
+        "title": "Cell Vector Winner Assignment"
+      },
+      {
+        "record_id": "op:winner_cell_sets",
+        "record_type": "op",
+        "name": "winner_cell_sets",
+        "title": "Winner Cell-Set Registration"
       },
       {
         "record_id": "op:chromvar",
@@ -9700,6 +9927,18 @@
         "title": "UCell Signature Summary"
       },
       {
+        "record_id": "artifact_type:obs_table:cell_vector_winners",
+        "record_type": "artifact_type",
+        "name": "obs_table:cell_vector_winners",
+        "title": "Cell Vector Winner Table"
+      },
+      {
+        "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
+        "record_type": "artifact_type",
+        "name": "obs_table:winner_cell_set_manifest",
+        "title": "Winner Cell-Set Manifest"
+      },
+      {
         "record_id": "artifact_type:obs_table:chromvar_summary",
         "record_type": "artifact_type",
         "name": "obs_table:chromvar_summary",
@@ -10594,6 +10833,54 @@
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:group_summary"
+      },
+      {
+        "from": "primitive:cell_vector_family",
+        "to": "op:cell_vector_winners",
+        "edge_type": "consumed_by",
+        "label": "input:signal"
+      },
+      {
+        "from": "op:cell_vector_winners",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_winners",
+        "to": "parameter:signal_keys",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:signal_keys"
+      },
+      {
+        "from": "op:cell_vector_winners",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:winners"
+      },
+      {
+        "from": "primitive:obs_table",
+        "to": "op:winner_cell_sets",
+        "edge_type": "consumed_by",
+        "label": "input:winners"
+      },
+      {
+        "from": "op:winner_cell_sets",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:winner_cell_sets",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:replace"
+      },
+      {
+        "from": "op:winner_cell_sets",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:manifest"
       },
       {
         "from": "primitive:matrix",
@@ -12445,6 +12732,18 @@
       },
       {
         "from": "artifact_type:obs_table:ucell_signature_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:cell_vector_winners",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:winner_cell_set_manifest",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"

@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-10T17:53:54+0200",
-  "node_count": 243,
-  "edge_count": 628,
+  "generated_at": "2026-06-10T21:16:19+0200",
+  "node_count": 247,
+  "edge_count": 638,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -57,6 +57,18 @@
       "record_type": "op",
       "name": "cell_vector_family_qc",
       "title": "QC Cell Vector Family"
+    },
+    {
+      "record_id": "op:cell_vector_winners",
+      "record_type": "op",
+      "name": "cell_vector_winners",
+      "title": "Cell Vector Winner Assignment"
+    },
+    {
+      "record_id": "op:winner_cell_sets",
+      "record_type": "op",
+      "name": "winner_cell_sets",
+      "title": "Winner Cell-Set Registration"
     },
     {
       "record_id": "op:chromvar",
@@ -989,6 +1001,18 @@
       "title": "UCell Signature Summary"
     },
     {
+      "record_id": "artifact_type:obs_table:cell_vector_winners",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_winners",
+      "title": "Cell Vector Winner Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:winner_cell_set_manifest",
+      "title": "Winner Cell-Set Manifest"
+    },
+    {
       "record_id": "artifact_type:obs_table:chromvar_summary",
       "record_type": "artifact_type",
       "name": "obs_table:chromvar_summary",
@@ -1883,6 +1907,54 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:group_summary"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:cell_vector_winners",
+      "edge_type": "consumed_by",
+      "label": "input:signal"
+    },
+    {
+      "from": "op:cell_vector_winners",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_winners",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:cell_vector_winners",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:winners"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "op:winner_cell_sets",
+      "edge_type": "consumed_by",
+      "label": "input:winners"
+    },
+    {
+      "from": "op:winner_cell_sets",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:winner_cell_sets",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:replace"
+    },
+    {
+      "from": "op:winner_cell_sets",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:manifest"
     },
     {
       "from": "primitive:matrix",
@@ -3734,6 +3806,18 @@
     },
     {
       "from": "artifact_type:obs_table:ucell_signature_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_winners",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:winner_cell_set_manifest",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"

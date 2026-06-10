@@ -744,6 +744,61 @@
   raw
 }
 
+.wb_runner_cell_vector_winners <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$signal), "cell_vector_winners runner: missing resolved$signal.")
+
+  sig <- resolved$signal
+  keep <- intersect(as.character(sig$cell_id), as.character(effective_cells))
+  ii <- as.character(sig$cell_id) %in% keep
+  sig_use <- wb_prim_cell_vector_family(
+    key = as.character(sig$key[ii]),
+    cell_id = as.character(sig$cell_id[ii]),
+    value = as.numeric(sig$value[ii]),
+    value_type = as.character(sig$value_type %||% "continuous")[1]
+  )
+
+  raw <- wb_op_cell_vector_winners(
+    signal = sig_use,
+    signal_keys = inputs$signal_keys %||% NULL,
+    min_winners = inputs$min_winners %||% 10L,
+    tie_method = inputs$tie_method %||% "first",
+    source_score_artifact_id = inputs$source_score_artifact_id %||% NULL,
+    source_run_id = inputs$source_run_id %||% NULL,
+    source_snapshot_id = inputs$source_snapshot_id %||% NULL
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "cell_vector_winners must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
+.wb_runner_winner_cell_sets <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$winners), "winner_cell_sets runner: missing resolved$winners.")
+
+  manifest <- wb_register_winner_cell_sets(
+    bundle = bundle,
+    winners = resolved$winners,
+    source_winner_artifact_id = inputs$source_winner_artifact_id %||% NULL,
+    cell_set_prefix = inputs$cell_set_prefix %||% "winner_",
+    winner_col = inputs$winner_col %||% "winner",
+    passes_col = inputs$passes_col %||% "passes_pruning",
+    source = inputs$source %||% "cell_vector_winners",
+    created_by = inputs$created_by %||% NULL,
+    replace = inputs$replace %||% TRUE
+  )
+
+  list(
+    outputs = list(manifest = manifest),
+    params = list(
+      cell_set_prefix = inputs$cell_set_prefix %||% "winner_",
+      winner_col = inputs$winner_col %||% "winner",
+      passes_col = inputs$passes_col %||% "passes_pruning",
+      replace = inputs$replace %||% TRUE,
+      n_cell_sets = nrow(manifest$table)
+    )
+  )
+}
+
 .wb_runner_feature_trend_spearman <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "feature_trend_spearman runner: missing resolved$matrix.")
   .wb_assert(!is.null(resolved$pseudotime), "feature_trend_spearman runner: missing resolved$pseudotime.")
@@ -1510,6 +1565,79 @@
         group_summary = list(
           kind = "obs_table",
           description = "Per-group per-key QC summaries when an optional grouping vector is supplied."
+        )
+      )
+    ),
+    cell_vector_winners = list(
+      op_name = "cell_vector_winners",
+      title = "Cell Vector Winner Assignment",
+      description = "Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.",
+      intent = c("signal", "labeling", "winner"),
+      requires = list(signal = "cell_vector_family"),
+      produces = list(winners = "obs_table"),
+      promotable = c("winners"),
+      runner = .wb_runner_cell_vector_winners,
+      inputs = list(
+        signal = list(required = TRUE, kind = "cell_vector_family")
+      ),
+      params = list(
+        list(name = "signal_keys", type = "string_vec", default = NULL,
+             help = "Optional key subset within the cell_vector_family."),
+        list(name = "min_winners", type = "int", default = 10L, min = 0, max = 100000000,
+             help = "Minimum raw winner count required for a winner label to pass pruning."),
+        list(name = "tie_method", type = "choice", default = "first",
+             choices = c("first", "last"),
+             help = "Deterministic tie handling for top-score winners."),
+        list(name = "source_score_artifact_id", type = "string", default = NULL,
+             help = "Optional source cell_vector_family artifact ID copied into winner table metadata."),
+        list(name = "source_run_id", type = "string", default = NULL,
+             help = "Optional source run ID copied into winner table metadata."),
+        list(name = "source_snapshot_id", type = "string", default = NULL,
+             help = "Optional source provenance snapshot ID copied into winner table metadata.")
+      ),
+      interface_produces = list(
+        winners = list(
+          kind = "obs_table",
+          table_type = "cell_vector_winners",
+          entity_kind = "cell",
+          description = "Per-cell winner, runner-up, confidence, and pruning table."
+        )
+      )
+    ),
+    winner_cell_sets = list(
+      op_name = "winner_cell_sets",
+      title = "Winner Cell-Set Registration",
+      description = "Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.",
+      intent = c("signal", "labeling", "cell_sets"),
+      requires = list(winners = "obs_table"),
+      produces = list(manifest = "obs_table"),
+      promotable = c("manifest"),
+      runner = .wb_runner_winner_cell_sets,
+      inputs = list(
+        winners = list(required = TRUE, kind = "obs_table")
+      ),
+      params = list(
+        list(name = "source_winner_artifact_id", type = "string", default = NULL,
+             help = "Optional source winner obs_table artifact ID copied into manifest metadata."),
+        list(name = "cell_set_prefix", type = "string", default = "winner_",
+             help = "Prefix used after set: when creating winner cell-set names."),
+        list(name = "winner_col", type = "string", default = "winner",
+             help = "Winner-label column in the winner table."),
+        list(name = "passes_col", type = "string", default = "passes_pruning",
+             help = "Logical pruning-pass column in the winner table."),
+        list(name = "source", type = "string", default = "cell_vector_winners",
+             help = "Source label stored on cell-set membership rows."),
+        list(name = "created_by", type = "string", default = NULL,
+             help = "Optional actor stored on cell-set membership rows."),
+        list(name = "replace", type = "logical", default = TRUE,
+             help = "If TRUE, replace existing winner cell-set memberships.")
+      ),
+      interface_produces = list(
+        manifest = list(
+          kind = "obs_table",
+          table_type = "winner_cell_set_manifest",
+          entity_kind = "cell_set",
+          description = "One row per registered winner cell set."
         )
       )
     ),
