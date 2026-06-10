@@ -47,7 +47,7 @@ wb_validate_bundle <- function(bundle_dir) {
     if (!dir.exists(mat_path)) stop("Missing BPCells matrix directory: ", mat_path)
 
     # open matrix lazily
-    m <- wb_get_matrix(b, mrow$matrix_id)
+    m <- wb_matrix(b, mrow$matrix_id)
     d <- dim(m)
 
     if (length(d) != 2) stop("Matrix has invalid dim(): ", mrow$matrix_id)
