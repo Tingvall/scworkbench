@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-10T21:16:19+0200",
+  "generated_at": "2026-06-10T21:30:49+0200",
   "record_count": 247,
   "record_type_counts": {
     "artifact_type": 55,
@@ -7407,7 +7407,7 @@
       "name": "obs_table:cell_vector_winners",
       "title": "Cell Vector Winner Table",
       "description": "Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.",
-      "search_text": "Cell Vector Winner Table\nPer-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.\nobs_table\ncell_vector_winners\ncell\ninspect UCell winner labels\nregister winner cell sets",
+      "search_text": "Cell Vector Winner Table\nPer-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.\nobs_table\ncell_vector_winners\ncell\ninspect score-family winner labels\nregister winner cell sets",
       "tags": ["artifact_type", "obs_table", "cell_vector_winners"],
       "payload": {
         "artifact_type": "obs_table:cell_vector_winners",
@@ -7416,7 +7416,7 @@
         "description": "Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.",
         "table_type": "cell_vector_winners",
         "entity_kind": "cell",
-        "use_when": ["inspect UCell winner labels", "register winner cell sets"]
+        "use_when": ["inspect score-family winner labels", "register winner cell sets"]
       }
     },
     {
@@ -8926,7 +8926,7 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-10T21:16:19+0200",
+    "generated_at": "2026-06-10T21:30:49+0200",
     "node_count": 247,
     "edge_count": 638,
     "nodes": [

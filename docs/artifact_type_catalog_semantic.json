@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-10T21:16:18+0200",
+  "generated_at": "2026-06-10T21:30:48+0200",
   "artifact_type_count": 55,
   "artifact_types": [
     {
@@ -208,7 +208,7 @@
       "description": "Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.",
       "table_type": "cell_vector_winners",
       "entity_kind": "cell",
-      "use_when": ["inspect UCell winner labels", "register winner cell sets"]
+      "use_when": ["inspect score-family winner labels", "register winner cell sets"]
     },
     {
       "artifact_type": "obs_table:winner_cell_set_manifest",

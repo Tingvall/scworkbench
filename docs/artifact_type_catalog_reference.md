@@ -297,7 +297,7 @@ Table type: cell_vector_winners
 Entity kind: cell
 
 Use when:
-- inspect UCell winner labels
+- inspect score-family winner labels
 - register winner cell sets
 
 ### `obs_table:winner_cell_set_manifest`
