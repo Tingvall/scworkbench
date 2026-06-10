@@ -12,6 +12,8 @@
 #' @param ncores Number of worker processes requested by UCell.
 #' @param parallel_backend Execution backend for UCell. One of `"auto"` or
 #'   `"serial"`.
+#' @param chunk_size Cell chunk size. A positive integer enables cell-axis
+#'   chunking when `length(cells) > chunk_size`; `NULL` disables chunking.
 #' @param missing_features_policy How to handle signature features missing from
 #'   the matrix. One of `"drop"` or `"error"`.
 #'
@@ -126,6 +128,7 @@ wb_op_ucell <- function(bundle,
                         max_rank = 1500L,
                         ncores = 1L,
                         parallel_backend = c("auto", "serial"),
+                        chunk_size = 2000L,
                         missing_features_policy = c("drop", "error")) {
   .wb_require_pkg("UCell", "UCell signature scoring")
   .wb_require_pkg("Matrix", "UCell signature scoring")
@@ -152,6 +155,68 @@ wb_op_ucell <- function(bundle,
     signatures = signatures,
     missing_features_policy = missing_features_policy
   )
+
+  chunk_size_i <- suppressWarnings(as.integer(chunk_size %||% NA_integer_)[1])
+  if (is.finite(chunk_size_i) && chunk_size_i > 0L && length(cells) > chunk_size_i) {
+    run_one <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+      wb_op_ucell(
+        bundle = bundle,
+        matrix_id = matrix_id,
+        features = signatures,
+        cells = as.character(effective_cells),
+        name = name,
+        max_rank = max_rank,
+        ncores = ncores,
+        parallel_backend = parallel_backend,
+        chunk_size = NULL,
+        missing_features_policy = missing_features_policy
+      )
+    }
+
+    raw_chunked <- .wb_run_op_in_chunks(
+      bundle = bundle,
+      resolved = list(matrix = wb_prim_matrix(matrix_id)),
+      effective_cells = cells,
+      inputs = list(features = signatures),
+      runner = run_one,
+      chunk_axis = "cells",
+      chunk_size = chunk_size_i,
+      merge_spec = list(
+        signature_scores = "row_bind_cell_vector_family"
+      ),
+      context = list(
+        signature_scores = list(
+          cell_order = cells,
+          key_order = signature_names
+        )
+      )
+    )
+
+    score_prim <- raw_chunked$outputs$signature_scores
+    return(list(
+      outputs = list(
+        signature_scores = score_prim,
+        signature_summary = .wb_ucell_summary_prim(
+          sig_meta = sig_meta,
+          score_prim = score_prim,
+          matrix_id = matrix_id,
+          missing_features_policy = missing_features_policy
+        )
+      ),
+      params = list(
+        matrix_id = matrix_id,
+        n_signatures = length(signature_names),
+        signature_names = signature_names,
+        n_cells = length(cells),
+        max_rank = as.integer(max_rank),
+        ncores = as.integer(ncores),
+        parallel_backend = parallel_backend,
+        missing_features_policy = missing_features_policy,
+        chunking = raw_chunked$params$chunking,
+        chunk_sizes = raw_chunked$params$chunk_sizes
+      )
+    ))
+  }
 
   x <- wb_slice(
     bundle = bundle,

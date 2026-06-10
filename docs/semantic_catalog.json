@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-10T11:55:49+0200",
+  "generated_at": "2026-06-10T17:53:54+0200",
   "record_count": 243,
   "record_type_counts": {
     "artifact_type": 53,
@@ -404,7 +404,7 @@
       "name": "ucell",
       "title": "UCell Signature Scoring",
       "description": "Rank-based per-cell signature scoring using the UCell method.",
-      "search_text": "UCell Signature Scoring\nRank-based per-cell signature scoring using the UCell method.\nexpression\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\nsignature_scores\ncell_vector_family\nPer-cell UCell scores for one or more signatures.\nsignature_summary\nobs_table\nPer-signature scoring summary and feature-match diagnostics.\nfeatures\nstring_vec_or_list\nSignature feature IDs: character vector or list of vectors.\nname\nstring\nSignature\nPrefix for signature names when features are unnamed.\nmax_rank\nint\n1500\n1\n1e+06\nMaximum rank considered by UCell.\nncores\n1024\nNumber of worker processes requested by UCell.\nparallel_backend\nchoice\nauto\nserial\nExecution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems.\nchunk_size\n8\nReserved chunk size hint for future engine-owned cell-axis chunking; currently ignored.\nmissing_features_policy\ndrop\nerror\nHow to handle signature features missing from the matrix.",
+      "search_text": "UCell Signature Scoring\nRank-based per-cell signature scoring using the UCell method.\nexpression\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\nsignature_scores\ncell_vector_family\nPer-cell UCell scores for one or more signatures.\nsignature_summary\nobs_table\nPer-signature scoring summary and feature-match diagnostics.\nfeatures\nstring_vec_or_list\nSignature feature IDs: character vector or list of vectors.\nname\nstring\nSignature\nPrefix for signature names when features are unnamed.\nmax_rank\nint\n1500\n1\n1e+06\nMaximum rank considered by UCell.\nncores\n1024\nNumber of worker processes requested by UCell.\nparallel_backend\nchoice\nauto\nserial\nExecution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems.\nchunk_size\n2000\n8\nCell-axis chunk size for engine-owned UCell execution. Use NULL to disable chunking.\nmissing_features_policy\ndrop\nerror\nHow to handle signature features missing from the matrix.",
       "tags": ["op", "expression", "signature", "score"],
       "payload": {
         "op_name": "ucell",
@@ -485,10 +485,10 @@
           {
             "name": "chunk_size",
             "type": "int",
-            "default": null,
+            "default": 2000,
             "min": 8,
             "max": 1000000,
-            "help": "Reserved chunk size hint for future engine-owned cell-axis chunking; currently ignored."
+            "help": "Cell-axis chunk size for engine-owned UCell execution. Use NULL to disable chunking."
           },
           {
             "name": "missing_features_policy",
@@ -508,7 +508,7 @@
             "signature_scores": "row_bind_cell_vector_family",
             "signature_summary": "recompute_summary"
           },
-          "status": "planned"
+          "status": "active"
         }
       }
     },
@@ -8711,7 +8711,7 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-10T11:55:49+0200",
+    "generated_at": "2026-06-10T17:53:54+0200",
     "node_count": 243,
     "edge_count": 628,
     "nodes": [

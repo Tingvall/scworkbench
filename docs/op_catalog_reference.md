@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-05-22T10:45:50+0200
+Generated at: 2026-06-10T17:53:53+0200
 
 Operation count: 39
 
@@ -149,7 +149,7 @@ Key parameters:
 - `max_rank` (int, default=1500): Maximum rank considered by UCell.
 - `ncores` (int, default=1): Number of worker processes requested by UCell.
 - `parallel_backend` (choice, default=auto): Execution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems.
-- `chunk_size` (int, default=NULL): Reserved chunk size hint for future engine-owned cell-axis chunking; currently ignored.
+- `chunk_size` (int, default=2000): Cell-axis chunk size for engine-owned UCell execution. Use NULL to disable chunking.
 - `missing_features_policy` (choice, default=drop): How to handle signature features missing from the matrix.
 
 ## `cell_vector_family_reduce`

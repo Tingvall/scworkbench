@@ -398,83 +398,18 @@
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
              "ucell runner: resolved matrix primitive missing matrix_id.")
 
-  signatures <- .wb_ucell_normalize_signatures(
-    features = inputs$features,
-    name = inputs$name %||% "Signature"
-  )
-  missing_features_policy <- inputs$missing_features_policy %||% "drop"
-  sig_meta <- .wb_ucell_signature_meta(
+  raw <- wb_op_ucell(
     bundle = bundle,
     matrix_id = matrix_id,
-    signatures = signatures,
-    missing_features_policy = missing_features_policy
+    features = inputs$features,
+    cells = as.character(effective_cells),
+    name = inputs$name %||% "Signature",
+    max_rank = inputs$max_rank %||% 1500L,
+    ncores = inputs$ncores %||% 1L,
+    parallel_backend = inputs$parallel_backend %||% "auto",
+    chunk_size = if ("chunk_size" %in% names(inputs)) inputs$chunk_size else 2000L,
+    missing_features_policy = inputs$missing_features_policy %||% "drop"
   )
-
-  run_one <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-    wb_op_ucell(
-      bundle = bundle,
-      matrix_id = matrix_id,
-      features = inputs$features,
-      cells = as.character(effective_cells),
-      name = inputs$name %||% "Signature",
-      max_rank = inputs$max_rank %||% 1500L,
-      ncores = inputs$ncores %||% 1L,
-      parallel_backend = inputs$parallel_backend %||% "auto",
-      missing_features_policy = inputs$missing_features_policy %||% "drop"
-    )
-  }
-
-  chunk_size <- suppressWarnings(as.integer(inputs$chunk_size %||% NA_integer_)[1])
-  if (is.finite(chunk_size) && chunk_size > 0L && length(effective_cells) > chunk_size) {
-    raw_chunked <- .wb_run_op_in_chunks(
-      bundle = bundle,
-      resolved = resolved,
-      effective_cells = as.character(effective_cells),
-      inputs = inputs,
-      runner = run_one,
-      chunk_axis = "cells",
-      chunk_size = chunk_size,
-      merge_spec = list(
-        signature_scores = "row_bind_cell_vector_family"
-      ),
-      context = list(
-        signature_scores = list(
-          cell_order = as.character(effective_cells),
-          key_order = names(signatures)
-        )
-      )
-    )
-
-    raw <- list(
-      outputs = list(
-        signature_scores = raw_chunked$outputs$signature_scores,
-        signature_summary = .wb_ucell_summary_prim(
-          sig_meta = sig_meta,
-          score_prim = raw_chunked$outputs$signature_scores,
-          matrix_id = matrix_id,
-          missing_features_policy = missing_features_policy
-        )
-      ),
-      params = list(
-        matrix_id = matrix_id,
-        n_signatures = length(signatures),
-        signature_names = names(signatures),
-        n_cells = length(effective_cells),
-        max_rank = as.integer(inputs$max_rank %||% 1500L),
-        ncores = as.integer(inputs$ncores %||% 1L),
-        parallel_backend = as.character(inputs$parallel_backend %||% "auto")[1],
-        missing_features_policy = as.character(missing_features_policy)[1],
-        chunking = raw_chunked$params$chunking
-      )
-    )
-  } else {
-    raw <- run_one(
-      bundle = bundle,
-      resolved = resolved,
-      effective_cells = effective_cells,
-      inputs = inputs
-    )
-  }
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "ucell must return list(outputs=<list>, params=<list>).")
@@ -1382,7 +1317,7 @@
           signature_scores = "row_bind_cell_vector_family",
           signature_summary = "recompute_summary"
         ),
-        status = "planned"
+        status = "active"
       ),
       runner = .wb_runner_ucell,
       inputs = list(
@@ -1400,8 +1335,8 @@
         list(name = "parallel_backend", type = "choice", default = "auto",
              choices = c("auto", "serial"),
              help = "Execution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems."),
-        list(name = "chunk_size", type = "int", default = NULL, min = 8, max = 1000000,
-             help = "Reserved chunk size hint for future engine-owned cell-axis chunking; currently ignored."),
+        list(name = "chunk_size", type = "int", default = 2000L, min = 8, max = 1000000,
+             help = "Cell-axis chunk size for engine-owned UCell execution. Use NULL to disable chunking."),
         list(name = "missing_features_policy", type = "choice", default = "drop",
              choices = c("drop", "error"),
              help = "How to handle signature features missing from the matrix.")

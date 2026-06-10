@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_plot_catalog_semantic(); do not edit plot entries by hand. -->
 
-Generated at: 2026-05-22T10:45:50+0200
+Generated at: 2026-06-10T17:53:53+0200
 
 Plot count: 12
 

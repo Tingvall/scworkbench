@@ -78,6 +78,35 @@ test_op_ucell_contract <- function() {
   stopifnot(identical(as.integer(sm_a$n_features_missing), 1L))
   stopifnot(grepl("g_missing", as.character(sm_a$missing_features), fixed = TRUE))
 
+  raw_chunked <- wb_op_ucell(
+    bundle = b,
+    matrix_id = "RNA_counts",
+    features = list(
+      sig_a = c("g1", "g2", "g_missing"),
+      sig_b = c("g3", "g4")
+    ),
+    cells = cells,
+    max_rank = 100L,
+    ncores = 1L,
+    parallel_backend = "serial",
+    chunk_size = 2L,
+    missing_features_policy = "drop"
+  )
+  stopifnot(is.list(raw_chunked$params$chunking))
+  stopifnot(isTRUE(raw_chunked$params$chunking$enabled))
+  stopifnot(identical(as.character(raw_chunked$params$chunking$axis), "cells"))
+  stopifnot(identical(as.integer(raw_chunked$params$chunking$chunk_size), 2L))
+
+  sc0 <- wb_primitive_to_table(raw$outputs$signature_scores, include_context = FALSE)
+  sc1 <- wb_primitive_to_table(raw_chunked$outputs$signature_scores, include_context = FALSE)
+  sc0 <- sc0[order(sc0$key, sc0$cell_id), , drop = FALSE]
+  sc1 <- sc1[order(sc1$key, sc1$cell_id), , drop = FALSE]
+  rownames(sc0) <- NULL
+  rownames(sc1) <- NULL
+  stopifnot(identical(as.character(sc0$key), as.character(sc1$key)))
+  stopifnot(identical(as.character(sc0$cell_id), as.character(sc1$cell_id)))
+  stopifnot(isTRUE(all.equal(as.numeric(sc0$value), as.numeric(sc1$value), tolerance = 1e-12)))
+
   raw_err <- try(
     wb_op_ucell(
       bundle = b,
