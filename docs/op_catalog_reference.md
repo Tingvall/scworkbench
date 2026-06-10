@@ -1078,4 +1078,3 @@ Key parameters:
 - `smoothness` (dbl, default=1): Palantir-style mellon trajectory smoothing multiplier (higher = smoother).
 - `min_cells_per_branch` (int, default=50): Minimum eligible cells required to derive a branch trajectory.
 - `approx_points` (int, default=200): Number of trajectory sample points per branch (curve resolution).
-

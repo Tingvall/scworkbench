@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-05-22T10:45:50+0200
+Generated at: 2026-06-10T11:55:49+0200
 
-Record count: 239
+Record count: 243
 
 Graph edges: 628
 
@@ -342,6 +342,12 @@ Title: Bundle Manifest
 
 Description: Read the bundle manifest metadata.
 
+### `getter:wb_bundle_overview`
+
+Title: Bundle Overview
+
+Description: Summarize bundle identity, validation state, registries, artifact counts, and provenance heads for read-only clients.
+
 ### `getter:wb_bundle_schema`
 
 Title: Bundle Schema
@@ -377,6 +383,12 @@ Description: Resolve a cell-set selector into concrete cell IDs.
 Title: Cell Metadata
 
 Description: Read cell-level metadata for selected cells and columns.
+
+### `getter:wb_cell_metadata_columns`
+
+Title: Cell Metadata Columns
+
+Description: List cell metadata columns with type, missingness, cardinality, and display hints for clients.
 
 ### `getter:wb_cell_coverage`
 
@@ -528,6 +540,12 @@ Title: Artifacts
 
 Description: List promoted artifacts, optionally filtered by type.
 
+### `getter:wb_list_trajectory_models`
+
+Title: Trajectory Model Inventory
+
+Description: List promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage.
+
 ### `getter:wb_art_load`
 
 Title: Load Artifact
@@ -647,6 +665,12 @@ Description: Read a persisted provenance DAG.
 Title: Provenance Run Details
 
 Description: Inspect one persisted run from provenance.
+
+### `getter:wb_run_history`
+
+Title: Run History
+
+Description: Flatten persisted provenance snapshots into a chronological run-history table.
 
 ### `getter:wb_session_dag`
 

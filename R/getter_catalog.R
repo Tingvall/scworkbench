@@ -23,6 +23,16 @@
       use_when = c("inspect bundle identity", "read manifest fields")
     ),
     list(
+      function_name = "wb_bundle_overview",
+      title = "Bundle Overview",
+      category = "bundle",
+      description = "Summarize bundle identity, validation state, registries, artifact counts, and provenance heads for read-only clients.",
+      returns = "list",
+      payload_level = "metadata",
+      arguments = c("bundle", "validate"),
+      use_when = c("build collaborator dashboard", "inspect bundle readiness without direct SQL")
+    ),
+    list(
       function_name = "wb_bundle_schema",
       title = "Bundle Schema",
       category = "bundle",
@@ -81,6 +91,16 @@
       payload_level = "metadata",
       arguments = c("bundle", "cells", "cols", "dataset_id"),
       use_when = c("inspect annotations", "fetch labels or covariates")
+    ),
+    list(
+      function_name = "wb_cell_metadata_columns",
+      title = "Cell Metadata Columns",
+      category = "cells",
+      description = "List cell metadata columns with type, missingness, cardinality, and display hints for clients.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "summarize", "max_distinct_for_grouping"),
+      use_when = c("choose metadata coloring columns", "avoid direct SQLite metadata introspection")
     ),
     list(
       function_name = "wb_cell_coverage",
@@ -333,6 +353,16 @@
       use_when = c("find promoted outputs", "choose artifact for plotting or loading")
     ),
     list(
+      function_name = "wb_list_trajectory_models",
+      title = "Trajectory Model Inventory",
+      category = "artifacts",
+      description = "List promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "inspect_payload"),
+      use_when = c("choose trajectory model", "review trajectory candidates for reports or agents")
+    ),
+    list(
       function_name = "wb_art_load",
       title = "Load Artifact",
       category = "artifacts",
@@ -531,6 +561,16 @@
       payload_level = "metadata",
       arguments = c("bundle", "run_id"),
       use_when = c("explain exact inputs and params for one run")
+    ),
+    list(
+      function_name = "wb_run_history",
+      title = "Run History",
+      category = "provenance",
+      description = "Flatten persisted provenance snapshots into a chronological run-history table.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "snapshot_id"),
+      use_when = c("build run history timeline", "inspect promoted analysis steps")
     ),
     list(
       function_name = "wb_session_dag",

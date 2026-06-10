@@ -381,4 +381,3 @@ Optional fields:
 
 Mappers:
 - `trajectory_pseudotime_signature_line_v1` (priority=10)
-

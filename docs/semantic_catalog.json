@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-05-22T10:45:50+0200",
-  "record_count": 239,
+  "generated_at": "2026-06-10T11:55:49+0200",
+  "record_count": 243,
   "record_type_counts": {
     "artifact_type": 53,
-    "getter": 62,
+    "getter": 66,
     "op": 39,
     "parameter": 40,
     "plot": 12,
@@ -4284,6 +4284,26 @@
       }
     },
     {
+      "record_id": "getter:wb_bundle_overview",
+      "record_type": "getter",
+      "name": "wb_bundle_overview",
+      "title": "Bundle Overview",
+      "description": "Summarize bundle identity, validation state, registries, artifact counts, and provenance heads for read-only clients.",
+      "search_text": "Bundle Overview\nSummarize bundle identity, validation state, registries, artifact counts, and provenance heads for read-only clients.\nbundle\nlist\nvalidate\nbuild collaborator dashboard\ninspect bundle readiness without direct SQL",
+      "tags": ["getter", "bundle"],
+      "payload": {
+        "function_name": "wb_bundle_overview",
+        "title": "Bundle Overview",
+        "category": "bundle",
+        "description": "Summarize bundle identity, validation state, registries, artifact counts, and provenance heads for read-only clients.",
+        "returns": "list",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "validate"],
+        "use_when": ["build collaborator dashboard", "inspect bundle readiness without direct SQL"],
+        "mutates": false
+      }
+    },
+    {
       "record_id": "getter:wb_bundle_schema",
       "record_type": "getter",
       "name": "wb_bundle_schema",
@@ -4400,6 +4420,26 @@
         "payload_level": "metadata",
         "arguments": ["bundle", "cells", "cols", "dataset_id"],
         "use_when": ["inspect annotations", "fetch labels or covariates"],
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_cell_metadata_columns",
+      "record_type": "getter",
+      "name": "wb_cell_metadata_columns",
+      "title": "Cell Metadata Columns",
+      "description": "List cell metadata columns with type, missingness, cardinality, and display hints for clients.",
+      "search_text": "Cell Metadata Columns\nList cell metadata columns with type, missingness, cardinality, and display hints for clients.\ncells\ndata.frame\nbundle\nsummarize\nmax_distinct_for_grouping\nchoose metadata coloring columns\navoid direct SQLite metadata introspection",
+      "tags": ["getter", "cells"],
+      "payload": {
+        "function_name": "wb_cell_metadata_columns",
+        "title": "Cell Metadata Columns",
+        "category": "cells",
+        "description": "List cell metadata columns with type, missingness, cardinality, and display hints for clients.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "summarize", "max_distinct_for_grouping"],
+        "use_when": ["choose metadata coloring columns", "avoid direct SQLite metadata introspection"],
         "mutates": false
       }
     },
@@ -4904,6 +4944,26 @@
       }
     },
     {
+      "record_id": "getter:wb_list_trajectory_models",
+      "record_type": "getter",
+      "name": "wb_list_trajectory_models",
+      "title": "Trajectory Model Inventory",
+      "description": "List promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage.",
+      "search_text": "Trajectory Model Inventory\nList promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage.\nartifacts\ndata.frame\nbundle\ninspect_payload\nchoose trajectory model\nreview trajectory candidates for reports or agents",
+      "tags": ["getter", "artifacts"],
+      "payload": {
+        "function_name": "wb_list_trajectory_models",
+        "title": "Trajectory Model Inventory",
+        "category": "artifacts",
+        "description": "List promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "inspect_payload"],
+        "use_when": ["choose trajectory model", "review trajectory candidates for reports or agents"],
+        "mutates": false
+      }
+    },
+    {
       "record_id": "getter:wb_art_load",
       "record_type": "getter",
       "name": "wb_art_load",
@@ -5300,6 +5360,26 @@
         "payload_level": "metadata",
         "arguments": ["bundle", "run_id"],
         "use_when": "explain exact inputs and params for one run",
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_run_history",
+      "record_type": "getter",
+      "name": "wb_run_history",
+      "title": "Run History",
+      "description": "Flatten persisted provenance snapshots into a chronological run-history table.",
+      "search_text": "Run History\nFlatten persisted provenance snapshots into a chronological run-history table.\nprovenance\ndata.frame\nbundle\nsnapshot_id\nbuild run history timeline\ninspect promoted analysis steps",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_run_history",
+        "title": "Run History",
+        "category": "provenance",
+        "description": "Flatten persisted provenance snapshots into a chronological run-history table.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "snapshot_id"],
+        "use_when": ["build run history timeline", "inspect promoted analysis steps"],
         "mutates": false
       }
     },
@@ -8631,8 +8711,8 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-05-22T10:45:50+0200",
-    "node_count": 239,
+    "generated_at": "2026-06-10T11:55:49+0200",
+    "node_count": 243,
     "edge_count": 628,
     "nodes": [
       {
@@ -8882,6 +8962,12 @@
         "title": "Bundle Manifest"
       },
       {
+        "record_id": "getter:wb_bundle_overview",
+        "record_type": "getter",
+        "name": "wb_bundle_overview",
+        "title": "Bundle Overview"
+      },
+      {
         "record_id": "getter:wb_bundle_schema",
         "record_type": "getter",
         "name": "wb_bundle_schema",
@@ -8916,6 +9002,12 @@
         "record_type": "getter",
         "name": "wb_meta",
         "title": "Cell Metadata"
+      },
+      {
+        "record_id": "getter:wb_cell_metadata_columns",
+        "record_type": "getter",
+        "name": "wb_cell_metadata_columns",
+        "title": "Cell Metadata Columns"
       },
       {
         "record_id": "getter:wb_cell_coverage",
@@ -9068,6 +9160,12 @@
         "title": "Artifacts"
       },
       {
+        "record_id": "getter:wb_list_trajectory_models",
+        "record_type": "getter",
+        "name": "wb_list_trajectory_models",
+        "title": "Trajectory Model Inventory"
+      },
+      {
         "record_id": "getter:wb_art_load",
         "record_type": "getter",
         "name": "wb_art_load",
@@ -9186,6 +9284,12 @@
         "record_type": "getter",
         "name": "wb_prov_run_details",
         "title": "Provenance Run Details"
+      },
+      {
+        "record_id": "getter:wb_run_history",
+        "record_type": "getter",
+        "name": "wb_run_history",
+        "title": "Run History"
       },
       {
         "record_id": "getter:wb_session_dag",

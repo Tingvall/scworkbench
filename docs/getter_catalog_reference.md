@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-05-22T10:45:50+0200
+Generated at: 2026-06-10T11:55:49+0200
 
-Getter count: 62
+Getter count: 66
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -26,6 +26,22 @@ Arguments: bundle, type
 Use when:
 - find promoted outputs
 - choose artifact for plotting or loading
+
+### `wb_list_trajectory_models`
+
+Title: Trajectory Model Inventory
+
+Description: List promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, inspect_payload
+
+Use when:
+- choose trajectory model
+- review trajectory candidates for reports or agents
 
 ### `wb_art_load`
 
@@ -183,6 +199,22 @@ Use when:
 - inspect bundle identity
 - read manifest fields
 
+### `wb_bundle_overview`
+
+Title: Bundle Overview
+
+Description: Summarize bundle identity, validation state, registries, artifact counts, and provenance heads for read-only clients.
+
+Returns: list
+
+Payload level: metadata
+
+Arguments: bundle, validate
+
+Use when:
+- build collaborator dashboard
+- inspect bundle readiness without direct SQL
+
 ### `wb_bundle_schema`
 
 Title: Bundle Schema
@@ -279,6 +311,22 @@ Arguments: bundle, cells, cols, dataset_id
 Use when:
 - inspect annotations
 - fetch labels or covariates
+
+### `wb_cell_metadata_columns`
+
+Title: Cell Metadata Columns
+
+Description: List cell metadata columns with type, missingness, cardinality, and display hints for clients.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, summarize, max_distinct_for_grouping
+
+Use when:
+- choose metadata coloring columns
+- avoid direct SQLite metadata introspection
 
 ### `wb_cell_coverage`
 
@@ -766,6 +814,22 @@ Arguments: bundle, run_id
 
 Use when:
 - explain exact inputs and params for one run
+
+### `wb_run_history`
+
+Title: Run History
+
+Description: Flatten persisted provenance snapshots into a chronological run-history table.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, snapshot_id
+
+Use when:
+- build run history timeline
+- inspect promoted analysis steps
 
 ## session
 
