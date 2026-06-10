@@ -210,7 +210,19 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
       .wb_assert(nrow(df) == 1, paste0("wb_art_load(): no row in artifact_model_ref for ", artifact_id))
 
       engine <- as.character(df$engine[[1]] %||% "uwot")
-      model_path <- as.character(df$model_path[[1]] %||% "")
+      stored_model_path <- as.character(df$model_path[[1]] %||% "")
+      model_path <- tryCatch(
+        .wb_resolve_model_ref_path(bundle, stored_model_path),
+        error = function(e) {
+          stop(
+            paste0(
+              "wb_art_load(): model file missing for engine='", engine, "': ",
+              stored_model_path, ". ", conditionMessage(e)
+            ),
+            call. = FALSE
+          )
+        }
+      )
       p <- wb_prim_model_ref(
         model_space_id = as.character(df$model_space_id[[1]]),
         in_space_id = as.character(df$in_space_id[[1]] %||% ""),
@@ -222,8 +234,6 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
 
       # Load in-memory object for engines with project/continue ops that require the model object.
       if (engine %in% c("slingshot", "monocle3")) {
-        .wb_assert(nzchar(model_path) && file.exists(model_path),
-                   paste0("wb_art_load(): model file missing for engine='", engine, "': ", model_path))
         p$model_obj <- readRDS(model_path)
       }
       p

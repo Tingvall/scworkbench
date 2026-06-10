@@ -881,6 +881,7 @@ wb_promote_analysis <- function(bundle,
   }
   .wb_assert(nzchar(model_path) && file.exists(model_path),
              paste0("model_ref promotion requires an existing model file or in-memory model_obj (engine=", engine, ")."))
+  stored_model_path <- .wb_model_ref_bundle_relative_path(bundle, model_path)
 
   artifact_id <- .wb_new_artifact_id("model_ref")
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
@@ -914,7 +915,7 @@ wb_promote_analysis <- function(bundle,
     model_space_id = space_id,
     in_space_id = in_space_id,
     model_type = if (nzchar(model_type)) model_type else engine,
-    model_path = model_path,
+    model_path = stored_model_path,
     stringsAsFactors = FALSE
   ), chunk_size = 1000L)
 

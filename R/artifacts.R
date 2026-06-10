@@ -1914,7 +1914,7 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
   )
 }
 
-.wb_art_delete_payload <- function(con, artifact_id, type, remove_model_file = FALSE, model_file_only_if_unique = TRUE) {
+.wb_art_delete_payload <- function(con, artifact_id, type, remove_model_file = FALSE, model_file_only_if_unique = TRUE, bundle = NULL) {
   artifact_id <- as.character(artifact_id)[1]
   type <- as.character(type)[1]
   model_path <- NA_character_
@@ -1960,16 +1960,33 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
       "SELECT model_path FROM artifact_model_ref WHERE artifact_id = ?;",
       params = list(artifact_id)
     )
-    if (nrow(row) == 1) model_path <- as.character(row$model_path[1] %||% NA_character_)
+    stored_model_path <- NA_character_
+    if (nrow(row) == 1) {
+      stored_model_path <- as.character(row$model_path[1] %||% NA_character_)
+      model_path <- stored_model_path
+      if (!is.null(bundle) && !is.na(stored_model_path) && nzchar(stored_model_path)) {
+        model_path <- tryCatch(.wb_resolve_model_ref_path(bundle, stored_model_path), error = function(e) stored_model_path)
+      }
+    }
     DBI::dbExecute(con, "DELETE FROM artifact_model_ref WHERE artifact_id = ?;", params = list(artifact_id))
 
     if (isTRUE(remove_model_file) && !is.na(model_path) && nzchar(model_path) && file.exists(model_path)) {
       can_remove <- TRUE
       if (isTRUE(model_file_only_if_unique)) {
+        candidate_paths <- unique(c(
+          stored_model_path,
+          if (!is.null(bundle) && !is.na(model_path) && nzchar(model_path)) .wb_model_ref_bundle_relative_path(bundle, model_path) else NA_character_,
+          model_path
+        ))
+        candidate_paths <- candidate_paths[!is.na(candidate_paths) & nzchar(candidate_paths)]
         n_other <- DBI::dbGetQuery(
           con,
-          "SELECT COUNT(*) AS n FROM artifact_model_ref WHERE model_path = ?;",
-          params = list(model_path)
+          paste0(
+            "SELECT COUNT(*) AS n FROM artifact_model_ref WHERE model_path IN (",
+            paste(rep("?", length(candidate_paths)), collapse = ","),
+            ");"
+          ),
+          params = as.list(candidate_paths)
         )$n[[1]] %||% 0L
         can_remove <- as.integer(n_other) == 0L
       }
@@ -2046,7 +2063,8 @@ wb_art_delete <- function(bundle,
         artifact_id = aid,
         type = type,
         remove_model_file = remove_model_file,
-        model_file_only_if_unique = model_file_only_if_unique
+        model_file_only_if_unique = model_file_only_if_unique,
+        bundle = bundle
       )
       i <- i + 1L
       rows[[i]] <- data.frame(
