@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-10T21:30:48+0200",
-  "artifact_type_count": 55,
+  "generated_at": "2026-06-11T06:30:34+0200",
+  "artifact_type_count": 56,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -209,6 +209,15 @@
       "table_type": "cell_vector_winners",
       "entity_kind": "cell",
       "use_when": ["inspect score-family winner labels", "register winner cell sets"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_family_graph_smooth_summary",
+      "primitive_kind": "obs_table",
+      "title": "Cell Vector Family Graph Smoothing Summary",
+      "description": "Per-key diagnostics for nearest-neighbor smoothing of a cell_vector_family over a bundle space.",
+      "table_type": "cell_vector_family_graph_smooth_summary",
+      "entity_kind": "signal_key",
+      "use_when": ["audit graph-smoothed signal families", "check smoothing parameters and score shifts"]
     },
     {
       "artifact_type": "obs_table:winner_cell_set_manifest",

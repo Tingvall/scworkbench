@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-10T21:30:49+0200",
-  "record_count": 247,
+  "generated_at": "2026-06-11T06:30:34+0200",
+  "record_count": 249,
   "record_type_counts": {
-    "artifact_type": 55,
+    "artifact_type": 56,
     "getter": 66,
-    "op": 41,
+    "op": 42,
     "parameter": 40,
     "plot": 12,
     "primitive": 11,
@@ -818,6 +818,143 @@
           }
         ],
         "promotable": ["key_summary", "pairwise_summary", "group_summary"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:cell_vector_family_graph_smooth",
+      "record_type": "op",
+      "name": "cell_vector_family_graph_smooth",
+      "title": "Graph Smooth Cell Vector Family",
+      "description": "Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.",
+      "search_text": "Graph Smooth Cell Vector Family\nSmooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.\nsignal\nsmoothing\ngeometry\ncell_vector_family\nTRUE\nspace\ncell_set\nselect\nsmoothed_signal\nGeometry-smoothed per-cell values for each selected key.\nsmoothing_summary\nobs_table\nPer-key smoothing diagnostics and parameter echo.\nsignal_keys\nstring_vec\nOptional key subset within the cell_vector_family.\ndims\nint_vec\nOptional dimensions of the selected space. NULL uses all dimensions.\nk\nint\n30\n1\n1e+05\nNearest-neighbor count per cell.\nalpha\ndbl\n0.5\n0\nBlend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean.\ndistance_metric\nchoice\neuclidean\nDistance metric used for nearest-neighbor search.\nquery_chunk_size\n512\n1e+06\nNumber of query cells processed per nearest-neighbor chunk.\ninclude_self\nbool\nFALSE\nInclude each cell itself in its neighbor mean.\nna_policy\nignore\nzero\npropagate\nHow missing signal values are handled during neighbor averaging.\nsource_signal_artifact_id\nstring\nOptional source cell_vector_family artifact ID copied into metadata.\nsource_run_id\nOptional source run ID copied into metadata.\nsource_snapshot_id\nOptional source provenance snapshot ID copied into metadata.",
+      "tags": ["op", "signal", "smoothing", "geometry"],
+      "payload": {
+        "op_name": "cell_vector_family_graph_smooth",
+        "title": "Graph Smooth Cell Vector Family",
+        "description": "Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.",
+        "intent": ["signal", "smoothing", "geometry"],
+        "consumes": [
+          {
+            "name": "signal",
+            "kind": "cell_vector_family",
+            "required": true
+          },
+          {
+            "name": "space",
+            "kind": "space",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "smoothed_signal",
+            "kind": "cell_vector_family",
+            "description": "Geometry-smoothed per-cell values for each selected key."
+          },
+          {
+            "name": "smoothing_summary",
+            "kind": "obs_table",
+            "description": "Per-key smoothing diagnostics and parameter echo."
+          }
+        ],
+        "inputs": {
+          "signal": {
+            "required": true,
+            "kind": "cell_vector_family"
+          },
+          "space": {
+            "required": true,
+            "kind": "space"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "signal_keys",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional key subset within the cell_vector_family."
+          },
+          {
+            "name": "dims",
+            "type": "int_vec",
+            "default": null,
+            "help": "Optional dimensions of the selected space. NULL uses all dimensions."
+          },
+          {
+            "name": "k",
+            "type": "int",
+            "default": 30,
+            "min": 1,
+            "max": 100000,
+            "help": "Nearest-neighbor count per cell."
+          },
+          {
+            "name": "alpha",
+            "type": "dbl",
+            "default": 0.5,
+            "min": 0,
+            "max": 1,
+            "help": "Blend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean."
+          },
+          {
+            "name": "distance_metric",
+            "type": "choice",
+            "default": "euclidean",
+            "choices": "euclidean",
+            "help": "Distance metric used for nearest-neighbor search."
+          },
+          {
+            "name": "query_chunk_size",
+            "type": "int",
+            "default": 512,
+            "min": 1,
+            "max": 1000000,
+            "help": "Number of query cells processed per nearest-neighbor chunk."
+          },
+          {
+            "name": "include_self",
+            "type": "bool",
+            "default": false,
+            "help": "Include each cell itself in its neighbor mean."
+          },
+          {
+            "name": "na_policy",
+            "type": "choice",
+            "default": "ignore",
+            "choices": ["ignore", "zero", "propagate"],
+            "help": "How missing signal values are handled during neighbor averaging."
+          },
+          {
+            "name": "source_signal_artifact_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source cell_vector_family artifact ID copied into metadata."
+          },
+          {
+            "name": "source_run_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source run ID copied into metadata."
+          },
+          {
+            "name": "source_snapshot_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source provenance snapshot ID copied into metadata."
+          }
+        ],
+        "promotable": ["smoothed_signal", "smoothing_summary"],
         "chunking": null
       }
     },
@@ -7420,6 +7557,24 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:cell_vector_family_graph_smooth_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_graph_smooth_summary",
+      "title": "Cell Vector Family Graph Smoothing Summary",
+      "description": "Per-key diagnostics for nearest-neighbor smoothing of a cell_vector_family over a bundle space.",
+      "search_text": "Cell Vector Family Graph Smoothing Summary\nPer-key diagnostics for nearest-neighbor smoothing of a cell_vector_family over a bundle space.\nobs_table\ncell_vector_family_graph_smooth_summary\nsignal_key\naudit graph-smoothed signal families\ncheck smoothing parameters and score shifts",
+      "tags": ["artifact_type", "obs_table", "cell_vector_family_graph_smooth_summary"],
+      "payload": {
+        "artifact_type": "obs_table:cell_vector_family_graph_smooth_summary",
+        "primitive_kind": "obs_table",
+        "title": "Cell Vector Family Graph Smoothing Summary",
+        "description": "Per-key diagnostics for nearest-neighbor smoothing of a cell_vector_family over a bundle space.",
+        "table_type": "cell_vector_family_graph_smooth_summary",
+        "entity_kind": "signal_key",
+        "use_when": ["audit graph-smoothed signal families", "check smoothing parameters and score shifts"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
       "record_type": "artifact_type",
       "name": "obs_table:winner_cell_set_manifest",
@@ -8926,9 +9081,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-10T21:30:49+0200",
-    "node_count": 247,
-    "edge_count": 638,
+    "generated_at": "2026-06-11T06:30:34+0200",
+    "node_count": 249,
+    "edge_count": 647,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -8983,6 +9138,12 @@
         "record_type": "op",
         "name": "cell_vector_family_qc",
         "title": "QC Cell Vector Family"
+      },
+      {
+        "record_id": "op:cell_vector_family_graph_smooth",
+        "record_type": "op",
+        "name": "cell_vector_family_graph_smooth",
+        "title": "Graph Smooth Cell Vector Family"
       },
       {
         "record_id": "op:cell_vector_winners",
@@ -9933,6 +10094,12 @@
         "title": "Cell Vector Winner Table"
       },
       {
+        "record_id": "artifact_type:obs_table:cell_vector_family_graph_smooth_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:cell_vector_family_graph_smooth_summary",
+        "title": "Cell Vector Family Graph Smoothing Summary"
+      },
+      {
         "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
         "record_type": "artifact_type",
         "name": "obs_table:winner_cell_set_manifest",
@@ -10833,6 +11000,54 @@
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:group_summary"
+      },
+      {
+        "from": "primitive:cell_vector_family",
+        "to": "op:cell_vector_family_graph_smooth",
+        "edge_type": "consumed_by",
+        "label": "input:signal"
+      },
+      {
+        "from": "primitive:space",
+        "to": "op:cell_vector_family_graph_smooth",
+        "edge_type": "consumed_by",
+        "label": "input:space"
+      },
+      {
+        "from": "op:cell_vector_family_graph_smooth",
+        "to": "parameter:space",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:space"
+      },
+      {
+        "from": "op:cell_vector_family_graph_smooth",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_family_graph_smooth",
+        "to": "parameter:signal_keys",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:signal_keys"
+      },
+      {
+        "from": "op:cell_vector_family_graph_smooth",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:smoothed_signal"
+      },
+      {
+        "from": "op:cell_vector_family_graph_smooth",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:smoothing_summary"
+      },
+      {
+        "from": "op:cell_vector_family_graph_smooth",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:smoothed_signal"
       },
       {
         "from": "primitive:cell_vector_family",
@@ -12738,6 +12953,12 @@
       },
       {
         "from": "artifact_type:obs_table:cell_vector_winners",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:cell_vector_family_graph_smooth_summary",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"

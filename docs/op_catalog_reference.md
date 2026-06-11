@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-10T21:30:48+0200
+Generated at: 2026-06-11T06:30:34+0200
 
-Operation count: 41
+Operation count: 42
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -234,6 +234,38 @@ Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
 - `correlation_methods` (string_vec, default=pearson|spearman): Pairwise correlation methods to compute between keys.
 - `tie_tol` (dbl, default=1e-08): Tolerance used when counting tied top-key winners.
+
+## `cell_vector_family_graph_smooth`
+
+Title: Graph Smooth Cell Vector Family
+
+Intent: signal, smoothing, geometry
+
+Description: Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.
+
+Consumes:
+- `signal`: cell_vector_family
+- `space`: space
+- `cell_set`: select
+
+Produces:
+- `smoothed_signal`: cell_vector_family - Geometry-smoothed per-cell values for each selected key.
+- `smoothing_summary`: obs_table - Per-key smoothing diagnostics and parameter echo.
+
+Promotable outputs: smoothed_signal, smoothing_summary
+
+Key parameters:
+- `signal_keys` (string_vec, default=NULL): Optional key subset within the cell_vector_family.
+- `dims` (int_vec, default=NULL): Optional dimensions of the selected space. NULL uses all dimensions.
+- `k` (int, default=30): Nearest-neighbor count per cell.
+- `alpha` (dbl, default=0.5): Blend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean.
+- `distance_metric` (choice, default=euclidean): Distance metric used for nearest-neighbor search.
+- `query_chunk_size` (int, default=512): Number of query cells processed per nearest-neighbor chunk.
+- `include_self` (bool, default=FALSE): Include each cell itself in its neighbor mean.
+- `na_policy` (choice, default=ignore): How missing signal values are handled during neighbor averaging.
+- `source_signal_artifact_id` (string, default=NULL): Optional source cell_vector_family artifact ID copied into metadata.
+- `source_run_id` (string, default=NULL): Optional source run ID copied into metadata.
+- `source_snapshot_id` (string, default=NULL): Optional source provenance snapshot ID copied into metadata.
 
 ## `cell_vector_winners`
 

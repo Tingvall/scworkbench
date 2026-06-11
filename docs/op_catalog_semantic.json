@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-10T21:30:48+0200",
-  "op_count": 41,
+  "generated_at": "2026-06-11T06:30:34+0200",
+  "op_count": 42,
   "ops": [
     {
       "op_name": "leiden",
@@ -728,6 +728,134 @@
         }
       ],
       "promotable": ["key_summary", "pairwise_summary", "group_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "cell_vector_family_graph_smooth",
+      "title": "Graph Smooth Cell Vector Family",
+      "description": "Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.",
+      "intent": ["signal", "smoothing", "geometry"],
+      "consumes": [
+        {
+          "name": "signal",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "smoothed_signal",
+          "kind": "cell_vector_family",
+          "description": "Geometry-smoothed per-cell values for each selected key."
+        },
+        {
+          "name": "smoothing_summary",
+          "kind": "obs_table",
+          "description": "Per-key smoothing diagnostics and parameter echo."
+        }
+      ],
+      "inputs": {
+        "signal": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "space": {
+          "required": true,
+          "kind": "space"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "signal_keys",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional key subset within the cell_vector_family."
+        },
+        {
+          "name": "dims",
+          "type": "int_vec",
+          "default": null,
+          "help": "Optional dimensions of the selected space. NULL uses all dimensions."
+        },
+        {
+          "name": "k",
+          "type": "int",
+          "default": 30,
+          "min": 1,
+          "max": 100000,
+          "help": "Nearest-neighbor count per cell."
+        },
+        {
+          "name": "alpha",
+          "type": "dbl",
+          "default": 0.5,
+          "min": 0,
+          "max": 1,
+          "help": "Blend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean."
+        },
+        {
+          "name": "distance_metric",
+          "type": "choice",
+          "default": "euclidean",
+          "choices": "euclidean",
+          "help": "Distance metric used for nearest-neighbor search."
+        },
+        {
+          "name": "query_chunk_size",
+          "type": "int",
+          "default": 512,
+          "min": 1,
+          "max": 1000000,
+          "help": "Number of query cells processed per nearest-neighbor chunk."
+        },
+        {
+          "name": "include_self",
+          "type": "bool",
+          "default": false,
+          "help": "Include each cell itself in its neighbor mean."
+        },
+        {
+          "name": "na_policy",
+          "type": "choice",
+          "default": "ignore",
+          "choices": ["ignore", "zero", "propagate"],
+          "help": "How missing signal values are handled during neighbor averaging."
+        },
+        {
+          "name": "source_signal_artifact_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source cell_vector_family artifact ID copied into metadata."
+        },
+        {
+          "name": "source_run_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source run ID copied into metadata."
+        },
+        {
+          "name": "source_snapshot_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source provenance snapshot ID copied into metadata."
+        }
+      ],
+      "promotable": ["smoothed_signal", "smoothing_summary"],
       "chunking": null
     },
     {

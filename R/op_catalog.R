@@ -744,6 +744,54 @@
   raw
 }
 
+.wb_runner_cell_vector_family_graph_smooth <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$signal), "cell_vector_family_graph_smooth runner: missing resolved$signal.")
+  .wb_assert(!is.null(resolved$space), "cell_vector_family_graph_smooth runner: missing resolved$space.")
+
+  source_signal_artifact_id <- inputs$source_signal_artifact_id %||% NULL
+  if (is.null(source_signal_artifact_id) &&
+      is.list(inputs$signal) &&
+      identical(as.character(inputs$signal$ref_type %||% "")[1], "artifact")) {
+    source_signal_artifact_id <- as.character(inputs$signal$artifact_id %||% NA_character_)[1]
+  }
+
+  source_run_id <- inputs$source_run_id %||% NULL
+  source_snapshot_id <- inputs$source_snapshot_id %||% NULL
+  if (!is.null(source_signal_artifact_id) && nzchar(as.character(source_signal_artifact_id)[1])) {
+    art <- tryCatch(wb_art_list(bundle), error = function(e) NULL)
+    if (is.data.frame(art) && nrow(art)) {
+      hit <- art[as.character(art$artifact_id) == as.character(source_signal_artifact_id)[1], , drop = FALSE]
+      if (nrow(hit)) {
+        source_run_id <- source_run_id %||% if ("source_run_id" %in% names(hit)) hit$source_run_id[[1]] else NULL
+        source_snapshot_id <- source_snapshot_id %||% if ("provenance_snapshot_id" %in% names(hit)) hit$provenance_snapshot_id[[1]] else NULL
+      }
+    }
+  }
+
+  raw <- wb_op_cell_vector_family_graph_smooth(
+    bundle = bundle,
+    signal = resolved$signal,
+    space_id = resolved$space$space_id,
+    cells = as.character(effective_cells),
+    signal_keys = inputs$signal_keys %||% NULL,
+    dims = inputs$dims %||% NULL,
+    k = inputs$k %||% 30L,
+    alpha = inputs$alpha %||% 0.5,
+    distance_metric = inputs$distance_metric %||% "euclidean",
+    query_chunk_size = inputs$query_chunk_size %||% 512L,
+    include_self = inputs$include_self %||% FALSE,
+    na_policy = inputs$na_policy %||% "ignore",
+    cell_set = inputs$cell_set %||% NULL,
+    source_signal_artifact_id = source_signal_artifact_id,
+    source_run_id = source_run_id,
+    source_snapshot_id = source_snapshot_id
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "cell_vector_family_graph_smooth must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_cell_vector_winners <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$signal), "cell_vector_winners runner: missing resolved$signal.")
 
@@ -1565,6 +1613,63 @@
         group_summary = list(
           kind = "obs_table",
           description = "Per-group per-key QC summaries when an optional grouping vector is supplied."
+        )
+      )
+    ),
+    cell_vector_family_graph_smooth = list(
+      op_name = "cell_vector_family_graph_smooth",
+      title = "Graph Smooth Cell Vector Family",
+      description = "Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.",
+      intent = c("signal", "smoothing", "geometry"),
+      requires = list(signal = "cell_vector_family", space = "space"),
+      produces = list(
+        smoothed_signal = "cell_vector_family",
+        smoothing_summary = "obs_table"
+      ),
+      promotable = c("smoothed_signal", "smoothing_summary"),
+      runner = .wb_runner_cell_vector_family_graph_smooth,
+      inputs = list(
+        signal = list(required = TRUE, kind = "cell_vector_family"),
+        space = list(required = TRUE, kind = "space")
+      ),
+      params = list(
+        list(name = "signal_keys", type = "string_vec", default = NULL,
+             help = "Optional key subset within the cell_vector_family."),
+        list(name = "dims", type = "int_vec", default = NULL,
+             help = "Optional dimensions of the selected space. NULL uses all dimensions."),
+        list(name = "k", type = "int", default = 30L, min = 1, max = 100000,
+             help = "Nearest-neighbor count per cell."),
+        list(name = "alpha", type = "dbl", default = 0.5, min = 0, max = 1,
+             help = "Blend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean."),
+        list(name = "distance_metric", type = "choice", default = "euclidean",
+             choices = c("euclidean"),
+             help = "Distance metric used for nearest-neighbor search."),
+        list(name = "query_chunk_size", type = "int", default = 512L, min = 1, max = 1000000,
+             help = "Number of query cells processed per nearest-neighbor chunk."),
+        list(name = "include_self", type = "bool", default = FALSE,
+             help = "Include each cell itself in its neighbor mean."),
+        list(name = "na_policy", type = "choice", default = "ignore",
+             choices = c("ignore", "zero", "propagate"),
+             help = "How missing signal values are handled during neighbor averaging."),
+        list(name = "source_signal_artifact_id", type = "string", default = NULL,
+             help = "Optional source cell_vector_family artifact ID copied into metadata."),
+        list(name = "source_run_id", type = "string", default = NULL,
+             help = "Optional source run ID copied into metadata."),
+        list(name = "source_snapshot_id", type = "string", default = NULL,
+             help = "Optional source provenance snapshot ID copied into metadata.")
+      ),
+      interface_produces = list(
+        smoothed_signal = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "signal_key",
+          description = "Geometry-smoothed per-cell values for each selected key."
+        ),
+        smoothing_summary = list(
+          kind = "obs_table",
+          table_type = "cell_vector_family_graph_smooth_summary",
+          entity_kind = "signal_key",
+          description = "Per-key smoothing diagnostics and parameter echo."
         )
       )
     ),

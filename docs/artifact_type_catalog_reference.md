@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 55
+Artifact type count: 56
 
 ## cell_vector
 
@@ -299,6 +299,20 @@ Entity kind: cell
 Use when:
 - inspect score-family winner labels
 - register winner cell sets
+
+### `obs_table:cell_vector_family_graph_smooth_summary`
+
+Title: Cell Vector Family Graph Smoothing Summary
+
+Description: Per-key diagnostics for nearest-neighbor smoothing of a cell_vector_family over a bundle space.
+
+Table type: cell_vector_family_graph_smooth_summary
+
+Entity kind: signal_key
+
+Use when:
+- audit graph-smoothed signal families
+- check smoothing parameters and score shifts
 
 ### `obs_table:winner_cell_set_manifest`
 

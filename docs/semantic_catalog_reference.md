@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-10T21:30:49+0200
+Generated at: 2026-06-11T06:30:34+0200
 
-Record count: 247
+Record count: 249
 
-Graph edges: 638
+Graph edges: 647
 
 ## artifact_type
 
@@ -147,6 +147,12 @@ Description: Summary statistics for UCell signature scores.
 Title: Cell Vector Winner Table
 
 Description: Per-cell winner, runner-up, confidence, and pruning metrics from a cell_vector_family.
+
+### `artifact_type:obs_table:cell_vector_family_graph_smooth_summary`
+
+Title: Cell Vector Family Graph Smoothing Summary
+
+Description: Per-key diagnostics for nearest-neighbor smoothing of a cell_vector_family over a bundle space.
 
 ### `artifact_type:obs_table:winner_cell_set_manifest`
 
@@ -793,6 +799,12 @@ Description: Normalize one keyed per-cell signal family within keys so cross-key
 Title: QC Cell Vector Family
 
 Description: Compute per-key and pairwise diagnostics for one keyed per-cell signal family.
+
+### `op:cell_vector_family_graph_smooth`
+
+Title: Graph Smooth Cell Vector Family
+
+Description: Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.
 
 ### `op:cell_vector_winners`
 

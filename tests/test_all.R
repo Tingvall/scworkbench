@@ -66,6 +66,9 @@ test_all <- function(bundle_dir){
   if (exists("test_op_cell_vector_family_qc_contract", mode = "function")) {
     stopifnot(test_op_cell_vector_family_qc_contract())
   }
+  if (exists("test_op_cell_vector_family_graph_smooth_contract", mode = "function")) {
+    stopifnot(test_op_cell_vector_family_graph_smooth_contract())
+  }
   if (exists("test_op_cell_vector_winners_contract", mode = "function")) {
     stopifnot(test_op_cell_vector_winners_contract())
   }

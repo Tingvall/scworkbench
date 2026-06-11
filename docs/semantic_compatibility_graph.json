@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-10T21:30:49+0200",
-  "node_count": 247,
-  "edge_count": 638,
+  "generated_at": "2026-06-11T06:30:34+0200",
+  "node_count": 249,
+  "edge_count": 647,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -57,6 +57,12 @@
       "record_type": "op",
       "name": "cell_vector_family_qc",
       "title": "QC Cell Vector Family"
+    },
+    {
+      "record_id": "op:cell_vector_family_graph_smooth",
+      "record_type": "op",
+      "name": "cell_vector_family_graph_smooth",
+      "title": "Graph Smooth Cell Vector Family"
     },
     {
       "record_id": "op:cell_vector_winners",
@@ -1007,6 +1013,12 @@
       "title": "Cell Vector Winner Table"
     },
     {
+      "record_id": "artifact_type:obs_table:cell_vector_family_graph_smooth_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_family_graph_smooth_summary",
+      "title": "Cell Vector Family Graph Smoothing Summary"
+    },
+    {
       "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
       "record_type": "artifact_type",
       "name": "obs_table:winner_cell_set_manifest",
@@ -1907,6 +1919,54 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:group_summary"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:cell_vector_family_graph_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:signal"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:cell_vector_family_graph_smooth",
+      "edge_type": "consumed_by",
+      "label": "input:space"
+    },
+    {
+      "from": "op:cell_vector_family_graph_smooth",
+      "to": "parameter:space",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:space"
+    },
+    {
+      "from": "op:cell_vector_family_graph_smooth",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_family_graph_smooth",
+      "to": "parameter:signal_keys",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:signal_keys"
+    },
+    {
+      "from": "op:cell_vector_family_graph_smooth",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:smoothed_signal"
+    },
+    {
+      "from": "op:cell_vector_family_graph_smooth",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:smoothing_summary"
+    },
+    {
+      "from": "op:cell_vector_family_graph_smooth",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:smoothed_signal"
     },
     {
       "from": "primitive:cell_vector_family",
@@ -3812,6 +3872,12 @@
     },
     {
       "from": "artifact_type:obs_table:cell_vector_winners",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_family_graph_smooth_summary",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"

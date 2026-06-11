@@ -17,4 +17,5 @@ Imports:
     Matrix
 Suggests:
     BPCells,
+    RANN,
     UCell
