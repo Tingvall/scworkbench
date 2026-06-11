@@ -197,6 +197,8 @@ Note:
 - `wb_prim_space_2d`: Create a space_2d primitive
 - `wb_primitive_catalog_semantic`: Export primitive catalog as semantic metadata
 - `wb_promote_analysis`: Promote a session analysis DAG to persisted artifacts
+- `wb_prov_artifact_lineage`: Get composed provenance lineage around one artifact
+- `wb_prov_bundle_dag`: Build a bundle-level composed provenance DAG
 - `wb_prov_dag`: Reconstruct a persisted provenance DAG
 - `wb_prov_emit_r_script`: Emit an R replay script from persisted provenance
 - `wb_prov_list_heads`: List persisted provenance snapshots

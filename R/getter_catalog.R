@@ -546,11 +546,31 @@
       function_name = "wb_prov_dag",
       title = "Provenance DAG",
       category = "provenance",
-      description = "Read a persisted provenance DAG.",
+      description = "Read one snapshot-local persisted provenance DAG.",
       returns = "list/data.frame",
       payload_level = "metadata",
-      arguments = c("bundle", "head_id"),
-      use_when = c("inspect run lineage", "reconstruct analysis steps")
+      arguments = c("bundle", "snapshot_id"),
+      use_when = c("inspect one saved analysis snapshot", "reconstruct analysis steps within one snapshot")
+    ),
+    list(
+      function_name = "wb_prov_bundle_dag",
+      title = "Bundle-Level Composed Provenance DAG",
+      category = "provenance",
+      description = "Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.",
+      returns = "list/data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "snapshot_id", "run_id", "artifact_id", "direction", "max_depth", "include_snapshots", "include_registry_mutations"),
+      use_when = c("render a connected artifact/run lineage across promotions", "show bundle-level provenance in Shiny or agents", "trace analysis chains that continue from promoted artifacts")
+    ),
+    list(
+      function_name = "wb_prov_artifact_lineage",
+      title = "Composed Artifact Lineage",
+      category = "provenance",
+      description = "Return an upstream, downstream, or bidirectional composed provenance subgraph centered on one promoted artifact.",
+      returns = "list/data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "artifact_id", "direction", "max_depth"),
+      use_when = c("explain one artifact in context", "find upstream source artifacts and downstream dependents")
     ),
     list(
       function_name = "wb_prov_run_details",

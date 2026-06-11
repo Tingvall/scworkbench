@@ -168,6 +168,9 @@ test_all <- function(bundle_dir){
   if (exists("test_provenance_snapshot_contract", mode = "function")) {
     stopifnot(test_provenance_snapshot_contract(bundle_dir))
   }
+  if (exists("test_provenance_bundle_dag_contract", mode = "function")) {
+    stopifnot(test_provenance_bundle_dag_contract(bundle_dir))
+  }
   if (exists("test_chunked_provenance_replay_contract", mode = "function")) {
     stopifnot(test_chunked_provenance_replay_contract())
   }

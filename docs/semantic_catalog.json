@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-11T06:30:34+0200",
-  "record_count": 249,
+  "generated_at": "2026-06-11T07:36:38+0200",
+  "record_count": 251,
   "record_type_counts": {
     "artifact_type": 56,
-    "getter": 66,
+    "getter": 68,
     "op": 42,
     "parameter": 40,
     "plot": 12,
@@ -5644,18 +5644,58 @@
       "record_type": "getter",
       "name": "wb_prov_dag",
       "title": "Provenance DAG",
-      "description": "Read a persisted provenance DAG.",
-      "search_text": "Provenance DAG\nRead a persisted provenance DAG.\nprovenance\nlist/data.frame\nbundle\nhead_id\ninspect run lineage\nreconstruct analysis steps",
+      "description": "Read one snapshot-local persisted provenance DAG.",
+      "search_text": "Provenance DAG\nRead one snapshot-local persisted provenance DAG.\nprovenance\nlist/data.frame\nbundle\nsnapshot_id\ninspect one saved analysis snapshot\nreconstruct analysis steps within one snapshot",
       "tags": ["getter", "provenance"],
       "payload": {
         "function_name": "wb_prov_dag",
         "title": "Provenance DAG",
         "category": "provenance",
-        "description": "Read a persisted provenance DAG.",
+        "description": "Read one snapshot-local persisted provenance DAG.",
         "returns": "list/data.frame",
         "payload_level": "metadata",
-        "arguments": ["bundle", "head_id"],
-        "use_when": ["inspect run lineage", "reconstruct analysis steps"],
+        "arguments": ["bundle", "snapshot_id"],
+        "use_when": ["inspect one saved analysis snapshot", "reconstruct analysis steps within one snapshot"],
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_prov_bundle_dag",
+      "record_type": "getter",
+      "name": "wb_prov_bundle_dag",
+      "title": "Bundle-Level Composed Provenance DAG",
+      "description": "Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.",
+      "search_text": "Bundle-Level Composed Provenance DAG\nCompose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.\nprovenance\nlist/data.frame\nbundle\nsnapshot_id\nrun_id\nartifact_id\ndirection\nmax_depth\ninclude_snapshots\ninclude_registry_mutations\nrender a connected artifact/run lineage across promotions\nshow bundle-level provenance in Shiny or agents\ntrace analysis chains that continue from promoted artifacts",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_prov_bundle_dag",
+        "title": "Bundle-Level Composed Provenance DAG",
+        "category": "provenance",
+        "description": "Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.",
+        "returns": "list/data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "snapshot_id", "run_id", "artifact_id", "direction", "max_depth", "include_snapshots", "include_registry_mutations"],
+        "use_when": ["render a connected artifact/run lineage across promotions", "show bundle-level provenance in Shiny or agents", "trace analysis chains that continue from promoted artifacts"],
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_prov_artifact_lineage",
+      "record_type": "getter",
+      "name": "wb_prov_artifact_lineage",
+      "title": "Composed Artifact Lineage",
+      "description": "Return an upstream, downstream, or bidirectional composed provenance subgraph centered on one promoted artifact.",
+      "search_text": "Composed Artifact Lineage\nReturn an upstream, downstream, or bidirectional composed provenance subgraph centered on one promoted artifact.\nprovenance\nlist/data.frame\nbundle\nartifact_id\ndirection\nmax_depth\nexplain one artifact in context\nfind upstream source artifacts and downstream dependents",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_prov_artifact_lineage",
+        "title": "Composed Artifact Lineage",
+        "category": "provenance",
+        "description": "Return an upstream, downstream, or bidirectional composed provenance subgraph centered on one promoted artifact.",
+        "returns": "list/data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "artifact_id", "direction", "max_depth"],
+        "use_when": ["explain one artifact in context", "find upstream source artifacts and downstream dependents"],
         "mutates": false
       }
     },
@@ -9081,8 +9121,8 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-11T06:30:34+0200",
-    "node_count": 249,
+    "generated_at": "2026-06-11T07:36:38+0200",
+    "node_count": 251,
     "edge_count": 647,
     "nodes": [
       {
@@ -9666,6 +9706,18 @@
         "record_type": "getter",
         "name": "wb_prov_dag",
         "title": "Provenance DAG"
+      },
+      {
+        "record_id": "getter:wb_prov_bundle_dag",
+        "record_type": "getter",
+        "name": "wb_prov_bundle_dag",
+        "title": "Bundle-Level Composed Provenance DAG"
+      },
+      {
+        "record_id": "getter:wb_prov_artifact_lineage",
+        "record_type": "getter",
+        "name": "wb_prov_artifact_lineage",
+        "title": "Composed Artifact Lineage"
       },
       {
         "record_id": "getter:wb_prov_run_details",

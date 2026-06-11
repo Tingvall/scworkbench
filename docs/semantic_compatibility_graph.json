@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-11T06:30:34+0200",
-  "node_count": 249,
+  "generated_at": "2026-06-11T07:36:38+0200",
+  "node_count": 251,
   "edge_count": 647,
   "nodes": [
     {
@@ -585,6 +585,18 @@
       "record_type": "getter",
       "name": "wb_prov_dag",
       "title": "Provenance DAG"
+    },
+    {
+      "record_id": "getter:wb_prov_bundle_dag",
+      "record_type": "getter",
+      "name": "wb_prov_bundle_dag",
+      "title": "Bundle-Level Composed Provenance DAG"
+    },
+    {
+      "record_id": "getter:wb_prov_artifact_lineage",
+      "record_type": "getter",
+      "name": "wb_prov_artifact_lineage",
+      "title": "Composed Artifact Lineage"
     },
     {
       "record_id": "getter:wb_prov_run_details",

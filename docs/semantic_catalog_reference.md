@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-11T06:30:34+0200
+Generated at: 2026-06-11T07:36:38+0200
 
-Record count: 249
+Record count: 251
 
 Graph edges: 647
 
@@ -676,7 +676,19 @@ Description: List persisted provenance snapshot heads.
 
 Title: Provenance DAG
 
-Description: Read a persisted provenance DAG.
+Description: Read one snapshot-local persisted provenance DAG.
+
+### `getter:wb_prov_bundle_dag`
+
+Title: Bundle-Level Composed Provenance DAG
+
+Description: Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.
+
+### `getter:wb_prov_artifact_lineage`
+
+Title: Composed Artifact Lineage
+
+Description: Return an upstream, downstream, or bidirectional composed provenance subgraph centered on one promoted artifact.
 
 ### `getter:wb_prov_run_details`
 

@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-06-11T06:30:34+0200
+Generated at: 2026-06-11T07:36:37+0200
 
-Getter count: 66
+Getter count: 68
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -788,17 +788,50 @@ Use when:
 
 Title: Provenance DAG
 
-Description: Read a persisted provenance DAG.
+Description: Read one snapshot-local persisted provenance DAG.
 
 Returns: list/data.frame
 
 Payload level: metadata
 
-Arguments: bundle, head_id
+Arguments: bundle, snapshot_id
 
 Use when:
-- inspect run lineage
-- reconstruct analysis steps
+- inspect one saved analysis snapshot
+- reconstruct analysis steps within one snapshot
+
+### `wb_prov_bundle_dag`
+
+Title: Bundle-Level Composed Provenance DAG
+
+Description: Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.
+
+Returns: list/data.frame
+
+Payload level: metadata
+
+Arguments: bundle, snapshot_id, run_id, artifact_id, direction, max_depth, include_snapshots, include_registry_mutations
+
+Use when:
+- render a connected artifact/run lineage across promotions
+- show bundle-level provenance in Shiny or agents
+- trace analysis chains that continue from promoted artifacts
+
+### `wb_prov_artifact_lineage`
+
+Title: Composed Artifact Lineage
+
+Description: Return an upstream, downstream, or bidirectional composed provenance subgraph centered on one promoted artifact.
+
+Returns: list/data.frame
+
+Payload level: metadata
+
+Arguments: bundle, artifact_id, direction, max_depth
+
+Use when:
+- explain one artifact in context
+- find upstream source artifacts and downstream dependents
 
 ### `wb_prov_run_details`
 
