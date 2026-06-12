@@ -162,7 +162,8 @@
   info <- DBI::dbGetQuery(
     con,
     paste0(
-      "SELECT artifact_id, table_type FROM artifact_tables WHERE table_type = 'winner_cell_set_manifest' ",
+      "SELECT artifact_id, table_type FROM artifact_tables ",
+      "WHERE table_type IN ('winner_cell_set_manifest', 'feature_set_import_manifest') ",
       "AND artifact_id ", cl$sql, ";"
     ),
     params = cl$params
@@ -176,6 +177,7 @@
   ni <- 0L
   ei <- 0L
   for (aid in unique(as.character(info$artifact_id))) {
+    table_type <- as.character(info$table_type[as.character(info$artifact_id) == aid][1])
     rows <- DBI::dbGetQuery(
       con,
       "SELECT row_json FROM artifact_table_rows WHERE artifact_id = ? ORDER BY row_idx;",
@@ -184,25 +186,49 @@
     if (!nrow(rows)) next
     for (txt in as.character(rows$row_json)) {
       obj <- .wb_prov_json_read(txt)
-      cs <- as.character(obj$cell_set %||% "")[1]
-      if (!nzchar(cs)) next
-      node_id <- paste0("cell_set:", cs)
-      ni <- ni + 1L
-      nodes[[ni]] <- .wb_prov_bundle_node(
-        id = node_id,
-        node_type = "cell_set",
-        label = cs,
-        title = paste0("Cell set ", cs),
-        status = "registered"
-      )
-      ei <- ei + 1L
-      edges[[ei]] <- .wb_prov_bundle_edge(
-        from = paste0("artifact:", aid),
-        to = node_id,
-        edge_type = "MUTATES_REGISTRY",
-        label = "registers cell set",
-        artifact_id = aid
-      )
+      if (identical(table_type, "winner_cell_set_manifest")) {
+        cs <- as.character(obj$cell_set %||% "")[1]
+        if (!nzchar(cs)) next
+        node_id <- paste0("cell_set:", cs)
+        ni <- ni + 1L
+        nodes[[ni]] <- .wb_prov_bundle_node(
+          id = node_id,
+          node_type = "cell_set",
+          label = cs,
+          title = paste0("Cell set ", cs),
+          status = "registered"
+        )
+        ei <- ei + 1L
+        edges[[ei]] <- .wb_prov_bundle_edge(
+          from = paste0("artifact:", aid),
+          to = node_id,
+          edge_type = "MUTATES_REGISTRY",
+          label = "registers cell set",
+          artifact_id = aid
+        )
+      } else if (identical(table_type, "feature_set_import_manifest")) {
+        if (!identical(as.character(obj$status %||% "")[1], "imported")) next
+        ns <- as.character(obj$namespace %||% "")[1]
+        fs <- as.character(obj$feature_set %||% "")[1]
+        if (!nzchar(ns) || !nzchar(fs)) next
+        node_id <- paste0("feature_set:", ns, ":", fs)
+        ni <- ni + 1L
+        nodes[[ni]] <- .wb_prov_bundle_node(
+          id = node_id,
+          node_type = "feature_set",
+          label = paste0(ns, "/", fs),
+          title = paste0("Feature set ", ns, "/", fs),
+          status = "registered"
+        )
+        ei <- ei + 1L
+        edges[[ei]] <- .wb_prov_bundle_edge(
+          from = paste0("artifact:", aid),
+          to = node_id,
+          edge_type = "MUTATES_REGISTRY",
+          label = "registers feature set",
+          artifact_id = aid
+        )
+      }
     }
   }
 

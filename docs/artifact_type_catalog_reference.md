@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 56
+Artifact type count: 61
 
 ## cell_vector
 
@@ -150,6 +150,76 @@ Use when:
 - reuse fitted UMAP or trajectory models
 
 ## obs_table
+
+### `obs_table:feature_set_import_summary`
+
+Title: Feature-Set Import Summary
+
+Description: Summary counts for a feature-set library import into bundle namespaces.
+
+Table type: feature_set_import_summary
+
+Entity kind: namespace
+
+Use when:
+- audit gene-set library imports
+- check imported/rejected set counts
+
+### `obs_table:feature_set_import_manifest`
+
+Title: Feature-Set Import Manifest
+
+Description: One row per parsed feature set with namespace, collection, mapped-gene counts, status, and source metadata.
+
+Table type: feature_set_import_manifest
+
+Entity kind: feature_set
+
+Use when:
+- audit imported feature sets
+- trace namespace registry mutations
+
+### `obs_table:feature_set_import_rejected`
+
+Title: Rejected Feature-Set Import Table
+
+Description: Feature sets rejected during import, typically because no source genes mapped to the target matrix.
+
+Table type: feature_set_import_rejected
+
+Entity kind: feature_set
+
+Use when:
+- inspect missing gene sets
+- debug feature-set import failures
+
+### `obs_table:feature_set_overlap_qc`
+
+Title: Feature-Set Matrix Overlap QC
+
+Description: Per-set raw, mapped, detected, duplicate, and include/exclude screening metrics against a matrix.
+
+Table type: feature_set_overlap_qc
+
+Entity kind: feature_set
+
+Use when:
+- filter feature sets before trajectory dynamics
+- measure matrix coverage of gene-set libraries
+
+### `obs_table:feature_set_overlap_qc_summary`
+
+Title: Feature-Set Namespace Overlap Summary
+
+Description: Namespace-level overlap QC summary for imported feature-set libraries.
+
+Table type: feature_set_overlap_qc_summary
+
+Entity kind: namespace
+
+Use when:
+- compare feature-set namespace coverage
+- choose libraries for screening
 
 ### `obs_table:pathway_enrich`
 

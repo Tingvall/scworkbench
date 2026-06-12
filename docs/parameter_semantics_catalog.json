@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-11T07:36:37+0200",
-  "parameter_count": 40,
+  "generated_at": "2026-06-12T11:03:44+0200",
+  "parameter_count": 44,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -152,6 +152,46 @@
       "affects": ["screening universe", "reported terms"],
       "guidance": ["Use NULL for broad discovery.", "Use explicit subsets for targeted validation."],
       "aliases": ["gene_sets", "signatures"]
+    },
+    {
+      "parameter_name": "source_path",
+      "title": "Feature-Set Source Path",
+      "category": "import",
+      "description": "File-backed source for feature-set imports, such as GMT, RDS list/data.frame, or CSV-style table.",
+      "applies_to": "feature-set import params",
+      "affects": ["imported library", "provenance", "replay"],
+      "guidance": ["Use file-backed imports for agent/session execution so provenance can point to the source.", "Record source_id and source_version when the path alone is not a durable library identity."],
+      "aliases": ["gene_set_file", "gmt_path"]
+    },
+    {
+      "parameter_name": "source_format",
+      "title": "Feature-Set Source Format",
+      "category": "import",
+      "description": "Parser choice for a feature-set import source.",
+      "applies_to": "feature-set import params",
+      "affects": ["column interpretation", "wide versus long parsing", "library import validity"],
+      "guidance": ["Use auto for ordinary .gmt and .rds files.", "Set explicitly when a file extension is ambiguous."],
+      "aliases": ["format", "input_format"]
+    },
+    {
+      "parameter_name": "split_by_collection",
+      "title": "Split Feature-Set Namespace By Collection",
+      "category": "import",
+      "description": "Controls whether broad gene-set libraries are split into collection/subcollection namespaces during import.",
+      "applies_to": "feature-set import params",
+      "affects": ["namespace granularity", "screening universe", "multiple testing universe"],
+      "guidance": ["Use TRUE for broad mixed libraries such as MSigDB when collection/subcollection labels are meaningful.", "Keep WikiPathways or focused custom libraries in their own namespace unless splitting adds biological clarity."],
+      "aliases": ["split_namespace", "collection_split"]
+    },
+    {
+      "parameter_name": "gene_id_type",
+      "title": "Gene Identifier Type",
+      "category": "import",
+      "description": "Records the identifier convention used by imported feature-set genes.",
+      "applies_to": "feature-set import params",
+      "affects": ["mapping interpretation", "cross-species reliability", "QC interpretation"],
+      "guidance": ["Use explicit labels such as gene_symbol or ensembl_id when known.", "The current import path matches against bundle feature IDs; it does not perform synonym or ortholog mapping."],
+      "aliases": ["feature_id_type", "id_type"]
     },
     {
       "parameter_name": "signal_keys",

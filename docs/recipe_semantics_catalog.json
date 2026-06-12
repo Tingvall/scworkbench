@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.recipe_semantics_catalog.v1",
-  "generated_at": "2026-06-11T07:36:37+0200",
-  "recipe_count": 8,
+  "generated_at": "2026-06-12T11:03:44+0200",
+  "recipe_count": 9,
   "recipes": [
     {
       "recipe_id": "trajectory_geneset_dynamics_discovery",
@@ -14,6 +14,18 @@
       "produces": ["artifact_type:obs_table:trajectory_geneset_dynamics_curve", "artifact_type:obs_table:trajectory_geneset_dynamics", "artifact_type:obs_table:trajectory_geneset_dynamics_drivers", "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"],
       "use_when": ["collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
       "cautions": ["Gene-set universe and score_method define the biological meaning.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
+    },
+    {
+      "recipe_id": "feature_set_import_qc_then_dynamics",
+      "title": "Import and QC a feature-set library before trajectory screening",
+      "category": "trajectory_discovery",
+      "question": "Can this external gene-set library be used for dynamic program discovery along a trajectory?",
+      "description": "Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.",
+      "steps": ["Choose the target matrix that defines the feature universe.", "Run feature_set_import with source_path, namespace, species/gene_id_type, and source_version.", "Promote import_summary, import_manifest, and rejected_sets for auditability.", "Run feature_set_overlap_qc on the imported namespace and inspect include/exclude reasons.", "Use the accepted namespace with trajectory_geneset_dynamics and report QC artifacts alongside dynamics."],
+      "uses": ["op:feature_set_import", "op:feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "parameter:source_path", "parameter:namespace", "parameter:split_by_collection", "parameter:min_detected_fraction"],
+      "produces": ["artifact_type:obs_table:feature_set_import_summary", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "artifact_type:obs_table:trajectory_geneset_dynamics"],
+      "use_when": ["collaborator sends new GSEA/MSigDB/custom gene-set library", "need to prove library coverage before screening pseudotime dynamics"],
+      "cautions": ["Import matching is against bundle feature IDs; synonym/ortholog mapping is not performed here.", "QC include/exclude thresholds define the screened universe and should be reported.", "Broad libraries should be split only when collection/subcollection semantics are meaningful."]
     },
     {
       "recipe_id": "trajectory_signal_dynamics_discovery",

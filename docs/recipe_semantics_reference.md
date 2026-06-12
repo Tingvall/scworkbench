@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_recipe_semantics_catalog(); do not edit entries by hand. -->
 
-Recipe count: 8
+Recipe count: 9
 
 ## agent_planning
 
@@ -159,6 +159,38 @@ Cautions:
 - Gene-set universe and score_method define the biological meaning.
 - Pseudotime orientation controls turns_on versus turns_off labels.
 - Amplitude thresholds are scale-dependent filters, not p-values.
+
+### `feature_set_import_qc_then_dynamics`
+
+Title: Import and QC a feature-set library before trajectory screening
+
+Question: Can this external gene-set library be used for dynamic program discovery along a trajectory?
+
+Description: Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.
+
+Steps:
+- Choose the target matrix that defines the feature universe.
+- Run feature_set_import with source_path, namespace, species/gene_id_type, and source_version.
+- Promote import_summary, import_manifest, and rejected_sets for auditability.
+- Run feature_set_overlap_qc on the imported namespace and inspect include/exclude reasons.
+- Use the accepted namespace with trajectory_geneset_dynamics and report QC artifacts alongside dynamics.
+
+Uses:
+- `op:feature_set_import`
+- `op:feature_set_overlap_qc`
+- `op:trajectory_geneset_dynamics`
+- `getter:wb_feature_sets`
+- `artifact_type:obs_table:feature_set_import_manifest`
+- `artifact_type:obs_table:feature_set_overlap_qc`
+- `parameter:source_path`
+- `parameter:namespace`
+- `parameter:split_by_collection`
+- `parameter:min_detected_fraction`
+
+Cautions:
+- Import matching is against bundle feature IDs; synonym/ortholog mapping is not performed here.
+- QC include/exclude thresholds define the screened universe and should be reported.
+- Broad libraries should be split only when collection/subcollection semantics are meaningful.
 
 ### `trajectory_signal_dynamics_discovery`
 

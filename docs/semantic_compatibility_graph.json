@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-11T07:36:38+0200",
-  "node_count": 251,
-  "edge_count": 647,
+  "generated_at": "2026-06-12T11:03:45+0200",
+  "node_count": 263,
+  "edge_count": 701,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -99,6 +99,18 @@
       "record_type": "op",
       "name": "pathway_enrich",
       "title": "Pathway Enrichment (Namespace)"
+    },
+    {
+      "record_id": "op:feature_set_import",
+      "record_type": "op",
+      "name": "feature_set_import",
+      "title": "Feature-Set Library Import"
+    },
+    {
+      "record_id": "op:feature_set_overlap_qc",
+      "record_type": "op",
+      "name": "feature_set_overlap_qc",
+      "title": "Feature-Set Matrix Overlap QC"
     },
     {
       "record_id": "op:cell_suffix_label",
@@ -959,6 +971,36 @@
       "title": "Trajectory Branch Compare Table"
     },
     {
+      "record_id": "artifact_type:obs_table:feature_set_import_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_import_summary",
+      "title": "Feature-Set Import Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_import_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_import_manifest",
+      "title": "Feature-Set Import Manifest"
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_import_rejected",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_import_rejected",
+      "title": "Rejected Feature-Set Import Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_overlap_qc",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_overlap_qc",
+      "title": "Feature-Set Matrix Overlap QC"
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_overlap_qc_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_overlap_qc_summary",
+      "title": "Feature-Set Namespace Overlap Summary"
+    },
+    {
       "record_id": "artifact_type:obs_table:pathway_enrich",
       "record_type": "artifact_type",
       "name": "obs_table:pathway_enrich",
@@ -1313,6 +1355,30 @@
       "title": "Feature-Set Subset"
     },
     {
+      "record_id": "parameter:source_path",
+      "record_type": "parameter",
+      "name": "source_path",
+      "title": "Feature-Set Source Path"
+    },
+    {
+      "record_id": "parameter:source_format",
+      "record_type": "parameter",
+      "name": "source_format",
+      "title": "Feature-Set Source Format"
+    },
+    {
+      "record_id": "parameter:split_by_collection",
+      "record_type": "parameter",
+      "name": "split_by_collection",
+      "title": "Split Feature-Set Namespace By Collection"
+    },
+    {
+      "record_id": "parameter:gene_id_type",
+      "record_type": "parameter",
+      "name": "gene_id_type",
+      "title": "Gene Identifier Type"
+    },
+    {
       "record_id": "parameter:signal_keys",
       "record_type": "parameter",
       "name": "signal_keys",
@@ -1467,6 +1533,12 @@
       "record_type": "recipe",
       "name": "trajectory_geneset_dynamics_discovery",
       "title": "Run gene-set dynamics along a trajectory"
+    },
+    {
+      "record_id": "recipe:feature_set_import_qc_then_dynamics",
+      "record_type": "recipe",
+      "name": "feature_set_import_qc_then_dynamics",
+      "title": "Import and QC a feature-set library before trajectory screening"
     },
     {
       "record_id": "recipe:trajectory_signal_dynamics_discovery",
@@ -2195,6 +2267,132 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:pathways"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:feature_set_import",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:source_path",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:source_path"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:source_format",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:source_format"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:namespace"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:collection"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:gene_id_type",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:gene_id_type"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:split_by_collection",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:split_by_collection"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:import_summary"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:import_manifest"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:rejected_sets"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:feature_set_overlap_qc",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:namespace"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "parameter:feature_sets",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:feature_sets"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "parameter:min_detected_fraction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_detected_fraction"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:overlap_qc"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:namespace_summary"
     },
     {
       "from": "op:cell_suffix_label",
@@ -3823,6 +4021,36 @@
       "label": "wb_art_load"
     },
     {
+      "from": "artifact_type:obs_table:feature_set_import_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_import_manifest",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_import_rejected",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_overlap_qc",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_overlap_qc_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
       "from": "artifact_type:obs_table:pathway_enrich",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
@@ -4553,6 +4781,174 @@
       "to": "recipe:trajectory_geneset_dynamics_discovery",
       "edge_type": "produced_by_recipe",
       "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "op:feature_set_import",
+      "edge_type": "uses",
+      "label": "op:feature_set_import"
+    },
+    {
+      "from": "op:feature_set_import",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "op:feature_set_overlap_qc",
+      "edge_type": "uses",
+      "label": "op:feature_set_overlap_qc"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "op:trajectory_geneset_dynamics",
+      "edge_type": "uses",
+      "label": "op:trajectory_geneset_dynamics"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "getter:wb_feature_sets",
+      "edge_type": "uses",
+      "label": "getter:wb_feature_sets"
+    },
+    {
+      "from": "getter:wb_feature_sets",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "artifact_type:obs_table:feature_set_import_manifest",
+      "edge_type": "uses",
+      "label": "artifact_type:obs_table:feature_set_import_manifest"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_import_manifest",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "artifact_type:obs_table:feature_set_overlap_qc",
+      "edge_type": "uses",
+      "label": "artifact_type:obs_table:feature_set_overlap_qc"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_overlap_qc",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "parameter:source_path",
+      "edge_type": "uses",
+      "label": "parameter:source_path"
+    },
+    {
+      "from": "parameter:source_path",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "parameter:namespace",
+      "edge_type": "uses",
+      "label": "parameter:namespace"
+    },
+    {
+      "from": "parameter:namespace",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "parameter:split_by_collection",
+      "edge_type": "uses",
+      "label": "parameter:split_by_collection"
+    },
+    {
+      "from": "parameter:split_by_collection",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "parameter:min_detected_fraction",
+      "edge_type": "uses",
+      "label": "parameter:min_detected_fraction"
+    },
+    {
+      "from": "parameter:min_detected_fraction",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "artifact_type:obs_table:feature_set_import_summary",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:feature_set_import_summary"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_import_summary",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "artifact_type:obs_table:feature_set_import_manifest",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:feature_set_import_manifest"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_import_manifest",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "artifact_type:obs_table:feature_set_overlap_qc",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:feature_set_overlap_qc"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_overlap_qc",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_import_qc_then_dynamics",
+      "to": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_geneset_dynamics"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "to": "recipe:feature_set_import_qc_then_dynamics",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_import_qc_then_dynamics"
     },
     {
       "from": "recipe:trajectory_signal_dynamics_discovery",

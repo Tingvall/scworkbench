@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-11T07:36:37+0200",
-  "op_count": 42,
+  "generated_at": "2026-06-12T11:03:44+0200",
+  "op_count": 44,
   "ops": [
     {
       "op_name": "leiden",
@@ -1431,6 +1431,244 @@
         }
       ],
       "promotable": "pathways",
+      "chunking": null
+    },
+    {
+      "op_name": "feature_set_import",
+      "title": "Feature-Set Library Import",
+      "description": "Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.",
+      "intent": ["feature_set", "import", "gene_set", "provenance", "library"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "import_summary",
+          "kind": "obs_table",
+          "description": "One-row summary of parsed/imported/skipped/rejected set counts."
+        },
+        {
+          "name": "import_manifest",
+          "kind": "obs_table",
+          "description": "One row per parsed feature set with target namespace, overlap counts, and import status."
+        },
+        {
+          "name": "rejected_sets",
+          "kind": "obs_table",
+          "description": "Feature sets rejected during import, typically because no genes mapped to the matrix."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "source_path",
+          "type": "path",
+          "default": null,
+          "help": "Path to GMT, RDS list/data.frame, or CSV-like table source."
+        },
+        {
+          "name": "source_format",
+          "type": "choice",
+          "default": "auto",
+          "choices": ["auto", "gmt", "rds", "table"],
+          "help": "Input parser. auto infers from file extension."
+        },
+        {
+          "name": "namespace",
+          "type": "string",
+          "default": null,
+          "help": "Target feature-set namespace base label."
+        },
+        {
+          "name": "collection",
+          "type": "string",
+          "default": null,
+          "help": "Optional collection label recorded in import manifests."
+        },
+        {
+          "name": "subcollection",
+          "type": "string",
+          "default": null,
+          "help": "Optional subcollection label; used for namespace splitting when requested."
+        },
+        {
+          "name": "species",
+          "type": "string",
+          "default": null,
+          "help": "Species/organism label recorded in feature-set metadata."
+        },
+        {
+          "name": "gene_id_type",
+          "type": "string",
+          "default": null,
+          "help": "Identifier type expected in source genes, for example gene_symbol."
+        },
+        {
+          "name": "set_id_col",
+          "type": "string",
+          "default": "feature_set",
+          "help": "For table sources, column containing set identifiers."
+        },
+        {
+          "name": "set_name_col",
+          "type": "string",
+          "default": null,
+          "help": "For table sources, optional human-readable set-name column."
+        },
+        {
+          "name": "gene_col",
+          "type": "string",
+          "default": "feature_id",
+          "help": "For table sources, column containing gene/feature identifiers."
+        },
+        {
+          "name": "description_col",
+          "type": "string",
+          "default": "description",
+          "help": "For table sources, optional set description column."
+        },
+        {
+          "name": "split_by_collection",
+          "type": "bool",
+          "default": false,
+          "help": "If TRUE, append detected/declared subcollection to the namespace base."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": true,
+          "help": "If FALSE, existing feature sets are skipped instead of replaced."
+        },
+        {
+          "name": "strict",
+          "type": "bool",
+          "default": false,
+          "help": "If TRUE, error on genes absent from the matrix; otherwise drop absent genes."
+        },
+        {
+          "name": "source_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional source/library identifier stored in feature-set metadata."
+        },
+        {
+          "name": "source_version",
+          "type": "string",
+          "default": null,
+          "help": "Optional source/library version stored in feature-set metadata."
+        }
+      ],
+      "promotable": ["import_summary", "import_manifest", "rejected_sets"],
+      "chunking": null
+    },
+    {
+      "op_name": "feature_set_overlap_qc",
+      "title": "Feature-Set Matrix Overlap QC",
+      "description": "Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.",
+      "intent": ["feature_set", "qc", "gene_set", "screening", "trajectory"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "overlap_qc",
+          "kind": "obs_table",
+          "description": "One row per feature set with raw, mapped, detected counts and include/exclude status."
+        },
+        {
+          "name": "namespace_summary",
+          "kind": "obs_table",
+          "description": "Namespace-level count and overlap summaries."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "namespace",
+          "type": "string",
+          "default": null,
+          "help": "Single feature-set namespace to QC."
+        },
+        {
+          "name": "namespaces",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional multiple feature-set namespaces to QC."
+        },
+        {
+          "name": "feature_sets",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature-set subset within selected namespaces."
+        },
+        {
+          "name": "min_set_size",
+          "type": "int",
+          "default": 1,
+          "min": 0,
+          "help": "Minimum mapped/detected genes required to include a set."
+        },
+        {
+          "name": "max_set_size",
+          "type": "dbl",
+          "default": "Inf",
+          "min": 1,
+          "help": "Maximum mapped/detected genes allowed to include a set."
+        },
+        {
+          "name": "min_detected_fraction",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum fraction of source genes detected in the matrix."
+        },
+        {
+          "name": "deduplicate_sets",
+          "type": "bool",
+          "default": true,
+          "help": "If TRUE, duplicate mapped-gene signatures after the first are excluded."
+        }
+      ],
+      "promotable": ["overlap_qc", "namespace_summary"],
       "chunking": null
     },
     {

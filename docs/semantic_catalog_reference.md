@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-11T07:36:38+0200
+Generated at: 2026-06-12T11:03:45+0200
 
-Record count: 251
+Record count: 263
 
-Graph edges: 647
+Graph edges: 701
 
 ## artifact_type
 
@@ -81,6 +81,36 @@ Description: Feature-level differential or dynamic statistics along trajectory l
 Title: Trajectory Branch Compare Table
 
 Description: Feature-level branch comparison statistics.
+
+### `artifact_type:obs_table:feature_set_import_summary`
+
+Title: Feature-Set Import Summary
+
+Description: Summary counts for a feature-set library import into bundle namespaces.
+
+### `artifact_type:obs_table:feature_set_import_manifest`
+
+Title: Feature-Set Import Manifest
+
+Description: One row per parsed feature set with namespace, collection, mapped-gene counts, status, and source metadata.
+
+### `artifact_type:obs_table:feature_set_import_rejected`
+
+Title: Rejected Feature-Set Import Table
+
+Description: Feature sets rejected during import, typically because no source genes mapped to the target matrix.
+
+### `artifact_type:obs_table:feature_set_overlap_qc`
+
+Title: Feature-Set Matrix Overlap QC
+
+Description: Per-set raw, mapped, detected, duplicate, and include/exclude screening metrics against a matrix.
+
+### `artifact_type:obs_table:feature_set_overlap_qc_summary`
+
+Title: Feature-Set Namespace Overlap Summary
+
+Description: Namespace-level overlap QC summary for imported feature-set libraries.
 
 ### `artifact_type:obs_table:pathway_enrich`
 
@@ -854,6 +884,18 @@ Title: Pathway Enrichment (Namespace)
 
 Description: Hypergeometric enrichment against all feature sets in a namespace.
 
+### `op:feature_set_import`
+
+Title: Feature-Set Library Import
+
+Description: Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.
+
+### `op:feature_set_overlap_qc`
+
+Title: Feature-Set Matrix Overlap QC
+
+Description: Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.
+
 ### `op:cell_suffix_label`
 
 Title: Cell Labels From ID Suffix
@@ -1101,6 +1143,30 @@ Description: Selects the registered collection of feature sets to screen or scor
 Title: Feature-Set Subset
 
 Description: Optional restriction to named feature sets within a namespace.
+
+### `parameter:source_path`
+
+Title: Feature-Set Source Path
+
+Description: File-backed source for feature-set imports, such as GMT, RDS list/data.frame, or CSV-style table.
+
+### `parameter:source_format`
+
+Title: Feature-Set Source Format
+
+Description: Parser choice for a feature-set import source.
+
+### `parameter:split_by_collection`
+
+Title: Split Feature-Set Namespace By Collection
+
+Description: Controls whether broad gene-set libraries are split into collection/subcollection namespaces during import.
+
+### `parameter:gene_id_type`
+
+Title: Gene Identifier Type
+
+Description: Records the identifier convention used by imported feature-set genes.
 
 ### `parameter:signal_keys`
 
@@ -1401,6 +1467,12 @@ Description: Curves in an arbitrary-dimensional bundle space, represented point-
 Title: Run gene-set dynamics along a trajectory
 
 Description: Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.
+
+### `recipe:feature_set_import_qc_then_dynamics`
+
+Title: Import and QC a feature-set library before trajectory screening
+
+Description: Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.
 
 ### `recipe:trajectory_signal_dynamics_discovery`
 

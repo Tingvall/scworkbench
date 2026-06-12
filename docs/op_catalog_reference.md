@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-11T07:36:37+0200
+Generated at: 2026-06-12T11:03:44+0200
 
-Operation count: 42
+Operation count: 44
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -430,6 +430,70 @@ Key parameters:
 - `min_set_size` (int, default=5): Minimum pathway size to test.
 - `max_set_size` (int, default=5000): Maximum pathway size to test.
 - `p_adjust_method` (string, default=BH): Method passed to p.adjust.
+
+## `feature_set_import`
+
+Title: Feature-Set Library Import
+
+Intent: feature_set, import, gene_set, provenance, library
+
+Description: Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.
+
+Consumes:
+- `matrix`: matrix
+- `cell_set`: select
+
+Produces:
+- `import_summary`: obs_table - One-row summary of parsed/imported/skipped/rejected set counts.
+- `import_manifest`: obs_table - One row per parsed feature set with target namespace, overlap counts, and import status.
+- `rejected_sets`: obs_table - Feature sets rejected during import, typically because no genes mapped to the matrix.
+
+Promotable outputs: import_summary, import_manifest, rejected_sets
+
+Key parameters:
+- `source_path` (path, default=NULL): Path to GMT, RDS list/data.frame, or CSV-like table source.
+- `source_format` (choice, default=auto): Input parser. auto infers from file extension.
+- `namespace` (string, default=NULL): Target feature-set namespace base label.
+- `collection` (string, default=NULL): Optional collection label recorded in import manifests.
+- `subcollection` (string, default=NULL): Optional subcollection label; used for namespace splitting when requested.
+- `species` (string, default=NULL): Species/organism label recorded in feature-set metadata.
+- `gene_id_type` (string, default=NULL): Identifier type expected in source genes, for example gene_symbol.
+- `set_id_col` (string, default=feature_set): For table sources, column containing set identifiers.
+- `set_name_col` (string, default=NULL): For table sources, optional human-readable set-name column.
+- `gene_col` (string, default=feature_id): For table sources, column containing gene/feature identifiers.
+- `description_col` (string, default=description): For table sources, optional set description column.
+- `split_by_collection` (bool, default=FALSE): If TRUE, append detected/declared subcollection to the namespace base.
+- `overwrite` (bool, default=TRUE): If FALSE, existing feature sets are skipped instead of replaced.
+- `strict` (bool, default=FALSE): If TRUE, error on genes absent from the matrix; otherwise drop absent genes.
+- `source_id` (string, default=NULL): Optional source/library identifier stored in feature-set metadata.
+- `source_version` (string, default=NULL): Optional source/library version stored in feature-set metadata.
+
+## `feature_set_overlap_qc`
+
+Title: Feature-Set Matrix Overlap QC
+
+Intent: feature_set, qc, gene_set, screening, trajectory
+
+Description: Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.
+
+Consumes:
+- `matrix`: matrix
+- `cell_set`: select
+
+Produces:
+- `overlap_qc`: obs_table - One row per feature set with raw, mapped, detected counts and include/exclude status.
+- `namespace_summary`: obs_table - Namespace-level count and overlap summaries.
+
+Promotable outputs: overlap_qc, namespace_summary
+
+Key parameters:
+- `namespace` (string, default=NULL): Single feature-set namespace to QC.
+- `namespaces` (string_vec, default=NULL): Optional multiple feature-set namespaces to QC.
+- `feature_sets` (string_vec, default=NULL): Optional feature-set subset within selected namespaces.
+- `min_set_size` (int, default=1): Minimum mapped/detected genes required to include a set.
+- `max_set_size` (dbl, default=Inf): Maximum mapped/detected genes allowed to include a set.
+- `min_detected_fraction` (dbl, default=0): Minimum fraction of source genes detected in the matrix.
+- `deduplicate_sets` (bool, default=TRUE): If TRUE, duplicate mapped-gene signatures after the first are excluded.
 
 ## `cell_suffix_label`
 

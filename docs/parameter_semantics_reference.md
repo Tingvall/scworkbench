@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 40
+Parameter count: 44
 
 ## classification
 
@@ -265,6 +265,72 @@ Guidance:
 - Set relative to the selected matrix or score method.
 
 Aliases: low_expression_threshold, low_signal_threshold
+
+## import
+
+### `source_path`
+
+Title: Feature-Set Source Path
+
+Description: File-backed source for feature-set imports, such as GMT, RDS list/data.frame, or CSV-style table.
+
+Applies to: feature-set import params
+
+Affects: imported library, provenance, replay
+
+Guidance:
+- Use file-backed imports for agent/session execution so provenance can point to the source.
+- Record source_id and source_version when the path alone is not a durable library identity.
+
+Aliases: gene_set_file, gmt_path
+
+### `source_format`
+
+Title: Feature-Set Source Format
+
+Description: Parser choice for a feature-set import source.
+
+Applies to: feature-set import params
+
+Affects: column interpretation, wide versus long parsing, library import validity
+
+Guidance:
+- Use auto for ordinary .gmt and .rds files.
+- Set explicitly when a file extension is ambiguous.
+
+Aliases: format, input_format
+
+### `split_by_collection`
+
+Title: Split Feature-Set Namespace By Collection
+
+Description: Controls whether broad gene-set libraries are split into collection/subcollection namespaces during import.
+
+Applies to: feature-set import params
+
+Affects: namespace granularity, screening universe, multiple testing universe
+
+Guidance:
+- Use TRUE for broad mixed libraries such as MSigDB when collection/subcollection labels are meaningful.
+- Keep WikiPathways or focused custom libraries in their own namespace unless splitting adds biological clarity.
+
+Aliases: split_namespace, collection_split
+
+### `gene_id_type`
+
+Title: Gene Identifier Type
+
+Description: Records the identifier convention used by imported feature-set genes.
+
+Applies to: feature-set import params
+
+Affects: mapping interpretation, cross-species reliability, QC interpretation
+
+Guidance:
+- Use explicit labels such as gene_symbol or ensembl_id when known.
+- The current import path matches against bundle feature IDs; it does not perform synonym or ortholog mapping.
+
+Aliases: feature_id_type, id_type
 
 ## mutation
 

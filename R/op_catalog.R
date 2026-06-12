@@ -532,6 +532,60 @@
   raw
 }
 
+.wb_runner_feature_set_import <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "feature_set_import runner: missing resolved$matrix.")
+  .wb_assert(!is.null(inputs$namespace), "feature_set_import runner: inputs$namespace is required.")
+
+  raw <- wb_op_feature_set_import(
+    bundle = bundle,
+    matrix_id = resolved$matrix$matrix_id,
+    source_path = inputs$source_path %||% NULL,
+    source_format = inputs$source_format %||% "auto",
+    namespace = as.character(inputs$namespace)[1],
+    collection = inputs$collection %||% NULL,
+    subcollection = inputs$subcollection %||% NULL,
+    species = inputs$species %||% NULL,
+    organism = inputs$organism %||% NULL,
+    gene_id_type = inputs$gene_id_type %||% NULL,
+    set_id_col = inputs$set_id_col %||% "feature_set",
+    set_name_col = inputs$set_name_col %||% NULL,
+    gene_col = inputs$gene_col %||% "feature_id",
+    description_col = inputs$description_col %||% "description",
+    split_by_collection = inputs$split_by_collection %||% FALSE,
+    overwrite = inputs$overwrite %||% TRUE,
+    strict = inputs$strict %||% FALSE,
+    created_by = inputs$created_by %||% NULL,
+    source_id = inputs$source_id %||% NULL,
+    source_version = inputs$source_version %||% NULL,
+    origin = inputs$origin %||% "imported",
+    is_readonly = inputs$is_readonly %||% TRUE
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "feature_set_import must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
+.wb_runner_feature_set_overlap_qc <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "feature_set_overlap_qc runner: missing resolved$matrix.")
+
+  raw <- wb_op_feature_set_overlap_qc(
+    bundle = bundle,
+    matrix_id = resolved$matrix$matrix_id,
+    namespaces = inputs$namespaces %||% NULL,
+    namespace = inputs$namespace %||% NULL,
+    feature_sets = inputs$feature_sets %||% NULL,
+    min_set_size = inputs$min_set_size %||% 1L,
+    max_set_size = inputs$max_set_size %||% Inf,
+    min_detected_fraction = inputs$min_detected_fraction %||% 0,
+    deduplicate_sets = inputs$deduplicate_sets %||% TRUE
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "feature_set_overlap_qc must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_knn_pseudobulk <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "knn_pseudobulk runner: missing resolved$matrix.")
   .wb_assert(!is.null(resolved$space), "knn_pseudobulk runner: missing resolved$space.")
@@ -1915,6 +1969,119 @@
         pathways = list(
           kind = "obs_table",
           description = "Pathway enrichment statistics for one namespace."
+        )
+      )
+    ),
+    feature_set_import = list(
+      op_name = "feature_set_import",
+      title = "Feature-Set Library Import",
+      description = "Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.",
+      intent = c("feature_set", "import", "gene_set", "provenance", "library"),
+      requires = list(matrix = "matrix"),
+      produces = list(
+        import_summary = "obs_table",
+        import_manifest = "obs_table",
+        rejected_sets = "obs_table"
+      ),
+      promotable = c("import_summary", "import_manifest", "rejected_sets"),
+      runner = .wb_runner_feature_set_import,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix")
+      ),
+      params = list(
+        list(name = "source_path", type = "path", default = NULL,
+             help = "Path to GMT, RDS list/data.frame, or CSV-like table source."),
+        list(name = "source_format", type = "choice", default = "auto",
+             choices = c("auto", "gmt", "rds", "table"),
+             help = "Input parser. auto infers from file extension."),
+        list(name = "namespace", type = "string", default = NULL,
+             help = "Target feature-set namespace base label."),
+        list(name = "collection", type = "string", default = NULL,
+             help = "Optional collection label recorded in import manifests."),
+        list(name = "subcollection", type = "string", default = NULL,
+             help = "Optional subcollection label; used for namespace splitting when requested."),
+        list(name = "species", type = "string", default = NULL,
+             help = "Species/organism label recorded in feature-set metadata."),
+        list(name = "gene_id_type", type = "string", default = NULL,
+             help = "Identifier type expected in source genes, for example gene_symbol."),
+        list(name = "set_id_col", type = "string", default = "feature_set",
+             help = "For table sources, column containing set identifiers."),
+        list(name = "set_name_col", type = "string", default = NULL,
+             help = "For table sources, optional human-readable set-name column."),
+        list(name = "gene_col", type = "string", default = "feature_id",
+             help = "For table sources, column containing gene/feature identifiers."),
+        list(name = "description_col", type = "string", default = "description",
+             help = "For table sources, optional set description column."),
+        list(name = "split_by_collection", type = "bool", default = FALSE,
+             help = "If TRUE, append detected/declared subcollection to the namespace base."),
+        list(name = "overwrite", type = "bool", default = TRUE,
+             help = "If FALSE, existing feature sets are skipped instead of replaced."),
+        list(name = "strict", type = "bool", default = FALSE,
+             help = "If TRUE, error on genes absent from the matrix; otherwise drop absent genes."),
+        list(name = "source_id", type = "string", default = NULL,
+             help = "Optional source/library identifier stored in feature-set metadata."),
+        list(name = "source_version", type = "string", default = NULL,
+             help = "Optional source/library version stored in feature-set metadata.")
+      ),
+      interface_produces = list(
+        import_summary = list(
+          kind = "obs_table",
+          table_type = "feature_set_import_summary",
+          description = "One-row summary of parsed/imported/skipped/rejected set counts."
+        ),
+        import_manifest = list(
+          kind = "obs_table",
+          table_type = "feature_set_import_manifest",
+          description = "One row per parsed feature set with target namespace, overlap counts, and import status."
+        ),
+        rejected_sets = list(
+          kind = "obs_table",
+          table_type = "feature_set_import_rejected",
+          description = "Feature sets rejected during import, typically because no genes mapped to the matrix."
+        )
+      )
+    ),
+    feature_set_overlap_qc = list(
+      op_name = "feature_set_overlap_qc",
+      title = "Feature-Set Matrix Overlap QC",
+      description = "Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.",
+      intent = c("feature_set", "qc", "gene_set", "screening", "trajectory"),
+      requires = list(matrix = "matrix"),
+      produces = list(
+        overlap_qc = "obs_table",
+        namespace_summary = "obs_table"
+      ),
+      promotable = c("overlap_qc", "namespace_summary"),
+      runner = .wb_runner_feature_set_overlap_qc,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix")
+      ),
+      params = list(
+        list(name = "namespace", type = "string", default = NULL,
+             help = "Single feature-set namespace to QC."),
+        list(name = "namespaces", type = "string_vec", default = NULL,
+             help = "Optional multiple feature-set namespaces to QC."),
+        list(name = "feature_sets", type = "string_vec", default = NULL,
+             help = "Optional feature-set subset within selected namespaces."),
+        list(name = "min_set_size", type = "int", default = 1, min = 0,
+             help = "Minimum mapped/detected genes required to include a set."),
+        list(name = "max_set_size", type = "dbl", default = Inf, min = 1,
+             help = "Maximum mapped/detected genes allowed to include a set."),
+        list(name = "min_detected_fraction", type = "dbl", default = 0, min = 0, max = 1,
+             help = "Minimum fraction of source genes detected in the matrix."),
+        list(name = "deduplicate_sets", type = "bool", default = TRUE,
+             help = "If TRUE, duplicate mapped-gene signatures after the first are excluded.")
+      ),
+      interface_produces = list(
+        overlap_qc = list(
+          kind = "obs_table",
+          table_type = "feature_set_overlap_qc",
+          description = "One row per feature set with raw, mapped, detected counts and include/exclude status."
+        ),
+        namespace_summary = list(
+          kind = "obs_table",
+          table_type = "feature_set_overlap_qc_summary",
+          description = "Namespace-level count and overlap summaries."
         )
       )
     ),

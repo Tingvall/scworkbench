@@ -125,6 +125,8 @@ Note:
 - `wb_op_expr_slice`: Slice an expression matrix (thin wrapper over wb_slice)
 - `wb_op_expr_vector`: Get one feature vector across cells (thin wrapper over wb_vector)
 - `wb_op_expr_zscore_by_feature`: Z-score normalize features (row-wise) on a slice
+- `wb_op_feature_set_import`: Import GMT/RDS/table feature-set libraries into bundle namespaces with import manifest artifacts
+- `wb_op_feature_set_overlap_qc`: Compute matrix-overlap QC for feature-set namespaces before enrichment or trajectory screening
 - `wb_op_interface`: High-level op interface spec (for UIs and agents)
 - `wb_op_knn_graph`: Build a kNN graph from a space
 - `wb_op_knn_neighbors`: Find kNN neighbors in a space

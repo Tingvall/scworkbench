@@ -1,15 +1,15 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-11T07:36:38+0200",
-  "record_count": 251,
+  "generated_at": "2026-06-12T11:03:45+0200",
+  "record_count": 263,
   "record_type_counts": {
-    "artifact_type": 56,
+    "artifact_type": 61,
     "getter": 68,
-    "op": 42,
-    "parameter": 40,
+    "op": 44,
+    "parameter": 44,
     "plot": 12,
     "primitive": 11,
-    "recipe": 8,
+    "recipe": 9,
     "wrangler": 14
   },
   "records": [
@@ -1584,6 +1584,262 @@
           }
         ],
         "promotable": "pathways",
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:feature_set_import",
+      "record_type": "op",
+      "name": "feature_set_import",
+      "title": "Feature-Set Library Import",
+      "description": "Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.",
+      "search_text": "Feature-Set Library Import\nImport GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.\nfeature_set\nimport\ngene_set\nprovenance\nlibrary\nmatrix\nTRUE\ncell_set\nselect\nimport_summary\nobs_table\nOne-row summary of parsed/imported/skipped/rejected set counts.\nimport_manifest\nOne row per parsed feature set with target namespace, overlap counts, and import status.\nrejected_sets\nFeature sets rejected during import, typically because no genes mapped to the matrix.\nsource_path\npath\nPath to GMT, RDS list/data.frame, or CSV-like table source.\nsource_format\nchoice\nauto\ngmt\nrds\ntable\nInput parser. auto infers from file extension.\nnamespace\nstring\nTarget feature-set namespace base label.\ncollection\nOptional collection label recorded in import manifests.\nsubcollection\nOptional subcollection label; used for namespace splitting when requested.\nspecies\nSpecies/organism label recorded in feature-set metadata.\ngene_id_type\nIdentifier type expected in source genes, for example gene_symbol.\nset_id_col\nFor table sources, column containing set identifiers.\nset_name_col\nFor table sources, optional human-readable set-name column.\ngene_col\nfeature_id\nFor table sources, column containing gene/feature identifiers.\ndescription_col\ndescription\nFor table sources, optional set description column.\nsplit_by_collection\nbool\nFALSE\nIf TRUE, append detected/declared subcollection to the namespace base.\noverwrite\nIf FALSE, existing feature sets are skipped instead of replaced.\nstrict\nIf TRUE, error on genes absent from the matrix; otherwise drop absent genes.\nsource_id\nOptional source/library identifier stored in feature-set metadata.\nsource_version\nOptional source/library version stored in feature-set metadata.",
+      "tags": ["op", "feature_set", "import", "gene_set", "provenance", "library"],
+      "payload": {
+        "op_name": "feature_set_import",
+        "title": "Feature-Set Library Import",
+        "description": "Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.",
+        "intent": ["feature_set", "import", "gene_set", "provenance", "library"],
+        "consumes": [
+          {
+            "name": "matrix",
+            "kind": "matrix",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "import_summary",
+            "kind": "obs_table",
+            "description": "One-row summary of parsed/imported/skipped/rejected set counts."
+          },
+          {
+            "name": "import_manifest",
+            "kind": "obs_table",
+            "description": "One row per parsed feature set with target namespace, overlap counts, and import status."
+          },
+          {
+            "name": "rejected_sets",
+            "kind": "obs_table",
+            "description": "Feature sets rejected during import, typically because no genes mapped to the matrix."
+          }
+        ],
+        "inputs": {
+          "matrix": {
+            "required": true,
+            "kind": "matrix"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "source_path",
+            "type": "path",
+            "default": null,
+            "help": "Path to GMT, RDS list/data.frame, or CSV-like table source."
+          },
+          {
+            "name": "source_format",
+            "type": "choice",
+            "default": "auto",
+            "choices": ["auto", "gmt", "rds", "table"],
+            "help": "Input parser. auto infers from file extension."
+          },
+          {
+            "name": "namespace",
+            "type": "string",
+            "default": null,
+            "help": "Target feature-set namespace base label."
+          },
+          {
+            "name": "collection",
+            "type": "string",
+            "default": null,
+            "help": "Optional collection label recorded in import manifests."
+          },
+          {
+            "name": "subcollection",
+            "type": "string",
+            "default": null,
+            "help": "Optional subcollection label; used for namespace splitting when requested."
+          },
+          {
+            "name": "species",
+            "type": "string",
+            "default": null,
+            "help": "Species/organism label recorded in feature-set metadata."
+          },
+          {
+            "name": "gene_id_type",
+            "type": "string",
+            "default": null,
+            "help": "Identifier type expected in source genes, for example gene_symbol."
+          },
+          {
+            "name": "set_id_col",
+            "type": "string",
+            "default": "feature_set",
+            "help": "For table sources, column containing set identifiers."
+          },
+          {
+            "name": "set_name_col",
+            "type": "string",
+            "default": null,
+            "help": "For table sources, optional human-readable set-name column."
+          },
+          {
+            "name": "gene_col",
+            "type": "string",
+            "default": "feature_id",
+            "help": "For table sources, column containing gene/feature identifiers."
+          },
+          {
+            "name": "description_col",
+            "type": "string",
+            "default": "description",
+            "help": "For table sources, optional set description column."
+          },
+          {
+            "name": "split_by_collection",
+            "type": "bool",
+            "default": false,
+            "help": "If TRUE, append detected/declared subcollection to the namespace base."
+          },
+          {
+            "name": "overwrite",
+            "type": "bool",
+            "default": true,
+            "help": "If FALSE, existing feature sets are skipped instead of replaced."
+          },
+          {
+            "name": "strict",
+            "type": "bool",
+            "default": false,
+            "help": "If TRUE, error on genes absent from the matrix; otherwise drop absent genes."
+          },
+          {
+            "name": "source_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional source/library identifier stored in feature-set metadata."
+          },
+          {
+            "name": "source_version",
+            "type": "string",
+            "default": null,
+            "help": "Optional source/library version stored in feature-set metadata."
+          }
+        ],
+        "promotable": ["import_summary", "import_manifest", "rejected_sets"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:feature_set_overlap_qc",
+      "record_type": "op",
+      "name": "feature_set_overlap_qc",
+      "title": "Feature-Set Matrix Overlap QC",
+      "description": "Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.",
+      "search_text": "Feature-Set Matrix Overlap QC\nScreen imported feature-set namespaces against a matrix before pathway or trajectory discovery.\nfeature_set\nqc\ngene_set\nscreening\ntrajectory\nmatrix\nTRUE\ncell_set\nselect\noverlap_qc\nobs_table\nOne row per feature set with raw, mapped, detected counts and include/exclude status.\nnamespace_summary\nNamespace-level count and overlap summaries.\nnamespace\nstring\nSingle feature-set namespace to QC.\nnamespaces\nstring_vec\nOptional multiple feature-set namespaces to QC.\nfeature_sets\nOptional feature-set subset within selected namespaces.\nmin_set_size\nint\n1\n0\nMinimum mapped/detected genes required to include a set.\nmax_set_size\ndbl\nInf\nMaximum mapped/detected genes allowed to include a set.\nmin_detected_fraction\nMinimum fraction of source genes detected in the matrix.\ndeduplicate_sets\nbool\nIf TRUE, duplicate mapped-gene signatures after the first are excluded.",
+      "tags": ["op", "feature_set", "qc", "gene_set", "screening", "trajectory"],
+      "payload": {
+        "op_name": "feature_set_overlap_qc",
+        "title": "Feature-Set Matrix Overlap QC",
+        "description": "Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.",
+        "intent": ["feature_set", "qc", "gene_set", "screening", "trajectory"],
+        "consumes": [
+          {
+            "name": "matrix",
+            "kind": "matrix",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "overlap_qc",
+            "kind": "obs_table",
+            "description": "One row per feature set with raw, mapped, detected counts and include/exclude status."
+          },
+          {
+            "name": "namespace_summary",
+            "kind": "obs_table",
+            "description": "Namespace-level count and overlap summaries."
+          }
+        ],
+        "inputs": {
+          "matrix": {
+            "required": true,
+            "kind": "matrix"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "namespace",
+            "type": "string",
+            "default": null,
+            "help": "Single feature-set namespace to QC."
+          },
+          {
+            "name": "namespaces",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional multiple feature-set namespaces to QC."
+          },
+          {
+            "name": "feature_sets",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional feature-set subset within selected namespaces."
+          },
+          {
+            "name": "min_set_size",
+            "type": "int",
+            "default": 1,
+            "min": 0,
+            "help": "Minimum mapped/detected genes required to include a set."
+          },
+          {
+            "name": "max_set_size",
+            "type": "dbl",
+            "default": "Inf",
+            "min": 1,
+            "help": "Maximum mapped/detected genes allowed to include a set."
+          },
+          {
+            "name": "min_detected_fraction",
+            "type": "dbl",
+            "default": 0,
+            "min": 0,
+            "max": 1,
+            "help": "Minimum fraction of source genes detected in the matrix."
+          },
+          {
+            "name": "deduplicate_sets",
+            "type": "bool",
+            "default": true,
+            "help": "If TRUE, duplicate mapped-gene signatures after the first are excluded."
+          }
+        ],
+        "promotable": ["overlap_qc", "namespace_summary"],
         "chunking": null
       }
     },
@@ -7399,6 +7655,96 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:feature_set_import_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_import_summary",
+      "title": "Feature-Set Import Summary",
+      "description": "Summary counts for a feature-set library import into bundle namespaces.",
+      "search_text": "Feature-Set Import Summary\nSummary counts for a feature-set library import into bundle namespaces.\nobs_table\nfeature_set_import_summary\nnamespace\naudit gene-set library imports\ncheck imported/rejected set counts",
+      "tags": ["artifact_type", "obs_table", "feature_set_import_summary"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_import_summary",
+        "primitive_kind": "obs_table",
+        "title": "Feature-Set Import Summary",
+        "description": "Summary counts for a feature-set library import into bundle namespaces.",
+        "table_type": "feature_set_import_summary",
+        "entity_kind": "namespace",
+        "use_when": ["audit gene-set library imports", "check imported/rejected set counts"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_import_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_import_manifest",
+      "title": "Feature-Set Import Manifest",
+      "description": "One row per parsed feature set with namespace, collection, mapped-gene counts, status, and source metadata.",
+      "search_text": "Feature-Set Import Manifest\nOne row per parsed feature set with namespace, collection, mapped-gene counts, status, and source metadata.\nobs_table\nfeature_set_import_manifest\nfeature_set\naudit imported feature sets\ntrace namespace registry mutations",
+      "tags": ["artifact_type", "obs_table", "feature_set_import_manifest"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_import_manifest",
+        "primitive_kind": "obs_table",
+        "title": "Feature-Set Import Manifest",
+        "description": "One row per parsed feature set with namespace, collection, mapped-gene counts, status, and source metadata.",
+        "table_type": "feature_set_import_manifest",
+        "entity_kind": "feature_set",
+        "use_when": ["audit imported feature sets", "trace namespace registry mutations"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_import_rejected",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_import_rejected",
+      "title": "Rejected Feature-Set Import Table",
+      "description": "Feature sets rejected during import, typically because no source genes mapped to the target matrix.",
+      "search_text": "Rejected Feature-Set Import Table\nFeature sets rejected during import, typically because no source genes mapped to the target matrix.\nobs_table\nfeature_set_import_rejected\nfeature_set\ninspect missing gene sets\ndebug feature-set import failures",
+      "tags": ["artifact_type", "obs_table", "feature_set_import_rejected"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_import_rejected",
+        "primitive_kind": "obs_table",
+        "title": "Rejected Feature-Set Import Table",
+        "description": "Feature sets rejected during import, typically because no source genes mapped to the target matrix.",
+        "table_type": "feature_set_import_rejected",
+        "entity_kind": "feature_set",
+        "use_when": ["inspect missing gene sets", "debug feature-set import failures"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_overlap_qc",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_overlap_qc",
+      "title": "Feature-Set Matrix Overlap QC",
+      "description": "Per-set raw, mapped, detected, duplicate, and include/exclude screening metrics against a matrix.",
+      "search_text": "Feature-Set Matrix Overlap QC\nPer-set raw, mapped, detected, duplicate, and include/exclude screening metrics against a matrix.\nobs_table\nfeature_set_overlap_qc\nfeature_set\nfilter feature sets before trajectory dynamics\nmeasure matrix coverage of gene-set libraries",
+      "tags": ["artifact_type", "obs_table", "feature_set_overlap_qc"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_overlap_qc",
+        "primitive_kind": "obs_table",
+        "title": "Feature-Set Matrix Overlap QC",
+        "description": "Per-set raw, mapped, detected, duplicate, and include/exclude screening metrics against a matrix.",
+        "table_type": "feature_set_overlap_qc",
+        "entity_kind": "feature_set",
+        "use_when": ["filter feature sets before trajectory dynamics", "measure matrix coverage of gene-set libraries"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_overlap_qc_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_overlap_qc_summary",
+      "title": "Feature-Set Namespace Overlap Summary",
+      "description": "Namespace-level overlap QC summary for imported feature-set libraries.",
+      "search_text": "Feature-Set Namespace Overlap Summary\nNamespace-level overlap QC summary for imported feature-set libraries.\nobs_table\nfeature_set_overlap_qc_summary\nnamespace\ncompare feature-set namespace coverage\nchoose libraries for screening",
+      "tags": ["artifact_type", "obs_table", "feature_set_overlap_qc_summary"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_overlap_qc_summary",
+        "primitive_kind": "obs_table",
+        "title": "Feature-Set Namespace Overlap Summary",
+        "description": "Namespace-level overlap QC summary for imported feature-set libraries.",
+        "table_type": "feature_set_overlap_qc_summary",
+        "entity_kind": "namespace",
+        "use_when": ["compare feature-set namespace coverage", "choose libraries for screening"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:pathway_enrich",
       "record_type": "artifact_type",
       "name": "obs_table:pathway_enrich",
@@ -8476,6 +8822,82 @@
       }
     },
     {
+      "record_id": "parameter:source_path",
+      "record_type": "parameter",
+      "name": "source_path",
+      "title": "Feature-Set Source Path",
+      "description": "File-backed source for feature-set imports, such as GMT, RDS list/data.frame, or CSV-style table.",
+      "search_text": "Feature-Set Source Path\nFile-backed source for feature-set imports, such as GMT, RDS list/data.frame, or CSV-style table.\nimport\nfeature-set import params\nimported library\nprovenance\nreplay\nUse file-backed imports for agent/session execution so provenance can point to the source.\nRecord source_id and source_version when the path alone is not a durable library identity.\ngene_set_file\ngmt_path",
+      "tags": ["parameter", "import", "gene_set_file", "gmt_path"],
+      "payload": {
+        "parameter_name": "source_path",
+        "title": "Feature-Set Source Path",
+        "category": "import",
+        "description": "File-backed source for feature-set imports, such as GMT, RDS list/data.frame, or CSV-style table.",
+        "applies_to": "feature-set import params",
+        "affects": ["imported library", "provenance", "replay"],
+        "guidance": ["Use file-backed imports for agent/session execution so provenance can point to the source.", "Record source_id and source_version when the path alone is not a durable library identity."],
+        "aliases": ["gene_set_file", "gmt_path"]
+      }
+    },
+    {
+      "record_id": "parameter:source_format",
+      "record_type": "parameter",
+      "name": "source_format",
+      "title": "Feature-Set Source Format",
+      "description": "Parser choice for a feature-set import source.",
+      "search_text": "Feature-Set Source Format\nParser choice for a feature-set import source.\nimport\nfeature-set import params\ncolumn interpretation\nwide versus long parsing\nlibrary import validity\nUse auto for ordinary .gmt and .rds files.\nSet explicitly when a file extension is ambiguous.\nformat\ninput_format",
+      "tags": ["parameter", "import", "format", "input_format"],
+      "payload": {
+        "parameter_name": "source_format",
+        "title": "Feature-Set Source Format",
+        "category": "import",
+        "description": "Parser choice for a feature-set import source.",
+        "applies_to": "feature-set import params",
+        "affects": ["column interpretation", "wide versus long parsing", "library import validity"],
+        "guidance": ["Use auto for ordinary .gmt and .rds files.", "Set explicitly when a file extension is ambiguous."],
+        "aliases": ["format", "input_format"]
+      }
+    },
+    {
+      "record_id": "parameter:split_by_collection",
+      "record_type": "parameter",
+      "name": "split_by_collection",
+      "title": "Split Feature-Set Namespace By Collection",
+      "description": "Controls whether broad gene-set libraries are split into collection/subcollection namespaces during import.",
+      "search_text": "Split Feature-Set Namespace By Collection\nControls whether broad gene-set libraries are split into collection/subcollection namespaces during import.\nimport\nfeature-set import params\nnamespace granularity\nscreening universe\nmultiple testing universe\nUse TRUE for broad mixed libraries such as MSigDB when collection/subcollection labels are meaningful.\nKeep WikiPathways or focused custom libraries in their own namespace unless splitting adds biological clarity.\nsplit_namespace\ncollection_split",
+      "tags": ["parameter", "import", "split_namespace", "collection_split"],
+      "payload": {
+        "parameter_name": "split_by_collection",
+        "title": "Split Feature-Set Namespace By Collection",
+        "category": "import",
+        "description": "Controls whether broad gene-set libraries are split into collection/subcollection namespaces during import.",
+        "applies_to": "feature-set import params",
+        "affects": ["namespace granularity", "screening universe", "multiple testing universe"],
+        "guidance": ["Use TRUE for broad mixed libraries such as MSigDB when collection/subcollection labels are meaningful.", "Keep WikiPathways or focused custom libraries in their own namespace unless splitting adds biological clarity."],
+        "aliases": ["split_namespace", "collection_split"]
+      }
+    },
+    {
+      "record_id": "parameter:gene_id_type",
+      "record_type": "parameter",
+      "name": "gene_id_type",
+      "title": "Gene Identifier Type",
+      "description": "Records the identifier convention used by imported feature-set genes.",
+      "search_text": "Gene Identifier Type\nRecords the identifier convention used by imported feature-set genes.\nimport\nfeature-set import params\nmapping interpretation\ncross-species reliability\nQC interpretation\nUse explicit labels such as gene_symbol or ensembl_id when known.\nThe current import path matches against bundle feature IDs; it does not perform synonym or ortholog mapping.\nfeature_id_type\nid_type",
+      "tags": ["parameter", "import", "feature_id_type", "id_type"],
+      "payload": {
+        "parameter_name": "gene_id_type",
+        "title": "Gene Identifier Type",
+        "category": "import",
+        "description": "Records the identifier convention used by imported feature-set genes.",
+        "applies_to": "feature-set import params",
+        "affects": ["mapping interpretation", "cross-species reliability", "QC interpretation"],
+        "guidance": ["Use explicit labels such as gene_symbol or ensembl_id when known.", "The current import path matches against bundle feature IDs; it does not perform synonym or ortholog mapping."],
+        "aliases": ["feature_id_type", "id_type"]
+      }
+    },
+    {
       "record_id": "parameter:signal_keys",
       "record_type": "parameter",
       "name": "signal_keys",
@@ -8972,6 +9394,27 @@
       }
     },
     {
+      "record_id": "recipe:feature_set_import_qc_then_dynamics",
+      "record_type": "recipe",
+      "name": "feature_set_import_qc_then_dynamics",
+      "title": "Import and QC a feature-set library before trajectory screening",
+      "description": "Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.",
+      "search_text": "Import and QC a feature-set library before trajectory screening\nCan this external gene-set library be used for dynamic program discovery along a trajectory?\nImport a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.\ntrajectory_discovery\nChoose the target matrix that defines the feature universe.\nRun feature_set_import with source_path, namespace, species/gene_id_type, and source_version.\nPromote import_summary, import_manifest, and rejected_sets for auditability.\nRun feature_set_overlap_qc on the imported namespace and inspect include/exclude reasons.\nUse the accepted namespace with trajectory_geneset_dynamics and report QC artifacts alongside dynamics.\nop:feature_set_import\nop:feature_set_overlap_qc\nop:trajectory_geneset_dynamics\ngetter:wb_feature_sets\nartifact_type:obs_table:feature_set_import_manifest\nartifact_type:obs_table:feature_set_overlap_qc\nparameter:source_path\nparameter:namespace\nparameter:split_by_collection\nparameter:min_detected_fraction\nartifact_type:obs_table:feature_set_import_summary\nartifact_type:obs_table:trajectory_geneset_dynamics\ncollaborator sends new GSEA/MSigDB/custom gene-set library\nneed to prove library coverage before screening pseudotime dynamics\nImport matching is against bundle feature IDs; synonym/ortholog mapping is not performed here.\nQC include/exclude thresholds define the screened universe and should be reported.\nBroad libraries should be split only when collection/subcollection semantics are meaningful.",
+      "tags": ["recipe", "trajectory_discovery", "collaborator sends new GSEA/MSigDB/custom gene-set library", "need to prove library coverage before screening pseudotime dynamics"],
+      "payload": {
+        "recipe_id": "feature_set_import_qc_then_dynamics",
+        "title": "Import and QC a feature-set library before trajectory screening",
+        "category": "trajectory_discovery",
+        "question": "Can this external gene-set library be used for dynamic program discovery along a trajectory?",
+        "description": "Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.",
+        "steps": ["Choose the target matrix that defines the feature universe.", "Run feature_set_import with source_path, namespace, species/gene_id_type, and source_version.", "Promote import_summary, import_manifest, and rejected_sets for auditability.", "Run feature_set_overlap_qc on the imported namespace and inspect include/exclude reasons.", "Use the accepted namespace with trajectory_geneset_dynamics and report QC artifacts alongside dynamics."],
+        "uses": ["op:feature_set_import", "op:feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "parameter:source_path", "parameter:namespace", "parameter:split_by_collection", "parameter:min_detected_fraction"],
+        "produces": ["artifact_type:obs_table:feature_set_import_summary", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "artifact_type:obs_table:trajectory_geneset_dynamics"],
+        "use_when": ["collaborator sends new GSEA/MSigDB/custom gene-set library", "need to prove library coverage before screening pseudotime dynamics"],
+        "cautions": ["Import matching is against bundle feature IDs; synonym/ortholog mapping is not performed here.", "QC include/exclude thresholds define the screened universe and should be reported.", "Broad libraries should be split only when collection/subcollection semantics are meaningful."]
+      }
+    },
+    {
       "record_id": "recipe:trajectory_signal_dynamics_discovery",
       "record_type": "recipe",
       "name": "trajectory_signal_dynamics_discovery",
@@ -9121,9 +9564,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-11T07:36:38+0200",
-    "node_count": 251,
-    "edge_count": 647,
+    "generated_at": "2026-06-12T11:03:45+0200",
+    "node_count": 263,
+    "edge_count": 701,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -9220,6 +9663,18 @@
         "record_type": "op",
         "name": "pathway_enrich",
         "title": "Pathway Enrichment (Namespace)"
+      },
+      {
+        "record_id": "op:feature_set_import",
+        "record_type": "op",
+        "name": "feature_set_import",
+        "title": "Feature-Set Library Import"
+      },
+      {
+        "record_id": "op:feature_set_overlap_qc",
+        "record_type": "op",
+        "name": "feature_set_overlap_qc",
+        "title": "Feature-Set Matrix Overlap QC"
       },
       {
         "record_id": "op:cell_suffix_label",
@@ -10080,6 +10535,36 @@
         "title": "Trajectory Branch Compare Table"
       },
       {
+        "record_id": "artifact_type:obs_table:feature_set_import_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_import_summary",
+        "title": "Feature-Set Import Summary"
+      },
+      {
+        "record_id": "artifact_type:obs_table:feature_set_import_manifest",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_import_manifest",
+        "title": "Feature-Set Import Manifest"
+      },
+      {
+        "record_id": "artifact_type:obs_table:feature_set_import_rejected",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_import_rejected",
+        "title": "Rejected Feature-Set Import Table"
+      },
+      {
+        "record_id": "artifact_type:obs_table:feature_set_overlap_qc",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_overlap_qc",
+        "title": "Feature-Set Matrix Overlap QC"
+      },
+      {
+        "record_id": "artifact_type:obs_table:feature_set_overlap_qc_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_overlap_qc_summary",
+        "title": "Feature-Set Namespace Overlap Summary"
+      },
+      {
         "record_id": "artifact_type:obs_table:pathway_enrich",
         "record_type": "artifact_type",
         "name": "obs_table:pathway_enrich",
@@ -10434,6 +10919,30 @@
         "title": "Feature-Set Subset"
       },
       {
+        "record_id": "parameter:source_path",
+        "record_type": "parameter",
+        "name": "source_path",
+        "title": "Feature-Set Source Path"
+      },
+      {
+        "record_id": "parameter:source_format",
+        "record_type": "parameter",
+        "name": "source_format",
+        "title": "Feature-Set Source Format"
+      },
+      {
+        "record_id": "parameter:split_by_collection",
+        "record_type": "parameter",
+        "name": "split_by_collection",
+        "title": "Split Feature-Set Namespace By Collection"
+      },
+      {
+        "record_id": "parameter:gene_id_type",
+        "record_type": "parameter",
+        "name": "gene_id_type",
+        "title": "Gene Identifier Type"
+      },
+      {
         "record_id": "parameter:signal_keys",
         "record_type": "parameter",
         "name": "signal_keys",
@@ -10588,6 +11097,12 @@
         "record_type": "recipe",
         "name": "trajectory_geneset_dynamics_discovery",
         "title": "Run gene-set dynamics along a trajectory"
+      },
+      {
+        "record_id": "recipe:feature_set_import_qc_then_dynamics",
+        "record_type": "recipe",
+        "name": "feature_set_import_qc_then_dynamics",
+        "title": "Import and QC a feature-set library before trajectory screening"
       },
       {
         "record_id": "recipe:trajectory_signal_dynamics_discovery",
@@ -11316,6 +11831,132 @@
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:pathways"
+      },
+      {
+        "from": "primitive:matrix",
+        "to": "op:feature_set_import",
+        "edge_type": "consumed_by",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:source_path",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:source_path"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:source_format",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:source_format"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:namespace",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:namespace"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:namespace",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:collection"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:gene_id_type",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:gene_id_type"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:split_by_collection",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:split_by_collection"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:overwrite"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:import_summary"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:import_manifest"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:rejected_sets"
+      },
+      {
+        "from": "primitive:matrix",
+        "to": "op:feature_set_overlap_qc",
+        "edge_type": "consumed_by",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "parameter:namespace",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:namespace"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "parameter:feature_sets",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:feature_sets"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "parameter:min_detected_fraction",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_detected_fraction"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:overlap_qc"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:namespace_summary"
       },
       {
         "from": "op:cell_suffix_label",
@@ -12944,6 +13585,36 @@
         "label": "wb_art_load"
       },
       {
+        "from": "artifact_type:obs_table:feature_set_import_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_import_manifest",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_import_rejected",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_overlap_qc",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_overlap_qc_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
         "from": "artifact_type:obs_table:pathway_enrich",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
@@ -13674,6 +14345,174 @@
         "to": "recipe:trajectory_geneset_dynamics_discovery",
         "edge_type": "produced_by_recipe",
         "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "op:feature_set_import",
+        "edge_type": "uses",
+        "label": "op:feature_set_import"
+      },
+      {
+        "from": "op:feature_set_import",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "op:feature_set_overlap_qc",
+        "edge_type": "uses",
+        "label": "op:feature_set_overlap_qc"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "op:trajectory_geneset_dynamics",
+        "edge_type": "uses",
+        "label": "op:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "getter:wb_feature_sets",
+        "edge_type": "uses",
+        "label": "getter:wb_feature_sets"
+      },
+      {
+        "from": "getter:wb_feature_sets",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "artifact_type:obs_table:feature_set_import_manifest",
+        "edge_type": "uses",
+        "label": "artifact_type:obs_table:feature_set_import_manifest"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_import_manifest",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "artifact_type:obs_table:feature_set_overlap_qc",
+        "edge_type": "uses",
+        "label": "artifact_type:obs_table:feature_set_overlap_qc"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_overlap_qc",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "parameter:source_path",
+        "edge_type": "uses",
+        "label": "parameter:source_path"
+      },
+      {
+        "from": "parameter:source_path",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "parameter:namespace",
+        "edge_type": "uses",
+        "label": "parameter:namespace"
+      },
+      {
+        "from": "parameter:namespace",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "parameter:split_by_collection",
+        "edge_type": "uses",
+        "label": "parameter:split_by_collection"
+      },
+      {
+        "from": "parameter:split_by_collection",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "parameter:min_detected_fraction",
+        "edge_type": "uses",
+        "label": "parameter:min_detected_fraction"
+      },
+      {
+        "from": "parameter:min_detected_fraction",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "artifact_type:obs_table:feature_set_import_summary",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:feature_set_import_summary"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_import_summary",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "artifact_type:obs_table:feature_set_import_manifest",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:feature_set_import_manifest"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_import_manifest",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "artifact_type:obs_table:feature_set_overlap_qc",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:feature_set_overlap_qc"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_overlap_qc",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_import_qc_then_dynamics",
+        "to": "artifact_type:obs_table:trajectory_geneset_dynamics",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_geneset_dynamics",
+        "to": "recipe:feature_set_import_qc_then_dynamics",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_import_qc_then_dynamics"
       },
       {
         "from": "recipe:trajectory_signal_dynamics_discovery",
