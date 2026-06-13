@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 44
+Parameter count: 49
 
 ## classification
 
@@ -331,6 +331,88 @@ Guidance:
 - The current import path matches against bundle feature IDs; it does not perform synonym or ortholog mapping.
 
 Aliases: feature_id_type, id_type
+
+## matrix_transfer
+
+### `source_matrix_id`
+
+Title: Source Matrix Identifier
+
+Description: Matrix id that owns the source matrix-scoped feature-set namespace or other transferable registry state.
+
+Applies to: matrix transfer params
+
+Affects: source feature universe, registry provenance, transfer validity
+
+Guidance:
+- Use a matrix whose feature IDs define the existing feature-set memberships.
+- Do not use this for cross-feature-type conversion; that requires an explicit mapping artifact.
+
+Aliases: from_matrix, source_matrix
+
+### `target_matrix_id`
+
+Title: Target Matrix Identifier
+
+Description: Matrix id that will receive transferred feature-set memberships after mirror or intersect validation.
+
+Applies to: matrix transfer params
+
+Affects: target feature universe, retained features, downstream namespace availability
+
+Guidance:
+- Use mirror only when source and target feature universes are identical.
+- Use intersect when feature universes overlap and loss should be recorded.
+
+Aliases: to_matrix, target_matrix
+
+### `target_namespace`
+
+Title: Target Feature-Set Namespace
+
+Description: Optional namespace assigned to transferred feature sets on the target matrix.
+
+Applies to: feature-set transfer params
+
+Affects: downstream namespace selection, provenance readability
+
+Guidance:
+- Leave NULL to preserve source namespace.
+- Set explicitly when keeping raw-count and normalized-matrix namespaces separate is useful.
+
+Aliases: destination_namespace
+
+### `min_retained_features`
+
+Title: Minimum Retained Features
+
+Description: Minimum number of source feature-set members that must remain valid on a target matrix during transfer.
+
+Applies to: feature-set transfer params
+
+Affects: intersect transfer rejection, screening universe quality
+
+Guidance:
+- Use with mode='intersect' to avoid transferring nearly empty sets.
+- For mode='mirror' this should normally be trivially satisfied.
+
+Aliases: min_transfer_features
+
+### `min_retained_fraction`
+
+Title: Minimum Retained Fraction
+
+Description: Minimum fraction of source feature-set members that must remain valid on a target matrix during transfer.
+
+Applies to: feature-set transfer params
+
+Affects: lossy transfer rejection, QC stringency
+
+Guidance:
+- Use to prevent broad lossy transfers from silently changing gene-set meaning.
+- This is not a biological mapping confidence score; it only measures retained feature IDs.
+
+Aliases: transfer_fraction
 
 ## mutation
 

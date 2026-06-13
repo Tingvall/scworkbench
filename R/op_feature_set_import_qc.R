@@ -528,3 +528,285 @@ wb_op_feature_set_overlap_qc <- function(bundle,
     params = meta
   )
 }
+
+#' Transfer Feature-Set Namespaces Between Comparable Matrices
+#'
+#' Copies matrix-scoped feature-set registry entries from one matrix to another
+#' comparable matrix. `mode = "mirror"` requires identical feature universes;
+#' `mode = "intersect"` retains only source members present in the target
+#' matrix and records loss metrics. This helper does not perform synonym,
+#' ortholog, gene-to-peak, motif-to-TF, or other biological ID/entity mapping.
+#'
+#' @export
+wb_feature_set_namespace_transfer <- function(bundle,
+                                              source_matrix_id,
+                                              target_matrix_id,
+                                              namespace = NULL,
+                                              namespaces = NULL,
+                                              feature_sets = NULL,
+                                              mode = c("mirror", "intersect"),
+                                              target_namespace = NULL,
+                                              overwrite = FALSE,
+                                              strict = TRUE,
+                                              min_retained_features = 1L,
+                                              min_retained_fraction = 0,
+                                              created_by = NULL,
+                                              notes = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(is.character(source_matrix_id) && length(source_matrix_id) == 1L && nzchar(source_matrix_id), "source_matrix_id invalid")
+  .wb_assert(is.character(target_matrix_id) && length(target_matrix_id) == 1L && nzchar(target_matrix_id), "target_matrix_id invalid")
+  .wb_assert(!identical(source_matrix_id, target_matrix_id), "source_matrix_id and target_matrix_id must differ")
+  mode <- match.arg(as.character(mode)[1], c("mirror", "intersect"))
+  min_retained_features <- suppressWarnings(as.integer(min_retained_features %||% 1L)[1])
+  min_retained_fraction <- suppressWarnings(as.numeric(min_retained_fraction %||% 0)[1])
+  .wb_assert(is.finite(min_retained_features) && min_retained_features >= 0L, "min_retained_features invalid")
+  .wb_assert(is.finite(min_retained_fraction) && min_retained_fraction >= 0 && min_retained_fraction <= 1,
+             "min_retained_fraction must be in [0, 1]")
+
+  source_info <- wb_matrix_info(bundle, source_matrix_id)
+  target_info <- wb_matrix_info(bundle, target_matrix_id)
+  .wb_assert(nrow(source_info) == 1L, paste0("Source matrix not found: ", source_matrix_id))
+  .wb_assert(nrow(target_info) == 1L, paste0("Target matrix not found: ", target_matrix_id))
+  source_feature_type <- as.character(source_info$feature_type[1] %||% "")
+  target_feature_type <- as.character(target_info$feature_type[1] %||% "")
+  .wb_assert(!nzchar(source_feature_type) || !nzchar(target_feature_type) || identical(source_feature_type, target_feature_type),
+             paste0("Source/target feature_type differ (", source_feature_type, " vs ", target_feature_type, "). ",
+                    "Use an explicit mapping op for cross-feature-type conversion."))
+
+  source_features <- wb_feature_ids(bundle, matrix_id = source_matrix_id)
+  target_features <- wb_feature_ids(bundle, matrix_id = target_matrix_id)
+  .wb_assert(length(source_features) > 0L, "source matrix has no features")
+  .wb_assert(length(target_features) > 0L, "target matrix has no features")
+  universe_identical <- setequal(source_features, target_features)
+  if (identical(mode, "mirror")) {
+    .wb_assert(universe_identical,
+               "mode='mirror' requires identical source and target feature universes; use mode='intersect' to record loss.")
+  }
+
+  namespaces <- unique(as.character(c(namespaces %||% character(0), namespace %||% character(0))))
+  namespaces <- namespaces[nzchar(namespaces)]
+  src_tbl <- wb_feature_sets(bundle, matrix_id = source_matrix_id)
+  if (length(namespaces)) {
+    src_tbl <- src_tbl[as.character(src_tbl$namespace) %in% namespaces, , drop = FALSE]
+  }
+  if (!is.null(feature_sets)) {
+    src_tbl <- src_tbl[as.character(src_tbl$feature_set) %in% as.character(feature_sets), , drop = FALSE]
+  }
+  .wb_assert(nrow(src_tbl) > 0L, "No source feature sets matched transfer filters.")
+
+  plans <- vector("list", nrow(src_tbl))
+  manifest <- vector("list", nrow(src_tbl))
+  rejected <- list()
+  rejected_i <- 0L
+  stop_reasons <- character(0)
+  for (i in seq_len(nrow(src_tbl))) {
+    fs <- as.character(src_tbl$feature_set[i])
+    src_ns <- as.character(src_tbl$namespace[i] %||% "")
+    tgt_ns <- as.character(target_namespace %||% src_ns)[1]
+    src_members <- wb_feature_set_get(bundle, feature_set = fs, matrix_id = source_matrix_id)
+    retained <- intersect(src_members, target_features)
+    dropped <- setdiff(src_members, target_features)
+    n_source <- length(src_members)
+    n_retained <- length(retained)
+    retained_fraction <- if (n_source > 0L) n_retained / n_source else 0
+    existing_target <- nrow(wb_feature_set_info(bundle, feature_set = fs, matrix_id = target_matrix_id)) > 0L
+
+    status <- "transferred"
+    reason <- "ok"
+    if (existing_target && !isTRUE(overwrite)) {
+      status <- "skipped"
+      reason <- "target_exists_overwrite_false"
+    } else if (n_retained < min_retained_features) {
+      status <- "rejected"
+      reason <- "below_min_retained_features"
+    } else if (retained_fraction < min_retained_fraction) {
+      status <- "rejected"
+      reason <- "below_min_retained_fraction"
+    }
+
+    if (identical(status, "rejected")) {
+      rejected_i <- rejected_i + 1L
+      rejected[[rejected_i]] <- data.frame(
+        source_matrix_id = source_matrix_id,
+        target_matrix_id = target_matrix_id,
+        source_namespace = src_ns,
+        target_namespace = tgt_ns,
+        feature_set = fs,
+        mode = mode,
+        reason = reason,
+        n_source_features = as.integer(n_source),
+        n_retained_features = as.integer(n_retained),
+        n_dropped_features = as.integer(length(dropped)),
+        retained_fraction = as.numeric(retained_fraction),
+        dropped_features_preview = paste(head(dropped, 20L), collapse = ","),
+        stringsAsFactors = FALSE
+      )
+      if (isTRUE(strict)) {
+        stop_reasons <- c(stop_reasons, paste0(fs, ":", reason))
+      }
+    }
+
+    source_set_id <- .wb_fset_first_nonempty(src_tbl$set_id[i], "")
+    target_set_id <- source_set_id
+    manifest[[i]] <- data.frame(
+      source_matrix_id = source_matrix_id,
+      target_matrix_id = target_matrix_id,
+      source_namespace = src_ns,
+      target_namespace = tgt_ns,
+      feature_set = fs,
+      mode = mode,
+      n_source_features = as.integer(n_source),
+      n_retained_features = as.integer(n_retained),
+      n_dropped_features = as.integer(length(dropped)),
+      retained_fraction = as.numeric(retained_fraction),
+      dropped_features_preview = paste(head(dropped, 20L), collapse = ","),
+      status = status,
+      reason = reason,
+      source_set_id = source_set_id,
+      target_set_id = target_set_id,
+      source_feature_type = source_feature_type,
+      target_feature_type = target_feature_type,
+      universe_identical = isTRUE(universe_identical),
+      stringsAsFactors = FALSE
+    )
+
+    plans[[i]] <- list(
+      status = status,
+      feature_set = fs,
+      members = retained,
+      source_row = src_tbl[i, , drop = FALSE],
+      source_namespace = src_ns,
+      target_namespace = tgt_ns,
+      n_source_features = n_source,
+      n_retained_features = n_retained,
+      n_dropped_features = length(dropped),
+      retained_fraction = retained_fraction
+    )
+  }
+
+  if (length(stop_reasons)) {
+    stop(
+      "feature_set_namespace_transfer strict failure: ",
+      paste(stop_reasons, collapse = "; "),
+      call. = FALSE
+    )
+  }
+
+  manifest_tbl <- do.call(rbind, manifest)
+  for (i in seq_along(plans)) {
+    plan <- plans[[i]]
+    if (!identical(plan$status, "transferred")) next
+    src <- plan$source_row
+    recipe <- list(
+      op = "feature_set_namespace_transfer",
+      source_matrix_id = source_matrix_id,
+      target_matrix_id = target_matrix_id,
+      source_namespace = plan$source_namespace,
+      target_namespace = plan$target_namespace,
+      mode = mode,
+      universe_identical = isTRUE(universe_identical),
+      source_feature_type = source_feature_type,
+      target_feature_type = target_feature_type,
+      n_source_features = plan$n_source_features,
+      n_retained_features = plan$n_retained_features,
+      n_dropped_features = plan$n_dropped_features,
+      retained_fraction = plan$retained_fraction,
+      min_retained_features = min_retained_features,
+      min_retained_fraction = min_retained_fraction,
+      notes = as.character(notes %||% "")[1]
+    )
+    wb_feature_set_replace(
+      bundle = bundle,
+      feature_set = plan$feature_set,
+      matrix_id = target_matrix_id,
+      feature_ids = plan$members,
+      created_by = created_by %||% as.character(src$created_by[1] %||% NA_character_),
+      description = as.character(src$description[1] %||% ""),
+      strict = TRUE,
+      set_id = {
+        sid <- .wb_fset_first_nonempty(src$set_id[1], "")
+        if (nzchar(sid)) sid else NULL
+      },
+      namespace = plan$target_namespace,
+      organism = as.character(src$organism[1] %||% NA_character_),
+      source_id = as.character(src$source_id[1] %||% NA_character_),
+      source_version = as.character(src$source_version[1] %||% NA_character_),
+      origin = "transferred",
+      recipe = recipe,
+      is_readonly = as.integer(src$is_readonly[1] %||% 0L) == 1L
+    )
+    tgt <- wb_feature_set_info(bundle, feature_set = plan$feature_set, matrix_id = target_matrix_id)
+    if (nrow(tgt) == 1L) {
+      idx <- as.character(manifest_tbl$feature_set) == plan$feature_set &
+        as.character(manifest_tbl$target_namespace) == plan$target_namespace
+      manifest_tbl$target_set_id[idx] <- as.character(tgt$set_id[1] %||% "")
+    }
+  }
+
+  rejected_tbl <- if (length(rejected)) do.call(rbind, rejected) else data.frame(
+    source_matrix_id = character(0),
+    target_matrix_id = character(0),
+    source_namespace = character(0),
+    target_namespace = character(0),
+    feature_set = character(0),
+    mode = character(0),
+    reason = character(0),
+    n_source_features = integer(0),
+    n_retained_features = integer(0),
+    n_dropped_features = integer(0),
+    retained_fraction = numeric(0),
+    dropped_features_preview = character(0),
+    stringsAsFactors = FALSE
+  )
+
+  summary_tbl <- data.frame(
+    source_matrix_id = source_matrix_id,
+    target_matrix_id = target_matrix_id,
+    source_namespaces = paste(sort(unique(as.character(manifest_tbl$source_namespace))), collapse = ","),
+    target_namespaces = paste(sort(unique(as.character(manifest_tbl$target_namespace))), collapse = ","),
+    mode = mode,
+    universe_identical = isTRUE(universe_identical),
+    source_feature_type = source_feature_type,
+    target_feature_type = target_feature_type,
+    n_sets_selected = nrow(manifest_tbl),
+    n_sets_transferred = sum(as.character(manifest_tbl$status) == "transferred"),
+    n_sets_skipped = sum(as.character(manifest_tbl$status) == "skipped"),
+    n_sets_rejected = sum(as.character(manifest_tbl$status) == "rejected"),
+    min_retained_features = as.integer(min_retained_features),
+    min_retained_fraction = as.numeric(min_retained_fraction),
+    overwrite = isTRUE(overwrite),
+    strict = isTRUE(strict),
+    notes = as.character(notes %||% "")[1],
+    stringsAsFactors = FALSE
+  )
+
+  meta <- list(
+    op = "feature_set_namespace_transfer",
+    source_matrix_id = source_matrix_id,
+    target_matrix_id = target_matrix_id,
+    mode = mode,
+    target_namespace = as.character(target_namespace %||% "")[1],
+    universe_identical = isTRUE(universe_identical)
+  )
+
+  list(
+    outputs = list(
+      transfer_summary = wb_prim_obs_table(summary_tbl, table_type = "feature_set_transfer_summary", entity_kind = "namespace", meta = meta),
+      transfer_manifest = wb_prim_obs_table(manifest_tbl, table_type = "feature_set_transfer_manifest", entity_kind = "feature_set", meta = meta),
+      transfer_rejected = wb_prim_obs_table(rejected_tbl, table_type = "feature_set_transfer_rejected", entity_kind = "feature_set", meta = meta)
+    ),
+    params = list(
+      source_matrix_id = source_matrix_id,
+      target_matrix_id = target_matrix_id,
+      mode = mode,
+      namespaces = sort(unique(as.character(manifest_tbl$source_namespace))),
+      target_namespaces = sort(unique(as.character(manifest_tbl$target_namespace))),
+      transferred_sets = sum(as.character(manifest_tbl$status) == "transferred"),
+      skipped_sets = sum(as.character(manifest_tbl$status) == "skipped"),
+      rejected_sets = sum(as.character(manifest_tbl$status) == "rejected"),
+      universe_identical = isTRUE(universe_identical),
+      overwrite = isTRUE(overwrite),
+      strict = isTRUE(strict)
+    )
+  )
+}

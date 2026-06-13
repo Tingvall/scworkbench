@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-12T11:03:44+0200
+Generated at: 2026-06-13T10:09:47+0200
 
-Operation count: 44
+Operation count: 45
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -494,6 +494,39 @@ Key parameters:
 - `max_set_size` (dbl, default=Inf): Maximum mapped/detected genes allowed to include a set.
 - `min_detected_fraction` (dbl, default=0): Minimum fraction of source genes detected in the matrix.
 - `deduplicate_sets` (bool, default=TRUE): If TRUE, duplicate mapped-gene signatures after the first are excluded.
+
+## `feature_set_namespace_transfer`
+
+Title: Feature-Set Namespace Transfer
+
+Intent: feature_set, transfer, namespace, matrix, provenance
+
+Description: Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.
+
+Consumes:
+- `cell_set`: select
+
+Produces:
+- `transfer_summary`: obs_table - Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.
+- `transfer_manifest`: obs_table - One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.
+- `transfer_rejected`: obs_table - Feature sets rejected during intersect transfer because retained members failed thresholds.
+
+Promotable outputs: transfer_summary, transfer_manifest, transfer_rejected
+
+Key parameters:
+- `source_matrix_id` (string, default=NULL): Source matrix containing the existing matrix-scoped feature-set namespace.
+- `target_matrix_id` (string, default=NULL): Target matrix that will receive transferred feature-set memberships.
+- `namespace` (string, default=NULL): Single source namespace to transfer.
+- `namespaces` (string_vec, default=NULL): Optional multiple source namespaces to transfer.
+- `feature_sets` (string_vec, default=NULL): Optional feature-set subset within selected source namespaces.
+- `mode` (choice, default=mirror): mirror requires identical feature universes; intersect retains only target-valid members and records loss.
+- `target_namespace` (string, default=NULL): Optional target namespace override. Defaults to the source namespace.
+- `overwrite` (bool, default=FALSE): If FALSE, existing target feature sets are skipped instead of replaced.
+- `strict` (bool, default=TRUE): If TRUE, fail when intersect mode rejects any selected set by retention thresholds.
+- `min_retained_features` (int, default=1): Minimum target-retained members required to transfer a set.
+- `min_retained_fraction` (dbl, default=0): Minimum fraction of source members retained on the target matrix.
+- `created_by` (string, default=NULL): Optional created_by metadata for transferred registry rows.
+- `notes` (string, default=NULL): Optional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.
 
 ## `cell_suffix_label`
 

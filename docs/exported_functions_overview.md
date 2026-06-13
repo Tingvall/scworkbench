@@ -86,6 +86,7 @@ Note:
 - `wb_feature_set_import_list`: Import feature sets from a named list
 - `wb_feature_set_import_table`: Import feature sets from a table
 - `wb_feature_set_info`: Read feature set metadata
+- `wb_feature_set_namespace_transfer`: Transfer feature-set namespaces between comparable matrix feature universes
 - `wb_feature_set_replace`: Replace a feature set
 - `wb_feature_sets`: List feature sets
 - `wb_search_features`: Search features by matrix_id

@@ -163,7 +163,7 @@
     con,
     paste0(
       "SELECT artifact_id, table_type FROM artifact_tables ",
-      "WHERE table_type IN ('winner_cell_set_manifest', 'feature_set_import_manifest') ",
+      "WHERE table_type IN ('winner_cell_set_manifest', 'feature_set_import_manifest', 'feature_set_transfer_manifest') ",
       "AND artifact_id ", cl$sql, ";"
     ),
     params = cl$params
@@ -228,6 +228,59 @@
           label = "registers feature set",
           artifact_id = aid
         )
+      } else if (identical(table_type, "feature_set_transfer_manifest")) {
+        if (!identical(as.character(obj$status %||% "")[1], "transferred")) next
+        src_ns <- as.character(obj$source_namespace %||% "")[1]
+        tgt_ns <- as.character(obj$target_namespace %||% "")[1]
+        fs <- as.character(obj$feature_set %||% "")[1]
+        src_mid <- as.character(obj$source_matrix_id %||% "")[1]
+        tgt_mid <- as.character(obj$target_matrix_id %||% "")[1]
+        if (!nzchar(tgt_ns) || !nzchar(fs)) next
+        target_registry_id <- paste0("feature_set:", tgt_ns, ":", fs)
+        ni <- ni + 1L
+        nodes[[ni]] <- .wb_prov_bundle_node(
+          id = target_registry_id,
+          node_type = "feature_set",
+          label = paste0(tgt_ns, "/", fs),
+          title = paste0("Feature set ", tgt_ns, "/", fs),
+          status = "registered"
+        )
+        ei <- ei + 1L
+        edges[[ei]] <- .wb_prov_bundle_edge(
+          from = paste0("artifact:", aid),
+          to = target_registry_id,
+          edge_type = "MUTATES_REGISTRY",
+          label = "transfers feature set",
+          artifact_id = aid
+        )
+        if (nzchar(src_ns) && nzchar(src_mid) && nzchar(tgt_mid)) {
+          source_id <- paste0("feature_set:", src_ns, ":", fs, "@", src_mid)
+          target_id <- paste0("feature_set:", tgt_ns, ":", fs, "@", tgt_mid)
+          ni <- ni + 1L
+          nodes[[ni]] <- .wb_prov_bundle_node(
+            id = source_id,
+            node_type = "feature_set",
+            label = paste0(src_ns, "/", fs, "@", src_mid),
+            title = paste0("Feature set ", src_ns, "/", fs, " on ", src_mid),
+            status = "source"
+          )
+          ni <- ni + 1L
+          nodes[[ni]] <- .wb_prov_bundle_node(
+            id = target_id,
+            node_type = "feature_set",
+            label = paste0(tgt_ns, "/", fs, "@", tgt_mid),
+            title = paste0("Feature set ", tgt_ns, "/", fs, " on ", tgt_mid),
+            status = "registered"
+          )
+          ei <- ei + 1L
+          edges[[ei]] <- .wb_prov_bundle_edge(
+            from = source_id,
+            to = target_id,
+            edge_type = "TRANSFERRED_TO",
+            label = "transferred to",
+            artifact_id = aid
+          )
+        }
       }
     }
   }

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 61
+Artifact type count: 64
 
 ## cell_vector
 
@@ -220,6 +220,48 @@ Entity kind: namespace
 Use when:
 - compare feature-set namespace coverage
 - choose libraries for screening
+
+### `obs_table:feature_set_transfer_summary`
+
+Title: Feature-Set Transfer Summary
+
+Description: Summary of matrix-scoped feature-set namespace transfer between comparable matrices.
+
+Table type: feature_set_transfer_summary
+
+Entity kind: namespace
+
+Use when:
+- audit feature-set namespace transfer
+- confirm transferred/skipped/rejected set counts
+
+### `obs_table:feature_set_transfer_manifest`
+
+Title: Feature-Set Transfer Manifest
+
+Description: One row per source feature set transferred or rejected between source and target matrices.
+
+Table type: feature_set_transfer_manifest
+
+Entity kind: feature_set
+
+Use when:
+- trace transferred feature-set registry mutations
+- audit retained and dropped members after matrix transfer
+
+### `obs_table:feature_set_transfer_rejected`
+
+Title: Rejected Feature-Set Transfer Table
+
+Description: Feature sets rejected during matrix namespace transfer because retained target members failed thresholds.
+
+Table type: feature_set_transfer_rejected
+
+Entity kind: feature_set
+
+Use when:
+- inspect lossy transfer failures
+- debug feature-set transfer thresholds
 
 ### `obs_table:pathway_enrich`
 

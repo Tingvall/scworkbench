@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-12T11:03:44+0200",
-  "op_count": 44,
+  "generated_at": "2026-06-13T10:09:47+0200",
+  "op_count": 45,
   "ops": [
     {
       "op_name": "leiden",
@@ -1669,6 +1669,129 @@
         }
       ],
       "promotable": ["overlap_qc", "namespace_summary"],
+      "chunking": null
+    },
+    {
+      "op_name": "feature_set_namespace_transfer",
+      "title": "Feature-Set Namespace Transfer",
+      "description": "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
+      "intent": ["feature_set", "transfer", "namespace", "matrix", "provenance"],
+      "consumes": [
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "transfer_summary",
+          "kind": "obs_table",
+          "description": "Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts."
+        },
+        {
+          "name": "transfer_manifest",
+          "kind": "obs_table",
+          "description": "One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs."
+        },
+        {
+          "name": "transfer_rejected",
+          "kind": "obs_table",
+          "description": "Feature sets rejected during intersect transfer because retained members failed thresholds."
+        }
+      ],
+      "inputs": {
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "source_matrix_id",
+          "type": "string",
+          "default": null,
+          "help": "Source matrix containing the existing matrix-scoped feature-set namespace."
+        },
+        {
+          "name": "target_matrix_id",
+          "type": "string",
+          "default": null,
+          "help": "Target matrix that will receive transferred feature-set memberships."
+        },
+        {
+          "name": "namespace",
+          "type": "string",
+          "default": null,
+          "help": "Single source namespace to transfer."
+        },
+        {
+          "name": "namespaces",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional multiple source namespaces to transfer."
+        },
+        {
+          "name": "feature_sets",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature-set subset within selected source namespaces."
+        },
+        {
+          "name": "mode",
+          "type": "choice",
+          "default": "mirror",
+          "choices": ["mirror", "intersect"],
+          "help": "mirror requires identical feature universes; intersect retains only target-valid members and records loss."
+        },
+        {
+          "name": "target_namespace",
+          "type": "string",
+          "default": null,
+          "help": "Optional target namespace override. Defaults to the source namespace."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": false,
+          "help": "If FALSE, existing target feature sets are skipped instead of replaced."
+        },
+        {
+          "name": "strict",
+          "type": "bool",
+          "default": true,
+          "help": "If TRUE, fail when intersect mode rejects any selected set by retention thresholds."
+        },
+        {
+          "name": "min_retained_features",
+          "type": "int",
+          "default": 1,
+          "min": 0,
+          "help": "Minimum target-retained members required to transfer a set."
+        },
+        {
+          "name": "min_retained_fraction",
+          "type": "dbl",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "help": "Minimum fraction of source members retained on the target matrix."
+        },
+        {
+          "name": "created_by",
+          "type": "string",
+          "default": null,
+          "help": "Optional created_by metadata for transferred registry rows."
+        },
+        {
+          "name": "notes",
+          "type": "string",
+          "default": null,
+          "help": "Optional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping."
+        }
+      ],
+      "promotable": ["transfer_summary", "transfer_manifest", "transfer_rejected"],
       "chunking": null
     },
     {

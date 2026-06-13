@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_recipe_semantics_catalog(); do not edit entries by hand. -->
 
-Recipe count: 9
+Recipe count: 10
 
 ## agent_planning
 
@@ -126,6 +126,39 @@ Uses:
 Cautions:
 - Cluster resolution changes biological granularity.
 - Markers reflect selected matrix and cell universe.
+
+## matrix_transfer
+
+### `feature_set_namespace_transfer_for_normalized_matrix`
+
+Title: Transfer feature-set namespaces to a derived normalized matrix
+
+Question: How can feature-set libraries registered on raw counts be reused on a comparable derived matrix?
+
+Description: Transfer matrix-scoped feature-set namespaces from a source matrix to a target matrix using mirror or intersect semantics before running dynamics on the target matrix.
+
+Steps:
+- Confirm the target matrix is comparable to the source matrix and uses the same feature ID type.
+- Run feature_set_namespace_transfer with source_matrix_id, target_matrix_id, namespace, and mode='mirror' for lossless derived matrices.
+- Promote transfer_summary, transfer_manifest, and transfer_rejected for provenance.
+- Run feature_set_overlap_qc on the target matrix/namespace before broad screening.
+- Run trajectory_geneset_dynamics on the target matrix with the transferred namespace.
+
+Uses:
+- `op:feature_set_namespace_transfer`
+- `op:feature_set_overlap_qc`
+- `op:trajectory_geneset_dynamics`
+- `getter:wb_feature_sets`
+- `artifact_type:obs_table:feature_set_transfer_manifest`
+- `parameter:source_matrix_id`
+- `parameter:target_matrix_id`
+- `parameter:namespace`
+- `parameter:target_namespace`
+
+Cautions:
+- This is not ortholog/synonym/gene-to-peak/motif-to-TF mapping.
+- mode='mirror' requires identical feature universes.
+- mode='intersect' changes gene-set membership and must be reported with loss metrics.
 
 ## trajectory_discovery
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-12T11:03:44+0200",
-  "artifact_type_count": 61,
+  "generated_at": "2026-06-13T10:09:47+0200",
+  "artifact_type_count": 64,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -155,6 +155,33 @@
       "table_type": "feature_set_overlap_qc_summary",
       "entity_kind": "namespace",
       "use_when": ["compare feature-set namespace coverage", "choose libraries for screening"]
+    },
+    {
+      "artifact_type": "obs_table:feature_set_transfer_summary",
+      "primitive_kind": "obs_table",
+      "title": "Feature-Set Transfer Summary",
+      "description": "Summary of matrix-scoped feature-set namespace transfer between comparable matrices.",
+      "table_type": "feature_set_transfer_summary",
+      "entity_kind": "namespace",
+      "use_when": ["audit feature-set namespace transfer", "confirm transferred/skipped/rejected set counts"]
+    },
+    {
+      "artifact_type": "obs_table:feature_set_transfer_manifest",
+      "primitive_kind": "obs_table",
+      "title": "Feature-Set Transfer Manifest",
+      "description": "One row per source feature set transferred or rejected between source and target matrices.",
+      "table_type": "feature_set_transfer_manifest",
+      "entity_kind": "feature_set",
+      "use_when": ["trace transferred feature-set registry mutations", "audit retained and dropped members after matrix transfer"]
+    },
+    {
+      "artifact_type": "obs_table:feature_set_transfer_rejected",
+      "primitive_kind": "obs_table",
+      "title": "Rejected Feature-Set Transfer Table",
+      "description": "Feature sets rejected during matrix namespace transfer because retained target members failed thresholds.",
+      "table_type": "feature_set_transfer_rejected",
+      "entity_kind": "feature_set",
+      "use_when": ["inspect lossy transfer failures", "debug feature-set transfer thresholds"]
     },
     {
       "artifact_type": "obs_table:pathway_enrich",

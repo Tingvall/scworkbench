@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-12T11:03:44+0200",
-  "parameter_count": 44,
+  "generated_at": "2026-06-13T10:09:47+0200",
+  "parameter_count": 49,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -192,6 +192,56 @@
       "affects": ["mapping interpretation", "cross-species reliability", "QC interpretation"],
       "guidance": ["Use explicit labels such as gene_symbol or ensembl_id when known.", "The current import path matches against bundle feature IDs; it does not perform synonym or ortholog mapping."],
       "aliases": ["feature_id_type", "id_type"]
+    },
+    {
+      "parameter_name": "source_matrix_id",
+      "title": "Source Matrix Identifier",
+      "category": "matrix_transfer",
+      "description": "Matrix id that owns the source matrix-scoped feature-set namespace or other transferable registry state.",
+      "applies_to": "matrix transfer params",
+      "affects": ["source feature universe", "registry provenance", "transfer validity"],
+      "guidance": ["Use a matrix whose feature IDs define the existing feature-set memberships.", "Do not use this for cross-feature-type conversion; that requires an explicit mapping artifact."],
+      "aliases": ["from_matrix", "source_matrix"]
+    },
+    {
+      "parameter_name": "target_matrix_id",
+      "title": "Target Matrix Identifier",
+      "category": "matrix_transfer",
+      "description": "Matrix id that will receive transferred feature-set memberships after mirror or intersect validation.",
+      "applies_to": "matrix transfer params",
+      "affects": ["target feature universe", "retained features", "downstream namespace availability"],
+      "guidance": ["Use mirror only when source and target feature universes are identical.", "Use intersect when feature universes overlap and loss should be recorded."],
+      "aliases": ["to_matrix", "target_matrix"]
+    },
+    {
+      "parameter_name": "target_namespace",
+      "title": "Target Feature-Set Namespace",
+      "category": "matrix_transfer",
+      "description": "Optional namespace assigned to transferred feature sets on the target matrix.",
+      "applies_to": "feature-set transfer params",
+      "affects": ["downstream namespace selection", "provenance readability"],
+      "guidance": ["Leave NULL to preserve source namespace.", "Set explicitly when keeping raw-count and normalized-matrix namespaces separate is useful."],
+      "aliases": "destination_namespace"
+    },
+    {
+      "parameter_name": "min_retained_features",
+      "title": "Minimum Retained Features",
+      "category": "matrix_transfer",
+      "description": "Minimum number of source feature-set members that must remain valid on a target matrix during transfer.",
+      "applies_to": "feature-set transfer params",
+      "affects": ["intersect transfer rejection", "screening universe quality"],
+      "guidance": ["Use with mode='intersect' to avoid transferring nearly empty sets.", "For mode='mirror' this should normally be trivially satisfied."],
+      "aliases": "min_transfer_features"
+    },
+    {
+      "parameter_name": "min_retained_fraction",
+      "title": "Minimum Retained Fraction",
+      "category": "matrix_transfer",
+      "description": "Minimum fraction of source feature-set members that must remain valid on a target matrix during transfer.",
+      "applies_to": "feature-set transfer params",
+      "affects": ["lossy transfer rejection", "QC stringency"],
+      "guidance": ["Use to prevent broad lossy transfers from silently changing gene-set meaning.", "This is not a biological mapping confidence score; it only measures retained feature IDs."],
+      "aliases": "transfer_fraction"
     },
     {
       "parameter_name": "signal_keys",

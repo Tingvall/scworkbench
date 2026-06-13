@@ -1,15 +1,15 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-12T11:03:45+0200",
-  "record_count": 263,
+  "generated_at": "2026-06-13T10:09:47+0200",
+  "record_count": 273,
   "record_type_counts": {
-    "artifact_type": 61,
+    "artifact_type": 64,
     "getter": 68,
-    "op": 44,
-    "parameter": 44,
+    "op": 45,
+    "parameter": 49,
     "plot": 12,
     "primitive": 11,
-    "recipe": 9,
+    "recipe": 10,
     "wrangler": 14
   },
   "records": [
@@ -1840,6 +1840,138 @@
           }
         ],
         "promotable": ["overlap_qc", "namespace_summary"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:feature_set_namespace_transfer",
+      "record_type": "op",
+      "name": "feature_set_namespace_transfer",
+      "title": "Feature-Set Namespace Transfer",
+      "description": "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
+      "search_text": "Feature-Set Namespace Transfer\nTransfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.\nfeature_set\ntransfer\nnamespace\nmatrix\nprovenance\ncell_set\nselect\ntransfer_summary\nobs_table\nNamespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.\ntransfer_manifest\nOne row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.\ntransfer_rejected\nFeature sets rejected during intersect transfer because retained members failed thresholds.\nsource_matrix_id\nstring\nSource matrix containing the existing matrix-scoped feature-set namespace.\ntarget_matrix_id\nTarget matrix that will receive transferred feature-set memberships.\nSingle source namespace to transfer.\nnamespaces\nstring_vec\nOptional multiple source namespaces to transfer.\nfeature_sets\nOptional feature-set subset within selected source namespaces.\nmode\nchoice\nmirror\nintersect\nmirror requires identical feature universes; intersect retains only target-valid members and records loss.\ntarget_namespace\nOptional target namespace override. Defaults to the source namespace.\noverwrite\nbool\nFALSE\nIf FALSE, existing target feature sets are skipped instead of replaced.\nstrict\nTRUE\nIf TRUE, fail when intersect mode rejects any selected set by retention thresholds.\nmin_retained_features\nint\n1\n0\nMinimum target-retained members required to transfer a set.\nmin_retained_fraction\ndbl\nMinimum fraction of source members retained on the target matrix.\ncreated_by\nOptional created_by metadata for transferred registry rows.\nnotes\nOptional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.",
+      "tags": ["op", "feature_set", "transfer", "namespace", "matrix", "provenance"],
+      "payload": {
+        "op_name": "feature_set_namespace_transfer",
+        "title": "Feature-Set Namespace Transfer",
+        "description": "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
+        "intent": ["feature_set", "transfer", "namespace", "matrix", "provenance"],
+        "consumes": [
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "transfer_summary",
+            "kind": "obs_table",
+            "description": "Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts."
+          },
+          {
+            "name": "transfer_manifest",
+            "kind": "obs_table",
+            "description": "One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs."
+          },
+          {
+            "name": "transfer_rejected",
+            "kind": "obs_table",
+            "description": "Feature sets rejected during intersect transfer because retained members failed thresholds."
+          }
+        ],
+        "inputs": {
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "source_matrix_id",
+            "type": "string",
+            "default": null,
+            "help": "Source matrix containing the existing matrix-scoped feature-set namespace."
+          },
+          {
+            "name": "target_matrix_id",
+            "type": "string",
+            "default": null,
+            "help": "Target matrix that will receive transferred feature-set memberships."
+          },
+          {
+            "name": "namespace",
+            "type": "string",
+            "default": null,
+            "help": "Single source namespace to transfer."
+          },
+          {
+            "name": "namespaces",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional multiple source namespaces to transfer."
+          },
+          {
+            "name": "feature_sets",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional feature-set subset within selected source namespaces."
+          },
+          {
+            "name": "mode",
+            "type": "choice",
+            "default": "mirror",
+            "choices": ["mirror", "intersect"],
+            "help": "mirror requires identical feature universes; intersect retains only target-valid members and records loss."
+          },
+          {
+            "name": "target_namespace",
+            "type": "string",
+            "default": null,
+            "help": "Optional target namespace override. Defaults to the source namespace."
+          },
+          {
+            "name": "overwrite",
+            "type": "bool",
+            "default": false,
+            "help": "If FALSE, existing target feature sets are skipped instead of replaced."
+          },
+          {
+            "name": "strict",
+            "type": "bool",
+            "default": true,
+            "help": "If TRUE, fail when intersect mode rejects any selected set by retention thresholds."
+          },
+          {
+            "name": "min_retained_features",
+            "type": "int",
+            "default": 1,
+            "min": 0,
+            "help": "Minimum target-retained members required to transfer a set."
+          },
+          {
+            "name": "min_retained_fraction",
+            "type": "dbl",
+            "default": 0,
+            "min": 0,
+            "max": 1,
+            "help": "Minimum fraction of source members retained on the target matrix."
+          },
+          {
+            "name": "created_by",
+            "type": "string",
+            "default": null,
+            "help": "Optional created_by metadata for transferred registry rows."
+          },
+          {
+            "name": "notes",
+            "type": "string",
+            "default": null,
+            "help": "Optional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping."
+          }
+        ],
+        "promotable": ["transfer_summary", "transfer_manifest", "transfer_rejected"],
         "chunking": null
       }
     },
@@ -7745,6 +7877,60 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:feature_set_transfer_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_transfer_summary",
+      "title": "Feature-Set Transfer Summary",
+      "description": "Summary of matrix-scoped feature-set namespace transfer between comparable matrices.",
+      "search_text": "Feature-Set Transfer Summary\nSummary of matrix-scoped feature-set namespace transfer between comparable matrices.\nobs_table\nfeature_set_transfer_summary\nnamespace\naudit feature-set namespace transfer\nconfirm transferred/skipped/rejected set counts",
+      "tags": ["artifact_type", "obs_table", "feature_set_transfer_summary"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_transfer_summary",
+        "primitive_kind": "obs_table",
+        "title": "Feature-Set Transfer Summary",
+        "description": "Summary of matrix-scoped feature-set namespace transfer between comparable matrices.",
+        "table_type": "feature_set_transfer_summary",
+        "entity_kind": "namespace",
+        "use_when": ["audit feature-set namespace transfer", "confirm transferred/skipped/rejected set counts"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_transfer_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_transfer_manifest",
+      "title": "Feature-Set Transfer Manifest",
+      "description": "One row per source feature set transferred or rejected between source and target matrices.",
+      "search_text": "Feature-Set Transfer Manifest\nOne row per source feature set transferred or rejected between source and target matrices.\nobs_table\nfeature_set_transfer_manifest\nfeature_set\ntrace transferred feature-set registry mutations\naudit retained and dropped members after matrix transfer",
+      "tags": ["artifact_type", "obs_table", "feature_set_transfer_manifest"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_transfer_manifest",
+        "primitive_kind": "obs_table",
+        "title": "Feature-Set Transfer Manifest",
+        "description": "One row per source feature set transferred or rejected between source and target matrices.",
+        "table_type": "feature_set_transfer_manifest",
+        "entity_kind": "feature_set",
+        "use_when": ["trace transferred feature-set registry mutations", "audit retained and dropped members after matrix transfer"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_transfer_rejected",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_transfer_rejected",
+      "title": "Rejected Feature-Set Transfer Table",
+      "description": "Feature sets rejected during matrix namespace transfer because retained target members failed thresholds.",
+      "search_text": "Rejected Feature-Set Transfer Table\nFeature sets rejected during matrix namespace transfer because retained target members failed thresholds.\nobs_table\nfeature_set_transfer_rejected\nfeature_set\ninspect lossy transfer failures\ndebug feature-set transfer thresholds",
+      "tags": ["artifact_type", "obs_table", "feature_set_transfer_rejected"],
+      "payload": {
+        "artifact_type": "obs_table:feature_set_transfer_rejected",
+        "primitive_kind": "obs_table",
+        "title": "Rejected Feature-Set Transfer Table",
+        "description": "Feature sets rejected during matrix namespace transfer because retained target members failed thresholds.",
+        "table_type": "feature_set_transfer_rejected",
+        "entity_kind": "feature_set",
+        "use_when": ["inspect lossy transfer failures", "debug feature-set transfer thresholds"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:pathway_enrich",
       "record_type": "artifact_type",
       "name": "obs_table:pathway_enrich",
@@ -8898,6 +9084,101 @@
       }
     },
     {
+      "record_id": "parameter:source_matrix_id",
+      "record_type": "parameter",
+      "name": "source_matrix_id",
+      "title": "Source Matrix Identifier",
+      "description": "Matrix id that owns the source matrix-scoped feature-set namespace or other transferable registry state.",
+      "search_text": "Source Matrix Identifier\nMatrix id that owns the source matrix-scoped feature-set namespace or other transferable registry state.\nmatrix_transfer\nmatrix transfer params\nsource feature universe\nregistry provenance\ntransfer validity\nUse a matrix whose feature IDs define the existing feature-set memberships.\nDo not use this for cross-feature-type conversion; that requires an explicit mapping artifact.\nfrom_matrix\nsource_matrix",
+      "tags": ["parameter", "matrix_transfer", "from_matrix", "source_matrix"],
+      "payload": {
+        "parameter_name": "source_matrix_id",
+        "title": "Source Matrix Identifier",
+        "category": "matrix_transfer",
+        "description": "Matrix id that owns the source matrix-scoped feature-set namespace or other transferable registry state.",
+        "applies_to": "matrix transfer params",
+        "affects": ["source feature universe", "registry provenance", "transfer validity"],
+        "guidance": ["Use a matrix whose feature IDs define the existing feature-set memberships.", "Do not use this for cross-feature-type conversion; that requires an explicit mapping artifact."],
+        "aliases": ["from_matrix", "source_matrix"]
+      }
+    },
+    {
+      "record_id": "parameter:target_matrix_id",
+      "record_type": "parameter",
+      "name": "target_matrix_id",
+      "title": "Target Matrix Identifier",
+      "description": "Matrix id that will receive transferred feature-set memberships after mirror or intersect validation.",
+      "search_text": "Target Matrix Identifier\nMatrix id that will receive transferred feature-set memberships after mirror or intersect validation.\nmatrix_transfer\nmatrix transfer params\ntarget feature universe\nretained features\ndownstream namespace availability\nUse mirror only when source and target feature universes are identical.\nUse intersect when feature universes overlap and loss should be recorded.\nto_matrix\ntarget_matrix",
+      "tags": ["parameter", "matrix_transfer", "to_matrix", "target_matrix"],
+      "payload": {
+        "parameter_name": "target_matrix_id",
+        "title": "Target Matrix Identifier",
+        "category": "matrix_transfer",
+        "description": "Matrix id that will receive transferred feature-set memberships after mirror or intersect validation.",
+        "applies_to": "matrix transfer params",
+        "affects": ["target feature universe", "retained features", "downstream namespace availability"],
+        "guidance": ["Use mirror only when source and target feature universes are identical.", "Use intersect when feature universes overlap and loss should be recorded."],
+        "aliases": ["to_matrix", "target_matrix"]
+      }
+    },
+    {
+      "record_id": "parameter:target_namespace",
+      "record_type": "parameter",
+      "name": "target_namespace",
+      "title": "Target Feature-Set Namespace",
+      "description": "Optional namespace assigned to transferred feature sets on the target matrix.",
+      "search_text": "Target Feature-Set Namespace\nOptional namespace assigned to transferred feature sets on the target matrix.\nmatrix_transfer\nfeature-set transfer params\ndownstream namespace selection\nprovenance readability\nLeave NULL to preserve source namespace.\nSet explicitly when keeping raw-count and normalized-matrix namespaces separate is useful.\ndestination_namespace",
+      "tags": ["parameter", "matrix_transfer", "destination_namespace"],
+      "payload": {
+        "parameter_name": "target_namespace",
+        "title": "Target Feature-Set Namespace",
+        "category": "matrix_transfer",
+        "description": "Optional namespace assigned to transferred feature sets on the target matrix.",
+        "applies_to": "feature-set transfer params",
+        "affects": ["downstream namespace selection", "provenance readability"],
+        "guidance": ["Leave NULL to preserve source namespace.", "Set explicitly when keeping raw-count and normalized-matrix namespaces separate is useful."],
+        "aliases": "destination_namespace"
+      }
+    },
+    {
+      "record_id": "parameter:min_retained_features",
+      "record_type": "parameter",
+      "name": "min_retained_features",
+      "title": "Minimum Retained Features",
+      "description": "Minimum number of source feature-set members that must remain valid on a target matrix during transfer.",
+      "search_text": "Minimum Retained Features\nMinimum number of source feature-set members that must remain valid on a target matrix during transfer.\nmatrix_transfer\nfeature-set transfer params\nintersect transfer rejection\nscreening universe quality\nUse with mode='intersect' to avoid transferring nearly empty sets.\nFor mode='mirror' this should normally be trivially satisfied.\nmin_transfer_features",
+      "tags": ["parameter", "matrix_transfer", "min_transfer_features"],
+      "payload": {
+        "parameter_name": "min_retained_features",
+        "title": "Minimum Retained Features",
+        "category": "matrix_transfer",
+        "description": "Minimum number of source feature-set members that must remain valid on a target matrix during transfer.",
+        "applies_to": "feature-set transfer params",
+        "affects": ["intersect transfer rejection", "screening universe quality"],
+        "guidance": ["Use with mode='intersect' to avoid transferring nearly empty sets.", "For mode='mirror' this should normally be trivially satisfied."],
+        "aliases": "min_transfer_features"
+      }
+    },
+    {
+      "record_id": "parameter:min_retained_fraction",
+      "record_type": "parameter",
+      "name": "min_retained_fraction",
+      "title": "Minimum Retained Fraction",
+      "description": "Minimum fraction of source feature-set members that must remain valid on a target matrix during transfer.",
+      "search_text": "Minimum Retained Fraction\nMinimum fraction of source feature-set members that must remain valid on a target matrix during transfer.\nmatrix_transfer\nfeature-set transfer params\nlossy transfer rejection\nQC stringency\nUse to prevent broad lossy transfers from silently changing gene-set meaning.\nThis is not a biological mapping confidence score; it only measures retained feature IDs.\ntransfer_fraction",
+      "tags": ["parameter", "matrix_transfer", "transfer_fraction"],
+      "payload": {
+        "parameter_name": "min_retained_fraction",
+        "title": "Minimum Retained Fraction",
+        "category": "matrix_transfer",
+        "description": "Minimum fraction of source feature-set members that must remain valid on a target matrix during transfer.",
+        "applies_to": "feature-set transfer params",
+        "affects": ["lossy transfer rejection", "QC stringency"],
+        "guidance": ["Use to prevent broad lossy transfers from silently changing gene-set meaning.", "This is not a biological mapping confidence score; it only measures retained feature IDs."],
+        "aliases": "transfer_fraction"
+      }
+    },
+    {
       "record_id": "parameter:signal_keys",
       "record_type": "parameter",
       "name": "signal_keys",
@@ -9415,6 +9696,27 @@
       }
     },
     {
+      "record_id": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "record_type": "recipe",
+      "name": "feature_set_namespace_transfer_for_normalized_matrix",
+      "title": "Transfer feature-set namespaces to a derived normalized matrix",
+      "description": "Transfer matrix-scoped feature-set namespaces from a source matrix to a target matrix using mirror or intersect semantics before running dynamics on the target matrix.",
+      "search_text": "Transfer feature-set namespaces to a derived normalized matrix\nHow can feature-set libraries registered on raw counts be reused on a comparable derived matrix?\nTransfer matrix-scoped feature-set namespaces from a source matrix to a target matrix using mirror or intersect semantics before running dynamics on the target matrix.\nmatrix_transfer\nConfirm the target matrix is comparable to the source matrix and uses the same feature ID type.\nRun feature_set_namespace_transfer with source_matrix_id, target_matrix_id, namespace, and mode='mirror' for lossless derived matrices.\nPromote transfer_summary, transfer_manifest, and transfer_rejected for provenance.\nRun feature_set_overlap_qc on the target matrix/namespace before broad screening.\nRun trajectory_geneset_dynamics on the target matrix with the transferred namespace.\nop:feature_set_namespace_transfer\nop:feature_set_overlap_qc\nop:trajectory_geneset_dynamics\ngetter:wb_feature_sets\nartifact_type:obs_table:feature_set_transfer_manifest\nparameter:source_matrix_id\nparameter:target_matrix_id\nparameter:namespace\nparameter:target_namespace\nartifact_type:obs_table:feature_set_transfer_summary\nartifact_type:obs_table:feature_set_overlap_qc\nartifact_type:obs_table:trajectory_geneset_dynamics\nraw-count feature sets need to be reused on log-normalized RNA\nderived matrices preserve feature IDs but feature-set registry is matrix-scoped\nThis is not ortholog/synonym/gene-to-peak/motif-to-TF mapping.\nmode='mirror' requires identical feature universes.\nmode='intersect' changes gene-set membership and must be reported with loss metrics.",
+      "tags": ["recipe", "matrix_transfer", "raw-count feature sets need to be reused on log-normalized RNA", "derived matrices preserve feature IDs but feature-set registry is matrix-scoped"],
+      "payload": {
+        "recipe_id": "feature_set_namespace_transfer_for_normalized_matrix",
+        "title": "Transfer feature-set namespaces to a derived normalized matrix",
+        "category": "matrix_transfer",
+        "question": "How can feature-set libraries registered on raw counts be reused on a comparable derived matrix?",
+        "description": "Transfer matrix-scoped feature-set namespaces from a source matrix to a target matrix using mirror or intersect semantics before running dynamics on the target matrix.",
+        "steps": ["Confirm the target matrix is comparable to the source matrix and uses the same feature ID type.", "Run feature_set_namespace_transfer with source_matrix_id, target_matrix_id, namespace, and mode='mirror' for lossless derived matrices.", "Promote transfer_summary, transfer_manifest, and transfer_rejected for provenance.", "Run feature_set_overlap_qc on the target matrix/namespace before broad screening.", "Run trajectory_geneset_dynamics on the target matrix with the transferred namespace."],
+        "uses": ["op:feature_set_namespace_transfer", "op:feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_transfer_manifest", "parameter:source_matrix_id", "parameter:target_matrix_id", "parameter:namespace", "parameter:target_namespace"],
+        "produces": ["artifact_type:obs_table:feature_set_transfer_summary", "artifact_type:obs_table:feature_set_transfer_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "artifact_type:obs_table:trajectory_geneset_dynamics"],
+        "use_when": ["raw-count feature sets need to be reused on log-normalized RNA", "derived matrices preserve feature IDs but feature-set registry is matrix-scoped"],
+        "cautions": ["This is not ortholog/synonym/gene-to-peak/motif-to-TF mapping.", "mode='mirror' requires identical feature universes.", "mode='intersect' changes gene-set membership and must be reported with loss metrics."]
+      }
+    },
+    {
       "record_id": "recipe:trajectory_signal_dynamics_discovery",
       "record_type": "recipe",
       "name": "trajectory_signal_dynamics_discovery",
@@ -9564,9 +9866,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-12T11:03:45+0200",
-    "node_count": 263,
-    "edge_count": 701,
+    "generated_at": "2026-06-13T10:09:47+0200",
+    "node_count": 273,
+    "edge_count": 742,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -9675,6 +9977,12 @@
         "record_type": "op",
         "name": "feature_set_overlap_qc",
         "title": "Feature-Set Matrix Overlap QC"
+      },
+      {
+        "record_id": "op:feature_set_namespace_transfer",
+        "record_type": "op",
+        "name": "feature_set_namespace_transfer",
+        "title": "Feature-Set Namespace Transfer"
       },
       {
         "record_id": "op:cell_suffix_label",
@@ -10565,6 +10873,24 @@
         "title": "Feature-Set Namespace Overlap Summary"
       },
       {
+        "record_id": "artifact_type:obs_table:feature_set_transfer_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_transfer_summary",
+        "title": "Feature-Set Transfer Summary"
+      },
+      {
+        "record_id": "artifact_type:obs_table:feature_set_transfer_manifest",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_transfer_manifest",
+        "title": "Feature-Set Transfer Manifest"
+      },
+      {
+        "record_id": "artifact_type:obs_table:feature_set_transfer_rejected",
+        "record_type": "artifact_type",
+        "name": "obs_table:feature_set_transfer_rejected",
+        "title": "Rejected Feature-Set Transfer Table"
+      },
+      {
         "record_id": "artifact_type:obs_table:pathway_enrich",
         "record_type": "artifact_type",
         "name": "obs_table:pathway_enrich",
@@ -10943,6 +11269,36 @@
         "title": "Gene Identifier Type"
       },
       {
+        "record_id": "parameter:source_matrix_id",
+        "record_type": "parameter",
+        "name": "source_matrix_id",
+        "title": "Source Matrix Identifier"
+      },
+      {
+        "record_id": "parameter:target_matrix_id",
+        "record_type": "parameter",
+        "name": "target_matrix_id",
+        "title": "Target Matrix Identifier"
+      },
+      {
+        "record_id": "parameter:target_namespace",
+        "record_type": "parameter",
+        "name": "target_namespace",
+        "title": "Target Feature-Set Namespace"
+      },
+      {
+        "record_id": "parameter:min_retained_features",
+        "record_type": "parameter",
+        "name": "min_retained_features",
+        "title": "Minimum Retained Features"
+      },
+      {
+        "record_id": "parameter:min_retained_fraction",
+        "record_type": "parameter",
+        "name": "min_retained_fraction",
+        "title": "Minimum Retained Fraction"
+      },
+      {
         "record_id": "parameter:signal_keys",
         "record_type": "parameter",
         "name": "signal_keys",
@@ -11103,6 +11459,12 @@
         "record_type": "recipe",
         "name": "feature_set_import_qc_then_dynamics",
         "title": "Import and QC a feature-set library before trajectory screening"
+      },
+      {
+        "record_id": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "record_type": "recipe",
+        "name": "feature_set_namespace_transfer_for_normalized_matrix",
+        "title": "Transfer feature-set namespaces to a derived normalized matrix"
       },
       {
         "record_id": "recipe:trajectory_signal_dynamics_discovery",
@@ -11957,6 +12319,78 @@
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:namespace_summary"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:source_matrix_id",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:source_matrix_id"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:target_matrix_id",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:target_matrix_id"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:namespace",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:namespace"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:feature_sets",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:feature_sets"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:target_namespace",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:target_namespace"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:overwrite"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:min_retained_features",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_retained_features"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:min_retained_fraction",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:min_retained_fraction"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:transfer_summary"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:transfer_manifest"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:transfer_rejected"
       },
       {
         "from": "op:cell_suffix_label",
@@ -13615,6 +14049,24 @@
         "label": "wb_art_load"
       },
       {
+        "from": "artifact_type:obs_table:feature_set_transfer_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_transfer_manifest",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_transfer_rejected",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
         "from": "artifact_type:obs_table:pathway_enrich",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
@@ -14513,6 +14965,162 @@
         "to": "recipe:feature_set_import_qc_then_dynamics",
         "edge_type": "produced_by_recipe",
         "label": "recipe:feature_set_import_qc_then_dynamics"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "op:feature_set_namespace_transfer",
+        "edge_type": "uses",
+        "label": "op:feature_set_namespace_transfer"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "op:feature_set_overlap_qc",
+        "edge_type": "uses",
+        "label": "op:feature_set_overlap_qc"
+      },
+      {
+        "from": "op:feature_set_overlap_qc",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "op:trajectory_geneset_dynamics",
+        "edge_type": "uses",
+        "label": "op:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "getter:wb_feature_sets",
+        "edge_type": "uses",
+        "label": "getter:wb_feature_sets"
+      },
+      {
+        "from": "getter:wb_feature_sets",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "artifact_type:obs_table:feature_set_transfer_manifest",
+        "edge_type": "uses",
+        "label": "artifact_type:obs_table:feature_set_transfer_manifest"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_transfer_manifest",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "parameter:source_matrix_id",
+        "edge_type": "uses",
+        "label": "parameter:source_matrix_id"
+      },
+      {
+        "from": "parameter:source_matrix_id",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "parameter:target_matrix_id",
+        "edge_type": "uses",
+        "label": "parameter:target_matrix_id"
+      },
+      {
+        "from": "parameter:target_matrix_id",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "parameter:namespace",
+        "edge_type": "uses",
+        "label": "parameter:namespace"
+      },
+      {
+        "from": "parameter:namespace",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "parameter:target_namespace",
+        "edge_type": "uses",
+        "label": "parameter:target_namespace"
+      },
+      {
+        "from": "parameter:target_namespace",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "artifact_type:obs_table:feature_set_transfer_summary",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:feature_set_transfer_summary"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_transfer_summary",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "artifact_type:obs_table:feature_set_transfer_manifest",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:feature_set_transfer_manifest"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_transfer_manifest",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "artifact_type:obs_table:feature_set_overlap_qc",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:feature_set_overlap_qc"
+      },
+      {
+        "from": "artifact_type:obs_table:feature_set_overlap_qc",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+      },
+      {
+        "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "to": "artifact_type:obs_table:trajectory_geneset_dynamics",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_geneset_dynamics",
+        "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
       },
       {
         "from": "recipe:trajectory_signal_dynamics_discovery",

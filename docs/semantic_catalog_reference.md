@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-12T11:03:45+0200
+Generated at: 2026-06-13T10:09:47+0200
 
-Record count: 263
+Record count: 273
 
-Graph edges: 701
+Graph edges: 742
 
 ## artifact_type
 
@@ -111,6 +111,24 @@ Description: Per-set raw, mapped, detected, duplicate, and include/exclude scree
 Title: Feature-Set Namespace Overlap Summary
 
 Description: Namespace-level overlap QC summary for imported feature-set libraries.
+
+### `artifact_type:obs_table:feature_set_transfer_summary`
+
+Title: Feature-Set Transfer Summary
+
+Description: Summary of matrix-scoped feature-set namespace transfer between comparable matrices.
+
+### `artifact_type:obs_table:feature_set_transfer_manifest`
+
+Title: Feature-Set Transfer Manifest
+
+Description: One row per source feature set transferred or rejected between source and target matrices.
+
+### `artifact_type:obs_table:feature_set_transfer_rejected`
+
+Title: Rejected Feature-Set Transfer Table
+
+Description: Feature sets rejected during matrix namespace transfer because retained target members failed thresholds.
 
 ### `artifact_type:obs_table:pathway_enrich`
 
@@ -896,6 +914,12 @@ Title: Feature-Set Matrix Overlap QC
 
 Description: Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.
 
+### `op:feature_set_namespace_transfer`
+
+Title: Feature-Set Namespace Transfer
+
+Description: Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.
+
 ### `op:cell_suffix_label`
 
 Title: Cell Labels From ID Suffix
@@ -1167,6 +1191,36 @@ Description: Controls whether broad gene-set libraries are split into collection
 Title: Gene Identifier Type
 
 Description: Records the identifier convention used by imported feature-set genes.
+
+### `parameter:source_matrix_id`
+
+Title: Source Matrix Identifier
+
+Description: Matrix id that owns the source matrix-scoped feature-set namespace or other transferable registry state.
+
+### `parameter:target_matrix_id`
+
+Title: Target Matrix Identifier
+
+Description: Matrix id that will receive transferred feature-set memberships after mirror or intersect validation.
+
+### `parameter:target_namespace`
+
+Title: Target Feature-Set Namespace
+
+Description: Optional namespace assigned to transferred feature sets on the target matrix.
+
+### `parameter:min_retained_features`
+
+Title: Minimum Retained Features
+
+Description: Minimum number of source feature-set members that must remain valid on a target matrix during transfer.
+
+### `parameter:min_retained_fraction`
+
+Title: Minimum Retained Fraction
+
+Description: Minimum fraction of source feature-set members that must remain valid on a target matrix during transfer.
 
 ### `parameter:signal_keys`
 
@@ -1473,6 +1527,12 @@ Description: Screen a feature-set namespace across trajectory pseudotime and rep
 Title: Import and QC a feature-set library before trajectory screening
 
 Description: Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.
+
+### `recipe:feature_set_namespace_transfer_for_normalized_matrix`
+
+Title: Transfer feature-set namespaces to a derived normalized matrix
+
+Description: Transfer matrix-scoped feature-set namespaces from a source matrix to a target matrix using mirror or intersect semantics before running dynamics on the target matrix.
 
 ### `recipe:trajectory_signal_dynamics_discovery`
 

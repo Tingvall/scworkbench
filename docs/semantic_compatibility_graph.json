@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-12T11:03:45+0200",
-  "node_count": 263,
-  "edge_count": 701,
+  "generated_at": "2026-06-13T10:09:47+0200",
+  "node_count": 273,
+  "edge_count": 742,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -111,6 +111,12 @@
       "record_type": "op",
       "name": "feature_set_overlap_qc",
       "title": "Feature-Set Matrix Overlap QC"
+    },
+    {
+      "record_id": "op:feature_set_namespace_transfer",
+      "record_type": "op",
+      "name": "feature_set_namespace_transfer",
+      "title": "Feature-Set Namespace Transfer"
     },
     {
       "record_id": "op:cell_suffix_label",
@@ -1001,6 +1007,24 @@
       "title": "Feature-Set Namespace Overlap Summary"
     },
     {
+      "record_id": "artifact_type:obs_table:feature_set_transfer_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_transfer_summary",
+      "title": "Feature-Set Transfer Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_transfer_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_transfer_manifest",
+      "title": "Feature-Set Transfer Manifest"
+    },
+    {
+      "record_id": "artifact_type:obs_table:feature_set_transfer_rejected",
+      "record_type": "artifact_type",
+      "name": "obs_table:feature_set_transfer_rejected",
+      "title": "Rejected Feature-Set Transfer Table"
+    },
+    {
       "record_id": "artifact_type:obs_table:pathway_enrich",
       "record_type": "artifact_type",
       "name": "obs_table:pathway_enrich",
@@ -1379,6 +1403,36 @@
       "title": "Gene Identifier Type"
     },
     {
+      "record_id": "parameter:source_matrix_id",
+      "record_type": "parameter",
+      "name": "source_matrix_id",
+      "title": "Source Matrix Identifier"
+    },
+    {
+      "record_id": "parameter:target_matrix_id",
+      "record_type": "parameter",
+      "name": "target_matrix_id",
+      "title": "Target Matrix Identifier"
+    },
+    {
+      "record_id": "parameter:target_namespace",
+      "record_type": "parameter",
+      "name": "target_namespace",
+      "title": "Target Feature-Set Namespace"
+    },
+    {
+      "record_id": "parameter:min_retained_features",
+      "record_type": "parameter",
+      "name": "min_retained_features",
+      "title": "Minimum Retained Features"
+    },
+    {
+      "record_id": "parameter:min_retained_fraction",
+      "record_type": "parameter",
+      "name": "min_retained_fraction",
+      "title": "Minimum Retained Fraction"
+    },
+    {
       "record_id": "parameter:signal_keys",
       "record_type": "parameter",
       "name": "signal_keys",
@@ -1539,6 +1593,12 @@
       "record_type": "recipe",
       "name": "feature_set_import_qc_then_dynamics",
       "title": "Import and QC a feature-set library before trajectory screening"
+    },
+    {
+      "record_id": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "record_type": "recipe",
+      "name": "feature_set_namespace_transfer_for_normalized_matrix",
+      "title": "Transfer feature-set namespaces to a derived normalized matrix"
     },
     {
       "record_id": "recipe:trajectory_signal_dynamics_discovery",
@@ -2393,6 +2453,78 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:namespace_summary"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:source_matrix_id",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:source_matrix_id"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:target_matrix_id",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:target_matrix_id"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:namespace"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:feature_sets",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:feature_sets"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:target_namespace",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:target_namespace"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:min_retained_features",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_retained_features"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:min_retained_fraction",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:min_retained_fraction"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:transfer_summary"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:transfer_manifest"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:transfer_rejected"
     },
     {
       "from": "op:cell_suffix_label",
@@ -4051,6 +4183,24 @@
       "label": "wb_art_load"
     },
     {
+      "from": "artifact_type:obs_table:feature_set_transfer_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_transfer_manifest",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_transfer_rejected",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
       "from": "artifact_type:obs_table:pathway_enrich",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
@@ -4949,6 +5099,162 @@
       "to": "recipe:feature_set_import_qc_then_dynamics",
       "edge_type": "produced_by_recipe",
       "label": "recipe:feature_set_import_qc_then_dynamics"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "op:feature_set_namespace_transfer",
+      "edge_type": "uses",
+      "label": "op:feature_set_namespace_transfer"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "op:feature_set_overlap_qc",
+      "edge_type": "uses",
+      "label": "op:feature_set_overlap_qc"
+    },
+    {
+      "from": "op:feature_set_overlap_qc",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "op:trajectory_geneset_dynamics",
+      "edge_type": "uses",
+      "label": "op:trajectory_geneset_dynamics"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "getter:wb_feature_sets",
+      "edge_type": "uses",
+      "label": "getter:wb_feature_sets"
+    },
+    {
+      "from": "getter:wb_feature_sets",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "artifact_type:obs_table:feature_set_transfer_manifest",
+      "edge_type": "uses",
+      "label": "artifact_type:obs_table:feature_set_transfer_manifest"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_transfer_manifest",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "parameter:source_matrix_id",
+      "edge_type": "uses",
+      "label": "parameter:source_matrix_id"
+    },
+    {
+      "from": "parameter:source_matrix_id",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "parameter:target_matrix_id",
+      "edge_type": "uses",
+      "label": "parameter:target_matrix_id"
+    },
+    {
+      "from": "parameter:target_matrix_id",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "parameter:namespace",
+      "edge_type": "uses",
+      "label": "parameter:namespace"
+    },
+    {
+      "from": "parameter:namespace",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "parameter:target_namespace",
+      "edge_type": "uses",
+      "label": "parameter:target_namespace"
+    },
+    {
+      "from": "parameter:target_namespace",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "artifact_type:obs_table:feature_set_transfer_summary",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:feature_set_transfer_summary"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_transfer_summary",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "artifact_type:obs_table:feature_set_transfer_manifest",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:feature_set_transfer_manifest"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_transfer_manifest",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "artifact_type:obs_table:feature_set_overlap_qc",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:feature_set_overlap_qc"
+    },
+    {
+      "from": "artifact_type:obs_table:feature_set_overlap_qc",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
+    },
+    {
+      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "to": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_geneset_dynamics"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_geneset_dynamics",
+      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
     },
     {
       "from": "recipe:trajectory_signal_dynamics_discovery",

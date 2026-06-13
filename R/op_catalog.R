@@ -586,6 +586,32 @@
   raw
 }
 
+.wb_runner_feature_set_namespace_transfer <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(inputs$source_matrix_id), "feature_set_namespace_transfer runner: inputs$source_matrix_id is required.")
+  .wb_assert(!is.null(inputs$target_matrix_id), "feature_set_namespace_transfer runner: inputs$target_matrix_id is required.")
+
+  raw <- wb_feature_set_namespace_transfer(
+    bundle = bundle,
+    source_matrix_id = as.character(inputs$source_matrix_id)[1],
+    target_matrix_id = as.character(inputs$target_matrix_id)[1],
+    namespace = inputs$namespace %||% NULL,
+    namespaces = inputs$namespaces %||% NULL,
+    feature_sets = inputs$feature_sets %||% NULL,
+    mode = inputs$mode %||% "mirror",
+    target_namespace = inputs$target_namespace %||% NULL,
+    overwrite = inputs$overwrite %||% FALSE,
+    strict = inputs$strict %||% TRUE,
+    min_retained_features = inputs$min_retained_features %||% 1L,
+    min_retained_fraction = inputs$min_retained_fraction %||% 0,
+    created_by = inputs$created_by %||% NULL,
+    notes = inputs$notes %||% NULL
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "feature_set_namespace_transfer must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_knn_pseudobulk <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "knn_pseudobulk runner: missing resolved$matrix.")
   .wb_assert(!is.null(resolved$space), "knn_pseudobulk runner: missing resolved$space.")
@@ -2082,6 +2108,67 @@
           kind = "obs_table",
           table_type = "feature_set_overlap_qc_summary",
           description = "Namespace-level count and overlap summaries."
+        )
+      )
+    ),
+    feature_set_namespace_transfer = list(
+      op_name = "feature_set_namespace_transfer",
+      title = "Feature-Set Namespace Transfer",
+      description = "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
+      intent = c("feature_set", "transfer", "namespace", "matrix", "provenance"),
+      requires = list(),
+      produces = list(
+        transfer_summary = "obs_table",
+        transfer_manifest = "obs_table",
+        transfer_rejected = "obs_table"
+      ),
+      promotable = c("transfer_summary", "transfer_manifest", "transfer_rejected"),
+      runner = .wb_runner_feature_set_namespace_transfer,
+      inputs = list(),
+      params = list(
+        list(name = "source_matrix_id", type = "string", default = NULL,
+             help = "Source matrix containing the existing matrix-scoped feature-set namespace."),
+        list(name = "target_matrix_id", type = "string", default = NULL,
+             help = "Target matrix that will receive transferred feature-set memberships."),
+        list(name = "namespace", type = "string", default = NULL,
+             help = "Single source namespace to transfer."),
+        list(name = "namespaces", type = "string_vec", default = NULL,
+             help = "Optional multiple source namespaces to transfer."),
+        list(name = "feature_sets", type = "string_vec", default = NULL,
+             help = "Optional feature-set subset within selected source namespaces."),
+        list(name = "mode", type = "choice", default = "mirror",
+             choices = c("mirror", "intersect"),
+             help = "mirror requires identical feature universes; intersect retains only target-valid members and records loss."),
+        list(name = "target_namespace", type = "string", default = NULL,
+             help = "Optional target namespace override. Defaults to the source namespace."),
+        list(name = "overwrite", type = "bool", default = FALSE,
+             help = "If FALSE, existing target feature sets are skipped instead of replaced."),
+        list(name = "strict", type = "bool", default = TRUE,
+             help = "If TRUE, fail when intersect mode rejects any selected set by retention thresholds."),
+        list(name = "min_retained_features", type = "int", default = 1, min = 0,
+             help = "Minimum target-retained members required to transfer a set."),
+        list(name = "min_retained_fraction", type = "dbl", default = 0, min = 0, max = 1,
+             help = "Minimum fraction of source members retained on the target matrix."),
+        list(name = "created_by", type = "string", default = NULL,
+             help = "Optional created_by metadata for transferred registry rows."),
+        list(name = "notes", type = "string", default = NULL,
+             help = "Optional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.")
+      ),
+      interface_produces = list(
+        transfer_summary = list(
+          kind = "obs_table",
+          table_type = "feature_set_transfer_summary",
+          description = "Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts."
+        ),
+        transfer_manifest = list(
+          kind = "obs_table",
+          table_type = "feature_set_transfer_manifest",
+          description = "One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs."
+        ),
+        transfer_rejected = list(
+          kind = "obs_table",
+          table_type = "feature_set_transfer_rejected",
+          description = "Feature sets rejected during intersect transfer because retained members failed thresholds."
         )
       )
     ),
