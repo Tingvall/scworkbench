@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-06-24T16:09:29+0200
+Generated at: 2026-06-24T19:59:21+0200
 
-Getter count: 68
+Getter count: 69
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -42,6 +42,23 @@ Arguments: bundle, inspect_payload
 Use when:
 - choose trajectory model
 - review trajectory candidates for reports or agents
+
+### `wb_trajectory_lineage_weights`
+
+Title: Trajectory Lineage Weights
+
+Description: Load Slingshot lineage membership weights as a cell_vector_family from a promoted lineage_weights artifact, promoted sibling trajectory artifact, or in-memory Slingshot model_ref fallback.
+
+Returns: wb_primitive cell_vector_family
+
+Payload level: payload
+
+Arguments: bundle, model_ref, pseudotime_artifact, lineage_weights_artifact
+
+Use when:
+- restrict trajectory universes by lineage membership
+- filter cells by Slingshot lineage weight
+- derive claim-supporting trajectory cell sets
 
 ### `wb_art_load`
 

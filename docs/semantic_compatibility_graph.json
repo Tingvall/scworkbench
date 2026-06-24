@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-24T16:09:29+0200",
-  "node_count": 279,
-  "edge_count": 751,
+  "generated_at": "2026-06-24T19:59:21+0200",
+  "node_count": 280,
+  "edge_count": 753,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -495,6 +495,12 @@
       "record_type": "getter",
       "name": "wb_list_trajectory_models",
       "title": "Trajectory Model Inventory"
+    },
+    {
+      "record_id": "getter:wb_trajectory_lineage_weights",
+      "record_type": "getter",
+      "name": "wb_trajectory_lineage_weights",
+      "title": "Trajectory Lineage Weights"
     },
     {
       "record_id": "getter:wb_art_load",
@@ -3692,6 +3698,12 @@
     },
     {
       "from": "op:slingshot_fit",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:lineage_weights"
+    },
+    {
+      "from": "op:slingshot_fit",
       "to": "primitive:model_ref",
       "edge_type": "produces",
       "label": "output:model"
@@ -3701,6 +3713,12 @@
       "to": "artifact_type:cell_vector_family",
       "edge_type": "promotes_as",
       "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:slingshot_fit",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:lineage_weights"
     },
     {
       "from": "op:slingshot_fit",

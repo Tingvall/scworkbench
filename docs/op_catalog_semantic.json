@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-24T16:09:29+0200",
+  "generated_at": "2026-06-24T19:59:21+0200",
   "op_count": 46,
   "ops": [
     {
@@ -3625,6 +3625,11 @@
           "description": "Lineage-specific pseudotime values per cell (fit space inference)."
         },
         {
+          "name": "lineage_weights",
+          "kind": "cell_vector_family",
+          "description": "Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime."
+        },
+        {
           "name": "model",
           "kind": "model_ref",
           "description": "Session-chainable Slingshot fit model (engine='slingshot')."
@@ -3709,7 +3714,7 @@
           "help": "Maximum fitting iterations."
         }
       ],
-      "promotable": ["pseudotime", "model"],
+      "promotable": ["pseudotime", "lineage_weights", "model"],
       "chunking": null
     },
     {

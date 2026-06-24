@@ -363,6 +363,16 @@
       use_when = c("choose trajectory model", "review trajectory candidates for reports or agents")
     ),
     list(
+      function_name = "wb_trajectory_lineage_weights",
+      title = "Trajectory Lineage Weights",
+      category = "artifacts",
+      description = "Load Slingshot lineage membership weights as a cell_vector_family from a promoted lineage_weights artifact, promoted sibling trajectory artifact, or in-memory Slingshot model_ref fallback.",
+      returns = "wb_primitive cell_vector_family",
+      payload_level = "payload",
+      arguments = c("bundle", "model_ref", "pseudotime_artifact", "lineage_weights_artifact"),
+      use_when = c("restrict trajectory universes by lineage membership", "filter cells by Slingshot lineage weight", "derive claim-supporting trajectory cell sets")
+    ),
+    list(
       function_name = "wb_art_load",
       title = "Load Artifact",
       category = "artifacts",

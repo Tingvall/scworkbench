@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-24T16:09:29+0200
+Generated at: 2026-06-24T19:59:21+0200
 
 Operation count: 46
 
@@ -1010,9 +1010,10 @@ Consumes:
 
 Produces:
 - `pseudotime`: cell_vector_family - Lineage-specific pseudotime values per cell (fit space inference).
+- `lineage_weights`: cell_vector_family - Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.
 - `model`: model_ref - Session-chainable Slingshot fit model (engine='slingshot').
 
-Promotable outputs: pseudotime, model
+Promotable outputs: pseudotime, lineage_weights, model
 
 Key parameters:
 - `start.clus` (string, default=NULL): Starting cluster id.

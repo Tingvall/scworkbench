@@ -3023,9 +3023,10 @@
       requires = list(fit_space = "space", clusters = "cell_vector"),
       produces = list(
         pseudotime = "cell_vector_family",
+        lineage_weights = "cell_vector_family",
         model = "model_ref"
       ),
-      promotable = c("pseudotime", "model"),
+      promotable = c("pseudotime", "lineage_weights", "model"),
       runner = .wb_runner_slingshot_fit,
       inputs = list(
         fit_space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2),
@@ -3057,6 +3058,15 @@
           value_kind = "continuous",
           key = "lineage_id",
           description = "Lineage-specific pseudotime values per cell (fit space inference)."
+        ),
+        lineage_weights = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "lineage_id",
+          family_kind = "trajectory_membership_weight",
+          engine = "slingshot",
+          range = c(0, 1),
+          description = "Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime."
         ),
         model = list(
           kind = "model_ref",

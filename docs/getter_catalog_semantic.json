@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "2026-06-24T16:09:29+0200",
-  "getter_count": 68,
+  "generated_at": "2026-06-24T19:59:21+0200",
+  "getter_count": 69,
   "getters": [
     {
       "function_name": "wb_status",
@@ -397,6 +397,17 @@
       "payload_level": "metadata",
       "arguments": ["bundle", "inspect_payload"],
       "use_when": ["choose trajectory model", "review trajectory candidates for reports or agents"],
+      "mutates": false
+    },
+    {
+      "function_name": "wb_trajectory_lineage_weights",
+      "title": "Trajectory Lineage Weights",
+      "category": "artifacts",
+      "description": "Load Slingshot lineage membership weights as a cell_vector_family from a promoted lineage_weights artifact, promoted sibling trajectory artifact, or in-memory Slingshot model_ref fallback.",
+      "returns": "wb_primitive cell_vector_family",
+      "payload_level": "payload",
+      "arguments": ["bundle", "model_ref", "pseudotime_artifact", "lineage_weights_artifact"],
+      "use_when": ["restrict trajectory universes by lineage membership", "filter cells by Slingshot lineage weight", "derive claim-supporting trajectory cell sets"],
       "mutates": false
     },
     {

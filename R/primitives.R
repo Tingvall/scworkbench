@@ -11,7 +11,8 @@
 
 #' Create a cell_vector_family primitive
 #' @export
-wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "continuous") {
+wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "continuous", meta = list()) {
+  if (is.null(meta)) meta <- list()
 
   structure(
     list(
@@ -19,7 +20,8 @@ wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "contin
       key = as.character(key),
       cell_id = as.character(cell_id),
       value = as.numeric(value),
-      value_type = as.character(value_type)
+      value_type = as.character(value_type),
+      meta = meta
     ),
     class = "wb_primitive"
   )

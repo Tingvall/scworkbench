@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-24T16:09:29+0200
+Generated at: 2026-06-24T19:59:21+0200
 
-Record count: 279
+Record count: 280
 
-Graph edges: 751
+Graph edges: 753
 
 ## artifact_type
 
@@ -623,6 +623,12 @@ Description: List promoted artifacts, optionally filtered by type.
 Title: Trajectory Model Inventory
 
 Description: List promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage.
+
+### `getter:wb_trajectory_lineage_weights`
+
+Title: Trajectory Lineage Weights
+
+Description: Load Slingshot lineage membership weights as a cell_vector_family from a promoted lineage_weights artifact, promoted sibling trajectory artifact, or in-memory Slingshot model_ref fallback.
 
 ### `getter:wb_art_load`
 

@@ -144,7 +144,52 @@
     key = pseudotime$lineage_id,
     cell_id = pseudotime$cell_id,
     value = pseudotime$pseudotime,
-    value_type = "continuous"
+    value_type = "continuous",
+    meta = list(
+      family_kind = "trajectory_pseudotime",
+      engine = "slingshot",
+      value_semantics = "lineage_specific_pseudotime"
+    )
+  )
+}
+
+.wb_slingshot_lineage_weights_prim <- function(sds) {
+  w <- slingshot::slingCurveWeights(sds)
+  .wb_assert(!is.null(w) && length(w) > 0, "slingshot lineage weights are empty.")
+  w <- as.matrix(w)
+  n_lin <- ncol(w)
+  .wb_assert(n_lin >= 1L, "slingshot lineage weights have no lineage columns.")
+  lineage_ids <- paste0("L", seq_len(n_lin))
+  cells_fit <- rownames(w)
+  .wb_assert(!is.null(cells_fit) && length(cells_fit) == nrow(w),
+             "slingshot lineage weights are missing cell rownames.")
+
+  weights <- do.call(rbind, lapply(seq_len(n_lin), function(j) {
+    data.frame(
+      cell_id = cells_fit,
+      lineage_id = lineage_ids[j],
+      weight = as.numeric(w[, j]),
+      stringsAsFactors = FALSE
+    )
+  }))
+  weights <- weights[!is.na(weights$weight), , drop = FALSE]
+  vals <- suppressWarnings(as.numeric(weights$weight))
+  bad <- is.finite(vals) & (vals < -1e-8 | vals > 1 + 1e-8)
+  .wb_assert(!any(bad), "slingshot lineage weights must be in [0, 1] when finite.")
+  weights$weight <- pmin(1, pmax(0, vals))
+
+  wb_prim_cell_vector_family(
+    key = weights$lineage_id,
+    cell_id = weights$cell_id,
+    value = weights$weight,
+    value_type = "continuous",
+    meta = list(
+      family_kind = "trajectory_membership_weight",
+      engine = "slingshot",
+      value_semantics = "lineage_membership_weight",
+      range = c(0, 1),
+      promoted = FALSE
+    )
   )
 }
 
@@ -260,6 +305,7 @@ wb_op_slingshot_fit <- function(bundle,
   )
 
   pt_prim <- .wb_slingshot_pseudotime_prim(sds)
+  weight_prim <- .wb_slingshot_lineage_weights_prim(sds)
   model_prim <- wb_prim_model_ref(
     model_space_id = fit_space_id,
     in_space_id = fit_space_id,
@@ -271,10 +317,12 @@ wb_op_slingshot_fit <- function(bundle,
   model_prim$fit_space_id <- fit_space_id
   model_prim$cells <- prep$cells_fit
   model_prim$n_lineages <- length(unique(pt_prim$key))
+  model_prim$lineage_weight_family_kind <- "trajectory_membership_weight"
 
   list(
     outputs = list(
       pseudotime = pt_prim,
+      lineage_weights = weight_prim,
       model = model_prim
     ),
     params = list(
