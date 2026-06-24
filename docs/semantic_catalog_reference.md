@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-13T10:09:47+0200
+Generated at: 2026-06-24T16:09:29+0200
 
-Record count: 273
+Record count: 279
 
-Graph edges: 742
+Graph edges: 751
 
 ## artifact_type
 
@@ -81,6 +81,18 @@ Description: Feature-level differential or dynamic statistics along trajectory l
 Title: Trajectory Branch Compare Table
 
 Description: Feature-level branch comparison statistics.
+
+### `artifact_type:obs_table:derived_cell_set_manifest`
+
+Title: Derived Cell-Set Manifest
+
+Description: Lifecycle manifest for a named derived cell set, including role, status, counts, recipe availability, source summary, and derivation metadata.
+
+### `artifact_type:obs_table:derived_cell_set_rules`
+
+Title: Derived Cell-Set Rule Table
+
+Description: Ordered per-rule audit table for a derived cell set, including input/output counts and selector/source fields.
 
 ### `artifact_type:obs_table:feature_set_import_summary`
 
@@ -926,6 +938,12 @@ Title: Cell Labels From ID Suffix
 
 Description: Build a categorical cell vector by parsing cell_id suffix tokens.
 
+### `op:cell_set_derive`
+
+Title: Derived Cell Set
+
+Description: Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.
+
 ### `op:cell_vector_assoc`
 
 Title: Cell Vector Association
@@ -1083,6 +1101,24 @@ Description: Project Palantir branch trajectories into a 2D display space using 
 Title: Cell Set / Analysis Universe
 
 Description: Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.
+
+### `parameter:target_cell_set`
+
+Title: Target Derived Cell Set
+
+Description: Stable bundle name assigned to a newly materialized derived cell universe.
+
+### `parameter:role`
+
+Title: Cell-Set Lifecycle Role
+
+Description: Declared purpose of a cell set, such as analysis_universe, exclusion_set, endpoint_set, annotation, diagnostic, or temporary.
+
+### `parameter:status`
+
+Title: Cell-Set Lifecycle Status
+
+Description: Declared maturity of a cell set, such as candidate, accepted, superseded, rejected, active, or temporary.
 
 ### `parameter:matrix`
 

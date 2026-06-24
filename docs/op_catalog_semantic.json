@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-13T10:09:47+0200",
-  "op_count": 45,
+  "generated_at": "2026-06-24T16:09:29+0200",
+  "op_count": 46,
   "ops": [
     {
       "op_name": "leiden",
@@ -1846,6 +1846,86 @@
         }
       ],
       "promotable": ["labels", "label_table"],
+      "chunking": null
+    },
+    {
+      "op_name": "cell_set_derive",
+      "title": "Derived Cell Set",
+      "description": "Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.",
+      "intent": ["selection", "provenance", "registry"],
+      "consumes": [
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "manifest",
+          "kind": "obs_table",
+          "description": "One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary."
+        },
+        {
+          "name": "rule_table",
+          "kind": "obs_table",
+          "description": "Ordered per-rule derivation audit table with input/output/removal counts and source fields."
+        }
+      ],
+      "inputs": {
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "target_cell_set",
+          "type": "string",
+          "default": null,
+          "help": "Name of the derived cell set to create, for example set:universe_b_l1_weight090."
+        },
+        {
+          "name": "role",
+          "type": "choice",
+          "default": "analysis_universe",
+          "choices": ["core", "annotation", "analysis_universe", "exclusion_set", "endpoint_set", "diagnostic", "temporary"],
+          "help": "Lifecycle role of the derived set."
+        },
+        {
+          "name": "status",
+          "type": "choice",
+          "default": "candidate",
+          "choices": ["active", "candidate", "accepted", "superseded", "rejected", "temporary"],
+          "help": "Lifecycle status controlling interpretation and default visibility."
+        },
+        {
+          "name": "source",
+          "type": "string",
+          "default": "selector_recipe",
+          "help": "Source/provenance label stored on membership rows."
+        },
+        {
+          "name": "created_by",
+          "type": "string",
+          "default": null,
+          "help": "Optional creator label."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "default": null,
+          "help": "Human-readable derivation rationale."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": true,
+          "help": "If TRUE, replace existing membership for the target set; if FALSE, add cells to it."
+        }
+      ],
+      "promotable": ["manifest", "rule_table"],
       "chunking": null
     },
     {

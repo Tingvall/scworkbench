@@ -1,12 +1,12 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-13T10:09:47+0200",
-  "record_count": 273,
+  "generated_at": "2026-06-24T16:09:29+0200",
+  "record_count": 279,
   "record_type_counts": {
-    "artifact_type": 64,
+    "artifact_type": 66,
     "getter": 68,
-    "op": 45,
-    "parameter": 49,
+    "op": 46,
+    "parameter": 52,
     "plot": 12,
     "primitive": 11,
     "recipe": 10,
@@ -2035,6 +2035,95 @@
           }
         ],
         "promotable": ["labels", "label_table"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:cell_set_derive",
+      "record_type": "op",
+      "name": "cell_set_derive",
+      "title": "Derived Cell Set",
+      "description": "Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.",
+      "search_text": "Derived Cell Set\nMaterialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.\nselection\nprovenance\nregistry\ncell_set\nselect\nmanifest\nobs_table\nOne-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary.\nrule_table\nOrdered per-rule derivation audit table with input/output/removal counts and source fields.\ntarget_cell_set\nstring\nName of the derived cell set to create, for example set:universe_b_l1_weight090.\nrole\nchoice\nanalysis_universe\ncore\nannotation\nexclusion_set\nendpoint_set\ndiagnostic\ntemporary\nLifecycle role of the derived set.\nstatus\ncandidate\nactive\naccepted\nsuperseded\nrejected\nLifecycle status controlling interpretation and default visibility.\nsource\nselector_recipe\nSource/provenance label stored on membership rows.\ncreated_by\nOptional creator label.\ndescription\nHuman-readable derivation rationale.\noverwrite\nbool\nTRUE\nIf TRUE, replace existing membership for the target set; if FALSE, add cells to it.",
+      "tags": ["op", "selection", "provenance", "registry"],
+      "payload": {
+        "op_name": "cell_set_derive",
+        "title": "Derived Cell Set",
+        "description": "Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.",
+        "intent": ["selection", "provenance", "registry"],
+        "consumes": [
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "manifest",
+            "kind": "obs_table",
+            "description": "One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary."
+          },
+          {
+            "name": "rule_table",
+            "kind": "obs_table",
+            "description": "Ordered per-rule derivation audit table with input/output/removal counts and source fields."
+          }
+        ],
+        "inputs": {
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "target_cell_set",
+            "type": "string",
+            "default": null,
+            "help": "Name of the derived cell set to create, for example set:universe_b_l1_weight090."
+          },
+          {
+            "name": "role",
+            "type": "choice",
+            "default": "analysis_universe",
+            "choices": ["core", "annotation", "analysis_universe", "exclusion_set", "endpoint_set", "diagnostic", "temporary"],
+            "help": "Lifecycle role of the derived set."
+          },
+          {
+            "name": "status",
+            "type": "choice",
+            "default": "candidate",
+            "choices": ["active", "candidate", "accepted", "superseded", "rejected", "temporary"],
+            "help": "Lifecycle status controlling interpretation and default visibility."
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "default": "selector_recipe",
+            "help": "Source/provenance label stored on membership rows."
+          },
+          {
+            "name": "created_by",
+            "type": "string",
+            "default": null,
+            "help": "Optional creator label."
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "default": null,
+            "help": "Human-readable derivation rationale."
+          },
+          {
+            "name": "overwrite",
+            "type": "bool",
+            "default": true,
+            "help": "If TRUE, replace existing membership for the target set; if FALSE, add cells to it."
+          }
+        ],
+        "promotable": ["manifest", "rule_table"],
         "chunking": null
       }
     },
@@ -7787,6 +7876,42 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:derived_cell_set_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:derived_cell_set_manifest",
+      "title": "Derived Cell-Set Manifest",
+      "description": "Lifecycle manifest for a named derived cell set, including role, status, counts, recipe availability, source summary, and derivation metadata.",
+      "search_text": "Derived Cell-Set Manifest\nLifecycle manifest for a named derived cell set, including role, status, counts, recipe availability, source summary, and derivation metadata.\nobs_table\nderived_cell_set_manifest\ncell_set\naudit derived analysis universes\ntrace claim-supporting cell-set materialization",
+      "tags": ["artifact_type", "obs_table", "derived_cell_set_manifest"],
+      "payload": {
+        "artifact_type": "obs_table:derived_cell_set_manifest",
+        "primitive_kind": "obs_table",
+        "title": "Derived Cell-Set Manifest",
+        "description": "Lifecycle manifest for a named derived cell set, including role, status, counts, recipe availability, source summary, and derivation metadata.",
+        "table_type": "derived_cell_set_manifest",
+        "entity_kind": "cell_set",
+        "use_when": ["audit derived analysis universes", "trace claim-supporting cell-set materialization"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:derived_cell_set_rules",
+      "record_type": "artifact_type",
+      "name": "obs_table:derived_cell_set_rules",
+      "title": "Derived Cell-Set Rule Table",
+      "description": "Ordered per-rule audit table for a derived cell set, including input/output counts and selector/source fields.",
+      "search_text": "Derived Cell-Set Rule Table\nOrdered per-rule audit table for a derived cell set, including input/output counts and selector/source fields.\nobs_table\nderived_cell_set_rules\ncell_set_rule\ninspect derived cell-set filters\nexplain why cells entered or left an analysis universe",
+      "tags": ["artifact_type", "obs_table", "derived_cell_set_rules"],
+      "payload": {
+        "artifact_type": "obs_table:derived_cell_set_rules",
+        "primitive_kind": "obs_table",
+        "title": "Derived Cell-Set Rule Table",
+        "description": "Ordered per-rule audit table for a derived cell set, including input/output counts and selector/source fields.",
+        "table_type": "derived_cell_set_rules",
+        "entity_kind": "cell_set_rule",
+        "use_when": ["inspect derived cell-set filters", "explain why cells entered or left an analysis universe"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:feature_set_import_summary",
       "record_type": "artifact_type",
       "name": "obs_table:feature_set_import_summary",
@@ -8739,6 +8864,63 @@
         "affects": ["cell inclusion", "statistics", "plots", "runtime"],
         "guidance": ["Use a biologically justified set for focused analysis.", "Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment."],
         "aliases": ["cells", "cell_ids"]
+      }
+    },
+    {
+      "record_id": "parameter:target_cell_set",
+      "record_type": "parameter",
+      "name": "target_cell_set",
+      "title": "Target Derived Cell Set",
+      "description": "Stable bundle name assigned to a newly materialized derived cell universe.",
+      "search_text": "Target Derived Cell Set\nStable bundle name assigned to a newly materialized derived cell universe.\nselection\ncell-set derivation params\nbundle registry\ndownstream op inputs\nclaim auditability\nUse meaningful names for claim-supporting universes.\nDownstream promoted runs should consume this named set rather than a raw cell_id vector.\noutput_cell_set\nderived_cell_set",
+      "tags": ["parameter", "selection", "output_cell_set", "derived_cell_set"],
+      "payload": {
+        "parameter_name": "target_cell_set",
+        "title": "Target Derived Cell Set",
+        "category": "selection",
+        "description": "Stable bundle name assigned to a newly materialized derived cell universe.",
+        "applies_to": "cell-set derivation params",
+        "affects": ["bundle registry", "downstream op inputs", "claim auditability"],
+        "guidance": ["Use meaningful names for claim-supporting universes.", "Downstream promoted runs should consume this named set rather than a raw cell_id vector."],
+        "aliases": ["output_cell_set", "derived_cell_set"]
+      }
+    },
+    {
+      "record_id": "parameter:role",
+      "record_type": "parameter",
+      "name": "role",
+      "title": "Cell-Set Lifecycle Role",
+      "description": "Declared purpose of a cell set, such as analysis_universe, exclusion_set, endpoint_set, annotation, diagnostic, or temporary.",
+      "search_text": "Cell-Set Lifecycle Role\nDeclared purpose of a cell set, such as analysis_universe, exclusion_set, endpoint_set, annotation, diagnostic, or temporary.\nselection_lifecycle\ncell-set derivation params\nvisibility\ninterpretation\nagent planning\nUse analysis_universe for claim-supporting restriction sets.\nUse temporary for exploratory sets that should not be interpreted as accepted state.\ncell_set_role",
+      "tags": ["parameter", "selection_lifecycle", "cell_set_role"],
+      "payload": {
+        "parameter_name": "role",
+        "title": "Cell-Set Lifecycle Role",
+        "category": "selection_lifecycle",
+        "description": "Declared purpose of a cell set, such as analysis_universe, exclusion_set, endpoint_set, annotation, diagnostic, or temporary.",
+        "applies_to": "cell-set derivation params",
+        "affects": ["visibility", "interpretation", "agent planning"],
+        "guidance": ["Use analysis_universe for claim-supporting restriction sets.", "Use temporary for exploratory sets that should not be interpreted as accepted state."],
+        "aliases": "cell_set_role"
+      }
+    },
+    {
+      "record_id": "parameter:status",
+      "record_type": "parameter",
+      "name": "status",
+      "title": "Cell-Set Lifecycle Status",
+      "description": "Declared maturity of a cell set, such as candidate, accepted, superseded, rejected, active, or temporary.",
+      "search_text": "Cell-Set Lifecycle Status\nDeclared maturity of a cell set, such as candidate, accepted, superseded, rejected, active, or temporary.\nselection_lifecycle\ncell-set derivation params\nvisibility\ninterpretation\naudit state\nUse candidate while evaluating a restriction.\nUse accepted only after biological and diagnostic review.\ncell_set_status\nlifecycle_status",
+      "tags": ["parameter", "selection_lifecycle", "cell_set_status", "lifecycle_status"],
+      "payload": {
+        "parameter_name": "status",
+        "title": "Cell-Set Lifecycle Status",
+        "category": "selection_lifecycle",
+        "description": "Declared maturity of a cell set, such as candidate, accepted, superseded, rejected, active, or temporary.",
+        "applies_to": "cell-set derivation params",
+        "affects": ["visibility", "interpretation", "audit state"],
+        "guidance": ["Use candidate while evaluating a restriction.", "Use accepted only after biological and diagnostic review."],
+        "aliases": ["cell_set_status", "lifecycle_status"]
       }
     },
     {
@@ -9866,9 +10048,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-13T10:09:47+0200",
-    "node_count": 273,
-    "edge_count": 742,
+    "generated_at": "2026-06-24T16:09:29+0200",
+    "node_count": 279,
+    "edge_count": 751,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -9989,6 +10171,12 @@
         "record_type": "op",
         "name": "cell_suffix_label",
         "title": "Cell Labels From ID Suffix"
+      },
+      {
+        "record_id": "op:cell_set_derive",
+        "record_type": "op",
+        "name": "cell_set_derive",
+        "title": "Derived Cell Set"
       },
       {
         "record_id": "op:cell_vector_assoc",
@@ -10843,6 +11031,18 @@
         "title": "Trajectory Branch Compare Table"
       },
       {
+        "record_id": "artifact_type:obs_table:derived_cell_set_manifest",
+        "record_type": "artifact_type",
+        "name": "obs_table:derived_cell_set_manifest",
+        "title": "Derived Cell-Set Manifest"
+      },
+      {
+        "record_id": "artifact_type:obs_table:derived_cell_set_rules",
+        "record_type": "artifact_type",
+        "name": "obs_table:derived_cell_set_rules",
+        "title": "Derived Cell-Set Rule Table"
+      },
+      {
         "record_id": "artifact_type:obs_table:feature_set_import_summary",
         "record_type": "artifact_type",
         "name": "obs_table:feature_set_import_summary",
@@ -11159,6 +11359,24 @@
         "record_type": "parameter",
         "name": "cell_set",
         "title": "Cell Set / Analysis Universe"
+      },
+      {
+        "record_id": "parameter:target_cell_set",
+        "record_type": "parameter",
+        "name": "target_cell_set",
+        "title": "Target Derived Cell Set"
+      },
+      {
+        "record_id": "parameter:role",
+        "record_type": "parameter",
+        "name": "role",
+        "title": "Cell-Set Lifecycle Role"
+      },
+      {
+        "record_id": "parameter:status",
+        "record_type": "parameter",
+        "name": "status",
+        "title": "Cell-Set Lifecycle Status"
       },
       {
         "record_id": "parameter:matrix",
@@ -12415,6 +12633,48 @@
         "to": "artifact_type:cell_vector",
         "edge_type": "promotes_as",
         "label": "promotable:labels"
+      },
+      {
+        "from": "op:cell_set_derive",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_set_derive",
+        "to": "parameter:target_cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:target_cell_set"
+      },
+      {
+        "from": "op:cell_set_derive",
+        "to": "parameter:role",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:role"
+      },
+      {
+        "from": "op:cell_set_derive",
+        "to": "parameter:status",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:status"
+      },
+      {
+        "from": "op:cell_set_derive",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:overwrite"
+      },
+      {
+        "from": "op:cell_set_derive",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:manifest"
+      },
+      {
+        "from": "op:cell_set_derive",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:rule_table"
       },
       {
         "from": "primitive:cell_vector",
@@ -14015,6 +14275,18 @@
       {
         "from": "artifact_type:feature_table:trajectory_branch_compare",
         "to": "primitive:feature_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:derived_cell_set_manifest",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:derived_cell_set_rules",
+        "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"
       },

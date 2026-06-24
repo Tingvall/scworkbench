@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-13T10:09:47+0200",
-  "parameter_count": 49,
+  "generated_at": "2026-06-24T16:09:29+0200",
+  "parameter_count": 52,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -12,6 +12,36 @@
       "affects": ["cell inclusion", "statistics", "plots", "runtime"],
       "guidance": ["Use a biologically justified set for focused analysis.", "Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment."],
       "aliases": ["cells", "cell_ids"]
+    },
+    {
+      "parameter_name": "target_cell_set",
+      "title": "Target Derived Cell Set",
+      "category": "selection",
+      "description": "Stable bundle name assigned to a newly materialized derived cell universe.",
+      "applies_to": "cell-set derivation params",
+      "affects": ["bundle registry", "downstream op inputs", "claim auditability"],
+      "guidance": ["Use meaningful names for claim-supporting universes.", "Downstream promoted runs should consume this named set rather than a raw cell_id vector."],
+      "aliases": ["output_cell_set", "derived_cell_set"]
+    },
+    {
+      "parameter_name": "role",
+      "title": "Cell-Set Lifecycle Role",
+      "category": "selection_lifecycle",
+      "description": "Declared purpose of a cell set, such as analysis_universe, exclusion_set, endpoint_set, annotation, diagnostic, or temporary.",
+      "applies_to": "cell-set derivation params",
+      "affects": ["visibility", "interpretation", "agent planning"],
+      "guidance": ["Use analysis_universe for claim-supporting restriction sets.", "Use temporary for exploratory sets that should not be interpreted as accepted state."],
+      "aliases": "cell_set_role"
+    },
+    {
+      "parameter_name": "status",
+      "title": "Cell-Set Lifecycle Status",
+      "category": "selection_lifecycle",
+      "description": "Declared maturity of a cell set, such as candidate, accepted, superseded, rejected, active, or temporary.",
+      "applies_to": "cell-set derivation params",
+      "affects": ["visibility", "interpretation", "audit state"],
+      "guidance": ["Use candidate while evaluating a restriction.", "Use accepted only after biological and diagnostic review."],
+      "aliases": ["cell_set_status", "lifecycle_status"]
     },
     {
       "parameter_name": "matrix",

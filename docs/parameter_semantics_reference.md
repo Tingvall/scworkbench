@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 49
+Parameter count: 52
 
 ## classification
 
@@ -519,6 +519,56 @@ Guidance:
 - Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment.
 
 Aliases: cells, cell_ids
+
+### `target_cell_set`
+
+Title: Target Derived Cell Set
+
+Description: Stable bundle name assigned to a newly materialized derived cell universe.
+
+Applies to: cell-set derivation params
+
+Affects: bundle registry, downstream op inputs, claim auditability
+
+Guidance:
+- Use meaningful names for claim-supporting universes.
+- Downstream promoted runs should consume this named set rather than a raw cell_id vector.
+
+Aliases: output_cell_set, derived_cell_set
+
+## selection_lifecycle
+
+### `role`
+
+Title: Cell-Set Lifecycle Role
+
+Description: Declared purpose of a cell set, such as analysis_universe, exclusion_set, endpoint_set, annotation, diagnostic, or temporary.
+
+Applies to: cell-set derivation params
+
+Affects: visibility, interpretation, agent planning
+
+Guidance:
+- Use analysis_universe for claim-supporting restriction sets.
+- Use temporary for exploratory sets that should not be interpreted as accepted state.
+
+Aliases: cell_set_role
+
+### `status`
+
+Title: Cell-Set Lifecycle Status
+
+Description: Declared maturity of a cell set, such as candidate, accepted, superseded, rejected, active, or temporary.
+
+Applies to: cell-set derivation params
+
+Affects: visibility, interpretation, audit state
+
+Guidance:
+- Use candidate while evaluating a restriction.
+- Use accepted only after biological and diagnostic review.
+
+Aliases: cell_set_status, lifecycle_status
 
 ## signal
 

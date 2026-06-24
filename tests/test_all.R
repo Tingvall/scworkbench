@@ -144,6 +144,9 @@ test_all <- function(bundle_dir){
   if (exists("test_feature_sets_contract", mode = "function")) {
     stopifnot(test_feature_sets_contract(bundle_dir))
   }
+  if (exists("test_derived_cell_set_lifecycle_contract", mode = "function")) {
+    stopifnot(test_derived_cell_set_lifecycle_contract())
+  }
   if (exists("test_op_feature_set_import_qc_contract", mode = "function")) {
     stopifnot(test_op_feature_set_import_qc_contract(bundle_dir))
   }

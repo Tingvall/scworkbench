@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-13T10:09:47+0200",
-  "artifact_type_count": 64,
+  "generated_at": "2026-06-24T16:09:29+0200",
+  "artifact_type_count": 66,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -110,6 +110,24 @@
       "table_type": "trajectory_branch_compare",
       "entity_kind": "feature",
       "use_when": "compare branch programs"
+    },
+    {
+      "artifact_type": "obs_table:derived_cell_set_manifest",
+      "primitive_kind": "obs_table",
+      "title": "Derived Cell-Set Manifest",
+      "description": "Lifecycle manifest for a named derived cell set, including role, status, counts, recipe availability, source summary, and derivation metadata.",
+      "table_type": "derived_cell_set_manifest",
+      "entity_kind": "cell_set",
+      "use_when": ["audit derived analysis universes", "trace claim-supporting cell-set materialization"]
+    },
+    {
+      "artifact_type": "obs_table:derived_cell_set_rules",
+      "primitive_kind": "obs_table",
+      "title": "Derived Cell-Set Rule Table",
+      "description": "Ordered per-rule audit table for a derived cell set, including input/output counts and selector/source fields.",
+      "table_type": "derived_cell_set_rules",
+      "entity_kind": "cell_set_rule",
+      "use_when": ["inspect derived cell-set filters", "explain why cells entered or left an analysis universe"]
     },
     {
       "artifact_type": "obs_table:feature_set_import_summary",

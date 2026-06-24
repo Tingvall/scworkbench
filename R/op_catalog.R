@@ -683,6 +683,31 @@
   raw
 }
 
+.wb_runner_cell_set_derive <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  target_cell_set <- as.character(inputs$target_cell_set %||% "")[1]
+  .wb_assert(nzchar(target_cell_set), "cell_set_derive runner: target_cell_set is required.")
+  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
+             "cell_set_derive runner: effective_cells is empty.")
+
+  raw <- wb_cell_set_derive(
+    bundle = bundle,
+    cell_set = target_cell_set,
+    cells = as.character(effective_cells),
+    role = inputs$role %||% "analysis_universe",
+    status = inputs$status %||% "candidate",
+    source = inputs$source %||% "selector_recipe",
+    created_by = inputs$created_by %||% NULL,
+    description = inputs$description %||% NULL,
+    recipe = inputs$recipe %||% NULL,
+    overwrite = inputs$overwrite %||% TRUE,
+    promote_manifest = FALSE
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "cell_set_derive must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_cell_vector_assoc <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$vector_cont), "cell_vector_assoc runner: missing resolved$vector_cont.")
   .wb_assert(!is.null(resolved$vector_group), "cell_vector_assoc runner: missing resolved$vector_group.")
@@ -2199,6 +2224,49 @@
         label_table = list(
           kind = "obs_table",
           description = "Per-cell suffix/label table."
+        )
+      )
+    ),
+    cell_set_derive = list(
+      op_name = "cell_set_derive",
+      title = "Derived Cell Set",
+      description = "Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.",
+      intent = c("selection", "provenance", "registry"),
+      requires = list(),
+      produces = list(manifest = "obs_table", rule_table = "obs_table"),
+      promotable = c("manifest", "rule_table"),
+      runner = .wb_runner_cell_set_derive,
+      inputs = list(),
+      params = list(
+        list(name = "target_cell_set", type = "string", default = NULL,
+             help = "Name of the derived cell set to create, for example set:universe_b_l1_weight090."),
+        list(name = "role", type = "choice", default = "analysis_universe",
+             choices = c("core", "annotation", "analysis_universe", "exclusion_set", "endpoint_set", "diagnostic", "temporary"),
+             help = "Lifecycle role of the derived set."),
+        list(name = "status", type = "choice", default = "candidate",
+             choices = c("active", "candidate", "accepted", "superseded", "rejected", "temporary"),
+             help = "Lifecycle status controlling interpretation and default visibility."),
+        list(name = "source", type = "string", default = "selector_recipe",
+             help = "Source/provenance label stored on membership rows."),
+        list(name = "created_by", type = "string", default = NULL,
+             help = "Optional creator label."),
+        list(name = "description", type = "string", default = NULL,
+             help = "Human-readable derivation rationale."),
+        list(name = "overwrite", type = "bool", default = TRUE,
+             help = "If TRUE, replace existing membership for the target set; if FALSE, add cells to it.")
+      ),
+      interface_produces = list(
+        manifest = list(
+          kind = "obs_table",
+          table_type = "derived_cell_set_manifest",
+          entity_kind = "cell_set",
+          description = "One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary."
+        ),
+        rule_table = list(
+          kind = "obs_table",
+          table_type = "derived_cell_set_rules",
+          entity_kind = "cell_set_rule",
+          description = "Ordered per-rule derivation audit table with input/output/removal counts and source fields."
         )
       )
     ),

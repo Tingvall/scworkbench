@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-13T10:09:47+0200",
-  "node_count": 273,
-  "edge_count": 742,
+  "generated_at": "2026-06-24T16:09:29+0200",
+  "node_count": 279,
+  "edge_count": 751,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -123,6 +123,12 @@
       "record_type": "op",
       "name": "cell_suffix_label",
       "title": "Cell Labels From ID Suffix"
+    },
+    {
+      "record_id": "op:cell_set_derive",
+      "record_type": "op",
+      "name": "cell_set_derive",
+      "title": "Derived Cell Set"
     },
     {
       "record_id": "op:cell_vector_assoc",
@@ -977,6 +983,18 @@
       "title": "Trajectory Branch Compare Table"
     },
     {
+      "record_id": "artifact_type:obs_table:derived_cell_set_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:derived_cell_set_manifest",
+      "title": "Derived Cell-Set Manifest"
+    },
+    {
+      "record_id": "artifact_type:obs_table:derived_cell_set_rules",
+      "record_type": "artifact_type",
+      "name": "obs_table:derived_cell_set_rules",
+      "title": "Derived Cell-Set Rule Table"
+    },
+    {
       "record_id": "artifact_type:obs_table:feature_set_import_summary",
       "record_type": "artifact_type",
       "name": "obs_table:feature_set_import_summary",
@@ -1293,6 +1311,24 @@
       "record_type": "parameter",
       "name": "cell_set",
       "title": "Cell Set / Analysis Universe"
+    },
+    {
+      "record_id": "parameter:target_cell_set",
+      "record_type": "parameter",
+      "name": "target_cell_set",
+      "title": "Target Derived Cell Set"
+    },
+    {
+      "record_id": "parameter:role",
+      "record_type": "parameter",
+      "name": "role",
+      "title": "Cell-Set Lifecycle Role"
+    },
+    {
+      "record_id": "parameter:status",
+      "record_type": "parameter",
+      "name": "status",
+      "title": "Cell-Set Lifecycle Status"
     },
     {
       "record_id": "parameter:matrix",
@@ -2549,6 +2585,48 @@
       "to": "artifact_type:cell_vector",
       "edge_type": "promotes_as",
       "label": "promotable:labels"
+    },
+    {
+      "from": "op:cell_set_derive",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_set_derive",
+      "to": "parameter:target_cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:target_cell_set"
+    },
+    {
+      "from": "op:cell_set_derive",
+      "to": "parameter:role",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:role"
+    },
+    {
+      "from": "op:cell_set_derive",
+      "to": "parameter:status",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:status"
+    },
+    {
+      "from": "op:cell_set_derive",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:cell_set_derive",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:manifest"
+    },
+    {
+      "from": "op:cell_set_derive",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:rule_table"
     },
     {
       "from": "primitive:cell_vector",
@@ -4149,6 +4227,18 @@
     {
       "from": "artifact_type:feature_table:trajectory_branch_compare",
       "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:derived_cell_set_manifest",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:derived_cell_set_rules",
+      "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"
     },

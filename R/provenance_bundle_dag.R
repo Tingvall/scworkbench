@@ -163,7 +163,7 @@
     con,
     paste0(
       "SELECT artifact_id, table_type FROM artifact_tables ",
-      "WHERE table_type IN ('winner_cell_set_manifest', 'feature_set_import_manifest', 'feature_set_transfer_manifest') ",
+      "WHERE table_type IN ('winner_cell_set_manifest', 'derived_cell_set_manifest', 'feature_set_import_manifest', 'feature_set_transfer_manifest') ",
       "AND artifact_id ", cl$sql, ";"
     ),
     params = cl$params
@@ -186,24 +186,29 @@
     if (!nrow(rows)) next
     for (txt in as.character(rows$row_json)) {
       obj <- .wb_prov_json_read(txt)
-      if (identical(table_type, "winner_cell_set_manifest")) {
+      if (identical(table_type, "winner_cell_set_manifest") || identical(table_type, "derived_cell_set_manifest")) {
         cs <- as.character(obj$cell_set %||% "")[1]
         if (!nzchar(cs)) next
         node_id <- paste0("cell_set:", cs)
+        status <- if (identical(table_type, "derived_cell_set_manifest")) {
+          as.character(obj$status %||% "registered")[1]
+        } else {
+          "registered"
+        }
         ni <- ni + 1L
         nodes[[ni]] <- .wb_prov_bundle_node(
           id = node_id,
           node_type = "cell_set",
           label = cs,
           title = paste0("Cell set ", cs),
-          status = "registered"
+          status = status
         )
         ei <- ei + 1L
         edges[[ei]] <- .wb_prov_bundle_edge(
           from = paste0("artifact:", aid),
           to = node_id,
           edge_type = "MUTATES_REGISTRY",
-          label = "registers cell set",
+          label = if (identical(table_type, "derived_cell_set_manifest")) "derives cell set" else "registers cell set",
           artifact_id = aid
         )
       } else if (identical(table_type, "feature_set_import_manifest")) {

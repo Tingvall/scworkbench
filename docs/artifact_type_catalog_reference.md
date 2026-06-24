@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 64
+Artifact type count: 66
 
 ## cell_vector
 
@@ -150,6 +150,34 @@ Use when:
 - reuse fitted UMAP or trajectory models
 
 ## obs_table
+
+### `obs_table:derived_cell_set_manifest`
+
+Title: Derived Cell-Set Manifest
+
+Description: Lifecycle manifest for a named derived cell set, including role, status, counts, recipe availability, source summary, and derivation metadata.
+
+Table type: derived_cell_set_manifest
+
+Entity kind: cell_set
+
+Use when:
+- audit derived analysis universes
+- trace claim-supporting cell-set materialization
+
+### `obs_table:derived_cell_set_rules`
+
+Title: Derived Cell-Set Rule Table
+
+Description: Ordered per-rule audit table for a derived cell set, including input/output counts and selector/source fields.
+
+Table type: derived_cell_set_rules
+
+Entity kind: cell_set_rule
+
+Use when:
+- inspect derived cell-set filters
+- explain why cells entered or left an analysis universe
 
 ### `obs_table:feature_set_import_summary`
 

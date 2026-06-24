@@ -24,6 +24,7 @@ Note:
 
 - `wb_cell_set_add`: Add existing cells to a set (membership-based)
 - `wb_cell_set_define`: Define a cell set (persist membership + optionally persist recipe)
+- `wb_cell_set_derive`: Derive A Named Cell Set With Lifecycle Manifest
 - `wb_cell_set_remove`: Remove cells from a set
 - `wb_cell_set_replace`: Replace membership of a set (set becomes exactly these cells)
 - `wb_cell_set_set`: Overwrite membership for a set (replace with exactly cell_ids)

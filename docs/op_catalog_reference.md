@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-13T10:09:47+0200
+Generated at: 2026-06-24T16:09:29+0200
 
-Operation count: 45
+Operation count: 46
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -549,6 +549,32 @@ Key parameters:
 - `sep` (string, default=-): Separator used in cell IDs before suffix token.
 - `mapping` (string_vec, default=NULL): Optional named mapping suffix->label.
 - `default_label` (string, default=UNKNOWN): Fallback label for unmapped suffixes.
+
+## `cell_set_derive`
+
+Title: Derived Cell Set
+
+Intent: selection, provenance, registry
+
+Description: Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.
+
+Consumes:
+- `cell_set`: select
+
+Produces:
+- `manifest`: obs_table - One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary.
+- `rule_table`: obs_table - Ordered per-rule derivation audit table with input/output/removal counts and source fields.
+
+Promotable outputs: manifest, rule_table
+
+Key parameters:
+- `target_cell_set` (string, default=NULL): Name of the derived cell set to create, for example set:universe_b_l1_weight090.
+- `role` (choice, default=analysis_universe): Lifecycle role of the derived set.
+- `status` (choice, default=candidate): Lifecycle status controlling interpretation and default visibility.
+- `source` (string, default=selector_recipe): Source/provenance label stored on membership rows.
+- `created_by` (string, default=NULL): Optional creator label.
+- `description` (string, default=NULL): Human-readable derivation rationale.
+- `overwrite` (bool, default=TRUE): If TRUE, replace existing membership for the target set; if FALSE, add cells to it.
 
 ## `cell_vector_assoc`
 
