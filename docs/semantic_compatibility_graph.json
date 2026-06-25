@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-25T10:38:47+0200",
-  "node_count": 284,
-  "edge_count": 758,
+  "generated_at": "2026-06-25T18:22:59+0200",
+  "node_count": 289,
+  "edge_count": 768,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -225,6 +225,12 @@
       "record_type": "op",
       "name": "slingshot_lineage_weights",
       "title": "Slingshot lineage weights"
+    },
+    {
+      "record_id": "op:trajectory_segment_join",
+      "record_type": "op",
+      "name": "trajectory_segment_join",
+      "title": "Trajectory segment join"
     },
     {
       "record_id": "op:slingshot_project",
@@ -1121,6 +1127,18 @@
       "title": "Trajectory Signal Dynamics Table"
     },
     {
+      "record_id": "artifact_type:obs_table:trajectory_segment_local_membership",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_local_membership",
+      "title": "Trajectory Segment-Local Membership Table"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_segment_join_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_join_manifest",
+      "title": "Trajectory Segment Join Manifest"
+    },
+    {
       "record_id": "artifact_type:obs_table:ucell_signature_summary",
       "record_type": "artifact_type",
       "name": "obs_table:ucell_signature_summary",
@@ -1401,6 +1419,18 @@
       "record_type": "parameter",
       "name": "trajectory_fit_id",
       "title": "Trajectory Fit Identity"
+    },
+    {
+      "record_id": "parameter:trajectory_composite_id",
+      "record_type": "parameter",
+      "name": "trajectory_composite_id",
+      "title": "Trajectory Composite Identity"
+    },
+    {
+      "record_id": "parameter:join_policy",
+      "record_type": "parameter",
+      "name": "join_policy",
+      "title": "Trajectory Segment Join Policy"
     },
     {
       "record_id": "parameter:pseudotime_direction",
@@ -3781,6 +3811,54 @@
       "label": "promotable:lineage_weights"
     },
     {
+      "from": "op:trajectory_segment_join",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "parameter:join_policy",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:join_policy"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:composite_pseudotime"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:segment_local_table"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:composite_manifest"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:composite_membership"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:composite_pseudotime"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:composite_membership"
+    },
+    {
       "from": "primitive:model_ref",
       "to": "op:slingshot_project",
       "edge_type": "consumed_by",
@@ -4412,6 +4490,18 @@
     },
     {
       "from": "artifact_type:obs_table:trajectory_signal_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_segment_local_membership",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_segment_join_manifest",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"

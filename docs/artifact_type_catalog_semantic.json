@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-25T10:38:47+0200",
-  "artifact_type_count": 66,
+  "generated_at": "2026-06-25T18:22:58+0200",
+  "artifact_type_count": 68,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -281,6 +281,24 @@
       "table_type": "trajectory_signal_dynamics",
       "entity_kind": "signal",
       "use_when": "rank dynamic UCell or chromVAR signals"
+    },
+    {
+      "artifact_type": "obs_table:trajectory_segment_local_membership",
+      "primitive_kind": "obs_table",
+      "title": "Trajectory Segment-Local Membership Table",
+      "description": "One row per cell per parent segment preserving local pseudotime, scaled local pseudotime, lineage weight, and waypoint role.",
+      "table_type": "trajectory_segment_local_membership",
+      "entity_kind": "cell_segment",
+      "use_when": ["audit segmented trajectory joins", "inspect waypoint overlap cells", "compare local and composite pseudotime"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_segment_join_manifest",
+      "primitive_kind": "obs_table",
+      "title": "Trajectory Segment Join Manifest",
+      "description": "Manifest for a segmented composite trajectory, recording parent trajectory_fit_ids, artifact IDs, biological labels, join policy, and overlap counts.",
+      "table_type": "trajectory_segment_join_manifest",
+      "entity_kind": "trajectory_segment",
+      "use_when": ["audit composite trajectory construction", "trace parent segment artifacts", "explain segmented pseudotime assumptions"]
     },
     {
       "artifact_type": "obs_table:ucell_signature_summary",

@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-25T10:38:46+0200",
-  "op_count": 47,
+  "generated_at": "2026-06-25T18:22:58+0200",
+  "op_count": 48,
   "ops": [
     {
       "op_name": "leiden",
@@ -3754,6 +3754,88 @@
       },
       "params": [],
       "promotable": "lineage_weights",
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_segment_join",
+      "title": "Trajectory segment join",
+      "description": "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+      "intent": ["trajectory", "provenance", "composition"],
+      "consumes": [
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "composite_pseudotime",
+          "kind": "cell_vector_family",
+          "description": "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary."
+        },
+        {
+          "name": "segment_local_table",
+          "kind": "obs_table",
+          "description": "One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role."
+        },
+        {
+          "name": "composite_manifest",
+          "kind": "obs_table",
+          "description": "Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats."
+        },
+        {
+          "name": "composite_membership",
+          "kind": "cell_vector",
+          "description": "One-cell assignment to a unique segment or waypoint overlap."
+        }
+      ],
+      "inputs": {
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "segments",
+          "type": "list",
+          "default": null,
+          "help": "Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order."
+        },
+        {
+          "name": "composite_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional stable trajectory_composite_id. Generated when omitted."
+        },
+        {
+          "name": "composite_key",
+          "type": "string",
+          "default": "composite_L1",
+          "help": "Key used in the output composite_pseudotime cell_vector_family."
+        },
+        {
+          "name": "join_policy",
+          "type": "string",
+          "default": "waypoint_collapse",
+          "help": "Overlap policy. v1 supports waypoint_collapse only."
+        },
+        {
+          "name": "min_weight",
+          "type": "dbl",
+          "default": null,
+          "help": "Optional minimum lineage weight required for segment-local membership when weights are supplied."
+        },
+        {
+          "name": "allow_legacy",
+          "type": "bool",
+          "default": false,
+          "help": "Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity."
+        }
+      ],
+      "promotable": ["composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"],
       "chunking": null
     },
     {

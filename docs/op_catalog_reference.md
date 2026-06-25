@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-25T10:38:46+0200
+Generated at: 2026-06-25T18:22:58+0200
 
-Operation count: 47
+Operation count: 48
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -1045,6 +1045,33 @@ Promotable outputs: lineage_weights
 
 Key parameters:
 - (none)
+
+## `trajectory_segment_join`
+
+Title: Trajectory segment join
+
+Intent: trajectory, provenance, composition
+
+Description: Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
+
+Consumes:
+- `cell_set`: select
+
+Produces:
+- `composite_pseudotime`: cell_vector_family - One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary.
+- `segment_local_table`: obs_table - One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role.
+- `composite_manifest`: obs_table - Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats.
+- `composite_membership`: cell_vector - One-cell assignment to a unique segment or waypoint overlap.
+
+Promotable outputs: composite_pseudotime, segment_local_table, composite_manifest, composite_membership
+
+Key parameters:
+- `segments` (list, default=NULL): Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order.
+- `composite_id` (string, default=NULL): Optional stable trajectory_composite_id. Generated when omitted.
+- `composite_key` (string, default=composite_L1): Key used in the output composite_pseudotime cell_vector_family.
+- `join_policy` (string, default=waypoint_collapse): Overlap policy. v1 supports waypoint_collapse only.
+- `min_weight` (dbl, default=NULL): Optional minimum lineage weight required for segment-local membership when weights are supplied.
+- `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.
 
 ## `slingshot_project`
 

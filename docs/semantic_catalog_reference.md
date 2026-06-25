@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-25T10:38:47+0200
+Generated at: 2026-06-25T18:22:59+0200
 
-Record count: 284
+Record count: 289
 
-Graph edges: 758
+Graph edges: 768
 
 ## artifact_type
 
@@ -195,6 +195,18 @@ Description: Precomputed signal/vector-family curves over pseudotime.
 Title: Trajectory Signal Dynamics Table
 
 Description: Dynamics metrics and classes for precomputed signals.
+
+### `artifact_type:obs_table:trajectory_segment_local_membership`
+
+Title: Trajectory Segment-Local Membership Table
+
+Description: One row per cell per parent segment preserving local pseudotime, scaled local pseudotime, lineage weight, and waypoint role.
+
+### `artifact_type:obs_table:trajectory_segment_join_manifest`
+
+Title: Trajectory Segment Join Manifest
+
+Description: Manifest for a segmented composite trajectory, recording parent trajectory_fit_ids, artifact IDs, biological labels, join policy, and overlap counts.
 
 ### `artifact_type:obs_table:ucell_signature_summary`
 
@@ -1058,6 +1070,12 @@ Title: Slingshot lineage weights
 
 Description: Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
 
+### `op:trajectory_segment_join`
+
+Title: Trajectory segment join
+
+Description: Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
+
 ### `op:slingshot_project`
 
 Title: Slingshot project curves
@@ -1191,6 +1209,18 @@ Description: Continuous per-cell progress coordinate, usually inferred by a traj
 Title: Trajectory Fit Identity
 
 Description: Stable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.
+
+### `parameter:trajectory_composite_id`
+
+Title: Trajectory Composite Identity
+
+Description: Stable identity for a derived trajectory assembled from separately fitted parent trajectory segments.
+
+### `parameter:join_policy`
+
+Title: Trajectory Segment Join Policy
+
+Description: Rule used to convert segment-local pseudotimes into one composite pseudotime.
 
 ### `parameter:pseudotime_direction`
 

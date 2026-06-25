@@ -1,12 +1,12 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-25T10:38:47+0200",
-  "record_count": 284,
+  "generated_at": "2026-06-25T18:22:59+0200",
+  "record_count": 289,
   "record_type_counts": {
-    "artifact_type": 66,
+    "artifact_type": 68,
     "getter": 71,
-    "op": 47,
-    "parameter": 53,
+    "op": 48,
+    "parameter": 55,
     "plot": 12,
     "primitive": 11,
     "recipe": 10,
@@ -4096,6 +4096,97 @@
         },
         "params": [],
         "promotable": "lineage_weights",
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:trajectory_segment_join",
+      "record_type": "op",
+      "name": "trajectory_segment_join",
+      "title": "Trajectory segment join",
+      "description": "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+      "search_text": "Trajectory segment join\nJoin ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.\ntrajectory\nprovenance\ncomposition\ncell_set\nselect\ncomposite_pseudotime\ncell_vector_family\nOne-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary.\nsegment_local_table\nobs_table\nOne row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role.\ncomposite_manifest\nAudit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats.\ncomposite_membership\ncell_vector\nOne-cell assignment to a unique segment or waypoint overlap.\nsegments\nlist\nOrdered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order.\ncomposite_id\nstring\nOptional stable trajectory_composite_id. Generated when omitted.\ncomposite_key\ncomposite_L1\nKey used in the output composite_pseudotime cell_vector_family.\njoin_policy\nwaypoint_collapse\nOverlap policy. v1 supports waypoint_collapse only.\nmin_weight\ndbl\nOptional minimum lineage weight required for segment-local membership when weights are supplied.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.",
+      "tags": ["op", "trajectory", "provenance", "composition"],
+      "payload": {
+        "op_name": "trajectory_segment_join",
+        "title": "Trajectory segment join",
+        "description": "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+        "intent": ["trajectory", "provenance", "composition"],
+        "consumes": [
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "composite_pseudotime",
+            "kind": "cell_vector_family",
+            "description": "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary."
+          },
+          {
+            "name": "segment_local_table",
+            "kind": "obs_table",
+            "description": "One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role."
+          },
+          {
+            "name": "composite_manifest",
+            "kind": "obs_table",
+            "description": "Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats."
+          },
+          {
+            "name": "composite_membership",
+            "kind": "cell_vector",
+            "description": "One-cell assignment to a unique segment or waypoint overlap."
+          }
+        ],
+        "inputs": {
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "segments",
+            "type": "list",
+            "default": null,
+            "help": "Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order."
+          },
+          {
+            "name": "composite_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional stable trajectory_composite_id. Generated when omitted."
+          },
+          {
+            "name": "composite_key",
+            "type": "string",
+            "default": "composite_L1",
+            "help": "Key used in the output composite_pseudotime cell_vector_family."
+          },
+          {
+            "name": "join_policy",
+            "type": "string",
+            "default": "waypoint_collapse",
+            "help": "Overlap policy. v1 supports waypoint_collapse only."
+          },
+          {
+            "name": "min_weight",
+            "type": "dbl",
+            "default": null,
+            "help": "Optional minimum lineage weight required for segment-local membership when weights are supplied."
+          },
+          {
+            "name": "allow_legacy",
+            "type": "bool",
+            "default": false,
+            "help": "Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity."
+          }
+        ],
+        "promotable": ["composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"],
         "chunking": null
       }
     },
@@ -8331,6 +8422,42 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:trajectory_segment_local_membership",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_local_membership",
+      "title": "Trajectory Segment-Local Membership Table",
+      "description": "One row per cell per parent segment preserving local pseudotime, scaled local pseudotime, lineage weight, and waypoint role.",
+      "search_text": "Trajectory Segment-Local Membership Table\nOne row per cell per parent segment preserving local pseudotime, scaled local pseudotime, lineage weight, and waypoint role.\nobs_table\ntrajectory_segment_local_membership\ncell_segment\naudit segmented trajectory joins\ninspect waypoint overlap cells\ncompare local and composite pseudotime",
+      "tags": ["artifact_type", "obs_table", "trajectory_segment_local_membership"],
+      "payload": {
+        "artifact_type": "obs_table:trajectory_segment_local_membership",
+        "primitive_kind": "obs_table",
+        "title": "Trajectory Segment-Local Membership Table",
+        "description": "One row per cell per parent segment preserving local pseudotime, scaled local pseudotime, lineage weight, and waypoint role.",
+        "table_type": "trajectory_segment_local_membership",
+        "entity_kind": "cell_segment",
+        "use_when": ["audit segmented trajectory joins", "inspect waypoint overlap cells", "compare local and composite pseudotime"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_segment_join_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_join_manifest",
+      "title": "Trajectory Segment Join Manifest",
+      "description": "Manifest for a segmented composite trajectory, recording parent trajectory_fit_ids, artifact IDs, biological labels, join policy, and overlap counts.",
+      "search_text": "Trajectory Segment Join Manifest\nManifest for a segmented composite trajectory, recording parent trajectory_fit_ids, artifact IDs, biological labels, join policy, and overlap counts.\nobs_table\ntrajectory_segment_join_manifest\ntrajectory_segment\naudit composite trajectory construction\ntrace parent segment artifacts\nexplain segmented pseudotime assumptions",
+      "tags": ["artifact_type", "obs_table", "trajectory_segment_join_manifest"],
+      "payload": {
+        "artifact_type": "obs_table:trajectory_segment_join_manifest",
+        "primitive_kind": "obs_table",
+        "title": "Trajectory Segment Join Manifest",
+        "description": "Manifest for a segmented composite trajectory, recording parent trajectory_fit_ids, artifact IDs, biological labels, join policy, and overlap counts.",
+        "table_type": "trajectory_segment_join_manifest",
+        "entity_kind": "trajectory_segment",
+        "use_when": ["audit composite trajectory construction", "trace parent segment artifacts", "explain segmented pseudotime assumptions"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:ucell_signature_summary",
       "record_type": "artifact_type",
       "name": "obs_table:ucell_signature_summary",
@@ -9186,6 +9313,44 @@
         "affects": ["lineage label meaning", "artifact compatibility", "provenance validation"],
         "guidance": ["Lineage labels such as L1 are only meaningful within one trajectory_fit_id.", "Do not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation."],
         "aliases": ["trajectory_family_id", "fit_family_id"]
+      }
+    },
+    {
+      "record_id": "parameter:trajectory_composite_id",
+      "record_type": "parameter",
+      "name": "trajectory_composite_id",
+      "title": "Trajectory Composite Identity",
+      "description": "Stable identity for a derived trajectory assembled from separately fitted parent trajectory segments.",
+      "search_text": "Trajectory Composite Identity\nStable identity for a derived trajectory assembled from separately fitted parent trajectory segments.\ntrajectory\nsegmented trajectory join outputs\ncomposite pseudotime interpretation\nparent segment provenance\ndownstream trajectory dynamics\nA trajectory_composite_id is not a trajectory_fit_id and does not imply one merged model.\nUse parent segment metadata to inspect which fit families contributed to the composite.\ncomposite_trajectory_id\nsegmented_trajectory_id",
+      "tags": ["parameter", "trajectory", "composite_trajectory_id", "segmented_trajectory_id"],
+      "payload": {
+        "parameter_name": "trajectory_composite_id",
+        "title": "Trajectory Composite Identity",
+        "category": "trajectory",
+        "description": "Stable identity for a derived trajectory assembled from separately fitted parent trajectory segments.",
+        "applies_to": "segmented trajectory join outputs",
+        "affects": ["composite pseudotime interpretation", "parent segment provenance", "downstream trajectory dynamics"],
+        "guidance": ["A trajectory_composite_id is not a trajectory_fit_id and does not imply one merged model.", "Use parent segment metadata to inspect which fit families contributed to the composite."],
+        "aliases": ["composite_trajectory_id", "segmented_trajectory_id"]
+      }
+    },
+    {
+      "record_id": "parameter:join_policy",
+      "record_type": "parameter",
+      "name": "join_policy",
+      "title": "Trajectory Segment Join Policy",
+      "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
+      "search_text": "Trajectory Segment Join Policy\nRule used to convert segment-local pseudotimes into one composite pseudotime.\ntrajectory\ntrajectory_segment_join params\nwaypoint handling\ncomposite scale\noverlap interpretation\nwaypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.\nReport the join policy when using composite pseudotime for dynamics.\ntrajectory_join_policy\noverlap_policy",
+      "tags": ["parameter", "trajectory", "trajectory_join_policy", "overlap_policy"],
+      "payload": {
+        "parameter_name": "join_policy",
+        "title": "Trajectory Segment Join Policy",
+        "category": "trajectory",
+        "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
+        "applies_to": "trajectory_segment_join params",
+        "affects": ["waypoint handling", "composite scale", "overlap interpretation"],
+        "guidance": ["waypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.", "Report the join policy when using composite pseudotime for dynamics."],
+        "aliases": ["trajectory_join_policy", "overlap_policy"]
       }
     },
     {
@@ -10180,9 +10345,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-25T10:38:47+0200",
-    "node_count": 284,
-    "edge_count": 758,
+    "generated_at": "2026-06-25T18:22:59+0200",
+    "node_count": 289,
+    "edge_count": 768,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -10405,6 +10570,12 @@
         "record_type": "op",
         "name": "slingshot_lineage_weights",
         "title": "Slingshot lineage weights"
+      },
+      {
+        "record_id": "op:trajectory_segment_join",
+        "record_type": "op",
+        "name": "trajectory_segment_join",
+        "title": "Trajectory segment join"
       },
       {
         "record_id": "op:slingshot_project",
@@ -11301,6 +11472,18 @@
         "title": "Trajectory Signal Dynamics Table"
       },
       {
+        "record_id": "artifact_type:obs_table:trajectory_segment_local_membership",
+        "record_type": "artifact_type",
+        "name": "obs_table:trajectory_segment_local_membership",
+        "title": "Trajectory Segment-Local Membership Table"
+      },
+      {
+        "record_id": "artifact_type:obs_table:trajectory_segment_join_manifest",
+        "record_type": "artifact_type",
+        "name": "obs_table:trajectory_segment_join_manifest",
+        "title": "Trajectory Segment Join Manifest"
+      },
+      {
         "record_id": "artifact_type:obs_table:ucell_signature_summary",
         "record_type": "artifact_type",
         "name": "obs_table:ucell_signature_summary",
@@ -11581,6 +11764,18 @@
         "record_type": "parameter",
         "name": "trajectory_fit_id",
         "title": "Trajectory Fit Identity"
+      },
+      {
+        "record_id": "parameter:trajectory_composite_id",
+        "record_type": "parameter",
+        "name": "trajectory_composite_id",
+        "title": "Trajectory Composite Identity"
+      },
+      {
+        "record_id": "parameter:join_policy",
+        "record_type": "parameter",
+        "name": "join_policy",
+        "title": "Trajectory Segment Join Policy"
       },
       {
         "record_id": "parameter:pseudotime_direction",
@@ -13961,6 +14156,54 @@
         "label": "promotable:lineage_weights"
       },
       {
+        "from": "op:trajectory_segment_join",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "parameter:join_policy",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:join_policy"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:composite_pseudotime"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:segment_local_table"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:composite_manifest"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "primitive:cell_vector",
+        "edge_type": "produces",
+        "label": "output:composite_membership"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:composite_pseudotime"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "artifact_type:cell_vector",
+        "edge_type": "promotes_as",
+        "label": "promotable:composite_membership"
+      },
+      {
         "from": "primitive:model_ref",
         "to": "op:slingshot_project",
         "edge_type": "consumed_by",
@@ -14592,6 +14835,18 @@
       },
       {
         "from": "artifact_type:obs_table:trajectory_signal_dynamics",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_segment_local_membership",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_segment_join_manifest",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"

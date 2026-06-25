@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 66
+Artifact type count: 68
 
 ## cell_vector
 
@@ -412,6 +412,36 @@ Entity kind: signal
 
 Use when:
 - rank dynamic UCell or chromVAR signals
+
+### `obs_table:trajectory_segment_local_membership`
+
+Title: Trajectory Segment-Local Membership Table
+
+Description: One row per cell per parent segment preserving local pseudotime, scaled local pseudotime, lineage weight, and waypoint role.
+
+Table type: trajectory_segment_local_membership
+
+Entity kind: cell_segment
+
+Use when:
+- audit segmented trajectory joins
+- inspect waypoint overlap cells
+- compare local and composite pseudotime
+
+### `obs_table:trajectory_segment_join_manifest`
+
+Title: Trajectory Segment Join Manifest
+
+Description: Manifest for a segmented composite trajectory, recording parent trajectory_fit_ids, artifact IDs, biological labels, join policy, and overlap counts.
+
+Table type: trajectory_segment_join_manifest
+
+Entity kind: trajectory_segment
+
+Use when:
+- audit composite trajectory construction
+- trace parent segment artifacts
+- explain segmented pseudotime assumptions
 
 ### `obs_table:ucell_signature_summary`
 

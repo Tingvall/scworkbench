@@ -134,6 +134,22 @@
   raw
 }
 
+.wb_runner_trajectory_segment_join <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  raw <- wb_op_trajectory_segment_join(
+    bundle = bundle,
+    segments = inputs$segments,
+    composite_id = inputs$composite_id %||% NULL,
+    composite_key = inputs$composite_key %||% NULL,
+    join_policy = inputs$join_policy %||% "waypoint_collapse",
+    min_weight = inputs$min_weight %||% NULL,
+    allow_legacy = inputs$allow_legacy %||% FALSE,
+    runs = inputs$runs %||% NULL
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "trajectory_segment_join must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_monocle3_fit <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$fit_space), "monocle3_fit runner: missing resolved$fit_space.")
   .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
@@ -3104,6 +3120,60 @@
           engine = "slingshot",
           range = c(0, 1),
           description = "Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed."
+        )
+      )
+    ),
+    trajectory_segment_join = list(
+      op_name = "trajectory_segment_join",
+      title = "Trajectory segment join",
+      description = "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+      intent = c("trajectory", "provenance", "composition"),
+      requires = list(),
+      produces = list(
+        composite_pseudotime = "cell_vector_family",
+        segment_local_table = "obs_table",
+        composite_manifest = "obs_table",
+        composite_membership = "cell_vector"
+      ),
+      promotable = c("composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"),
+      runner = .wb_runner_trajectory_segment_join,
+      inputs = list(),
+      params = list(
+        list(name = "segments", type = "list", default = NULL,
+             help = "Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order."),
+        list(name = "composite_id", type = "string", default = NULL,
+             help = "Optional stable trajectory_composite_id. Generated when omitted."),
+        list(name = "composite_key", type = "string", default = "composite_L1",
+             help = "Key used in the output composite_pseudotime cell_vector_family."),
+        list(name = "join_policy", type = "string", default = "waypoint_collapse",
+             help = "Overlap policy. v1 supports waypoint_collapse only."),
+        list(name = "min_weight", type = "dbl", default = NULL,
+             help = "Optional minimum lineage weight required for segment-local membership when weights are supplied."),
+        list(name = "allow_legacy", type = "bool", default = FALSE,
+             help = "Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.")
+      ),
+      interface_produces = list(
+        composite_pseudotime = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "composite_key",
+          family_kind = "trajectory_composite_pseudotime",
+          description = "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary."
+        ),
+        segment_local_table = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_local_membership",
+          description = "One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role."
+        ),
+        composite_manifest = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_join_manifest",
+          description = "Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats."
+        ),
+        composite_membership = list(
+          kind = "cell_vector",
+          value_kind = "categorical",
+          description = "One-cell assignment to a unique segment or waypoint overlap."
         )
       )
     ),

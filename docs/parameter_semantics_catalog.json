@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-25T10:38:47+0200",
-  "parameter_count": 53,
+  "generated_at": "2026-06-25T18:22:58+0200",
+  "parameter_count": 55,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -122,6 +122,26 @@
       "affects": ["lineage label meaning", "artifact compatibility", "provenance validation"],
       "guidance": ["Lineage labels such as L1 are only meaningful within one trajectory_fit_id.", "Do not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation."],
       "aliases": ["trajectory_family_id", "fit_family_id"]
+    },
+    {
+      "parameter_name": "trajectory_composite_id",
+      "title": "Trajectory Composite Identity",
+      "category": "trajectory",
+      "description": "Stable identity for a derived trajectory assembled from separately fitted parent trajectory segments.",
+      "applies_to": "segmented trajectory join outputs",
+      "affects": ["composite pseudotime interpretation", "parent segment provenance", "downstream trajectory dynamics"],
+      "guidance": ["A trajectory_composite_id is not a trajectory_fit_id and does not imply one merged model.", "Use parent segment metadata to inspect which fit families contributed to the composite."],
+      "aliases": ["composite_trajectory_id", "segmented_trajectory_id"]
+    },
+    {
+      "parameter_name": "join_policy",
+      "title": "Trajectory Segment Join Policy",
+      "category": "trajectory",
+      "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
+      "applies_to": "trajectory_segment_join params",
+      "affects": ["waypoint handling", "composite scale", "overlap interpretation"],
+      "guidance": ["waypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.", "Report the join policy when using composite pseudotime for dynamics."],
+      "aliases": ["trajectory_join_policy", "overlap_policy"]
     },
     {
       "parameter_name": "pseudotime_direction",

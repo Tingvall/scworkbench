@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 53
+Parameter count: 55
 
 ## classification
 
@@ -758,6 +758,38 @@ Guidance:
 - Do not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation.
 
 Aliases: trajectory_family_id, fit_family_id
+
+### `trajectory_composite_id`
+
+Title: Trajectory Composite Identity
+
+Description: Stable identity for a derived trajectory assembled from separately fitted parent trajectory segments.
+
+Applies to: segmented trajectory join outputs
+
+Affects: composite pseudotime interpretation, parent segment provenance, downstream trajectory dynamics
+
+Guidance:
+- A trajectory_composite_id is not a trajectory_fit_id and does not imply one merged model.
+- Use parent segment metadata to inspect which fit families contributed to the composite.
+
+Aliases: composite_trajectory_id, segmented_trajectory_id
+
+### `join_policy`
+
+Title: Trajectory Segment Join Policy
+
+Description: Rule used to convert segment-local pseudotimes into one composite pseudotime.
+
+Applies to: trajectory_segment_join params
+
+Affects: waypoint handling, composite scale, overlap interpretation
+
+Guidance:
+- waypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.
+- Report the join policy when using composite pseudotime for dynamics.
+
+Aliases: trajectory_join_policy, overlap_policy
 
 ### `pseudotime_direction`
 
