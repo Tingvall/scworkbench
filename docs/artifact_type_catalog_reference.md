@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 68
+Artifact type count: 69
 
 ## cell_vector
 
@@ -442,6 +442,21 @@ Use when:
 - audit composite trajectory construction
 - trace parent segment artifacts
 - explain segmented pseudotime assumptions
+
+### `obs_table:trajectory_segment_path_join_manifest`
+
+Title: Trajectory Segment Path Join Manifest
+
+Description: Manifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.
+
+Table type: trajectory_segment_path_join_manifest
+
+Entity kind: trajectory_segment
+
+Use when:
+- audit composite trajectory curve overlays
+- trace parent path artifacts
+- explain that a displayed composite curve is derived geometry, not a merged model
 
 ### `obs_table:ucell_signature_summary`
 

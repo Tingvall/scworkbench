@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.recipe_semantics_catalog.v1",
-  "generated_at": "2026-06-25T18:22:58+0200",
+  "generated_at": "2026-06-25T23:15:30+0200",
   "recipe_count": 10,
   "recipes": [
     {
@@ -9,11 +9,11 @@
       "category": "trajectory_discovery",
       "question": "Which biological processes turn on, turn off, or behave transiently along a trajectory?",
       "description": "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
-      "steps": ["Inspect available feature-set namespaces with wb_feature_sets().", "Choose trajectory model artifact/model_ref and matrix.", "Run trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."],
-      "uses": ["getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+      "steps": ["Inspect available feature-set namespaces with wb_feature_sets().", "Choose matrix plus either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family.", "Run trajectory_geneset_dynamics with namespace, lineage or pseudotime_key, orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."],
+      "uses": ["getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_key", "parameter:pseudotime_direction", "parameter:min_amplitude"],
       "produces": ["artifact_type:obs_table:trajectory_geneset_dynamics_curve", "artifact_type:obs_table:trajectory_geneset_dynamics", "artifact_type:obs_table:trajectory_geneset_dynamics_drivers", "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"],
       "use_when": ["collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
-      "cautions": ["Gene-set universe and score_method define the biological meaning.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
+      "cautions": ["Gene-set universe and score_method define the biological meaning.", "Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
     },
     {
       "recipe_id": "feature_set_import_qc_then_dynamics",
@@ -45,11 +45,11 @@
       "category": "trajectory_discovery",
       "question": "Which precomputed cell-level signals are dynamic along pseudotime?",
       "description": "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
-      "steps": ["Load or identify a cell_vector_family artifact containing signals.", "Choose trajectory model artifact/model_ref and lineage/orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."],
-      "uses": ["getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+      "steps": ["Load or identify a cell_vector_family artifact containing signals.", "Choose either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family plus lineage/pseudotime_key and orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."],
+      "uses": ["getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_key", "parameter:pseudotime_direction", "parameter:min_amplitude"],
       "produces": ["artifact_type:obs_table:trajectory_signal_dynamics_curve", "artifact_type:obs_table:trajectory_signal_dynamics"],
       "use_when": ["UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"],
-      "cautions": ["Signal scale depends on upstream scoring method.", "Only compare signals with compatible score semantics."]
+      "cautions": ["Signal scale depends on upstream scoring method.", "Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.", "Only compare signals with compatible score semantics."]
     },
     {
       "recipe_id": "inspect_promoted_artifact",

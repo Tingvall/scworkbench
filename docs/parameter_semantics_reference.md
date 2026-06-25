@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 55
+Parameter count: 57
 
 ## classification
 
@@ -536,6 +536,22 @@ Guidance:
 
 Aliases: output_cell_set, derived_cell_set
 
+### `membership`
+
+Title: Pseudotime Membership Filter
+
+Description: Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells before dynamics are computed.
+
+Applies to: op params
+
+Affects: analysis universe, cell counts, curve stability
+
+Guidance:
+- Use membership to restrict composite trajectories to their intended cell universe.
+- Report n_membership_cells and n_cells_used from fit_summary.
+
+Aliases: trajectory_membership, cell_filter
+
 ## selection_lifecycle
 
 ### `role`
@@ -806,6 +822,22 @@ Guidance:
 - Inversion changes interpretation, not the underlying cell scores.
 
 Aliases: orientation, direction
+
+### `pseudotime_key`
+
+Title: Pseudotime Key
+
+Description: Selects the key/lineage from an explicit cell_vector_family pseudotime input.
+
+Applies to: op params
+
+Affects: cell ordering, lineage identity, curve labels
+
+Guidance:
+- Required when explicit pseudotime contains multiple keys.
+- Do not assume equal key names across unrelated trajectory fits or composites.
+
+Aliases: lineage_key, trajectory_key
 
 ### `start_label`
 

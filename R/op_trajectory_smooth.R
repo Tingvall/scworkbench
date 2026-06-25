@@ -20,6 +20,134 @@
   split(pt_df, as.character(pt_df$lineage_id))
 }
 
+.wb_trajectory_membership_cells <- function(bundle, membership = NULL) {
+  if (is.null(membership)) return(NULL)
+  aid <- .wb_ref_to_artifact_id(membership)
+  if (!is.null(aid) && nzchar(as.character(aid)[1])) {
+    prim <- wb_art_load(bundle, as.character(aid)[1], expected_kind = "cell_vector")
+    return(.wb_trajectory_membership_cells(bundle, prim))
+  }
+  if (.wb_is_primitive(membership)) {
+    .wb_assert_kind(membership, "cell_vector", where = " for membership")
+    vals <- as.character(membership$value %||% character(0))
+    cells <- as.character(membership$cell_id %||% character(0))
+    keep <- nzchar(cells) & !is.na(vals) & nzchar(vals)
+    return(unique(cells[keep]))
+  }
+  if (is.character(membership)) {
+    x <- as.character(membership)
+    x <- x[nzchar(x)]
+    if (length(x) == 1L && startsWith(x, "artifact:")) {
+      prim <- wb_art_load(bundle, sub("^artifact:", "", x), expected_kind = "cell_vector")
+      return(.wb_trajectory_membership_cells(bundle, prim))
+    }
+    if (length(x) == 1L && (identical(x, "all") || startsWith(x, "set:"))) {
+      return(as.character(wb_cells(bundle, cell_set = x)))
+    }
+    return(unique(x))
+  }
+  stop("trajectory dynamics: membership must be a cell_vector primitive, artifact:<id>, cell set, or cell_id vector.", call. = FALSE)
+}
+
+.wb_trajectory_input_artifact_id <- function(x) {
+  aid <- .wb_ref_to_artifact_id(x)
+  if (!is.null(aid) && nzchar(as.character(aid)[1])) return(as.character(aid)[1])
+  if (.wb_is_primitive(x)) {
+    aid <- as.character(x$meta$artifact_id %||% x$artifact_id %||% "")[1]
+    if (nzchar(aid)) return(aid)
+  }
+  ""
+}
+
+.wb_trajectory_resolve_explicit_pseudotime <- function(pseudotime, pseudotime_key = NULL, lineage = NULL, cells = NULL) {
+  .wb_assert(.wb_is_primitive(pseudotime), "trajectory dynamics: pseudotime must be a primitive.")
+  .wb_assert_kind(pseudotime, "cell_vector_family", where = " for explicit pseudotime")
+  pt_tbl <- wb_primitive_to_table(pseudotime, include_context = FALSE)
+  .wb_assert(all(c("key", "cell_id", "value") %in% names(pt_tbl)),
+             "trajectory dynamics: explicit pseudotime table must contain key, cell_id, value.")
+  names(pt_tbl)[names(pt_tbl) == "key"] <- "lineage_id"
+  names(pt_tbl)[names(pt_tbl) == "value"] <- "pseudotime"
+  pt_tbl$lineage_id <- as.character(pt_tbl$lineage_id)
+  pt_tbl$cell_id <- as.character(pt_tbl$cell_id)
+  pt_tbl$pseudotime <- suppressWarnings(as.numeric(pt_tbl$pseudotime))
+  pt_tbl <- pt_tbl[nzchar(pt_tbl$lineage_id) & nzchar(pt_tbl$cell_id) & is.finite(pt_tbl$pseudotime), , drop = FALSE]
+  .wb_assert(nrow(pt_tbl) > 0L, "trajectory dynamics: explicit pseudotime has no finite rows.")
+
+  key <- pseudotime_key %||% lineage
+  if (!is.null(key)) {
+    key <- unique(as.character(key))
+    key <- key[nzchar(key)]
+    .wb_assert(length(key) > 0L, "trajectory dynamics: pseudotime_key/lineage is empty after cleaning.")
+  } else {
+    key <- sort(unique(as.character(pt_tbl$lineage_id)))
+    .wb_assert(length(key) == 1L,
+               "trajectory dynamics: explicit pseudotime has multiple keys; provide pseudotime_key or lineage.")
+  }
+  missing <- setdiff(key, unique(as.character(pt_tbl$lineage_id)))
+  .wb_assert(length(missing) == 0L,
+             paste0("trajectory dynamics: explicit pseudotime key(s) not found: ", paste(missing, collapse = ", ")))
+  pt_tbl <- pt_tbl[pt_tbl$lineage_id %in% key, , drop = FALSE]
+
+  if (!is.null(cells)) {
+    keep_cells <- unique(as.character(cells))
+    pt_tbl <- pt_tbl[pt_tbl$cell_id %in% keep_cells, , drop = FALSE]
+  }
+  .wb_assert(nrow(pt_tbl) > 0L, "trajectory dynamics: no explicit pseudotime rows remain after filters.")
+  split(pt_tbl[, c("lineage_id", "cell_id", "pseudotime"), drop = FALSE], as.character(pt_tbl$lineage_id))
+}
+
+.wb_trajectory_dynamics_resolve_lineages <- function(bundle,
+                                                     model = NULL,
+                                                     pseudotime = NULL,
+                                                     pseudotime_key = NULL,
+                                                     membership = NULL,
+                                                     lineage = NULL,
+                                                     cells = NULL,
+                                                     pseudotime_artifact_id = "",
+                                                     membership_artifact_id = "") {
+  has_model <- !is.null(model)
+  has_pt <- !is.null(pseudotime)
+  .wb_assert(xor(has_model, has_pt),
+             "trajectory dynamics requires exactly one pseudotime source: model or explicit pseudotime.")
+
+  membership_cells <- .wb_trajectory_membership_cells(bundle, membership)
+  cells_use <- cells
+  if (!is.null(membership_cells)) {
+    cells_use <- if (is.null(cells_use)) membership_cells else intersect(as.character(cells_use), membership_cells)
+  }
+
+  if (has_model) {
+    .wb_assert_kind(model, "model_ref")
+    lineages <- .wb_trajectory_smooth_resolve_lineages(model = model, lineage = lineage, cells = cells_use)
+    source_kind <- "model_ref"
+    source_key <- as.character(lineage %||% names(lineages))
+    pseudotime_cells_total <- length(unique(unlist(lapply(lineages, function(x) as.character(x$cell_id)), use.names = FALSE)))
+  } else {
+    lineages <- .wb_trajectory_resolve_explicit_pseudotime(
+      pseudotime = pseudotime,
+      pseudotime_key = pseudotime_key,
+      lineage = lineage,
+      cells = cells_use
+    )
+    source_kind <- "cell_vector_family"
+    source_key <- as.character(pseudotime_key %||% lineage %||% names(lineages))
+    all_pt <- wb_primitive_to_table(pseudotime, include_context = FALSE)
+    pseudotime_cells_total <- length(unique(as.character(all_pt$cell_id[is.finite(suppressWarnings(as.numeric(all_pt$value)))])))
+  }
+
+  list(
+    lineages = lineages,
+    meta = list(
+      pseudotime_source_kind = source_kind,
+      pseudotime_artifact_id = as.character(pseudotime_artifact_id %||% "")[1],
+      pseudotime_key = paste(unique(source_key[nzchar(source_key)]), collapse = ","),
+      membership_artifact_id = as.character(membership_artifact_id %||% "")[1],
+      n_pseudotime_cells = as.integer(pseudotime_cells_total),
+      n_membership_cells = if (is.null(membership_cells)) NA_integer_ else as.integer(length(unique(membership_cells)))
+    )
+  )
+}
+
 #' @keywords internal
 .wb_trajectory_smooth_feature_ids <- function(bundle, matrix_id, feature_set = NULL, features = NULL) {
   fs_feats <- NULL
@@ -816,8 +944,13 @@ wb_op_trajectory_signature_smooth <- function(bundle,
 #' @export
 wb_op_trajectory_geneset_dynamics <- function(bundle,
                                               matrix_id,
-                                              model,
-                                              namespace,
+                                              model = NULL,
+                                              pseudotime = NULL,
+                                              pseudotime_key = NULL,
+                                              membership = NULL,
+                                              namespace = NULL,
+                                              pseudotime_artifact_id = NULL,
+                                              membership_artifact_id = NULL,
                                               cells = NULL,
                                               lineage = NULL,
                                               feature_sets = NULL,
@@ -853,7 +986,6 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
                                               p_adjust_method = "BH") {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
-  .wb_assert_kind(model, "model_ref")
   .wb_assert(is.character(namespace) && length(namespace) == 1 && nzchar(namespace), "namespace invalid")
 
   score_method <- as.character(score_method %||% "mean")[1]
@@ -947,7 +1079,19 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
   }
   .wb_assert(length(set_members) > 0L, "trajectory_geneset_dynamics: no feature sets pass size filters.")
 
-  lineages <- .wb_trajectory_smooth_resolve_lineages(model = model, lineage = lineage, cells = cells)
+  pt_res <- .wb_trajectory_dynamics_resolve_lineages(
+    bundle = bundle,
+    model = model,
+    pseudotime = pseudotime,
+    pseudotime_key = pseudotime_key,
+    membership = membership,
+    lineage = lineage,
+    cells = cells,
+    pseudotime_artifact_id = pseudotime_artifact_id %||% .wb_trajectory_input_artifact_id(pseudotime),
+    membership_artifact_id = membership_artifact_id %||% .wb_trajectory_input_artifact_id(membership)
+  )
+  lineages <- pt_res$lineages
+  pt_meta <- pt_res$meta
 
   curve_rows <- list()
   dyn_rows <- list()
@@ -1189,6 +1333,12 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
     fit_rows[[si]] <- data.frame(
       lineage_id = as.character(lin),
       namespace = as.character(namespace),
+      pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+      pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+      pseudotime_key = as.character(pt_meta$pseudotime_key),
+      membership_artifact_id = as.character(pt_meta$membership_artifact_id),
+      n_pseudotime_cells = as.integer(pt_meta$n_pseudotime_cells),
+      n_membership_cells = as.integer(pt_meta$n_membership_cells),
       n_cells_used = as.integer(length(cells_lin)),
       n_feature_sets_input = as.integer(length(set_names)),
       n_feature_sets_screened = as.integer(length(set_members)),
@@ -1310,6 +1460,10 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
         meta = list(
           matrix_id = as.character(matrix_id),
           namespace = as.character(namespace),
+          pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+          pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+          pseudotime_key = as.character(pt_meta$pseudotime_key),
+          membership_artifact_id = as.character(pt_meta$membership_artifact_id),
           score_method = as.character(score_method),
           summary_fun = as.character(summary_fun),
           min_cells_per_bin = as.integer(min_cells_per_bin),
@@ -1345,6 +1499,10 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
         meta = list(
           matrix_id = as.character(matrix_id),
           namespace = as.character(namespace),
+          pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+          pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+          pseudotime_key = as.character(pt_meta$pseudotime_key),
+          membership_artifact_id = as.character(pt_meta$membership_artifact_id),
           dynamic_score = "amplitude + sd_value + abs(late_minus_early) + abs(spearman_rho) * sd_value",
           abundance_metrics = "mean_score, max_score, min_score, auc_score, relative_amplitude, mean_se, signal_to_noise, low_abundance_flag",
           empirical_significance = "p_dynamic and q_dynamic from permuting cell-level scores relative to fixed pseudotime/bin structure; disabled when n_permutations=0",
@@ -1393,6 +1551,10 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
     params = list(
       matrix_id = as.character(matrix_id),
       namespace = as.character(namespace),
+      pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+      pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+      pseudotime_key = as.character(pt_meta$pseudotime_key),
+      membership_artifact_id = as.character(pt_meta$membership_artifact_id),
       n_feature_sets_input = as.integer(length(set_names)),
       n_feature_sets_screened = as.integer(length(set_members)),
       n_lineages = as.integer(length(lineages)),
@@ -1664,7 +1826,12 @@ wb_op_trajectory_vector_smooth <- function(bundle,
 #' @export
 wb_op_trajectory_signal_dynamics <- function(bundle,
                                              signal,
-                                             model,
+                                             model = NULL,
+                                             pseudotime = NULL,
+                                             pseudotime_key = NULL,
+                                             membership = NULL,
+                                             pseudotime_artifact_id = NULL,
+                                             membership_artifact_id = NULL,
                                              cells = NULL,
                                              lineage = NULL,
                                              signal_keys = NULL,
@@ -1686,7 +1853,6 @@ wb_op_trajectory_signal_dynamics <- function(bundle,
                                              ci_level = 0.95,
                                              class_min_amplitude = 0) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  .wb_assert_kind(model, "model_ref")
   .wb_assert(.wb_is_primitive(signal), "trajectory_signal_dynamics: signal must be a primitive.")
 
   if (identical(as.character(signal$kind %||% "")[1], "cell_vector")) {
@@ -1751,7 +1917,19 @@ wb_op_trajectory_signal_dynamics <- function(bundle,
   }
   signal_keys <- unique(as.character(sig_tbl$key))
 
-  lineages <- .wb_trajectory_smooth_resolve_lineages(model = model, lineage = lineage, cells = cells)
+  pt_res <- .wb_trajectory_dynamics_resolve_lineages(
+    bundle = bundle,
+    model = model,
+    pseudotime = pseudotime,
+    pseudotime_key = pseudotime_key,
+    membership = membership,
+    lineage = lineage,
+    cells = cells,
+    pseudotime_artifact_id = pseudotime_artifact_id %||% .wb_trajectory_input_artifact_id(pseudotime),
+    membership_artifact_id = membership_artifact_id %||% .wb_trajectory_input_artifact_id(membership)
+  )
+  lineages <- pt_res$lineages
+  pt_meta <- pt_res$meta
 
   curve_rows <- list()
   dyn_rows <- list()
@@ -1866,6 +2044,12 @@ wb_op_trajectory_signal_dynamics <- function(bundle,
     si <- si + 1L
     fit_rows[[si]] <- data.frame(
       lineage_id = as.character(lin),
+      pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+      pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+      pseudotime_key = as.character(pt_meta$pseudotime_key),
+      membership_artifact_id = as.character(pt_meta$membership_artifact_id),
+      n_pseudotime_cells = as.integer(pt_meta$n_pseudotime_cells),
+      n_membership_cells = as.integer(pt_meta$n_membership_cells),
       n_cells_used = as.integer(length(cells_lin)),
       n_signal_keys_input = as.integer(length(signal_keys)),
       n_signal_keys_with_rows = as.integer(n_signals_with_rows),
@@ -1934,6 +2118,10 @@ wb_op_trajectory_signal_dynamics <- function(bundle,
         entity_kind = "trajectory_bin",
         meta = list(
           signal_kind = as.character(signal$kind),
+          pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+          pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+          pseudotime_key = as.character(pt_meta$pseudotime_key),
+          membership_artifact_id = as.character(pt_meta$membership_artifact_id),
           n_signal_keys = as.integer(length(signal_keys)),
           summary_fun = as.character(summary_fun),
           min_cells_per_bin = as.integer(min_cells_per_bin),
@@ -1957,6 +2145,10 @@ wb_op_trajectory_signal_dynamics <- function(bundle,
         entity_kind = "signal",
         meta = list(
           dynamic_score = "amplitude + sd_value + abs(late_minus_early) + abs(spearman_rho) * sd_value",
+          pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+          pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+          pseudotime_key = as.character(pt_meta$pseudotime_key),
+          membership_artifact_id = as.character(pt_meta$membership_artifact_id),
           curve_class = "turns_on/turns_off/transient_peak/transient_dip/weak_on/weak_off/flat_or_noisy",
           passes_filters = "min_amplitude, min_bins_observed"
         )
@@ -1975,6 +2167,10 @@ wb_op_trajectory_signal_dynamics <- function(bundle,
     ),
     params = list(
       signal_kind = as.character(signal$kind),
+      pseudotime_source_kind = as.character(pt_meta$pseudotime_source_kind),
+      pseudotime_artifact_id = as.character(pt_meta$pseudotime_artifact_id),
+      pseudotime_key = as.character(pt_meta$pseudotime_key),
+      membership_artifact_id = as.character(pt_meta$membership_artifact_id),
       signal_keys = as.character(signal_keys),
       n_signal_keys_input = as.integer(length(signal_keys)),
       n_lineages = as.integer(length(lineages)),

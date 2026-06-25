@@ -172,8 +172,8 @@ Description: Screen a feature-set namespace across trajectory pseudotime and rep
 
 Steps:
 - Inspect available feature-set namespaces with wb_feature_sets().
-- Choose trajectory model artifact/model_ref and matrix.
-- Run trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.
+- Choose matrix plus either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family.
+- Run trajectory_geneset_dynamics with namespace, lineage or pseudotime_key, orientation, and filtering thresholds.
 - Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.
 - Plot top dynamic terms and driver-gene curves with pseudotime_signature_line.
 
@@ -185,11 +185,13 @@ Uses:
 - `wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1`
 - `parameter:namespace`
 - `parameter:score_method`
+- `parameter:pseudotime_key`
 - `parameter:pseudotime_direction`
 - `parameter:min_amplitude`
 
 Cautions:
 - Gene-set universe and score_method define the biological meaning.
+- Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.
 - Pseudotime orientation controls turns_on versus turns_off labels.
 - Amplitude thresholds are scale-dependent filters, not p-values.
 
@@ -235,7 +237,7 @@ Description: Rank UCell, chromVAR, module-score, or other cell_vector_family sig
 
 Steps:
 - Load or identify a cell_vector_family artifact containing signals.
-- Choose trajectory model artifact/model_ref and lineage/orientation.
+- Choose either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family plus lineage/pseudotime_key and orientation.
 - Run trajectory_signal_dynamics with signal_keys or all keys.
 - Promote signal_table, dynamics_table, top_signals, and fit_summary.
 - Plot top signal curves with pseudotime_signature_line.
@@ -246,11 +248,13 @@ Uses:
 - `op:trajectory_signal_dynamics`
 - `plot:pseudotime_signature_line`
 - `parameter:signal_keys`
+- `parameter:pseudotime_key`
 - `parameter:pseudotime_direction`
 - `parameter:min_amplitude`
 
 Cautions:
 - Signal scale depends on upstream scoring method.
+- Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.
 - Only compare signals with compatible score semantics.
 
 ## visualization

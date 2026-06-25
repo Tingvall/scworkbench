@@ -1,12 +1,12 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-25T18:22:59+0200",
-  "record_count": 289,
+  "generated_at": "2026-06-25T23:15:31+0200",
+  "record_count": 293,
   "record_type_counts": {
-    "artifact_type": 68,
+    "artifact_type": 69,
     "getter": 71,
-    "op": 48,
-    "parameter": 55,
+    "op": 49,
+    "parameter": 57,
     "plot": 12,
     "primitive": 11,
     "recipe": 10,
@@ -2873,7 +2873,7 @@
       "name": "trajectory_geneset_dynamics",
       "title": "Trajectory Gene-Set Dynamics",
       "description": "Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.",
-      "search_text": "Trajectory Gene-Set Dynamics\nScreen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.\ntrajectory\npathway\ndiscovery\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignature_table\nobs_table\nBinned feature-set score curves along trajectory pseudotime.\ndynamics_table\nPer-feature-set dynamic metrics and rank.\ntop_sets\nTop-ranked dynamic feature sets for report-first discovery.\ndriver_table\nTop dynamic member genes within each screened feature set.\ndriver_curve_table\nBinned curves for top driver genes within each screened feature set.\nfit_summary\nPer-lineage screening diagnostics.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() to screen.\nfeature_sets\nstring_vec\nOptional feature-set subset within the namespace.\nlineage\nOptional lineage key subset.\nscore_method\nchoice\nmean\nsum\nrank_mean\nHow to score each feature set within each cell.\npseudotime_direction\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nmin_set_size\nMinimum feature-set size after intersecting with the matrix.\nmax_set_size\n5000\n1e+06\nMaximum feature-set size after intersecting with the matrix.\ntop_n\n10000\nNumber of top-ranked feature sets retained in top_sets.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\ntop_driver_genes\nNumber of top member genes retained as curve drivers per feature set.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nmin_features_detected\nMinimum detected set members required for passes_filters.\nmin_detected_fraction\nMinimum fraction of detected set members required for passes_filters.\nmin_mean_score\nOptional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics.\nmin_max_score\nOptional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves.\nmin_signal_to_noise\nOptional minimum amplitude divided by mean bootstrap SE required for passes_filters.\nlow_abundance_max_score\n0.1\nCurves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.\nn_permutations\nNumber of empirical permutations for dynamic-score p-values; 0 disables permutation testing.\npermutation_seed\nRandom seed for empirical dynamic-score permutations.\np_adjust_method\nBH\nholm\nhochberg\nhommel\nbonferroni\nBY\nfdr\nMultiple-testing correction method for q_dynamic.",
+      "search_text": "Trajectory Gene-Set Dynamics\nScreen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.\ntrajectory\npathway\ndiscovery\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\nFALSE\npseudotime\ncell_vector_family\ncell_set\nselect\nsignature_table\nobs_table\nBinned feature-set score curves along trajectory pseudotime.\ndynamics_table\nPer-feature-set dynamic metrics and rank.\ntop_sets\nTop-ranked dynamic feature sets for report-first discovery.\ndriver_table\nTop dynamic member genes within each screened feature set.\ndriver_curve_table\nBinned curves for top driver genes within each screened feature set.\nfit_summary\nPer-lineage screening diagnostics.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() to screen.\nfeature_sets\nstring_vec\nOptional feature-set subset within the namespace.\nlineage\nOptional lineage key subset.\npseudotime_key\nRequired key for explicit cell_vector_family pseudotime when multiple keys are present.\nmembership\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\nscore_method\nchoice\nmean\nsum\nrank_mean\nHow to score each feature set within each cell.\npseudotime_direction\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nmin_set_size\nMinimum feature-set size after intersecting with the matrix.\nmax_set_size\n5000\n1e+06\nMaximum feature-set size after intersecting with the matrix.\ntop_n\n10000\nNumber of top-ranked feature sets retained in top_sets.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\ntop_driver_genes\nNumber of top member genes retained as curve drivers per feature set.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nmin_features_detected\nMinimum detected set members required for passes_filters.\nmin_detected_fraction\nMinimum fraction of detected set members required for passes_filters.\nmin_mean_score\nOptional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics.\nmin_max_score\nOptional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves.\nmin_signal_to_noise\nOptional minimum amplitude divided by mean bootstrap SE required for passes_filters.\nlow_abundance_max_score\n0.1\nCurves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.\nn_permutations\nNumber of empirical permutations for dynamic-score p-values; 0 disables permutation testing.\npermutation_seed\nRandom seed for empirical dynamic-score permutations.\np_adjust_method\nBH\nholm\nhochberg\nhommel\nbonferroni\nBY\nfdr\nMultiple-testing correction method for q_dynamic.",
       "tags": ["op", "trajectory", "pathway", "discovery", "signature"],
       "payload": {
         "op_name": "trajectory_geneset_dynamics",
@@ -2889,7 +2889,12 @@
           {
             "name": "model",
             "kind": "model_ref",
-            "required": true
+            "required": false
+          },
+          {
+            "name": "pseudotime",
+            "kind": "cell_vector_family",
+            "required": false
           },
           {
             "name": "cell_set",
@@ -2934,8 +2939,12 @@
             "kind": "matrix"
           },
           "model": {
-            "required": true,
+            "required": false,
             "kind": "model_ref"
+          },
+          "pseudotime": {
+            "required": false,
+            "kind": "cell_vector_family"
           },
           "cell_set": {
             "type": "select",
@@ -2962,6 +2971,18 @@
             "type": "string_vec",
             "default": null,
             "help": "Optional lineage key subset."
+          },
+          {
+            "name": "pseudotime_key",
+            "type": "string",
+            "default": null,
+            "help": "Required key for explicit cell_vector_family pseudotime when multiple keys are present."
+          },
+          {
+            "name": "membership",
+            "type": "cell_ids_or_set",
+            "default": null,
+            "help": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."
           },
           {
             "name": "score_method",
@@ -3430,7 +3451,7 @@
       "name": "trajectory_signal_dynamics",
       "title": "Trajectory Signal Dynamics",
       "description": "Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.",
-      "search_text": "Trajectory Signal Dynamics\nRank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.\ntrajectory\nsignal\ndiscovery\ndynamics\ncell_vector_family\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignal_table\nobs_table\nBinned signal-score curves along trajectory pseudotime.\ndynamics_table\nPer-signal dynamic metrics and rank.\ntop_signals\nTop-ranked dynamic signals for report-first discovery.\nfit_summary\nPer-lineage signal dynamics diagnostics.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nlineage\nOptional lineage key subset.\npseudotime_direction\nchoice\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nstring\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\ntop_n\n10000\nNumber of top-ranked signals retained in top_signals.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.",
+      "search_text": "Trajectory Signal Dynamics\nRank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.\ntrajectory\nsignal\ndiscovery\ndynamics\ncell_vector_family\nTRUE\nmodel\nmodel_ref\nFALSE\npseudotime\ncell_set\nselect\nsignal_table\nobs_table\nBinned signal-score curves along trajectory pseudotime.\ndynamics_table\nPer-signal dynamic metrics and rank.\ntop_signals\nTop-ranked dynamic signals for report-first discovery.\nfit_summary\nPer-lineage signal dynamics diagnostics.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nlineage\nOptional lineage key subset.\npseudotime_key\nstring\nRequired key for explicit cell_vector_family pseudotime when multiple keys are present.\nmembership\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\npseudotime_direction\nchoice\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\ntop_n\n10000\nNumber of top-ranked signals retained in top_signals.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.",
       "tags": ["op", "trajectory", "signal", "discovery", "dynamics"],
       "payload": {
         "op_name": "trajectory_signal_dynamics",
@@ -3446,7 +3467,12 @@
           {
             "name": "model",
             "kind": "model_ref",
-            "required": true
+            "required": false
+          },
+          {
+            "name": "pseudotime",
+            "kind": "cell_vector_family",
+            "required": false
           },
           {
             "name": "cell_set",
@@ -3481,8 +3507,12 @@
             "kind": "cell_vector_family"
           },
           "model": {
-            "required": true,
+            "required": false,
             "kind": "model_ref"
+          },
+          "pseudotime": {
+            "required": false,
+            "kind": "cell_vector_family"
           },
           "cell_set": {
             "type": "select",
@@ -3503,6 +3533,18 @@
             "type": "string_vec",
             "default": null,
             "help": "Optional lineage key subset."
+          },
+          {
+            "name": "pseudotime_key",
+            "type": "string",
+            "default": null,
+            "help": "Required key for explicit cell_vector_family pseudotime when multiple keys are present."
+          },
+          {
+            "name": "membership",
+            "type": "cell_ids_or_set",
+            "default": null,
+            "help": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."
           },
           {
             "name": "pseudotime_direction",
@@ -4187,6 +4229,75 @@
           }
         ],
         "promotable": ["composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:trajectory_segment_path_join",
+      "record_type": "op",
+      "name": "trajectory_segment_path_join",
+      "title": "Trajectory segment path join",
+      "description": "Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.",
+      "search_text": "Trajectory segment path join\nJoin ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.\ntrajectory\nvisualization\nprovenance\ncomposition\ncell_set\nselect\ncurves\npath_2d_family\nDerived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.\npath_manifest\nobs_table\nAudit manifest recording parent path artifacts, segment order, point boundaries, and caveats.\npaths\nlist\nOrdered path segment specs with path ref, lineage key, segment ID, labels, and order.\ncomposite_id\nstring\nOptional trajectory_composite_id shared with a segmented pseudotime join.\ncomposite_key\ncomposite_path\nKey used in the output composite path_2d_family.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id on parent paths with warning.",
+      "tags": ["op", "trajectory", "visualization", "provenance", "composition"],
+      "payload": {
+        "op_name": "trajectory_segment_path_join",
+        "title": "Trajectory segment path join",
+        "description": "Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.",
+        "intent": ["trajectory", "visualization", "provenance", "composition"],
+        "consumes": [
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "curves",
+            "kind": "path_2d_family",
+            "description": "Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model."
+          },
+          {
+            "name": "path_manifest",
+            "kind": "obs_table",
+            "description": "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
+          }
+        ],
+        "inputs": {
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "paths",
+            "type": "list",
+            "default": null,
+            "help": "Ordered path segment specs with path ref, lineage key, segment ID, labels, and order."
+          },
+          {
+            "name": "composite_id",
+            "type": "string",
+            "default": null,
+            "help": "Optional trajectory_composite_id shared with a segmented pseudotime join."
+          },
+          {
+            "name": "composite_key",
+            "type": "string",
+            "default": "composite_path",
+            "help": "Key used in the output composite path_2d_family."
+          },
+          {
+            "name": "allow_legacy",
+            "type": "bool",
+            "default": false,
+            "help": "Allow missing trajectory_fit_id on parent paths with warning."
+          }
+        ],
+        "promotable": ["curves", "path_manifest"],
         "chunking": null
       }
     },
@@ -8458,6 +8569,24 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:trajectory_segment_path_join_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_path_join_manifest",
+      "title": "Trajectory Segment Path Join Manifest",
+      "description": "Manifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.",
+      "search_text": "Trajectory Segment Path Join Manifest\nManifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.\nobs_table\ntrajectory_segment_path_join_manifest\ntrajectory_segment\naudit composite trajectory curve overlays\ntrace parent path artifacts\nexplain that a displayed composite curve is derived geometry, not a merged model",
+      "tags": ["artifact_type", "obs_table", "trajectory_segment_path_join_manifest"],
+      "payload": {
+        "artifact_type": "obs_table:trajectory_segment_path_join_manifest",
+        "primitive_kind": "obs_table",
+        "title": "Trajectory Segment Path Join Manifest",
+        "description": "Manifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.",
+        "table_type": "trajectory_segment_path_join_manifest",
+        "entity_kind": "trajectory_segment",
+        "use_when": ["audit composite trajectory curve overlays", "trace parent path artifacts", "explain that a displayed composite curve is derived geometry, not a merged model"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:ucell_signature_summary",
       "record_type": "artifact_type",
       "name": "obs_table:ucell_signature_summary",
@@ -9373,6 +9502,44 @@
       }
     },
     {
+      "record_id": "parameter:pseudotime_key",
+      "record_type": "parameter",
+      "name": "pseudotime_key",
+      "title": "Pseudotime Key",
+      "description": "Selects the key/lineage from an explicit cell_vector_family pseudotime input.",
+      "search_text": "Pseudotime Key\nSelects the key/lineage from an explicit cell_vector_family pseudotime input.\ntrajectory\nop params\ncell ordering\nlineage identity\ncurve labels\nRequired when explicit pseudotime contains multiple keys.\nDo not assume equal key names across unrelated trajectory fits or composites.\nlineage_key\ntrajectory_key",
+      "tags": ["parameter", "trajectory", "lineage_key", "trajectory_key"],
+      "payload": {
+        "parameter_name": "pseudotime_key",
+        "title": "Pseudotime Key",
+        "category": "trajectory",
+        "description": "Selects the key/lineage from an explicit cell_vector_family pseudotime input.",
+        "applies_to": "op params",
+        "affects": ["cell ordering", "lineage identity", "curve labels"],
+        "guidance": ["Required when explicit pseudotime contains multiple keys.", "Do not assume equal key names across unrelated trajectory fits or composites."],
+        "aliases": ["lineage_key", "trajectory_key"]
+      }
+    },
+    {
+      "record_id": "parameter:membership",
+      "record_type": "parameter",
+      "name": "membership",
+      "title": "Pseudotime Membership Filter",
+      "description": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells before dynamics are computed.",
+      "search_text": "Pseudotime Membership Filter\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells before dynamics are computed.\nselection\nop params\nanalysis universe\ncell counts\ncurve stability\nUse membership to restrict composite trajectories to their intended cell universe.\nReport n_membership_cells and n_cells_used from fit_summary.\ntrajectory_membership\ncell_filter",
+      "tags": ["parameter", "selection", "trajectory_membership", "cell_filter"],
+      "payload": {
+        "parameter_name": "membership",
+        "title": "Pseudotime Membership Filter",
+        "category": "selection",
+        "description": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells before dynamics are computed.",
+        "applies_to": "op params",
+        "affects": ["analysis universe", "cell counts", "curve stability"],
+        "guidance": ["Use membership to restrict composite trajectories to their intended cell universe.", "Report n_membership_cells and n_cells_used from fit_summary."],
+        "aliases": ["trajectory_membership", "cell_filter"]
+      }
+    },
+    {
       "record_id": "parameter:start_label",
       "record_type": "parameter",
       "name": "start_label",
@@ -10138,7 +10305,7 @@
       "name": "trajectory_geneset_dynamics_discovery",
       "title": "Run gene-set dynamics along a trajectory",
       "description": "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
-      "search_text": "Run gene-set dynamics along a trajectory\nWhich biological processes turn on, turn off, or behave transiently along a trajectory?\nScreen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.\ntrajectory_discovery\nInspect available feature-set namespaces with wb_feature_sets().\nChoose trajectory model artifact/model_ref and matrix.\nRun trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.\nPromote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.\nPlot top dynamic terms and driver-gene curves with pseudotime_signature_line.\ngetter:wb_feature_sets\ngetter:wb_art_list\nop:trajectory_geneset_dynamics\nplot:pseudotime_signature_line\nwrangler:plot_mapper:trajectory_pseudotime_signature_line_v1\nparameter:namespace\nparameter:score_method\nparameter:pseudotime_direction\nparameter:min_amplitude\nartifact_type:obs_table:trajectory_geneset_dynamics_curve\nartifact_type:obs_table:trajectory_geneset_dynamics\nartifact_type:obs_table:trajectory_geneset_dynamics_drivers\nartifact_type:obs_table:trajectory_geneset_dynamics_driver_curve\ncollaborator asks for GSEA-like discovery along pseudotime\nfind metabolism/signaling/processes not preselected by marker intuition\nGene-set universe and score_method define the biological meaning.\nPseudotime orientation controls turns_on versus turns_off labels.\nAmplitude thresholds are scale-dependent filters, not p-values.",
+      "search_text": "Run gene-set dynamics along a trajectory\nWhich biological processes turn on, turn off, or behave transiently along a trajectory?\nScreen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.\ntrajectory_discovery\nInspect available feature-set namespaces with wb_feature_sets().\nChoose matrix plus either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family.\nRun trajectory_geneset_dynamics with namespace, lineage or pseudotime_key, orientation, and filtering thresholds.\nPromote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.\nPlot top dynamic terms and driver-gene curves with pseudotime_signature_line.\ngetter:wb_feature_sets\ngetter:wb_art_list\nop:trajectory_geneset_dynamics\nplot:pseudotime_signature_line\nwrangler:plot_mapper:trajectory_pseudotime_signature_line_v1\nparameter:namespace\nparameter:score_method\nparameter:pseudotime_key\nparameter:pseudotime_direction\nparameter:min_amplitude\nartifact_type:obs_table:trajectory_geneset_dynamics_curve\nartifact_type:obs_table:trajectory_geneset_dynamics\nartifact_type:obs_table:trajectory_geneset_dynamics_drivers\nartifact_type:obs_table:trajectory_geneset_dynamics_driver_curve\ncollaborator asks for GSEA-like discovery along pseudotime\nfind metabolism/signaling/processes not preselected by marker intuition\nGene-set universe and score_method define the biological meaning.\nExplicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.\nPseudotime orientation controls turns_on versus turns_off labels.\nAmplitude thresholds are scale-dependent filters, not p-values.",
       "tags": ["recipe", "trajectory_discovery", "collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
       "payload": {
         "recipe_id": "trajectory_geneset_dynamics_discovery",
@@ -10146,11 +10313,11 @@
         "category": "trajectory_discovery",
         "question": "Which biological processes turn on, turn off, or behave transiently along a trajectory?",
         "description": "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
-        "steps": ["Inspect available feature-set namespaces with wb_feature_sets().", "Choose trajectory model artifact/model_ref and matrix.", "Run trajectory_geneset_dynamics with namespace, lineage/orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."],
-        "uses": ["getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+        "steps": ["Inspect available feature-set namespaces with wb_feature_sets().", "Choose matrix plus either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family.", "Run trajectory_geneset_dynamics with namespace, lineage or pseudotime_key, orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."],
+        "uses": ["getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_key", "parameter:pseudotime_direction", "parameter:min_amplitude"],
         "produces": ["artifact_type:obs_table:trajectory_geneset_dynamics_curve", "artifact_type:obs_table:trajectory_geneset_dynamics", "artifact_type:obs_table:trajectory_geneset_dynamics_drivers", "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"],
         "use_when": ["collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
-        "cautions": ["Gene-set universe and score_method define the biological meaning.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
+        "cautions": ["Gene-set universe and score_method define the biological meaning.", "Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
       }
     },
     {
@@ -10201,7 +10368,7 @@
       "name": "trajectory_signal_dynamics_discovery",
       "title": "Run signal dynamics along a trajectory",
       "description": "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
-      "search_text": "Run signal dynamics along a trajectory\nWhich precomputed cell-level signals are dynamic along pseudotime?\nRank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.\ntrajectory_discovery\nLoad or identify a cell_vector_family artifact containing signals.\nChoose trajectory model artifact/model_ref and lineage/orientation.\nRun trajectory_signal_dynamics with signal_keys or all keys.\nPromote signal_table, dynamics_table, top_signals, and fit_summary.\nPlot top signal curves with pseudotime_signature_line.\ngetter:wb_art_list\ngetter:wb_read_cell_vector_family\nop:trajectory_signal_dynamics\nplot:pseudotime_signature_line\nparameter:signal_keys\nparameter:pseudotime_direction\nparameter:min_amplitude\nartifact_type:obs_table:trajectory_signal_dynamics_curve\nartifact_type:obs_table:trajectory_signal_dynamics\nUCell or chromVAR scores already exist\nscreen signal families without recomputing gene-set scores\nSignal scale depends on upstream scoring method.\nOnly compare signals with compatible score semantics.",
+      "search_text": "Run signal dynamics along a trajectory\nWhich precomputed cell-level signals are dynamic along pseudotime?\nRank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.\ntrajectory_discovery\nLoad or identify a cell_vector_family artifact containing signals.\nChoose either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family plus lineage/pseudotime_key and orientation.\nRun trajectory_signal_dynamics with signal_keys or all keys.\nPromote signal_table, dynamics_table, top_signals, and fit_summary.\nPlot top signal curves with pseudotime_signature_line.\ngetter:wb_art_list\ngetter:wb_read_cell_vector_family\nop:trajectory_signal_dynamics\nplot:pseudotime_signature_line\nparameter:signal_keys\nparameter:pseudotime_key\nparameter:pseudotime_direction\nparameter:min_amplitude\nartifact_type:obs_table:trajectory_signal_dynamics_curve\nartifact_type:obs_table:trajectory_signal_dynamics\nUCell or chromVAR scores already exist\nscreen signal families without recomputing gene-set scores\nSignal scale depends on upstream scoring method.\nExplicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.\nOnly compare signals with compatible score semantics.",
       "tags": ["recipe", "trajectory_discovery", "UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"],
       "payload": {
         "recipe_id": "trajectory_signal_dynamics_discovery",
@@ -10209,11 +10376,11 @@
         "category": "trajectory_discovery",
         "question": "Which precomputed cell-level signals are dynamic along pseudotime?",
         "description": "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
-        "steps": ["Load or identify a cell_vector_family artifact containing signals.", "Choose trajectory model artifact/model_ref and lineage/orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."],
-        "uses": ["getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+        "steps": ["Load or identify a cell_vector_family artifact containing signals.", "Choose either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family plus lineage/pseudotime_key and orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."],
+        "uses": ["getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_key", "parameter:pseudotime_direction", "parameter:min_amplitude"],
         "produces": ["artifact_type:obs_table:trajectory_signal_dynamics_curve", "artifact_type:obs_table:trajectory_signal_dynamics"],
         "use_when": ["UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"],
-        "cautions": ["Signal scale depends on upstream scoring method.", "Only compare signals with compatible score semantics."]
+        "cautions": ["Signal scale depends on upstream scoring method.", "Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.", "Only compare signals with compatible score semantics."]
       }
     },
     {
@@ -10345,9 +10512,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-25T18:22:59+0200",
-    "node_count": 289,
-    "edge_count": 768,
+    "generated_at": "2026-06-25T23:15:31+0200",
+    "node_count": 293,
+    "edge_count": 785,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -10576,6 +10743,12 @@
         "record_type": "op",
         "name": "trajectory_segment_join",
         "title": "Trajectory segment join"
+      },
+      {
+        "record_id": "op:trajectory_segment_path_join",
+        "record_type": "op",
+        "name": "trajectory_segment_path_join",
+        "title": "Trajectory segment path join"
       },
       {
         "record_id": "op:slingshot_project",
@@ -11484,6 +11657,12 @@
         "title": "Trajectory Segment Join Manifest"
       },
       {
+        "record_id": "artifact_type:obs_table:trajectory_segment_path_join_manifest",
+        "record_type": "artifact_type",
+        "name": "obs_table:trajectory_segment_path_join_manifest",
+        "title": "Trajectory Segment Path Join Manifest"
+      },
+      {
         "record_id": "artifact_type:obs_table:ucell_signature_summary",
         "record_type": "artifact_type",
         "name": "obs_table:ucell_signature_summary",
@@ -11782,6 +11961,18 @@
         "record_type": "parameter",
         "name": "pseudotime_direction",
         "title": "Pseudotime Direction"
+      },
+      {
+        "record_id": "parameter:pseudotime_key",
+        "record_type": "parameter",
+        "name": "pseudotime_key",
+        "title": "Pseudotime Key"
+      },
+      {
+        "record_id": "parameter:membership",
+        "record_type": "parameter",
+        "name": "membership",
+        "title": "Pseudotime Membership Filter"
       },
       {
         "record_id": "parameter:start_label",
@@ -13406,6 +13597,18 @@
         "label": "input:model"
       },
       {
+        "from": "primitive:cell_vector_family",
+        "to": "op:trajectory_geneset_dynamics",
+        "edge_type": "consumed_by",
+        "label": "input:pseudotime"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:pseudotime",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:pseudotime"
+      },
+      {
         "from": "op:trajectory_geneset_dynamics",
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
@@ -13428,6 +13631,18 @@
         "to": "parameter:lineage",
         "edge_type": "has_parameter_semantics",
         "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:pseudotime_key",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:pseudotime_key"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "parameter:membership",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:membership"
       },
       {
         "from": "op:trajectory_geneset_dynamics",
@@ -13778,6 +13993,18 @@
         "label": "input:model"
       },
       {
+        "from": "primitive:cell_vector_family",
+        "to": "op:trajectory_signal_dynamics",
+        "edge_type": "consumed_by",
+        "label": "input:pseudotime"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:pseudotime",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:pseudotime"
+      },
+      {
         "from": "op:trajectory_signal_dynamics",
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
@@ -13794,6 +14021,18 @@
         "to": "parameter:lineage",
         "edge_type": "has_parameter_semantics",
         "label": "param:lineage"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:pseudotime_key",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:pseudotime_key"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "parameter:membership",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:membership"
       },
       {
         "from": "op:trajectory_signal_dynamics",
@@ -14202,6 +14441,30 @@
         "to": "artifact_type:cell_vector",
         "edge_type": "promotes_as",
         "label": "promotable:composite_membership"
+      },
+      {
+        "from": "op:trajectory_segment_path_join",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_segment_path_join",
+        "to": "primitive:path_2d_family",
+        "edge_type": "produces",
+        "label": "output:curves"
+      },
+      {
+        "from": "op:trajectory_segment_path_join",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:path_manifest"
+      },
+      {
+        "from": "op:trajectory_segment_path_join",
+        "to": "artifact_type:path_2d_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:curves"
       },
       {
         "from": "primitive:model_ref",
@@ -14852,6 +15115,12 @@
         "label": "wb_art_load"
       },
       {
+        "from": "artifact_type:obs_table:trajectory_segment_path_join_manifest",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
         "from": "artifact_type:obs_table:ucell_signature_summary",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
@@ -15459,6 +15728,18 @@
       },
       {
         "from": "recipe:trajectory_geneset_dynamics_discovery",
+        "to": "parameter:pseudotime_key",
+        "edge_type": "uses",
+        "label": "parameter:pseudotime_key"
+      },
+      {
+        "from": "parameter:pseudotime_key",
+        "to": "recipe:trajectory_geneset_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_geneset_dynamics_discovery"
+      },
+      {
+        "from": "recipe:trajectory_geneset_dynamics_discovery",
         "to": "parameter:pseudotime_direction",
         "edge_type": "uses",
         "label": "parameter:pseudotime_direction"
@@ -15909,6 +16190,18 @@
       },
       {
         "from": "parameter:signal_keys",
+        "to": "recipe:trajectory_signal_dynamics_discovery",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:trajectory_signal_dynamics_discovery"
+      },
+      {
+        "from": "recipe:trajectory_signal_dynamics_discovery",
+        "to": "parameter:pseudotime_key",
+        "edge_type": "uses",
+        "label": "parameter:pseudotime_key"
+      },
+      {
+        "from": "parameter:pseudotime_key",
         "to": "recipe:trajectory_signal_dynamics_discovery",
         "edge_type": "used_by_recipe",
         "label": "recipe:trajectory_signal_dynamics_discovery"

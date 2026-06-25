@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-25T18:22:58+0200",
-  "op_count": 48,
+  "generated_at": "2026-06-25T23:15:30+0200",
+  "op_count": 49,
   "ops": [
     {
       "op_name": "leiden",
@@ -2619,7 +2619,12 @@
         {
           "name": "model",
           "kind": "model_ref",
-          "required": true
+          "required": false
+        },
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "required": false
         },
         {
           "name": "cell_set",
@@ -2664,8 +2669,12 @@
           "kind": "matrix"
         },
         "model": {
-          "required": true,
+          "required": false,
           "kind": "model_ref"
+        },
+        "pseudotime": {
+          "required": false,
+          "kind": "cell_vector_family"
         },
         "cell_set": {
           "type": "select",
@@ -2692,6 +2701,18 @@
           "type": "string_vec",
           "default": null,
           "help": "Optional lineage key subset."
+        },
+        {
+          "name": "pseudotime_key",
+          "type": "string",
+          "default": null,
+          "help": "Required key for explicit cell_vector_family pseudotime when multiple keys are present."
+        },
+        {
+          "name": "membership",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."
         },
         {
           "name": "score_method",
@@ -3149,7 +3170,12 @@
         {
           "name": "model",
           "kind": "model_ref",
-          "required": true
+          "required": false
+        },
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "required": false
         },
         {
           "name": "cell_set",
@@ -3184,8 +3210,12 @@
           "kind": "cell_vector_family"
         },
         "model": {
-          "required": true,
+          "required": false,
           "kind": "model_ref"
+        },
+        "pseudotime": {
+          "required": false,
+          "kind": "cell_vector_family"
         },
         "cell_set": {
           "type": "select",
@@ -3206,6 +3236,18 @@
           "type": "string_vec",
           "default": null,
           "help": "Optional lineage key subset."
+        },
+        {
+          "name": "pseudotime_key",
+          "type": "string",
+          "default": null,
+          "help": "Required key for explicit cell_vector_family pseudotime when multiple keys are present."
+        },
+        {
+          "name": "membership",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."
         },
         {
           "name": "pseudotime_direction",
@@ -3836,6 +3878,66 @@
         }
       ],
       "promotable": ["composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_segment_path_join",
+      "title": "Trajectory segment path join",
+      "description": "Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.",
+      "intent": ["trajectory", "visualization", "provenance", "composition"],
+      "consumes": [
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "curves",
+          "kind": "path_2d_family",
+          "description": "Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model."
+        },
+        {
+          "name": "path_manifest",
+          "kind": "obs_table",
+          "description": "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
+        }
+      ],
+      "inputs": {
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "paths",
+          "type": "list",
+          "default": null,
+          "help": "Ordered path segment specs with path ref, lineage key, segment ID, labels, and order."
+        },
+        {
+          "name": "composite_id",
+          "type": "string",
+          "default": null,
+          "help": "Optional trajectory_composite_id shared with a segmented pseudotime join."
+        },
+        {
+          "name": "composite_key",
+          "type": "string",
+          "default": "composite_path",
+          "help": "Key used in the output composite path_2d_family."
+        },
+        {
+          "name": "allow_legacy",
+          "type": "bool",
+          "default": false,
+          "help": "Allow missing trajectory_fit_id on parent paths with warning."
+        }
+      ],
+      "promotable": ["curves", "path_manifest"],
       "chunking": null
     },
     {

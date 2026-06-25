@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-25T18:22:58+0200",
-  "parameter_count": 55,
+  "generated_at": "2026-06-25T23:15:30+0200",
+  "parameter_count": 57,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -152,6 +152,26 @@
       "affects": ["early/late interpretation", "turns_on/turns_off labels", "report captions"],
       "guidance": ["Set this so early and late correspond to the biological start and endpoint.", "Inversion changes interpretation, not the underlying cell scores."],
       "aliases": ["orientation", "direction"]
+    },
+    {
+      "parameter_name": "pseudotime_key",
+      "title": "Pseudotime Key",
+      "category": "trajectory",
+      "description": "Selects the key/lineage from an explicit cell_vector_family pseudotime input.",
+      "applies_to": "op params",
+      "affects": ["cell ordering", "lineage identity", "curve labels"],
+      "guidance": ["Required when explicit pseudotime contains multiple keys.", "Do not assume equal key names across unrelated trajectory fits or composites."],
+      "aliases": ["lineage_key", "trajectory_key"]
+    },
+    {
+      "parameter_name": "membership",
+      "title": "Pseudotime Membership Filter",
+      "category": "selection",
+      "description": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells before dynamics are computed.",
+      "applies_to": "op params",
+      "affects": ["analysis universe", "cell counts", "curve stability"],
+      "guidance": ["Use membership to restrict composite trajectories to their intended cell universe.", "Report n_membership_cells and n_cells_used from fit_summary."],
+      "aliases": ["trajectory_membership", "cell_filter"]
     },
     {
       "parameter_name": "start_label",

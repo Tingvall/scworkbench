@@ -205,6 +205,36 @@ pseudotime coordinate when the segmented route is the intended biological axis.
 Reports should state that the pseudotime is a segmented composite, not a single
 model-derived pseudotime.
 
+`trajectory_geneset_dynamics` and `trajectory_signal_dynamics` support this
+explicit-pseudotime mode. Use `pseudotime` plus `pseudotime_key` instead of
+`model`:
+
+```r
+wb_session_run_op(
+  session = s,
+  bundle = b,
+  op_name = "trajectory_geneset_dynamics",
+  inputs = list(
+    matrix = "RNA_log_norm",
+    pseudotime = wb_ref_artifact("cell_vector_family_...", "composite_pseudotime"),
+    pseudotime_key = "t_sthsc_dn3_distal_cd4_v1",
+    membership = wb_ref_artifact("cell_vector_...", "composite_membership"),
+    namespace = "immune_gene_sets",
+    n_bins = 50L
+  )
+)
+```
+
+The dynamics outputs record:
+
+- `pseudotime_source_kind = "cell_vector_family"`
+- `pseudotime_artifact_id`
+- `pseudotime_key`
+- `membership_artifact_id`
+- `n_pseudotime_cells`
+- `n_membership_cells`
+- `n_cells_used`
+
 The `segment_local_table` and `composite_manifest` should be kept with any
 claim-supporting dynamics analysis because they explain:
 
@@ -225,8 +255,17 @@ Do not use `trajectory_segment_join` when:
 
 ## Current Limitations
 
-Path stitching is deferred in v1. Parent path artifact IDs can be recorded in
-the manifest, but no `composite_path` output is produced yet.
+`trajectory_segment_join` itself does not stitch paths. Display-geometry joining
+is handled separately by `trajectory_segment_path_join`, which consumes ordered
+parent `path_2d_family` artifacts and produces:
+
+- `curves`: a derived `path_2d_family` for UMAP/embedding overlay.
+- `path_manifest`: an audit table with parent path artifacts, segment order,
+  point boundaries, labels, and caveats.
+
+The joined path is explicitly display geometry. It is not a merged model and is
+not evidence that a single continuous trajectory model was fitted across all
+segments.
 
 Only `waypoint_collapse` is implemented. Future policies may add weighted
 handoff windows or explicit waypoint cell-set anchoring, but those should be

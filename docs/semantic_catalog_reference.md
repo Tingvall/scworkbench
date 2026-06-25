@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-25T18:22:59+0200
+Generated at: 2026-06-25T23:15:31+0200
 
-Record count: 289
+Record count: 293
 
-Graph edges: 768
+Graph edges: 785
 
 ## artifact_type
 
@@ -207,6 +207,12 @@ Description: One row per cell per parent segment preserving local pseudotime, sc
 Title: Trajectory Segment Join Manifest
 
 Description: Manifest for a segmented composite trajectory, recording parent trajectory_fit_ids, artifact IDs, biological labels, join policy, and overlap counts.
+
+### `artifact_type:obs_table:trajectory_segment_path_join_manifest`
+
+Title: Trajectory Segment Path Join Manifest
+
+Description: Manifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.
 
 ### `artifact_type:obs_table:ucell_signature_summary`
 
@@ -1076,6 +1082,12 @@ Title: Trajectory segment join
 
 Description: Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
 
+### `op:trajectory_segment_path_join`
+
+Title: Trajectory segment path join
+
+Description: Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.
+
 ### `op:slingshot_project`
 
 Title: Slingshot project curves
@@ -1227,6 +1239,18 @@ Description: Rule used to convert segment-local pseudotimes into one composite p
 Title: Pseudotime Direction
 
 Description: Controls whether pseudotime is used as provided or inverted before binning, curve metrics, and class assignment.
+
+### `parameter:pseudotime_key`
+
+Title: Pseudotime Key
+
+Description: Selects the key/lineage from an explicit cell_vector_family pseudotime input.
+
+### `parameter:membership`
+
+Title: Pseudotime Membership Filter
+
+Description: Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells before dynamics are computed.
 
 ### `parameter:start_label`
 

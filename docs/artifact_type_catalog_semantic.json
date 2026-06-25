@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-25T18:22:58+0200",
-  "artifact_type_count": 68,
+  "generated_at": "2026-06-25T23:15:30+0200",
+  "artifact_type_count": 69,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -299,6 +299,15 @@
       "table_type": "trajectory_segment_join_manifest",
       "entity_kind": "trajectory_segment",
       "use_when": ["audit composite trajectory construction", "trace parent segment artifacts", "explain segmented pseudotime assumptions"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_segment_path_join_manifest",
+      "primitive_kind": "obs_table",
+      "title": "Trajectory Segment Path Join Manifest",
+      "description": "Manifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.",
+      "table_type": "trajectory_segment_path_join_manifest",
+      "entity_kind": "trajectory_segment",
+      "use_when": ["audit composite trajectory curve overlays", "trace parent path artifacts", "explain that a displayed composite curve is derived geometry, not a merged model"]
     },
     {
       "artifact_type": "obs_table:ucell_signature_summary",

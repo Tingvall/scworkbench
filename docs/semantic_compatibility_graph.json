@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-25T18:22:59+0200",
-  "node_count": 289,
-  "edge_count": 768,
+  "generated_at": "2026-06-25T23:15:31+0200",
+  "node_count": 293,
+  "edge_count": 785,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -231,6 +231,12 @@
       "record_type": "op",
       "name": "trajectory_segment_join",
       "title": "Trajectory segment join"
+    },
+    {
+      "record_id": "op:trajectory_segment_path_join",
+      "record_type": "op",
+      "name": "trajectory_segment_path_join",
+      "title": "Trajectory segment path join"
     },
     {
       "record_id": "op:slingshot_project",
@@ -1139,6 +1145,12 @@
       "title": "Trajectory Segment Join Manifest"
     },
     {
+      "record_id": "artifact_type:obs_table:trajectory_segment_path_join_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_path_join_manifest",
+      "title": "Trajectory Segment Path Join Manifest"
+    },
+    {
       "record_id": "artifact_type:obs_table:ucell_signature_summary",
       "record_type": "artifact_type",
       "name": "obs_table:ucell_signature_summary",
@@ -1437,6 +1449,18 @@
       "record_type": "parameter",
       "name": "pseudotime_direction",
       "title": "Pseudotime Direction"
+    },
+    {
+      "record_id": "parameter:pseudotime_key",
+      "record_type": "parameter",
+      "name": "pseudotime_key",
+      "title": "Pseudotime Key"
+    },
+    {
+      "record_id": "parameter:membership",
+      "record_type": "parameter",
+      "name": "membership",
+      "title": "Pseudotime Membership Filter"
     },
     {
       "record_id": "parameter:start_label",
@@ -3061,6 +3085,18 @@
       "label": "input:model"
     },
     {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_geneset_dynamics",
+      "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:pseudotime"
+    },
+    {
       "from": "op:trajectory_geneset_dynamics",
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
@@ -3083,6 +3119,18 @@
       "to": "parameter:lineage",
       "edge_type": "has_parameter_semantics",
       "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:pseudotime_key",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:pseudotime_key"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "parameter:membership",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:membership"
     },
     {
       "from": "op:trajectory_geneset_dynamics",
@@ -3433,6 +3481,18 @@
       "label": "input:model"
     },
     {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_signal_dynamics",
+      "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:pseudotime"
+    },
+    {
       "from": "op:trajectory_signal_dynamics",
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
@@ -3449,6 +3509,18 @@
       "to": "parameter:lineage",
       "edge_type": "has_parameter_semantics",
       "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:pseudotime_key",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:pseudotime_key"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "parameter:membership",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:membership"
     },
     {
       "from": "op:trajectory_signal_dynamics",
@@ -3857,6 +3929,30 @@
       "to": "artifact_type:cell_vector",
       "edge_type": "promotes_as",
       "label": "promotable:composite_membership"
+    },
+    {
+      "from": "op:trajectory_segment_path_join",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_segment_path_join",
+      "to": "primitive:path_2d_family",
+      "edge_type": "produces",
+      "label": "output:curves"
+    },
+    {
+      "from": "op:trajectory_segment_path_join",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:path_manifest"
+    },
+    {
+      "from": "op:trajectory_segment_path_join",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:curves"
     },
     {
       "from": "primitive:model_ref",
@@ -4507,6 +4603,12 @@
       "label": "wb_art_load"
     },
     {
+      "from": "artifact_type:obs_table:trajectory_segment_path_join_manifest",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
       "from": "artifact_type:obs_table:ucell_signature_summary",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
@@ -5114,6 +5216,18 @@
     },
     {
       "from": "recipe:trajectory_geneset_dynamics_discovery",
+      "to": "parameter:pseudotime_key",
+      "edge_type": "uses",
+      "label": "parameter:pseudotime_key"
+    },
+    {
+      "from": "parameter:pseudotime_key",
+      "to": "recipe:trajectory_geneset_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_geneset_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_geneset_dynamics_discovery",
       "to": "parameter:pseudotime_direction",
       "edge_type": "uses",
       "label": "parameter:pseudotime_direction"
@@ -5564,6 +5678,18 @@
     },
     {
       "from": "parameter:signal_keys",
+      "to": "recipe:trajectory_signal_dynamics_discovery",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:trajectory_signal_dynamics_discovery"
+    },
+    {
+      "from": "recipe:trajectory_signal_dynamics_discovery",
+      "to": "parameter:pseudotime_key",
+      "edge_type": "uses",
+      "label": "parameter:pseudotime_key"
+    },
+    {
+      "from": "parameter:pseudotime_key",
       "to": "recipe:trajectory_signal_dynamics_discovery",
       "edge_type": "used_by_recipe",
       "label": "recipe:trajectory_signal_dynamics_discovery"

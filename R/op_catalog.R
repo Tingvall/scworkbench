@@ -150,6 +150,19 @@
   raw
 }
 
+.wb_runner_trajectory_segment_path_join <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  raw <- wb_op_trajectory_segment_path_join(
+    bundle = bundle,
+    paths = inputs$paths,
+    composite_id = inputs$composite_id %||% NULL,
+    composite_key = inputs$composite_key %||% NULL,
+    allow_legacy = inputs$allow_legacy %||% FALSE
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "trajectory_segment_path_join must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_monocle3_fit <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$fit_space), "monocle3_fit runner: missing resolved$fit_space.")
   .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
@@ -1183,14 +1196,33 @@
   raw
 }
 
+.wb_runner_resolve_optional_membership <- function(bundle, membership) {
+  if (is.null(membership)) return(NULL)
+  if (.wb_is_primitive(membership)) return(membership)
+  aid <- .wb_ref_to_artifact_id(membership)
+  if (!is.null(aid) && nzchar(as.character(aid)[1])) {
+    return(wb_art_load(bundle, artifact_id = as.character(aid)[1], expected_kind = "cell_vector"))
+  }
+  if (is.character(membership) && length(membership) == 1L && startsWith(membership, "artifact:")) {
+    return(wb_art_load(bundle, artifact_id = sub("^artifact:", "", membership), expected_kind = "cell_vector"))
+  }
+  membership
+}
+
 .wb_runner_trajectory_geneset_dynamics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "trajectory_geneset_dynamics runner: missing resolved$matrix.")
-  .wb_assert(!is.null(resolved$model), "trajectory_geneset_dynamics runner: missing resolved$model.")
+  explicit_pt <- !is.null(inputs$pseudotime) || !is.null(inputs$pseudotime_ref)
+  explicit_model <- !is.null(inputs$model) || !is.null(inputs$model_ref)
 
   raw <- wb_op_trajectory_geneset_dynamics(
     bundle = bundle,
     matrix_id = resolved$matrix$matrix_id,
-    model = resolved$model,
+    model = if (isTRUE(explicit_pt) && !isTRUE(explicit_model)) NULL else resolved$model %||% NULL,
+    pseudotime = resolved$pseudotime %||% NULL,
+    pseudotime_key = inputs$pseudotime_key %||% NULL,
+    membership = .wb_runner_resolve_optional_membership(bundle, inputs$membership %||% NULL),
+    pseudotime_artifact_id = .wb_trajectory_input_artifact_id(inputs$pseudotime %||% inputs$pseudotime_ref %||% NULL),
+    membership_artifact_id = .wb_trajectory_input_artifact_id(inputs$membership %||% NULL),
     namespace = inputs$namespace,
     cells = as.character(effective_cells),
     lineage = inputs$lineage %||% NULL,
@@ -1282,12 +1314,18 @@
 
 .wb_runner_trajectory_signal_dynamics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$signal), "trajectory_signal_dynamics runner: missing resolved$signal.")
-  .wb_assert(!is.null(resolved$model), "trajectory_signal_dynamics runner: missing resolved$model.")
+  explicit_pt <- !is.null(inputs$pseudotime) || !is.null(inputs$pseudotime_ref)
+  explicit_model <- !is.null(inputs$model) || !is.null(inputs$model_ref)
 
   raw <- wb_op_trajectory_signal_dynamics(
     bundle = bundle,
     signal = resolved$signal,
-    model = resolved$model,
+    model = if (isTRUE(explicit_pt) && !isTRUE(explicit_model)) NULL else resolved$model %||% NULL,
+    pseudotime = resolved$pseudotime %||% NULL,
+    pseudotime_key = inputs$pseudotime_key %||% NULL,
+    membership = .wb_runner_resolve_optional_membership(bundle, inputs$membership %||% NULL),
+    pseudotime_artifact_id = .wb_trajectory_input_artifact_id(inputs$pseudotime %||% inputs$pseudotime_ref %||% NULL),
+    membership_artifact_id = .wb_trajectory_input_artifact_id(inputs$membership %||% NULL),
     cells = as.character(effective_cells),
     lineage = inputs$lineage %||% NULL,
     signal_keys = inputs$signal_keys %||% NULL,
@@ -2626,7 +2664,8 @@
       title = "Trajectory Gene-Set Dynamics",
       description = "Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.",
       intent = c("trajectory", "pathway", "discovery", "signature"),
-      requires = list(matrix = "matrix", model = "model_ref"),
+      requires = list(matrix = "matrix"),
+      optional_requires = list(model = "model_ref", pseudotime = "cell_vector_family"),
       produces = list(
         signature_table = "obs_table",
         dynamics_table = "obs_table",
@@ -2639,7 +2678,8 @@
       runner = .wb_runner_trajectory_geneset_dynamics,
       inputs = list(
         matrix = list(required = TRUE, kind = "matrix"),
-        model = list(required = TRUE, kind = "model_ref")
+        model = list(required = FALSE, kind = "model_ref"),
+        pseudotime = list(required = FALSE, kind = "cell_vector_family")
       ),
       params = list(
         list(name = "namespace", type = "string", default = NULL,
@@ -2648,6 +2688,10 @@
              help = "Optional feature-set subset within the namespace."),
         list(name = "lineage", type = "string_vec", default = NULL,
              help = "Optional lineage key subset."),
+        list(name = "pseudotime_key", type = "string", default = NULL,
+             help = "Required key for explicit cell_vector_family pseudotime when multiple keys are present."),
+        list(name = "membership", type = "cell_ids_or_set", default = NULL,
+             help = "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."),
         list(name = "score_method", type = "choice", default = "mean",
              choices = c("mean", "sum", "rank_mean"),
              help = "How to score each feature set within each cell."),
@@ -2840,7 +2884,8 @@
       title = "Trajectory Signal Dynamics",
       description = "Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.",
       intent = c("trajectory", "signal", "discovery", "dynamics"),
-      requires = list(signal = "cell_vector_family", model = "model_ref"),
+      requires = list(signal = "cell_vector_family"),
+      optional_requires = list(model = "model_ref", pseudotime = "cell_vector_family"),
       produces = list(
         signal_table = "obs_table",
         dynamics_table = "obs_table",
@@ -2851,13 +2896,18 @@
       runner = .wb_runner_trajectory_signal_dynamics,
       inputs = list(
         signal = list(required = TRUE, kind = "cell_vector_family"),
-        model = list(required = TRUE, kind = "model_ref")
+        model = list(required = FALSE, kind = "model_ref"),
+        pseudotime = list(required = FALSE, kind = "cell_vector_family")
       ),
       params = list(
         list(name = "signal_keys", type = "string_vec", default = NULL,
              help = "Optional signal-key subset within the cell_vector_family."),
         list(name = "lineage", type = "string_vec", default = NULL,
              help = "Optional lineage key subset."),
+        list(name = "pseudotime_key", type = "string", default = NULL,
+             help = "Required key for explicit cell_vector_family pseudotime when multiple keys are present."),
+        list(name = "membership", type = "cell_ids_or_set", default = NULL,
+             help = "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."),
         list(name = "pseudotime_direction", type = "choice", default = "as_is",
              choices = c("as_is", "invert"),
              help = "Use pseudotime as provided or invert it before binning and classification."),
@@ -3174,6 +3224,43 @@
           kind = "cell_vector",
           value_kind = "categorical",
           description = "One-cell assignment to a unique segment or waypoint overlap."
+        )
+      )
+    ),
+    trajectory_segment_path_join = list(
+      op_name = "trajectory_segment_path_join",
+      title = "Trajectory segment path join",
+      description = "Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.",
+      intent = c("trajectory", "visualization", "provenance", "composition"),
+      requires = list(),
+      produces = list(
+        curves = "path_2d_family",
+        path_manifest = "obs_table"
+      ),
+      promotable = c("curves", "path_manifest"),
+      runner = .wb_runner_trajectory_segment_path_join,
+      inputs = list(),
+      params = list(
+        list(name = "paths", type = "list", default = NULL,
+             help = "Ordered path segment specs with path ref, lineage key, segment ID, labels, and order."),
+        list(name = "composite_id", type = "string", default = NULL,
+             help = "Optional trajectory_composite_id shared with a segmented pseudotime join."),
+        list(name = "composite_key", type = "string", default = "composite_path",
+             help = "Key used in the output composite path_2d_family."),
+        list(name = "allow_legacy", type = "bool", default = FALSE,
+             help = "Allow missing trajectory_fit_id on parent paths with warning.")
+      ),
+      interface_produces = list(
+        curves = list(
+          kind = "path_2d_family",
+          key = "composite_key",
+          family_kind = "trajectory_composite_display_path",
+          description = "Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model."
+        ),
+        path_manifest = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_path_join_manifest",
+          description = "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
         )
       )
     ),

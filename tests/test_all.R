@@ -144,6 +144,9 @@ test_all <- function(bundle_dir){
   if (exists("test_op_trajectory_segment_join_contract", mode = "function")) {
     stopifnot(test_op_trajectory_segment_join_contract())
   }
+  if (exists("test_composite_pseudotime_dynamics_contract", mode = "function")) {
+    stopifnot(test_composite_pseudotime_dynamics_contract())
+  }
   if (exists("test_feature_sets_contract", mode = "function")) {
     stopifnot(test_feature_sets_contract(bundle_dir))
   }

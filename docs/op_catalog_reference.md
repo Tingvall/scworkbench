@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-25T18:22:58+0200
+Generated at: 2026-06-25T23:15:30+0200
 
-Operation count: 48
+Operation count: 49
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -771,6 +771,7 @@ Description: Screen all feature sets in a namespace for dynamic behavior along t
 Consumes:
 - `matrix`: matrix
 - `model`: model_ref
+- `pseudotime`: cell_vector_family
 - `cell_set`: select
 
 Produces:
@@ -787,6 +788,8 @@ Key parameters:
 - `namespace` (string, default=NULL): Feature-set namespace from wb_feature_sets() to screen.
 - `feature_sets` (string_vec, default=NULL): Optional feature-set subset within the namespace.
 - `lineage` (string_vec, default=NULL): Optional lineage key subset.
+- `pseudotime_key` (string, default=NULL): Required key for explicit cell_vector_family pseudotime when multiple keys are present.
+- `membership` (cell_ids_or_set, default=NULL): Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.
 - `score_method` (choice, default=mean): How to score each feature set within each cell.
 - `pseudotime_direction` (choice, default=as_is): Use pseudotime as provided or invert it before binning and classification.
 - `start_label` (string, default=NULL): Optional biological start label recorded in output metadata.
@@ -886,6 +889,7 @@ Description: Rank precomputed cell-level signal families by dynamic behavior alo
 Consumes:
 - `signal`: cell_vector_family
 - `model`: model_ref
+- `pseudotime`: cell_vector_family
 - `cell_set`: select
 
 Produces:
@@ -899,6 +903,8 @@ Promotable outputs: signal_table, dynamics_table, top_signals, fit_summary
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
 - `lineage` (string_vec, default=NULL): Optional lineage key subset.
+- `pseudotime_key` (string, default=NULL): Required key for explicit cell_vector_family pseudotime when multiple keys are present.
+- `membership` (cell_ids_or_set, default=NULL): Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.
 - `pseudotime_direction` (choice, default=as_is): Use pseudotime as provided or invert it before binning and classification.
 - `start_label` (string, default=NULL): Optional biological start label recorded in output metadata.
 - `end_label` (string, default=NULL): Optional biological end label recorded in output metadata.
@@ -1072,6 +1078,29 @@ Key parameters:
 - `join_policy` (string, default=waypoint_collapse): Overlap policy. v1 supports waypoint_collapse only.
 - `min_weight` (dbl, default=NULL): Optional minimum lineage weight required for segment-local membership when weights are supplied.
 - `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.
+
+## `trajectory_segment_path_join`
+
+Title: Trajectory segment path join
+
+Intent: trajectory, visualization, provenance, composition
+
+Description: Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.
+
+Consumes:
+- `cell_set`: select
+
+Produces:
+- `curves`: path_2d_family - Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.
+- `path_manifest`: obs_table - Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.
+
+Promotable outputs: curves, path_manifest
+
+Key parameters:
+- `paths` (list, default=NULL): Ordered path segment specs with path ref, lineage key, segment ID, labels, and order.
+- `composite_id` (string, default=NULL): Optional trajectory_composite_id shared with a segmented pseudotime join.
+- `composite_key` (string, default=composite_path): Key used in the output composite path_2d_family.
+- `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id on parent paths with warning.
 
 ## `slingshot_project`
 

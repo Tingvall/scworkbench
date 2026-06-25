@@ -336,3 +336,164 @@ wb_op_trajectory_segment_join <- function(bundle,
     )
   )
 }
+
+.wb_segment_path_values <- function(prim, lineage, label = "path_2d_family") {
+  .wb_assert_kind(prim, "path_2d_family", where = paste0(" for ", label))
+  lineage <- as.character(lineage %||% "")[1]
+  .wb_assert(nzchar(lineage), "trajectory_segment_path_join(): lineage must be a single non-empty string.")
+  key <- as.character(prim$key)
+  hit <- key == lineage
+  .wb_assert(any(hit), paste0("trajectory_segment_path_join(): lineage '", lineage, "' not found in ", label, "."))
+  out <- data.frame(
+    lineage_id = key[hit],
+    point = as.integer(prim$point[hit]),
+    x = as.numeric(prim$x[hit]),
+    y = as.numeric(prim$y[hit]),
+    stringsAsFactors = FALSE
+  )
+  out <- out[is.finite(out$point) & is.finite(out$x) & is.finite(out$y), , drop = FALSE]
+  .wb_assert(nrow(out) > 0L, paste0("trajectory_segment_path_join(): no finite path points for ", label, "."))
+  out[order(out$point), , drop = FALSE]
+}
+
+#' Join Display Paths For A Segmented Composite Trajectory
+#'
+#' Derives a display-only composite `path_2d_family` from ordered parent
+#' `path_2d_family` segment artifacts. This does not merge or refit parent
+#' trajectory models.
+#'
+#' @param bundle Open scworkbench bundle.
+#' @param paths List of path segment specs. Each requires `segment_id`, `path`,
+#'   `lineage`, and `order`; labels are optional.
+#' @param composite_id Optional trajectory composite id.
+#' @param composite_key Key for the output path family.
+#' @param allow_legacy Allow missing parent `trajectory_fit_id` with warning.
+#'
+#' @return Standard op result with `curves` and `path_manifest`.
+#' @export
+wb_op_trajectory_segment_path_join <- function(bundle,
+                                               paths,
+                                               composite_id = NULL,
+                                               composite_key = NULL,
+                                               allow_legacy = FALSE) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle.")
+  .wb_assert(is.list(paths) && length(paths) >= 2L,
+             "trajectory_segment_path_join(): paths must be a list with at least two entries.")
+
+  rows <- vector("list", length(paths))
+  manifests <- vector("list", length(paths))
+  segment_ids <- character(length(paths))
+  segment_orders <- numeric(length(paths))
+
+  for (i in seq_along(paths)) {
+    seg <- paths[[i]]
+    .wb_assert(is.list(seg), "trajectory_segment_path_join(): each path segment must be a list.")
+    segment_id <- as.character(seg$segment_id %||% paste0("segment", i))[1]
+    segment_id <- gsub("[^A-Za-z0-9_.:-]+", "_", segment_id)
+    order <- suppressWarnings(as.numeric(seg$order %||% i))[1]
+    lineage <- as.character(seg$lineage %||% "")[1]
+    .wb_assert(nzchar(segment_id), "trajectory_segment_path_join(): segment_id must be non-empty.")
+    .wb_assert(is.finite(order), paste0("trajectory_segment_path_join(): invalid order for segment ", segment_id, "."))
+    .wb_assert(nzchar(lineage), paste0("trajectory_segment_path_join(): missing lineage for segment ", segment_id, "."))
+    .wb_assert(!is.null(seg$path), paste0("trajectory_segment_path_join(): missing path for segment ", segment_id, "."))
+
+    info <- wb_trajectory_fit_info(bundle, seg$path)
+    if (!nzchar(as.character(info$trajectory_fit_id[1] %||% ""))) {
+      msg <- "trajectory_segment_path_join(): parent path is missing trajectory_fit_id; legacy paths cannot be joined without explicit allow_legacy=TRUE."
+      if (isTRUE(allow_legacy)) warning(msg, call. = FALSE) else stop(msg, call. = FALSE)
+    }
+    prim <- .wb_segment_resolve_primitive(bundle, seg$path, expected_kind = "path_2d_family",
+                                          label = paste0(segment_id, " path"))
+    pv <- .wb_segment_path_values(prim, lineage, label = paste0(segment_id, " path"))
+    pv$segment_id <- segment_id
+    pv$segment_order <- order
+    pv$source_lineage_id <- lineage
+
+    segment_ids[i] <- segment_id
+    segment_orders[i] <- order
+    rows[[i]] <- pv
+    manifests[[i]] <- data.frame(
+      segment_id = segment_id,
+      segment_order = order,
+      lineage_id = lineage,
+      trajectory_fit_id = as.character(info$trajectory_fit_id[1] %||% ""),
+      trajectory_engine = as.character(info$engine[1] %||% ""),
+      path_artifact_id = .wb_segment_ref_artifact_id(seg$path),
+      start_label = as.character(seg$start_label %||% "")[1],
+      end_label = as.character(seg$end_label %||% "")[1],
+      n_path_points = nrow(pv),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  .wb_assert(!anyDuplicated(segment_ids), "trajectory_segment_path_join(): segment_id values must be unique.")
+  .wb_assert(!anyDuplicated(segment_orders), "trajectory_segment_path_join(): segment order values must be unique.")
+  ord <- order(segment_orders, segment_ids)
+  rows <- rows[ord]
+  manifests <- manifests[ord]
+  segment_ids <- segment_ids[ord]
+
+  composite_id <- as.character(composite_id %||% .wb_new_trajectory_composite_id(segment_ids[1]))[1]
+  composite_key <- as.character(composite_key %||% "composite_path")[1]
+  .wb_assert(nzchar(composite_id), "composite_id must be non-empty.")
+  .wb_assert(nzchar(composite_key), "composite_key must be non-empty.")
+
+  joined <- do.call(rbind, rows)
+  manifest <- do.call(rbind, manifests)
+  rownames(joined) <- NULL
+  rownames(manifest) <- NULL
+  manifest$segment_index <- seq_len(nrow(manifest))
+  idx_map <- stats::setNames(manifest$segment_index, manifest$segment_id)
+  joined$segment_index <- unname(idx_map[joined$segment_id])
+  joined$composite_point <- seq_len(nrow(joined))
+
+  manifest$trajectory_composite_id <- composite_id
+  manifest$composite_key <- composite_key
+  manifest$composite_point_start <- vapply(manifest$segment_id, function(sid) min(joined$composite_point[joined$segment_id == sid]), integer(1))
+  manifest$composite_point_end <- vapply(manifest$segment_id, function(sid) max(joined$composite_point[joined$segment_id == sid]), integer(1))
+  manifest$caveats <- "Derived display path from separately fitted segment paths; no parent trajectory model objects were merged."
+  manifest <- manifest[, c(
+    "trajectory_composite_id", "composite_key", "segment_id", "segment_order", "segment_index",
+    "lineage_id", "trajectory_fit_id", "trajectory_engine", "path_artifact_id",
+    "start_label", "end_label", "n_path_points", "composite_point_start", "composite_point_end", "caveats"
+  ), drop = FALSE]
+
+  parent_fit_ids <- unique(as.character(manifest$trajectory_fit_id))
+  parent_fit_ids <- parent_fit_ids[nzchar(parent_fit_ids)]
+  meta <- list(
+    trajectory_composite_id = composite_id,
+    family_kind = "trajectory_composite_display_path",
+    value_semantics = "derived_segmented_display_geometry",
+    parent_segment_ids = segment_ids,
+    parent_trajectory_fit_ids = parent_fit_ids,
+    n_segments = length(segment_ids),
+    n_points = nrow(joined),
+    caveat = "Display geometry only; not a merged fitted model."
+  )
+
+  list(
+    outputs = list(
+      curves = wb_prim_path_2d_family(
+        key = rep(composite_key, nrow(joined)),
+        point = joined$composite_point,
+        x = joined$x,
+        y = joined$y,
+        meta = meta
+      ),
+      path_manifest = wb_prim_obs_table(
+        manifest,
+        table_type = "trajectory_segment_path_join_manifest",
+        entity_kind = "trajectory_segment",
+        meta = meta
+      )
+    ),
+    params = list(
+      trajectory_composite_id = composite_id,
+      composite_key = composite_key,
+      n_segments = length(segment_ids),
+      n_points = nrow(joined),
+      parent_segment_ids = segment_ids,
+      parent_trajectory_fit_ids = parent_fit_ids
+    )
+  )
+}
