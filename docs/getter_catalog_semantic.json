@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "2026-06-24T19:59:21+0200",
-  "getter_count": 69,
+  "generated_at": "2026-06-25T10:38:46+0200",
+  "getter_count": 71,
   "getters": [
     {
       "function_name": "wb_status",
@@ -408,6 +408,28 @@
       "payload_level": "payload",
       "arguments": ["bundle", "model_ref", "pseudotime_artifact", "lineage_weights_artifact"],
       "use_when": ["restrict trajectory universes by lineage membership", "filter cells by Slingshot lineage weight", "derive claim-supporting trajectory cell sets"],
+      "mutates": false
+    },
+    {
+      "function_name": "wb_trajectory_fit_info",
+      "title": "Trajectory Fit Identity",
+      "category": "artifacts",
+      "description": "Inspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact.",
+      "returns": "data.frame",
+      "payload_level": "metadata",
+      "arguments": ["bundle", "x", "runs"],
+      "use_when": ["audit trajectory fit-family identity", "check whether trajectory artifacts can be combined"],
+      "mutates": false
+    },
+    {
+      "function_name": "wb_trajectory_assert_fit_compatible",
+      "title": "Trajectory Fit Compatibility Assertion",
+      "category": "artifacts",
+      "description": "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
+      "returns": "invisible data.frame or error",
+      "payload_level": "metadata",
+      "arguments": ["bundle", "...", "runs", "allow_legacy"],
+      "use_when": ["validate pseudotime, weights, model, and path compatibility", "prevent cross-fit lineage-label mixing"],
       "mutates": false
     },
     {

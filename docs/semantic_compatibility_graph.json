@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-24T19:59:21+0200",
-  "node_count": 280,
-  "edge_count": 753,
+  "generated_at": "2026-06-25T10:38:47+0200",
+  "node_count": 284,
+  "edge_count": 758,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -219,6 +219,12 @@
       "record_type": "op",
       "name": "slingshot_fit",
       "title": "Slingshot fit"
+    },
+    {
+      "record_id": "op:slingshot_lineage_weights",
+      "record_type": "op",
+      "name": "slingshot_lineage_weights",
+      "title": "Slingshot lineage weights"
     },
     {
       "record_id": "op:slingshot_project",
@@ -501,6 +507,18 @@
       "record_type": "getter",
       "name": "wb_trajectory_lineage_weights",
       "title": "Trajectory Lineage Weights"
+    },
+    {
+      "record_id": "getter:wb_trajectory_fit_info",
+      "record_type": "getter",
+      "name": "wb_trajectory_fit_info",
+      "title": "Trajectory Fit Identity"
+    },
+    {
+      "record_id": "getter:wb_trajectory_assert_fit_compatible",
+      "record_type": "getter",
+      "name": "wb_trajectory_assert_fit_compatible",
+      "title": "Trajectory Fit Compatibility Assertion"
     },
     {
       "record_id": "getter:wb_art_load",
@@ -1377,6 +1395,12 @@
       "record_type": "parameter",
       "name": "pseudotime",
       "title": "Pseudotime Vector Input"
+    },
+    {
+      "record_id": "parameter:trajectory_fit_id",
+      "record_type": "parameter",
+      "name": "trajectory_fit_id",
+      "title": "Trajectory Fit Identity"
     },
     {
       "record_id": "parameter:pseudotime_direction",
@@ -3725,6 +3749,36 @@
       "to": "artifact_type:model_ref",
       "edge_type": "promotes_as",
       "label": "promotable:model"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:slingshot_lineage_weights",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:slingshot_lineage_weights",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:slingshot_lineage_weights",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:slingshot_lineage_weights",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:lineage_weights"
+    },
+    {
+      "from": "op:slingshot_lineage_weights",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:lineage_weights"
     },
     {
       "from": "primitive:model_ref",

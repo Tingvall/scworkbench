@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-24T19:59:21+0200
+Generated at: 2026-06-25T10:38:47+0200
 
-Record count: 280
+Record count: 284
 
-Graph edges: 753
+Graph edges: 758
 
 ## artifact_type
 
@@ -630,6 +630,18 @@ Title: Trajectory Lineage Weights
 
 Description: Load Slingshot lineage membership weights as a cell_vector_family from a promoted lineage_weights artifact, promoted sibling trajectory artifact, or in-memory Slingshot model_ref fallback.
 
+### `getter:wb_trajectory_fit_info`
+
+Title: Trajectory Fit Identity
+
+Description: Inspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact.
+
+### `getter:wb_trajectory_assert_fit_compatible`
+
+Title: Trajectory Fit Compatibility Assertion
+
+Description: Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.
+
 ### `getter:wb_art_load`
 
 Title: Load Artifact
@@ -1040,6 +1052,12 @@ Title: Slingshot fit
 
 Description: Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
 
+### `op:slingshot_lineage_weights`
+
+Title: Slingshot lineage weights
+
+Description: Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
+
 ### `op:slingshot_project`
 
 Title: Slingshot project curves
@@ -1167,6 +1185,12 @@ Description: Reference to a fitted model or trajectory object used by downstream
 Title: Pseudotime Vector Input
 
 Description: Continuous per-cell progress coordinate, usually inferred by a trajectory method or path-scoring op.
+
+### `parameter:trajectory_fit_id`
+
+Title: Trajectory Fit Identity
+
+Description: Stable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.
 
 ### `parameter:pseudotime_direction`
 

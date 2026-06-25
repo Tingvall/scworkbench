@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-24T19:59:21+0200",
-  "parameter_count": 52,
+  "generated_at": "2026-06-25T10:38:47+0200",
+  "parameter_count": 53,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -112,6 +112,16 @@
       "affects": ["ordering", "trend tests", "dynamic classes"],
       "guidance": ["Pseudotime is relative to its root/orientation.", "Compare methods only after aligning orientation and intersecting cells when needed."],
       "aliases": ["trajectory_time", "progress"]
+    },
+    {
+      "parameter_name": "trajectory_fit_id",
+      "title": "Trajectory Fit Identity",
+      "category": "trajectory",
+      "description": "Stable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.",
+      "applies_to": "trajectory artifacts and params",
+      "affects": ["lineage label meaning", "artifact compatibility", "provenance validation"],
+      "guidance": ["Lineage labels such as L1 are only meaningful within one trajectory_fit_id.", "Do not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation."],
+      "aliases": ["trajectory_family_id", "fit_family_id"]
     },
     {
       "parameter_name": "pseudotime_direction",

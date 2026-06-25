@@ -373,6 +373,26 @@
       use_when = c("restrict trajectory universes by lineage membership", "filter cells by Slingshot lineage weight", "derive claim-supporting trajectory cell sets")
     ),
     list(
+      function_name = "wb_trajectory_fit_info",
+      title = "Trajectory Fit Identity",
+      category = "artifacts",
+      description = "Inspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "x", "runs"),
+      use_when = c("audit trajectory fit-family identity", "check whether trajectory artifacts can be combined")
+    ),
+    list(
+      function_name = "wb_trajectory_assert_fit_compatible",
+      title = "Trajectory Fit Compatibility Assertion",
+      category = "artifacts",
+      description = "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
+      returns = "invisible data.frame or error",
+      payload_level = "metadata",
+      arguments = c("bundle", "...", "runs", "allow_legacy"),
+      use_when = c("validate pseudotime, weights, model, and path compatibility", "prevent cross-fit lineage-label mixing")
+    ),
+    list(
       function_name = "wb_art_load",
       title = "Load Artifact",
       category = "artifacts",

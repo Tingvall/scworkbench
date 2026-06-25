@@ -126,6 +126,14 @@
   raw
 }
 
+.wb_runner_slingshot_lineage_weights <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$model), "slingshot_lineage_weights runner: missing resolved$model.")
+  raw <- wb_op_slingshot_lineage_weights(model_ref = resolved$model)
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "slingshot_lineage_weights must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_monocle3_fit <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$fit_space), "monocle3_fit runner: missing resolved$fit_space.")
   .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
@@ -3071,6 +3079,31 @@
         model = list(
           kind = "model_ref",
           description = "Session-chainable Slingshot fit model (engine='slingshot')."
+        )
+      )
+    ),
+    slingshot_lineage_weights = list(
+      op_name = "slingshot_lineage_weights",
+      title = "Slingshot lineage weights",
+      description = "Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.",
+      intent = c("trajectory", "provenance", "backfill"),
+      requires = list(model = "model_ref"),
+      produces = list(lineage_weights = "cell_vector_family"),
+      promotable = c("lineage_weights"),
+      runner = .wb_runner_slingshot_lineage_weights,
+      inputs = list(
+        model = list(required = TRUE, kind = "model_ref")
+      ),
+      params = list(),
+      interface_produces = list(
+        lineage_weights = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "lineage_id",
+          family_kind = "trajectory_membership_weight",
+          engine = "slingshot",
+          range = c(0, 1),
+          description = "Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed."
         )
       )
     ),

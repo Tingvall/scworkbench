@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-24T19:59:21+0200
+Generated at: 2026-06-25T10:38:46+0200
 
-Operation count: 46
+Operation count: 47
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -1025,6 +1025,26 @@ Key parameters:
 - `reweight` (bool, default=TRUE): Whether to reweight assignments during fitting.
 - `shrink` (dbl, default=1): Curve shrinkage toward shared segments.
 - `maxit` (int, default=10): Maximum fitting iterations.
+
+## `slingshot_lineage_weights`
+
+Title: Slingshot lineage weights
+
+Intent: trajectory, provenance, backfill
+
+Description: Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
+
+Consumes:
+- `model`: model_ref
+- `cell_set`: select
+
+Produces:
+- `lineage_weights`: cell_vector_family - Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.
+
+Promotable outputs: lineage_weights
+
+Key parameters:
+- (none)
 
 ## `slingshot_project`
 

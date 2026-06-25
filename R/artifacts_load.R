@@ -325,6 +325,8 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
     stop("wb_art_load(): Unsupported artifact type: ", type, call. = FALSE)
   )
 
+  prim <- .wb_trajectory_hydrate_primitive_meta(bundle, artifact_id, prim)
+
   # Kind-safety
   if (!is.null(expected_kind)) {
     .wb_assert_kind(prim, expected_kind, where = paste0(" (artifact_id=", artifact_id, ")"))

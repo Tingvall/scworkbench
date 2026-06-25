@@ -88,14 +88,16 @@ wb_prim_cell_vector <- function(x, value_type = "categorical") {
 
 #' Create a path_2d_family primitive
 #' @export
-wb_prim_path_2d_family <- function(key, point, x, y) {
+wb_prim_path_2d_family <- function(key, point, x, y, meta = list()) {
+  if (is.null(meta)) meta <- list()
   structure(
     list(
       kind  = "path_2d_family",
       key   = as.character(key),       # lineage_id
       point = as.integer(point),       # point index along curve
       x     = as.numeric(x),
-      y     = as.numeric(y)
+      y     = as.numeric(y),
+      meta  = meta
     ),
     class = "wb_primitive"
   )

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 52
+Parameter count: 53
 
 ## classification
 
@@ -742,6 +742,22 @@ Guidance:
 - Compare methods only after aligning orientation and intersecting cells when needed.
 
 Aliases: trajectory_time, progress
+
+### `trajectory_fit_id`
+
+Title: Trajectory Fit Identity
+
+Description: Stable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.
+
+Applies to: trajectory artifacts and params
+
+Affects: lineage label meaning, artifact compatibility, provenance validation
+
+Guidance:
+- Lineage labels such as L1 are only meaningful within one trajectory_fit_id.
+- Do not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation.
+
+Aliases: trajectory_family_id, fit_family_id
 
 ### `pseudotime_direction`
 

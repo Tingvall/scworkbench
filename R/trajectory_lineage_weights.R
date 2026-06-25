@@ -96,6 +96,12 @@ wb_trajectory_lineage_weights <- function(bundle,
 
   weight_aid <- .wb_trajectory_ref_artifact_id(lineage_weights_artifact)
   if (!is.null(weight_aid)) {
+    for (src in list(pseudotime_artifact, model_ref)) {
+      src_aid <- .wb_trajectory_ref_artifact_id(src)
+      if (!is.null(src_aid)) {
+        wb_trajectory_assert_fit_compatible(bundle, weight_aid, src_aid)
+      }
+    }
     prim <- wb_art_load(bundle, artifact_id = weight_aid, expected_kind = "cell_vector_family")
     return(.wb_trajectory_attach_weight_meta(prim, promoted = TRUE, artifact_id = weight_aid))
   }
@@ -116,6 +122,16 @@ wb_trajectory_lineage_weights <- function(bundle,
       call. = FALSE
     )
     return(.wb_trajectory_lineage_weights_from_model(model_ref))
+  }
+
+  model_aid <- .wb_trajectory_ref_artifact_id(model_ref)
+  if (!is.null(model_aid)) {
+    model_prim <- wb_art_load(bundle, artifact_id = model_aid, expected_kind = "model_ref")
+    warning(
+      "wb_trajectory_lineage_weights(): no promoted lineage_weights artifact resolved; extracting from supplied Slingshot model_ref artifact without refitting.",
+      call. = FALSE
+    )
+    return(.wb_trajectory_lineage_weights_from_model(model_prim))
   }
 
   stop(

@@ -220,6 +220,8 @@ Note:
 - `wb_semantic_graph_dot`: Export semantic compatibility graph as Graphviz DOT
 - `wb_semantic_graph_tables`: Export semantic compatibility graph tables
 - `wb_semantic_plan_artifact_next_steps`: Plan next actions for a promoted artifact
+- `wb_trajectory_assert_fit_compatible`: Assert Trajectory Fit-Family Compatibility
+- `wb_trajectory_fit_info`: Inspect trajectory fit-family identity for a trajectory artifact or primitive
 - `wb_trajectory_lineage_weights`: Load Slingshot Lineage Membership Weights
 - `wb_wrangle_plot_dataset`: Wrangle inputs into a validated plot dataset
 - `wb_wrangler_catalog_semantic`: Export wrangler catalog as semantic metadata

@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-06-24T19:59:21+0200
+Generated at: 2026-06-25T10:38:46+0200
 
-Getter count: 69
+Getter count: 71
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -59,6 +59,38 @@ Use when:
 - restrict trajectory universes by lineage membership
 - filter cells by Slingshot lineage weight
 - derive claim-supporting trajectory cell sets
+
+### `wb_trajectory_fit_info`
+
+Title: Trajectory Fit Identity
+
+Description: Inspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, x, runs
+
+Use when:
+- audit trajectory fit-family identity
+- check whether trajectory artifacts can be combined
+
+### `wb_trajectory_assert_fit_compatible`
+
+Title: Trajectory Fit Compatibility Assertion
+
+Description: Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.
+
+Returns: invisible data.frame or error
+
+Payload level: metadata
+
+Arguments: bundle, ..., runs, allow_legacy
+
+Use when:
+- validate pseudotime, weights, model, and path compatibility
+- prevent cross-fit lineage-label mixing
 
 ### `wb_art_load`
 

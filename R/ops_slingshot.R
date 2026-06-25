@@ -4,6 +4,33 @@
   .wb_require_pkg("slingshot", "Trajectory inference")
 }
 
+.wb_new_trajectory_fit_id <- function(engine = "trajectory") {
+  paste0(
+    "trajfit_",
+    as.character(engine %||% "trajectory")[1],
+    "_",
+    format(Sys.time(), "%Y%m%d_%H%M%S"),
+    "_",
+    paste0(sample(c(0:9, letters), 8, TRUE), collapse = "")
+  )
+}
+
+.wb_trajectory_fit_meta <- function(trajectory_fit_id,
+                                    engine,
+                                    fit_space_id = NULL,
+                                    n_lineages = NULL,
+                                    family_kind = NULL,
+                                    value_semantics = NULL) {
+  list(
+    trajectory_fit_id = as.character(trajectory_fit_id %||% "")[1],
+    engine = as.character(engine %||% "")[1],
+    fit_space_id = as.character(fit_space_id %||% "")[1],
+    n_lineages = suppressWarnings(as.integer(n_lineages %||% NA_integer_))[1],
+    family_kind = as.character(family_kind %||% "")[1],
+    value_semantics = as.character(value_semantics %||% "")[1]
+  )
+}
+
 .wb_slingshot_prepare_fit <- function(bundle,
                                       fit_space_id,
                                       clusters,
@@ -124,7 +151,7 @@
   )
 }
 
-.wb_slingshot_pseudotime_prim <- function(sds) {
+.wb_slingshot_pseudotime_prim <- function(sds, trajectory_fit_id = NULL, fit_space_id = NULL) {
   pt <- slingshot::slingPseudotime(sds)
   n_lin <- ncol(pt)
   lineage_ids <- paste0("L", seq_len(n_lin))
@@ -145,15 +172,18 @@
     cell_id = pseudotime$cell_id,
     value = pseudotime$pseudotime,
     value_type = "continuous",
-    meta = list(
-      family_kind = "trajectory_pseudotime",
+    meta = .wb_trajectory_fit_meta(
+      trajectory_fit_id = trajectory_fit_id,
       engine = "slingshot",
+      fit_space_id = fit_space_id,
+      n_lineages = n_lin,
+      family_kind = "trajectory_pseudotime",
       value_semantics = "lineage_specific_pseudotime"
     )
   )
 }
 
-.wb_slingshot_lineage_weights_prim <- function(sds) {
+.wb_slingshot_lineage_weights_prim <- function(sds, trajectory_fit_id = NULL, fit_space_id = NULL, promoted = FALSE) {
   w <- slingshot::slingCurveWeights(sds)
   .wb_assert(!is.null(w) && length(w) > 0, "slingshot lineage weights are empty.")
   w <- as.matrix(w)
@@ -183,12 +213,16 @@
     cell_id = weights$cell_id,
     value = weights$weight,
     value_type = "continuous",
-    meta = list(
-      family_kind = "trajectory_membership_weight",
-      engine = "slingshot",
-      value_semantics = "lineage_membership_weight",
-      range = c(0, 1),
-      promoted = FALSE
+    meta = modifyList(
+      .wb_trajectory_fit_meta(
+        trajectory_fit_id = trajectory_fit_id,
+        engine = "slingshot",
+        fit_space_id = fit_space_id,
+        n_lineages = n_lin,
+        family_kind = "trajectory_membership_weight",
+        value_semantics = "lineage_membership_weight"
+      ),
+      list(range = c(0, 1), promoted = isTRUE(promoted))
     )
   )
 }
@@ -304,8 +338,9 @@ wb_op_slingshot_fit <- function(bundle,
     ...
   )
 
-  pt_prim <- .wb_slingshot_pseudotime_prim(sds)
-  weight_prim <- .wb_slingshot_lineage_weights_prim(sds)
+  trajectory_fit_id <- .wb_new_trajectory_fit_id("slingshot")
+  pt_prim <- .wb_slingshot_pseudotime_prim(sds, trajectory_fit_id = trajectory_fit_id, fit_space_id = fit_space_id)
+  weight_prim <- .wb_slingshot_lineage_weights_prim(sds, trajectory_fit_id = trajectory_fit_id, fit_space_id = fit_space_id)
   model_prim <- wb_prim_model_ref(
     model_space_id = fit_space_id,
     in_space_id = fit_space_id,
@@ -317,6 +352,7 @@ wb_op_slingshot_fit <- function(bundle,
   model_prim$fit_space_id <- fit_space_id
   model_prim$cells <- prep$cells_fit
   model_prim$n_lineages <- length(unique(pt_prim$key))
+  model_prim$trajectory_fit_id <- trajectory_fit_id
   model_prim$lineage_weight_family_kind <- "trajectory_membership_weight"
 
   list(
@@ -336,7 +372,48 @@ wb_op_slingshot_fit <- function(bundle,
       reweight = reweight,
       shrink = shrink,
       maxit = maxit,
-      n_lineages = model_prim$n_lineages
+      n_lineages = model_prim$n_lineages,
+      trajectory_fit_id = trajectory_fit_id,
+      trajectory_engine = "slingshot"
+    )
+  )
+}
+
+#' Extract Slingshot lineage weights from an existing model_ref without refitting
+#'
+#' This is the safe backfill path for accepted Slingshot fits: it preserves the
+#' fit-family identity and lineage mapping stored on the existing `model_ref`.
+#'
+#' @export
+wb_op_slingshot_lineage_weights <- function(model_ref) {
+  .wb_slingshot_require_pkgs()
+  .wb_assert_kind(model_ref, "model_ref")
+  .wb_assert(identical(as.character(model_ref$engine %||% "")[1], "slingshot"),
+             "slingshot_lineage_weights requires model_ref(engine='slingshot').")
+  sds <- model_ref$model_obj %||% NULL
+  .wb_assert(!is.null(sds), "slingshot_lineage_weights requires a model_ref with loaded model_obj.")
+
+  trajectory_fit_id <- as.character(model_ref$trajectory_fit_id %||% "")[1]
+  .wb_assert(nzchar(trajectory_fit_id),
+             paste(
+               "slingshot_lineage_weights requires model_ref with trajectory_fit_id.",
+               "Legacy model artifacts without fit identity need explicit legacy handling."
+             ))
+  fit_space_id <- as.character(model_ref$fit_space_id %||% model_ref$model_space_id %||% "")[1]
+  weight_prim <- .wb_slingshot_lineage_weights_prim(
+    sds,
+    trajectory_fit_id = trajectory_fit_id,
+    fit_space_id = fit_space_id
+  )
+
+  list(
+    outputs = list(lineage_weights = weight_prim),
+    params = list(
+      trajectory_fit_id = trajectory_fit_id,
+      trajectory_engine = "slingshot",
+      fit_space_id = fit_space_id,
+      n_lineages = length(unique(as.character(weight_prim$key))),
+      extracted_from_model_ref = TRUE
     )
   )
 }
@@ -358,6 +435,12 @@ wb_op_slingshot_project <- function(bundle,
   .wb_assert_kind(slingshot_model, "model_ref")
   .wb_assert(identical(slingshot_model$engine %||% "", "slingshot"),
              "slingshot_project requires model_ref(engine='slingshot').")
+  trajectory_fit_id <- as.character(slingshot_model$trajectory_fit_id %||% "")[1]
+  .wb_assert(nzchar(trajectory_fit_id),
+             paste(
+               "slingshot_project requires model_ref with trajectory_fit_id.",
+               "Legacy model artifacts without fit identity need explicit legacy handling."
+             ))
 
   sds <- slingshot_model$model_obj %||% NULL
   .wb_assert(!is.null(sds),
@@ -394,6 +477,14 @@ wb_op_slingshot_project <- function(bundle,
 
   cv_prim <- .wb_slingshot_curves_prim(sds_proj)
   cv_prim <- .wb_path_2d_family_compact(cv_prim, max_points_per_lineage = approx_points)
+  cv_prim$meta <- modifyList(cv_prim$meta %||% list(), .wb_trajectory_fit_meta(
+    trajectory_fit_id = trajectory_fit_id,
+    engine = "slingshot",
+    fit_space_id = as.character(slingshot_model$fit_space_id %||% slingshot_model$model_space_id %||% ""),
+    n_lineages = length(unique(cv_prim$key)),
+    family_kind = "trajectory_curve_2d",
+    value_semantics = "projected_lineage_curve"
+  ))
   list(
     outputs = list(curves = cv_prim),
     params = list(
@@ -401,6 +492,8 @@ wb_op_slingshot_project <- function(bundle,
       plot_space_id = plot_space_id,
       cells_projected = length(cells_fit),
       n_lineages = length(unique(cv_prim$key)),
+      trajectory_fit_id = trajectory_fit_id,
+      trajectory_engine = "slingshot",
       stretch = stretch,
       shrink = shrink,
       approx_points = approx_points

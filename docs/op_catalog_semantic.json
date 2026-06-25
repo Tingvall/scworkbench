@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-24T19:59:21+0200",
-  "op_count": 46,
+  "generated_at": "2026-06-25T10:38:46+0200",
+  "op_count": 47,
   "ops": [
     {
       "op_name": "leiden",
@@ -3715,6 +3715,45 @@
         }
       ],
       "promotable": ["pseudotime", "lineage_weights", "model"],
+      "chunking": null
+    },
+    {
+      "op_name": "slingshot_lineage_weights",
+      "title": "Slingshot lineage weights",
+      "description": "Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.",
+      "intent": ["trajectory", "provenance", "backfill"],
+      "consumes": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "lineage_weights",
+          "kind": "cell_vector_family",
+          "description": "Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed."
+        }
+      ],
+      "inputs": {
+        "model": {
+          "required": true,
+          "kind": "model_ref"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [],
+      "promotable": "lineage_weights",
       "chunking": null
     },
     {

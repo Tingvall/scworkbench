@@ -1,12 +1,12 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-24T19:59:21+0200",
-  "record_count": 280,
+  "generated_at": "2026-06-25T10:38:47+0200",
+  "record_count": 284,
   "record_type_counts": {
     "artifact_type": 66,
-    "getter": 69,
-    "op": 46,
-    "parameter": 52,
+    "getter": 71,
+    "op": 47,
+    "parameter": 53,
     "plot": 12,
     "primitive": 11,
     "recipe": 10,
@@ -4052,6 +4052,54 @@
       }
     },
     {
+      "record_id": "op:slingshot_lineage_weights",
+      "record_type": "op",
+      "name": "slingshot_lineage_weights",
+      "title": "Slingshot lineage weights",
+      "description": "Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.",
+      "search_text": "Slingshot lineage weights\nExtract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.\ntrajectory\nprovenance\nbackfill\nmodel\nmodel_ref\nTRUE\ncell_set\nselect\nlineage_weights\ncell_vector_family\nSlingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.",
+      "tags": ["op", "trajectory", "provenance", "backfill"],
+      "payload": {
+        "op_name": "slingshot_lineage_weights",
+        "title": "Slingshot lineage weights",
+        "description": "Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.",
+        "intent": ["trajectory", "provenance", "backfill"],
+        "consumes": [
+          {
+            "name": "model",
+            "kind": "model_ref",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "lineage_weights",
+            "kind": "cell_vector_family",
+            "description": "Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed."
+          }
+        ],
+        "inputs": {
+          "model": {
+            "required": true,
+            "kind": "model_ref"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [],
+        "promotable": "lineage_weights",
+        "chunking": null
+      }
+    },
+    {
       "record_id": "op:slingshot_project",
       "record_type": "op",
       "name": "slingshot_project",
@@ -5778,6 +5826,46 @@
         "payload_level": "payload",
         "arguments": ["bundle", "model_ref", "pseudotime_artifact", "lineage_weights_artifact"],
         "use_when": ["restrict trajectory universes by lineage membership", "filter cells by Slingshot lineage weight", "derive claim-supporting trajectory cell sets"],
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_trajectory_fit_info",
+      "record_type": "getter",
+      "name": "wb_trajectory_fit_info",
+      "title": "Trajectory Fit Identity",
+      "description": "Inspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact.",
+      "search_text": "Trajectory Fit Identity\nInspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact.\nartifacts\ndata.frame\nbundle\nx\nruns\naudit trajectory fit-family identity\ncheck whether trajectory artifacts can be combined",
+      "tags": ["getter", "artifacts"],
+      "payload": {
+        "function_name": "wb_trajectory_fit_info",
+        "title": "Trajectory Fit Identity",
+        "category": "artifacts",
+        "description": "Inspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "x", "runs"],
+        "use_when": ["audit trajectory fit-family identity", "check whether trajectory artifacts can be combined"],
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_trajectory_assert_fit_compatible",
+      "record_type": "getter",
+      "name": "wb_trajectory_assert_fit_compatible",
+      "title": "Trajectory Fit Compatibility Assertion",
+      "description": "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
+      "search_text": "Trajectory Fit Compatibility Assertion\nFail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.\nartifacts\ninvisible data.frame or error\nbundle\n...\nruns\nallow_legacy\nvalidate pseudotime, weights, model, and path compatibility\nprevent cross-fit lineage-label mixing",
+      "tags": ["getter", "artifacts"],
+      "payload": {
+        "function_name": "wb_trajectory_assert_fit_compatible",
+        "title": "Trajectory Fit Compatibility Assertion",
+        "category": "artifacts",
+        "description": "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
+        "returns": "invisible data.frame or error",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "...", "runs", "allow_legacy"],
+        "use_when": ["validate pseudotime, weights, model, and path compatibility", "prevent cross-fit lineage-label mixing"],
         "mutates": false
       }
     },
@@ -9082,6 +9170,25 @@
       }
     },
     {
+      "record_id": "parameter:trajectory_fit_id",
+      "record_type": "parameter",
+      "name": "trajectory_fit_id",
+      "title": "Trajectory Fit Identity",
+      "description": "Stable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.",
+      "search_text": "Trajectory Fit Identity\nStable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.\ntrajectory\ntrajectory artifacts and params\nlineage label meaning\nartifact compatibility\nprovenance validation\nLineage labels such as L1 are only meaningful within one trajectory_fit_id.\nDo not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation.\ntrajectory_family_id\nfit_family_id",
+      "tags": ["parameter", "trajectory", "trajectory_family_id", "fit_family_id"],
+      "payload": {
+        "parameter_name": "trajectory_fit_id",
+        "title": "Trajectory Fit Identity",
+        "category": "trajectory",
+        "description": "Stable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.",
+        "applies_to": "trajectory artifacts and params",
+        "affects": ["lineage label meaning", "artifact compatibility", "provenance validation"],
+        "guidance": ["Lineage labels such as L1 are only meaningful within one trajectory_fit_id.", "Do not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation."],
+        "aliases": ["trajectory_family_id", "fit_family_id"]
+      }
+    },
+    {
       "record_id": "parameter:pseudotime_direction",
       "record_type": "parameter",
       "name": "pseudotime_direction",
@@ -10073,9 +10180,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-24T19:59:21+0200",
-    "node_count": 280,
-    "edge_count": 753,
+    "generated_at": "2026-06-25T10:38:47+0200",
+    "node_count": 284,
+    "edge_count": 758,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -10292,6 +10399,12 @@
         "record_type": "op",
         "name": "slingshot_fit",
         "title": "Slingshot fit"
+      },
+      {
+        "record_id": "op:slingshot_lineage_weights",
+        "record_type": "op",
+        "name": "slingshot_lineage_weights",
+        "title": "Slingshot lineage weights"
       },
       {
         "record_id": "op:slingshot_project",
@@ -10574,6 +10687,18 @@
         "record_type": "getter",
         "name": "wb_trajectory_lineage_weights",
         "title": "Trajectory Lineage Weights"
+      },
+      {
+        "record_id": "getter:wb_trajectory_fit_info",
+        "record_type": "getter",
+        "name": "wb_trajectory_fit_info",
+        "title": "Trajectory Fit Identity"
+      },
+      {
+        "record_id": "getter:wb_trajectory_assert_fit_compatible",
+        "record_type": "getter",
+        "name": "wb_trajectory_assert_fit_compatible",
+        "title": "Trajectory Fit Compatibility Assertion"
       },
       {
         "record_id": "getter:wb_art_load",
@@ -11450,6 +11575,12 @@
         "record_type": "parameter",
         "name": "pseudotime",
         "title": "Pseudotime Vector Input"
+      },
+      {
+        "record_id": "parameter:trajectory_fit_id",
+        "record_type": "parameter",
+        "name": "trajectory_fit_id",
+        "title": "Trajectory Fit Identity"
       },
       {
         "record_id": "parameter:pseudotime_direction",
@@ -13798,6 +13929,36 @@
         "to": "artifact_type:model_ref",
         "edge_type": "promotes_as",
         "label": "promotable:model"
+      },
+      {
+        "from": "primitive:model_ref",
+        "to": "op:slingshot_lineage_weights",
+        "edge_type": "consumed_by",
+        "label": "input:model"
+      },
+      {
+        "from": "op:slingshot_lineage_weights",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:slingshot_lineage_weights",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:slingshot_lineage_weights",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:lineage_weights"
+      },
+      {
+        "from": "op:slingshot_lineage_weights",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:lineage_weights"
       },
       {
         "from": "primitive:model_ref",

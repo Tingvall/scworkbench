@@ -129,6 +129,13 @@ test_op_slingshot_fit_project_contract <- function(bundle_dir) {
   stopifnot(identical(as.character(lw_from_pt$meta$artifact_id), lineage_weights_artifact_id))
   lw_from_model <- wb_trajectory_lineage_weights(b, model_ref = model_artifact_id)
   stopifnot(identical(as.character(lw_from_model$meta$artifact_id), lineage_weights_artifact_id))
+  same_fit_info <- wb_trajectory_assert_fit_compatible(
+    b,
+    pseudotime_artifact_id,
+    lineage_weights_artifact_id,
+    model_artifact_id
+  )
+  stopifnot(length(unique(as.character(same_fit_info$trajectory_fit_id))) == 1L)
 
   l1 <- wb_read_cell_vector_family(
     b,
@@ -161,6 +168,24 @@ test_op_slingshot_fit_project_contract <- function(bundle_dir) {
   stopifnot(isTRUE(manifest$recipe_available[1]))
   stopifnot(identical(as.character(manifest$derivation_type[1]), "selector_recipe"))
 
+  x_weights_from_model <- wb_session_run_op(
+    session = s,
+    bundle = b,
+    op_name = "slingshot_lineage_weights",
+    inputs = list(
+      cell_set = cell_set,
+      cell_ids = cell_ids,
+      model = wb_ref_artifact(model_artifact_id, "model")
+    ),
+    notes = "test slingshot lineage weights extraction without refit"
+  )
+  extracted_weights <- x_weights_from_model$run$outputs$lineage_weights
+  stopifnot(identical(
+    as.character(extracted_weights$meta$trajectory_fit_id),
+    as.character(lw_from_model$meta$trajectory_fit_id)
+  ))
+  stopifnot(identical(sort(unique(as.character(extracted_weights$key))), pt_keys))
+
   x3 <- wb_session_run_op(
     session = s,
     bundle = b,
@@ -181,6 +206,73 @@ test_op_slingshot_fit_project_contract <- function(bundle_dir) {
   stopifnot(length(unique(as.character(cv$key))) >= 1)
   tab_cv <- table(as.character(cv$key))
   stopifnot(all(as.integer(tab_cv) <= 200L))
+  wb_trajectory_assert_fit_compatible(
+    b,
+    x2$run$outputs$pseudotime,
+    x2$run$outputs$lineage_weights,
+    x2$run$outputs$model,
+    x3$run$outputs$curves
+  )
+
+  prom_project <- wb_session_promote_current(
+    bundle = b,
+    session = x3$session,
+    name_prefix = "test_slingshot_project_weights_family",
+    created_by = "test",
+    fail_fast = TRUE
+  )
+  curves_artifact_id <- as.character(prom_project$promoted$artifact_id[
+    as.character(prom_project$promoted$output) == "curves"
+  ][1])
+  stopifnot(nzchar(curves_artifact_id))
+  wb_trajectory_assert_fit_compatible(
+    b,
+    pseudotime_artifact_id,
+    lineage_weights_artifact_id,
+    curves_artifact_id
+  )
+
+  x2b <- wb_session_run_op(
+    session = s,
+    bundle = b,
+    op_name = "slingshot_fit",
+    inputs = list(
+      cell_set = cell_set,
+      cell_ids = cell_ids,
+      fit_space = wb_prim_space("peakvi_space"),
+      clusters = wb_ref_run(x1$run$run_id, "clusters"),
+      shrink = 0.8
+    ),
+    notes = "test slingshot second fit for family incompatibility"
+  )
+  stopifnot("L1" %in% unique(as.character(x2b$run$outputs$lineage_weights$key)))
+  prom_fit_b <- wb_session_promote_current(
+    bundle = b,
+    session = x2b$session,
+    name_prefix = "test_slingshot_fit_weights_second_family",
+    created_by = "test",
+    fail_fast = TRUE
+  )
+  lineage_weights_artifact_id_b <- as.character(prom_fit_b$promoted$artifact_id[
+    as.character(prom_fit_b$promoted$output) == "lineage_weights"
+  ][1])
+  stopifnot(nzchar(lineage_weights_artifact_id_b))
+  cross <- try(
+    wb_trajectory_assert_fit_compatible(b, pseudotime_artifact_id, lineage_weights_artifact_id_b),
+    silent = TRUE
+  )
+  stopifnot(inherits(cross, "try-error"))
+  stopifnot(grepl("different trajectory fit families", as.character(cross), fixed = TRUE))
+  cross_getter <- try(
+    wb_trajectory_lineage_weights(
+      b,
+      pseudotime_artifact = pseudotime_artifact_id,
+      lineage_weights_artifact = lineage_weights_artifact_id_b
+    ),
+    silent = TRUE
+  )
+  stopifnot(inherits(cross_getter, "try-error"))
+  stopifnot(grepl("cross-fit lineage labels are not interchangeable", as.character(cross_getter), fixed = TRUE))
 
   # Provenance params should make fit/display distinction explicit in the new ops.
   stopifnot(identical(as.character(x2$run$params$fit_space_id), "peakvi_space"))
