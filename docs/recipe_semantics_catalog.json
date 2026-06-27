@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.recipe_semantics_catalog.v1",
-  "generated_at": "2026-06-27T15:47:33+0200",
+  "generated_at": "2026-06-27T16:28:15+0200",
   "recipe_count": 11,
   "recipes": [
     {
@@ -93,11 +93,11 @@
       "category": "trajectory_composition",
       "question": "How can fitted trajectory segments and bridge/path segments be joined into one auditable pseudotime axis?",
       "description": "Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.",
-      "steps": ["Create fitted trajectory segments from model/pseudotime/path artifacts or create bridge segments with trajectory_space_path_segment.", "Ensure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.", "Run trajectory_segment_join with join_policy='exact_boundary_collapse'.", "Optionally run trajectory_segment_path_join for UMAP display geometry.", "Use composite_pseudotime plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode."],
-      "uses": ["op:trajectory_space_path_segment", "op:trajectory_segment_join", "op:trajectory_segment_path_join", "op:trajectory_geneset_dynamics", "op:trajectory_signal_dynamics", "parameter:source_kind", "parameter:source_engine", "parameter:join_policy", "parameter:pseudotime_key"],
+      "steps": ["Create fitted trajectory segments with trajectory_segment_from_artifacts or bridge segments with trajectory_space_path_segment.", "Ensure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.", "Run trajectory_segment_join with join_policy='exact_boundary_collapse'.", "Optionally run trajectory_segment_path_join for UMAP display geometry.", "Use composite_pseudotime_unit_segment or composite_pseudotime_cell_weighted_0_1 plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode."],
+      "uses": ["op:trajectory_segment_from_artifacts", "op:trajectory_space_path_segment", "op:trajectory_segment_join", "op:trajectory_segment_path_join", "op:trajectory_geneset_dynamics", "op:trajectory_signal_dynamics", "parameter:source_kind", "parameter:source_engine", "parameter:join_policy", "parameter:pseudotime_key"],
       "produces": ["artifact_type:cell_vector_family", "artifact_type:cell_vector", "artifact_type:obs_table:trajectory_segment_join_manifest", "artifact_type:obs_table:trajectory_segment_local_membership", "artifact_type:path_2d_family"],
       "use_when": ["a biological route must pass through waypoints", "one fitted trajectory cannot represent all route intervals", "a curated space-path bridge is needed between fitted segments"],
-      "cautions": ["A composite trajectory is not one fitted model.", "Bridge/manual/imported segments must be declared in source_kind/source_engine.", "Display paths are not analytical pseudotime."]
+      "cautions": ["A composite trajectory is not one fitted model.", "Only fitted_model and space_path_bridge adapters are implemented currently; manual/imported/graph/composite source kinds are reserved.", "Display paths are not analytical pseudotime."]
     },
     {
       "recipe_id": "de_to_pathway_report",

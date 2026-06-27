@@ -58,12 +58,27 @@
 .wb_segment_clean_source_kind <- function(x) {
   x <- as.character(x %||% "fitted_model")[1]
   if (!nzchar(x)) x <- "fitted_model"
-  allowed <- c(
-    "fitted_model", "space_path_bridge", "graph_path_bridge",
-    "imported_pseudotime", "manual_pseudotime", "composite"
-  )
+  allowed <- c(.wb_segment_implemented_source_kinds(), .wb_segment_reserved_source_kinds())
   .wb_assert(x %in% allowed, paste0("trajectory segment source_kind must be one of: ", paste(allowed, collapse = ", ")))
   x
+}
+
+.wb_segment_implemented_source_kinds <- function() c("fitted_model", "space_path_bridge")
+
+.wb_segment_reserved_source_kinds <- function() c("graph_path_bridge", "imported_pseudotime", "manual_pseudotime", "composite")
+
+.wb_segment_assert_implemented_source_kind <- function(source_kind) {
+  source_kind <- .wb_segment_clean_source_kind(source_kind)
+  .wb_assert(
+    source_kind %in% .wb_segment_implemented_source_kinds(),
+    paste0(
+      "trajectory segment source_kind '", source_kind,
+      "' is reserved but not currently implemented. Implemented source kinds: ",
+      paste(.wb_segment_implemented_source_kinds(), collapse = ", "),
+      "."
+    )
+  )
+  source_kind
 }
 
 .wb_segment_clean_source_engine <- function(x, source_kind = NULL) {
@@ -134,6 +149,7 @@
   .wb_assert(!is.null(segment$lineage), "trajectory_segment_join(): each segment requires lineage.")
 
   source_kind <- .wb_segment_clean_source_kind(segment$source_kind %||% "fitted_model")
+  .wb_segment_assert_implemented_source_kind(source_kind)
   source_engine <- .wb_segment_clean_source_engine(segment$source_engine %||% NULL, source_kind = source_kind)
 
   if (!identical(source_kind, "fitted_model")) {
@@ -157,6 +173,158 @@
   }
   if (!nzchar(as.character(info$engine[1] %||% ""))) info$engine <- source_engine
   info
+}
+
+#' Create A Trajectory Segment From Fitted Trajectory Artifacts
+#'
+#' Materializes the generic segment contract for fitted-model trajectory
+#' artifacts. This validates fit-family compatibility and emits the same
+#' pseudotime/membership/confidence/manifest shape used by other segment
+#' adapters.
+#'
+#' @export
+wb_op_trajectory_segment_from_artifacts <- function(bundle,
+                                                    pseudotime,
+                                                    lineage,
+                                                    segment_id,
+                                                    segment_order = 1L,
+                                                    model = NULL,
+                                                    lineage_weights = NULL,
+                                                    membership = NULL,
+                                                    confidence = NULL,
+                                                    confidence_key = NULL,
+                                                    path = NULL,
+                                                    source_engine = NULL,
+                                                    start_label = NULL,
+                                                    end_label = NULL,
+                                                    composite_id = NULL,
+                                                    runs = NULL,
+                                                    allow_legacy = FALSE) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle.")
+  segment_id <- gsub("[^A-Za-z0-9_.:-]+", "_", as.character(segment_id %||% "")[1])
+  .wb_assert(nzchar(segment_id), "trajectory_segment_from_artifacts(): segment_id must be non-empty.")
+  segment_order <- suppressWarnings(as.numeric(segment_order)[1])
+  .wb_assert(is.finite(segment_order), "trajectory_segment_from_artifacts(): segment_order must be numeric.")
+  lineage <- as.character(lineage %||% "")[1]
+  .wb_assert(nzchar(lineage), "trajectory_segment_from_artifacts(): lineage must be non-empty.")
+
+  seg <- list(
+    segment_id = segment_id,
+    order = segment_order,
+    source_kind = "fitted_model",
+    source_engine = source_engine %||% NULL,
+    model = model,
+    pseudotime = pseudotime,
+    lineage = lineage,
+    lineage_weights = lineage_weights,
+    membership = membership,
+    confidence = confidence,
+    confidence_key = confidence_key,
+    path = path,
+    start_label = start_label,
+    end_label = end_label
+  )
+  info <- .wb_validate_trajectory_segment(bundle, seg, runs = runs, allow_legacy = allow_legacy)
+  source_engine <- .wb_segment_clean_source_engine(source_engine %||% info$engine[1] %||% NULL, source_kind = "fitted_model")
+  pt <- .wb_segment_resolve_primitive(bundle, pseudotime, runs = runs, expected_kind = "cell_vector_family",
+                                      label = paste0(segment_id, " pseudotime"))
+  pt_df <- .wb_segment_family_values(pt, lineage, label = paste0(segment_id, " pseudotime"))
+  pt_df <- pt_df[is.finite(pt_df$value), , drop = FALSE]
+  .wb_assert(nrow(pt_df) > 0L, paste0("trajectory_segment_from_artifacts(): no finite pseudotime values for segment ", segment_id, "."))
+
+  membership_cells <- .wb_segment_membership_cells(bundle, membership, runs = runs)
+  if (!is.null(membership_cells)) {
+    pt_df <- pt_df[pt_df$cell_id %in% membership_cells, , drop = FALSE]
+    .wb_assert(nrow(pt_df) > 0L, paste0("trajectory_segment_from_artifacts(): no pseudotime cells remain after membership filter for segment ", segment_id, "."))
+  }
+
+  membership_vec <- stats::setNames(rep(segment_id, nrow(pt_df)), pt_df$cell_id)
+  conf_key <- as.character(confidence_key %||% lineage)[1]
+  if (!is.null(confidence)) {
+    conf_df <- .wb_segment_vector_values(bundle, confidence, key = conf_key, runs = runs,
+                                         expected_label = paste0(segment_id, " confidence"))
+    conf_df <- conf_df[conf_df$cell_id %in% pt_df$cell_id, , drop = FALSE]
+  } else if (!is.null(lineage_weights)) {
+    conf_df <- .wb_segment_vector_values(bundle, lineage_weights, key = lineage, runs = runs,
+                                         expected_label = paste0(segment_id, " lineage_weights"))
+    conf_df <- conf_df[conf_df$cell_id %in% pt_df$cell_id, , drop = FALSE]
+    conf_key <- lineage
+  } else {
+    conf_df <- data.frame(cell_id = pt_df$cell_id, value = rep(1, nrow(pt_df)), stringsAsFactors = FALSE)
+  }
+
+  composite_id <- as.character(composite_id %||% "")[1]
+  manifest <- data.frame(
+    trajectory_composite_id = composite_id,
+    segment_id = segment_id,
+    segment_order = segment_order,
+    source_kind = "fitted_model",
+    source_engine = source_engine,
+    lineage_id = lineage,
+    source_pseudotime_key = lineage,
+    confidence_key = conf_key,
+    trajectory_fit_id = as.character(info$trajectory_fit_id[1] %||% ""),
+    model_artifact_id = .wb_segment_ref_artifact_id(model),
+    pseudotime_artifact_id = .wb_segment_ref_artifact_id(pseudotime),
+    membership_artifact_id = .wb_segment_ref_artifact_id(membership),
+    lineage_weights_artifact_id = .wb_segment_ref_artifact_id(lineage_weights),
+    confidence_artifact_id = .wb_segment_ref_artifact_id(confidence),
+    path_artifact_id = .wb_segment_ref_artifact_id(path),
+    start_label = as.character(start_label %||% "")[1],
+    end_label = as.character(end_label %||% "")[1],
+    normalization_rule = "segment-local min-max pseudotime scaled to [0,1]",
+    boundary_policy = "exact_boundary_collapse",
+    membership_rule = if (is.null(membership)) "all finite pseudotime cells" else "explicit membership intersection",
+    n_segment_cells = nrow(pt_df),
+    caveats = "Fitted-model segment: parent trajectory model artifacts remain separate; this adapter materializes segment-local contract state.",
+    stringsAsFactors = FALSE
+  )
+  meta <- list(
+    segment_id = segment_id,
+    segment_order = segment_order,
+    source_kind = "fitted_model",
+    source_engine = source_engine,
+    trajectory_fit_id = as.character(info$trajectory_fit_id[1] %||% ""),
+    value_semantics = "trajectory_segment_fitted_pseudotime",
+    normalization_rule = "segment-local min-max pseudotime scaled to [0,1]",
+    boundary_policy = "exact_boundary_collapse"
+  )
+
+  list(
+    outputs = list(
+      pseudotime = wb_prim_cell_vector_family(
+        key = rep(lineage, nrow(pt_df)),
+        cell_id = pt_df$cell_id,
+        value = pt_df$value,
+        value_type = "continuous",
+        meta = meta
+      ),
+      membership = wb_prim_cell_vector(membership_vec, value_type = "categorical"),
+      confidence = wb_prim_cell_vector_family(
+        key = rep(conf_key, nrow(conf_df)),
+        cell_id = conf_df$cell_id,
+        value = suppressWarnings(as.numeric(conf_df$value)),
+        value_type = "continuous",
+        meta = c(meta, list(value_semantics = "segment_confidence_or_membership_weight"))
+      ),
+      segment_manifest = wb_prim_obs_table(
+        manifest,
+        table_type = "trajectory_segment_manifest",
+        entity_kind = "trajectory_segment",
+        meta = meta
+      )
+    ),
+    params = list(
+      segment_id = segment_id,
+      segment_order = segment_order,
+      source_kind = "fitted_model",
+      source_engine = source_engine,
+      pseudotime_key = lineage,
+      confidence_key = conf_key,
+      trajectory_fit_id = as.character(info$trajectory_fit_id[1] %||% ""),
+      n_cells = nrow(pt_df)
+    )
+  )
 }
 
 .wb_space_path_score_values <- function(path_scores, key) {
@@ -336,20 +504,22 @@ wb_op_trajectory_space_path_segment <- function(bundle,
 #'   `model`, `lineage_weights`, `path`, `start_label`, and `end_label`.
 #' @param composite_id Optional stable trajectory composite id.
 #' @param composite_key Key used in the output `cell_vector_family`.
-#' @param join_policy Currently only `"waypoint_collapse"` is supported.
+#' @param join_policy Boundary policy. The current implementation supports
+#'   `"exact_boundary_collapse"`.
 #' @param min_weight Optional minimum lineage weight required for segment-local
 #'   membership when `lineage_weights` is supplied.
 #' @param allow_legacy Passed to trajectory fit-family compatibility checks.
 #' @param runs Optional session runs for resolving run refs.
 #'
-#' @return List with promotable primitives: `composite_pseudotime`,
-#'   `segment_local_table`, `composite_manifest`, and `composite_membership`.
+#' @return List with promotable primitives: `composite_pseudotime_unit_segment`,
+#'   `composite_pseudotime_cell_weighted_0_1`, `segment_local_table`,
+#'   `composite_manifest`, and `composite_membership`.
 #' @export
 wb_op_trajectory_segment_join <- function(bundle,
                                           segments,
                                           composite_id = NULL,
                                           composite_key = NULL,
-                                          join_policy = "waypoint_collapse",
+                                          join_policy = "exact_boundary_collapse",
                                           min_weight = NULL,
                                           allow_legacy = FALSE,
                                           runs = NULL) {
@@ -357,9 +527,8 @@ wb_op_trajectory_segment_join <- function(bundle,
   .wb_assert(is.list(segments) && length(segments) >= 2L,
              "trajectory_segment_join(): segments must be a list with at least two entries.")
   join_policy <- as.character(join_policy %||% "")[1]
-  if (identical(join_policy, "waypoint_collapse")) join_policy <- "exact_boundary_collapse"
   .wb_assert(identical(join_policy, "exact_boundary_collapse"),
-             "trajectory_segment_join(): only join_policy='exact_boundary_collapse' is supported in v1.")
+             "trajectory_segment_join(): unsupported join_policy. The current implementation supports join_policy='exact_boundary_collapse'.")
   if (!is.null(min_weight)) {
     min_weight <- suppressWarnings(as.numeric(min_weight)[1])
     .wb_assert(is.finite(min_weight), "min_weight must be numeric when supplied.")
@@ -380,10 +549,12 @@ wb_op_trajectory_segment_join <- function(bundle,
     lineage <- as.character(seg$lineage %||% "")[1]
     .wb_assert(nzchar(lineage), paste0("trajectory_segment_join(): missing lineage for segment ", segment_id, "."))
     source_kind <- .wb_segment_clean_source_kind(seg$source_kind %||% "fitted_model")
+    .wb_segment_assert_implemented_source_kind(source_kind)
     source_engine <- .wb_segment_clean_source_engine(seg$source_engine %||% NULL, source_kind = source_kind)
     normalization_rule <- as.character(seg$normalization_rule %||% if (identical(source_kind, "space_path_bridge")) "path_progress_0_1" else "segment-local min-max pseudotime scaled to [0,1]")[1]
     boundary_policy <- as.character(seg$boundary_policy %||% join_policy)[1]
-    if (identical(boundary_policy, "waypoint_collapse")) boundary_policy <- "exact_boundary_collapse"
+    .wb_assert(identical(boundary_policy, "exact_boundary_collapse"),
+               "trajectory_segment_join(): unsupported boundary_policy. The current implementation requires exact_boundary_collapse.")
 
     info <- .wb_validate_trajectory_segment(bundle, seg, runs = runs, allow_legacy = allow_legacy)
     pt <- .wb_segment_resolve_primitive(bundle, seg$pseudotime, runs = runs, expected_kind = "cell_vector_family",
@@ -494,7 +665,7 @@ wb_op_trajectory_segment_join <- function(bundle,
     if (length(seg_idx) == 1L) {
       data.frame(
         cell_id = cid,
-        composite_pseudotime = local$composite_candidate[ii[1]],
+        composite_pseudotime_unit_segment = local$composite_candidate[ii[1]],
         composite_segment_assignment = as.character(local$segment_id[ii[1]]),
         composite_membership_role = "segment_unique",
         contributing_segments = as.character(local$segment_id[ii[1]]),
@@ -506,14 +677,14 @@ wb_op_trajectory_segment_join <- function(bundle,
         stop(
           paste0(
             "trajectory_segment_join(): cell '", cid,
-            "' appears in non-adjacent or multi-segment overlap; waypoint_collapse v1 only supports adjacent pair overlaps."
+            "' appears in non-adjacent or multi-segment overlap; exact_boundary_collapse requires adjacent pair overlaps only."
           ),
           call. = FALSE
         )
       }
       data.frame(
         cell_id = cid,
-        composite_pseudotime = min(seg_idx),
+        composite_pseudotime_unit_segment = min(seg_idx),
         composite_segment_assignment = "waypoint",
         composite_membership_role = "waypoint_overlap",
         contributing_segments = paste(sort(unique(as.character(local$segment_id[ii]))), collapse = "|"),
@@ -542,6 +713,32 @@ wb_op_trajectory_segment_join <- function(bundle,
   .wb_assert(nzchar(composite_id), "composite_id must be non-empty.")
   .wb_assert(nzchar(composite_key), "composite_key must be non-empty.")
 
+  segment_weight <- manifest$n_segment_cells / sum(manifest$n_segment_cells)
+  segment_weight[!is.finite(segment_weight)] <- 0
+  if (sum(segment_weight) <= 0) segment_weight[] <- 1 / length(segment_weight)
+  segment_weight <- segment_weight / sum(segment_weight)
+  weighted_start <- c(0, head(cumsum(segment_weight), -1L))
+  weighted_boundary <- cumsum(segment_weight)
+  weight_df <- data.frame(
+    segment_index = seq_along(segment_weight),
+    segment_weight = segment_weight,
+    weighted_start = weighted_start,
+    weighted_boundary = weighted_boundary,
+    stringsAsFactors = FALSE
+  )
+  comp$composite_pseudotime_cell_weighted_0_1 <- vapply(seq_len(nrow(comp)), function(i) {
+    role <- as.character(comp$composite_membership_role[i])
+    if (identical(role, "waypoint_overlap")) {
+      seg_idx <- sort(unique(local$segment_index[local$cell_id == comp$cell_id[i]]))
+      return(weighted_boundary[min(seg_idx)])
+    }
+    sid <- as.character(comp$composite_segment_assignment[i])
+    seg_idx <- as.integer(manifest$segment_index[match(sid, manifest$segment_id)])
+    cand <- local[local$cell_id == comp$cell_id[i] & local$segment_index == seg_idx, , drop = FALSE]
+    if (!nrow(cand)) return(NA_real_)
+    weighted_start[seg_idx] + cand$local_pseudotime_0_1[1] * segment_weight[seg_idx]
+  }, numeric(1))
+
   parent_fit_ids <- unique(as.character(manifest$trajectory_fit_id))
   parent_fit_ids <- parent_fit_ids[nzchar(parent_fit_ids)]
   meta <- list(
@@ -550,6 +747,8 @@ wb_op_trajectory_segment_join <- function(bundle,
     value_semantics = "segmented_composite_pseudotime",
     join_policy = join_policy,
     scaling_rule = "segment-local source-specific normalization to [0,1]",
+    composite_coordinate_unit_segment = "canonical audit coordinate with integer segment boundaries",
+    composite_coordinate_cell_weighted_0_1 = "display/comparison coordinate with segment lengths weighted by segment-local cell counts",
     overlap_handling_rule = "adjacent overlaps collapse to the shared boundary without averaging",
     parent_segment_ids = segment_ids,
     parent_trajectory_fit_ids = parent_fit_ids,
@@ -561,6 +760,9 @@ wb_op_trajectory_segment_join <- function(bundle,
   manifest$trajectory_composite_id <- composite_id
   manifest$join_policy <- join_policy
   manifest$scaling_rule <- meta$scaling_rule
+  manifest$segment_weight_cell_fraction <- segment_weight
+  manifest$weighted_coordinate_start <- weighted_start
+  manifest$weighted_coordinate_end <- weighted_boundary
   manifest$overlap_handling_rule <- meta$overlap_handling_rule
   manifest$n_unique_cells <- vapply(manifest$segment_id, function(sid) {
     sum(comp$composite_segment_assignment == sid)
@@ -574,6 +776,7 @@ wb_op_trajectory_segment_join <- function(bundle,
     "lineage_weights_artifact_id", "confidence_artifact_id", "path_artifact_id",
     "segment_manifest_artifact_id", "start_label", "end_label",
     "normalization_rule", "boundary_policy", "join_policy", "scaling_rule", "overlap_handling_rule",
+    "segment_weight_cell_fraction", "weighted_coordinate_start", "weighted_coordinate_end",
     "n_segment_cells", "n_unique_cells", "n_waypoint_cells", "caveats"
   ), drop = FALSE]
 
@@ -589,12 +792,19 @@ wb_op_trajectory_segment_join <- function(bundle,
 
   list(
     outputs = list(
-      composite_pseudotime = wb_prim_cell_vector_family(
+      composite_pseudotime_unit_segment = wb_prim_cell_vector_family(
         key = rep(composite_key, nrow(comp)),
         cell_id = comp$cell_id,
-        value = comp$composite_pseudotime,
+        value = comp$composite_pseudotime_unit_segment,
         value_type = "continuous",
-        meta = meta
+        meta = c(meta, list(value_semantics = "composite_pseudotime_unit_segment"))
+      ),
+      composite_pseudotime_cell_weighted_0_1 = wb_prim_cell_vector_family(
+        key = rep(composite_key, nrow(comp)),
+        cell_id = comp$cell_id,
+        value = comp$composite_pseudotime_cell_weighted_0_1,
+        value_type = "continuous",
+        meta = c(meta, list(value_semantics = "composite_pseudotime_cell_weighted_0_1"))
       ),
       segment_local_table = wb_prim_obs_table(
         local,
@@ -621,6 +831,7 @@ wb_op_trajectory_segment_join <- function(bundle,
       n_segments = length(segment_ids),
       n_cells = nrow(comp),
       n_waypoint_cells = length(waypoint_cells),
+      coordinate_outputs = c("composite_pseudotime_unit_segment", "composite_pseudotime_cell_weighted_0_1"),
       parent_segment_ids = segment_ids,
       parent_trajectory_fit_ids = parent_fit_ids
     )

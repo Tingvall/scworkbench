@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-27T15:47:33+0200",
-  "op_count": 50,
+  "generated_at": "2026-06-27T16:28:14+0200",
+  "op_count": 51,
   "ops": [
     {
       "op_name": "leiden",
@@ -137,7 +137,7 @@
           "name": "cell_set",
           "type": "cell_set",
           "default": "all",
-          "help": "Must be 'all' in v1 because the output matrix is registered as a full bundle matrix."
+          "help": "Must be 'all' because the output matrix is registered as a full bundle matrix."
         }
       ],
       "promotable": "summary",
@@ -2249,7 +2249,7 @@
           "type": "choice",
           "default": "spearman",
           "choices": "spearman",
-          "help": "Statistical test. v1 supports spearman."
+          "help": "Statistical test. The current implementation supports spearman."
         },
         {
           "name": "min_pct_nonzero",
@@ -3811,9 +3811,14 @@
       ],
       "produces": [
         {
-          "name": "composite_pseudotime",
+          "name": "composite_pseudotime_unit_segment",
           "kind": "cell_vector_family",
-          "description": "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps collapse to the exact shared boundary."
+          "description": "Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries."
+        },
+        {
+          "name": "composite_pseudotime_cell_weighted_0_1",
+          "kind": "cell_vector_family",
+          "description": "One-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts."
         },
         {
           "name": "segment_local_table",
@@ -3856,13 +3861,13 @@
           "name": "composite_key",
           "type": "string",
           "default": "composite_L1",
-          "help": "Key used in the output composite_pseudotime cell_vector_family."
+          "help": "Key used in the output composite pseudotime cell_vector_family objects."
         },
         {
           "name": "join_policy",
           "type": "string",
           "default": "exact_boundary_collapse",
-          "help": "Overlap policy. v1 supports exact_boundary_collapse; waypoint_collapse is accepted as an alias."
+          "help": "Overlap policy. The current implementation supports exact_boundary_collapse."
         },
         {
           "name": "min_weight",
@@ -3877,7 +3882,152 @@
           "help": "Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity."
         }
       ],
-      "promotable": ["composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"],
+      "promotable": ["composite_pseudotime_unit_segment", "composite_pseudotime_cell_weighted_0_1", "segment_local_table", "composite_manifest", "composite_membership"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_segment_from_artifacts",
+      "title": "Trajectory fitted-artifact segment",
+      "description": "Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.",
+      "intent": ["trajectory", "adapter", "composition", "provenance"],
+      "consumes": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": false
+        },
+        {
+          "name": "lineage_weights",
+          "kind": "cell_vector_family",
+          "required": false
+        },
+        {
+          "name": "confidence",
+          "kind": "cell_vector_family",
+          "required": false
+        },
+        {
+          "name": "path",
+          "kind": "path_2d_family",
+          "required": false
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "description": "Fitted-model segment pseudotime for the selected lineage/key."
+        },
+        {
+          "name": "membership",
+          "kind": "cell_vector",
+          "description": "Cells included in the fitted-model segment."
+        },
+        {
+          "name": "confidence",
+          "kind": "cell_vector_family",
+          "description": "Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1."
+        },
+        {
+          "name": "segment_manifest",
+          "kind": "obs_table",
+          "description": "Audit manifest for the fitted-model segment."
+        }
+      ],
+      "inputs": {
+        "pseudotime": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "model": {
+          "required": false,
+          "kind": "model_ref"
+        },
+        "lineage_weights": {
+          "required": false,
+          "kind": "cell_vector_family"
+        },
+        "confidence": {
+          "required": false,
+          "kind": "cell_vector_family"
+        },
+        "path": {
+          "required": false,
+          "kind": "path_2d_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "segment_id",
+          "type": "string",
+          "default": null,
+          "help": "Stable segment identifier."
+        },
+        {
+          "name": "segment_order",
+          "type": "dbl",
+          "default": 1,
+          "help": "Order of this fitted segment in a future composite."
+        },
+        {
+          "name": "lineage",
+          "type": "string",
+          "default": null,
+          "help": "Lineage/key to extract from fitted pseudotime and optional weights."
+        },
+        {
+          "name": "membership",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."
+        },
+        {
+          "name": "confidence_key",
+          "type": "string",
+          "default": null,
+          "help": "Optional key for confidence cell_vector_family. Defaults to lineage."
+        },
+        {
+          "name": "source_engine",
+          "type": "string",
+          "default": null,
+          "help": "Fitted trajectory engine, usually slingshot, monocle3, or palantir."
+        },
+        {
+          "name": "start_label",
+          "type": "string",
+          "default": null,
+          "help": "Biological start label."
+        },
+        {
+          "name": "end_label",
+          "type": "string",
+          "default": null,
+          "help": "Biological end label."
+        },
+        {
+          "name": "allow_legacy",
+          "type": "bool",
+          "default": false,
+          "help": "Allow missing trajectory_fit_id with warning. Default rejects legacy ambiguity."
+        }
+      ],
+      "promotable": ["pseudotime", "membership", "confidence", "segment_manifest"],
       "chunking": null
     },
     {
@@ -4164,7 +4314,7 @@
         {
           "name": "branch_membership",
           "kind": "relation_family",
-          "description": "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in v1)."
+          "description": "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation)."
         },
         {
           "name": "model",
@@ -4261,13 +4411,13 @@
           "name": "use_partition",
           "type": "bool",
           "default": false,
-          "help": "Learn graph per partition. FALSE is recommended for v1 tree semantics."
+          "help": "Learn graph per partition. FALSE is recommended for current tree semantics."
         },
         {
           "name": "close_loop",
           "type": "bool",
           "default": false,
-          "help": "Allow loop closure in graph learning. FALSE required for v1 tree-derived lineages."
+          "help": "Allow loop closure in graph learning. FALSE is required for tree-derived lineages."
         },
         {
           "name": "verbose",
@@ -4576,7 +4726,7 @@
           "type": "choice",
           "default": "linear",
           "choices": ["linear", "manifold_smooth"],
-          "help": "Path fitting mode. V1 supports linear and a first conservative manifold smoothing mode."
+          "help": "Path fitting mode. The current implementation supports linear and a conservative manifold smoothing mode."
         },
         {
           "name": "checkpoint_summary",
@@ -4681,7 +4831,7 @@
           "type": "choice",
           "default": "orthogonal_projection",
           "choices": "orthogonal_projection",
-          "help": "Scoring mode. V1 scaffolding standardizes on orthogonal projection semantics."
+          "help": "Scoring mode. The current implementation standardizes on orthogonal projection semantics."
         },
         {
           "name": "distance_metric",

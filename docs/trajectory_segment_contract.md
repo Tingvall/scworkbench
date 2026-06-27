@@ -3,14 +3,14 @@
 ## Purpose
 
 Composite trajectories are assembled from ordered trajectory-like segments.
-The segment contract defines the common interface that lets fitted models,
-space-path bridges, imported pseudotime, manual pseudotime, graph paths, and
-future engines participate in a composite without pretending they came from one
-merged model.
+The segment contract defines the common interface that lets implemented segment
+adapters participate in a composite without pretending they came from one merged
+model.
 
-The contract is deliberately engine-neutral. Slingshot, Monocle3, Palantir,
-space paths, and curated bridges may all supply segments when they expose the
-same segment-local fields and provenance.
+The contract is deliberately engine-neutral. Fitted trajectory engines and
+space-path bridges can supply segments when they expose the same segment-local
+fields and provenance. Additional source kinds are reserved until an adapter
+materializes and validates the same contract.
 
 ## What Is A Trajectory Segment?
 
@@ -23,22 +23,27 @@ A trajectory segment is a local, directed developmental interval with:
 - optional display geometry,
 - explicit source provenance and caveats.
 
-A segment is not required to be a fitted model. A segment can be a fitted
-lineage, a path-scored bridge, an imported coordinate, or a manually curated
-coordinate, provided the source is declared.
+A segment is not required to be a fitted model. A segment can currently be a
+fitted lineage or a path-scored bridge, provided the source is declared.
 
 ## Source Kinds
 
-Allowed `source_kind` values:
+Implemented `source_kind` values:
 
 - `fitted_model`: segment derived from trajectory artifacts such as model_ref,
   pseudotime, lineage weights, and projected paths.
 - `space_path_bridge`: segment derived from a `space_path_family` and
   path-relative cell scores.
+
+Reserved `source_kind` values:
+
 - `graph_path_bridge`: segment derived from graph traversal or graph distances.
 - `imported_pseudotime`: segment imported from an external table/source.
 - `manual_pseudotime`: segment curated explicitly by a user or script.
 - `composite`: segment derived from an already existing composite trajectory.
+
+Reserved source kinds are part of the vocabulary but are not currently
+implemented. They must fail explicitly until an adapter exists.
 
 Allowed `source_engine` values:
 
@@ -115,9 +120,9 @@ overwritten.
 
 2. `local_pseudotime_0_1`
 
-Segment-local normalized coordinate. The v1 default is min-max scaling over the
-finite segment cells. For space-path bridges, path progress is already in
-`[0, 1]`, so the rule is `path_progress_0_1`.
+Segment-local normalized coordinate. The current fitted-model adapter uses
+min-max scaling over finite segment cells. For space-path bridges, path progress
+is already in `[0, 1]`, so the rule is `path_progress_0_1`.
 
 3. `composite_pseudotime_unit_segment`
 
@@ -132,14 +137,17 @@ segment 3: 2 -> 3
 This coordinate preserves exact waypoint boundaries and is the canonical
 coordinate for auditability.
 
-An optional future coordinate,
-`composite_pseudotime_cell_weighted_0_1`, may normalize the whole composite by
-cell count or declared biological length. It is display/analysis convenience,
-not the canonical audit coordinate.
+4. `composite_pseudotime_cell_weighted_0_1`
+
+Composite coordinate normalized to `[0, 1]` where each segment receives a
+fraction of the total range proportional to its segment-local cell count. It is
+useful for display and some downstream comparisons, but the unit-segment
+coordinate remains canonical for auditability because segment boundaries are
+exact.
 
 ## Boundary Policy
 
-The v1 boundary policy is:
+The supported boundary policy is:
 
 ```text
 exact_boundary_collapse
@@ -151,10 +159,9 @@ Rules:
 - A cell in two adjacent segments collapses to the exact shared boundary.
 - A cell in non-adjacent segments errors.
 - A cell in more than two segments errors.
-- No averaging or interpolation is performed in v1.
+- No averaging or interpolation is performed.
 
-This is the formal version of the previous `waypoint_collapse` behavior.
-`waypoint_collapse` remains an accepted alias for compatibility.
+Unsupported policies error.
 
 ## Space-Path Bridge Segments
 
@@ -181,7 +188,7 @@ Bridge membership is transparent:
 - `distance_to_path <= distance_threshold`, or
 - `distance_to_path <= quantile(distance_to_path, distance_quantile)`
 
-Bridge confidence is distance-derived. V1 stores confidence for inspection and
+Bridge confidence is distance-derived. Confidence is stored for inspection and
 filtering, but downstream statistics are not silently weighted by confidence.
 
 ## Display Geometry
@@ -213,8 +220,9 @@ Allowed:
 
 - A composite trajectory substrate was assembled from heterogeneous segment
   sources.
-- A bridge segment was curated, space-path-derived, graph-derived, imported, or
-  manual, when declared in the manifest.
+- A bridge segment was space-path-derived when declared in the manifest.
+- Reserved source kinds may be used in claims only after an adapter implements
+  and validates them.
 - Downstream dynamics were evaluated along the composite pseudotime coordinate.
 - Segment-local truth and parent artifacts are auditable.
 
@@ -226,26 +234,29 @@ Forbidden:
 - Silently mixing incompatible segment sources without manifests.
 - Treating lineage labels from different fits as globally interchangeable.
 
-## V1 Implementation Shape
+## Implementation Shape
 
-V1 uses existing primitives:
+The implementation uses existing primitives:
 
 - segment pseudotime: `cell_vector_family`
 - segment membership: `cell_vector`
 - segment confidence: `cell_vector_family` or `cell_vector`
 - segment manifest: `obs_table`
-- composite pseudotime: `cell_vector_family`
+- composite unit-segment pseudotime: `cell_vector_family`
+- composite cell-weighted pseudotime: `cell_vector_family`
 - composite membership: `cell_vector`
 - composite local table: `obs_table`
 - display geometry: `path_2d_family`
 
-No new primitive is required in v1. The contract is enforced through adapter
-outputs, manifest fields, and join validation.
+No new primitive is required. The contract is enforced through adapter outputs,
+manifest fields, and join validation.
 
 ## Migration From Existing Segment Join
 
 Existing `trajectory_segment_join` list specs remain valid as fitted-model
-segment specs. They are normalized internally into the generic contract.
+segment specs when they satisfy the required fields. `trajectory_segment_from_artifacts`
+is the standalone fitted-model adapter and should be preferred for reusable
+segment materialization.
 
 New source kinds should be introduced as adapters rather than by extending the
 join op with engine-specific branches. The join op should consume normalized

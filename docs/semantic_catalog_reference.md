@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-27T15:47:34+0200
+Generated at: 2026-06-27T16:28:15+0200
 
-Record count: 298
+Record count: 299
 
-Graph edges: 829
+Graph edges: 853
 
 ## artifact_type
 
@@ -1088,6 +1088,12 @@ Title: Trajectory segment join
 
 Description: Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
 
+### `op:trajectory_segment_from_artifacts`
+
+Title: Trajectory fitted-artifact segment
+
+Description: Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.
+
 ### `op:trajectory_space_path_segment`
 
 Title: Trajectory space-path segment
@@ -1244,7 +1250,7 @@ Description: Stable identity for a derived trajectory assembled from separately 
 
 Title: Trajectory Segment Source Kind
 
-Description: Declares how a trajectory segment was generated, for example fitted_model, space_path_bridge, imported_pseudotime, manual_pseudotime, graph_path_bridge, or composite.
+Description: Declares how a trajectory segment was generated. Implemented source kinds are fitted_model and space_path_bridge; graph_path_bridge, imported_pseudotime, manual_pseudotime, and composite are reserved until adapters exist.
 
 ### `parameter:source_engine`
 

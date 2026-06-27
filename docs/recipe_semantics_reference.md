@@ -171,13 +171,14 @@ Question: How can fitted trajectory segments and bridge/path segments be joined 
 Description: Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.
 
 Steps:
-- Create fitted trajectory segments from model/pseudotime/path artifacts or create bridge segments with trajectory_space_path_segment.
+- Create fitted trajectory segments with trajectory_segment_from_artifacts or bridge segments with trajectory_space_path_segment.
 - Ensure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.
 - Run trajectory_segment_join with join_policy='exact_boundary_collapse'.
 - Optionally run trajectory_segment_path_join for UMAP display geometry.
-- Use composite_pseudotime plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode.
+- Use composite_pseudotime_unit_segment or composite_pseudotime_cell_weighted_0_1 plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode.
 
 Uses:
+- `op:trajectory_segment_from_artifacts`
 - `op:trajectory_space_path_segment`
 - `op:trajectory_segment_join`
 - `op:trajectory_segment_path_join`
@@ -190,7 +191,7 @@ Uses:
 
 Cautions:
 - A composite trajectory is not one fitted model.
-- Bridge/manual/imported segments must be declared in source_kind/source_engine.
+- Only fitted_model and space_path_bridge adapters are implemented currently; manual/imported/graph/composite source kinds are reserved.
 - Display paths are not analytical pseudotime.
 
 ## trajectory_discovery

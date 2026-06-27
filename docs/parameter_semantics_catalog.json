@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-27T15:47:33+0200",
+  "generated_at": "2026-06-27T16:28:15+0200",
   "parameter_count": 59,
   "parameters": [
     {
@@ -137,10 +137,10 @@
       "parameter_name": "source_kind",
       "title": "Trajectory Segment Source Kind",
       "category": "trajectory",
-      "description": "Declares how a trajectory segment was generated, for example fitted_model, space_path_bridge, imported_pseudotime, manual_pseudotime, graph_path_bridge, or composite.",
+      "description": "Declares how a trajectory segment was generated. Implemented source kinds are fitted_model and space_path_bridge; graph_path_bridge, imported_pseudotime, manual_pseudotime, and composite are reserved until adapters exist.",
       "applies_to": "trajectory segment params and manifests",
       "affects": ["claim boundaries", "compatibility validation", "auditability"],
-      "guidance": ["Do not infer source kind from labels.", "Curated/manual/bridge segments must be declared rather than hidden as fitted models."],
+      "guidance": ["Do not infer source kind from labels.", "Curated/manual/imported segments are reserved and must not be claimed as implemented until a segment adapter exists.", "Bridge segments must be declared rather than hidden as fitted models."],
       "aliases": "segment_source_kind"
     },
     {
@@ -160,7 +160,7 @@
       "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
       "applies_to": "trajectory_segment_join params",
       "affects": ["waypoint handling", "composite scale", "overlap interpretation"],
-      "guidance": ["exact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.", "waypoint_collapse is a compatibility alias for exact_boundary_collapse.", "Report the join policy when using composite pseudotime for dynamics."],
+      "guidance": ["exact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.", "Unsupported policies fail explicitly.", "Report the join policy when using composite pseudotime for dynamics."],
       "aliases": ["trajectory_join_policy", "overlap_policy", "boundary_policy"]
     },
     {

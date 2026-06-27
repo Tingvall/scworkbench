@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-27T15:47:34+0200",
-  "node_count": 298,
-  "edge_count": 829,
+  "generated_at": "2026-06-27T16:28:15+0200",
+  "node_count": 299,
+  "edge_count": 853,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -231,6 +231,12 @@
       "record_type": "op",
       "name": "trajectory_segment_join",
       "title": "Trajectory segment join"
+    },
+    {
+      "record_id": "op:trajectory_segment_from_artifacts",
+      "record_type": "op",
+      "name": "trajectory_segment_from_artifacts",
+      "title": "Trajectory fitted-artifact segment"
     },
     {
       "record_id": "op:trajectory_space_path_segment",
@@ -3928,7 +3934,13 @@
       "from": "op:trajectory_segment_join",
       "to": "primitive:cell_vector_family",
       "edge_type": "produces",
-      "label": "output:composite_pseudotime"
+      "label": "output:composite_pseudotime_unit_segment"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:composite_pseudotime_cell_weighted_0_1"
     },
     {
       "from": "op:trajectory_segment_join",
@@ -3952,13 +3964,139 @@
       "from": "op:trajectory_segment_join",
       "to": "artifact_type:cell_vector_family",
       "edge_type": "promotes_as",
-      "label": "promotable:composite_pseudotime"
+      "label": "promotable:composite_pseudotime_unit_segment"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:composite_pseudotime_cell_weighted_0_1"
     },
     {
       "from": "op:trajectory_segment_join",
       "to": "artifact_type:cell_vector",
       "edge_type": "promotes_as",
       "label": "promotable:composite_membership"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_segment_from_artifacts",
+      "edge_type": "consumed_by",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:pseudotime",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:pseudotime"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:trajectory_segment_from_artifacts",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_segment_from_artifacts",
+      "edge_type": "consumed_by",
+      "label": "input:lineage_weights"
+    },
+    {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_segment_from_artifacts",
+      "edge_type": "consumed_by",
+      "label": "input:confidence"
+    },
+    {
+      "from": "primitive:path_2d_family",
+      "to": "op:trajectory_segment_from_artifacts",
+      "edge_type": "consumed_by",
+      "label": "input:path"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:lineage",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:lineage"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:membership",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:membership"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:source_engine",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:source_engine"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:start_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:start_label"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "parameter:end_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:end_label"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:pseudotime"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:membership"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:confidence"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:segment_manifest"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:membership"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:confidence"
     },
     {
       "from": "primitive:cell_vector_family",
@@ -6215,6 +6353,18 @@
       "to": "recipe:plot_trajectory_on_umap",
       "edge_type": "produced_by_recipe",
       "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "op:trajectory_segment_from_artifacts",
+      "edge_type": "uses",
+      "label": "op:trajectory_segment_from_artifacts"
+    },
+    {
+      "from": "op:trajectory_segment_from_artifacts",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
     },
     {
       "from": "recipe:mixed_source_composite_trajectory",

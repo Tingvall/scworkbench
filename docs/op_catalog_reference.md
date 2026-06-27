@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-27T15:47:33+0200
+Generated at: 2026-06-27T16:28:14+0200
 
-Operation count: 50
+Operation count: 51
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -54,7 +54,7 @@ Key parameters:
 - `output_matrix_id` (string, default=NULL): Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.
 - `scale_factor` (dbl, default=10000): Per-cell target count scale before log1p; 10000 is the common CP10K convention.
 - `overwrite` (bool, default=FALSE): If TRUE, replace an existing output matrix with the same id.
-- `cell_set` (cell_set, default=all): Must be 'all' in v1 because the output matrix is registered as a full bundle matrix.
+- `cell_set` (cell_set, default=all): Must be 'all' because the output matrix is registered as a full bundle matrix.
 
 ## `umap_fit`
 
@@ -671,7 +671,7 @@ Key parameters:
 - `lineage` (string_vec, default=NULL): Optional lineage key subset.
 - `feature_set` (string, default=NULL): Optional feature set name from wb_feature_sets() for matrix.
 - `features` (string_vec, default=NULL): Optional explicit feature subset (intersected with feature_set when both provided).
-- `test` (choice, default=spearman): Statistical test. v1 supports spearman.
+- `test` (choice, default=spearman): Statistical test. The current implementation supports spearman.
 - `min_pct_nonzero` (dbl, default=0): Minimum non-zero fraction filter.
 - `min_sd` (dbl, default=0): Minimum per-feature standard deviation filter.
 - `p_adjust_method` (string, default=BH): Method passed to p.adjust.
@@ -1064,20 +1064,56 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `composite_pseudotime`: cell_vector_family - One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps collapse to the exact shared boundary.
+- `composite_pseudotime_unit_segment`: cell_vector_family - Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.
+- `composite_pseudotime_cell_weighted_0_1`: cell_vector_family - One-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts.
 - `segment_local_table`: obs_table - One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.
 - `composite_manifest`: obs_table - Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.
 - `composite_membership`: cell_vector - One-cell assignment to a unique segment or waypoint overlap.
 
-Promotable outputs: composite_pseudotime, segment_local_table, composite_manifest, composite_membership
+Promotable outputs: composite_pseudotime_unit_segment, composite_pseudotime_cell_weighted_0_1, segment_local_table, composite_manifest, composite_membership
 
 Key parameters:
 - `segments` (list, default=NULL): Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.
 - `composite_id` (string, default=NULL): Optional stable trajectory_composite_id. Generated when omitted.
-- `composite_key` (string, default=composite_L1): Key used in the output composite_pseudotime cell_vector_family.
-- `join_policy` (string, default=exact_boundary_collapse): Overlap policy. v1 supports exact_boundary_collapse; waypoint_collapse is accepted as an alias.
+- `composite_key` (string, default=composite_L1): Key used in the output composite pseudotime cell_vector_family objects.
+- `join_policy` (string, default=exact_boundary_collapse): Overlap policy. The current implementation supports exact_boundary_collapse.
 - `min_weight` (dbl, default=NULL): Optional minimum lineage weight required for segment-local membership when weights are supplied.
 - `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.
+
+## `trajectory_segment_from_artifacts`
+
+Title: Trajectory fitted-artifact segment
+
+Intent: trajectory, adapter, composition, provenance
+
+Description: Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.
+
+Consumes:
+- `pseudotime`: cell_vector_family
+- `model`: model_ref
+- `lineage_weights`: cell_vector_family
+- `confidence`: cell_vector_family
+- `path`: path_2d_family
+- `cell_set`: select
+
+Produces:
+- `pseudotime`: cell_vector_family - Fitted-model segment pseudotime for the selected lineage/key.
+- `membership`: cell_vector - Cells included in the fitted-model segment.
+- `confidence`: cell_vector_family - Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1.
+- `segment_manifest`: obs_table - Audit manifest for the fitted-model segment.
+
+Promotable outputs: pseudotime, membership, confidence, segment_manifest
+
+Key parameters:
+- `segment_id` (string, default=NULL): Stable segment identifier.
+- `segment_order` (dbl, default=1): Order of this fitted segment in a future composite.
+- `lineage` (string, default=NULL): Lineage/key to extract from fitted pseudotime and optional weights.
+- `membership` (cell_ids_or_set, default=NULL): Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.
+- `confidence_key` (string, default=NULL): Optional key for confidence cell_vector_family. Defaults to lineage.
+- `source_engine` (string, default=NULL): Fitted trajectory engine, usually slingshot, monocle3, or palantir.
+- `start_label` (string, default=NULL): Biological start label.
+- `end_label` (string, default=NULL): Biological end label.
+- `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.
 
 ## `trajectory_space_path_segment`
 
@@ -1172,7 +1208,7 @@ Consumes:
 
 Produces:
 - `pseudotime`: cell_vector - Rooted global pseudotime per cell from monocle3.
-- `branch_membership`: relation_family - Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in v1).
+- `branch_membership`: relation_family - Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).
 - `model`: model_ref - Session-chainable monocle3 CDS model (engine='monocle3').
 
 Promotable outputs: pseudotime, branch_membership, model
@@ -1188,8 +1224,8 @@ Key parameters:
 - `weight` (bool, default=FALSE): Use weighted nearest-neighbor graph for monocle3 clustering.
 - `resolution` (dbl, default=NULL): Optional clustering resolution (NULL lets monocle3 choose).
 - `random_seed` (int, default=42): Random seed for clustering.
-- `use_partition` (bool, default=FALSE): Learn graph per partition. FALSE is recommended for v1 tree semantics.
-- `close_loop` (bool, default=FALSE): Allow loop closure in graph learning. FALSE required for v1 tree-derived lineages.
+- `use_partition` (bool, default=FALSE): Learn graph per partition. FALSE is recommended for current tree semantics.
+- `close_loop` (bool, default=FALSE): Allow loop closure in graph learning. FALSE is required for tree-derived lineages.
 - `verbose` (bool, default=FALSE): Verbose monocle3 output.
 
 ## `monocle3_project`
@@ -1286,7 +1322,7 @@ Promotable outputs: path
 
 Key parameters:
 - `checkpoint_sets` (string_vec, default=NULL): Ordered checkpoint cell-set refs that anchor the path definition.
-- `fit_mode` (choice, default=linear): Path fitting mode. V1 supports linear and a first conservative manifold smoothing mode.
+- `fit_mode` (choice, default=linear): Path fitting mode. The current implementation supports linear and a conservative manifold smoothing mode.
 - `checkpoint_summary` (choice, default=centroid): Checkpoint summarization rule used to derive anchors from checkpoint cells.
 - `n_path_points` (int, default=NULL): Optional explicit number of fitted path points.
 - `smooth_k` (int, default=30): For fit_mode='manifold_smooth', number of nearest cells used per provisional path point.
@@ -1314,7 +1350,7 @@ Produces:
 Promotable outputs: path_scores, fit_summary
 
 Key parameters:
-- `score_mode` (choice, default=orthogonal_projection): Scoring mode. V1 scaffolding standardizes on orthogonal projection semantics.
+- `score_mode` (choice, default=orthogonal_projection): Scoring mode. The current implementation standardizes on orthogonal projection semantics.
 - `distance_metric` (choice, default=euclidean): Distance metric used for path-relative scoring.
 - `score_prefix` (string, default=NULL): Optional prefix for emitted score-family keys.
 

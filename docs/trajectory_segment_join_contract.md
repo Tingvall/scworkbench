@@ -138,16 +138,20 @@ once as departure in the downstream segment.
 
 ## Composite One-Cell Pseudotime
 
-The op also produces `composite_pseudotime`, a `cell_vector_family` with one
-value per cell for the selected `composite_key`.
+The op produces two `cell_vector_family` pseudotime coordinates with one value
+per cell for the selected `composite_key`:
 
-The default and currently only join policy is:
+- `composite_pseudotime_unit_segment`: canonical audit coordinate with exact
+  integer segment boundaries.
+- `composite_pseudotime_cell_weighted_0_1`: display/comparison coordinate
+  normalized to `[0, 1]` where segment lengths are weighted by segment-local
+  cell counts.
+
+The supported join policy is:
 
 ```text
 exact_boundary_collapse
 ```
-
-`waypoint_collapse` is accepted as a backwards-compatible alias.
 
 For each segment:
 
@@ -163,15 +167,15 @@ segment 3: 2 -> 3
 Cells present in only one segment receive:
 
 ```text
-composite_pseudotime = segment_index - 1 + local_pseudotime_scaled
+composite_pseudotime_unit_segment = segment_index - 1 + local_pseudotime_scaled
 ```
 
 Cells present in two adjacent segments are declared waypoint cells and receive
 the boundary value:
 
 ```text
-segment 1 + segment 2 overlap -> composite_pseudotime = 1
-segment 2 + segment 3 overlap -> composite_pseudotime = 2
+segment 1 + segment 2 overlap -> composite_pseudotime_unit_segment = 1
+segment 2 + segment 3 overlap -> composite_pseudotime_unit_segment = 2
 ```
 
 The values are not averaged. This avoids fake precision at biological waypoints.
@@ -191,14 +195,18 @@ The manifest records `source_kind = "space_path_bridge"` and
 `source_engine = "space_path"` so reports cannot mistake it for a fitted model
 segment.
 
+For `composite_pseudotime_cell_weighted_0_1`, each segment occupies a fraction
+of `[0, 1]` proportional to its segment-local cell count. Adjacent overlap cells
+collapse to the corresponding weighted segment boundary.
+
 ## Overlap Rules
 
-Supported in v1:
+Supported by `exact_boundary_collapse`:
 
 - Cells unique to one segment.
 - Cells shared by exactly two adjacent segments.
 
-Rejected in v1:
+Rejected:
 
 - Cells shared by non-adjacent segments.
 - Cells shared by more than two segments.
@@ -210,7 +218,8 @@ collapsed.
 
 `trajectory_segment_join` produces:
 
-- `composite_pseudotime`: `cell_vector_family`, promotable.
+- `composite_pseudotime_unit_segment`: `cell_vector_family`, promotable.
+- `composite_pseudotime_cell_weighted_0_1`: `cell_vector_family`, promotable.
 - `segment_local_table`: `obs_table`, `trajectory_segment_local_membership`, promotable.
 - `composite_manifest`: `obs_table`, `trajectory_segment_join_manifest`, promotable.
 - `composite_membership`: `cell_vector`, promotable.
@@ -232,8 +241,12 @@ collapsed.
 
 ## Downstream Use
 
-Downstream trajectory dynamics may use promoted `composite_pseudotime` as a
-pseudotime coordinate when the segmented route is the intended biological axis.
+Downstream trajectory dynamics may use either promoted composite pseudotime
+coordinate when the segmented route is the intended biological axis. Use
+`composite_pseudotime_unit_segment` when preserving exact segment boundaries is
+more important than a normalized display range. Use
+`composite_pseudotime_cell_weighted_0_1` when a `[0, 1]` coordinate weighted by
+segment cell counts is desired.
 
 Reports should state that the pseudotime is a segmented composite, not a single
 model-derived pseudotime.
@@ -249,8 +262,8 @@ wb_session_run_op(
   op_name = "trajectory_geneset_dynamics",
   inputs = list(
     matrix = "RNA_log_norm",
-    pseudotime = wb_ref_artifact("cell_vector_family_...", "composite_pseudotime"),
-    pseudotime_key = "t_sthsc_dn3_distal_cd4_v1",
+    pseudotime = wb_ref_artifact("cell_vector_family_...", "composite_pseudotime_unit_segment"),
+    pseudotime_key = "t_sthsc_dn3_distal_cd4",
     membership = wb_ref_artifact("cell_vector_...", "composite_membership"),
     namespace = "immune_gene_sets",
     n_bins = 50L
@@ -300,6 +313,6 @@ The joined path is explicitly display geometry. It is not a merged model and is
 not evidence that a single continuous trajectory model was fitted across all
 segments.
 
-Only `waypoint_collapse` is implemented. Future policies may add weighted
-handoff windows or explicit waypoint cell-set anchoring, but those should be
-separate, named policies with tests and documentation.
+Only `exact_boundary_collapse` is implemented. Other policies are unsupported
+and fail explicitly. Additional policies would need separate names, tests, and
+documentation before use.

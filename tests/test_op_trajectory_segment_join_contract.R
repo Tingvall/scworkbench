@@ -68,7 +68,8 @@ test_op_trajectory_segment_join_contract <- function() {
   iface <- wb_op_interface("trajectory_segment_join")
   stopifnot(is.list(iface))
   stopifnot(identical(as.character(iface$op_name), "trajectory_segment_join"))
-  stopifnot(identical(as.character(iface$produces$composite_pseudotime$kind), "cell_vector_family"))
+  stopifnot(identical(as.character(iface$produces$composite_pseudotime_unit_segment$kind), "cell_vector_family"))
+  stopifnot(identical(as.character(iface$produces$composite_pseudotime_cell_weighted_0_1$kind), "cell_vector_family"))
   stopifnot(identical(as.character(iface$produces$segment_local_table$kind), "obs_table"))
   stopifnot(identical(as.character(iface$produces$composite_manifest$kind), "obs_table"))
   stopifnot(identical(as.character(iface$produces$composite_membership$kind), "cell_vector"))
@@ -110,9 +111,12 @@ test_op_trajectory_segment_join_contract <- function() {
     composite_id = "comp_no_overlap",
     composite_key = "joined_L1"
   )
-  no_vec <- no_overlap$outputs$composite_pseudotime
+  no_vec <- no_overlap$outputs$composite_pseudotime_unit_segment
   no_vals <- stats::setNames(no_vec$value, no_vec$cell_id)
   stopifnot(identical(as.numeric(no_vals[c("c1", "c2", "c3", "c4", "c5", "c6")]), c(0, 0.5, 1, 1, 1.5, 2)))
+  no_weighted <- no_overlap$outputs$composite_pseudotime_cell_weighted_0_1
+  no_weighted_vals <- stats::setNames(no_weighted$value, no_weighted$cell_id)
+  stopifnot(identical(as.numeric(no_weighted_vals[c("c1", "c2", "c3", "c4", "c5", "c6")]), c(0, 0.25, 0.5, 0.5, 0.75, 1)))
   stopifnot(!any(no_overlap$outputs$composite_membership$value == "waypoint"))
 
   ov1 <- .make_segment_artifacts(b, "fit_ov_1", c("c1", "c2", "c3"), c(0, 5, 10), prefix = "ov1")
@@ -150,12 +154,15 @@ test_op_trajectory_segment_join_contract <- function() {
     ),
     notes = "test trajectory_segment_join adjacent overlap"
   )
-  stopifnot(all(c("composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership") %in% names(rr$run$outputs)))
+  stopifnot(all(c("composite_pseudotime_unit_segment", "composite_pseudotime_cell_weighted_0_1", "segment_local_table", "composite_manifest", "composite_membership") %in% names(rr$run$outputs)))
 
-  comp <- rr$run$outputs$composite_pseudotime
+  comp <- rr$run$outputs$composite_pseudotime_unit_segment
   comp_vals <- stats::setNames(comp$value, comp$cell_id)
   stopifnot(identical(as.character(comp$meta$trajectory_composite_id), "comp_tcell_demo"))
   stopifnot(identical(as.numeric(comp_vals[c("c1", "c2", "c3", "c4", "c5")]), c(0, 0.5, 1, 1.5, 2)))
+  comp_w <- rr$run$outputs$composite_pseudotime_cell_weighted_0_1
+  comp_w_vals <- stats::setNames(comp_w$value, comp_w$cell_id)
+  stopifnot(isTRUE(all.equal(as.numeric(comp_w_vals[c("c1", "c2", "c3", "c4", "c5")]), c(0, 0.25, 0.5, 0.75, 1), tolerance = 1e-12)))
 
   local <- rr$run$outputs$segment_local_table$table
   stopifnot(identical(as.character(rr$run$outputs$segment_local_table$table_type), "trajectory_segment_local_membership"))
@@ -169,6 +176,7 @@ test_op_trajectory_segment_join_contract <- function() {
   stopifnot(all(nzchar(as.character(manifest$pseudotime_artifact_id))))
   stopifnot(all(nzchar(as.character(manifest$lineage_weights_artifact_id))))
   stopifnot(all(manifest$n_waypoint_cells == 1L))
+  stopifnot(all(c("segment_weight_cell_fraction", "weighted_coordinate_start", "weighted_coordinate_end") %in% names(manifest)))
 
   mem <- rr$run$outputs$composite_membership
   mem_vals <- stats::setNames(as.character(mem$value), mem$cell_id)
@@ -183,18 +191,20 @@ test_op_trajectory_segment_join_contract <- function() {
   )
   output_col <- if ("output_name" %in% names(prom$promoted)) "output_name" else "output"
   promoted <- stats::setNames(as.character(prom$promoted$artifact_id), as.character(prom$promoted[[output_col]]))
-  stopifnot(all(c("composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership") %in% names(promoted)))
-  loaded_pt <- wb_art_load(b, promoted[["composite_pseudotime"]], expected_kind = "cell_vector_family")
+  stopifnot(all(c("composite_pseudotime_unit_segment", "composite_pseudotime_cell_weighted_0_1", "segment_local_table", "composite_manifest", "composite_membership") %in% names(promoted)))
+  loaded_pt <- wb_art_load(b, promoted[["composite_pseudotime_unit_segment"]], expected_kind = "cell_vector_family")
+  loaded_pt_w <- wb_art_load(b, promoted[["composite_pseudotime_cell_weighted_0_1"]], expected_kind = "cell_vector_family")
   loaded_local <- wb_art_load(b, promoted[["segment_local_table"]], expected_kind = "obs_table")
   loaded_manifest <- wb_art_load(b, promoted[["composite_manifest"]], expected_kind = "obs_table")
   loaded_membership <- wb_art_load(b, promoted[["composite_membership"]], expected_kind = "cell_vector")
   stopifnot(identical(as.character(loaded_pt$kind), "cell_vector_family"))
+  stopifnot(identical(as.character(loaded_pt_w$kind), "cell_vector_family"))
   stopifnot(identical(as.character(loaded_local$table_type), "trajectory_segment_local_membership"))
   stopifnot(identical(as.character(loaded_manifest$table_type), "trajectory_segment_join_manifest"))
   stopifnot(identical(as.character(loaded_membership$kind), "cell_vector"))
   selected <- wb_sel_all(b, "all") |>
     wb_sel_vector_family(
-      vector_id = paste0("artifact:", promoted[["composite_pseudotime"]]),
+      vector_id = paste0("artifact:", promoted[["composite_pseudotime_unit_segment"]]),
       key = "joined_L1",
       min = 1,
       max = 1

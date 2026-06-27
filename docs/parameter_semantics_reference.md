@@ -795,7 +795,7 @@ Aliases: composite_trajectory_id, segmented_trajectory_id
 
 Title: Trajectory Segment Source Kind
 
-Description: Declares how a trajectory segment was generated, for example fitted_model, space_path_bridge, imported_pseudotime, manual_pseudotime, graph_path_bridge, or composite.
+Description: Declares how a trajectory segment was generated. Implemented source kinds are fitted_model and space_path_bridge; graph_path_bridge, imported_pseudotime, manual_pseudotime, and composite are reserved until adapters exist.
 
 Applies to: trajectory segment params and manifests
 
@@ -803,7 +803,8 @@ Affects: claim boundaries, compatibility validation, auditability
 
 Guidance:
 - Do not infer source kind from labels.
-- Curated/manual/bridge segments must be declared rather than hidden as fitted models.
+- Curated/manual/imported segments are reserved and must not be claimed as implemented until a segment adapter exists.
+- Bridge segments must be declared rather than hidden as fitted models.
 
 Aliases: segment_source_kind
 
@@ -835,7 +836,7 @@ Affects: waypoint handling, composite scale, overlap interpretation
 
 Guidance:
 - exact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.
-- waypoint_collapse is a compatibility alias for exact_boundary_collapse.
+- Unsupported policies fail explicitly.
 - Report the join policy when using composite pseudotime for dynamics.
 
 Aliases: trajectory_join_policy, overlap_policy, boundary_policy
