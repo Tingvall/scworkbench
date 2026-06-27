@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-25T23:15:30+0200
+Generated at: 2026-06-27T15:47:33+0200
 
-Operation count: 49
+Operation count: 50
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -1058,26 +1058,59 @@ Title: Trajectory segment join
 
 Intent: trajectory, provenance, composition
 
-Description: Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
+Description: Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
 
 Consumes:
 - `cell_set`: select
 
 Produces:
-- `composite_pseudotime`: cell_vector_family - One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary.
-- `segment_local_table`: obs_table - One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role.
-- `composite_manifest`: obs_table - Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats.
+- `composite_pseudotime`: cell_vector_family - One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps collapse to the exact shared boundary.
+- `segment_local_table`: obs_table - One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.
+- `composite_manifest`: obs_table - Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.
 - `composite_membership`: cell_vector - One-cell assignment to a unique segment or waypoint overlap.
 
 Promotable outputs: composite_pseudotime, segment_local_table, composite_manifest, composite_membership
 
 Key parameters:
-- `segments` (list, default=NULL): Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order.
+- `segments` (list, default=NULL): Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.
 - `composite_id` (string, default=NULL): Optional stable trajectory_composite_id. Generated when omitted.
 - `composite_key` (string, default=composite_L1): Key used in the output composite_pseudotime cell_vector_family.
-- `join_policy` (string, default=waypoint_collapse): Overlap policy. v1 supports waypoint_collapse only.
+- `join_policy` (string, default=exact_boundary_collapse): Overlap policy. v1 supports exact_boundary_collapse; waypoint_collapse is accepted as an alias.
 - `min_weight` (dbl, default=NULL): Optional minimum lineage weight required for segment-local membership when weights are supplied.
 - `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.
+
+## `trajectory_space_path_segment`
+
+Title: Trajectory space-path segment
+
+Intent: trajectory, bridge, composition, geometry
+
+Description: Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
+
+Consumes:
+- `path_scores`: cell_vector_family
+- `display_path`: path_2d_family
+- `cell_set`: select
+
+Produces:
+- `pseudotime`: cell_vector_family - Bridge pseudotime from path arclength progress in [0,1].
+- `membership`: cell_vector - Cells passing the transparent distance-to-path bridge membership rule.
+- `confidence`: cell_vector_family - Distance-derived confidence for included bridge cells.
+- `segment_manifest`: obs_table - Audit manifest for the space-path bridge segment.
+
+Promotable outputs: pseudotime, membership, confidence, segment_manifest
+
+Key parameters:
+- `segment_id` (string, default=NULL): Stable segment identifier.
+- `segment_order` (dbl, default=1): Order of this bridge segment in a future composite.
+- `score_prefix` (string, default=NULL): Optional prefix used by space_path_score keys.
+- `candidate_cells` (cell_ids_or_set, default=NULL): Optional candidate universe before distance thresholding.
+- `distance_threshold` (dbl, default=NULL): Include cells with distance_to_path <= threshold.
+- `distance_quantile` (dbl, default=NULL): Alternative threshold: include cells up to this distance quantile.
+- `start_label` (string, default=NULL): Biological start label.
+- `end_label` (string, default=NULL): Biological end label.
+- `pseudotime_key` (string, default=NULL): Key for emitted bridge pseudotime. Defaults to segment_id.
+- `confidence_key` (string, default=NULL): Key for emitted bridge confidence. Defaults to segment_id.
 
 ## `trajectory_segment_path_join`
 

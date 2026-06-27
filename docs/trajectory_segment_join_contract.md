@@ -2,8 +2,10 @@
 
 ## Purpose
 
-`trajectory_segment_join` creates an auditable composite trajectory from
-separately fitted trajectory segments.
+`trajectory_segment_join` creates an auditable composite trajectory from ordered
+trajectory segments. New segments should follow the generic contract in
+`docs/trajectory_segment_contract.md`. Existing fitted-model segment specs
+remain valid.
 
 This is needed when one automated start/end trajectory does not follow the
 biological route of interest. The motivating T-cell case is:
@@ -43,12 +45,19 @@ Each segment must provide:
 - `pseudotime`: artifact/ref/primitive for a `cell_vector_family`.
 - `lineage`: lineage key to use inside that segment, for example `L1`.
 - `order`: segment order along the composite route.
+- `source_kind`: recommended for new specs; defaults to `fitted_model`.
+- `source_engine`: recommended for new specs; defaults from `source_kind` when
+  possible.
 
 Each segment may also provide:
 
 - `model`: model artifact/ref/primitive.
 - `lineage_weights`: `cell_vector_family` membership weights.
+- `membership`: cell-vector artifact/ref, cell set, or cell IDs restricting
+  segment cells.
+- `confidence`: cell-vector or cell-vector-family segment support values.
 - `path`: projected `path_2d_family`.
+- `segment_manifest`: adapter manifest artifact/ref.
 - `start_label`: human-readable biological start.
 - `end_label`: human-readable biological end.
 
@@ -81,8 +90,8 @@ segments <- list(
 
 ## Fit-Family Compatibility
 
-Within each segment, trajectory-derived artifacts must belong to the same
-`trajectory_fit_id`.
+Within fitted-model segments, trajectory-derived artifacts must belong to the
+same `trajectory_fit_id`.
 
 This is enforced for the available segment-local artifacts:
 
@@ -92,7 +101,9 @@ This is enforced for the available segment-local artifacts:
 - `path`
 
 Across segments, different `trajectory_fit_id` values are allowed and expected.
-The composite receives its own `trajectory_composite_id`.
+Non-fitted segments such as `space_path_bridge` may have no `trajectory_fit_id`,
+but must declare `source_kind`, `source_engine`, and caveats. The composite
+receives its own `trajectory_composite_id`.
 
 Lineage names are not treated as globally comparable across fits. `L1` in
 segment 1 and `L1` in segment 2 are used only after the user explicitly declares
@@ -111,9 +122,14 @@ This table has one row per cell per segment and preserves local segment values:
 - `segment_order`
 - `segment_index`
 - `lineage_id`
+- `source_kind`
+- `source_engine`
+- `raw_pseudotime`
 - `local_pseudotime`
 - `local_pseudotime_scaled`
+- `local_pseudotime_0_1`
 - `local_weight`
+- `confidence`
 - `segment_role`
 - `composite_candidate`
 
@@ -128,8 +144,10 @@ value per cell for the selected `composite_key`.
 The default and currently only join policy is:
 
 ```text
-waypoint_collapse
+exact_boundary_collapse
 ```
+
+`waypoint_collapse` is accepted as a backwards-compatible alias.
 
 For each segment:
 
@@ -157,6 +175,21 @@ segment 2 + segment 3 overlap -> composite_pseudotime = 2
 ```
 
 The values are not averaged. This avoids fake precision at biological waypoints.
+
+## Space-Path Bridge Segments
+
+`trajectory_space_path_segment` adapts `space_path_score` output into a formal
+segment-compatible payload:
+
+- `pseudotime`: `cell_vector_family`, derived from path arclength progress.
+- `membership`: `cell_vector`, cells passing an explicit distance rule.
+- `confidence`: `cell_vector_family`, distance-derived support.
+- `segment_manifest`: `obs_table`, `trajectory_segment_manifest`.
+
+Bridge pseudotime is path progress in `[0, 1]`, not a cell-rank coordinate.
+The manifest records `source_kind = "space_path_bridge"` and
+`source_engine = "space_path"` so reports cannot mistake it for a fitted model
+segment.
 
 ## Overlap Rules
 

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 69
+Artifact type count: 70
 
 ## cell_vector
 
@@ -412,6 +412,21 @@ Entity kind: signal
 
 Use when:
 - rank dynamic UCell or chromVAR signals
+
+### `obs_table:trajectory_segment_manifest`
+
+Title: Trajectory Segment Manifest
+
+Description: Audit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.
+
+Table type: trajectory_segment_manifest
+
+Entity kind: trajectory_segment
+
+Use when:
+- audit generic trajectory segment adapters
+- inspect mixed-source composite inputs
+- trace curated or space-path bridge assumptions
 
 ### `obs_table:trajectory_segment_local_membership`
 

@@ -55,10 +55,92 @@
   out
 }
 
+.wb_segment_clean_source_kind <- function(x) {
+  x <- as.character(x %||% "fitted_model")[1]
+  if (!nzchar(x)) x <- "fitted_model"
+  allowed <- c(
+    "fitted_model", "space_path_bridge", "graph_path_bridge",
+    "imported_pseudotime", "manual_pseudotime", "composite"
+  )
+  .wb_assert(x %in% allowed, paste0("trajectory segment source_kind must be one of: ", paste(allowed, collapse = ", ")))
+  x
+}
+
+.wb_segment_clean_source_engine <- function(x, source_kind = NULL) {
+  if (is.null(x) || !nzchar(as.character(x)[1])) {
+    if (identical(source_kind, "space_path_bridge")) return("space_path")
+    if (identical(source_kind, "manual_pseudotime")) return("manual")
+    if (identical(source_kind, "imported_pseudotime")) return("imported")
+    if (identical(source_kind, "graph_path_bridge")) return("graph")
+    return("unknown")
+  }
+  x <- as.character(x)[1]
+  allowed <- c("slingshot", "monocle3", "palantir", "space_path", "manual", "imported", "graph", "unknown")
+  .wb_assert(x %in% allowed, paste0("trajectory segment source_engine must be one of: ", paste(allowed, collapse = ", ")))
+  x
+}
+
+.wb_segment_membership_cells <- function(bundle, membership, runs = NULL) {
+  if (is.null(membership)) return(NULL)
+  if (.wb_is_primitive(membership)) {
+    .wb_assert_kind(membership, "cell_vector", where = " for segment membership")
+    vals <- as.character(membership$value %||% character(0))
+    cells <- as.character(membership$cell_id %||% character(0))
+    keep <- nzchar(cells) & !is.na(vals) & nzchar(vals)
+    return(unique(cells[keep]))
+  }
+  aid <- .wb_ref_to_artifact_id(membership)
+  if (!is.null(aid) && nzchar(as.character(aid)[1])) {
+    prim <- wb_art_load(bundle, as.character(aid)[1], expected_kind = "cell_vector")
+    return(.wb_segment_membership_cells(bundle, prim, runs = runs))
+  }
+  if (is.character(membership)) {
+    x <- as.character(membership)
+    x <- x[nzchar(x)]
+    if (length(x) == 1L && startsWith(x, "artifact:")) {
+      prim <- wb_art_load(bundle, sub("^artifact:", "", x), expected_kind = "cell_vector")
+      return(.wb_segment_membership_cells(bundle, prim, runs = runs))
+    }
+    if (length(x) == 1L && (identical(x, "all") || startsWith(x, "set:"))) {
+      return(as.character(wb_cells(bundle, cell_set = x)))
+    }
+    return(unique(x))
+  }
+  stop("trajectory segment membership must be a cell_vector primitive/artifact, cell set, or cell_id vector.", call. = FALSE)
+}
+
+.wb_segment_vector_values <- function(bundle, x, key = NULL, runs = NULL, expected_label = "segment vector") {
+  if (is.null(x)) return(NULL)
+  prim <- .wb_segment_resolve_primitive(bundle, x, runs = runs, expected_kind = NULL, label = expected_label)
+  kind <- as.character(prim$kind %||% "")[1]
+  if (identical(kind, "cell_vector")) {
+    return(data.frame(
+      cell_id = as.character(prim$cell_id),
+      value = suppressWarnings(as.numeric(prim$value)),
+      stringsAsFactors = FALSE
+    ))
+  }
+  if (identical(kind, "cell_vector_family")) {
+    key <- as.character(key %||% "")[1]
+    .wb_assert(nzchar(key), paste0(expected_label, ": key is required for cell_vector_family."))
+    return(.wb_segment_family_values(prim, key, label = expected_label))
+  }
+  stop(expected_label, " must be a cell_vector or cell_vector_family.", call. = FALSE)
+}
+
 .wb_validate_trajectory_segment <- function(bundle, segment, runs = NULL, allow_legacy = FALSE) {
   .wb_assert(is.list(segment), "trajectory_segment_join(): each segment must be a list.")
   .wb_assert(!is.null(segment$pseudotime), "trajectory_segment_join(): each segment requires pseudotime.")
   .wb_assert(!is.null(segment$lineage), "trajectory_segment_join(): each segment requires lineage.")
+
+  source_kind <- .wb_segment_clean_source_kind(segment$source_kind %||% "fitted_model")
+  source_engine <- .wb_segment_clean_source_engine(segment$source_engine %||% NULL, source_kind = source_kind)
+
+  if (!identical(source_kind, "fitted_model")) {
+    info <- wb_trajectory_fit_info(bundle, segment$pseudotime, runs = runs)
+    info$engine <- source_engine
+    return(info)
+  }
 
   refs <- list(segment$model, segment$pseudotime, segment$lineage_weights, segment$path)
   refs <- refs[!vapply(refs, is.null, logical(1))]
@@ -73,7 +155,172 @@
     msg <- "trajectory_segment_join(): segment pseudotime is missing trajectory_fit_id; legacy trajectory segments cannot be joined without explicit allow_legacy=TRUE."
     if (isTRUE(allow_legacy)) warning(msg, call. = FALSE) else stop(msg, call. = FALSE)
   }
+  if (!nzchar(as.character(info$engine[1] %||% ""))) info$engine <- source_engine
   info
+}
+
+.wb_space_path_score_values <- function(path_scores, key) {
+  .wb_assert_kind(path_scores, "cell_vector_family", where = " for path_scores")
+  .wb_segment_family_values(path_scores, key, label = paste0("path_scores/", key))
+}
+
+#' Create A Trajectory Segment From Space-Path Scores
+#'
+#' Converts `space_path_score` output into a generic trajectory segment payload.
+#' The analytical coordinate is path arclength progress, and membership is based
+#' on an explicit distance-to-path rule.
+#'
+#' @export
+wb_op_trajectory_space_path_segment <- function(bundle,
+                                                path_scores,
+                                                segment_id,
+                                                segment_order = 1L,
+                                                score_prefix = NULL,
+                                                candidate_cells = NULL,
+                                                distance_threshold = NULL,
+                                                distance_quantile = NULL,
+                                                start_label = NULL,
+                                                end_label = NULL,
+                                                path = NULL,
+                                                display_path = NULL,
+                                                composite_id = NULL,
+                                                pseudotime_key = NULL,
+                                                confidence_key = NULL,
+                                                runs = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle.")
+  .wb_assert_kind(path_scores, "cell_vector_family")
+  segment_id <- gsub("[^A-Za-z0-9_.:-]+", "_", as.character(segment_id %||% "")[1])
+  .wb_assert(nzchar(segment_id), "trajectory_space_path_segment(): segment_id must be non-empty.")
+  segment_order <- suppressWarnings(as.numeric(segment_order)[1])
+  .wb_assert(is.finite(segment_order), "trajectory_space_path_segment(): segment_order must be numeric.")
+
+  prefix <- as.character(score_prefix %||% "")[1]
+  key_of <- function(x) if (nzchar(prefix)) paste0(prefix, x) else x
+  progress_key <- key_of("progress")
+  distance_key <- key_of("distance")
+  pt_key <- as.character(pseudotime_key %||% segment_id)[1]
+  conf_key <- as.character(confidence_key %||% segment_id)[1]
+
+  prog <- .wb_space_path_score_values(path_scores, progress_key)
+  dist <- .wb_space_path_score_values(path_scores, distance_key)
+  names(prog)[names(prog) == "value"] <- "progress"
+  names(dist)[names(dist) == "value"] <- "distance"
+  score <- merge(prog, dist, by = "cell_id", all = FALSE, sort = FALSE)
+  score$progress <- suppressWarnings(as.numeric(score$progress))
+  score$distance <- suppressWarnings(as.numeric(score$distance))
+  score <- score[is.finite(score$progress) & is.finite(score$distance), , drop = FALSE]
+  .wb_assert(nrow(score) > 0L, "trajectory_space_path_segment(): no finite progress/distance rows.")
+
+  cand <- .wb_segment_membership_cells(bundle, candidate_cells, runs = runs)
+  if (!is.null(cand)) {
+    score <- score[score$cell_id %in% cand, , drop = FALSE]
+    .wb_assert(nrow(score) > 0L, "trajectory_space_path_segment(): no scored cells remain after candidate filter.")
+  }
+
+  distance_threshold <- suppressWarnings(as.numeric(distance_threshold)[1])
+  distance_quantile <- suppressWarnings(as.numeric(distance_quantile)[1])
+  if (is.finite(distance_threshold)) {
+    threshold <- distance_threshold
+    membership_rule <- paste0("distance_to_path <= ", signif(threshold, 6))
+  } else if (is.finite(distance_quantile)) {
+    .wb_assert(distance_quantile > 0 && distance_quantile <= 1,
+               "trajectory_space_path_segment(): distance_quantile must be in (0, 1].")
+    threshold <- as.numeric(stats::quantile(score$distance, probs = distance_quantile, names = FALSE, na.rm = TRUE))
+    membership_rule <- paste0("distance_to_path <= quantile(distance, ", signif(distance_quantile, 6), ")")
+  } else {
+    threshold <- Inf
+    membership_rule <- "all finite path-scored candidate cells"
+  }
+  keep <- if (is.finite(threshold)) score$distance <= threshold else rep(TRUE, nrow(score))
+  score <- score[keep, , drop = FALSE]
+  .wb_assert(nrow(score) > 0L, "trajectory_space_path_segment(): no cells pass the distance membership rule.")
+
+  confidence <- if (is.finite(threshold) && threshold > 0) {
+    pmax(0, pmin(1, 1 - (score$distance / threshold)))
+  } else {
+    1 / (1 + score$distance)
+  }
+
+  composite_id <- as.character(composite_id %||% "")[1]
+  manifest <- data.frame(
+    trajectory_composite_id = composite_id,
+    segment_id = segment_id,
+    segment_order = segment_order,
+    source_kind = "space_path_bridge",
+    source_engine = "space_path",
+    lineage_id = pt_key,
+    source_pseudotime_key = progress_key,
+    confidence_key = conf_key,
+    path_artifact_id = .wb_segment_ref_artifact_id(path),
+    display_path_artifact_id = .wb_segment_ref_artifact_id(display_path),
+    path_scores_artifact_id = .wb_segment_ref_artifact_id(path_scores),
+    start_label = as.character(start_label %||% "")[1],
+    end_label = as.character(end_label %||% "")[1],
+    normalization_rule = "path_progress_0_1",
+    boundary_policy = "exact_boundary_collapse",
+    membership_rule = membership_rule,
+    distance_threshold = if (is.finite(threshold)) threshold else NA_real_,
+    n_candidate_cells = if (is.null(cand)) nrow(prog) else length(unique(cand)),
+    n_segment_cells = nrow(score),
+    caveats = "Space-path bridge segment: pseudotime is path arclength progress; confidence is distance-derived; no fitted trajectory model is implied.",
+    stringsAsFactors = FALSE
+  )
+
+  meta <- list(
+    segment_id = segment_id,
+    segment_order = segment_order,
+    source_kind = "space_path_bridge",
+    source_engine = "space_path",
+    value_semantics = "trajectory_segment_path_progress",
+    normalization_rule = "path_progress_0_1",
+    boundary_policy = "exact_boundary_collapse",
+    membership_rule = membership_rule
+  )
+  outputs <- list(
+    pseudotime = wb_prim_cell_vector_family(
+      key = rep(pt_key, nrow(score)),
+      cell_id = score$cell_id,
+      value = score$progress,
+      value_type = "continuous",
+      meta = meta
+    ),
+    membership = wb_prim_cell_vector(
+      stats::setNames(rep(segment_id, nrow(score)), score$cell_id),
+      value_type = "categorical"
+    ),
+    confidence = wb_prim_cell_vector_family(
+      key = rep(conf_key, nrow(score)),
+      cell_id = score$cell_id,
+      value = confidence,
+      value_type = "continuous",
+      meta = c(meta, list(value_semantics = "distance_derived_segment_confidence"))
+    ),
+    segment_manifest = wb_prim_obs_table(
+      manifest,
+      table_type = "trajectory_segment_manifest",
+      entity_kind = "trajectory_segment",
+      meta = meta
+    )
+  )
+  if (!is.null(display_path)) {
+    outputs$display_path <- .wb_segment_resolve_primitive(bundle, display_path, runs = runs, expected_kind = "path_2d_family",
+                                                          label = paste0(segment_id, " display_path"))
+  }
+
+  list(
+    outputs = outputs,
+    params = list(
+      segment_id = segment_id,
+      segment_order = segment_order,
+      source_kind = "space_path_bridge",
+      source_engine = "space_path",
+      pseudotime_key = pt_key,
+      confidence_key = conf_key,
+      membership_rule = membership_rule,
+      distance_threshold = if (is.finite(threshold)) threshold else NA_real_,
+      n_cells = nrow(score)
+    )
+  )
 }
 
 #' Join Separately Fitted Trajectory Segments
@@ -110,8 +357,9 @@ wb_op_trajectory_segment_join <- function(bundle,
   .wb_assert(is.list(segments) && length(segments) >= 2L,
              "trajectory_segment_join(): segments must be a list with at least two entries.")
   join_policy <- as.character(join_policy %||% "")[1]
-  .wb_assert(identical(join_policy, "waypoint_collapse"),
-             "trajectory_segment_join(): only join_policy='waypoint_collapse' is supported in v1.")
+  if (identical(join_policy, "waypoint_collapse")) join_policy <- "exact_boundary_collapse"
+  .wb_assert(identical(join_policy, "exact_boundary_collapse"),
+             "trajectory_segment_join(): only join_policy='exact_boundary_collapse' is supported in v1.")
   if (!is.null(min_weight)) {
     min_weight <- suppressWarnings(as.numeric(min_weight)[1])
     .wb_assert(is.finite(min_weight), "min_weight must be numeric when supplied.")
@@ -131,6 +379,11 @@ wb_op_trajectory_segment_join <- function(bundle,
     .wb_assert(is.finite(order), paste0("trajectory_segment_join(): invalid order for segment ", segment_id, "."))
     lineage <- as.character(seg$lineage %||% "")[1]
     .wb_assert(nzchar(lineage), paste0("trajectory_segment_join(): missing lineage for segment ", segment_id, "."))
+    source_kind <- .wb_segment_clean_source_kind(seg$source_kind %||% "fitted_model")
+    source_engine <- .wb_segment_clean_source_engine(seg$source_engine %||% NULL, source_kind = source_kind)
+    normalization_rule <- as.character(seg$normalization_rule %||% if (identical(source_kind, "space_path_bridge")) "path_progress_0_1" else "segment-local min-max pseudotime scaled to [0,1]")[1]
+    boundary_policy <- as.character(seg$boundary_policy %||% join_policy)[1]
+    if (identical(boundary_policy, "waypoint_collapse")) boundary_policy <- "exact_boundary_collapse"
 
     info <- .wb_validate_trajectory_segment(bundle, seg, runs = runs, allow_legacy = allow_legacy)
     pt <- .wb_segment_resolve_primitive(bundle, seg$pseudotime, runs = runs, expected_kind = "cell_vector_family",
@@ -138,6 +391,11 @@ wb_op_trajectory_segment_join <- function(bundle,
     pt_df <- .wb_segment_family_values(pt, lineage, label = paste0(segment_id, " pseudotime"))
     pt_df <- pt_df[is.finite(pt_df$value), , drop = FALSE]
     .wb_assert(nrow(pt_df) > 0L, paste0("trajectory_segment_join(): no finite pseudotime values for segment ", segment_id, "."))
+    membership_cells <- .wb_segment_membership_cells(bundle, seg$membership %||% NULL, runs = runs)
+    if (!is.null(membership_cells)) {
+      pt_df <- pt_df[pt_df$cell_id %in% membership_cells, , drop = FALSE]
+      .wb_assert(nrow(pt_df) > 0L, paste0("trajectory_segment_join(): no pseudotime cells remain after membership filter for segment ", segment_id, "."))
+    }
 
     wt_df <- data.frame(cell_id = pt_df$cell_id, local_weight = NA_real_, stringsAsFactors = FALSE)
     if (!is.null(seg$lineage_weights)) {
@@ -147,38 +405,67 @@ wb_op_trajectory_segment_join <- function(bundle,
       names(w0)[names(w0) == "value"] <- "local_weight"
       wt_df <- merge(data.frame(cell_id = pt_df$cell_id, stringsAsFactors = FALSE), w0, by = "cell_id", all.x = TRUE, sort = FALSE)
     }
+    conf_df <- data.frame(cell_id = pt_df$cell_id, confidence = NA_real_, stringsAsFactors = FALSE)
+    if (!is.null(seg$confidence)) {
+      ck <- as.character(seg$confidence_key %||% lineage)[1]
+      c0 <- .wb_segment_vector_values(bundle, seg$confidence, key = ck, runs = runs,
+                                      expected_label = paste0(segment_id, " confidence"))
+      names(c0)[names(c0) == "value"] <- "confidence"
+      conf_df <- merge(data.frame(cell_id = pt_df$cell_id, stringsAsFactors = FALSE), c0, by = "cell_id", all.x = TRUE, sort = FALSE)
+    }
 
     dat <- merge(pt_df, wt_df, by = "cell_id", all.x = TRUE, sort = FALSE)
+    dat <- merge(dat, conf_df, by = "cell_id", all.x = TRUE, sort = FALSE)
     names(dat)[names(dat) == "value"] <- "local_pseudotime"
+    if (all(is.na(dat$local_weight)) && any(is.finite(dat$confidence))) {
+      dat$local_weight <- dat$confidence
+    }
     if (!is.null(min_weight)) {
       dat <- dat[!is.na(dat$local_weight) & dat$local_weight >= min_weight, , drop = FALSE]
       .wb_assert(nrow(dat) > 0L, paste0("trajectory_segment_join(): no cells remain after min_weight for segment ", segment_id, "."))
     }
-    dat$local_pseudotime_scaled <- .wb_segment_scale01(dat$local_pseudotime)
+    dat$raw_pseudotime <- dat$local_pseudotime
+    dat$local_pseudotime_scaled <- if (identical(normalization_rule, "path_progress_0_1")) {
+      pmax(0, pmin(1, suppressWarnings(as.numeric(dat$local_pseudotime))))
+    } else {
+      .wb_segment_scale01(dat$local_pseudotime)
+    }
+    dat$local_pseudotime_0_1 <- dat$local_pseudotime_scaled
     dat$segment_id <- segment_id
     dat$segment_order <- order
     dat$lineage_id <- lineage
+    dat$source_kind <- source_kind
+    dat$source_engine <- source_engine
     dat$segment_role <- "segment"
 
     segment_ids[i] <- segment_id
     segment_orders[i] <- order
     seg_rows[[i]] <- dat[, c(
       "cell_id", "segment_id", "segment_order", "lineage_id",
-      "local_pseudotime", "local_pseudotime_scaled", "local_weight", "segment_role"
+      "source_kind", "source_engine", "raw_pseudotime", "local_pseudotime",
+      "local_pseudotime_scaled", "local_pseudotime_0_1", "local_weight",
+      "confidence", "segment_role"
     ), drop = FALSE]
 
     meta_rows[[i]] <- data.frame(
       segment_id = segment_id,
       segment_order = order,
+      source_kind = source_kind,
+      source_engine = source_engine,
       lineage_id = lineage,
       trajectory_fit_id = as.character(info$trajectory_fit_id[1] %||% ""),
       trajectory_engine = as.character(info$engine[1] %||% ""),
       model_artifact_id = .wb_segment_ref_artifact_id(seg$model),
       pseudotime_artifact_id = .wb_segment_ref_artifact_id(seg$pseudotime),
+      membership_artifact_id = .wb_segment_ref_artifact_id(seg$membership),
       lineage_weights_artifact_id = .wb_segment_ref_artifact_id(seg$lineage_weights),
+      confidence_artifact_id = .wb_segment_ref_artifact_id(seg$confidence),
       path_artifact_id = .wb_segment_ref_artifact_id(seg$path),
+      segment_manifest_artifact_id = .wb_segment_ref_artifact_id(seg$segment_manifest),
       start_label = as.character(seg$start_label %||% "")[1],
       end_label = as.character(seg$end_label %||% "")[1],
+      normalization_rule = normalization_rule,
+      boundary_policy = boundary_policy,
       n_segment_cells = nrow(dat),
       stringsAsFactors = FALSE
     )
@@ -262,7 +549,7 @@ wb_op_trajectory_segment_join <- function(bundle,
     family_kind = "trajectory_composite_pseudotime",
     value_semantics = "segmented_composite_pseudotime",
     join_policy = join_policy,
-    scaling_rule = "segment-local min-max pseudotime scaled to [0,1]",
+    scaling_rule = "segment-local source-specific normalization to [0,1]",
     overlap_handling_rule = "adjacent overlaps collapse to the shared boundary without averaging",
     parent_segment_ids = segment_ids,
     parent_trajectory_fit_ids = parent_fit_ids,
@@ -282,16 +569,19 @@ wb_op_trajectory_segment_join <- function(bundle,
   manifest$caveats <- "Composite pseudotime is derived from separately fitted trajectory segments; parent model RDS objects are not merged."
   manifest <- manifest[, c(
     "trajectory_composite_id", "segment_id", "segment_order", "segment_index",
-    "lineage_id", "trajectory_fit_id", "trajectory_engine",
-    "model_artifact_id", "pseudotime_artifact_id", "lineage_weights_artifact_id", "path_artifact_id",
-    "start_label", "end_label", "join_policy", "scaling_rule", "overlap_handling_rule",
+    "source_kind", "source_engine", "lineage_id", "trajectory_fit_id", "trajectory_engine",
+    "model_artifact_id", "pseudotime_artifact_id", "membership_artifact_id",
+    "lineage_weights_artifact_id", "confidence_artifact_id", "path_artifact_id",
+    "segment_manifest_artifact_id", "start_label", "end_label",
+    "normalization_rule", "boundary_policy", "join_policy", "scaling_rule", "overlap_handling_rule",
     "n_segment_cells", "n_unique_cells", "n_waypoint_cells", "caveats"
   ), drop = FALSE]
 
   local$trajectory_composite_id <- composite_id
   local <- local[, c(
     "trajectory_composite_id", "cell_id", "segment_id", "segment_order", "segment_index",
-    "lineage_id", "local_pseudotime", "local_pseudotime_scaled", "local_weight",
+    "source_kind", "source_engine", "lineage_id", "raw_pseudotime", "local_pseudotime",
+    "local_pseudotime_scaled", "local_pseudotime_0_1", "local_weight", "confidence",
     "segment_role", "composite_candidate"
   ), drop = FALSE]
 
@@ -392,6 +682,8 @@ wb_op_trajectory_segment_path_join <- function(bundle,
     segment_id <- gsub("[^A-Za-z0-9_.:-]+", "_", segment_id)
     order <- suppressWarnings(as.numeric(seg$order %||% i))[1]
     lineage <- as.character(seg$lineage %||% "")[1]
+    source_kind <- .wb_segment_clean_source_kind(seg$source_kind %||% "fitted_model")
+    source_engine <- .wb_segment_clean_source_engine(seg$source_engine %||% NULL, source_kind = source_kind)
     .wb_assert(nzchar(segment_id), "trajectory_segment_path_join(): segment_id must be non-empty.")
     .wb_assert(is.finite(order), paste0("trajectory_segment_path_join(): invalid order for segment ", segment_id, "."))
     .wb_assert(nzchar(lineage), paste0("trajectory_segment_path_join(): missing lineage for segment ", segment_id, "."))
@@ -400,7 +692,9 @@ wb_op_trajectory_segment_path_join <- function(bundle,
     info <- wb_trajectory_fit_info(bundle, seg$path)
     if (!nzchar(as.character(info$trajectory_fit_id[1] %||% ""))) {
       msg <- "trajectory_segment_path_join(): parent path is missing trajectory_fit_id; legacy paths cannot be joined without explicit allow_legacy=TRUE."
-      if (isTRUE(allow_legacy)) warning(msg, call. = FALSE) else stop(msg, call. = FALSE)
+      if (identical(source_kind, "fitted_model")) {
+        if (isTRUE(allow_legacy)) warning(msg, call. = FALSE) else stop(msg, call. = FALSE)
+      }
     }
     prim <- .wb_segment_resolve_primitive(bundle, seg$path, expected_kind = "path_2d_family",
                                           label = paste0(segment_id, " path"))
@@ -415,9 +709,11 @@ wb_op_trajectory_segment_path_join <- function(bundle,
     manifests[[i]] <- data.frame(
       segment_id = segment_id,
       segment_order = order,
+      source_kind = source_kind,
+      source_engine = source_engine,
       lineage_id = lineage,
       trajectory_fit_id = as.character(info$trajectory_fit_id[1] %||% ""),
-      trajectory_engine = as.character(info$engine[1] %||% ""),
+      trajectory_engine = as.character(info$engine[1] %||% source_engine),
       path_artifact_id = .wb_segment_ref_artifact_id(seg$path),
       start_label = as.character(seg$start_label %||% "")[1],
       end_label = as.character(seg$end_label %||% "")[1],
@@ -454,7 +750,7 @@ wb_op_trajectory_segment_path_join <- function(bundle,
   manifest$caveats <- "Derived display path from separately fitted segment paths; no parent trajectory model objects were merged."
   manifest <- manifest[, c(
     "trajectory_composite_id", "composite_key", "segment_id", "segment_order", "segment_index",
-    "lineage_id", "trajectory_fit_id", "trajectory_engine", "path_artifact_id",
+    "source_kind", "source_engine", "lineage_id", "trajectory_fit_id", "trajectory_engine", "path_artifact_id",
     "start_label", "end_label", "n_path_points", "composite_point_start", "composite_point_end", "caveats"
   ), drop = FALSE]
 

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_recipe_semantics_catalog(); do not edit entries by hand. -->
 
-Recipe count: 10
+Recipe count: 11
 
 ## agent_planning
 
@@ -160,6 +160,39 @@ Cautions:
 - mode='mirror' requires identical feature universes.
 - mode='intersect' changes gene-set membership and must be reported with loss metrics.
 
+## trajectory_composition
+
+### `mixed_source_composite_trajectory`
+
+Title: Build a mixed-source composite trajectory
+
+Question: How can fitted trajectory segments and bridge/path segments be joined into one auditable pseudotime axis?
+
+Description: Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.
+
+Steps:
+- Create fitted trajectory segments from model/pseudotime/path artifacts or create bridge segments with trajectory_space_path_segment.
+- Ensure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.
+- Run trajectory_segment_join with join_policy='exact_boundary_collapse'.
+- Optionally run trajectory_segment_path_join for UMAP display geometry.
+- Use composite_pseudotime plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode.
+
+Uses:
+- `op:trajectory_space_path_segment`
+- `op:trajectory_segment_join`
+- `op:trajectory_segment_path_join`
+- `op:trajectory_geneset_dynamics`
+- `op:trajectory_signal_dynamics`
+- `parameter:source_kind`
+- `parameter:source_engine`
+- `parameter:join_policy`
+- `parameter:pseudotime_key`
+
+Cautions:
+- A composite trajectory is not one fitted model.
+- Bridge/manual/imported segments must be declared in source_kind/source_engine.
+- Display paths are not analytical pseudotime.
+
 ## trajectory_discovery
 
 ### `trajectory_geneset_dynamics_discovery`
@@ -298,6 +331,7 @@ Description: Combine a 2D space with path_2d_family curves and pseudotime/cell o
 
 Steps:
 - Locate trajectory curve artifact or project model/path into 2D.
+- For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.
 - Choose only the selected lineage/path used for dynamics if multiple are present.
 - Plot full candidate cells in muted color and selected curve in foreground.
 - Overlay pseudotime or endpoint labels as needed.
@@ -309,11 +343,13 @@ Uses:
 - `op:monocle3_project`
 - `op:palantir_project`
 - `op:space_path_project_2d`
+- `op:trajectory_segment_path_join`
 - `plot:embedding_overlay`
 - `primitive:path_2d_family`
 - `parameter:lineage`
 
 Cautions:
 - 2D curves are display projections and may not equal high-dimensional geometry.
+- Composite display paths are derived geometry, not merged fitted models.
 - If dynamics use one lineage, do not display unrelated lineages as if they were used.
 

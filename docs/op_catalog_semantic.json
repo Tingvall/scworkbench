@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-25T23:15:30+0200",
-  "op_count": 49,
+  "generated_at": "2026-06-27T15:47:33+0200",
+  "op_count": 50,
   "ops": [
     {
       "op_name": "leiden",
@@ -3801,7 +3801,7 @@
     {
       "op_name": "trajectory_segment_join",
       "title": "Trajectory segment join",
-      "description": "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+      "description": "Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
       "intent": ["trajectory", "provenance", "composition"],
       "consumes": [
         {
@@ -3813,17 +3813,17 @@
         {
           "name": "composite_pseudotime",
           "kind": "cell_vector_family",
-          "description": "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary."
+          "description": "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps collapse to the exact shared boundary."
         },
         {
           "name": "segment_local_table",
           "kind": "obs_table",
-          "description": "One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role."
+          "description": "One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role."
         },
         {
           "name": "composite_manifest",
           "kind": "obs_table",
-          "description": "Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats."
+          "description": "Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats."
         },
         {
           "name": "composite_membership",
@@ -3844,7 +3844,7 @@
           "name": "segments",
           "type": "list",
           "default": null,
-          "help": "Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order."
+          "help": "Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order."
         },
         {
           "name": "composite_id",
@@ -3861,8 +3861,8 @@
         {
           "name": "join_policy",
           "type": "string",
-          "default": "waypoint_collapse",
-          "help": "Overlap policy. v1 supports waypoint_collapse only."
+          "default": "exact_boundary_collapse",
+          "help": "Overlap policy. v1 supports exact_boundary_collapse; waypoint_collapse is accepted as an alias."
         },
         {
           "name": "min_weight",
@@ -3878,6 +3878,130 @@
         }
       ],
       "promotable": ["composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"],
+      "chunking": null
+    },
+    {
+      "op_name": "trajectory_space_path_segment",
+      "title": "Trajectory space-path segment",
+      "description": "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
+      "intent": ["trajectory", "bridge", "composition", "geometry"],
+      "consumes": [
+        {
+          "name": "path_scores",
+          "kind": "cell_vector_family",
+          "required": true
+        },
+        {
+          "name": "display_path",
+          "kind": "path_2d_family",
+          "required": false
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "description": "Bridge pseudotime from path arclength progress in [0,1]."
+        },
+        {
+          "name": "membership",
+          "kind": "cell_vector",
+          "description": "Cells passing the transparent distance-to-path bridge membership rule."
+        },
+        {
+          "name": "confidence",
+          "kind": "cell_vector_family",
+          "description": "Distance-derived confidence for included bridge cells."
+        },
+        {
+          "name": "segment_manifest",
+          "kind": "obs_table",
+          "description": "Audit manifest for the space-path bridge segment."
+        }
+      ],
+      "inputs": {
+        "path_scores": {
+          "required": true,
+          "kind": "cell_vector_family"
+        },
+        "display_path": {
+          "required": false,
+          "kind": "path_2d_family"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "segment_id",
+          "type": "string",
+          "default": null,
+          "help": "Stable segment identifier."
+        },
+        {
+          "name": "segment_order",
+          "type": "dbl",
+          "default": 1,
+          "help": "Order of this bridge segment in a future composite."
+        },
+        {
+          "name": "score_prefix",
+          "type": "string",
+          "default": null,
+          "help": "Optional prefix used by space_path_score keys."
+        },
+        {
+          "name": "candidate_cells",
+          "type": "cell_ids_or_set",
+          "default": null,
+          "help": "Optional candidate universe before distance thresholding."
+        },
+        {
+          "name": "distance_threshold",
+          "type": "dbl",
+          "default": null,
+          "help": "Include cells with distance_to_path <= threshold."
+        },
+        {
+          "name": "distance_quantile",
+          "type": "dbl",
+          "default": null,
+          "help": "Alternative threshold: include cells up to this distance quantile."
+        },
+        {
+          "name": "start_label",
+          "type": "string",
+          "default": null,
+          "help": "Biological start label."
+        },
+        {
+          "name": "end_label",
+          "type": "string",
+          "default": null,
+          "help": "Biological end label."
+        },
+        {
+          "name": "pseudotime_key",
+          "type": "string",
+          "default": null,
+          "help": "Key for emitted bridge pseudotime. Defaults to segment_id."
+        },
+        {
+          "name": "confidence_key",
+          "type": "string",
+          "default": null,
+          "help": "Key for emitted bridge confidence. Defaults to segment_id."
+        }
+      ],
+      "promotable": ["pseudotime", "membership", "confidence", "segment_manifest"],
       "chunking": null
     },
     {

@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-25T23:15:30+0200",
-  "artifact_type_count": 69,
+  "generated_at": "2026-06-27T15:47:33+0200",
+  "artifact_type_count": 70,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -281,6 +281,15 @@
       "table_type": "trajectory_signal_dynamics",
       "entity_kind": "signal",
       "use_when": "rank dynamic UCell or chromVAR signals"
+    },
+    {
+      "artifact_type": "obs_table:trajectory_segment_manifest",
+      "primitive_kind": "obs_table",
+      "title": "Trajectory Segment Manifest",
+      "description": "Audit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.",
+      "table_type": "trajectory_segment_manifest",
+      "entity_kind": "trajectory_segment",
+      "use_when": ["audit generic trajectory segment adapters", "inspect mixed-source composite inputs", "trace curated or space-path bridge assumptions"]
     },
     {
       "artifact_type": "obs_table:trajectory_segment_local_membership",

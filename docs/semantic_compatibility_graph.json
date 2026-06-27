@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-25T23:15:31+0200",
-  "node_count": 293,
-  "edge_count": 785,
+  "generated_at": "2026-06-27T15:47:34+0200",
+  "node_count": 298,
+  "edge_count": 829,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -231,6 +231,12 @@
       "record_type": "op",
       "name": "trajectory_segment_join",
       "title": "Trajectory segment join"
+    },
+    {
+      "record_id": "op:trajectory_space_path_segment",
+      "record_type": "op",
+      "name": "trajectory_space_path_segment",
+      "title": "Trajectory space-path segment"
     },
     {
       "record_id": "op:trajectory_segment_path_join",
@@ -1133,6 +1139,12 @@
       "title": "Trajectory Signal Dynamics Table"
     },
     {
+      "record_id": "artifact_type:obs_table:trajectory_segment_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_manifest",
+      "title": "Trajectory Segment Manifest"
+    },
+    {
       "record_id": "artifact_type:obs_table:trajectory_segment_local_membership",
       "record_type": "artifact_type",
       "name": "obs_table:trajectory_segment_local_membership",
@@ -1439,6 +1451,18 @@
       "title": "Trajectory Composite Identity"
     },
     {
+      "record_id": "parameter:source_kind",
+      "record_type": "parameter",
+      "name": "source_kind",
+      "title": "Trajectory Segment Source Kind"
+    },
+    {
+      "record_id": "parameter:source_engine",
+      "record_type": "parameter",
+      "name": "source_engine",
+      "title": "Trajectory Segment Source Engine"
+    },
+    {
       "record_id": "parameter:join_policy",
       "record_type": "parameter",
       "name": "join_policy",
@@ -1743,6 +1767,12 @@
       "record_type": "recipe",
       "name": "plot_trajectory_on_umap",
       "title": "Plot selected trajectory curves on UMAP"
+    },
+    {
+      "record_id": "recipe:mixed_source_composite_trajectory",
+      "record_type": "recipe",
+      "name": "mixed_source_composite_trajectory",
+      "title": "Build a mixed-source composite trajectory"
     },
     {
       "record_id": "recipe:de_to_pathway_report",
@@ -3931,6 +3961,84 @@
       "label": "promotable:composite_membership"
     },
     {
+      "from": "primitive:cell_vector_family",
+      "to": "op:trajectory_space_path_segment",
+      "edge_type": "consumed_by",
+      "label": "input:path_scores"
+    },
+    {
+      "from": "primitive:path_2d_family",
+      "to": "op:trajectory_space_path_segment",
+      "edge_type": "consumed_by",
+      "label": "input:display_path"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "parameter:start_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:start_label"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "parameter:end_label",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:end_label"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "parameter:pseudotime_key",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:pseudotime_key"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:pseudotime"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:membership"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:confidence"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:segment_manifest"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:membership"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:confidence"
+    },
+    {
       "from": "op:trajectory_segment_path_join",
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
@@ -4586,6 +4694,12 @@
     },
     {
       "from": "artifact_type:obs_table:trajectory_signal_dynamics",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_segment_manifest",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"
@@ -6044,6 +6158,18 @@
     },
     {
       "from": "recipe:plot_trajectory_on_umap",
+      "to": "op:trajectory_segment_path_join",
+      "edge_type": "uses",
+      "label": "op:trajectory_segment_path_join"
+    },
+    {
+      "from": "op:trajectory_segment_path_join",
+      "to": "recipe:plot_trajectory_on_umap",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:plot_trajectory_on_umap",
       "to": "plot:embedding_overlay",
       "edge_type": "uses",
       "label": "plot:embedding_overlay"
@@ -6089,6 +6215,174 @@
       "to": "recipe:plot_trajectory_on_umap",
       "edge_type": "produced_by_recipe",
       "label": "recipe:plot_trajectory_on_umap"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "op:trajectory_space_path_segment",
+      "edge_type": "uses",
+      "label": "op:trajectory_space_path_segment"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "op:trajectory_segment_join",
+      "edge_type": "uses",
+      "label": "op:trajectory_segment_join"
+    },
+    {
+      "from": "op:trajectory_segment_join",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "op:trajectory_segment_path_join",
+      "edge_type": "uses",
+      "label": "op:trajectory_segment_path_join"
+    },
+    {
+      "from": "op:trajectory_segment_path_join",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "op:trajectory_geneset_dynamics",
+      "edge_type": "uses",
+      "label": "op:trajectory_geneset_dynamics"
+    },
+    {
+      "from": "op:trajectory_geneset_dynamics",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "op:trajectory_signal_dynamics",
+      "edge_type": "uses",
+      "label": "op:trajectory_signal_dynamics"
+    },
+    {
+      "from": "op:trajectory_signal_dynamics",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "parameter:source_kind",
+      "edge_type": "uses",
+      "label": "parameter:source_kind"
+    },
+    {
+      "from": "parameter:source_kind",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "parameter:source_engine",
+      "edge_type": "uses",
+      "label": "parameter:source_engine"
+    },
+    {
+      "from": "parameter:source_engine",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "parameter:join_policy",
+      "edge_type": "uses",
+      "label": "parameter:join_policy"
+    },
+    {
+      "from": "parameter:join_policy",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "parameter:pseudotime_key",
+      "edge_type": "uses",
+      "label": "parameter:pseudotime_key"
+    },
+    {
+      "from": "parameter:pseudotime_key",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "used_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:cell_vector_family"
+    },
+    {
+      "from": "artifact_type:cell_vector_family",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:cell_vector"
+    },
+    {
+      "from": "artifact_type:cell_vector",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "artifact_type:obs_table:trajectory_segment_join_manifest",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_segment_join_manifest"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_segment_join_manifest",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "artifact_type:obs_table:trajectory_segment_local_membership",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:obs_table:trajectory_segment_local_membership"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_segment_local_membership",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
+    },
+    {
+      "from": "recipe:mixed_source_composite_trajectory",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "recipe_produces",
+      "label": "artifact_type:path_2d_family"
+    },
+    {
+      "from": "artifact_type:path_2d_family",
+      "to": "recipe:mixed_source_composite_trajectory",
+      "edge_type": "produced_by_recipe",
+      "label": "recipe:mixed_source_composite_trajectory"
     },
     {
       "from": "recipe:de_to_pathway_report",

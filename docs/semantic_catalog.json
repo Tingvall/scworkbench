@@ -1,15 +1,15 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-25T23:15:31+0200",
-  "record_count": 293,
+  "generated_at": "2026-06-27T15:47:34+0200",
+  "record_count": 298,
   "record_type_counts": {
-    "artifact_type": 69,
+    "artifact_type": 70,
     "getter": 71,
-    "op": 49,
-    "parameter": 57,
+    "op": 50,
+    "parameter": 59,
     "plot": 12,
     "primitive": 11,
-    "recipe": 10,
+    "recipe": 11,
     "wrangler": 14
   },
   "records": [
@@ -4146,13 +4146,13 @@
       "record_type": "op",
       "name": "trajectory_segment_join",
       "title": "Trajectory segment join",
-      "description": "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
-      "search_text": "Trajectory segment join\nJoin ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.\ntrajectory\nprovenance\ncomposition\ncell_set\nselect\ncomposite_pseudotime\ncell_vector_family\nOne-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary.\nsegment_local_table\nobs_table\nOne row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role.\ncomposite_manifest\nAudit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats.\ncomposite_membership\ncell_vector\nOne-cell assignment to a unique segment or waypoint overlap.\nsegments\nlist\nOrdered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order.\ncomposite_id\nstring\nOptional stable trajectory_composite_id. Generated when omitted.\ncomposite_key\ncomposite_L1\nKey used in the output composite_pseudotime cell_vector_family.\njoin_policy\nwaypoint_collapse\nOverlap policy. v1 supports waypoint_collapse only.\nmin_weight\ndbl\nOptional minimum lineage weight required for segment-local membership when weights are supplied.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.",
+      "description": "Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+      "search_text": "Trajectory segment join\nJoin ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.\ntrajectory\nprovenance\ncomposition\ncell_set\nselect\ncomposite_pseudotime\ncell_vector_family\nOne-row-per-cell segmented composite pseudotime. Adjacent segment overlaps collapse to the exact shared boundary.\nsegment_local_table\nobs_table\nOne row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.\ncomposite_manifest\nAudit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.\ncomposite_membership\ncell_vector\nOne-cell assignment to a unique segment or waypoint overlap.\nsegments\nlist\nOrdered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.\ncomposite_id\nstring\nOptional stable trajectory_composite_id. Generated when omitted.\ncomposite_key\ncomposite_L1\nKey used in the output composite_pseudotime cell_vector_family.\njoin_policy\nexact_boundary_collapse\nOverlap policy. v1 supports exact_boundary_collapse; waypoint_collapse is accepted as an alias.\nmin_weight\ndbl\nOptional minimum lineage weight required for segment-local membership when weights are supplied.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.",
       "tags": ["op", "trajectory", "provenance", "composition"],
       "payload": {
         "op_name": "trajectory_segment_join",
         "title": "Trajectory segment join",
-        "description": "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+        "description": "Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
         "intent": ["trajectory", "provenance", "composition"],
         "consumes": [
           {
@@ -4164,17 +4164,17 @@
           {
             "name": "composite_pseudotime",
             "kind": "cell_vector_family",
-            "description": "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary."
+            "description": "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps collapse to the exact shared boundary."
           },
           {
             "name": "segment_local_table",
             "kind": "obs_table",
-            "description": "One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role."
+            "description": "One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role."
           },
           {
             "name": "composite_manifest",
             "kind": "obs_table",
-            "description": "Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats."
+            "description": "Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats."
           },
           {
             "name": "composite_membership",
@@ -4195,7 +4195,7 @@
             "name": "segments",
             "type": "list",
             "default": null,
-            "help": "Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order."
+            "help": "Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order."
           },
           {
             "name": "composite_id",
@@ -4212,8 +4212,8 @@
           {
             "name": "join_policy",
             "type": "string",
-            "default": "waypoint_collapse",
-            "help": "Overlap policy. v1 supports waypoint_collapse only."
+            "default": "exact_boundary_collapse",
+            "help": "Overlap policy. v1 supports exact_boundary_collapse; waypoint_collapse is accepted as an alias."
           },
           {
             "name": "min_weight",
@@ -4229,6 +4229,139 @@
           }
         ],
         "promotable": ["composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:trajectory_space_path_segment",
+      "record_type": "op",
+      "name": "trajectory_space_path_segment",
+      "title": "Trajectory space-path segment",
+      "description": "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
+      "search_text": "Trajectory space-path segment\nConvert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.\ntrajectory\nbridge\ncomposition\ngeometry\npath_scores\ncell_vector_family\nTRUE\ndisplay_path\npath_2d_family\nFALSE\ncell_set\nselect\npseudotime\nBridge pseudotime from path arclength progress in [0,1].\nmembership\ncell_vector\nCells passing the transparent distance-to-path bridge membership rule.\nconfidence\nDistance-derived confidence for included bridge cells.\nsegment_manifest\nobs_table\nAudit manifest for the space-path bridge segment.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this bridge segment in a future composite.\nscore_prefix\nOptional prefix used by space_path_score keys.\ncandidate_cells\ncell_ids_or_set\nOptional candidate universe before distance thresholding.\ndistance_threshold\nInclude cells with distance_to_path <= threshold.\ndistance_quantile\nAlternative threshold: include cells up to this distance quantile.\nstart_label\nBiological start label.\nend_label\nBiological end label.\npseudotime_key\nKey for emitted bridge pseudotime. Defaults to segment_id.\nconfidence_key\nKey for emitted bridge confidence. Defaults to segment_id.",
+      "tags": ["op", "trajectory", "bridge", "composition", "geometry"],
+      "payload": {
+        "op_name": "trajectory_space_path_segment",
+        "title": "Trajectory space-path segment",
+        "description": "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
+        "intent": ["trajectory", "bridge", "composition", "geometry"],
+        "consumes": [
+          {
+            "name": "path_scores",
+            "kind": "cell_vector_family",
+            "required": true
+          },
+          {
+            "name": "display_path",
+            "kind": "path_2d_family",
+            "required": false
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "pseudotime",
+            "kind": "cell_vector_family",
+            "description": "Bridge pseudotime from path arclength progress in [0,1]."
+          },
+          {
+            "name": "membership",
+            "kind": "cell_vector",
+            "description": "Cells passing the transparent distance-to-path bridge membership rule."
+          },
+          {
+            "name": "confidence",
+            "kind": "cell_vector_family",
+            "description": "Distance-derived confidence for included bridge cells."
+          },
+          {
+            "name": "segment_manifest",
+            "kind": "obs_table",
+            "description": "Audit manifest for the space-path bridge segment."
+          }
+        ],
+        "inputs": {
+          "path_scores": {
+            "required": true,
+            "kind": "cell_vector_family"
+          },
+          "display_path": {
+            "required": false,
+            "kind": "path_2d_family"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "segment_id",
+            "type": "string",
+            "default": null,
+            "help": "Stable segment identifier."
+          },
+          {
+            "name": "segment_order",
+            "type": "dbl",
+            "default": 1,
+            "help": "Order of this bridge segment in a future composite."
+          },
+          {
+            "name": "score_prefix",
+            "type": "string",
+            "default": null,
+            "help": "Optional prefix used by space_path_score keys."
+          },
+          {
+            "name": "candidate_cells",
+            "type": "cell_ids_or_set",
+            "default": null,
+            "help": "Optional candidate universe before distance thresholding."
+          },
+          {
+            "name": "distance_threshold",
+            "type": "dbl",
+            "default": null,
+            "help": "Include cells with distance_to_path <= threshold."
+          },
+          {
+            "name": "distance_quantile",
+            "type": "dbl",
+            "default": null,
+            "help": "Alternative threshold: include cells up to this distance quantile."
+          },
+          {
+            "name": "start_label",
+            "type": "string",
+            "default": null,
+            "help": "Biological start label."
+          },
+          {
+            "name": "end_label",
+            "type": "string",
+            "default": null,
+            "help": "Biological end label."
+          },
+          {
+            "name": "pseudotime_key",
+            "type": "string",
+            "default": null,
+            "help": "Key for emitted bridge pseudotime. Defaults to segment_id."
+          },
+          {
+            "name": "confidence_key",
+            "type": "string",
+            "default": null,
+            "help": "Key for emitted bridge confidence. Defaults to segment_id."
+          }
+        ],
+        "promotable": ["pseudotime", "membership", "confidence", "segment_manifest"],
         "chunking": null
       }
     },
@@ -8533,6 +8666,24 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:trajectory_segment_manifest",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_manifest",
+      "title": "Trajectory Segment Manifest",
+      "description": "Audit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.",
+      "search_text": "Trajectory Segment Manifest\nAudit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.\nobs_table\ntrajectory_segment_manifest\ntrajectory_segment\naudit generic trajectory segment adapters\ninspect mixed-source composite inputs\ntrace curated or space-path bridge assumptions",
+      "tags": ["artifact_type", "obs_table", "trajectory_segment_manifest"],
+      "payload": {
+        "artifact_type": "obs_table:trajectory_segment_manifest",
+        "primitive_kind": "obs_table",
+        "title": "Trajectory Segment Manifest",
+        "description": "Audit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.",
+        "table_type": "trajectory_segment_manifest",
+        "entity_kind": "trajectory_segment",
+        "use_when": ["audit generic trajectory segment adapters", "inspect mixed-source composite inputs", "trace curated or space-path bridge assumptions"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:trajectory_segment_local_membership",
       "record_type": "artifact_type",
       "name": "obs_table:trajectory_segment_local_membership",
@@ -9464,13 +9615,51 @@
       }
     },
     {
+      "record_id": "parameter:source_kind",
+      "record_type": "parameter",
+      "name": "source_kind",
+      "title": "Trajectory Segment Source Kind",
+      "description": "Declares how a trajectory segment was generated, for example fitted_model, space_path_bridge, imported_pseudotime, manual_pseudotime, graph_path_bridge, or composite.",
+      "search_text": "Trajectory Segment Source Kind\nDeclares how a trajectory segment was generated, for example fitted_model, space_path_bridge, imported_pseudotime, manual_pseudotime, graph_path_bridge, or composite.\ntrajectory\ntrajectory segment params and manifests\nclaim boundaries\ncompatibility validation\nauditability\nDo not infer source kind from labels.\nCurated/manual/bridge segments must be declared rather than hidden as fitted models.\nsegment_source_kind",
+      "tags": ["parameter", "trajectory", "segment_source_kind"],
+      "payload": {
+        "parameter_name": "source_kind",
+        "title": "Trajectory Segment Source Kind",
+        "category": "trajectory",
+        "description": "Declares how a trajectory segment was generated, for example fitted_model, space_path_bridge, imported_pseudotime, manual_pseudotime, graph_path_bridge, or composite.",
+        "applies_to": "trajectory segment params and manifests",
+        "affects": ["claim boundaries", "compatibility validation", "auditability"],
+        "guidance": ["Do not infer source kind from labels.", "Curated/manual/bridge segments must be declared rather than hidden as fitted models."],
+        "aliases": "segment_source_kind"
+      }
+    },
+    {
+      "record_id": "parameter:source_engine",
+      "record_type": "parameter",
+      "name": "source_engine",
+      "title": "Trajectory Segment Source Engine",
+      "description": "Declares the engine or source family that produced a segment, such as slingshot, monocle3, palantir, space_path, manual, imported, graph, or unknown.",
+      "search_text": "Trajectory Segment Source Engine\nDeclares the engine or source family that produced a segment, such as slingshot, monocle3, palantir, space_path, manual, imported, graph, or unknown.\ntrajectory\ntrajectory segment params and manifests\nmethods text\nsource-specific interpretation\nagent planning\nUse source_engine with source_kind to distinguish fitted models from bridge or imported segments.\nUnknown is allowed but less useful for audit.\nsegment_source_engine",
+      "tags": ["parameter", "trajectory", "segment_source_engine"],
+      "payload": {
+        "parameter_name": "source_engine",
+        "title": "Trajectory Segment Source Engine",
+        "category": "trajectory",
+        "description": "Declares the engine or source family that produced a segment, such as slingshot, monocle3, palantir, space_path, manual, imported, graph, or unknown.",
+        "applies_to": "trajectory segment params and manifests",
+        "affects": ["methods text", "source-specific interpretation", "agent planning"],
+        "guidance": ["Use source_engine with source_kind to distinguish fitted models from bridge or imported segments.", "Unknown is allowed but less useful for audit."],
+        "aliases": "segment_source_engine"
+      }
+    },
+    {
       "record_id": "parameter:join_policy",
       "record_type": "parameter",
       "name": "join_policy",
       "title": "Trajectory Segment Join Policy",
       "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
-      "search_text": "Trajectory Segment Join Policy\nRule used to convert segment-local pseudotimes into one composite pseudotime.\ntrajectory\ntrajectory_segment_join params\nwaypoint handling\ncomposite scale\noverlap interpretation\nwaypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.\nReport the join policy when using composite pseudotime for dynamics.\ntrajectory_join_policy\noverlap_policy",
-      "tags": ["parameter", "trajectory", "trajectory_join_policy", "overlap_policy"],
+      "search_text": "Trajectory Segment Join Policy\nRule used to convert segment-local pseudotimes into one composite pseudotime.\ntrajectory\ntrajectory_segment_join params\nwaypoint handling\ncomposite scale\noverlap interpretation\nexact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.\nwaypoint_collapse is a compatibility alias for exact_boundary_collapse.\nReport the join policy when using composite pseudotime for dynamics.\ntrajectory_join_policy\noverlap_policy\nboundary_policy",
+      "tags": ["parameter", "trajectory", "trajectory_join_policy", "overlap_policy", "boundary_policy"],
       "payload": {
         "parameter_name": "join_policy",
         "title": "Trajectory Segment Join Policy",
@@ -9478,8 +9667,8 @@
         "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
         "applies_to": "trajectory_segment_join params",
         "affects": ["waypoint handling", "composite scale", "overlap interpretation"],
-        "guidance": ["waypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.", "Report the join policy when using composite pseudotime for dynamics."],
-        "aliases": ["trajectory_join_policy", "overlap_policy"]
+        "guidance": ["exact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.", "waypoint_collapse is a compatibility alias for exact_boundary_collapse.", "Report the join policy when using composite pseudotime for dynamics."],
+        "aliases": ["trajectory_join_policy", "overlap_policy", "boundary_policy"]
       }
     },
     {
@@ -10431,7 +10620,7 @@
       "name": "plot_trajectory_on_umap",
       "title": "Plot selected trajectory curves on UMAP",
       "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
-      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:slingshot_project\nop:monocle3_project\nop:palantir_project\nop:space_path_project_2d\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
+      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nFor segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:slingshot_project\nop:monocle3_project\nop:palantir_project\nop:space_path_project_2d\nop:trajectory_segment_path_join\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nComposite display paths are derived geometry, not merged fitted models.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
       "tags": ["recipe", "visualization", "validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
       "payload": {
         "recipe_id": "plot_trajectory_on_umap",
@@ -10439,11 +10628,32 @@
         "category": "visualization",
         "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
         "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
-        "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
-        "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+        "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
+        "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
         "produces": "artifact_type:path_2d_family",
         "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
-        "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
+        "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "Composite display paths are derived geometry, not merged fitted models.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
+      }
+    },
+    {
+      "record_id": "recipe:mixed_source_composite_trajectory",
+      "record_type": "recipe",
+      "name": "mixed_source_composite_trajectory",
+      "title": "Build a mixed-source composite trajectory",
+      "description": "Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.",
+      "search_text": "Build a mixed-source composite trajectory\nHow can fitted trajectory segments and bridge/path segments be joined into one auditable pseudotime axis?\nCreate source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.\ntrajectory_composition\nCreate fitted trajectory segments from model/pseudotime/path artifacts or create bridge segments with trajectory_space_path_segment.\nEnsure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.\nRun trajectory_segment_join with join_policy='exact_boundary_collapse'.\nOptionally run trajectory_segment_path_join for UMAP display geometry.\nUse composite_pseudotime plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode.\nop:trajectory_space_path_segment\nop:trajectory_segment_join\nop:trajectory_segment_path_join\nop:trajectory_geneset_dynamics\nop:trajectory_signal_dynamics\nparameter:source_kind\nparameter:source_engine\nparameter:join_policy\nparameter:pseudotime_key\nartifact_type:cell_vector_family\nartifact_type:cell_vector\nartifact_type:obs_table:trajectory_segment_join_manifest\nartifact_type:obs_table:trajectory_segment_local_membership\nartifact_type:path_2d_family\na biological route must pass through waypoints\none fitted trajectory cannot represent all route intervals\na curated space-path bridge is needed between fitted segments\nA composite trajectory is not one fitted model.\nBridge/manual/imported segments must be declared in source_kind/source_engine.\nDisplay paths are not analytical pseudotime.",
+      "tags": ["recipe", "trajectory_composition", "a biological route must pass through waypoints", "one fitted trajectory cannot represent all route intervals", "a curated space-path bridge is needed between fitted segments"],
+      "payload": {
+        "recipe_id": "mixed_source_composite_trajectory",
+        "title": "Build a mixed-source composite trajectory",
+        "category": "trajectory_composition",
+        "question": "How can fitted trajectory segments and bridge/path segments be joined into one auditable pseudotime axis?",
+        "description": "Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.",
+        "steps": ["Create fitted trajectory segments from model/pseudotime/path artifacts or create bridge segments with trajectory_space_path_segment.", "Ensure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.", "Run trajectory_segment_join with join_policy='exact_boundary_collapse'.", "Optionally run trajectory_segment_path_join for UMAP display geometry.", "Use composite_pseudotime plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode."],
+        "uses": ["op:trajectory_space_path_segment", "op:trajectory_segment_join", "op:trajectory_segment_path_join", "op:trajectory_geneset_dynamics", "op:trajectory_signal_dynamics", "parameter:source_kind", "parameter:source_engine", "parameter:join_policy", "parameter:pseudotime_key"],
+        "produces": ["artifact_type:cell_vector_family", "artifact_type:cell_vector", "artifact_type:obs_table:trajectory_segment_join_manifest", "artifact_type:obs_table:trajectory_segment_local_membership", "artifact_type:path_2d_family"],
+        "use_when": ["a biological route must pass through waypoints", "one fitted trajectory cannot represent all route intervals", "a curated space-path bridge is needed between fitted segments"],
+        "cautions": ["A composite trajectory is not one fitted model.", "Bridge/manual/imported segments must be declared in source_kind/source_engine.", "Display paths are not analytical pseudotime."]
       }
     },
     {
@@ -10512,9 +10722,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-25T23:15:31+0200",
-    "node_count": 293,
-    "edge_count": 785,
+    "generated_at": "2026-06-27T15:47:34+0200",
+    "node_count": 298,
+    "edge_count": 829,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -10743,6 +10953,12 @@
         "record_type": "op",
         "name": "trajectory_segment_join",
         "title": "Trajectory segment join"
+      },
+      {
+        "record_id": "op:trajectory_space_path_segment",
+        "record_type": "op",
+        "name": "trajectory_space_path_segment",
+        "title": "Trajectory space-path segment"
       },
       {
         "record_id": "op:trajectory_segment_path_join",
@@ -11645,6 +11861,12 @@
         "title": "Trajectory Signal Dynamics Table"
       },
       {
+        "record_id": "artifact_type:obs_table:trajectory_segment_manifest",
+        "record_type": "artifact_type",
+        "name": "obs_table:trajectory_segment_manifest",
+        "title": "Trajectory Segment Manifest"
+      },
+      {
         "record_id": "artifact_type:obs_table:trajectory_segment_local_membership",
         "record_type": "artifact_type",
         "name": "obs_table:trajectory_segment_local_membership",
@@ -11951,6 +12173,18 @@
         "title": "Trajectory Composite Identity"
       },
       {
+        "record_id": "parameter:source_kind",
+        "record_type": "parameter",
+        "name": "source_kind",
+        "title": "Trajectory Segment Source Kind"
+      },
+      {
+        "record_id": "parameter:source_engine",
+        "record_type": "parameter",
+        "name": "source_engine",
+        "title": "Trajectory Segment Source Engine"
+      },
+      {
         "record_id": "parameter:join_policy",
         "record_type": "parameter",
         "name": "join_policy",
@@ -12255,6 +12489,12 @@
         "record_type": "recipe",
         "name": "plot_trajectory_on_umap",
         "title": "Plot selected trajectory curves on UMAP"
+      },
+      {
+        "record_id": "recipe:mixed_source_composite_trajectory",
+        "record_type": "recipe",
+        "name": "mixed_source_composite_trajectory",
+        "title": "Build a mixed-source composite trajectory"
       },
       {
         "record_id": "recipe:de_to_pathway_report",
@@ -14443,6 +14683,84 @@
         "label": "promotable:composite_membership"
       },
       {
+        "from": "primitive:cell_vector_family",
+        "to": "op:trajectory_space_path_segment",
+        "edge_type": "consumed_by",
+        "label": "input:path_scores"
+      },
+      {
+        "from": "primitive:path_2d_family",
+        "to": "op:trajectory_space_path_segment",
+        "edge_type": "consumed_by",
+        "label": "input:display_path"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "parameter:start_label",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:start_label"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "parameter:end_label",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:end_label"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "parameter:pseudotime_key",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:pseudotime_key"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:pseudotime"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "primitive:cell_vector",
+        "edge_type": "produces",
+        "label": "output:membership"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:confidence"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:segment_manifest"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:pseudotime"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "artifact_type:cell_vector",
+        "edge_type": "promotes_as",
+        "label": "promotable:membership"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:confidence"
+      },
+      {
         "from": "op:trajectory_segment_path_join",
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
@@ -15098,6 +15416,12 @@
       },
       {
         "from": "artifact_type:obs_table:trajectory_signal_dynamics",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_segment_manifest",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"
@@ -16556,6 +16880,18 @@
       },
       {
         "from": "recipe:plot_trajectory_on_umap",
+        "to": "op:trajectory_segment_path_join",
+        "edge_type": "uses",
+        "label": "op:trajectory_segment_path_join"
+      },
+      {
+        "from": "op:trajectory_segment_path_join",
+        "to": "recipe:plot_trajectory_on_umap",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:plot_trajectory_on_umap"
+      },
+      {
+        "from": "recipe:plot_trajectory_on_umap",
         "to": "plot:embedding_overlay",
         "edge_type": "uses",
         "label": "plot:embedding_overlay"
@@ -16601,6 +16937,174 @@
         "to": "recipe:plot_trajectory_on_umap",
         "edge_type": "produced_by_recipe",
         "label": "recipe:plot_trajectory_on_umap"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "op:trajectory_space_path_segment",
+        "edge_type": "uses",
+        "label": "op:trajectory_space_path_segment"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "op:trajectory_segment_join",
+        "edge_type": "uses",
+        "label": "op:trajectory_segment_join"
+      },
+      {
+        "from": "op:trajectory_segment_join",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "op:trajectory_segment_path_join",
+        "edge_type": "uses",
+        "label": "op:trajectory_segment_path_join"
+      },
+      {
+        "from": "op:trajectory_segment_path_join",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "op:trajectory_geneset_dynamics",
+        "edge_type": "uses",
+        "label": "op:trajectory_geneset_dynamics"
+      },
+      {
+        "from": "op:trajectory_geneset_dynamics",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "op:trajectory_signal_dynamics",
+        "edge_type": "uses",
+        "label": "op:trajectory_signal_dynamics"
+      },
+      {
+        "from": "op:trajectory_signal_dynamics",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "parameter:source_kind",
+        "edge_type": "uses",
+        "label": "parameter:source_kind"
+      },
+      {
+        "from": "parameter:source_kind",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "parameter:source_engine",
+        "edge_type": "uses",
+        "label": "parameter:source_engine"
+      },
+      {
+        "from": "parameter:source_engine",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "parameter:join_policy",
+        "edge_type": "uses",
+        "label": "parameter:join_policy"
+      },
+      {
+        "from": "parameter:join_policy",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "parameter:pseudotime_key",
+        "edge_type": "uses",
+        "label": "parameter:pseudotime_key"
+      },
+      {
+        "from": "parameter:pseudotime_key",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "used_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:cell_vector_family"
+      },
+      {
+        "from": "artifact_type:cell_vector_family",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "artifact_type:cell_vector",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:cell_vector"
+      },
+      {
+        "from": "artifact_type:cell_vector",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "artifact_type:obs_table:trajectory_segment_join_manifest",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_segment_join_manifest"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_segment_join_manifest",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "artifact_type:obs_table:trajectory_segment_local_membership",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:obs_table:trajectory_segment_local_membership"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_segment_local_membership",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
+      },
+      {
+        "from": "recipe:mixed_source_composite_trajectory",
+        "to": "artifact_type:path_2d_family",
+        "edge_type": "recipe_produces",
+        "label": "artifact_type:path_2d_family"
+      },
+      {
+        "from": "artifact_type:path_2d_family",
+        "to": "recipe:mixed_source_composite_trajectory",
+        "edge_type": "produced_by_recipe",
+        "label": "recipe:mixed_source_composite_trajectory"
       },
       {
         "from": "recipe:de_to_pathway_report",
