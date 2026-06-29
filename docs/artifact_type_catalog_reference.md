@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 70
+Artifact type count: 71
 
 ## cell_vector
 
@@ -472,6 +472,21 @@ Use when:
 - audit composite trajectory curve overlays
 - trace parent path artifacts
 - explain that a displayed composite curve is derived geometry, not a merged model
+
+### `obs_table:trajectory_segment_display_path_endpoint_qc`
+
+Title: Trajectory Display Path Endpoint QC
+
+Description: Endpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.
+
+Table type: trajectory_segment_display_path_endpoint_qc
+
+Entity kind: trajectory_segment_endpoint
+
+Use when:
+- detect stale or mismatched trajectory display paths
+- audit display geometry against declared endpoint cell sets
+- decide whether trajectory curve figures can be trusted
 
 ### `obs_table:ucell_signature_summary`
 

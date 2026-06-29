@@ -177,6 +177,7 @@
 <line x1="300" y1="2983" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_segment_join produces primitive:obs_table</title></line>
 <line x1="300" y1="2983" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_segment_join produces primitive:obs_table</title></line>
 <line x1="300" y1="3055" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_segment_path_join produces primitive:obs_table</title></line>
+<line x1="300" y1="3055" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_segment_path_join produces primitive:obs_table</title></line>
 <line x1="300" y1="3055" x2="370" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_segment_path_join produces primitive:path_2d_family</title></line>
 <line x1="300" y1="3127" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_signal_dynamics produces primitive:obs_table</title></line>
 <line x1="300" y1="3127" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_signal_dynamics produces primitive:obs_table</title></line>
@@ -189,6 +190,7 @@
 <line x1="300" y1="3343" x2="370" y2="103" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment produces primitive:cell_vector</title></line>
 <line x1="300" y1="3343" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment produces primitive:cell_vector_family</title></line>
 <line x1="300" y1="3343" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment produces primitive:cell_vector_family</title></line>
+<line x1="300" y1="3343" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment produces primitive:obs_table</title></line>
 <line x1="300" y1="3343" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment produces primitive:obs_table</title></line>
 <line x1="300" y1="3415" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth produces primitive:obs_table</title></line>
 <line x1="300" y1="3415" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth produces primitive:obs_table</title></line>

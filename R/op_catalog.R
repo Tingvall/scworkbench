@@ -182,6 +182,10 @@
     paths = inputs$paths,
     composite_id = inputs$composite_id %||% NULL,
     composite_key = inputs$composite_key %||% NULL,
+    display_space_id = inputs$display_space_id %||% NULL,
+    endpoint_summary_method = inputs$endpoint_summary_method %||% "centroid",
+    endpoint_max_distance = inputs$endpoint_max_distance %||% NULL,
+    endpoint_qc_action = inputs$endpoint_qc_action %||% "fail",
     allow_legacy = inputs$allow_legacy %||% FALSE
   )
   .wb_assert(is.list(raw) && is.list(raw$outputs),
@@ -204,6 +208,15 @@
     end_label = inputs$end_label %||% NULL,
     path = inputs$path %||% NULL,
     display_path = resolved$display_path %||% inputs$display_path %||% NULL,
+    display_lineage = inputs$display_lineage %||% NULL,
+    display_space_id = inputs$display_space_id %||% NULL,
+    start_endpoint = inputs$start_endpoint %||% NULL,
+    end_endpoint = inputs$end_endpoint %||% NULL,
+    start_cell_set = inputs$start_cell_set %||% NULL,
+    end_cell_set = inputs$end_cell_set %||% NULL,
+    endpoint_summary_method = inputs$endpoint_summary_method %||% "centroid",
+    endpoint_max_distance = inputs$endpoint_max_distance %||% NULL,
+    endpoint_qc_action = inputs$endpoint_qc_action %||% "fail",
     composite_id = inputs$composite_id %||% NULL,
     pseudotime_key = inputs$pseudotime_key %||% NULL,
     confidence_key = inputs$confidence_key %||% NULL,
@@ -3368,9 +3381,10 @@
         pseudotime = "cell_vector_family",
         membership = "cell_vector",
         confidence = "cell_vector_family",
-        segment_manifest = "obs_table"
+        segment_manifest = "obs_table",
+        display_endpoint_qc = "obs_table"
       ),
-      promotable = c("pseudotime", "membership", "confidence", "segment_manifest"),
+      promotable = c("pseudotime", "membership", "confidence", "segment_manifest", "display_endpoint_qc"),
       runner = .wb_runner_trajectory_space_path_segment,
       inputs = list(
         path_scores = list(required = TRUE, kind = "cell_vector_family"),
@@ -3393,6 +3407,26 @@
              help = "Biological start label."),
         list(name = "end_label", type = "string", default = NULL,
              help = "Biological end label."),
+        list(name = "display_lineage", type = "string", default = NULL,
+             help = "Optional key/lineage to validate in display_path. Defaults to the only key if display_path has one."),
+        list(name = "display_space_id", type = "string", default = NULL,
+             help = "2D display space used for endpoint cell-set coordinate QC."),
+        list(name = "start_endpoint", type = "list_or_cell_set", default = NULL,
+             help = "Optional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."),
+        list(name = "end_endpoint", type = "list_or_cell_set", default = NULL,
+             help = "Optional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."),
+        list(name = "start_cell_set", type = "cell_set", default = NULL,
+             help = "Convenience start endpoint cell set for display-path QC."),
+        list(name = "end_cell_set", type = "cell_set", default = NULL,
+             help = "Convenience end endpoint cell set for display-path QC."),
+        list(name = "endpoint_summary_method", type = "choice", default = "centroid",
+             choices = c("centroid", "medoid"),
+             help = "How endpoint cell sets are summarized in display space for QC."),
+        list(name = "endpoint_max_distance", type = "dbl", default = NULL,
+             help = "Optional absolute maximum endpoint distance before QC fails."),
+        list(name = "endpoint_qc_action", type = "choice", default = "fail",
+             choices = c("fail", "warn", "none"),
+             help = "Action when display-path endpoint QC detects a large mismatch."),
         list(name = "pseudotime_key", type = "string", default = NULL,
              help = "Key for emitted bridge pseudotime. Defaults to segment_id."),
         list(name = "confidence_key", type = "string", default = NULL,
@@ -3420,6 +3454,11 @@
           kind = "obs_table",
           table_type = "trajectory_segment_manifest",
           description = "Audit manifest for the space-path bridge segment."
+        ),
+        display_endpoint_qc = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_display_path_endpoint_qc",
+          description = "Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors."
         )
       )
     ),
@@ -3431,9 +3470,10 @@
       requires = list(),
       produces = list(
         curves = "path_2d_family",
-        path_manifest = "obs_table"
+        path_manifest = "obs_table",
+        endpoint_qc = "obs_table"
       ),
-      promotable = c("curves", "path_manifest"),
+      promotable = c("curves", "path_manifest", "endpoint_qc"),
       runner = .wb_runner_trajectory_segment_path_join,
       inputs = list(),
       params = list(
@@ -3443,6 +3483,16 @@
              help = "Optional trajectory_composite_id shared with a segmented pseudotime join."),
         list(name = "composite_key", type = "string", default = "composite_path",
              help = "Key used in the output composite path_2d_family."),
+        list(name = "display_space_id", type = "string", default = NULL,
+             help = "2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets."),
+        list(name = "endpoint_summary_method", type = "choice", default = "centroid",
+             choices = c("centroid", "medoid"),
+             help = "How endpoint cell sets are summarized in display space for QC."),
+        list(name = "endpoint_max_distance", type = "dbl", default = NULL,
+             help = "Optional absolute maximum endpoint distance before QC fails."),
+        list(name = "endpoint_qc_action", type = "choice", default = "fail",
+             choices = c("fail", "warn", "none"),
+             help = "Action when display-path endpoint QC detects a large mismatch."),
         list(name = "allow_legacy", type = "bool", default = FALSE,
              help = "Allow missing trajectory_fit_id on parent paths with warning.")
       ),
@@ -3457,6 +3507,11 @@
           kind = "obs_table",
           table_type = "trajectory_segment_path_join_manifest",
           description = "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
+        ),
+        endpoint_qc = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_display_path_endpoint_qc",
+          description = "Endpoint-distance QC for joined display paths with declared endpoint descriptors."
         )
       )
     ),

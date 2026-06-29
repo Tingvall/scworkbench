@@ -202,6 +202,32 @@ Analytical pseudotime and display geometry are separate.
 Path-only display geometry must not be treated as analytical pseudotime unless a
 segment adapter explicitly computes cell-level pseudotime.
 
+Display paths can be endpoint-validated when the segment declares endpoint
+descriptors. An endpoint descriptor may provide a cell set, explicit cell IDs,
+or explicit display-space `x`/`y` coordinates. For cell sets, the engine
+summarizes endpoint cells in the declared display space with either `centroid`
+or `medoid`.
+
+Endpoint QC records:
+
+- display path start/end coordinates,
+- declared endpoint coordinates,
+- endpoint cell counts,
+- endpoint radius diagnostics,
+- endpoint distance,
+- tolerance,
+- `ok`, `warn`, or `fail` status.
+
+The invariant is:
+
+```text
+A promoted trajectory display path must not visually contradict its declared
+analytical endpoints.
+```
+
+Labels alone are not endpoint descriptors. The engine does not infer endpoint
+cell sets from free-text labels.
+
 ## Downstream Consumers
 
 The resulting composite remains compatible with:

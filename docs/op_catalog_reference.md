@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-27T16:28:14+0200
+Generated at: 2026-06-29T17:44:55+0200
 
 Operation count: 51
 
@@ -1133,8 +1133,9 @@ Produces:
 - `membership`: cell_vector - Cells passing the transparent distance-to-path bridge membership rule.
 - `confidence`: cell_vector_family - Distance-derived confidence for included bridge cells.
 - `segment_manifest`: obs_table - Audit manifest for the space-path bridge segment.
+- `display_endpoint_qc`: obs_table - Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.
 
-Promotable outputs: pseudotime, membership, confidence, segment_manifest
+Promotable outputs: pseudotime, membership, confidence, segment_manifest, display_endpoint_qc
 
 Key parameters:
 - `segment_id` (string, default=NULL): Stable segment identifier.
@@ -1145,6 +1146,15 @@ Key parameters:
 - `distance_quantile` (dbl, default=NULL): Alternative threshold: include cells up to this distance quantile.
 - `start_label` (string, default=NULL): Biological start label.
 - `end_label` (string, default=NULL): Biological end label.
+- `display_lineage` (string, default=NULL): Optional key/lineage to validate in display_path. Defaults to the only key if display_path has one.
+- `display_space_id` (string, default=NULL): 2D display space used for endpoint cell-set coordinate QC.
+- `start_endpoint` (list_or_cell_set, default=NULL): Optional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.
+- `end_endpoint` (list_or_cell_set, default=NULL): Optional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.
+- `start_cell_set` (cell_set, default=NULL): Convenience start endpoint cell set for display-path QC.
+- `end_cell_set` (cell_set, default=NULL): Convenience end endpoint cell set for display-path QC.
+- `endpoint_summary_method` (choice, default=centroid): How endpoint cell sets are summarized in display space for QC.
+- `endpoint_max_distance` (dbl, default=NULL): Optional absolute maximum endpoint distance before QC fails.
+- `endpoint_qc_action` (choice, default=fail): Action when display-path endpoint QC detects a large mismatch.
 - `pseudotime_key` (string, default=NULL): Key for emitted bridge pseudotime. Defaults to segment_id.
 - `confidence_key` (string, default=NULL): Key for emitted bridge confidence. Defaults to segment_id.
 
@@ -1162,13 +1172,18 @@ Consumes:
 Produces:
 - `curves`: path_2d_family - Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.
 - `path_manifest`: obs_table - Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.
+- `endpoint_qc`: obs_table - Endpoint-distance QC for joined display paths with declared endpoint descriptors.
 
-Promotable outputs: curves, path_manifest
+Promotable outputs: curves, path_manifest, endpoint_qc
 
 Key parameters:
 - `paths` (list, default=NULL): Ordered path segment specs with path ref, lineage key, segment ID, labels, and order.
 - `composite_id` (string, default=NULL): Optional trajectory_composite_id shared with a segmented pseudotime join.
 - `composite_key` (string, default=composite_path): Key used in the output composite path_2d_family.
+- `display_space_id` (string, default=NULL): 2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets.
+- `endpoint_summary_method` (choice, default=centroid): How endpoint cell sets are summarized in display space for QC.
+- `endpoint_max_distance` (dbl, default=NULL): Optional absolute maximum endpoint distance before QC fails.
+- `endpoint_qc_action` (choice, default=fail): Action when display-path endpoint QC detects a large mismatch.
 - `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id on parent paths with warning.
 
 ## `slingshot_project`

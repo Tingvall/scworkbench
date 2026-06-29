@@ -1,9 +1,9 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-06-27T16:28:15+0200",
-  "record_count": 299,
+  "generated_at": "2026-06-29T17:44:56+0200",
+  "record_count": 300,
   "record_type_counts": {
-    "artifact_type": 70,
+    "artifact_type": 71,
     "getter": 71,
     "op": 51,
     "parameter": 59,
@@ -4397,7 +4397,7 @@
       "name": "trajectory_space_path_segment",
       "title": "Trajectory space-path segment",
       "description": "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
-      "search_text": "Trajectory space-path segment\nConvert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.\ntrajectory\nbridge\ncomposition\ngeometry\npath_scores\ncell_vector_family\nTRUE\ndisplay_path\npath_2d_family\nFALSE\ncell_set\nselect\npseudotime\nBridge pseudotime from path arclength progress in [0,1].\nmembership\ncell_vector\nCells passing the transparent distance-to-path bridge membership rule.\nconfidence\nDistance-derived confidence for included bridge cells.\nsegment_manifest\nobs_table\nAudit manifest for the space-path bridge segment.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this bridge segment in a future composite.\nscore_prefix\nOptional prefix used by space_path_score keys.\ncandidate_cells\ncell_ids_or_set\nOptional candidate universe before distance thresholding.\ndistance_threshold\nInclude cells with distance_to_path <= threshold.\ndistance_quantile\nAlternative threshold: include cells up to this distance quantile.\nstart_label\nBiological start label.\nend_label\nBiological end label.\npseudotime_key\nKey for emitted bridge pseudotime. Defaults to segment_id.\nconfidence_key\nKey for emitted bridge confidence. Defaults to segment_id.",
+      "search_text": "Trajectory space-path segment\nConvert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.\ntrajectory\nbridge\ncomposition\ngeometry\npath_scores\ncell_vector_family\nTRUE\ndisplay_path\npath_2d_family\nFALSE\ncell_set\nselect\npseudotime\nBridge pseudotime from path arclength progress in [0,1].\nmembership\ncell_vector\nCells passing the transparent distance-to-path bridge membership rule.\nconfidence\nDistance-derived confidence for included bridge cells.\nsegment_manifest\nobs_table\nAudit manifest for the space-path bridge segment.\ndisplay_endpoint_qc\nEndpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this bridge segment in a future composite.\nscore_prefix\nOptional prefix used by space_path_score keys.\ncandidate_cells\ncell_ids_or_set\nOptional candidate universe before distance thresholding.\ndistance_threshold\nInclude cells with distance_to_path <= threshold.\ndistance_quantile\nAlternative threshold: include cells up to this distance quantile.\nstart_label\nBiological start label.\nend_label\nBiological end label.\ndisplay_lineage\nOptional key/lineage to validate in display_path. Defaults to the only key if display_path has one.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC.\nstart_endpoint\nlist_or_cell_set\nOptional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nend_endpoint\nOptional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nstart_cell_set\nConvenience start endpoint cell set for display-path QC.\nend_cell_set\nConvenience end endpoint cell set for display-path QC.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\npseudotime_key\nKey for emitted bridge pseudotime. Defaults to segment_id.\nconfidence_key\nKey for emitted bridge confidence. Defaults to segment_id.",
       "tags": ["op", "trajectory", "bridge", "composition", "geometry"],
       "payload": {
         "op_name": "trajectory_space_path_segment",
@@ -4440,6 +4440,11 @@
             "name": "segment_manifest",
             "kind": "obs_table",
             "description": "Audit manifest for the space-path bridge segment."
+          },
+          {
+            "name": "display_endpoint_qc",
+            "kind": "obs_table",
+            "description": "Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors."
           }
         ],
         "inputs": {
@@ -4508,6 +4513,62 @@
             "help": "Biological end label."
           },
           {
+            "name": "display_lineage",
+            "type": "string",
+            "default": null,
+            "help": "Optional key/lineage to validate in display_path. Defaults to the only key if display_path has one."
+          },
+          {
+            "name": "display_space_id",
+            "type": "string",
+            "default": null,
+            "help": "2D display space used for endpoint cell-set coordinate QC."
+          },
+          {
+            "name": "start_endpoint",
+            "type": "list_or_cell_set",
+            "default": null,
+            "help": "Optional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."
+          },
+          {
+            "name": "end_endpoint",
+            "type": "list_or_cell_set",
+            "default": null,
+            "help": "Optional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."
+          },
+          {
+            "name": "start_cell_set",
+            "type": "cell_set",
+            "default": null,
+            "help": "Convenience start endpoint cell set for display-path QC."
+          },
+          {
+            "name": "end_cell_set",
+            "type": "cell_set",
+            "default": null,
+            "help": "Convenience end endpoint cell set for display-path QC."
+          },
+          {
+            "name": "endpoint_summary_method",
+            "type": "choice",
+            "default": "centroid",
+            "choices": ["centroid", "medoid"],
+            "help": "How endpoint cell sets are summarized in display space for QC."
+          },
+          {
+            "name": "endpoint_max_distance",
+            "type": "dbl",
+            "default": null,
+            "help": "Optional absolute maximum endpoint distance before QC fails."
+          },
+          {
+            "name": "endpoint_qc_action",
+            "type": "choice",
+            "default": "fail",
+            "choices": ["fail", "warn", "none"],
+            "help": "Action when display-path endpoint QC detects a large mismatch."
+          },
+          {
             "name": "pseudotime_key",
             "type": "string",
             "default": null,
@@ -4520,7 +4581,7 @@
             "help": "Key for emitted bridge confidence. Defaults to segment_id."
           }
         ],
-        "promotable": ["pseudotime", "membership", "confidence", "segment_manifest"],
+        "promotable": ["pseudotime", "membership", "confidence", "segment_manifest", "display_endpoint_qc"],
         "chunking": null
       }
     },
@@ -4530,7 +4591,7 @@
       "name": "trajectory_segment_path_join",
       "title": "Trajectory segment path join",
       "description": "Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.",
-      "search_text": "Trajectory segment path join\nJoin ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.\ntrajectory\nvisualization\nprovenance\ncomposition\ncell_set\nselect\ncurves\npath_2d_family\nDerived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.\npath_manifest\nobs_table\nAudit manifest recording parent path artifacts, segment order, point boundaries, and caveats.\npaths\nlist\nOrdered path segment specs with path ref, lineage key, segment ID, labels, and order.\ncomposite_id\nstring\nOptional trajectory_composite_id shared with a segmented pseudotime join.\ncomposite_key\ncomposite_path\nKey used in the output composite path_2d_family.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id on parent paths with warning.",
+      "search_text": "Trajectory segment path join\nJoin ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.\ntrajectory\nvisualization\nprovenance\ncomposition\ncell_set\nselect\ncurves\npath_2d_family\nDerived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.\npath_manifest\nobs_table\nAudit manifest recording parent path artifacts, segment order, point boundaries, and caveats.\nendpoint_qc\nEndpoint-distance QC for joined display paths with declared endpoint descriptors.\npaths\nlist\nOrdered path segment specs with path ref, lineage key, segment ID, labels, and order.\ncomposite_id\nstring\nOptional trajectory_composite_id shared with a segmented pseudotime join.\ncomposite_key\ncomposite_path\nKey used in the output composite path_2d_family.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\ndbl\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id on parent paths with warning.",
       "tags": ["op", "trajectory", "visualization", "provenance", "composition"],
       "payload": {
         "op_name": "trajectory_segment_path_join",
@@ -4553,6 +4614,11 @@
             "name": "path_manifest",
             "kind": "obs_table",
             "description": "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
+          },
+          {
+            "name": "endpoint_qc",
+            "kind": "obs_table",
+            "description": "Endpoint-distance QC for joined display paths with declared endpoint descriptors."
           }
         ],
         "inputs": {
@@ -4583,13 +4649,39 @@
             "help": "Key used in the output composite path_2d_family."
           },
           {
+            "name": "display_space_id",
+            "type": "string",
+            "default": null,
+            "help": "2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets."
+          },
+          {
+            "name": "endpoint_summary_method",
+            "type": "choice",
+            "default": "centroid",
+            "choices": ["centroid", "medoid"],
+            "help": "How endpoint cell sets are summarized in display space for QC."
+          },
+          {
+            "name": "endpoint_max_distance",
+            "type": "dbl",
+            "default": null,
+            "help": "Optional absolute maximum endpoint distance before QC fails."
+          },
+          {
+            "name": "endpoint_qc_action",
+            "type": "choice",
+            "default": "fail",
+            "choices": ["fail", "warn", "none"],
+            "help": "Action when display-path endpoint QC detects a large mismatch."
+          },
+          {
             "name": "allow_legacy",
             "type": "bool",
             "default": false,
             "help": "Allow missing trajectory_fit_id on parent paths with warning."
           }
         ],
-        "promotable": ["curves", "path_manifest"],
+        "promotable": ["curves", "path_manifest", "endpoint_qc"],
         "chunking": null
       }
     },
@@ -8897,6 +8989,24 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:trajectory_segment_display_path_endpoint_qc",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_display_path_endpoint_qc",
+      "title": "Trajectory Display Path Endpoint QC",
+      "description": "Endpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.",
+      "search_text": "Trajectory Display Path Endpoint QC\nEndpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.\nobs_table\ntrajectory_segment_display_path_endpoint_qc\ntrajectory_segment_endpoint\ndetect stale or mismatched trajectory display paths\naudit display geometry against declared endpoint cell sets\ndecide whether trajectory curve figures can be trusted",
+      "tags": ["artifact_type", "obs_table", "trajectory_segment_display_path_endpoint_qc"],
+      "payload": {
+        "artifact_type": "obs_table:trajectory_segment_display_path_endpoint_qc",
+        "primitive_kind": "obs_table",
+        "title": "Trajectory Display Path Endpoint QC",
+        "description": "Endpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.",
+        "table_type": "trajectory_segment_display_path_endpoint_qc",
+        "entity_kind": "trajectory_segment_endpoint",
+        "use_when": ["detect stale or mismatched trajectory display paths", "audit display geometry against declared endpoint cell sets", "decide whether trajectory curve figures can be trusted"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:ucell_signature_summary",
       "record_type": "artifact_type",
       "name": "obs_table:ucell_signature_summary",
@@ -10881,9 +10991,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-06-27T16:28:15+0200",
-    "node_count": 299,
-    "edge_count": 853,
+    "generated_at": "2026-06-29T17:44:56+0200",
+    "node_count": 300,
+    "edge_count": 856,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -12048,6 +12158,12 @@
         "record_type": "artifact_type",
         "name": "obs_table:trajectory_segment_path_join_manifest",
         "title": "Trajectory Segment Path Join Manifest"
+      },
+      {
+        "record_id": "artifact_type:obs_table:trajectory_segment_display_path_endpoint_qc",
+        "record_type": "artifact_type",
+        "name": "obs_table:trajectory_segment_display_path_endpoint_qc",
+        "title": "Trajectory Display Path Endpoint QC"
       },
       {
         "record_id": "artifact_type:obs_table:ucell_signature_summary",
@@ -15041,6 +15157,12 @@
       },
       {
         "from": "op:trajectory_space_path_segment",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:display_endpoint_qc"
+      },
+      {
+        "from": "op:trajectory_space_path_segment",
         "to": "artifact_type:cell_vector_family",
         "edge_type": "promotes_as",
         "label": "promotable:pseudotime"
@@ -15074,6 +15196,12 @@
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:path_manifest"
+      },
+      {
+        "from": "op:trajectory_segment_path_join",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:endpoint_qc"
       },
       {
         "from": "op:trajectory_segment_path_join",
@@ -15737,6 +15865,12 @@
       },
       {
         "from": "artifact_type:obs_table:trajectory_segment_path_join_manifest",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:trajectory_segment_display_path_endpoint_qc",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"

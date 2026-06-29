@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-27T16:28:15+0200",
-  "node_count": 299,
-  "edge_count": 853,
+  "generated_at": "2026-06-29T17:44:56+0200",
+  "node_count": 300,
+  "edge_count": 856,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -1167,6 +1167,12 @@
       "record_type": "artifact_type",
       "name": "obs_table:trajectory_segment_path_join_manifest",
       "title": "Trajectory Segment Path Join Manifest"
+    },
+    {
+      "record_id": "artifact_type:obs_table:trajectory_segment_display_path_endpoint_qc",
+      "record_type": "artifact_type",
+      "name": "obs_table:trajectory_segment_display_path_endpoint_qc",
+      "title": "Trajectory Display Path Endpoint QC"
     },
     {
       "record_id": "artifact_type:obs_table:ucell_signature_summary",
@@ -4160,6 +4166,12 @@
     },
     {
       "from": "op:trajectory_space_path_segment",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:display_endpoint_qc"
+    },
+    {
+      "from": "op:trajectory_space_path_segment",
       "to": "artifact_type:cell_vector_family",
       "edge_type": "promotes_as",
       "label": "promotable:pseudotime"
@@ -4193,6 +4205,12 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:path_manifest"
+    },
+    {
+      "from": "op:trajectory_segment_path_join",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:endpoint_qc"
     },
     {
       "from": "op:trajectory_segment_path_join",
@@ -4856,6 +4874,12 @@
     },
     {
       "from": "artifact_type:obs_table:trajectory_segment_path_join_manifest",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:trajectory_segment_display_path_endpoint_qc",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"

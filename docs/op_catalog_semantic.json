@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-27T16:28:14+0200",
+  "generated_at": "2026-06-29T17:44:55+0200",
   "op_count": 51,
   "ops": [
     {
@@ -4071,6 +4071,11 @@
           "name": "segment_manifest",
           "kind": "obs_table",
           "description": "Audit manifest for the space-path bridge segment."
+        },
+        {
+          "name": "display_endpoint_qc",
+          "kind": "obs_table",
+          "description": "Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors."
         }
       ],
       "inputs": {
@@ -4139,6 +4144,62 @@
           "help": "Biological end label."
         },
         {
+          "name": "display_lineage",
+          "type": "string",
+          "default": null,
+          "help": "Optional key/lineage to validate in display_path. Defaults to the only key if display_path has one."
+        },
+        {
+          "name": "display_space_id",
+          "type": "string",
+          "default": null,
+          "help": "2D display space used for endpoint cell-set coordinate QC."
+        },
+        {
+          "name": "start_endpoint",
+          "type": "list_or_cell_set",
+          "default": null,
+          "help": "Optional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."
+        },
+        {
+          "name": "end_endpoint",
+          "type": "list_or_cell_set",
+          "default": null,
+          "help": "Optional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."
+        },
+        {
+          "name": "start_cell_set",
+          "type": "cell_set",
+          "default": null,
+          "help": "Convenience start endpoint cell set for display-path QC."
+        },
+        {
+          "name": "end_cell_set",
+          "type": "cell_set",
+          "default": null,
+          "help": "Convenience end endpoint cell set for display-path QC."
+        },
+        {
+          "name": "endpoint_summary_method",
+          "type": "choice",
+          "default": "centroid",
+          "choices": ["centroid", "medoid"],
+          "help": "How endpoint cell sets are summarized in display space for QC."
+        },
+        {
+          "name": "endpoint_max_distance",
+          "type": "dbl",
+          "default": null,
+          "help": "Optional absolute maximum endpoint distance before QC fails."
+        },
+        {
+          "name": "endpoint_qc_action",
+          "type": "choice",
+          "default": "fail",
+          "choices": ["fail", "warn", "none"],
+          "help": "Action when display-path endpoint QC detects a large mismatch."
+        },
+        {
           "name": "pseudotime_key",
           "type": "string",
           "default": null,
@@ -4151,7 +4212,7 @@
           "help": "Key for emitted bridge confidence. Defaults to segment_id."
         }
       ],
-      "promotable": ["pseudotime", "membership", "confidence", "segment_manifest"],
+      "promotable": ["pseudotime", "membership", "confidence", "segment_manifest", "display_endpoint_qc"],
       "chunking": null
     },
     {
@@ -4175,6 +4236,11 @@
           "name": "path_manifest",
           "kind": "obs_table",
           "description": "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
+        },
+        {
+          "name": "endpoint_qc",
+          "kind": "obs_table",
+          "description": "Endpoint-distance QC for joined display paths with declared endpoint descriptors."
         }
       ],
       "inputs": {
@@ -4205,13 +4271,39 @@
           "help": "Key used in the output composite path_2d_family."
         },
         {
+          "name": "display_space_id",
+          "type": "string",
+          "default": null,
+          "help": "2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets."
+        },
+        {
+          "name": "endpoint_summary_method",
+          "type": "choice",
+          "default": "centroid",
+          "choices": ["centroid", "medoid"],
+          "help": "How endpoint cell sets are summarized in display space for QC."
+        },
+        {
+          "name": "endpoint_max_distance",
+          "type": "dbl",
+          "default": null,
+          "help": "Optional absolute maximum endpoint distance before QC fails."
+        },
+        {
+          "name": "endpoint_qc_action",
+          "type": "choice",
+          "default": "fail",
+          "choices": ["fail", "warn", "none"],
+          "help": "Action when display-path endpoint QC detects a large mismatch."
+        },
+        {
           "name": "allow_legacy",
           "type": "bool",
           "default": false,
           "help": "Allow missing trajectory_fit_id on parent paths with warning."
         }
       ],
-      "promotable": ["curves", "path_manifest"],
+      "promotable": ["curves", "path_manifest", "endpoint_qc"],
       "chunking": null
     },
     {

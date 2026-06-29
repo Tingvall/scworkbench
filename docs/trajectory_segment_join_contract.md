@@ -60,6 +60,12 @@ Each segment may also provide:
 - `segment_manifest`: adapter manifest artifact/ref.
 - `start_label`: human-readable biological start.
 - `end_label`: human-readable biological end.
+- `start_endpoint` / `end_endpoint`: optional endpoint descriptors for display
+  path QC. A descriptor may contain `cell_set`, `cells`, or explicit `x`/`y`
+  coordinates.
+- `start_cell_set` / `end_cell_set`: convenience endpoint cell-set fields for
+  display path QC.
+- `display_space_id`: 2D space used to summarize endpoint cell sets.
 
 Example:
 
@@ -308,10 +314,18 @@ parent `path_2d_family` artifacts and produces:
 - `curves`: a derived `path_2d_family` for UMAP/embedding overlay.
 - `path_manifest`: an audit table with parent path artifacts, segment order,
   point boundaries, labels, and caveats.
+- `endpoint_qc`: endpoint-distance QC comparing display path start/end points
+  with declared endpoint descriptors.
 
 The joined path is explicitly display geometry. It is not a merged model and is
 not evidence that a single continuous trajectory model was fitted across all
 segments.
+
+When endpoint descriptors are supplied, display-path endpoint QC compares each
+segment path start/end against the declared endpoint cell-set centroid/medoid or
+explicit coordinates in the requested display space. Large mismatches fail by
+default. Use `endpoint_qc_action = "warn"` or `"none"` only when intentionally
+producing diagnostic output from a known-bad or exploratory display path.
 
 Only `exact_boundary_collapse` is implemented. Other policies are unsupported
 and fail explicitly. Additional policies would need separate names, tests, and

@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-27T16:28:15+0200
+Generated at: 2026-06-29T17:44:56+0200
 
-Record count: 299
+Record count: 300
 
-Graph edges: 853
+Graph edges: 856
 
 ## artifact_type
 
@@ -219,6 +219,12 @@ Description: Manifest for a segmented composite trajectory, recording parent tra
 Title: Trajectory Segment Path Join Manifest
 
 Description: Manifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.
+
+### `artifact_type:obs_table:trajectory_segment_display_path_endpoint_qc`
+
+Title: Trajectory Display Path Endpoint QC
+
+Description: Endpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.
 
 ### `artifact_type:obs_table:ucell_signature_summary`
 

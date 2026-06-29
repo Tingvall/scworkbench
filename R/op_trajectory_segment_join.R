@@ -351,6 +351,15 @@ wb_op_trajectory_space_path_segment <- function(bundle,
                                                 end_label = NULL,
                                                 path = NULL,
                                                 display_path = NULL,
+                                                display_lineage = NULL,
+                                                display_space_id = NULL,
+                                                start_endpoint = NULL,
+                                                end_endpoint = NULL,
+                                                start_cell_set = NULL,
+                                                end_cell_set = NULL,
+                                                endpoint_summary_method = "centroid",
+                                                endpoint_max_distance = NULL,
+                                                endpoint_qc_action = "fail",
                                                 composite_id = NULL,
                                                 pseudotime_key = NULL,
                                                 confidence_key = NULL,
@@ -471,8 +480,47 @@ wb_op_trajectory_space_path_segment <- function(bundle,
     )
   )
   if (!is.null(display_path)) {
-    outputs$display_path <- .wb_segment_resolve_primitive(bundle, display_path, runs = runs, expected_kind = "path_2d_family",
-                                                          label = paste0(segment_id, " display_path"))
+    display_prim <- .wb_segment_resolve_primitive(bundle, display_path, runs = runs, expected_kind = "path_2d_family",
+                                                  label = paste0(segment_id, " display_path"))
+    display_lineage <- as.character(display_lineage %||% "")[1]
+    display_xy <- .wb_segment_path_values(display_prim, display_lineage, label = paste0(segment_id, " display_path"))
+    endpoint_qc <- .wb_display_endpoint_qc(
+      bundle = bundle,
+      segment_id = segment_id,
+      path_xy = display_xy,
+      start_endpoint = start_endpoint,
+      end_endpoint = end_endpoint,
+      start_label = start_label,
+      end_label = end_label,
+      start_cell_set = start_cell_set,
+      end_cell_set = end_cell_set,
+      display_space_id = display_space_id,
+      summary_method = endpoint_summary_method,
+      max_distance = endpoint_max_distance,
+      action = endpoint_qc_action
+    )
+    outputs$display_path <- display_prim
+    outputs$display_endpoint_qc <- wb_prim_obs_table(
+      endpoint_qc,
+      table_type = "trajectory_segment_display_path_endpoint_qc",
+      entity_kind = "trajectory_segment_endpoint",
+      meta = c(meta, list(endpoint_qc_action = endpoint_qc_action))
+    )
+  } else {
+    endpoint_qc <- .wb_display_endpoint_qc(
+      bundle = bundle,
+      segment_id = segment_id,
+      path_xy = data.frame(x = numeric(0), y = numeric(0)),
+      start_endpoint = NULL,
+      end_endpoint = NULL,
+      action = "none"
+    )
+    outputs$display_endpoint_qc <- wb_prim_obs_table(
+      endpoint_qc,
+      table_type = "trajectory_segment_display_path_endpoint_qc",
+      entity_kind = "trajectory_segment_endpoint",
+      meta = c(meta, list(endpoint_qc_action = "none"))
+    )
   }
 
   list(
@@ -486,7 +534,8 @@ wb_op_trajectory_space_path_segment <- function(bundle,
       confidence_key = conf_key,
       membership_rule = membership_rule,
       distance_threshold = if (is.finite(threshold)) threshold else NA_real_,
-      n_cells = nrow(score)
+      n_cells = nrow(score),
+      endpoint_qc_action = endpoint_qc_action
     )
   )
 }
@@ -841,7 +890,12 @@ wb_op_trajectory_segment_join <- function(bundle,
 .wb_segment_path_values <- function(prim, lineage, label = "path_2d_family") {
   .wb_assert_kind(prim, "path_2d_family", where = paste0(" for ", label))
   lineage <- as.character(lineage %||% "")[1]
-  .wb_assert(nzchar(lineage), "trajectory_segment_path_join(): lineage must be a single non-empty string.")
+  if (!nzchar(lineage)) {
+    keys <- unique(as.character(prim$key))
+    keys <- keys[nzchar(keys)]
+    .wb_assert(length(keys) == 1L, "trajectory_segment_path_join(): lineage must be supplied when path has multiple keys.")
+    lineage <- keys[1]
+  }
   key <- as.character(prim$key)
   hit <- key == lineage
   .wb_assert(any(hit), paste0("trajectory_segment_path_join(): lineage '", lineage, "' not found in ", label, "."))
@@ -855,6 +909,186 @@ wb_op_trajectory_segment_join <- function(bundle,
   out <- out[is.finite(out$point) & is.finite(out$x) & is.finite(out$y), , drop = FALSE]
   .wb_assert(nrow(out) > 0L, paste0("trajectory_segment_path_join(): no finite path points for ", label, "."))
   out[order(out$point), , drop = FALSE]
+}
+
+.wb_endpoint_descriptor <- function(x, label = NULL, cell_set = NULL) {
+  if (is.null(x) && is.null(cell_set)) return(NULL)
+  if (is.list(x) && !is.data.frame(x)) {
+    out <- x
+  } else if (is.data.frame(x)) {
+    .wb_assert(nrow(x) >= 1L, "Endpoint data.frame descriptors must have at least one row.")
+    out <- as.list(x[1, , drop = FALSE])
+  } else {
+    out <- list(cell_set = as.character(x)[1])
+  }
+  if (!is.null(cell_set)) out$cell_set <- as.character(cell_set)[1]
+  if (!is.null(label) && is.null(out$label)) out$label <- as.character(label)[1]
+  out
+}
+
+.wb_endpoint_cells <- function(bundle, endpoint) {
+  if (is.null(endpoint)) return(character(0))
+  if (!is.null(endpoint$cells)) return(unique(as.character(endpoint$cells)))
+  if (!is.null(endpoint$cell_ids)) return(unique(as.character(endpoint$cell_ids)))
+  cell_set <- as.character(endpoint$cell_set %||% "")[1]
+  if (!nzchar(cell_set)) return(character(0))
+  candidates <- unique(c(cell_set, paste0("set:", cell_set), sub("^set:", "", cell_set)))
+  for (cs in candidates) {
+    cells <- tryCatch(as.character(wb_cells(bundle, cell_set = cs)), error = function(e) character(0))
+    if (length(cells)) return(unique(cells))
+  }
+  character(0)
+}
+
+.wb_endpoint_display_summary <- function(bundle, endpoint, display_space_id, summary_method = "centroid") {
+  summary_method <- as.character(summary_method %||% "centroid")[1]
+  .wb_assert(summary_method %in% c("centroid", "medoid"),
+             "Endpoint summary method must be 'centroid' or 'medoid'.")
+  endpoint <- .wb_endpoint_descriptor(endpoint)
+  label <- as.character(endpoint$label %||% endpoint$cell_set %||% "")[1]
+  if (!is.null(endpoint$x) && !is.null(endpoint$y)) {
+    return(list(
+      label = label,
+      x = suppressWarnings(as.numeric(endpoint$x)[1]),
+      y = suppressWarnings(as.numeric(endpoint$y)[1]),
+      n_cells = NA_integer_,
+      radius_median = NA_real_,
+      source = "explicit_xy"
+    ))
+  }
+  cells <- .wb_endpoint_cells(bundle, endpoint)
+  .wb_assert(length(cells) > 0L, paste0("Endpoint '", label, "' did not resolve to any cells."))
+  display_space_id <- as.character(endpoint$display_space_id %||% display_space_id %||% "")[1]
+  .wb_assert(nzchar(display_space_id), paste0("Endpoint '", label, "' requires display_space_id for cell-set coordinate QC."))
+  xy <- .wb_space_2d_safe(bundle, display_space_id, cells = cells)
+  xy <- xy[is.finite(xy$x) & is.finite(xy$y), , drop = FALSE]
+  .wb_assert(nrow(xy) > 0L, paste0("Endpoint '", label, "' has no finite coordinates in display_space_id='", display_space_id, "'."))
+  cx <- mean(xy$x)
+  cy <- mean(xy$y)
+  dist <- sqrt((xy$x - cx)^2 + (xy$y - cy)^2)
+  if (identical(summary_method, "medoid")) {
+    j <- which.min(dist)
+    cx <- xy$x[j]
+    cy <- xy$y[j]
+    dist <- sqrt((xy$x - cx)^2 + (xy$y - cy)^2)
+  }
+  list(
+    label = label,
+    x = cx,
+    y = cy,
+    n_cells = nrow(xy),
+    radius_median = stats::median(dist, na.rm = TRUE),
+    source = paste0("cell_set:", as.character(endpoint$cell_set %||% "cells")[1])
+  )
+}
+
+.wb_endpoint_global_tolerance <- function(bundle, display_space_id) {
+  display_space_id <- as.character(display_space_id %||% "")[1]
+  if (!nzchar(display_space_id)) return(NA_real_)
+  xy <- .wb_space_2d_safe(bundle, display_space_id, cells = NULL)
+  xy <- xy[is.finite(xy$x) & is.finite(xy$y), , drop = FALSE]
+  if (!nrow(xy)) return(NA_real_)
+  dx <- diff(range(xy$x))
+  dy <- diff(range(xy$y))
+  diag <- sqrt(dx^2 + dy^2)
+  if (!is.finite(diag) || diag <= 0) return(NA_real_)
+  0.02 * diag
+}
+
+.wb_display_endpoint_qc_one <- function(bundle, segment_id, endpoint_role, endpoint, path_xy,
+                                        display_space_id = NULL, summary_method = "centroid",
+                                        max_distance = NULL, tolerance_multiplier = 3) {
+  endpoint <- .wb_endpoint_descriptor(endpoint)
+  display_space_id <- as.character(endpoint$display_space_id %||% display_space_id %||% "")[1]
+  e <- .wb_endpoint_display_summary(bundle, endpoint, display_space_id = display_space_id, summary_method = summary_method)
+  px <- if (identical(endpoint_role, "start")) path_xy$x[1] else path_xy$x[nrow(path_xy)]
+  py <- if (identical(endpoint_role, "start")) path_xy$y[1] else path_xy$y[nrow(path_xy)]
+  distance <- sqrt((px - e$x)^2 + (py - e$y)^2)
+  max_distance <- suppressWarnings(as.numeric(max_distance)[1])
+  base_tol <- if (is.finite(max_distance)) max_distance else {
+    global_tol <- .wb_endpoint_global_tolerance(bundle, display_space_id)
+    radius_tol <- suppressWarnings(as.numeric(e$radius_median) * suppressWarnings(as.numeric(tolerance_multiplier)[1]))
+    max(c(radius_tol, global_tol, 1e-8), na.rm = TRUE)
+  }
+  if (!is.finite(base_tol) || base_tol <= 0) base_tol <- 1e-8
+  status <- if (!is.finite(distance)) {
+    "fail"
+  } else if (distance <= base_tol) {
+    "ok"
+  } else if (distance <= 2 * base_tol) {
+    "warn"
+  } else {
+    "fail"
+  }
+  data.frame(
+    segment_id = as.character(segment_id)[1],
+    endpoint_role = endpoint_role,
+    endpoint_label = as.character(e$label %||% "")[1],
+    display_space_id = display_space_id,
+    summary_method = as.character(summary_method)[1],
+    endpoint_source = as.character(e$source %||% "")[1],
+    n_endpoint_cells = as.integer(e$n_cells %||% NA_integer_),
+    display_path_x = px,
+    display_path_y = py,
+    endpoint_x = e$x,
+    endpoint_y = e$y,
+    endpoint_radius_median = suppressWarnings(as.numeric(e$radius_median %||% NA_real_)),
+    distance = distance,
+    tolerance = base_tol,
+    status = status,
+    stringsAsFactors = FALSE
+  )
+}
+
+.wb_display_endpoint_qc <- function(bundle, segment_id, path_xy,
+                                    start_endpoint = NULL, end_endpoint = NULL,
+                                    start_label = NULL, end_label = NULL,
+                                    start_cell_set = NULL, end_cell_set = NULL,
+                                    display_space_id = NULL,
+                                    summary_method = "centroid",
+                                    max_distance = NULL,
+                                    action = "fail") {
+  action <- as.character(action %||% "fail")[1]
+  .wb_assert(action %in% c("fail", "warn", "none"),
+             "endpoint_qc_action must be one of: fail, warn, none.")
+  rows <- list()
+  start_endpoint <- .wb_endpoint_descriptor(start_endpoint, label = start_label, cell_set = start_cell_set)
+  end_endpoint <- .wb_endpoint_descriptor(end_endpoint, label = end_label, cell_set = end_cell_set)
+  if (!is.null(start_endpoint)) {
+    rows[[length(rows) + 1L]] <- .wb_display_endpoint_qc_one(
+      bundle, segment_id, "start", start_endpoint, path_xy,
+      display_space_id = display_space_id, summary_method = summary_method,
+      max_distance = max_distance
+    )
+  }
+  if (!is.null(end_endpoint)) {
+    rows[[length(rows) + 1L]] <- .wb_display_endpoint_qc_one(
+      bundle, segment_id, "end", end_endpoint, path_xy,
+      display_space_id = display_space_id, summary_method = summary_method,
+      max_distance = max_distance
+    )
+  }
+  if (!length(rows)) {
+    return(data.frame(
+      segment_id = character(0), endpoint_role = character(0), endpoint_label = character(0),
+      display_space_id = character(0), summary_method = character(0), endpoint_source = character(0),
+      n_endpoint_cells = integer(0), display_path_x = numeric(0), display_path_y = numeric(0),
+      endpoint_x = numeric(0), endpoint_y = numeric(0), endpoint_radius_median = numeric(0),
+      distance = numeric(0), tolerance = numeric(0), status = character(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+  out <- do.call(rbind, rows)
+  bad <- out$status == "fail"
+  warn <- out$status == "warn"
+  msg <- paste0(
+    "display path endpoint QC for segment '", segment_id, "': ",
+    paste(paste0(out$endpoint_role, " distance=", signif(out$distance, 4),
+                 " tolerance=", signif(out$tolerance, 4), " status=", out$status), collapse = "; ")
+  )
+  if (any(bad) && identical(action, "fail")) stop(msg, call. = FALSE)
+  if ((any(bad) || any(warn)) && identical(action, "warn")) warning(msg, call. = FALSE)
+  out
 }
 
 #' Join Display Paths For A Segmented Composite Trajectory
@@ -876,6 +1110,10 @@ wb_op_trajectory_segment_path_join <- function(bundle,
                                                paths,
                                                composite_id = NULL,
                                                composite_key = NULL,
+                                               display_space_id = NULL,
+                                               endpoint_summary_method = "centroid",
+                                               endpoint_max_distance = NULL,
+                                               endpoint_qc_action = "fail",
                                                allow_legacy = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle.")
   .wb_assert(is.list(paths) && length(paths) >= 2L,
@@ -913,6 +1151,21 @@ wb_op_trajectory_segment_path_join <- function(bundle,
     pv$segment_id <- segment_id
     pv$segment_order <- order
     pv$source_lineage_id <- lineage
+    endpoint_qc <- .wb_display_endpoint_qc(
+      bundle = bundle,
+      segment_id = segment_id,
+      path_xy = pv,
+      start_endpoint = seg$start_endpoint %||% NULL,
+      end_endpoint = seg$end_endpoint %||% NULL,
+      start_label = seg$start_label %||% NULL,
+      end_label = seg$end_label %||% NULL,
+      start_cell_set = seg$start_cell_set %||% NULL,
+      end_cell_set = seg$end_cell_set %||% NULL,
+      display_space_id = seg$display_space_id %||% display_space_id %||% NULL,
+      summary_method = seg$endpoint_summary_method %||% endpoint_summary_method,
+      max_distance = seg$endpoint_max_distance %||% endpoint_max_distance %||% NULL,
+      action = seg$endpoint_qc_action %||% endpoint_qc_action
+    )
 
     segment_ids[i] <- segment_id
     segment_orders[i] <- order
@@ -931,6 +1184,8 @@ wb_op_trajectory_segment_path_join <- function(bundle,
       n_path_points = nrow(pv),
       stringsAsFactors = FALSE
     )
+    manifests[[i]]$endpoint_qc_rows <- nrow(endpoint_qc)
+    attr(manifests[[i]], "endpoint_qc") <- endpoint_qc
   }
 
   .wb_assert(!anyDuplicated(segment_ids), "trajectory_segment_path_join(): segment_id values must be unique.")
@@ -947,8 +1202,11 @@ wb_op_trajectory_segment_path_join <- function(bundle,
 
   joined <- do.call(rbind, rows)
   manifest <- do.call(rbind, manifests)
+  endpoint_qc <- do.call(rbind, lapply(manifests, function(x) attr(x, "endpoint_qc")))
+  if (is.null(endpoint_qc)) endpoint_qc <- .wb_display_endpoint_qc(bundle, "", data.frame(x = numeric(0), y = numeric(0)))
   rownames(joined) <- NULL
   rownames(manifest) <- NULL
+  rownames(endpoint_qc) <- NULL
   manifest$segment_index <- seq_len(nrow(manifest))
   idx_map <- stats::setNames(manifest$segment_index, manifest$segment_id)
   joined$segment_index <- unname(idx_map[joined$segment_id])
@@ -962,8 +1220,18 @@ wb_op_trajectory_segment_path_join <- function(bundle,
   manifest <- manifest[, c(
     "trajectory_composite_id", "composite_key", "segment_id", "segment_order", "segment_index",
     "source_kind", "source_engine", "lineage_id", "trajectory_fit_id", "trajectory_engine", "path_artifact_id",
-    "start_label", "end_label", "n_path_points", "composite_point_start", "composite_point_end", "caveats"
+    "start_label", "end_label", "n_path_points", "endpoint_qc_rows", "composite_point_start", "composite_point_end", "caveats"
   ), drop = FALSE]
+  if (nrow(endpoint_qc)) {
+    endpoint_qc$trajectory_composite_id <- composite_id
+    endpoint_qc$composite_key <- composite_key
+    endpoint_qc <- endpoint_qc[, c(
+      "trajectory_composite_id", "composite_key", "segment_id", "endpoint_role",
+      "endpoint_label", "display_space_id", "summary_method", "endpoint_source",
+      "n_endpoint_cells", "display_path_x", "display_path_y", "endpoint_x", "endpoint_y",
+      "endpoint_radius_median", "distance", "tolerance", "status"
+    ), drop = FALSE]
+  }
 
   parent_fit_ids <- unique(as.character(manifest$trajectory_fit_id))
   parent_fit_ids <- parent_fit_ids[nzchar(parent_fit_ids)]
@@ -992,6 +1260,12 @@ wb_op_trajectory_segment_path_join <- function(bundle,
         table_type = "trajectory_segment_path_join_manifest",
         entity_kind = "trajectory_segment",
         meta = meta
+      ),
+      endpoint_qc = wb_prim_obs_table(
+        endpoint_qc,
+        table_type = "trajectory_segment_display_path_endpoint_qc",
+        entity_kind = "trajectory_segment_endpoint",
+        meta = c(meta, list(endpoint_qc_action = endpoint_qc_action))
       )
     ),
     params = list(
@@ -999,6 +1273,7 @@ wb_op_trajectory_segment_path_join <- function(bundle,
       composite_key = composite_key,
       n_segments = length(segment_ids),
       n_points = nrow(joined),
+      endpoint_qc_rows = nrow(endpoint_qc),
       parent_segment_ids = segment_ids,
       parent_trajectory_fit_ids = parent_fit_ids
     )
