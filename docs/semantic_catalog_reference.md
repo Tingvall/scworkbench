@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-25T23:15:31+0200
+Generated at: 2026-06-29T17:44:56+0200
 
-Record count: 293
+Record count: 300
 
-Graph edges: 785
+Graph edges: 856
 
 ## artifact_type
 
@@ -196,6 +196,12 @@ Title: Trajectory Signal Dynamics Table
 
 Description: Dynamics metrics and classes for precomputed signals.
 
+### `artifact_type:obs_table:trajectory_segment_manifest`
+
+Title: Trajectory Segment Manifest
+
+Description: Audit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.
+
 ### `artifact_type:obs_table:trajectory_segment_local_membership`
 
 Title: Trajectory Segment-Local Membership Table
@@ -213,6 +219,12 @@ Description: Manifest for a segmented composite trajectory, recording parent tra
 Title: Trajectory Segment Path Join Manifest
 
 Description: Manifest for a derived segmented composite display path, recording parent path artifacts, segment order, point ranges, trajectory_fit_ids, and display-geometry caveats.
+
+### `artifact_type:obs_table:trajectory_segment_display_path_endpoint_qc`
+
+Title: Trajectory Display Path Endpoint QC
+
+Description: Endpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.
 
 ### `artifact_type:obs_table:ucell_signature_summary`
 
@@ -1080,7 +1092,19 @@ Description: Extract Slingshot lineage membership weights from an existing model
 
 Title: Trajectory segment join
 
-Description: Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
+Description: Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
+
+### `op:trajectory_segment_from_artifacts`
+
+Title: Trajectory fitted-artifact segment
+
+Description: Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.
+
+### `op:trajectory_space_path_segment`
+
+Title: Trajectory space-path segment
+
+Description: Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
 
 ### `op:trajectory_segment_path_join`
 
@@ -1227,6 +1251,18 @@ Description: Stable identity binding trajectory-derived artifacts emitted from o
 Title: Trajectory Composite Identity
 
 Description: Stable identity for a derived trajectory assembled from separately fitted parent trajectory segments.
+
+### `parameter:source_kind`
+
+Title: Trajectory Segment Source Kind
+
+Description: Declares how a trajectory segment was generated. Implemented source kinds are fitted_model and space_path_bridge; graph_path_bridge, imported_pseudotime, manual_pseudotime, and composite are reserved until adapters exist.
+
+### `parameter:source_engine`
+
+Title: Trajectory Segment Source Engine
+
+Description: Declares the engine or source family that produced a segment, such as slingshot, monocle3, palantir, space_path, manual, imported, graph, or unknown.
 
 ### `parameter:join_policy`
 
@@ -1677,6 +1713,12 @@ Description: Overlay one or more UCell signature scores from a cell_vector_famil
 Title: Plot selected trajectory curves on UMAP
 
 Description: Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.
+
+### `recipe:mixed_source_composite_trajectory`
+
+Title: Build a mixed-source composite trajectory
+
+Description: Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.
 
 ### `recipe:de_to_pathway_report`
 

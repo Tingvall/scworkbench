@@ -18,7 +18,7 @@
     inputs = list(cell_set = "all", user_inputs = list(composite_key = key)),
     params = list(trajectory_composite_id = "comp_test", composite_key = key),
     outputs = list(
-      composite_pseudotime = pt,
+      composite_pseudotime_unit_segment = pt,
       composite_membership = membership
     ),
     notes = "synthetic composite pseudotime fixture"
@@ -119,7 +119,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
   )
 
   ids <- .make_composite_test_artifacts(b, cells, key = "joined_L1")
-  pt_art <- ids[["composite_pseudotime"]]
+  pt_art <- ids[["composite_pseudotime_unit_segment"]]
   mem_art <- ids[["composite_membership"]]
   stopifnot(nzchar(pt_art), nzchar(mem_art))
 
@@ -153,7 +153,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
       cell_set = "all",
       min_cells = 1L,
       matrix = "RNA_counts",
-      pseudotime = wb_ref_artifact(pt_art, "composite_pseudotime"),
+      pseudotime = wb_ref_artifact(pt_art, "composite_pseudotime_unit_segment"),
       pseudotime_key = "joined_L1",
       membership = wb_ref_artifact(mem_art, "composite_membership"),
       namespace = "test_sets",
@@ -181,7 +181,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
         cell_set = "all",
         min_cells = 1L,
         matrix = "RNA_counts",
-        pseudotime = wb_ref_artifact(pt_art, "composite_pseudotime"),
+        pseudotime = wb_ref_artifact(pt_art, "composite_pseudotime_unit_segment"),
         pseudotime_key = "missing_key",
         namespace = "test_sets",
         n_bins = 5L,
@@ -208,7 +208,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
       cell_set = "all",
       min_cells = 1L,
       signal = sig,
-      pseudotime = wb_ref_artifact(pt_art, "composite_pseudotime"),
+      pseudotime = wb_ref_artifact(pt_art, "composite_pseudotime_unit_segment"),
       pseudotime_key = "joined_L1",
       membership = wb_ref_artifact(mem_art, "composite_membership"),
       n_bins = 5L,

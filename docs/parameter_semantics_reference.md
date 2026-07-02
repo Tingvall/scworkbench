@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_parameter_semantics_catalog(); do not edit entries by hand. -->
 
-Parameter count: 57
+Parameter count: 59
 
 ## classification
 
@@ -791,6 +791,39 @@ Guidance:
 
 Aliases: composite_trajectory_id, segmented_trajectory_id
 
+### `source_kind`
+
+Title: Trajectory Segment Source Kind
+
+Description: Declares how a trajectory segment was generated. Implemented source kinds are fitted_model and space_path_bridge; graph_path_bridge, imported_pseudotime, manual_pseudotime, and composite are reserved until adapters exist.
+
+Applies to: trajectory segment params and manifests
+
+Affects: claim boundaries, compatibility validation, auditability
+
+Guidance:
+- Do not infer source kind from labels.
+- Curated/manual/imported segments are reserved and must not be claimed as implemented until a segment adapter exists.
+- Bridge segments must be declared rather than hidden as fitted models.
+
+Aliases: segment_source_kind
+
+### `source_engine`
+
+Title: Trajectory Segment Source Engine
+
+Description: Declares the engine or source family that produced a segment, such as slingshot, monocle3, palantir, space_path, manual, imported, graph, or unknown.
+
+Applies to: trajectory segment params and manifests
+
+Affects: methods text, source-specific interpretation, agent planning
+
+Guidance:
+- Use source_engine with source_kind to distinguish fitted models from bridge or imported segments.
+- Unknown is allowed but less useful for audit.
+
+Aliases: segment_source_engine
+
 ### `join_policy`
 
 Title: Trajectory Segment Join Policy
@@ -802,10 +835,11 @@ Applies to: trajectory_segment_join params
 Affects: waypoint handling, composite scale, overlap interpretation
 
 Guidance:
-- waypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.
+- exact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.
+- Unsupported policies fail explicitly.
 - Report the join policy when using composite pseudotime for dynamics.
 
-Aliases: trajectory_join_policy, overlap_policy
+Aliases: trajectory_join_policy, overlap_policy, boundary_policy
 
 ### `pseudotime_direction`
 

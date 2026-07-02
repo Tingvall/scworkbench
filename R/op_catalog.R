@@ -140,7 +140,7 @@
     segments = inputs$segments,
     composite_id = inputs$composite_id %||% NULL,
     composite_key = inputs$composite_key %||% NULL,
-    join_policy = inputs$join_policy %||% "waypoint_collapse",
+    join_policy = inputs$join_policy %||% "exact_boundary_collapse",
     min_weight = inputs$min_weight %||% NULL,
     allow_legacy = inputs$allow_legacy %||% FALSE,
     runs = inputs$runs %||% NULL
@@ -150,16 +150,80 @@
   raw
 }
 
+.wb_runner_trajectory_segment_from_artifacts <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$pseudotime), "trajectory_segment_from_artifacts runner: missing resolved$pseudotime.")
+  raw <- wb_op_trajectory_segment_from_artifacts(
+    bundle = bundle,
+    pseudotime = resolved$pseudotime,
+    lineage = inputs$lineage,
+    segment_id = inputs$segment_id,
+    segment_order = inputs$segment_order %||% 1L,
+    model = resolved$model %||% inputs$model %||% NULL,
+    lineage_weights = resolved$lineage_weights %||% inputs$lineage_weights %||% NULL,
+    membership = inputs$membership %||% NULL,
+    confidence = resolved$confidence %||% inputs$confidence %||% NULL,
+    confidence_key = inputs$confidence_key %||% NULL,
+    path = resolved$path %||% inputs$path %||% NULL,
+    source_engine = inputs$source_engine %||% NULL,
+    start_label = inputs$start_label %||% NULL,
+    end_label = inputs$end_label %||% NULL,
+    composite_id = inputs$composite_id %||% NULL,
+    runs = inputs$runs %||% NULL,
+    allow_legacy = inputs$allow_legacy %||% FALSE
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "trajectory_segment_from_artifacts must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_trajectory_segment_path_join <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   raw <- wb_op_trajectory_segment_path_join(
     bundle = bundle,
     paths = inputs$paths,
     composite_id = inputs$composite_id %||% NULL,
     composite_key = inputs$composite_key %||% NULL,
+    display_space_id = inputs$display_space_id %||% NULL,
+    endpoint_summary_method = inputs$endpoint_summary_method %||% "centroid",
+    endpoint_max_distance = inputs$endpoint_max_distance %||% NULL,
+    endpoint_qc_action = inputs$endpoint_qc_action %||% "fail",
     allow_legacy = inputs$allow_legacy %||% FALSE
   )
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "trajectory_segment_path_join must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
+.wb_runner_trajectory_space_path_segment <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$path_scores), "trajectory_space_path_segment runner: missing resolved$path_scores.")
+  raw <- wb_op_trajectory_space_path_segment(
+    bundle = bundle,
+    path_scores = resolved$path_scores,
+    segment_id = inputs$segment_id,
+    segment_order = inputs$segment_order %||% 1L,
+    score_prefix = inputs$score_prefix %||% NULL,
+    candidate_cells = inputs$candidate_cells %||% NULL,
+    distance_threshold = inputs$distance_threshold %||% NULL,
+    distance_quantile = inputs$distance_quantile %||% NULL,
+    start_label = inputs$start_label %||% NULL,
+    end_label = inputs$end_label %||% NULL,
+    path = inputs$path %||% NULL,
+    display_path = resolved$display_path %||% inputs$display_path %||% NULL,
+    display_lineage = inputs$display_lineage %||% NULL,
+    display_space_id = inputs$display_space_id %||% NULL,
+    start_endpoint = inputs$start_endpoint %||% NULL,
+    end_endpoint = inputs$end_endpoint %||% NULL,
+    start_cell_set = inputs$start_cell_set %||% NULL,
+    end_cell_set = inputs$end_cell_set %||% NULL,
+    endpoint_summary_method = inputs$endpoint_summary_method %||% "centroid",
+    endpoint_max_distance = inputs$endpoint_max_distance %||% NULL,
+    endpoint_qc_action = inputs$endpoint_qc_action %||% "fail",
+    composite_id = inputs$composite_id %||% NULL,
+    pseudotime_key = inputs$pseudotime_key %||% NULL,
+    confidence_key = inputs$confidence_key %||% NULL,
+    runs = inputs$runs %||% NULL
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "trajectory_space_path_segment must return list(outputs=<list>, params=<list>).")
   raw
 }
 
@@ -1474,7 +1538,7 @@
         list(name = "overwrite", type = "bool", default = FALSE,
              help = "If TRUE, replace an existing output matrix with the same id."),
         list(name = "cell_set", type = "cell_set", default = "all",
-             help = "Must be 'all' in v1 because the output matrix is registered as a full bundle matrix.")
+             help = "Must be 'all' because the output matrix is registered as a full bundle matrix.")
       ),
       interface_produces = list(
         matrix = list(
@@ -2494,7 +2558,7 @@
              help = "Optional explicit feature subset (intersected with feature_set when both provided)."),
         list(name = "test", type = "choice", default = "spearman",
              choices = c("spearman"),
-             help = "Statistical test. v1 supports spearman."),
+             help = "Statistical test. The current implementation supports spearman."),
         list(name = "min_pct_nonzero", type = "dbl", default = 0, min = 0, max = 1,
              help = "Minimum non-zero fraction filter."),
         list(name = "min_sd", type = "dbl", default = 0, min = 0, max = 1e6,
@@ -3176,54 +3240,225 @@
     trajectory_segment_join = list(
       op_name = "trajectory_segment_join",
       title = "Trajectory segment join",
-      description = "Join ordered, separately fitted trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
+      description = "Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
       intent = c("trajectory", "provenance", "composition"),
       requires = list(),
       produces = list(
-        composite_pseudotime = "cell_vector_family",
+        composite_pseudotime_unit_segment = "cell_vector_family",
+        composite_pseudotime_cell_weighted_0_1 = "cell_vector_family",
         segment_local_table = "obs_table",
         composite_manifest = "obs_table",
         composite_membership = "cell_vector"
       ),
-      promotable = c("composite_pseudotime", "segment_local_table", "composite_manifest", "composite_membership"),
+      promotable = c("composite_pseudotime_unit_segment", "composite_pseudotime_cell_weighted_0_1", "segment_local_table", "composite_manifest", "composite_membership"),
       runner = .wb_runner_trajectory_segment_join,
       inputs = list(),
       params = list(
         list(name = "segments", type = "list", default = NULL,
-             help = "Ordered segment specs with pseudotime ref, lineage key, optional model/weights/path refs, labels, and order."),
+             help = "Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order."),
         list(name = "composite_id", type = "string", default = NULL,
              help = "Optional stable trajectory_composite_id. Generated when omitted."),
         list(name = "composite_key", type = "string", default = "composite_L1",
-             help = "Key used in the output composite_pseudotime cell_vector_family."),
-        list(name = "join_policy", type = "string", default = "waypoint_collapse",
-             help = "Overlap policy. v1 supports waypoint_collapse only."),
+             help = "Key used in the output composite pseudotime cell_vector_family objects."),
+        list(name = "join_policy", type = "string", default = "exact_boundary_collapse",
+             help = "Overlap policy. The current implementation supports exact_boundary_collapse."),
         list(name = "min_weight", type = "dbl", default = NULL,
              help = "Optional minimum lineage weight required for segment-local membership when weights are supplied."),
         list(name = "allow_legacy", type = "bool", default = FALSE,
              help = "Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.")
       ),
       interface_produces = list(
-        composite_pseudotime = list(
+        composite_pseudotime_unit_segment = list(
           kind = "cell_vector_family",
           value_kind = "continuous",
           key = "composite_key",
           family_kind = "trajectory_composite_pseudotime",
-          description = "One-row-per-cell segmented composite pseudotime. Adjacent segment overlaps are waypoint-collapsed to the shared boundary."
+          description = "Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries."
+        ),
+        composite_pseudotime_cell_weighted_0_1 = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "composite_key",
+          family_kind = "trajectory_composite_pseudotime",
+          description = "One-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts."
         ),
         segment_local_table = list(
           kind = "obs_table",
           table_type = "trajectory_segment_local_membership",
-          description = "One row per cell per parent segment preserving segment-local pseudotime, scaled pseudotime, weight, and segment role."
+          description = "One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role."
         ),
         composite_manifest = list(
           kind = "obs_table",
           table_type = "trajectory_segment_join_manifest",
-          description = "Audit manifest recording parent segment artifacts, trajectory_fit_ids, labels, join policy, overlap counts, and caveats."
+          description = "Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats."
         ),
         composite_membership = list(
           kind = "cell_vector",
           value_kind = "categorical",
           description = "One-cell assignment to a unique segment or waypoint overlap."
+        )
+      )
+    ),
+    trajectory_segment_from_artifacts = list(
+      op_name = "trajectory_segment_from_artifacts",
+      title = "Trajectory fitted-artifact segment",
+      description = "Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.",
+      intent = c("trajectory", "adapter", "composition", "provenance"),
+      requires = list(pseudotime = "cell_vector_family"),
+      optional_requires = list(
+        model = "model_ref",
+        lineage_weights = "cell_vector_family",
+        confidence = "cell_vector_family",
+        path = "path_2d_family"
+      ),
+      produces = list(
+        pseudotime = "cell_vector_family",
+        membership = "cell_vector",
+        confidence = "cell_vector_family",
+        segment_manifest = "obs_table"
+      ),
+      promotable = c("pseudotime", "membership", "confidence", "segment_manifest"),
+      runner = .wb_runner_trajectory_segment_from_artifacts,
+      inputs = list(
+        pseudotime = list(required = TRUE, kind = "cell_vector_family"),
+        model = list(required = FALSE, kind = "model_ref"),
+        lineage_weights = list(required = FALSE, kind = "cell_vector_family"),
+        confidence = list(required = FALSE, kind = "cell_vector_family"),
+        path = list(required = FALSE, kind = "path_2d_family")
+      ),
+      params = list(
+        list(name = "segment_id", type = "string", default = NULL,
+             help = "Stable segment identifier."),
+        list(name = "segment_order", type = "dbl", default = 1,
+             help = "Order of this fitted segment in a future composite."),
+        list(name = "lineage", type = "string", default = NULL,
+             help = "Lineage/key to extract from fitted pseudotime and optional weights."),
+        list(name = "membership", type = "cell_ids_or_set", default = NULL,
+             help = "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."),
+        list(name = "confidence_key", type = "string", default = NULL,
+             help = "Optional key for confidence cell_vector_family. Defaults to lineage."),
+        list(name = "source_engine", type = "string", default = NULL,
+             help = "Fitted trajectory engine, usually slingshot, monocle3, or palantir."),
+        list(name = "start_label", type = "string", default = NULL,
+             help = "Biological start label."),
+        list(name = "end_label", type = "string", default = NULL,
+             help = "Biological end label."),
+        list(name = "allow_legacy", type = "bool", default = FALSE,
+             help = "Allow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.")
+      ),
+      interface_produces = list(
+        pseudotime = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          source_kind = "fitted_model",
+          description = "Fitted-model segment pseudotime for the selected lineage/key."
+        ),
+        membership = list(
+          kind = "cell_vector",
+          value_kind = "categorical",
+          description = "Cells included in the fitted-model segment."
+        ),
+        confidence = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          description = "Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1."
+        ),
+        segment_manifest = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_manifest",
+          description = "Audit manifest for the fitted-model segment."
+        )
+      )
+    ),
+    trajectory_space_path_segment = list(
+      op_name = "trajectory_space_path_segment",
+      title = "Trajectory space-path segment",
+      description = "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
+      intent = c("trajectory", "bridge", "composition", "geometry"),
+      requires = list(path_scores = "cell_vector_family"),
+      optional_requires = list(display_path = "path_2d_family"),
+      produces = list(
+        pseudotime = "cell_vector_family",
+        membership = "cell_vector",
+        confidence = "cell_vector_family",
+        segment_manifest = "obs_table",
+        display_endpoint_qc = "obs_table"
+      ),
+      promotable = c("pseudotime", "membership", "confidence", "segment_manifest", "display_endpoint_qc"),
+      runner = .wb_runner_trajectory_space_path_segment,
+      inputs = list(
+        path_scores = list(required = TRUE, kind = "cell_vector_family"),
+        display_path = list(required = FALSE, kind = "path_2d_family")
+      ),
+      params = list(
+        list(name = "segment_id", type = "string", default = NULL,
+             help = "Stable segment identifier."),
+        list(name = "segment_order", type = "dbl", default = 1,
+             help = "Order of this bridge segment in a future composite."),
+        list(name = "score_prefix", type = "string", default = NULL,
+             help = "Optional prefix used by space_path_score keys."),
+        list(name = "candidate_cells", type = "cell_ids_or_set", default = NULL,
+             help = "Optional candidate universe before distance thresholding."),
+        list(name = "distance_threshold", type = "dbl", default = NULL,
+             help = "Include cells with distance_to_path <= threshold."),
+        list(name = "distance_quantile", type = "dbl", default = NULL,
+             help = "Alternative threshold: include cells up to this distance quantile."),
+        list(name = "start_label", type = "string", default = NULL,
+             help = "Biological start label."),
+        list(name = "end_label", type = "string", default = NULL,
+             help = "Biological end label."),
+        list(name = "display_lineage", type = "string", default = NULL,
+             help = "Optional key/lineage to validate in display_path. Defaults to the only key if display_path has one."),
+        list(name = "display_space_id", type = "string", default = NULL,
+             help = "2D display space used for endpoint cell-set coordinate QC."),
+        list(name = "start_endpoint", type = "list_or_cell_set", default = NULL,
+             help = "Optional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."),
+        list(name = "end_endpoint", type = "list_or_cell_set", default = NULL,
+             help = "Optional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC."),
+        list(name = "start_cell_set", type = "cell_set", default = NULL,
+             help = "Convenience start endpoint cell set for display-path QC."),
+        list(name = "end_cell_set", type = "cell_set", default = NULL,
+             help = "Convenience end endpoint cell set for display-path QC."),
+        list(name = "endpoint_summary_method", type = "choice", default = "centroid",
+             choices = c("centroid", "medoid"),
+             help = "How endpoint cell sets are summarized in display space for QC."),
+        list(name = "endpoint_max_distance", type = "dbl", default = NULL,
+             help = "Optional absolute maximum endpoint distance before QC fails."),
+        list(name = "endpoint_qc_action", type = "choice", default = "fail",
+             choices = c("fail", "warn", "none"),
+             help = "Action when display-path endpoint QC detects a large mismatch."),
+        list(name = "pseudotime_key", type = "string", default = NULL,
+             help = "Key for emitted bridge pseudotime. Defaults to segment_id."),
+        list(name = "confidence_key", type = "string", default = NULL,
+             help = "Key for emitted bridge confidence. Defaults to segment_id.")
+      ),
+      interface_produces = list(
+        pseudotime = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          key = "pseudotime_key",
+          source_kind = "space_path_bridge",
+          description = "Bridge pseudotime from path arclength progress in [0,1]."
+        ),
+        membership = list(
+          kind = "cell_vector",
+          value_kind = "categorical",
+          description = "Cells passing the transparent distance-to-path bridge membership rule."
+        ),
+        confidence = list(
+          kind = "cell_vector_family",
+          value_kind = "continuous",
+          description = "Distance-derived confidence for included bridge cells."
+        ),
+        segment_manifest = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_manifest",
+          description = "Audit manifest for the space-path bridge segment."
+        ),
+        display_endpoint_qc = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_display_path_endpoint_qc",
+          description = "Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors."
         )
       )
     ),
@@ -3235,9 +3470,10 @@
       requires = list(),
       produces = list(
         curves = "path_2d_family",
-        path_manifest = "obs_table"
+        path_manifest = "obs_table",
+        endpoint_qc = "obs_table"
       ),
-      promotable = c("curves", "path_manifest"),
+      promotable = c("curves", "path_manifest", "endpoint_qc"),
       runner = .wb_runner_trajectory_segment_path_join,
       inputs = list(),
       params = list(
@@ -3247,6 +3483,16 @@
              help = "Optional trajectory_composite_id shared with a segmented pseudotime join."),
         list(name = "composite_key", type = "string", default = "composite_path",
              help = "Key used in the output composite path_2d_family."),
+        list(name = "display_space_id", type = "string", default = NULL,
+             help = "2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets."),
+        list(name = "endpoint_summary_method", type = "choice", default = "centroid",
+             choices = c("centroid", "medoid"),
+             help = "How endpoint cell sets are summarized in display space for QC."),
+        list(name = "endpoint_max_distance", type = "dbl", default = NULL,
+             help = "Optional absolute maximum endpoint distance before QC fails."),
+        list(name = "endpoint_qc_action", type = "choice", default = "fail",
+             choices = c("fail", "warn", "none"),
+             help = "Action when display-path endpoint QC detects a large mismatch."),
         list(name = "allow_legacy", type = "bool", default = FALSE,
              help = "Allow missing trajectory_fit_id on parent paths with warning.")
       ),
@@ -3261,6 +3507,11 @@
           kind = "obs_table",
           table_type = "trajectory_segment_path_join_manifest",
           description = "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
+        ),
+        endpoint_qc = list(
+          kind = "obs_table",
+          table_type = "trajectory_segment_display_path_endpoint_qc",
+          description = "Endpoint-distance QC for joined display paths with declared endpoint descriptors."
         )
       )
     ),
@@ -3332,9 +3583,9 @@
         list(name = "random_seed", type = "int", default = 42, min = 1, max = 999999,
              help = "Random seed for clustering."),
         list(name = "use_partition", type = "bool", default = FALSE,
-             help = "Learn graph per partition. FALSE is recommended for v1 tree semantics."),
+             help = "Learn graph per partition. FALSE is recommended for current tree semantics."),
         list(name = "close_loop", type = "bool", default = FALSE,
-             help = "Allow loop closure in graph learning. FALSE required for v1 tree-derived lineages."),
+             help = "Allow loop closure in graph learning. FALSE is required for tree-derived lineages."),
         list(name = "verbose", type = "bool", default = FALSE,
              help = "Verbose monocle3 output.")
       ),
@@ -3347,7 +3598,7 @@
         branch_membership = list(
           kind = "relation_family",
           key = "lineage_id",
-          description = "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in v1)."
+          description = "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation)."
         ),
         model = list(
           kind = "model_ref",
@@ -3477,7 +3728,7 @@
              help = "Ordered checkpoint cell-set refs that anchor the path definition."),
         list(name = "fit_mode", type = "choice", default = "linear",
              choices = c("linear", "manifold_smooth"),
-             help = "Path fitting mode. V1 supports linear and a first conservative manifold smoothing mode."),
+             help = "Path fitting mode. The current implementation supports linear and a conservative manifold smoothing mode."),
         list(name = "checkpoint_summary", type = "choice", default = "centroid",
              choices = c("centroid"),
              help = "Checkpoint summarization rule used to derive anchors from checkpoint cells."),
@@ -3520,7 +3771,7 @@
       params = list(
         list(name = "score_mode", type = "choice", default = "orthogonal_projection",
              choices = c("orthogonal_projection"),
-             help = "Scoring mode. V1 scaffolding standardizes on orthogonal projection semantics."),
+             help = "Scoring mode. The current implementation standardizes on orthogonal projection semantics."),
         list(name = "distance_metric", type = "choice", default = "euclidean",
              choices = c("euclidean"),
              help = "Distance metric used for path-relative scoring."),

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 69
+Artifact type count: 71
 
 ## cell_vector
 
@@ -413,6 +413,21 @@ Entity kind: signal
 Use when:
 - rank dynamic UCell or chromVAR signals
 
+### `obs_table:trajectory_segment_manifest`
+
+Title: Trajectory Segment Manifest
+
+Description: Audit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.
+
+Table type: trajectory_segment_manifest
+
+Entity kind: trajectory_segment
+
+Use when:
+- audit generic trajectory segment adapters
+- inspect mixed-source composite inputs
+- trace curated or space-path bridge assumptions
+
 ### `obs_table:trajectory_segment_local_membership`
 
 Title: Trajectory Segment-Local Membership Table
@@ -457,6 +472,21 @@ Use when:
 - audit composite trajectory curve overlays
 - trace parent path artifacts
 - explain that a displayed composite curve is derived geometry, not a merged model
+
+### `obs_table:trajectory_segment_display_path_endpoint_qc`
+
+Title: Trajectory Display Path Endpoint QC
+
+Description: Endpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.
+
+Table type: trajectory_segment_display_path_endpoint_qc
+
+Entity kind: trajectory_segment_endpoint
+
+Use when:
+- detect stale or mismatched trajectory display paths
+- audit display geometry against declared endpoint cell sets
+- decide whether trajectory curve figures can be trusted
 
 ### `obs_table:ucell_signature_summary`
 

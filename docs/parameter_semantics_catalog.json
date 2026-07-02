@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.parameter_semantics_catalog.v1",
-  "generated_at": "2026-06-25T23:15:30+0200",
-  "parameter_count": 57,
+  "generated_at": "2026-06-29T17:44:55+0200",
+  "parameter_count": 59,
   "parameters": [
     {
       "parameter_name": "cell_set",
@@ -134,14 +134,34 @@
       "aliases": ["composite_trajectory_id", "segmented_trajectory_id"]
     },
     {
+      "parameter_name": "source_kind",
+      "title": "Trajectory Segment Source Kind",
+      "category": "trajectory",
+      "description": "Declares how a trajectory segment was generated. Implemented source kinds are fitted_model and space_path_bridge; graph_path_bridge, imported_pseudotime, manual_pseudotime, and composite are reserved until adapters exist.",
+      "applies_to": "trajectory segment params and manifests",
+      "affects": ["claim boundaries", "compatibility validation", "auditability"],
+      "guidance": ["Do not infer source kind from labels.", "Curated/manual/imported segments are reserved and must not be claimed as implemented until a segment adapter exists.", "Bridge segments must be declared rather than hidden as fitted models."],
+      "aliases": "segment_source_kind"
+    },
+    {
+      "parameter_name": "source_engine",
+      "title": "Trajectory Segment Source Engine",
+      "category": "trajectory",
+      "description": "Declares the engine or source family that produced a segment, such as slingshot, monocle3, palantir, space_path, manual, imported, graph, or unknown.",
+      "applies_to": "trajectory segment params and manifests",
+      "affects": ["methods text", "source-specific interpretation", "agent planning"],
+      "guidance": ["Use source_engine with source_kind to distinguish fitted models from bridge or imported segments.", "Unknown is allowed but less useful for audit."],
+      "aliases": "segment_source_engine"
+    },
+    {
       "parameter_name": "join_policy",
       "title": "Trajectory Segment Join Policy",
       "category": "trajectory",
       "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
       "applies_to": "trajectory_segment_join params",
       "affects": ["waypoint handling", "composite scale", "overlap interpretation"],
-      "guidance": ["waypoint_collapse maps adjacent overlap cells to the shared segment boundary without averaging.", "Report the join policy when using composite pseudotime for dynamics."],
-      "aliases": ["trajectory_join_policy", "overlap_policy"]
+      "guidance": ["exact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.", "Unsupported policies fail explicitly.", "Report the join policy when using composite pseudotime for dynamics."],
+      "aliases": ["trajectory_join_policy", "overlap_policy", "boundary_policy"]
     },
     {
       "parameter_name": "pseudotime_direction",

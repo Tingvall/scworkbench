@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-06-25T23:15:30+0200",
-  "artifact_type_count": 69,
+  "generated_at": "2026-06-29T17:44:55+0200",
+  "artifact_type_count": 71,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -283,6 +283,15 @@
       "use_when": "rank dynamic UCell or chromVAR signals"
     },
     {
+      "artifact_type": "obs_table:trajectory_segment_manifest",
+      "primitive_kind": "obs_table",
+      "title": "Trajectory Segment Manifest",
+      "description": "Audit manifest for one formal trajectory segment, including source kind, source engine, membership rule, normalization rule, parent artifacts, and caveats.",
+      "table_type": "trajectory_segment_manifest",
+      "entity_kind": "trajectory_segment",
+      "use_when": ["audit generic trajectory segment adapters", "inspect mixed-source composite inputs", "trace curated or space-path bridge assumptions"]
+    },
+    {
       "artifact_type": "obs_table:trajectory_segment_local_membership",
       "primitive_kind": "obs_table",
       "title": "Trajectory Segment-Local Membership Table",
@@ -308,6 +317,15 @@
       "table_type": "trajectory_segment_path_join_manifest",
       "entity_kind": "trajectory_segment",
       "use_when": ["audit composite trajectory curve overlays", "trace parent path artifacts", "explain that a displayed composite curve is derived geometry, not a merged model"]
+    },
+    {
+      "artifact_type": "obs_table:trajectory_segment_display_path_endpoint_qc",
+      "primitive_kind": "obs_table",
+      "title": "Trajectory Display Path Endpoint QC",
+      "description": "Endpoint-distance diagnostics comparing display path start/end points with declared endpoint cell-set or coordinate descriptors.",
+      "table_type": "trajectory_segment_display_path_endpoint_qc",
+      "entity_kind": "trajectory_segment_endpoint",
+      "use_when": ["detect stale or mismatched trajectory display paths", "audit display geometry against declared endpoint cell sets", "decide whether trajectory curve figures can be trusted"]
     },
     {
       "artifact_type": "obs_table:ucell_signature_summary",

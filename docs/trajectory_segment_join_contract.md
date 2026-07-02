@@ -2,8 +2,10 @@
 
 ## Purpose
 
-`trajectory_segment_join` creates an auditable composite trajectory from
-separately fitted trajectory segments.
+`trajectory_segment_join` creates an auditable composite trajectory from ordered
+trajectory segments. New segments should follow the generic contract in
+`docs/trajectory_segment_contract.md`. Existing fitted-model segment specs
+remain valid.
 
 This is needed when one automated start/end trajectory does not follow the
 biological route of interest. The motivating T-cell case is:
@@ -43,14 +45,27 @@ Each segment must provide:
 - `pseudotime`: artifact/ref/primitive for a `cell_vector_family`.
 - `lineage`: lineage key to use inside that segment, for example `L1`.
 - `order`: segment order along the composite route.
+- `source_kind`: recommended for new specs; defaults to `fitted_model`.
+- `source_engine`: recommended for new specs; defaults from `source_kind` when
+  possible.
 
 Each segment may also provide:
 
 - `model`: model artifact/ref/primitive.
 - `lineage_weights`: `cell_vector_family` membership weights.
+- `membership`: cell-vector artifact/ref, cell set, or cell IDs restricting
+  segment cells.
+- `confidence`: cell-vector or cell-vector-family segment support values.
 - `path`: projected `path_2d_family`.
+- `segment_manifest`: adapter manifest artifact/ref.
 - `start_label`: human-readable biological start.
 - `end_label`: human-readable biological end.
+- `start_endpoint` / `end_endpoint`: optional endpoint descriptors for display
+  path QC. A descriptor may contain `cell_set`, `cells`, or explicit `x`/`y`
+  coordinates.
+- `start_cell_set` / `end_cell_set`: convenience endpoint cell-set fields for
+  display path QC.
+- `display_space_id`: 2D space used to summarize endpoint cell sets.
 
 Example:
 
@@ -81,8 +96,8 @@ segments <- list(
 
 ## Fit-Family Compatibility
 
-Within each segment, trajectory-derived artifacts must belong to the same
-`trajectory_fit_id`.
+Within fitted-model segments, trajectory-derived artifacts must belong to the
+same `trajectory_fit_id`.
 
 This is enforced for the available segment-local artifacts:
 
@@ -92,7 +107,9 @@ This is enforced for the available segment-local artifacts:
 - `path`
 
 Across segments, different `trajectory_fit_id` values are allowed and expected.
-The composite receives its own `trajectory_composite_id`.
+Non-fitted segments such as `space_path_bridge` may have no `trajectory_fit_id`,
+but must declare `source_kind`, `source_engine`, and caveats. The composite
+receives its own `trajectory_composite_id`.
 
 Lineage names are not treated as globally comparable across fits. `L1` in
 segment 1 and `L1` in segment 2 are used only after the user explicitly declares
@@ -111,9 +128,14 @@ This table has one row per cell per segment and preserves local segment values:
 - `segment_order`
 - `segment_index`
 - `lineage_id`
+- `source_kind`
+- `source_engine`
+- `raw_pseudotime`
 - `local_pseudotime`
 - `local_pseudotime_scaled`
+- `local_pseudotime_0_1`
 - `local_weight`
+- `confidence`
 - `segment_role`
 - `composite_candidate`
 
@@ -122,13 +144,19 @@ once as departure in the downstream segment.
 
 ## Composite One-Cell Pseudotime
 
-The op also produces `composite_pseudotime`, a `cell_vector_family` with one
-value per cell for the selected `composite_key`.
+The op produces two `cell_vector_family` pseudotime coordinates with one value
+per cell for the selected `composite_key`:
 
-The default and currently only join policy is:
+- `composite_pseudotime_unit_segment`: canonical audit coordinate with exact
+  integer segment boundaries.
+- `composite_pseudotime_cell_weighted_0_1`: display/comparison coordinate
+  normalized to `[0, 1]` where segment lengths are weighted by segment-local
+  cell counts.
+
+The supported join policy is:
 
 ```text
-waypoint_collapse
+exact_boundary_collapse
 ```
 
 For each segment:
@@ -145,27 +173,46 @@ segment 3: 2 -> 3
 Cells present in only one segment receive:
 
 ```text
-composite_pseudotime = segment_index - 1 + local_pseudotime_scaled
+composite_pseudotime_unit_segment = segment_index - 1 + local_pseudotime_scaled
 ```
 
 Cells present in two adjacent segments are declared waypoint cells and receive
 the boundary value:
 
 ```text
-segment 1 + segment 2 overlap -> composite_pseudotime = 1
-segment 2 + segment 3 overlap -> composite_pseudotime = 2
+segment 1 + segment 2 overlap -> composite_pseudotime_unit_segment = 1
+segment 2 + segment 3 overlap -> composite_pseudotime_unit_segment = 2
 ```
 
 The values are not averaged. This avoids fake precision at biological waypoints.
 
+## Space-Path Bridge Segments
+
+`trajectory_space_path_segment` adapts `space_path_score` output into a formal
+segment-compatible payload:
+
+- `pseudotime`: `cell_vector_family`, derived from path arclength progress.
+- `membership`: `cell_vector`, cells passing an explicit distance rule.
+- `confidence`: `cell_vector_family`, distance-derived support.
+- `segment_manifest`: `obs_table`, `trajectory_segment_manifest`.
+
+Bridge pseudotime is path progress in `[0, 1]`, not a cell-rank coordinate.
+The manifest records `source_kind = "space_path_bridge"` and
+`source_engine = "space_path"` so reports cannot mistake it for a fitted model
+segment.
+
+For `composite_pseudotime_cell_weighted_0_1`, each segment occupies a fraction
+of `[0, 1]` proportional to its segment-local cell count. Adjacent overlap cells
+collapse to the corresponding weighted segment boundary.
+
 ## Overlap Rules
 
-Supported in v1:
+Supported by `exact_boundary_collapse`:
 
 - Cells unique to one segment.
 - Cells shared by exactly two adjacent segments.
 
-Rejected in v1:
+Rejected:
 
 - Cells shared by non-adjacent segments.
 - Cells shared by more than two segments.
@@ -177,7 +224,8 @@ collapsed.
 
 `trajectory_segment_join` produces:
 
-- `composite_pseudotime`: `cell_vector_family`, promotable.
+- `composite_pseudotime_unit_segment`: `cell_vector_family`, promotable.
+- `composite_pseudotime_cell_weighted_0_1`: `cell_vector_family`, promotable.
 - `segment_local_table`: `obs_table`, `trajectory_segment_local_membership`, promotable.
 - `composite_manifest`: `obs_table`, `trajectory_segment_join_manifest`, promotable.
 - `composite_membership`: `cell_vector`, promotable.
@@ -199,8 +247,12 @@ collapsed.
 
 ## Downstream Use
 
-Downstream trajectory dynamics may use promoted `composite_pseudotime` as a
-pseudotime coordinate when the segmented route is the intended biological axis.
+Downstream trajectory dynamics may use either promoted composite pseudotime
+coordinate when the segmented route is the intended biological axis. Use
+`composite_pseudotime_unit_segment` when preserving exact segment boundaries is
+more important than a normalized display range. Use
+`composite_pseudotime_cell_weighted_0_1` when a `[0, 1]` coordinate weighted by
+segment cell counts is desired.
 
 Reports should state that the pseudotime is a segmented composite, not a single
 model-derived pseudotime.
@@ -216,8 +268,8 @@ wb_session_run_op(
   op_name = "trajectory_geneset_dynamics",
   inputs = list(
     matrix = "RNA_log_norm",
-    pseudotime = wb_ref_artifact("cell_vector_family_...", "composite_pseudotime"),
-    pseudotime_key = "t_sthsc_dn3_distal_cd4_v1",
+    pseudotime = wb_ref_artifact("cell_vector_family_...", "composite_pseudotime_unit_segment"),
+    pseudotime_key = "t_sthsc_dn3_distal_cd4",
     membership = wb_ref_artifact("cell_vector_...", "composite_membership"),
     namespace = "immune_gene_sets",
     n_bins = 50L
@@ -262,11 +314,19 @@ parent `path_2d_family` artifacts and produces:
 - `curves`: a derived `path_2d_family` for UMAP/embedding overlay.
 - `path_manifest`: an audit table with parent path artifacts, segment order,
   point boundaries, labels, and caveats.
+- `endpoint_qc`: endpoint-distance QC comparing display path start/end points
+  with declared endpoint descriptors.
 
 The joined path is explicitly display geometry. It is not a merged model and is
 not evidence that a single continuous trajectory model was fitted across all
 segments.
 
-Only `waypoint_collapse` is implemented. Future policies may add weighted
-handoff windows or explicit waypoint cell-set anchoring, but those should be
-separate, named policies with tests and documentation.
+When endpoint descriptors are supplied, display-path endpoint QC compares each
+segment path start/end against the declared endpoint cell-set centroid/medoid or
+explicit coordinates in the requested display space. Large mismatches fail by
+default. Use `endpoint_qc_action = "warn"` or `"none"` only when intentionally
+producing diagnostic output from a known-bad or exploratory display path.
+
+Only `exact_boundary_collapse` is implemented. Other policies are unsupported
+and fail explicitly. Additional policies would need separate names, tests, and
+documentation before use.

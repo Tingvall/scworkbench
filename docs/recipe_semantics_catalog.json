@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.recipe_semantics_catalog.v1",
-  "generated_at": "2026-06-25T23:15:30+0200",
-  "recipe_count": 10,
+  "generated_at": "2026-06-29T17:44:55+0200",
+  "recipe_count": 11,
   "recipes": [
     {
       "recipe_id": "trajectory_geneset_dynamics_discovery",
@@ -81,11 +81,23 @@
       "category": "visualization",
       "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
       "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
-      "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
-      "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+      "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
+      "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
       "produces": "artifact_type:path_2d_family",
       "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
-      "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
+      "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "Composite display paths are derived geometry, not merged fitted models.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
+    },
+    {
+      "recipe_id": "mixed_source_composite_trajectory",
+      "title": "Build a mixed-source composite trajectory",
+      "category": "trajectory_composition",
+      "question": "How can fitted trajectory segments and bridge/path segments be joined into one auditable pseudotime axis?",
+      "description": "Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.",
+      "steps": ["Create fitted trajectory segments with trajectory_segment_from_artifacts or bridge segments with trajectory_space_path_segment.", "Ensure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.", "Run trajectory_segment_join with join_policy='exact_boundary_collapse'.", "Optionally run trajectory_segment_path_join for UMAP display geometry.", "Use composite_pseudotime_unit_segment or composite_pseudotime_cell_weighted_0_1 plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode."],
+      "uses": ["op:trajectory_segment_from_artifacts", "op:trajectory_space_path_segment", "op:trajectory_segment_join", "op:trajectory_segment_path_join", "op:trajectory_geneset_dynamics", "op:trajectory_signal_dynamics", "parameter:source_kind", "parameter:source_engine", "parameter:join_policy", "parameter:pseudotime_key"],
+      "produces": ["artifact_type:cell_vector_family", "artifact_type:cell_vector", "artifact_type:obs_table:trajectory_segment_join_manifest", "artifact_type:obs_table:trajectory_segment_local_membership", "artifact_type:path_2d_family"],
+      "use_when": ["a biological route must pass through waypoints", "one fitted trajectory cannot represent all route intervals", "a curated space-path bridge is needed between fitted segments"],
+      "cautions": ["A composite trajectory is not one fitted model.", "Only fitted_model and space_path_bridge adapters are implemented currently; manual/imported/graph/composite source kinds are reserved.", "Display paths are not analytical pseudotime."]
     },
     {
       "recipe_id": "de_to_pathway_report",
