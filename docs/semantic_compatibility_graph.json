@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-06-29T17:44:56+0200",
-  "node_count": 300,
-  "edge_count": 856,
+  "generated_at": "2026-07-07T17:57:29+0200",
+  "node_count": 302,
+  "edge_count": 872,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -15,6 +15,18 @@
       "record_type": "op",
       "name": "matrix_log_normalize",
       "title": "Log-normalize count matrix"
+    },
+    {
+      "record_id": "op:hvg_select",
+      "record_type": "op",
+      "name": "hvg_select",
+      "title": "Highly Variable Feature Selection"
+    },
+    {
+      "record_id": "op:pca_fit",
+      "record_type": "op",
+      "name": "pca_fit",
+      "title": "PCA Fit"
     },
     {
       "record_id": "op:umap_fit",
@@ -1895,6 +1907,102 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:hvg_select",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:hvg_select",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:hvg_select",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:hvg_select",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
+    },
+    {
+      "from": "op:hvg_select",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:selected_features"
+    },
+    {
+      "from": "op:hvg_select",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:pca_fit",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "primitive:feature_table",
+      "to": "op:pca_fit",
+      "edge_type": "consumed_by",
+      "label": "input:features"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "primitive:space",
+      "edge_type": "produces",
+      "label": "output:space"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:loadings"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:variance"
+    },
+    {
+      "from": "op:pca_fit",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
     },
     {
       "from": "primitive:space",

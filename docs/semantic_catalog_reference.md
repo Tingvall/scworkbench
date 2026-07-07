@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-06-29T17:44:56+0200
+Generated at: 2026-07-07T17:57:29+0200
 
-Record count: 300
+Record count: 302
 
-Graph edges: 856
+Graph edges: 872
 
 ## artifact_type
 
@@ -877,6 +877,18 @@ Description: Graph clustering on a kNN graph derived from an embedding space.
 Title: Log-normalize count matrix
 
 Description: Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
+
+### `op:hvg_select`
+
+Title: Highly Variable Feature Selection
+
+Description: Select highly variable features from a matrix using chunked feature-wise summaries.
+
+### `op:pca_fit`
+
+Title: PCA Fit
+
+Description: Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.
 
 ### `op:umap_fit`
 

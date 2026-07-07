@@ -24,4 +24,5 @@ Suggests:
     SummarizedExperiment,
     S4Vectors,
     zellkonverter,
-    rhdf5
+    rhdf5,
+    irlba

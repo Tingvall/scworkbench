@@ -43,6 +43,58 @@
   raw
 }
 
+.wb_runner_hvg_select <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "hvg_select runner: missing resolved$matrix.")
+  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
+  .wb_assert(nzchar(matrix_id), "hvg_select runner: resolved matrix primitive missing matrix_id.")
+
+  raw <- wb_op_hvg_select(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    cells = as.character(effective_cells),
+    n_features = inputs$n_features %||% 2000L,
+    method = inputs$method %||% "vst",
+    min_mean = inputs$min_mean %||% NULL,
+    max_mean = inputs$max_mean %||% NULL,
+    min_dispersion = inputs$min_dispersion %||% NULL,
+    batch_key = inputs$batch_key %||% NULL,
+    exclude_features = inputs$exclude_features %||% NULL,
+    feature_type = inputs$feature_type %||% NULL,
+    seed = inputs$seed %||% 1L,
+    chunk_size = inputs$chunk_size %||% 256L
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "hvg_select must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
+.wb_runner_pca_fit <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "pca_fit runner: missing resolved$matrix.")
+  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
+  .wb_assert(nzchar(matrix_id), "pca_fit runner: resolved matrix primitive missing matrix_id.")
+
+  raw <- wb_op_pca_fit(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    cells = as.character(effective_cells),
+    feature_table = resolved$features %||% resolved$feature_table %||% NULL,
+    feature_ids = inputs$feature_ids %||% NULL,
+    n_components = inputs$n_components %||% 50L,
+    center = inputs$center %||% TRUE,
+    scale = inputs$scale %||% TRUE,
+    backend = inputs$backend %||% "irlba",
+    seed = inputs$seed %||% 1L,
+    space_id_out = inputs$space_id_out %||% "rna.pca",
+    overwrite = inputs$overwrite %||% FALSE,
+    max_dense_gb = inputs$max_dense_gb %||% 8
+  )
+
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "pca_fit must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_slingshot <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$space_2d), "slingshot runner: missing resolved$space_2d.")
   .wb_assert(!is.null(resolved$clusters), "slingshot runner: missing resolved$clusters.")
@@ -1549,6 +1601,126 @@
           kind = "obs_table",
           table_type = "matrix_log_normalize_summary",
           description = "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
+        )
+      )
+    ),
+    hvg_select = list(
+      op_name = "hvg_select",
+      title = "Highly Variable Feature Selection",
+      description = "Select highly variable features from a matrix using chunked feature-wise summaries.",
+      intent = c("matrix", "feature_selection", "rna", "hvg"),
+      requires = list(matrix = "matrix"),
+      produces = list(
+        selected_features = "feature_table",
+        fit_summary = "obs_table"
+      ),
+      promotable = c("selected_features", "fit_summary"),
+      chunking = list(
+        chunkable = TRUE,
+        axis = "features",
+        chunk_size_param = "chunk_size",
+        chunk_size_default = 256L,
+        status = "implemented_op_internal"
+      ),
+      runner = .wb_runner_hvg_select,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix")
+      ),
+      params = list(
+        list(name = "n_features", type = "int", default = 2000L, min = 1, max = 1000000,
+             help = "Number of highly variable features to mark selected."),
+        list(name = "method", type = "choice", default = "vst",
+             choices = c("vst", "dispersion", "variance"),
+             help = "Feature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean)."),
+        list(name = "min_mean", type = "dbl", default = NULL, min = 0,
+             help = "Optional minimum feature mean filter."),
+        list(name = "max_mean", type = "dbl", default = NULL, min = 0,
+             help = "Optional maximum feature mean filter."),
+        list(name = "min_dispersion", type = "dbl", default = NULL, min = 0,
+             help = "Optional minimum HVG score filter."),
+        list(name = "batch_key", type = "string", default = NULL,
+             help = "Reserved for future batch-aware HVG; currently unsupported if non-null."),
+        list(name = "exclude_features", type = "string_vec", default = NULL,
+             help = "Optional feature IDs to exclude before ranking."),
+        list(name = "feature_type", type = "string", default = NULL,
+             help = "Optional feature_type filter from the bundle feature registry."),
+        list(name = "seed", type = "int", default = 1L,
+             help = "Random seed reserved for deterministic future methods."),
+        list(name = "chunk_size", type = "int", default = 256L, min = 1, max = 100000,
+             help = "Feature chunk size for backed matrix reads.")
+      ),
+      interface_produces = list(
+        selected_features = list(
+          kind = "feature_table",
+          table_type = "feature_selection_table",
+          description = "Feature-wise mean, variance, dispersion, score, rank, and selected flag."
+        ),
+        fit_summary = list(
+          kind = "obs_table",
+          table_type = "hvg_select_summary",
+          description = "Input matrix, method, filters, dimensions, and selection counts."
+        )
+      )
+    ),
+    pca_fit = list(
+      op_name = "pca_fit",
+      title = "PCA Fit",
+      description = "Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.",
+      intent = c("matrix", "pca", "space", "rna", "dimension_reduction"),
+      requires = list(matrix = "matrix"),
+      optional_requires = list(features = "feature_table"),
+      produces = list(
+        space = "space",
+        loadings = "feature_table",
+        variance = "obs_table",
+        fit_summary = "obs_table"
+      ),
+      promotable = c("loadings", "variance", "fit_summary"),
+      runner = .wb_runner_pca_fit,
+      inputs = list(
+        matrix = list(required = TRUE, kind = "matrix"),
+        features = list(required = FALSE, kind = "feature_table")
+      ),
+      params = list(
+        list(name = "feature_ids", type = "string_vec", default = NULL,
+             help = "Optional explicit feature IDs when not passing features as a feature_table reference."),
+        list(name = "n_components", type = "int", default = 50L, min = 2, max = 10000,
+             help = "Number of principal components to compute."),
+        list(name = "center", type = "bool", default = TRUE,
+             help = "Center features before PCA."),
+        list(name = "scale", type = "bool", default = TRUE,
+             help = "Scale features before PCA."),
+        list(name = "backend", type = "choice", default = "irlba",
+             choices = c("irlba", "prcomp"),
+             help = "PCA backend. 'irlba' is recommended for large sparse/backed matrices."),
+        list(name = "seed", type = "int", default = 1L,
+             help = "Random seed."),
+        list(name = "space_id_out", type = "string", default = "rna.pca",
+             help = "Bundle space id to create."),
+        list(name = "overwrite", type = "bool", default = FALSE,
+             help = "Replace an existing space_id_out if present."),
+        list(name = "max_dense_gb", type = "dbl", default = 8, min = 0.1,
+             help = "Approximate dense selected-block size guard for dense backends.")
+      ),
+      interface_produces = list(
+        space = list(
+          kind = "space",
+          description = "Reference to the persisted PCA space."
+        ),
+        loadings = list(
+          kind = "feature_table",
+          table_type = "pca_loadings",
+          description = "Feature loadings per principal component."
+        ),
+        variance = list(
+          kind = "obs_table",
+          table_type = "pca_variance_explained",
+          description = "Per-PC standard deviation and variance explained."
+        ),
+        fit_summary = list(
+          kind = "obs_table",
+          table_type = "pca_fit_summary",
+          description = "Input matrix, feature count, backend, component count, and output space id."
         )
       )
     ),

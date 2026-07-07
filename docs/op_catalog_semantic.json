@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-06-29T17:44:55+0200",
-  "op_count": 51,
+  "generated_at": "2026-07-07T17:57:27+0200",
+  "op_count": 53,
   "ops": [
     {
       "op_name": "leiden",
@@ -141,6 +141,247 @@
         }
       ],
       "promotable": "summary",
+      "chunking": null
+    },
+    {
+      "op_name": "hvg_select",
+      "title": "Highly Variable Feature Selection",
+      "description": "Select highly variable features from a matrix using chunked feature-wise summaries.",
+      "intent": ["matrix", "feature_selection", "rna", "hvg"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "selected_features",
+          "kind": "feature_table",
+          "description": "Feature-wise mean, variance, dispersion, score, rank, and selected flag."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Input matrix, method, filters, dimensions, and selection counts."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "n_features",
+          "type": "int",
+          "default": 2000,
+          "min": 1,
+          "max": 1000000,
+          "help": "Number of highly variable features to mark selected."
+        },
+        {
+          "name": "method",
+          "type": "choice",
+          "default": "vst",
+          "choices": ["vst", "dispersion", "variance"],
+          "help": "Feature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean)."
+        },
+        {
+          "name": "min_mean",
+          "type": "dbl",
+          "default": null,
+          "min": 0,
+          "help": "Optional minimum feature mean filter."
+        },
+        {
+          "name": "max_mean",
+          "type": "dbl",
+          "default": null,
+          "min": 0,
+          "help": "Optional maximum feature mean filter."
+        },
+        {
+          "name": "min_dispersion",
+          "type": "dbl",
+          "default": null,
+          "min": 0,
+          "help": "Optional minimum HVG score filter."
+        },
+        {
+          "name": "batch_key",
+          "type": "string",
+          "default": null,
+          "help": "Reserved for future batch-aware HVG; currently unsupported if non-null."
+        },
+        {
+          "name": "exclude_features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional feature IDs to exclude before ranking."
+        },
+        {
+          "name": "feature_type",
+          "type": "string",
+          "default": null,
+          "help": "Optional feature_type filter from the bundle feature registry."
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "default": 1,
+          "help": "Random seed reserved for deterministic future methods."
+        },
+        {
+          "name": "chunk_size",
+          "type": "int",
+          "default": 256,
+          "min": 1,
+          "max": 100000,
+          "help": "Feature chunk size for backed matrix reads."
+        }
+      ],
+      "promotable": ["selected_features", "fit_summary"],
+      "chunking": {
+        "chunkable": true,
+        "axis": "features",
+        "chunk_size_param": "chunk_size",
+        "chunk_size_default": 256,
+        "status": "implemented_op_internal"
+      }
+    },
+    {
+      "op_name": "pca_fit",
+      "title": "PCA Fit",
+      "description": "Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.",
+      "intent": ["matrix", "pca", "space", "rna", "dimension_reduction"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "features",
+          "kind": "feature_table",
+          "required": false
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "space",
+          "kind": "space",
+          "description": "Reference to the persisted PCA space."
+        },
+        {
+          "name": "loadings",
+          "kind": "feature_table",
+          "description": "Feature loadings per principal component."
+        },
+        {
+          "name": "variance",
+          "kind": "obs_table",
+          "description": "Per-PC standard deviation and variance explained."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "description": "Input matrix, feature count, backend, component count, and output space id."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix"
+        },
+        "features": {
+          "required": false,
+          "kind": "feature_table"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "feature_ids",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit feature IDs when not passing features as a feature_table reference."
+        },
+        {
+          "name": "n_components",
+          "type": "int",
+          "default": 50,
+          "min": 2,
+          "max": 10000,
+          "help": "Number of principal components to compute."
+        },
+        {
+          "name": "center",
+          "type": "bool",
+          "default": true,
+          "help": "Center features before PCA."
+        },
+        {
+          "name": "scale",
+          "type": "bool",
+          "default": true,
+          "help": "Scale features before PCA."
+        },
+        {
+          "name": "backend",
+          "type": "choice",
+          "default": "irlba",
+          "choices": ["irlba", "prcomp"],
+          "help": "PCA backend. 'irlba' is recommended for large sparse/backed matrices."
+        },
+        {
+          "name": "seed",
+          "type": "int",
+          "default": 1,
+          "help": "Random seed."
+        },
+        {
+          "name": "space_id_out",
+          "type": "string",
+          "default": "rna.pca",
+          "help": "Bundle space id to create."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": false,
+          "help": "Replace an existing space_id_out if present."
+        },
+        {
+          "name": "max_dense_gb",
+          "type": "dbl",
+          "default": 8,
+          "min": 0.1,
+          "help": "Approximate dense selected-block size guard for dense backends."
+        }
+      ],
+      "promotable": ["loadings", "variance", "fit_summary"],
       "chunking": null
     },
     {

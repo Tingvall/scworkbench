@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-06-29T17:44:55+0200
+Generated at: 2026-07-07T17:57:27+0200
 
-Operation count: 51
+Operation count: 53
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -55,6 +55,68 @@ Key parameters:
 - `scale_factor` (dbl, default=10000): Per-cell target count scale before log1p; 10000 is the common CP10K convention.
 - `overwrite` (bool, default=FALSE): If TRUE, replace an existing output matrix with the same id.
 - `cell_set` (cell_set, default=all): Must be 'all' because the output matrix is registered as a full bundle matrix.
+
+## `hvg_select`
+
+Title: Highly Variable Feature Selection
+
+Intent: matrix, feature_selection, rna, hvg
+
+Description: Select highly variable features from a matrix using chunked feature-wise summaries.
+
+Consumes:
+- `matrix`: matrix
+- `cell_set`: select
+
+Produces:
+- `selected_features`: feature_table - Feature-wise mean, variance, dispersion, score, rank, and selected flag.
+- `fit_summary`: obs_table - Input matrix, method, filters, dimensions, and selection counts.
+
+Promotable outputs: selected_features, fit_summary
+
+Key parameters:
+- `n_features` (int, default=2000): Number of highly variable features to mark selected.
+- `method` (choice, default=vst): Feature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean).
+- `min_mean` (dbl, default=NULL): Optional minimum feature mean filter.
+- `max_mean` (dbl, default=NULL): Optional maximum feature mean filter.
+- `min_dispersion` (dbl, default=NULL): Optional minimum HVG score filter.
+- `batch_key` (string, default=NULL): Reserved for future batch-aware HVG; currently unsupported if non-null.
+- `exclude_features` (string_vec, default=NULL): Optional feature IDs to exclude before ranking.
+- `feature_type` (string, default=NULL): Optional feature_type filter from the bundle feature registry.
+- `seed` (int, default=1): Random seed reserved for deterministic future methods.
+- `chunk_size` (int, default=256): Feature chunk size for backed matrix reads.
+
+## `pca_fit`
+
+Title: PCA Fit
+
+Intent: matrix, pca, space, rna, dimension_reduction
+
+Description: Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.
+
+Consumes:
+- `matrix`: matrix
+- `features`: feature_table
+- `cell_set`: select
+
+Produces:
+- `space`: space - Reference to the persisted PCA space.
+- `loadings`: feature_table - Feature loadings per principal component.
+- `variance`: obs_table - Per-PC standard deviation and variance explained.
+- `fit_summary`: obs_table - Input matrix, feature count, backend, component count, and output space id.
+
+Promotable outputs: loadings, variance, fit_summary
+
+Key parameters:
+- `feature_ids` (string_vec, default=NULL): Optional explicit feature IDs when not passing features as a feature_table reference.
+- `n_components` (int, default=50): Number of principal components to compute.
+- `center` (bool, default=TRUE): Center features before PCA.
+- `scale` (bool, default=TRUE): Scale features before PCA.
+- `backend` (choice, default=irlba): PCA backend. 'irlba' is recommended for large sparse/backed matrices.
+- `seed` (int, default=1): Random seed.
+- `space_id_out` (string, default=rna.pca): Bundle space id to create.
+- `overwrite` (bool, default=FALSE): Replace an existing space_id_out if present.
+- `max_dense_gb` (dbl, default=8): Approximate dense selected-block size guard for dense backends.
 
 ## `umap_fit`
 

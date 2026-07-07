@@ -57,6 +57,9 @@ test_all <- function(bundle_dir){
   if (exists("test_op_matrix_log_normalize_contract", mode = "function")) {
     stopifnot(test_op_matrix_log_normalize_contract())
   }
+  if (exists("test_op_hvg_pca_contract", mode = "function")) {
+    stopifnot(test_op_hvg_pca_contract())
+  }
   if (exists("test_op_chromvar_contract", mode = "function")) {
     stopifnot(test_op_chromvar_contract(bundle_dir))
   }
