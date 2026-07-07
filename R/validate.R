@@ -9,6 +9,11 @@
 #' @return TRUE if valid, otherwise errors
 #' @export
 wb_validate_bundle <- function(bundle_dir) {
+  failed_marker <- file.path(bundle_dir, "INGEST_FAILED.json")
+  if (file.exists(failed_marker)) {
+    stop("Bundle ingestion failed/incomplete; see marker: ", failed_marker, call. = FALSE)
+  }
+
   b <- wb_open_bundle(bundle_dir, validate = FALSE)
   on.exit(wb_close_bundle(b), add = TRUE)
 
@@ -42,6 +47,27 @@ wb_validate_bundle <- function(bundle_dir) {
 
   for (i in seq_len(nrow(mats))) {
     mrow <- mats[i, ]
+
+    frags <- tryCatch(wb_matrix_fragments(b, as.character(mrow$matrix_id)), error = function(e) data.frame())
+    if (nrow(frags) > 1L) {
+      feat_seen <- character(0)
+      cell_seen <- character(0)
+      for (j in seq_len(nrow(frags))) {
+        frow <- frags[j, , drop = FALSE]
+        frag_path <- file.path(bundle_dir, frow$path[1])
+        if (!dir.exists(frag_path)) stop("Missing BPCells matrix fragment directory: ", frag_path)
+        fm <- .wb_bp_open_matrix_dir(frag_path)
+        fd <- dim(fm)
+        if (length(fd) != 2) stop("Matrix fragment has invalid dim(): ", frow$fragment_id[1])
+        if (fd[1] != frow$n_features[1]) stop("Matrix fragment n_features mismatch: ", frow$fragment_id[1])
+        if (fd[2] != frow$n_cells[1]) stop("Matrix fragment n_cells mismatch: ", frow$fragment_id[1])
+        feat_seen <- unique(c(feat_seen, as.character(jsonlite::fromJSON(frow$feature_ids_json[1]))))
+        cell_seen <- unique(c(cell_seen, as.character(jsonlite::fromJSON(frow$cell_ids_json[1]))))
+      }
+      if (length(feat_seen) != mrow$n_features) stop("Logical matrix n_features mismatch across fragments: ", mrow$matrix_id)
+      if (length(cell_seen) != mrow$n_cells) stop("Logical matrix n_cells mismatch across fragments: ", mrow$matrix_id)
+      next
+    }
 
     mat_path <- file.path(bundle_dir, mrow$path)
     if (!dir.exists(mat_path)) stop("Missing BPCells matrix directory: ", mat_path)

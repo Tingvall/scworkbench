@@ -58,7 +58,16 @@ wb_art_list <- function(bundle, type = NULL) {
   if (!is.data.frame(rows) || !nrow(rows)) {
     return(data.frame(stringsAsFactors = FALSE))
   }
-  rr <- lapply(rows$row_json, jsonlite::fromJSON)
+  rr <- lapply(rows$row_json, jsonlite::fromJSON, simplifyVector = FALSE)
+  rr <- lapply(rr, function(x) {
+    if (is.list(x) && length(x)) {
+      is_null <- vapply(x, is.null, logical(1))
+      if (any(is_null)) {
+        for (nm in names(x)[is_null]) x[[nm]] <- NA
+      }
+    }
+    x
+  })
   rr <- lapply(rr, as.data.frame, stringsAsFactors = FALSE)
   out <- do.call(rbind, rr)
   rownames(out) <- NULL

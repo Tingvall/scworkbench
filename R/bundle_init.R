@@ -86,8 +86,10 @@ wb_define_cells <- function(bundle,
   .wb_assert(is.character(set_name) && length(set_name) == 1L && nzchar(set_name),
              "set_name must be a non-empty string")
 
-  ids <- unique(as.character(cell_ids))
-  ids <- ids[nzchar(ids)]
+  raw_ids <- as.character(cell_ids)
+  raw_ids <- raw_ids[nzchar(raw_ids)]
+  .wb_assert(!anyDuplicated(raw_ids), "wb_define_cells(): cell_ids must be unique; repair or reject duplicated IDs before defining the canonical bundle universe.")
+  ids <- raw_ids
   .wb_assert(length(ids) > 0, "cell_ids empty after cleaning")
 
   ds <- as.character(dataset_id %||% "dataset_1")
@@ -142,59 +144,33 @@ wb_define_cells <- function(bundle,
     DBI::dbExecute(bundle$con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
   }
 
-  DBI::dbWriteTable(bundle$con, "cells", cells_df, append = TRUE)
-
   .wb_ensure_cell_set_membership_table(bundle$con)
   cell_set_name <- if (identical(set_name, "core")) "core" else paste0("set:", set_name)
   created_at <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-  DBI::dbWriteTable(
-    bundle$con,
-    "cell_set_membership",
-    data.frame(
-      cell_set = cell_set_name,
-      cell_id = ids,
-      source = source,
-      created_at = created_at,
-      created_by = created_by %||% NA_character_,
-      description = paste0("Defined cells for ", cell_set_name),
-      stringsAsFactors = FALSE
-    ),
-    append = TRUE
+  membership_df <- data.frame(
+    cell_set = cell_set_name,
+    cell_id = ids,
+    source = source,
+    created_at = created_at,
+    created_by = created_by %||% NA_character_,
+    description = paste0("Defined cells for ", cell_set_name),
+    stringsAsFactors = FALSE
   )
+  ds_tab <- as.data.frame(table(ds), stringsAsFactors = FALSE)
+  if (nrow(ds_tab)) {
+    colnames(ds_tab) <- c("dataset_id", "n_cells")
+    ds_tab$dataset_id <- as.character(ds_tab$dataset_id)
+    ds_tab$n_cells <- as.integer(ds_tab$n_cells)
+  }
 
-  if (length(ids)) {
-    tmp_name <- paste0("tmp_dataset_assign_", as.integer(Sys.time()), "_", paste(sample(c(letters, 0:9), 6, replace = TRUE), collapse = ""))
-    DBI::dbWriteTable(
-      bundle$con,
-      tmp_name,
-      data.frame(
-        cell_id = ids,
-        dataset_id = ds,
-        stringsAsFactors = FALSE
-      ),
-      temporary = TRUE,
-      overwrite = TRUE
-    )
-    DBI::dbExecute(
-      bundle$con,
-      sprintf(
-        "UPDATE cells
-            SET dataset_id = (SELECT t.dataset_id FROM %s t WHERE t.cell_id = cells.cell_id)
-          WHERE cell_id IN (SELECT cell_id FROM %s);",
-        tmp_name,
-        tmp_name
-      )
-    )
-    DBI::dbExecute(bundle$con, sprintf("DROP TABLE IF EXISTS %s;", tmp_name))
-
-    ds_tab <- as.data.frame(table(DBI::dbGetQuery(bundle$con, "SELECT dataset_id FROM cells;")$dataset_id), stringsAsFactors = FALSE)
+  DBI::dbWithTransaction(bundle$con, {
+    DBI::dbWriteTable(bundle$con, "cells", cells_df, append = TRUE)
+    DBI::dbWriteTable(bundle$con, "cell_set_membership", membership_df, append = TRUE)
     if (nrow(ds_tab)) {
-      colnames(ds_tab) <- c("dataset_id", "n_cells")
-      ds_tab$n_cells <- as.integer(ds_tab$n_cells)
       DBI::dbExecute(bundle$con, "DELETE FROM datasets;")
       DBI::dbWriteTable(bundle$con, "datasets", ds_tab, append = TRUE)
     }
-  }
+  })
 
   if (identical(set_name, "core")) {
     .wb_bundle_ensure_default_cell_set_style(bundle$con, "core", created_by = created_by %||% source)

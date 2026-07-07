@@ -15,6 +15,9 @@ test_all <- function(bundle_dir){
   if (exists("test_attach_adapters_contract", mode = "function")) {
     stopifnot(test_attach_adapters_contract(bundle_dir))
   }
+  if (exists("test_bundle_ingest_containers_contract", mode = "function")) {
+    stopifnot(test_bundle_ingest_containers_contract(bundle_dir))
+  }
   if (exists("test_op_contract_conformance", mode = "function")) {
     stopifnot(test_op_contract_conformance())
   }

@@ -262,11 +262,7 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
       tbl <- if (nrow(rows) == 0) {
         data.frame(stringsAsFactors = FALSE)
       } else {
-        rr <- lapply(rows$row_json, jsonlite::fromJSON)
-        rr <- lapply(rr, as.data.frame, stringsAsFactors = FALSE)
-        out <- do.call(rbind, rr)
-        rownames(out) <- NULL
-        out
+        .wb_art_table_rows_to_df(rows)
       }
       meta <- if (!is.null(info$meta_json[[1]]) && nzchar(as.character(info$meta_json[[1]]))) {
         jsonlite::fromJSON(as.character(info$meta_json[[1]]), simplifyVector = TRUE)
@@ -302,11 +298,7 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
       tbl <- if (nrow(rows) == 0) {
         data.frame(stringsAsFactors = FALSE)
       } else {
-        rr <- lapply(rows$row_json, jsonlite::fromJSON)
-        rr <- lapply(rr, as.data.frame, stringsAsFactors = FALSE)
-        out <- do.call(rbind, rr)
-        rownames(out) <- NULL
-        out
+        .wb_art_table_rows_to_df(rows)
       }
       meta <- if (!is.null(info$meta_json[[1]]) && nzchar(as.character(info$meta_json[[1]]))) {
         jsonlite::fromJSON(as.character(info$meta_json[[1]]), simplifyVector = TRUE)

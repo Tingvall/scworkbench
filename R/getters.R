@@ -600,10 +600,6 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   # Ensure matrix exists (nice error early)
   .wb_get_matrices_row(con, matrix_id)
 
-  # Load matrix (can be sparse/delayed/whatever your wb_matrix returns)
-  m <- wb_matrix(bundle, matrix_id)
-  .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
-
   # Canonical cells: bundle order
   all_cells <- wb_cells(bundle, cell_set = "all")
 
@@ -622,6 +618,9 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   }
 
   if (is.null(all_features) || length(all_features) == 0) {
+    # Legacy fallback for bundles without a feature registry.
+    m <- wb_matrix(bundle, matrix_id)
+    .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
     rn <- rownames(m)
     .wb_assert(!is.null(rn) && length(rn) > 0,
                paste0("No feature registry for matrix_id='", matrix_id,
@@ -650,6 +649,19 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
     cell_out <- all_cells
   }
 
+  frags <- tryCatch(wb_matrix_fragments(bundle, matrix_id), error = function(e) data.frame())
+  if (nrow(frags) > 1L) {
+    return(wb_matrix_read_features(
+      bundle = bundle,
+      matrix_id = matrix_id,
+      feature_ids = feat_out,
+      cell_ids = cell_out
+    ))
+  }
+
+  # Load matrix (can be sparse/delayed/whatever your wb_matrix returns)
+  m <- wb_matrix(bundle, matrix_id)
+  .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
   out <- m[fi, ci, drop = FALSE]
   out <- .wb_as_sparse(out)
 
@@ -693,10 +705,6 @@ wb_vector <- function(bundle, matrix_id, feature_id, cells = NULL) {
   # Canonical cells
   all_cells <- wb_cells(bundle, cell_set = "all")
 
-  # Load matrix
-  m <- wb_matrix(bundle, matrix_id)
-  .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
-
   # Canonical features: prefer features registry keyed by matrix_id; else matrix rownames
   all_features <- NULL
   if (.wb_table_exists(con, "features") && ("matrix_id" %in% DBI::dbListFields(con, "features"))) {
@@ -708,6 +716,9 @@ wb_vector <- function(bundle, matrix_id, feature_id, cells = NULL) {
     all_features <- as.character(all_features)
   }
   if (is.null(all_features) || length(all_features) == 0) {
+    # Legacy fallback for bundles without a feature registry.
+    m <- wb_matrix(bundle, matrix_id)
+    .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
     rn <- rownames(m)
     .wb_assert(!is.null(rn) && length(rn) > 0,
                paste0("No feature registry for matrix_id='", matrix_id,
@@ -730,6 +741,15 @@ wb_vector <- function(bundle, matrix_id, feature_id, cells = NULL) {
     cell_out <- as.character(cells)
   }
 
+  frags <- tryCatch(wb_matrix_fragments(bundle, matrix_id), error = function(e) data.frame())
+  if (nrow(frags) > 1L) {
+    v <- wb_matrix_read_feature(bundle, matrix_id = matrix_id, feature_id = feature_id, cell_ids = cell_out)
+    return(v)
+  }
+
+  # Load matrix
+  m <- wb_matrix(bundle, matrix_id)
+  .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
   v <- m[fi, ci, drop = TRUE]
   v <- .wb_as_numeric(v)
   names(v) <- cell_out

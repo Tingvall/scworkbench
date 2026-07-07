@@ -18,4 +18,10 @@ Imports:
 Suggests:
     BPCells,
     RANN,
-    UCell
+    UCell,
+    SeuratObject,
+    SingleCellExperiment,
+    SummarizedExperiment,
+    S4Vectors,
+    zellkonverter,
+    rhdf5
