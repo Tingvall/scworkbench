@@ -106,6 +106,10 @@ wb_session_run_op(
 `hvg_select` reads the input matrix in feature chunks and avoids full matrix
 materialization.
 
+`matrix_log_normalize` supports both single-fragment and multi-fragment BPCells
+matrices. Multi-fragment logical matrices are normalized fragment-by-fragment
+and registered as multi-fragment output matrices with the same cell partitions.
+
 `pca_fit` reads only the selected feature block. The default backend is
 `irlba::prcomp_irlba()`, which is the intended path for large sparse/backed
 matrices. The selected block size is recorded in `fit_summary` as

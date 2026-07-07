@@ -506,6 +506,15 @@ wb_matrix <- function(bundle, matrix_id) {
   con <- bundle$con
 
   row <- .wb_get_matrices_row(con, matrix_id)
+  frags <- tryCatch(wb_matrix_fragments(bundle, matrix_id), error = function(e) data.frame())
+  if (nrow(frags) > 1L) {
+    stop(
+      "wb_matrix() cannot return a single physical BPCells handle for multi-fragment logical matrix '",
+      matrix_id,
+      "'. Use wb_slice(), wb_vector(), or wb_matrix_read_features() for fragment-aware reads.",
+      call. = FALSE
+    )
+  }
 
   abs_path <- file.path(bundle$dir, row$path)
   .wb_assert(dir.exists(abs_path), paste0("Missing BPCells matrix directory: ", abs_path))
