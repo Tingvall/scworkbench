@@ -1,5 +1,42 @@
 # R/op_umap_fit.R
 
+.wb_umap_supported_nn_methods <- function() c("nndescent", "annoy", "fnn")
+
+.wb_umap_preflight <- function(nn_method,
+                               pkg_available = function(pkg) requireNamespace(pkg, quietly = TRUE)) {
+  .wb_assert(is.character(nn_method) && length(nn_method) == 1L && nzchar(nn_method),
+             "umap_fit: nn_method must be a non-empty string.")
+  nn_method <- as.character(nn_method)[1]
+  supported <- .wb_umap_supported_nn_methods()
+  .wb_assert(
+    nn_method %in% supported,
+    paste0(
+      "umap_fit: unsupported nn_method='", nn_method, "'. Supported values: ",
+      paste(supported, collapse = ", "), "."
+    )
+  )
+
+  if (identical(nn_method, "nndescent") && !isTRUE(pkg_available("rnndescent"))) {
+    stop(
+      "umap_fit: nn_method='nndescent' requires the R package 'rnndescent', ",
+      "but it is not installed in this runtime. Install rnndescent or rerun ",
+      "with nn_method='annoy' or nn_method='fnn'.",
+      call. = FALSE
+    )
+  }
+
+  if (identical(nn_method, "fnn") && !isTRUE(pkg_available("FNN"))) {
+    stop(
+      "umap_fit: nn_method='fnn' requires the R package 'FNN', ",
+      "but it is not installed in this runtime. Install FNN or rerun ",
+      "with nn_method='annoy' or nn_method='nndescent' when rnndescent is available.",
+      call. = FALSE
+    )
+  }
+
+  invisible(nn_method)
+}
+
 #' Fit UMAP from a high-D space and persist model for later transform
 #'
 #' Fits a 2D UMAP embedding from a high-dimensional space (e.g. LSI/PeakVI latent),
@@ -39,6 +76,7 @@ wb_op_umap_fit <- function(bundle,
                            verbose = FALSE) {
 
   .wb_require_pkg("uwot", "UMAP fitting")
+  nn_method <- .wb_umap_preflight(nn_method)
 
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(is.character(source_space_id) && length(source_space_id) == 1 && nzchar(source_space_id),

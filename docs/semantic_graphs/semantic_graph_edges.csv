@@ -329,6 +329,7 @@
 "op:ucell","parameter:matrix","has_parameter_semantics","input:matrix"
 "op:umap_fit","parameter:cell_set","has_parameter_semantics","input:cell_set"
 "op:umap_fit","parameter:overwrite","has_parameter_semantics","param:overwrite"
+"op:umap_fit","parameter:seed","has_parameter_semantics","param:seed"
 "op:umap_fit","parameter:space","has_parameter_semantics","input:space"
 "op:umap_transform","parameter:cell_set","has_parameter_semantics","input:cell_set"
 "op:umap_transform","parameter:model","has_parameter_semantics","input:model"

@@ -238,6 +238,7 @@
 <line x1="300" y1="3631" x2="370" y2="967" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:ucell has_parameter_semantics parameter:matrix</title></line>
 <line x1="300" y1="3703" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:cell_set</title></line>
 <line x1="300" y1="3703" x2="370" y2="2335" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:overwrite</title></line>
+<line x1="300" y1="3703" x2="370" y2="2983" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:seed</title></line>
 <line x1="300" y1="3703" x2="370" y2="3559" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:space</title></line>
 <line x1="300" y1="3775" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform has_parameter_semantics parameter:cell_set</title></line>
 <line x1="300" y1="3775" x2="370" y2="1831" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform has_parameter_semantics parameter:model</title></line>

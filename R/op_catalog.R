@@ -1738,6 +1738,21 @@
       ),
       params = list(
         list(name = "dims", type = "int_range", default = NULL, help = "Dims to use (e.g. 2:30)."),
+        list(name = "space_id_out", type = "string", default = NULL,
+             help = "Output 2D space id. Defaults to umap.<source_space>."),
+        list(name = "n_neighbors", type = "int", default = 30, min = 2, max = 100000,
+             help = "UMAP neighborhood size."),
+        list(name = "min_dist", type = "dbl", default = 0.3, min = 0, max = 1,
+             help = "UMAP minimum distance."),
+        list(name = "metric", type = "string", default = "euclidean",
+             help = "Distance metric passed to uwot."),
+        list(name = "nn_method", type = "choice", default = "nndescent",
+             choices = c("nndescent", "annoy", "fnn"),
+             help = "Nearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend."),
+        list(name = "spread", type = "dbl", default = 1.0, min = 0,
+             help = "UMAP spread parameter."),
+        list(name = "seed", type = "int", default = 1,
+             help = "Random seed."),
         list(name = "overwrite", type = "bool", default = TRUE, help = "Overwrite existing model/coords.")
       ),
       interface_produces = list(

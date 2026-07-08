@@ -101,6 +101,17 @@ wb_session_run_op(
 )
 ```
 
+`umap_fit` defaults to `nn_method = "nndescent"`, which requires the R package
+`rnndescent`. The op preflights this dependency before calling `uwot`. Supported
+nearest-neighbor backends are:
+
+- `nndescent`: default, requires `rnndescent`.
+- `annoy`: uses uwot's Annoy backend.
+- `fnn`: requires `FNN`.
+
+Choose an explicit `nn_method` when running in a container or cluster runtime
+where optional packages differ from the development workstation.
+
 ## Scale Behavior
 
 `hvg_select` reads the input matrix in feature chunks and avoids full matrix

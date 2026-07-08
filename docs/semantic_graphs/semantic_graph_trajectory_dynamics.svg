@@ -271,6 +271,7 @@
 <line x1="960" y1="2839" x2="1030" y2="2551" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth has_parameter_semantics parameter:signal_keys</title></line>
 <line x1="960" y1="2839" x2="1030" y2="3127" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth has_parameter_semantics parameter:summary_fun</title></line>
 <line x1="960" y1="2911" x2="1030" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:cell_set</title></line>
+<line x1="960" y1="2911" x2="1030" y2="2479" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:seed</title></line>
 <line x1="960" y1="2911" x2="1030" y2="2911" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:space</title></line>
 <line x1="960" y1="2983" x2="1030" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform has_parameter_semantics parameter:cell_set</title></line>
 <line x1="960" y1="2983" x2="1030" y2="1615" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform has_parameter_semantics parameter:model</title></line>

@@ -25,4 +25,7 @@ Suggests:
     S4Vectors,
     zellkonverter,
     rhdf5,
-    irlba
+    irlba,
+    uwot,
+    rnndescent,
+    FNN

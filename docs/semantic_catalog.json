@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-07-07T17:57:29+0200",
+  "generated_at": "2026-07-08T13:50:25+0200",
   "record_count": 302,
   "record_type_counts": {
     "artifact_type": 71,
@@ -436,7 +436,7 @@
       "name": "umap_fit",
       "title": "UMAP fit (train model)",
       "description": "Fit a UMAP model on a space and store it for future projection.",
-      "search_text": "UMAP fit (train model)\nFit a UMAP model on a space and store it for future projection.\numap\nfit\nspace\nTRUE\ncell_set\nselect\nmodel\nmodel_ref\nReference to the fitted UMAP model.\nspace_2d\nThe fitted 2D embedding space id.\ndims\nint_range\nDims to use (e.g. 2:30).\noverwrite\nbool\nOverwrite existing model/coords.",
+      "search_text": "UMAP fit (train model)\nFit a UMAP model on a space and store it for future projection.\numap\nfit\nspace\nTRUE\ncell_set\nselect\nmodel\nmodel_ref\nReference to the fitted UMAP model.\nspace_2d\nThe fitted 2D embedding space id.\ndims\nint_range\nDims to use (e.g. 2:30).\nspace_id_out\nstring\nOutput 2D space id. Defaults to umap.<source_space>.\nn_neighbors\nint\n30\n2\n1e+05\nUMAP neighborhood size.\nmin_dist\ndbl\n0.3\n0\n1\nUMAP minimum distance.\nmetric\neuclidean\nDistance metric passed to uwot.\nnn_method\nchoice\nnndescent\nannoy\nfnn\nNearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.\nspread\nUMAP spread parameter.\nseed\nRandom seed.\noverwrite\nbool\nOverwrite existing model/coords.",
       "tags": ["op", "umap", "fit"],
       "payload": {
         "op_name": "umap_fit",
@@ -485,6 +485,54 @@
             "type": "int_range",
             "default": null,
             "help": "Dims to use (e.g. 2:30)."
+          },
+          {
+            "name": "space_id_out",
+            "type": "string",
+            "default": null,
+            "help": "Output 2D space id. Defaults to umap.<source_space>."
+          },
+          {
+            "name": "n_neighbors",
+            "type": "int",
+            "default": 30,
+            "min": 2,
+            "max": 100000,
+            "help": "UMAP neighborhood size."
+          },
+          {
+            "name": "min_dist",
+            "type": "dbl",
+            "default": 0.3,
+            "min": 0,
+            "max": 1,
+            "help": "UMAP minimum distance."
+          },
+          {
+            "name": "metric",
+            "type": "string",
+            "default": "euclidean",
+            "help": "Distance metric passed to uwot."
+          },
+          {
+            "name": "nn_method",
+            "type": "choice",
+            "default": "nndescent",
+            "choices": ["nndescent", "annoy", "fnn"],
+            "help": "Nearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend."
+          },
+          {
+            "name": "spread",
+            "type": "dbl",
+            "default": 1,
+            "min": 0,
+            "help": "UMAP spread parameter."
+          },
+          {
+            "name": "seed",
+            "type": "int",
+            "default": 1,
+            "help": "Random seed."
           },
           {
             "name": "overwrite",
@@ -11250,9 +11298,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-07-07T17:57:29+0200",
+    "generated_at": "2026-07-08T13:50:25+0200",
     "node_count": 302,
-    "edge_count": 872,
+    "edge_count": 873,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -13271,6 +13319,12 @@
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
         "label": "input:cell_set"
+      },
+      {
+        "from": "op:umap_fit",
+        "to": "parameter:seed",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:seed"
       },
       {
         "from": "op:umap_fit",

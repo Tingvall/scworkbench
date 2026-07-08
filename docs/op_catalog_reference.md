@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-07-07T17:57:27+0200
+Generated at: 2026-07-08T13:50:24+0200
 
 Operation count: 53
 
@@ -138,6 +138,13 @@ Promotable outputs: space_2d, model
 
 Key parameters:
 - `dims` (int_range, default=NULL): Dims to use (e.g. 2:30).
+- `space_id_out` (string, default=NULL): Output 2D space id. Defaults to umap.<source_space>.
+- `n_neighbors` (int, default=30): UMAP neighborhood size.
+- `min_dist` (dbl, default=0.3): UMAP minimum distance.
+- `metric` (string, default=euclidean): Distance metric passed to uwot.
+- `nn_method` (choice, default=nndescent): Nearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.
+- `spread` (dbl, default=1): UMAP spread parameter.
+- `seed` (int, default=1): Random seed.
 - `overwrite` (bool, default=TRUE): Overwrite existing model/coords.
 
 ## `umap_transform`

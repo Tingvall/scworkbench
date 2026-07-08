@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-07-07T17:57:29+0200",
+  "generated_at": "2026-07-08T13:50:25+0200",
   "node_count": 302,
-  "edge_count": 872,
+  "edge_count": 873,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -2021,6 +2021,12 @@
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
       "label": "input:cell_set"
+    },
+    {
+      "from": "op:umap_fit",
+      "to": "parameter:seed",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:seed"
     },
     {
       "from": "op:umap_fit",
