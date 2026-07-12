@@ -7,7 +7,31 @@ test_op_pathway_enrich_contract <- function(bundle_dir) {
   mid <- as.character(mats$matrix_id[1])
 
   feats <- wb_feature_ids(b, matrix_id = mid)
-  stopifnot(length(feats) >= 40)
+  # The generated golden bundle is intentionally tiny. Attach a test-local
+  # feature universe when needed so pathway overlap behavior is still tested.
+  if (length(feats) < 120L) {
+    mid <- "pathway_enrich_contract_counts"
+    feats <- paste0("pathway_gene_", seq_len(120L))
+    if (!mid %in% as.character(wb_matrices(b)$matrix_id)) {
+      cells <- wb_cells(b, cell_set = "all")
+      mat <- Matrix::Matrix(
+        matrix(0, nrow = length(feats), ncol = length(cells),
+               dimnames = list(feats, cells)),
+        sparse = TRUE
+      )
+      wb_attach_matrix(
+        b,
+        matrix_id = mid,
+        mat = mat,
+        layer = "counts",
+        feature_type = "gene",
+        source = "test_op_pathway_enrich_contract",
+        created_by = "test"
+      )
+    }
+    feats <- wb_feature_ids(b, matrix_id = mid)
+  }
+  stopifnot(length(feats) >= 120L)
 
   # Create two feature sets in one namespace; op should test both.
   ns <- "test_pathway_ns"

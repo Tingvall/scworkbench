@@ -117,6 +117,20 @@ Implications:
 - for cluster-critical PeakVI paths, prefer the staged sparse chunk bridge until
   native cluster reads are revalidated
 
+scVI training bridge:
+
+- `scvi_train` uses the same R-staged sparse-chunk transport for its supported
+  runtime path.
+- R validates count-like input and metadata covariates, stages the selected
+  matrix and cell metadata, preregisters `model_ref` and `obs_table` outputs,
+  and invokes `pybench.ops.scvi_train`.
+- Python writes the latent space, a bundle-relative scVI model directory, and
+  the requested fit-summary payload. R remains the authority for the op
+  interface, artifact rows, run/session provenance, and promotion.
+- The Python environment must include the pybench `scvi` extra. This bridge is
+  not a fallback for normalized matrices; `allow_non_counts=TRUE` is an
+  explicit expert override.
+
 ## Parity Discipline
 
 When an R function has a Python counterpart:

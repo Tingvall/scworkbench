@@ -146,8 +146,11 @@
     spec <- outputs_spec[[nm]]
     type <- as.character(spec$type %||% "")[1]
     .wb_pyproto_assert_scalar_chr(type, paste0("outputs_spec$", nm, "$type"))
-    artifact_id <- paste0(type, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-                          paste0(sample(c(0:9, letters), 8, TRUE), collapse = ""))
+    artifact_id <- as.character(spec$artifact_id %||% "")[1]
+    if (!nzchar(artifact_id)) {
+      artifact_id <- paste0(type, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
+                            paste0(sample(c(0:9, letters), 8, TRUE), collapse = ""))
+    }
 
     DBI::dbExecute(con, "
       INSERT INTO artifacts(

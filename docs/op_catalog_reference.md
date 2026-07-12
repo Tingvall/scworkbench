@@ -1,10 +1,9 @@
 # scworkbench Operation Catalog
-
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-07-08T13:50:24+0200
+Generated at: 2026-07-12T15:26:02+0200
 
-Operation count: 53
+Operation count: 54
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -1363,6 +1362,42 @@ Key parameters:
 - `seed` (int, default=1): Random seed for PeakVI training.
 - `use_gpu` (bool, default=FALSE): If TRUE, request GPU-backed training in scvi-tools.
 - `space_id_out` (string, default=peakvi_space): Space id to write for the learned PeakVI latent embedding.
+
+## `scvi_train`
+
+Title: scVI train (pybench)
+
+Intent: latent, model, python, rna, counts
+
+Description: Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.
+
+Consumes:
+- `matrix`: matrix
+- `cell_set`: select
+
+Produces:
+- `space`: space - scVI latent space written into the bundle spaces registry.
+- `model`: model_ref - Serialized scVI Python model payload (engine='scvi').
+- `fit_summary`: obs_table - Training summary, parameter, runtime, and metric table emitted by pybench.
+
+Promotable outputs: model, fit_summary
+
+Key parameters:
+- `n_latent` (int, default=30): Target latent dimensionality for the emitted scVI space.
+- `n_hidden` (int, default=128): Hidden width passed to the scVI model constructor.
+- `n_layers` (int, default=2): Number of hidden layers passed to the scVI model constructor.
+- `dropout` (number, default=0.1): Dropout rate passed to the scVI model constructor.
+- `batch_key` (string, default=NULL): Optional cell metadata field used as the scVI batch covariate.
+- `categorical_covariates` (string_array, default=NULL): Optional categorical cell metadata covariates passed to scVI setup_anndata.
+- `continuous_covariates` (string_array, default=NULL): Optional continuous cell metadata covariates passed to scVI setup_anndata.
+- `max_epochs` (int, default=NULL): Optional maximum training epochs passed through to scvi-tools.
+- `early_stopping` (bool, default=TRUE): If TRUE, enable scvi-tools early stopping during scVI training.
+- `seed` (int, default=1): Random seed for scVI training.
+- `use_gpu` (bool, default=FALSE): If TRUE, request GPU-backed training in scvi-tools.
+- `output_space_id` (string, default=rna.scvi): Space id to write for the learned scVI latent embedding.
+- `model_artifact_id` (string, default=NULL): Optional preregistered model artifact id. NULL lets scworkbench assign one.
+- `overwrite` (bool, default=FALSE): If TRUE, allow replacing an existing output_space_id.
+- `allow_non_counts` (bool, default=FALSE): If TRUE, bypass raw/count-like matrix checks. Use only for intentional expert overrides.
 
 ## `peakvi_project`
 

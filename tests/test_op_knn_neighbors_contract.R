@@ -16,9 +16,16 @@ test_op_knn_neighbors_contract <- function(bundle_dir) {
   sp <- wb_spaces(b)
   if (!is.data.frame(sp) || nrow(sp) < 1) return(TRUE)
 
-  sid <- as.character(sp$space_id[1])
   cells <- wb_cells(b, cell_set = "all")
   if (length(cells) < 3) return(TRUE)
+
+  # Earlier contract tests can add partial spaces to the shared fixture. Pick
+  # a space that covers this test's requested cell universe.
+  covers_cells <- vapply(as.character(sp$space_id), function(space_id) {
+    !inherits(try(wb_space(b, space_id, cells = cells), silent = TRUE), "try-error")
+  }, logical(1))
+  if (!any(covers_cells)) return(TRUE)
+  sid <- as.character(sp$space_id[which(covers_cells)[1L]])
 
   q <- cells[1]
   candidates <- cells[2:min(40, length(cells))]
@@ -43,7 +50,7 @@ test_op_knn_neighbors_contract <- function(bundle_dir) {
     bundle = b,
     op_name = "knn_neighbors",
     inputs = list(
-      space_id = sid,
+      space = wb_prim_space(sid),
       query_cells = q,
       candidate_cells = candidates,
       k = min(10L, length(candidates)),
@@ -61,7 +68,7 @@ test_op_knn_neighbors_contract <- function(bundle_dir) {
     bundle = b,
     op_name = "knn_neighbors",
     inputs = list(
-      space_id = sid,
+      space = wb_prim_space(sid),
       query_cells = q,
       candidate_cells = "core",
       k = 5L,

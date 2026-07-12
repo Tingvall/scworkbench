@@ -58,6 +58,7 @@ Conventions:
 |---|---|---|---|---|
 | `wb_op_peakvi_fit()` | `pybench.ops.peakvi_fit` | op bridge | implemented | keep training params aligned: `n_latent`, `n_layers`, `n_hidden`, `dropout`, `max_epochs`, `lr`, `early_stopping`; production/cluster path is R-staged sparse chunks -> Python PeakVI; native pybench BPCells reads are local/dev capable when `matrix_chunks_dir` is absent but are not cluster production default until forked/double-matrix BPCells reads pass a cluster smoke; writeback remains `space` + `model_ref` |
 | `wb_op_peakvi_project()` | `pybench.ops.peakvi_project` | op bridge | implemented | consumes `model_ref(engine=\"peakvi\")`; currently requires the staged sparse chunk bridge; writes `space` only |
+| `wb_op_scvi_train()` | `pybench.ops.scvi_train` | op bridge | implemented | R validates count-like RNA input and covariates, stages `scworkbench_sparse_matrix_chunks_v1` chunks plus cell metadata, and preregisters `model_ref` + `obs_table`; Python writes `space` + bundle-relative `model_ref` + `scvi_fit_summary` table; requires pybench `scvi` extra |
 
 ## Non-Artifact Bundle Writes
 

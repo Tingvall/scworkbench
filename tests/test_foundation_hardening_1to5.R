@@ -92,6 +92,10 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   vv_cells <- cells_all[seq_len(n_vec)]
   vv <- seq_along(vv_cells)
   names(vv) <- vv_cells
+  # Keep the selector test non-empty for both the tiny golden fixture and
+  # larger integration bundles.
+  range_min <- max(1L, as.integer(ceiling(n_vec / 3)))
+  range_max <- min(n_vec, range_min + max(1L, as.integer(floor(n_vec / 3))) - 1L)
 
   run <- wb_new_run(
     op_name = "test_vector",
@@ -109,26 +113,33 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
       list(
         type = "vector_range",
         vector_ref = paste0("session:", run$run_id, ":scores"),
-        min = 100,
-        max = 200,
+        min = range_min,
+        max = range_max,
         na.rm = TRUE
       )
     )
   )
   sel_v <- wb_exec_selection_plan(b, plan, runs = runs)
-  want_v <- cells_all[cells_all %in% names(vv)[vv >= 100 & vv <= 200]]
+  want_v <- cells_all[cells_all %in% names(vv)[vv >= range_min & vv <= range_max]]
   stopifnot(identical(sel_v, want_v))
 
   # Boolean groups + NOT
   if (length(sets) > 0) {
-    set1 <- as.character(wb_cells(b, cell_set = sets[1]))
-    set1 <- set1[set1 %in% cells_all]
+    set_members <- lapply(sets, function(set_name) {
+      cells <- as.character(wb_cells(b, cell_set = set_name))
+      cells[cells %in% cells_all]
+    })
+    proper <- vapply(set_members, function(cells) {
+      length(cells) > 0L && length(cells) < length(cells_all)
+    }, logical(1))
+    set_name <- as.character(sets[which(proper)[1L] %||% NA_integer_])
+    set1 <- if (is.na(set_name)) character(0) else set_members[[which(sets == set_name)[1L]]]
     if (length(set1) > 0) {
       not_plan <- list(
         universe = "all",
         groups = list(
           list(rules = list(
-            list(type = "set", sets = sets[1], negate = TRUE)
+            list(type = "set", sets = set_name, negate = TRUE)
           ))
         )
       )
@@ -138,16 +149,16 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
       or_plan <- list(
         universe = "all",
         groups = list(
-          list(rules = list(list(type = "set", sets = sets[1]))),
+          list(rules = list(list(type = "set", sets = set_name))),
           list(rules = list(list(type = "vector_range",
                                  vector_ref = paste0("session:", run$run_id, ":scores"),
-                                 min = 100,
-                                 max = 105,
+                                 min = range_min,
+                                 max = min(range_max, range_min + 1L),
                                  na.rm = TRUE)))
         )
       )
       sel_or <- wb_exec_selection_plan(b, or_plan, runs = runs)
-      want_or <- unique(c(set1, names(vv)[vv >= 100 & vv <= 105]))
+      want_or <- unique(c(set1, names(vv)[vv >= range_min & vv <= min(range_max, range_min + 1L)]))
       want_or <- cells_all[cells_all %in% want_or]
       stopifnot(identical(sel_or, want_or))
     }

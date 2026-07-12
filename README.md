@@ -179,10 +179,12 @@ Start here:
 
 ## Testing
 
-Run focused tests directly while developing:
+Run the canonical package contract suite. It generates a disposable golden
+bundle unless `--bundle=/path/to/bundle` is supplied, sources every top-level
+`tests/test_*.R` contract definition, and then runs the canonical suite:
 
 ```sh
-Rscript -e 'devtools::load_all(".", quiet = TRUE); source("tests/test_all.R")'
+Rscript inst/tests/run_contract_tests.R
 ```
 
 Run a specific contract test:

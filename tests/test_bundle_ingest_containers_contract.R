@@ -225,7 +225,12 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(inherits(feature_err, "try-error"))
   stopifnot(grepl("Duplicate feature IDs detected", as.character(feature_err), fixed = TRUE))
 
-  if (requireNamespace("zellkonverter", quietly = TRUE)) {
+  # H5AD round-trips use zellkonverter's external Conda environment. Do not
+  # bootstrap that environment (and potentially download Miniconda) as part of
+  # the offline package contract suite. CI/container jobs with a provisioned
+  # AnnData runtime can opt in explicitly.
+  run_h5ad <- identical(tolower(Sys.getenv("SCWORKBENCH_TEST_H5AD", unset = "false")), "true")
+  if (requireNamespace("zellkonverter", quietly = TRUE) && run_h5ad) {
     h5ad_path <- tempfile("wb_dup_obs_", fileext = ".h5ad")
     zellkonverter::writeH5AD(dup_sce, h5ad_path, X_name = "counts")
 
@@ -318,6 +323,8 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
     h5_feature_val_err <- try(wb_validate_bundle(out_h5_feature_error), silent = TRUE)
     stopifnot(inherits(h5_feature_val_err, "try-error"))
     stopifnot(grepl("ingestion failed/incomplete", as.character(h5_feature_val_err), fixed = TRUE))
+  } else if (requireNamespace("zellkonverter", quietly = TRUE)) {
+    message("Skipping H5AD round-trip contract checks; set SCWORKBENCH_TEST_H5AD=1 in a provisioned zellkonverter runtime.")
   }
 
   if (requireNamespace("Seurat", quietly = TRUE) && requireNamespace("SeuratObject", quietly = TRUE)) {

@@ -171,6 +171,17 @@ forked/double-matrix path.
 
 `peakvi_project` currently requires staged chunks.
 
+## scVI Matrix Handoff Note
+
+`scvi_train` uses the staged sparse-chunk protocol
+`scworkbench_sparse_matrix_chunks_v1`. The R bridge provides feature-by-cell
+Matrix Market chunks, ordered cell IDs, and `cell_metadata.tsv`; Python builds
+an AnnData cell-by-feature matrix from those files. The supported outputs are a
+bundle space plus preregistered `model_ref` and `obs_table` payloads.
+
+The Python module is `pybench.ops.scvi_train` and requires the pybench `scvi`
+extra. The model path recorded in `artifact_model_ref` must be bundle-relative.
+
 ## Idempotency Rule (payload writes)
 
 Pybench payload writers should be safe for retry on the same artifact ID:

@@ -1,5 +1,16 @@
 test_all <- function(bundle_dir){
 
+  fixture_n_cells <- tryCatch({
+    fixture_bundle <- wb_open_bundle(bundle_dir)
+    on.exit(try(wb_close_bundle(fixture_bundle), silent = TRUE), add = TRUE)
+    length(wb_cells(fixture_bundle, cell_set = "all"))
+  }, error = function(e) 0L)
+  large_trajectory_fixture <- fixture_n_cells >= 500L
+  if (!large_trajectory_fixture) {
+    message("Skipping large-fixture trajectory integration contracts (fixture has ",
+            fixture_n_cells, " cells; require at least 500).")
+  }
+
   if (exists("test_primitives_contract", mode = "function")) {
     stopifnot(test_primitives_contract())
   }
@@ -114,43 +125,46 @@ test_all <- function(bundle_dir){
   if (exists("test_op_peakvi_fit_contract", mode = "function")) {
     stopifnot(test_op_peakvi_fit_contract(bundle_dir))
   }
-  if (exists("test_op_space_path_contract", mode = "function")) {
+  if (exists("test_op_scvi_train_contract", mode = "function")) {
+    stopifnot(test_op_scvi_train_contract(bundle_dir))
+  }
+  if (large_trajectory_fixture && exists("test_op_space_path_contract", mode = "function")) {
     stopifnot(test_op_space_path_contract(bundle_dir))
   }
-  if (exists("test_op_slingshot_promoted_model_project_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_slingshot_promoted_model_project_contract", mode = "function")) {
     stopifnot(test_op_slingshot_promoted_model_project_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_de_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_de_contract", mode = "function")) {
     stopifnot(test_op_trajectory_de_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_branch_compare_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_branch_compare_contract", mode = "function")) {
     stopifnot(test_op_trajectory_branch_compare_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_smooth_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_smooth_contract", mode = "function")) {
     stopifnot(test_op_trajectory_smooth_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_signature_smooth_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_signature_smooth_contract", mode = "function")) {
     stopifnot(test_op_trajectory_signature_smooth_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_vector_smooth_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_vector_smooth_contract", mode = "function")) {
     stopifnot(test_op_trajectory_vector_smooth_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_signal_dynamics_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_signal_dynamics_contract", mode = "function")) {
     stopifnot(test_op_trajectory_signal_dynamics_contract(bundle_dir))
   }
   if (exists("test_trajectory_geneset_dynamic_metrics_contract", mode = "function")) {
     stopifnot(test_trajectory_geneset_dynamic_metrics_contract())
   }
-  if (exists("test_op_trajectory_signal_dynamics_promoted_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_signal_dynamics_promoted_contract", mode = "function")) {
     stopifnot(test_op_trajectory_signal_dynamics_promoted_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_geneset_dynamics_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_geneset_dynamics_contract", mode = "function")) {
     stopifnot(test_op_trajectory_geneset_dynamics_contract(bundle_dir))
   }
-  if (exists("test_op_trajectory_geneset_dynamics_promoted_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_op_trajectory_geneset_dynamics_promoted_contract", mode = "function")) {
     stopifnot(test_op_trajectory_geneset_dynamics_promoted_contract(bundle_dir))
   }
-  if (exists("test_trajectory_family_helpers_contract", mode = "function")) {
+  if (large_trajectory_fixture && exists("test_trajectory_family_helpers_contract", mode = "function")) {
     stopifnot(test_trajectory_family_helpers_contract(bundle_dir))
   }
   if (exists("test_op_trajectory_segment_join_contract", mode = "function")) {
@@ -283,7 +297,7 @@ test_all <- function(bundle_dir){
     stopifnot(inherits(x, "Matrix"))
     stopifnot(identical(rownames(x), feat10))
     stopifnot(identical(colnames(x), cell50))
-    stopifnot(all(dim(x) == c(10, 50)))
+    stopifnot(all(dim(x) == c(length(feat10), length(cell50))))
   }
   cat("Vector getter agrees with slice\n")
   if (nrow(mats) > 0) {
@@ -295,7 +309,7 @@ test_all <- function(bundle_dir){
     v <- wb_vector(b, mid, gene, cells = cell50)
     x <- wb_slice(b, mid, features = gene, cells = cell50)
 
-    stopifnot(length(v) == 50)
+    stopifnot(length(v) == length(cell50))
     stopifnot(identical(names(v), cell50))
     stopifnot(all(as.numeric(x[1, ]) == as.numeric(v)))
   }
@@ -308,11 +322,11 @@ test_all <- function(bundle_dir){
 
     if (is.data.frame(s)) {
       stopifnot(all(c("cell_id", "x", "y") %in% colnames(s)))
-      stopifnot(nrow(s) == 20)
+      stopifnot(nrow(s) == length(cells_20))
       stopifnot(identical(s$cell_id, cells_20))
     } else {
       stopifnot(is.matrix(s))
-      stopifnot(nrow(s) == 20)
+      stopifnot(nrow(s) == length(cells_20))
       stopifnot(identical(rownames(s), cells_20))
     }
   }

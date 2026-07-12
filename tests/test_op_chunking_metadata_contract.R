@@ -24,7 +24,7 @@ test_op_chunking_metadata_contract <- function() {
 
   reg_ucell <- .wb_op("ucell")
   stopifnot(is.list(reg_ucell$chunking))
-  stopifnot(identical(as.character(reg_ucell$chunking$status), "planned"))
+  stopifnot(identical(as.character(reg_ucell$chunking$status), "active"))
 
   TRUE
 }

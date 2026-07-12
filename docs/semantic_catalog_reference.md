@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-07-08T13:50:25+0200
+Generated at: 2026-07-12T15:26:03+0200
 
-Record count: 302
+Record count: 303
 
-Graph edges: 873
+Graph edges: 882
 
 ## artifact_type
 
@@ -1147,6 +1147,12 @@ Description: Project a fitted monocle3 trajectory graph into a 2D display space.
 Title: PeakVI fit (pybench)
 
 Description: Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.
+
+### `op:scvi_train`
+
+Title: scVI train (pybench)
+
+Description: Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.
 
 ### `op:peakvi_project`
 

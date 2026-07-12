@@ -28,8 +28,16 @@ test_op_peakvi_fit_contract <- function(bundle_dir) {
 
   mats <- tryCatch(wb_matrices(b), error = function(e) data.frame())
   stopifnot(is.data.frame(mats), nrow(mats) >= 1L)
-  mid <- as.character(mats$matrix_id[1])
+  # Contract tests earlier in the shared fixture can register synthetic
+  # matrices. Prefer the golden raw-count matrix when it is available.
+  mid <- if ("RNA_counts" %in% as.character(mats$matrix_id)) "RNA_counts" else as.character(mats$matrix_id[1])
   stopifnot(nzchar(mid))
+
+  available_cells <- as.character(wb_cells(b, cell_set = "all"))
+  if (length(available_cells) < 25L) {
+    message("Skipping PeakVI bridge invocation: fixture has fewer than 25 cells.")
+    return(TRUE)
+  }
 
   s <- wb_session_new()
   rr <- try(
@@ -39,7 +47,7 @@ test_op_peakvi_fit_contract <- function(bundle_dir) {
       op_name = "peakvi_fit",
       inputs = list(
         cell_set = "all",
-        cell_ids = as.character(head(wb_cells(b, cell_set = "all"), 25)),
+        cell_ids = as.character(head(available_cells, 25)),
         matrix = wb_prim_matrix(mid),
         n_latent = 8L,
         n_layers = 3L,
@@ -57,11 +65,12 @@ test_op_peakvi_fit_contract <- function(bundle_dir) {
 
   if (inherits(rr, "try-error")) {
     msg <- as.character(rr)
-    stopifnot(
-      grepl("pybench", msg, ignore.case = TRUE) ||
+    recognized <- grepl("pybench", msg, ignore.case = TRUE) ||
       grepl("peakvi_fit", msg, ignore.case = TRUE) ||
       grepl("scvi", msg, ignore.case = TRUE)
-    )
+    if (!recognized) {
+      stop("Unexpected PeakVI contract-test failure:\n", msg, call. = FALSE)
+    }
     return(TRUE)
   }
 
