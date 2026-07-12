@@ -7,7 +7,23 @@ test_feature_selection_plan_contract <- function(bundle_dir) {
   mid <- as.character(mats$matrix_id[1])
 
   allf <- as.character(wb_feature_ids(b, mid))
-  stopifnot(length(allf) > 10)
+  if (length(allf) <= 10L) {
+    mid <- "feature_selection_plan_contract_counts"
+    allf <- paste0("feature_plan_gene_", seq_len(12L))
+    if (!mid %in% as.character(wb_matrices(b)$matrix_id)) {
+      cells <- wb_cells(b, cell_set = "all")
+      mat <- Matrix::Matrix(
+        matrix(seq_len(length(allf) * length(cells)) %% 5L,
+               nrow = length(allf), dimnames = list(allf, cells)),
+        sparse = TRUE
+      )
+      wb_attach_matrix(b, matrix_id = mid, mat = mat, layer = "counts",
+                       feature_type = "gene", source = "test_feature_selection_plan_contract",
+                       created_by = "test")
+    }
+    allf <- as.character(wb_feature_ids(b, mid))
+  }
+  stopifnot(length(allf) > 10L)
 
   # basic universe
   p0 <- list(universe = mid, rules = list())

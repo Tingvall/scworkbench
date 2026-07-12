@@ -61,6 +61,39 @@ for (path in setdiff(test_files, test_all_file)) {
 }
 sys.source(test_all_file, envir = globalenv())
 
+# Isolation model: the generated/provided bundle is a read-only baseline. Each
+# contract test that declares a bundle_dir argument receives its own recursive
+# copy, so mutation-heavy ingestion and promotion tests cannot affect later
+# validation tests. Tests without bundle_dir remain ordinary self-contained
+# unit contracts.
+baseline_bundle_dir <- bundle_dir
+bundle_test_root <- tempfile("scworkbench_contract_bundles_", tmpdir = "/tmp")
+dir.create(bundle_test_root, recursive = TRUE, showWarnings = FALSE)
+on.exit(unlink(bundle_test_root, recursive = TRUE, force = TRUE), add = TRUE)
+
+copy_bundle_for_test <- function(label) {
+  target_parent <- file.path(bundle_test_root, paste0(gsub("[^A-Za-z0-9_.-]+", "_", label), "_", as.integer(Sys.time()), "_", sample.int(1e6, 1L)))
+  dir.create(target_parent, recursive = TRUE, showWarnings = FALSE)
+  ok <- file.copy(baseline_bundle_dir, target_parent, recursive = TRUE)
+  if (!isTRUE(ok)) stop("Failed to copy baseline bundle for test: ", label, call. = FALSE)
+  normalizePath(file.path(target_parent, basename(baseline_bundle_dir)), winslash = "/", mustWork = TRUE)
+}
+
+test_names <- setdiff(ls(globalenv(), pattern = "^test_"), "test_all")
+for (test_name in test_names) {
+  test_fn <- get(test_name, envir = globalenv())
+  if (!is.function(test_fn) || !"bundle_dir" %in% names(formals(test_fn))) next
+  assign(test_name, local({
+    fn <- test_fn
+    label <- test_name
+    function(bundle_dir, ...) {
+      isolated_bundle <- copy_bundle_for_test(label)
+      on.exit(unlink(dirname(isolated_bundle), recursive = TRUE, force = TRUE), add = TRUE)
+      do.call(fn, c(list(bundle_dir = isolated_bundle), list(...)))
+    }
+  }), envir = globalenv())
+}
+
 stopifnot(exists("test_all", mode = "function"))
-stopifnot(isTRUE(test_all(bundle_dir)))
-cat("scworkbench contract suite passed for ", bundle_dir, "\n", sep = "")
+stopifnot(isTRUE(test_all(baseline_bundle_dir)))
+cat("scworkbench contract suite passed for ", baseline_bundle_dir, "\n", sep = "")
