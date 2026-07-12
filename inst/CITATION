@@ -1,0 +1,12 @@
+citHeader("To cite scworkbench in publications use:")
+
+citEntry(
+  entry = "Manual",
+  title = "scworkbench: A Typed, Disk-Backed Substrate for Single-Cell Analysis",
+  author = personList(
+    person("Hendrik", "de Weerd", email = "dirkdeweerd.work@gmail.com")
+  ),
+  year = "2026",
+  note = "R package version 0.1.0",
+  url = "https://gitlab.liu.se/hende58/scworkbench"
+)

@@ -14,6 +14,9 @@ test_all <- function(bundle_dir){
   if (exists("test_primitives_contract", mode = "function")) {
     stopifnot(test_primitives_contract())
   }
+  if (exists("test_legacy_cell_vector_contract", mode = "function")) {
+    stopifnot(test_legacy_cell_vector_contract())
+  }
   if (exists("test_foundation_data_getters_selectors", mode = "function")) {
     stopifnot(test_foundation_data_getters_selectors(bundle_dir))
   }

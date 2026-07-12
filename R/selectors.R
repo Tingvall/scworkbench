@@ -220,7 +220,7 @@ wb_sel_vector <- function(x, vector_id, min = NULL, max = NULL, na.rm = TRUE, bu
 
 #' Select by a scalar cell vector (categorical values)
 #'
-#' Example: clusters in {"3","4"}.
+#' Example: clusters with values "3" and "4".
 #'
 #' @export
 wb_sel_vector_values <- function(x, vector_id, values, na.rm = TRUE, bundle = NULL) {

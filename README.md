@@ -12,8 +12,7 @@ reimplementing storage, plotting, or analysis semantics.
 This repository is under active development. Contracts are increasingly stable,
 but the package is not yet a polished public release.
 
-Current license status: **TBD**. `DESCRIPTION` still needs a final license
-decision before external release.
+License: MIT. See `LICENSE.md`.
 
 ## Core Ideas
 

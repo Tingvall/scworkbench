@@ -8,3 +8,4 @@
 ^scripts/reports$
 ^containers/.*\.sif$
 ^scworkbench_.*\.tar\.gz$
+^CITATION\.cff$

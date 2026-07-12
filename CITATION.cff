@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use scworkbench, please cite the software release and its associated publication."
+title: "scworkbench"
+type: software
+version: "0.1.0"
+authors:
+  - family-names: "de Weerd"
+    given-names: "Hendrik"
+    email: "dirkdeweerd.work@gmail.com"
+repository-code: "https://gitlab.liu.se/hende58/scworkbench"
+license: "MIT"

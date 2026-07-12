@@ -8,7 +8,6 @@
 #' from R, and the pybench subprocess consumes those chunk files before writing
 #' the latent space and model artifact back.
 #'
-#' @export
 .wb_peakvi_stage_sparse_chunks <- function(bundle,
                                            matrix_id,
                                            feature_ids,

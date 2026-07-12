@@ -1,46 +1,41 @@
+#' Attach a legacy numeric scalar cell vector to a bundle
+#'
+#' This API stores a numeric scalar per cell in the legacy `cell_vectors` and
+#' `cell_vector_values` tables. It is separate from promoted artifact-backed
+#' `cell_vector` primitives. New analysis outputs should normally be promoted
+#' artifacts; this helper remains for bundle metadata and compatibility inputs.
+#'
+#' @param bundle A scworkbench bundle.
+#' @param vector_id Unique legacy vector identifier.
+#' @param values Named numeric vector (`names` are cell IDs) or a data frame
+#'   with `cell_id` and numeric `value` columns.
+#' @param overwrite If `TRUE`, replace all stored values for `vector_id`. If
+#'   `FALSE`, replace only values supplied for the matching cell IDs.
+#' @return Invisibly, a list with `vector_id` and number of written values.
+#' @export
 wb_attach_cell_vector <- function(bundle, vector_id, values, overwrite = TRUE) {
-  con <- bundle$con
-  wb_ensure_cell_vectors_tables(con)
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(is.character(vector_id) && length(vector_id) == 1L && nzchar(vector_id), "vector_id invalid")
+  .wb_assert(is.logical(overwrite) && length(overwrite) == 1L && !is.na(overwrite), "overwrite must be TRUE or FALSE")
 
-  # normalize
   if (is.data.frame(values)) {
-    stopifnot(all(c("cell_id","value") %in% colnames(values)))
-    cell_id <- as.character(values$cell_id)
-    v <- values$value
-    names(v) <- cell_id
+    .wb_assert(all(c("cell_id", "value") %in% names(values)), "values data frame must contain cell_id and value")
+    input <- values[, c("cell_id", "value"), drop = FALSE]
   } else {
-    stopifnot(is.atomic(values))
-    stopifnot(!is.null(names(values)))
-    v <- values
-    cell_id <- names(v)
+    .wb_assert(is.atomic(values) && !is.null(names(values)), "values must be a named numeric vector or data frame")
+    input <- data.frame(cell_id = names(values), value = values, stringsAsFactors = FALSE)
   }
+  .wb_assert(!anyDuplicated(as.character(input$cell_id)), "values contains duplicate cell_id entries")
+  input$value <- suppressWarnings(as.numeric(input$value))
+  .wb_assert(all(is.finite(input$value)), "legacy cell-vector values must be finite numeric values")
 
-  # filter to cells that exist
-  cl <- .wb_sql_in_json(unique(cell_id))
-  have <- DBI::dbGetQuery(con, paste0("SELECT cell_id FROM cells WHERE cell_id IN ", cl$sql, ";"), params = cl$params)$cell_id
-  v <- v[have]
-  if (!length(v)) stop("No provided cell_ids exist in bundle.", call. = FALSE)
+  con <- bundle$con
+  .wb_ensure_cell_vectors_tables(con)
+  registered <- DBI::dbGetQuery(con, "SELECT vector_id FROM cell_vectors WHERE vector_id = ?;", params = list(vector_id))
+  if (!nrow(registered)) wb_register_cell_vector(bundle, vector_id = vector_id, value_type = "numeric")
 
-  # optionally clear existing
-  if (isTRUE(overwrite)) {
-    cl2 <- .wb_sql_in_json(names(v))
-    DBI::dbExecute(con, paste0(
-      "DELETE FROM cell_vector_values WHERE vector_id = ? AND cell_id IN ", cl2$sql, ";"
-    ), params = c(list(vector_id), cl2$params))
-  }
-
-  # write (numeric for now; extend later for value_type)
-  df <- data.frame(
-    vector_id = vector_id,
-    cell_id   = names(v),
-    value_num = as.numeric(v),
-    value_txt = NA_character_,
-    stringsAsFactors = FALSE
-  )
-
-  DBI::dbWriteTable(con, "cell_vector_values", df, append = TRUE)
-
-  invisible(list(vector_id = vector_id, n = nrow(df)))
+  n <- wb_write_cell_vector(bundle, vector_id = vector_id, values = input, overwrite = overwrite)
+  invisible(list(vector_id = vector_id, n = as.integer(n)))
 }
 
 #' Read a cell_vector (scalar per cell) for a set of cells
@@ -420,5 +415,3 @@ wb_vector_choices <- function(bundle) {
   if (!nrow(df)) return(character(0))
   paste0("vec:", df$vector_id)
 }
-
-

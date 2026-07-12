@@ -20,7 +20,6 @@
 #' @return A standard op result list with `outputs$signature_scores` and
 #'   `outputs$signature_summary`, plus normalized `params`.
 #'
-#' @export
 .wb_ucell_normalize_signatures <- function(features, name = "Signature") {
   signatures <- .wb_normalize_module_features(features)
   signature_names <- names(signatures)

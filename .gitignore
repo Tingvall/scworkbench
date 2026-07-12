@@ -19,3 +19,7 @@ containers/*.sif
 
 # Backup files
 *.backup
+
+# R package build and check artifacts
+scworkbench.Rcheck/
+scworkbench_*.tar.gz

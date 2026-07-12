@@ -126,10 +126,7 @@
   if (exists("open_matrix_dir", where = asNamespace("BPCells"), mode = "function")) {
     return(BPCells::open_matrix_dir(path))
   }
-  if (exists("open_matrix", where = asNamespace("BPCells"), mode = "function")) {
-    return(BPCells::open_matrix(path))
-  }
-  stop("No supported BPCells open function found (expected open_matrix_dir or open_matrix).", call. = FALSE)
+  stop("Installed BPCells does not export open_matrix_dir(), required for bundle matrix directories.", call. = FALSE)
 }
 
 #' Get the manifest from an scworkbench bundle

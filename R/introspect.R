@@ -125,11 +125,10 @@ wb_status <- function(bundle) {
     needs <- c(needs, "matrix_cells (optional; only if you want modality/cell coverage queries)")
   }
   if (length(needs)) {
-    cat("\n⚠ missing recommended tables:\n")
+    cat("\nWARNING: missing recommended tables:\n")
     for (x in needs) cat("  - ", x, "\n", sep = "")
     cat("Run: wb_migrate_bundle(bundle)\n")
   }
 
   invisible(list(tables = tabs))
 }
-
