@@ -1,4 +1,4 @@
-#' Resolve a "spec" into a wb_primitive
+#' (Advanced) Resolve a "spec" into a wb_primitive
 #'
 #' Accepts:
 #' - wb_primitive
@@ -141,6 +141,9 @@ wb_resolve_cell_vector <- function(bundle, x, runs = NULL, cell_ids = NULL, key 
 #' - artifact:<artifact_id>                       (for artifacts types cell_vector/cell_vector_family)
 #' - session:<run_id>:<output_name>               (for session outputs that are vector primitives)
 #'
+#' @param bundle An open scworkbench bundle.
+#' @param runs Optional named or unnamed `wb_run` collection.
+#' @return A data frame of stable vector source references.
 #' @export
 wb_list_vector_sources <- function(bundle, runs = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -205,7 +208,13 @@ wb_list_vector_sources <- function(bundle, runs = NULL) {
 }
 
 
-#' Parse a wb_list_vector_sources() ref into a spec list
+#' (Advanced) Parse a wb_list_vector_sources() Ref into a Spec List
+#'
+#' Use [wb_list_vector_sources()] to discover references. This helper is for
+#' client implementations that need to resolve an existing reference string.
+#'
+#' @param ref A length-one artifact or session reference string.
+#' @return A typed reference specification list.
 #' @export
 wb_vector_ref_to_spec <- function(ref) {
   ref <- as.character(ref)

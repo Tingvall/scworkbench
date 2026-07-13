@@ -10,6 +10,16 @@ wb_list_cell_vectors(
   include_session = !is.null(session)
 )
 }
+\arguments{
+\item{bundle}{An open scworkbench bundle.}
+
+\item{session}{Optional \code{wb_session} whose unpromoted outputs are included.}
+
+\item{include_session}{Whether to include compatible session outputs.}
+}
+\value{
+A data frame indexing vector-like sources without loading payloads.
+}
 \description{
 Source of truth:
 \itemize{

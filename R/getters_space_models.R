@@ -73,7 +73,11 @@ wb_load_space_model <- function(bundle, space_id) {
   stop("Unknown model_type: ", model_type, call. = FALSE)
 }
 
-#' List space_ids that have a stored model
+#' List Space IDs That Have a Stored Model
+#'
+#' @param bundle An open scworkbench bundle.
+#' @param model_type Optional model type filter.
+#' @return Character vector of space identifiers.
 #' @export
 wb_spaces_with_model <- function(bundle, model_type = NULL) {
   con <- bundle$con
@@ -90,5 +94,4 @@ wb_spaces_with_model <- function(bundle, model_type = NULL) {
 
   as.character(out)
 }
-
 

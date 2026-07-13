@@ -30,8 +30,11 @@
 }
 
 # ---------- Refs ----------
-#' Create a Reference to a Session Run Output
+#' (Advanced) Create a Reference to a Session Run Output
 #'
+#' Use this in programmatic clients that compose explicit typed operation
+#' inputs. Ordinary analyst workflows should prefer operation interfaces and
+#' promoted artifact references when crossing sessions.
 #' @param run_id Session-local run identifier.
 #' @param output_name Name of the output on that run.
 #'
@@ -40,8 +43,11 @@
 wb_ref_run <- function(run_id, output_name) {
   list(ref_type = "run", run_id = as.character(run_id), output = as.character(output_name))
 }
-#' Create a Reference to a Promoted Artifact
+#' (Advanced) Create a Reference to a Promoted Artifact
 #'
+#' Use this in programmatic clients that compose explicit typed operation
+#' inputs. Ordinary analyst workflows should select artifacts through getters
+#' and operation interfaces.
 #' @param artifact_id Promoted artifact identifier.
 #' @param output_name Declared output name represented by the artifact.
 #'
@@ -63,11 +69,22 @@ wb_session_new <- function() {
   class(s) <- "wb_session"
   s
 }
-#' Check whether an object is a wb_session
+#' (Advanced) Check Whether an Object Is a wb_session
+#'
+#' @param x Object to test.
+#' @return `TRUE` when `x` is a `wb_session`.
 #' @export
 wb_is_session <- function(x) inherits(x, "wb_session")
 
-#' Set an active output reference in a session
+#' (Advanced) Set an Active Output Reference in a Session
+#'
+#' This mutates an in-memory execution session. Most analyst workflows should
+#' provide explicit inputs to an operation rather than relying on active state.
+#'
+#' @param session A `wb_session`.
+#' @param output_name Output name to associate with `ref`.
+#' @param ref A `wb_ref_run()` or `wb_ref_artifact()` reference.
+#' @return The updated session.
 #' @export
 wb_session_set_active <- function(session, output_name, ref) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
@@ -76,7 +93,14 @@ wb_session_set_active <- function(session, output_name, ref) {
   session
 }
 
-#' Add a run to a session
+#' (Advanced) Add a Run to a Session
+#'
+#' This is intended for controlled client or integration code. Use
+#' [wb_session_run_op()] for ordinary operation execution.
+#'
+#' @param session A `wb_session`.
+#' @param run A `wb_run` object.
+#' @return The updated session.
 #' @export
 wb_session_add_run <- function(session, run) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
@@ -225,7 +249,20 @@ wb_session_add_run <- function(session, run) {
 
 # ---------- Run op ----------
 # Op contract: op(bundle, effective_cells, inputs = list(...), ...) -> list(outputs=<named primitives>, params=<list>)
-#' Run an operation in a session
+#' (Advanced) Run an Operation in a Session
+#'
+#' This is the programmatic session executor used by clients and integrations.
+#' Analysts should normally discover operation interfaces with
+#' [wb_op_interface()] before constructing explicit inputs.
+#'
+#' @param session A `wb_session`.
+#' @param bundle An open scworkbench bundle.
+#' @param op_name Registered operation name.
+#' @param ... Operation parameters forwarded to the registered runner.
+#' @param inputs Named typed primitives, references, or supported symbolic
+#'   inputs for the operation.
+#' @param notes Optional run notes.
+#' @return The updated session containing the completed run.
 #' @export
 wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")

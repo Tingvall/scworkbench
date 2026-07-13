@@ -2,7 +2,7 @@
 % Please edit documentation in R/attach_to_cells.R
 \name{wb_attach_to_cells}
 \alias{wb_attach_to_cells}
-\title{Attach primitives to existing cells (matrices/spaces/metadata)}
+\title{(Advanced) Attach primitives to existing cells (matrices/spaces/metadata)}
 \usage{
 wb_attach_to_cells(
   bundle,
@@ -43,4 +43,8 @@ report list
 \description{
 Canonical rule: FIRST COLUMN = cell_id, regardless of name.
 No "cell_id" column semantics anywhere.
+}
+\details{
+Prefer supported \verb{wb_bundle_from_*()} constructors for ordinary ingestion.
+This writer is for controlled staged bundle assembly.
 }

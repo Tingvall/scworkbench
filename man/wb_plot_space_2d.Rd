@@ -2,7 +2,7 @@
 % Please edit documentation in R/wrangler_plot_space_2d.R
 \name{wb_plot_space_2d}
 \alias{wb_plot_space_2d}
-\title{Plot a 2D space with overlay sets and per-set glyph styles}
+\title{Plot a 2D Space with Overlay Sets and Per-Set Glyph Styles}
 \usage{
 wb_plot_space_2d(
   bundle,
@@ -21,9 +21,53 @@ wb_plot_space_2d(
   label_groups = FALSE,
   label_by = NULL,
   label_min_n = 50,
+  continuous_palette = "magma",
+  continuous_na_color = "grey80",
   debug = FALSE
 )
 }
+\arguments{
+\item{bundle}{An open scworkbench bundle.}
+
+\item{space_id}{Two-dimensional space identifier.}
+
+\item{cell_set}{Base display universe: \code{"core"}, \code{"all"}, or a cell set.}
+
+\item{overlay_sets}{Optional cell sets drawn over base cells.}
+
+\item{color_by}{Optional metadata column or compatible vector source.}
+
+\item{color_label}{Optional legend label for \code{color_by}.}
+
+\item{base_alpha}{Base-point alpha.}
+
+\item{base_size}{Base-point size.}
+
+\item{overlay_alpha}{Overlay-point alpha.}
+
+\item{overlay_size}{Overlay-point size.}
+
+\item{overlay_shape}{ggplot point shape for overlays.}
+
+\item{overlay_stroke}{Outline stroke width for overlays.}
+
+\item{overlay_outline}{Outline color for overlays.}
+
+\item{label_groups}{Whether to label groups.}
+
+\item{label_by}{Optional grouping column used for labels.}
+
+\item{label_min_n}{Minimum group size for labels.}
+
+\item{continuous_palette}{Continuous palette name.}
+
+\item{continuous_na_color}{Color for missing continuous values.}
+
+\item{debug}{Whether to return debugging details with the plot.}
+}
+\value{
+A ggplot object, or debugging output when \code{debug = TRUE}.
+}
 \description{
-Plot a 2D space with overlay sets and per-set glyph styles
+Plot a 2D Space with Overlay Sets and Per-Set Glyph Styles
 }

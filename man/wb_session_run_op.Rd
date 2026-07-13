@@ -2,10 +2,29 @@
 % Please edit documentation in R/session_context.R
 \name{wb_session_run_op}
 \alias{wb_session_run_op}
-\title{Run an operation in a session}
+\title{(Advanced) Run an Operation in a Session}
 \usage{
 wb_session_run_op(session, bundle, op_name, ..., inputs = list(), notes = NULL)
 }
+\arguments{
+\item{session}{A \code{wb_session}.}
+
+\item{bundle}{An open scworkbench bundle.}
+
+\item{op_name}{Registered operation name.}
+
+\item{...}{Operation parameters forwarded to the registered runner.}
+
+\item{inputs}{Named typed primitives, references, or supported symbolic
+inputs for the operation.}
+
+\item{notes}{Optional run notes.}
+}
+\value{
+The updated session containing the completed run.
+}
 \description{
-Run an operation in a session
+This is the programmatic session executor used by clients and integrations.
+Analysts should normally discover operation interfaces with
+\code{\link[=wb_op_interface]{wb_op_interface()}} before constructing explicit inputs.
 }

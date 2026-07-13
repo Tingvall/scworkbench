@@ -1614,18 +1614,7 @@ wb_op_trajectory_geneset_dynamics <- function(bundle,
 #' @param signal A `cell_vector_family` primitive. Direct `cell_vector`
 #'   primitives are also accepted by the implementation and are lifted to a
 #'   single-key family.
-#' @param model Optional `model_ref` primitive from trajectory fitting. Supply
-#'   this in model-backed mode, or use explicit `pseudotime` mode instead.
-#' @param pseudotime Optional `cell_vector_family` pseudotime primitive or
-#'   compatible reference for model-free/composite trajectory analysis.
-#' @param pseudotime_key Optional key selecting the explicit pseudotime family
-#'   member. It is required when explicit pseudotime has multiple keys.
-#' @param membership Optional cell-vector, cell-set, or compatible restriction
-#'   intersected with cells having finite pseudotime.
-#' @param pseudotime_artifact_id Optional promoted pseudotime artifact id stored
-#'   in explicit-pseudotime provenance metadata.
-#' @param membership_artifact_id Optional promoted membership artifact id stored
-#'   in explicit-pseudotime provenance metadata.
+#' @param model A `model_ref` primitive from trajectory fitting.
 #' @param cells Optional effective cell IDs to restrict analysis.
 #' @param lineage Optional lineage key subset.
 #' @param signal_keys Optional signal-key subset within `signal`.

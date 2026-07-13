@@ -1,4 +1,4 @@
-#' Resolve a navigation source
+# Resolve a navigation source.
 .wb_nav_resolve_source <- function(source, bundle) {
   src <- source
   if (is.character(src) && length(src) == 1L && nzchar(src)) {

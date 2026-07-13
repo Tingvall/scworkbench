@@ -37,6 +37,6 @@ A single DOT string.
 }
 \description{
 Produces a Graphviz DOT document for visual inspection of semantic catalog
-relationships. Render with \code{dot -Tpng file.dot -o file.png} or import into a
+relationships. Render with \verb{dot -Tpng file.dot -o file.png} or import into a
 compatible graph viewer.
 }

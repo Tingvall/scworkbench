@@ -2,7 +2,7 @@
 % Please edit documentation in R/runs.R
 \name{wb_new_run}
 \alias{wb_new_run}
-\title{Create a new in-session run object}
+\title{(Advanced) Create a New In-Session Run Object}
 \usage{
 wb_new_run(
   op_name,
@@ -12,6 +12,21 @@ wb_new_run(
   notes = NULL
 )
 }
+\arguments{
+\item{op_name}{Registered operation name.}
+
+\item{inputs}{Named operation inputs.}
+
+\item{params}{Named operation parameters.}
+
+\item{outputs}{Named primitive outputs.}
+
+\item{notes}{Optional run notes.}
+}
+\value{
+A \code{wb_run} object.
+}
 \description{
-Create a new in-session run object
+Intended for controlled client/integration construction. Use
+\code{\link[=wb_session_run_op]{wb_session_run_op()}} for ordinary operation execution.
 }

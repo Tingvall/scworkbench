@@ -102,7 +102,7 @@
   )
 }
 
-#' Build a pybench-op-v1 request payload (scaffold helper)
+# Build a pybench-op-v1 request payload (internal helper).
 .wb_pybench_build_request <- function(bundle,
                                       op_name,
                                       run_id,
@@ -123,9 +123,7 @@
   req
 }
 
-#' Pre-register artifact rows for a Python op (payload-only write model)
-#'
-#' Returns a named list mapping output name -> list(artifact_id=..., type=...)
+# Pre-register artifact rows for a Python op (internal payload-only bridge).
 .wb_pybench_preregister_outputs <- function(bundle,
                                             run,
                                             outputs_spec,

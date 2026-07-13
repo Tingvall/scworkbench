@@ -6,6 +6,12 @@
 \usage{
 wb_recipe(x)
 }
+\arguments{
+\item{x}{A selector result or other object carrying \code{wb_recipe} metadata.}
+}
+\value{
+The attached selector recipe list, or \code{NULL}.
+}
 \description{
 Get selector recipe metadata
 }

@@ -6,6 +6,17 @@
 \usage{
 wb_read_cell_vector(bundle, vector_id, cell_ids)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{vector_id}{Artifact-backed (\code{"artifact:<id>"}) or legacy vector id.}
+
+\item{cell_ids}{Requested cell ids and output order.}
+}
+\value{
+Named numeric or character vector aligned to \code{cell_ids}, with
+\code{NA} for unavailable values.
+}
 \description{
 Supports two backends:
 \enumerate{

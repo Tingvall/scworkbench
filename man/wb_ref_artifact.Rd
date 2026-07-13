@@ -2,7 +2,7 @@
 % Please edit documentation in R/session_context.R
 \name{wb_ref_artifact}
 \alias{wb_ref_artifact}
-\title{Create a Reference to a Promoted Artifact}
+\title{(Advanced) Create a Reference to a Promoted Artifact}
 \usage{
 wb_ref_artifact(artifact_id, output_name)
 }
@@ -15,5 +15,7 @@ wb_ref_artifact(artifact_id, output_name)
 A symbolic artifact-reference list for use in typed op inputs.
 }
 \description{
-Create a Reference to a Promoted Artifact
+Use this in programmatic clients that compose explicit typed operation
+inputs. Ordinary analyst workflows should select artifacts through getters
+and operation interfaces.
 }

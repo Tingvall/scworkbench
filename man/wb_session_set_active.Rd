@@ -2,10 +2,21 @@
 % Please edit documentation in R/session_context.R
 \name{wb_session_set_active}
 \alias{wb_session_set_active}
-\title{Set an active output reference in a session}
+\title{(Advanced) Set an Active Output Reference in a Session}
 \usage{
 wb_session_set_active(session, output_name, ref)
 }
+\arguments{
+\item{session}{A \code{wb_session}.}
+
+\item{output_name}{Output name to associate with \code{ref}.}
+
+\item{ref}{A \code{wb_ref_run()} or \code{wb_ref_artifact()} reference.}
+}
+\value{
+The updated session.
+}
 \description{
-Set an active output reference in a session
+This mutates an in-memory execution session. Most analyst workflows should
+provide explicit inputs to an operation rather than relying on active state.
 }

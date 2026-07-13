@@ -1,4 +1,4 @@
-#' Coerce Input Into A `wb_primitive`
+#' (Advanced) Coerce Input Into A `wb_primitive`
 #'
 #' Accepts:
 #' - wb_primitive → returned as-is

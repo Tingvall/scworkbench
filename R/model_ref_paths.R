@@ -69,7 +69,7 @@
   )
 }
 
-#' Repair relocatable model_ref artifact paths
+#' (Advanced) Repair relocatable model_ref artifact paths
 #'
 #' Rewrites `artifact_model_ref.model_path` rows to bundle-relative paths when
 #' the corresponding model file exists inside this bundle. This does not search

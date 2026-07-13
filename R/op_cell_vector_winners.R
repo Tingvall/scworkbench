@@ -203,6 +203,12 @@ wb_op_cell_vector_winners <- function(signal,
 #' Convenience wrapper around `wb_art_load(..., expected_kind =
 #' "cell_vector_family")` and `wb_op_cell_vector_winners()`.
 #'
+#' @param bundle An open scworkbench bundle.
+#' @param artifact_id Promoted `cell_vector_family` artifact identifier.
+#' @param signal_keys Optional family keys to consider.
+#' @param min_winners Minimum cells required to retain a winner label.
+#' @param tie_method Tie policy passed to [wb_op_cell_vector_winners()].
+#' @return A standard cell-vector-winners operation result.
 #' @export
 wb_cell_vector_winners_from_artifact <- function(bundle,
                                                 artifact_id,
@@ -225,12 +231,22 @@ wb_cell_vector_winners_from_artifact <- function(bundle,
   )
 }
 
-#' Register winner-derived cell sets
+#' (Advanced) Register winner-derived cell sets
 #'
 #' Mutates bundle cell-set membership using a winner `obs_table` and returns a
 #' manifest `obs_table` primitive. By default, only rows with
 #' `passes_pruning == TRUE` are registered.
 #'
+#' @param bundle An open scworkbench bundle.
+#' @param winners A winner `obs_table` primitive or artifact identifier.
+#' @param source_winner_artifact_id Optional source winner artifact identifier.
+#' @param cell_set_prefix Prefix for registered cell-set names.
+#' @param winner_col Winner-label column in `winners`.
+#' @param passes_col Optional pruning-pass column in `winners`.
+#' @param source Provenance source label.
+#' @param created_by Optional provenance actor.
+#' @param replace Whether existing generated cell sets may be replaced.
+#' @return An `obs_table` manifest primitive.
 #' @export
 wb_register_winner_cell_sets <- function(bundle,
                                          winners,

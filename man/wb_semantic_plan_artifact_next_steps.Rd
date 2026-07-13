@@ -4,7 +4,11 @@
 \alias{wb_semantic_plan_artifact_next_steps}
 \title{Plan Next Actions For A Promoted Artifact}
 \usage{
-wb_semantic_plan_artifact_next_steps(bundle, artifact_id, include_recipes = TRUE)
+wb_semantic_plan_artifact_next_steps(
+  bundle,
+  artifact_id,
+  include_recipes = TRUE
+)
 }
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}

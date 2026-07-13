@@ -14,8 +14,5 @@ A named list with audit tables and a boolean \code{ok}.
 }
 \description{
 Checks whether registered engine surfaces are represented in semantic
-catalogs and whether graph endpoints are valid. The audit covers registered
-ops, plot mappers, primitive constructors/promoters, cataloged getter exports,
-semantic public exports, known source table types, required parameter/recipe
-records, op IO primitive kinds, and compatibility graph endpoints.
+catalogs and whether graph endpoints are valid.
 }

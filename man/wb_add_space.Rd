@@ -2,7 +2,7 @@
 % Please edit documentation in R/bundle_spaces.R
 \name{wb_add_space}
 \alias{wb_add_space}
-\title{Add a space (embedding) to an existing bundle}
+\title{(Advanced) Add a space (embedding) to an existing bundle}
 \usage{
 wb_add_space(
   bundle,
@@ -41,4 +41,8 @@ Writes the space into SQLite:
 \item space_2d (fast path if 2D)
 \item space_coords (long format otherwise)
 }
+}
+\details{
+Prefer a fitting operation such as \code{pca_fit} or \code{umap_fit} for ordinary
+analysis. This low-level writer is for controlled bundle assembly.
 }

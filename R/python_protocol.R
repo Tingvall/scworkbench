@@ -20,7 +20,7 @@
   invisible(TRUE)
 }
 
-#' Validate a pybench-op-v1 request payload
+# Validate a pybench-op-v1 request payload (internal helper).
 .wb_pyproto_validate_request <- function(req) {
   .wb_assert(is.list(req), "pybench request must be a list")
   .wb_pyproto_assert_scalar_chr(as.character(req$protocol_version %||% ""), "request$protocol_version")
@@ -41,7 +41,7 @@
   invisible(TRUE)
 }
 
-#' Validate a pybench-op-v1 receipt payload
+# Validate a pybench-op-v1 receipt payload (internal helper).
 .wb_pyproto_validate_receipt <- function(receipt, request = NULL) {
   .wb_assert(is.list(receipt), "pybench receipt must be a list")
   .wb_pyproto_assert_scalar_chr(as.character(receipt$protocol_version %||% ""), "receipt$protocol_version")

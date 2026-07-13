@@ -843,11 +843,13 @@ wb_write_semantic_catalog_reference <- function(path_md = "docs/semantic_catalog
   invisible(catalog)
 }
 
-#' Refresh All Semantic Catalog Reference Files
+#' (Advanced) Refresh All Semantic Catalog Reference Files
 #'
 #' Regenerates operation, getter, plot, wrangler, primitive, artifact-type, and
 #' unified semantic catalog docs/JSON, then validates every generated JSON file
 #' and requires the semantic audit to pass by default.
+#' This is a repository-maintenance API; consumers should read the committed
+#' catalog exports rather than regenerate them during ordinary analysis.
 #'
 #' @param bundle Optional open bundle, passed through to op catalog export.
 #' @param docs_dir Output directory.

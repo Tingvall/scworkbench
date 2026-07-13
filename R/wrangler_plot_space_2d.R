@@ -1,4 +1,25 @@
-#' Plot a 2D space with overlay sets and per-set glyph styles
+#' Plot a 2D Space with Overlay Sets and Per-Set Glyph Styles
+#'
+#' @param bundle An open scworkbench bundle.
+#' @param space_id Two-dimensional space identifier.
+#' @param cell_set Base display universe: `"core"`, `"all"`, or a cell set.
+#' @param overlay_sets Optional cell sets drawn over base cells.
+#' @param color_by Optional metadata column or compatible vector source.
+#' @param color_label Optional legend label for `color_by`.
+#' @param base_alpha Base-point alpha.
+#' @param base_size Base-point size.
+#' @param overlay_alpha Overlay-point alpha.
+#' @param overlay_size Overlay-point size.
+#' @param overlay_shape ggplot point shape for overlays.
+#' @param overlay_stroke Outline stroke width for overlays.
+#' @param overlay_outline Outline color for overlays.
+#' @param label_groups Whether to label groups.
+#' @param label_by Optional grouping column used for labels.
+#' @param label_min_n Minimum group size for labels.
+#' @param continuous_palette Continuous palette name.
+#' @param continuous_na_color Color for missing continuous values.
+#' @param debug Whether to return debugging details with the plot.
+#' @return A ggplot object, or debugging output when `debug = TRUE`.
 #' @export
 wb_plot_space_2d <- function(bundle,
                              space_id,

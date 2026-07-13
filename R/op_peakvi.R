@@ -1,13 +1,5 @@
-#' Run PeakVI latent-space fitting via pybench (Python runtime)
-#'
-#' pybench-parity: keep training hyperparameter defaults and request fields
-#' aligned with `pybench.ops.peakvi_fit`.
-#'
-#' v2 uses a bundle-native BPCells handoff: R passes the canonical matrix ID and
-#' effective cell IDs. The current stable path stages sparse Matrix Market chunks
-#' from R, and the pybench subprocess consumes those chunk files before writing
-#' the latent space and model artifact back.
-#'
+# PeakVI sparse chunk staging bridge. The public PeakVI operation is registered
+# through the operation catalog; this helper is not a public API.
 .wb_peakvi_stage_sparse_chunks <- function(bundle,
                                            matrix_id,
                                            feature_ids,

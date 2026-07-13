@@ -2,7 +2,7 @@
 % Please edit documentation in R/session_context.R
 \name{wb_ref_run}
 \alias{wb_ref_run}
-\title{Create a Reference to a Session Run Output}
+\title{(Advanced) Create a Reference to a Session Run Output}
 \usage{
 wb_ref_run(run_id, output_name)
 }
@@ -15,5 +15,7 @@ wb_ref_run(run_id, output_name)
 A symbolic run-reference list for use in typed op inputs.
 }
 \description{
-Create a Reference to a Session Run Output
+Use this in programmatic clients that compose explicit typed operation
+inputs. Ordinary analyst workflows should prefer operation interfaces and
+promoted artifact references when crossing sessions.
 }

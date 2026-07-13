@@ -373,6 +373,8 @@ wb_ingest_normalize <- function(bundle,
 #' @param source Provenance source tag
 #' @param created_by Optional author tag
 #' @param validate_only If TRUE, return normalized payload and do not write.
+#' @param apply_mode `"atomic"` applies all validated data together;
+#'   `"best_effort"` allows supported partial attachment behavior.
 #' @param emit_report_artifact If TRUE, persist an obs_table ingest report artifact.
 #' @return Result from `wb_ingest_cells()` (or normalized payload when validate_only=TRUE)
 #' @export

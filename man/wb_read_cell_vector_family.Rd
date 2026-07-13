@@ -6,6 +6,19 @@
 \usage{
 wb_read_cell_vector_family(bundle, vector_id, key, cell_ids)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{vector_id}{Artifact-backed vector-family id.}
+
+\item{key}{Family member key, for example lineage \code{"L1"}.}
+
+\item{cell_ids}{Requested cell ids and output order.}
+}
+\value{
+Named numeric vector aligned to \code{cell_ids}, with \code{NA} where the
+selected family member is unavailable.
+}
 \description{
 vector_id must be artifact-backed: "artifact:<artifact_id>"
 key selects which family member (e.g. "L1")

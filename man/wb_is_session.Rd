@@ -2,10 +2,16 @@
 % Please edit documentation in R/session_context.R
 \name{wb_is_session}
 \alias{wb_is_session}
-\title{Check whether an object is a wb_session}
+\title{(Advanced) Check Whether an Object Is a wb_session}
 \usage{
 wb_is_session(x)
 }
+\arguments{
+\item{x}{Object to test.}
+}
+\value{
+\code{TRUE} when \code{x} is a \code{wb_session}.
+}
 \description{
-Check whether an object is a wb_session
+(Advanced) Check Whether an Object Is a wb_session
 }

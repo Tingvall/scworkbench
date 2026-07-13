@@ -187,6 +187,10 @@ wb_read_cell_vector_family <- function(bundle, vector_id, key, cell_ids) {
 #' - created_at, created_by, op_name, run_id (when available)
 #' - artifact_id (when artifact)
 #'
+#' @param bundle An open scworkbench bundle.
+#' @param session Optional `wb_session` whose unpromoted outputs are included.
+#' @param include_session Whether to include compatible session outputs.
+#' @return A data frame indexing vector-like sources without loading payloads.
 #' @export
 wb_list_cell_vectors <- function(bundle, session = NULL, include_session = !is.null(session)) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")

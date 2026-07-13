@@ -6,6 +6,14 @@
 \usage{
 wb_list_vector_sources(bundle, runs = NULL)
 }
+\arguments{
+\item{bundle}{An open scworkbench bundle.}
+
+\item{runs}{Optional named or unnamed \code{wb_run} collection.}
+}
+\value{
+A data frame of stable vector source references.
+}
 \description{
 Returns a data.frame of choices with a stable "ref" column that you can store in plans/specs.
 }

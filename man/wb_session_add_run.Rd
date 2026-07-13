@@ -2,10 +2,19 @@
 % Please edit documentation in R/session_context.R
 \name{wb_session_add_run}
 \alias{wb_session_add_run}
-\title{Add a run to a session}
+\title{(Advanced) Add a Run to a Session}
 \usage{
 wb_session_add_run(session, run)
 }
+\arguments{
+\item{session}{A \code{wb_session}.}
+
+\item{run}{A \code{wb_run} object.}
+}
+\value{
+The updated session.
+}
 \description{
-Add a run to a session
+This is intended for controlled client or integration code. Use
+\code{\link[=wb_session_run_op]{wb_session_run_op()}} for ordinary operation execution.
 }

@@ -2,10 +2,18 @@
 % Please edit documentation in R/getters_space_models.R
 \name{wb_spaces_with_model}
 \alias{wb_spaces_with_model}
-\title{List space_ids that have a stored model}
+\title{List Space IDs That Have a Stored Model}
 \usage{
 wb_spaces_with_model(bundle, model_type = NULL)
 }
+\arguments{
+\item{bundle}{An open scworkbench bundle.}
+
+\item{model_type}{Optional model type filter.}
+}
+\value{
+Character vector of space identifiers.
+}
 \description{
-List space_ids that have a stored model
+List Space IDs That Have a Stored Model
 }

@@ -1,25 +1,5 @@
-#' Compute UCell Signature Scores
-#'
-#' Computes per-cell signature scores using the UCell rank-based method.
-#'
-#' @param bundle Open `scworkbench_bundle`.
-#' @param matrix_id Matrix identifier used as expression source.
-#' @param features Character vector (single signature) or list of character
-#'   vectors (multiple signatures).
-#' @param cells Explicit cell ids. Required in session context.
-#' @param name Prefix for signature names when `features` is unnamed.
-#' @param max_rank Maximum rank considered by UCell.
-#' @param ncores Number of worker processes requested by UCell.
-#' @param parallel_backend Execution backend for UCell. One of `"auto"` or
-#'   `"serial"`.
-#' @param chunk_size Cell chunk size. A positive integer enables cell-axis
-#'   chunking when `length(cells) > chunk_size`; `NULL` disables chunking.
-#' @param missing_features_policy How to handle signature features missing from
-#'   the matrix. One of `"drop"` or `"error"`.
-#'
-#' @return A standard op result list with `outputs$signature_scores` and
-#'   `outputs$signature_summary`, plus normalized `params`.
-#'
+# Internal UCell signature normalization helper. The public UCell workflow is
+# exposed through the registered `ucell` operation and `wb_op_interface()`.
 .wb_ucell_normalize_signatures <- function(features, name = "Signature") {
   signatures <- .wb_normalize_module_features(features)
   signature_names <- names(signatures)

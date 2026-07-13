@@ -1,11 +1,14 @@
 # R/bundle_spaces.R
 
-#' Add a space (embedding) to an existing bundle
+#' (Advanced) Add a space (embedding) to an existing bundle
 #'
 #' Writes the space into SQLite:
 #' - spaces (registry)
 #' - space_2d (fast path if 2D)
 #' - space_coords (long format otherwise)
+#'
+#' Prefer a fitting operation such as `pca_fit` or `umap_fit` for ordinary
+#' analysis. This low-level writer is for controlled bundle assembly.
 #'
 #' @param bundle Bundle handle (from wb_open_bundle())
 #' @param space_id String id for the space (user-defined)

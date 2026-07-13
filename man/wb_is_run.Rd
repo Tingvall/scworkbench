@@ -2,10 +2,16 @@
 % Please edit documentation in R/runs.R
 \name{wb_is_run}
 \alias{wb_is_run}
-\title{Check whether an object is a wb_run}
+\title{(Advanced) Check Whether an Object Is a wb_run}
 \usage{
 wb_is_run(x)
 }
+\arguments{
+\item{x}{Object to test.}
+}
+\value{
+\code{TRUE} when \code{x} is a \code{wb_run}.
+}
 \description{
-Check whether an object is a wb_run
+(Advanced) Check Whether an Object Is a wb_run
 }

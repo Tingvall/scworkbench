@@ -1,5 +1,15 @@
 # Ephemeral run object (lives in client session)
-#' Create a new in-session run object
+#' (Advanced) Create a New In-Session Run Object
+#'
+#' Intended for controlled client/integration construction. Use
+#' [wb_session_run_op()] for ordinary operation execution.
+#'
+#' @param op_name Registered operation name.
+#' @param inputs Named operation inputs.
+#' @param params Named operation parameters.
+#' @param outputs Named primitive outputs.
+#' @param notes Optional run notes.
+#' @return A `wb_run` object.
 #' @export
 wb_new_run <- function(op_name, inputs = list(), params = list(), outputs = list(), notes = NULL) {
   run <- list(
@@ -15,6 +25,9 @@ wb_new_run <- function(op_name, inputs = list(), params = list(), outputs = list
   run
 }
 
-#' Check whether an object is a wb_run
+#' (Advanced) Check Whether an Object Is a wb_run
+#'
+#' @param x Object to test.
+#' @return `TRUE` when `x` is a `wb_run`.
 #' @export
 wb_is_run <- function(x) inherits(x, "wb_run")

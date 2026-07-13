@@ -2,7 +2,7 @@
 % Please edit documentation in R/semantic_catalog_unified.R
 \name{wb_refresh_semantic_catalogs}
 \alias{wb_refresh_semantic_catalogs}
-\title{Refresh All Semantic Catalog Reference Files}
+\title{(Advanced) Refresh All Semantic Catalog Reference Files}
 \usage{
 wb_refresh_semantic_catalogs(
   bundle = NULL,
@@ -24,7 +24,7 @@ wb_refresh_semantic_catalogs(
 not \code{ok}.}
 
 \item{write_graph_views}{If \code{TRUE}, write CSV node/edge tables and Graphviz
-DOT views under \code{semantic_graphs/}.}
+DOT views under \verb{semantic_graphs/}.}
 }
 \value{
 Invisibly returns the semantic catalog audit.
@@ -33,4 +33,6 @@ Invisibly returns the semantic catalog audit.
 Regenerates operation, getter, plot, wrangler, primitive, artifact-type, and
 unified semantic catalog docs/JSON, then validates every generated JSON file
 and requires the semantic audit to pass by default.
+This is a repository-maintenance API; consumers should read the committed
+catalog exports rather than regenerate them during ordinary analysis.
 }

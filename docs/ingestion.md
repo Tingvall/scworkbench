@@ -52,14 +52,9 @@ Important h5ad atomicity rule:
 - On failure, the staged directory is removed. When `overwrite = TRUE` or no final bundle exists, `bundle_dir` is replaced by a non-bundle directory containing `INGEST_FAILED.json`.
 - `INGEST_FAILED.json` records the phase reached, source path, selected duplicate-ID policies, and final error text. It is deliberately not a valid bundle.
 
-Op-style aliases are also exported:
-
-```r
-bundle_ingest_seurat(input, bundle_dir, ...)
-bundle_ingest_sce(input, bundle_dir, ...)
-bundle_ingest_h5ad(input, bundle_dir, ...)
-bundle_ingest_10x_mtx(input, bundle_dir, ...)
-```
+Use the canonical `wb_bundle_from_*()` constructors. Historical artifact
+provenance can retain `source_op` values such as `bundle_ingest_10x_mtx`, but
+the compatibility aliases are not public ingestion APIs.
 
 ## Examples
 

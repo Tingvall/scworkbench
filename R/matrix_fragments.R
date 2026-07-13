@@ -1,4 +1,16 @@
-#' Register a matrix fragment in the bundle registry
+#' (Advanced) Register a matrix fragment in the bundle registry
+#'
+#' Prefer `wb_bundle_from_*()` or `wb_attach_matrix()` for ordinary ingestion.
+#'
+#' @param con Bundle SQLite connection.
+#' @param matrix_id Logical matrix identifier.
+#' @param path_rel Bundle-relative fragment payload path.
+#' @param feature_ids Ordered fragment feature IDs.
+#' @param cell_ids Ordered fragment cell IDs.
+#' @param source Provenance source label.
+#' @param created_at Creation timestamp.
+#' @param description Optional fragment description.
+#' @return Invisibly, the registered fragment identifier.
 #' @export
 wb_register_matrix_fragment <- function(
     con,
@@ -100,4 +112,3 @@ wb_register_matrix_fragment <- function(
 
   invisible(TRUE)
 }
-

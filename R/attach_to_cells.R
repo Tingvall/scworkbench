@@ -1,7 +1,10 @@
-#' Attach primitives to existing cells (matrices/spaces/metadata)
+#' (Advanced) Attach primitives to existing cells (matrices/spaces/metadata)
 #'
 #' Canonical rule: FIRST COLUMN = cell_id, regardless of name.
 #' No "cell_id" column semantics anywhere.
+#'
+#' Prefer supported `wb_bundle_from_*()` constructors for ordinary ingestion.
+#' This writer is for controlled staged bundle assembly.
 #'
 #' @param bundle scworkbench_bundle
 #' @param matrices Named list. Each entry name is the `matrix_id`. Each entry can be:

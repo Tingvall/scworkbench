@@ -6,6 +6,16 @@
 \usage{
 wb_exec_selection_plan(bundle, plan, runs = NULL)
 }
+\arguments{
+\item{bundle}{An open scworkbench bundle.}
+
+\item{plan}{A selector-plan list.}
+
+\item{runs}{Optional session runs used to resolve run-backed selectors.}
+}
+\value{
+Ordered selected cell IDs.
+}
 \description{
 Execute a selection plan into ordered cell IDs
 }

@@ -104,7 +104,7 @@
   )
 }
 
-#' Validate attach payload (dry-run)
+#' (Advanced) Validate attach payload (dry-run)
 #'
 #' @param bundle scworkbench bundle
 #' @param cell_ids Optional explicit cell IDs. If NULL, inferred from payloads.
@@ -251,7 +251,7 @@ wb_attach_validate <- function(bundle,
   out
 }
 
-#' Normalize attach payload to canonical forms
+#' (Advanced) Normalize attach payload to canonical forms
 #'
 #' @inheritParams wb_attach_validate
 #' @return list(cell_ids, metadata, spaces, matrices, report)
@@ -347,7 +347,7 @@ wb_attach_normalize <- function(bundle,
   )
 }
 
-#' Apply attach using validated/normalized payload
+#' (Advanced) Apply attach using validated/normalized payload
 #'
 #' @inheritParams wb_attach_validate
 #' @param source Provenance source tag

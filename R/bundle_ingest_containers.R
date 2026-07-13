@@ -518,6 +518,30 @@
 #' scworkbench bundle. Multiple libraries are stored as BPCells fragments under
 #' one logical matrix.
 #'
+#' @param input Directory containing one 10x triplet, a directory of triplets,
+#'   or a sample table-compatible source descriptor.
+#' @param bundle_dir Destination bundle directory. Ingestion builds in a
+#'   sibling staging directory and promotes only after validation succeeds.
+#' @param sample_table Optional data frame describing multiple libraries. It
+#'   must provide sample_id, matrix_path, barcodes_path, and features_path;
+#'   other columns are copied to cell metadata.
+#' @param matrix_id Logical count-matrix identifier for the combined libraries.
+#' @param overwrite Whether an existing destination bundle may be replaced after
+#'   a successful staged build.
+#' @param created_by Optional actor label recorded in the ingest report and
+#'   provenance.
+#' @param duplicate_cell_id_policy Policy for collisions across libraries.
+#'   prefix constructs deterministic sample_id:barcode cell IDs, make_unique
+#'   repairs collisions, and error rejects them.
+#' @param duplicate_feature_id_policy Policy for duplicate feature IDs.
+#'   error rejects them; make_unique repairs them deterministically.
+#' @param original_feature_id_col Feature metadata column that preserves feature
+#'   IDs before any repair.
+#' @param emit_report_artifact Whether to promote the ingestion QC/provenance
+#'   report artifact.
+#'
+#' @return An open scworkbench_bundle at bundle_dir.
+#'
 #' @export
 wb_bundle_from_10x_mtx <- function(input,
                                    bundle_dir,
@@ -822,6 +846,19 @@ wb_bundle_from_10x_mtx <- function(input,
 #' does not reconstruct upstream preprocessing provenance or arbitrary tool
 #' histories.
 #'
+#' @param input A Seurat object or path to an RDS containing one.
+#' @param bundle_dir Destination bundle directory.
+#' @param assays Assay names to import; defaults to all assays.
+#' @param layers Layer/slot name, or named assay-to-layer mapping.
+#' @param reductions Reduced-dimension names to import; defaults to all.
+#' @param metadata_cols Optional metadata columns to retain.
+#' @param categorical_cols Metadata columns to materialize as cell sets.
+#' @param create_cell_sets Whether categorical metadata creates cell sets.
+#' @param dataset_col Optional metadata column used as dataset identity.
+#' @param overwrite Whether an existing bundle directory may be replaced.
+#' @param created_by Optional provenance actor.
+#' @param emit_report_artifact Whether to promote an ingest report artifact.
+#' @return An open scworkbench bundle.
 #' @export
 wb_bundle_from_seurat <- function(input,
                                   bundle_dir,
@@ -887,6 +924,24 @@ wb_bundle_from_seurat <- function(input,
 
 #' Initialize a Bundle from a SingleCellExperiment Object
 #'
+#' @param input A `SingleCellExperiment` object or path to an RDS containing one.
+#' @param bundle_dir Destination bundle directory.
+#' @param assays Assay names to import; defaults to all assays.
+#' @param reduced_dims Reduced-dimension names to import; defaults to all.
+#' @param metadata_cols Optional cell metadata columns to retain.
+#' @param categorical_cols Metadata columns to materialize as cell sets.
+#' @param create_cell_sets Whether categorical metadata creates cell sets.
+#' @param dataset_col Optional metadata column used as dataset identity.
+#' @param duplicate_cell_id_policy Whether duplicate cell IDs error or are made
+#'   unique while preserving original IDs.
+#' @param original_cell_id_col Metadata column for original cell IDs.
+#' @param duplicate_feature_id_policy Whether duplicate feature IDs error or are
+#'   made unique while preserving original IDs.
+#' @param original_feature_id_col Feature metadata column for original IDs.
+#' @param overwrite Whether an existing bundle directory may be replaced.
+#' @param created_by Optional provenance actor.
+#' @param emit_report_artifact Whether to promote an ingest report artifact.
+#' @return An open scworkbench bundle.
 #' @export
 wb_bundle_from_sce <- function(input,
                                bundle_dir,
@@ -1040,6 +1095,9 @@ wb_bundle_from_sce <- function(input,
 #' Uses `zellkonverter::readH5AD()` and then maps the converted
 #' SingleCellExperiment through [wb_bundle_from_sce()].
 #'
+#' @inheritParams wb_bundle_from_sce
+#' @param input Path to an `.h5ad` file.
+#' @return An open scworkbench bundle.
 #' @export
 wb_bundle_from_h5ad <- function(input,
                                 bundle_dir,
@@ -1182,15 +1240,3 @@ wb_bundle_from_h5ad <- function(input,
   })
   out
 }
-
-#' @export
-bundle_ingest_seurat <- wb_bundle_from_seurat
-
-#' @export
-bundle_ingest_sce <- wb_bundle_from_sce
-
-#' @export
-bundle_ingest_h5ad <- wb_bundle_from_h5ad
-
-#' @export
-bundle_ingest_10x_mtx <- wb_bundle_from_10x_mtx

@@ -34,21 +34,6 @@ wb_op_trajectory_vector_smooth(
 \item{summary_fun}{Summary statistic across cells within each bin.}
 
 \item{min_cells_per_bin}{Minimum cells required for an output bin.}
-
-\item{pseudotime}{Optional \code{cell_vector_family} pseudotime primitive or
-compatible reference for model-free/composite trajectory analysis.}
-
-\item{pseudotime_key}{Optional key selecting the explicit pseudotime family
-member. It is required when explicit pseudotime has multiple keys.}
-
-\item{membership}{Optional cell-vector, cell-set, or compatible restriction
-intersected with cells having finite pseudotime.}
-
-\item{pseudotime_artifact_id}{Optional promoted pseudotime artifact id stored
-in explicit-pseudotime provenance metadata.}
-
-\item{membership_artifact_id}{Optional promoted membership artifact id stored
-in explicit-pseudotime provenance metadata.}
 }
 \value{
 A standard op result list with \code{outputs} containing \code{signal_table}

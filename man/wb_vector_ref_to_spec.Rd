@@ -2,10 +2,17 @@
 % Please edit documentation in R/resolve_primitive.R
 \name{wb_vector_ref_to_spec}
 \alias{wb_vector_ref_to_spec}
-\title{Parse a wb_list_vector_sources() ref into a spec list}
+\title{(Advanced) Parse a wb_list_vector_sources() Ref into a Spec List}
 \usage{
 wb_vector_ref_to_spec(ref)
 }
+\arguments{
+\item{ref}{A length-one artifact or session reference string.}
+}
+\value{
+A typed reference specification list.
+}
 \description{
-Parse a wb_list_vector_sources() ref into a spec list
+Use \code{\link[=wb_list_vector_sources]{wb_list_vector_sources()}} to discover references. This helper is for
+client implementations that need to resolve an existing reference string.
 }

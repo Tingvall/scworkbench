@@ -1,4 +1,9 @@
 #' Execute a selection plan into ordered cell IDs
+#'
+#' @param bundle An open scworkbench bundle.
+#' @param plan A selector-plan list.
+#' @param runs Optional session runs used to resolve run-backed selectors.
+#' @return Ordered selected cell IDs.
 #' @export
 wb_exec_selection_plan <- function(bundle, plan, runs = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")

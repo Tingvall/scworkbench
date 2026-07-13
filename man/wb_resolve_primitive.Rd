@@ -2,7 +2,7 @@
 % Please edit documentation in R/resolve_primitive.R
 \name{wb_resolve_primitive}
 \alias{wb_resolve_primitive}
-\title{Resolve a "spec" into a wb_primitive}
+\title{(Advanced) Resolve a "spec" into a wb_primitive}
 \usage{
 wb_resolve_primitive(bundle, spec, runs = NULL, expected_kind = NULL)
 }

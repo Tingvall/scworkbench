@@ -2,7 +2,7 @@
 % Please edit documentation in R/primitives_coercion.R
 \name{wb_as_primitive}
 \alias{wb_as_primitive}
-\title{Coerce Input Into A \code{wb_primitive}}
+\title{(Advanced) Coerce Input Into A \code{wb_primitive}}
 \usage{
 wb_as_primitive(bundle, x, expected_kind = NULL)
 }

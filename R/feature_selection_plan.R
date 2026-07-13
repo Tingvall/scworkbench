@@ -1,4 +1,4 @@
-#' Execute A Feature Selection Plan
+#' (Advanced) Execute A Feature Selection Plan
 #'
 #' Plan shape:
 #' - universe: matrix_id (required)

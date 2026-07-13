@@ -2,7 +2,7 @@
 % Please edit documentation in R/matrix_fragments.R
 \name{wb_register_matrix_fragment}
 \alias{wb_register_matrix_fragment}
-\title{Register a matrix fragment in the bundle registry}
+\title{(Advanced) Register a matrix fragment in the bundle registry}
 \usage{
 wb_register_matrix_fragment(
   con,
@@ -15,6 +15,26 @@ wb_register_matrix_fragment(
   description = NULL
 )
 }
+\arguments{
+\item{con}{Bundle SQLite connection.}
+
+\item{matrix_id}{Logical matrix identifier.}
+
+\item{path_rel}{Bundle-relative fragment payload path.}
+
+\item{feature_ids}{Ordered fragment feature IDs.}
+
+\item{cell_ids}{Ordered fragment cell IDs.}
+
+\item{source}{Provenance source label.}
+
+\item{created_at}{Creation timestamp.}
+
+\item{description}{Optional fragment description.}
+}
+\value{
+Invisibly, the registered fragment identifier.
+}
 \description{
-Register a matrix fragment in the bundle registry
+Prefer \verb{wb_bundle_from_*()} or \code{wb_attach_matrix()} for ordinary ingestion.
 }

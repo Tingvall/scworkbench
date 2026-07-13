@@ -537,6 +537,21 @@ wb_op_feature_set_overlap_qc <- function(bundle,
 #' matrix and records loss metrics. This helper does not perform synonym,
 #' ortholog, gene-to-peak, motif-to-TF, or other biological ID/entity mapping.
 #'
+#' @param bundle An open scworkbench bundle.
+#' @param source_matrix_id Matrix currently owning the feature-set namespace.
+#' @param target_matrix_id Matrix receiving transferred feature sets.
+#' @param namespace Optional single namespace filter.
+#' @param namespaces Optional namespace filters.
+#' @param feature_sets Optional feature-set name filters.
+#' @param mode Transfer policy: `"mirror"` or `"intersect"`.
+#' @param target_namespace Optional replacement namespace on the target matrix.
+#' @param overwrite Whether existing target registrations may be replaced.
+#' @param strict Whether transfer validation errors are strict.
+#' @param min_retained_features Minimum retained members per feature set.
+#' @param min_retained_fraction Minimum retained member fraction.
+#' @param created_by Optional provenance actor.
+#' @param notes Optional transfer notes.
+#' @return An `obs_table` transfer manifest primitive.
 #' @export
 wb_feature_set_namespace_transfer <- function(bundle,
                                               source_matrix_id,
