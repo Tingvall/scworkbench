@@ -2,10 +2,14 @@
 % Please edit documentation in R/op_registry.R
 \name{wb_ops}
 \alias{wb_ops}
-\title{List ops with titles/intents}
+\title{List Operations With Titles and Intents}
 \usage{
 wb_ops()
 }
+\value{
+Data frame with one row per registered operation and compact title,
+intent, and output-kind metadata.
+}
 \description{
-List ops with titles/intents
+List Operations With Titles and Intents
 }

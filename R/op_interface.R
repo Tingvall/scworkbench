@@ -18,6 +18,9 @@
 
 
 #' List available ops (UI/agent interface)
+#'
+#' @return Character vector of registered operation names. Use
+#'   [wb_op_interface()] for typed inputs, parameters, and outputs.
 #' @export
 wb_list_ops <- function() {
   names(.wb_op_interface_registry())
@@ -30,6 +33,9 @@ wb_list_ops <- function() {
 #'
 #' @param op_name Operation name
 #' @param bundle Optional scworkbench_bundle (needed for set:* choices)
+#'
+#' @return A JSON-serializable interface list containing title, intent, typed
+#'   inputs, parameters, declared primitive outputs, and chunking metadata.
 #' @export
 wb_op_interface <- function(op_name, bundle = NULL) {
   op_name <- as.character(op_name)

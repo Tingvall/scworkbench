@@ -6,6 +6,10 @@
 \usage{
 wb_list_ops()
 }
+\value{
+Character vector of registered operation names. Use
+\code{\link[=wb_op_interface]{wb_op_interface()}} for typed inputs, parameters, and outputs.
+}
 \description{
 List available ops (UI/agent interface)
 }

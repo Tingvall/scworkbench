@@ -7,7 +7,10 @@
 }
 
 
-#' List ops with titles/intents
+#' List Operations With Titles and Intents
+#'
+#' @return Data frame with one row per registered operation and compact title,
+#'   intent, and output-kind metadata.
 #' @export
 wb_ops <- function() {
   ops <- names(.wb_ops())

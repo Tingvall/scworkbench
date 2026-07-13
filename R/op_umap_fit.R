@@ -52,7 +52,9 @@
 #' @param cell_set If cells is NULL, resolved via wb_cells(bundle, cell_set=cell_set)
 #' @param dims Optional dims to use (e.g. 2:30). If NULL uses all dims returned by wb_space().
 #' @param space_id_out 2D space id to write. Default: paste0("umap.", source_space_id)
-#' @param n_neighbors,min_dist,metric,nn_method,spread UMAP parameters
+#' @details `n_neighbors`, `min_dist`, `metric`, `nn_method`, and `spread`
+#'   control the UMAP neighborhood graph and layout. Their current validated
+#'   defaults are exposed by [wb_op_interface()].
 #' @param seed Random seed for reproducibility
 #' @param verbose Passed to uwot
 #' @return list(
