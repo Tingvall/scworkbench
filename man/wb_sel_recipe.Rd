@@ -6,6 +6,13 @@
 \usage{
 wb_sel_recipe(x)
 }
+\arguments{
+\item{x}{A selector result returned by a \verb{wb_sel_*()} function.}
+}
+\value{
+A serializable recipe list, or \code{NULL} when \code{x} has no selector
+provenance attribute.
+}
 \description{
 Get the recipe from a selector result
 }

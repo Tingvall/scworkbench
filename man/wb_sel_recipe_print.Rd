@@ -6,6 +6,12 @@
 \usage{
 wb_sel_recipe_print(x)
 }
+\arguments{
+\item{x}{A selector result returned by a \verb{wb_sel_*()} function.}
+}
+\value{
+Invisibly returns the selector recipe, or \code{NULL} when unavailable.
+}
 \description{
 Print a compact recipe summary
 }

@@ -6,6 +6,13 @@
 \usage{
 wb_cell_sets(bundle)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+}
+\value{
+Character vector of membership-backed set names with \code{"core"}
+first when present.
+}
 \description{
 Returns membership-backed set names from \code{cell_set_membership}.
 The legacy \code{cells.cell_set} column is not used.

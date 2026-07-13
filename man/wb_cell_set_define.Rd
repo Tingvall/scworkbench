@@ -13,7 +13,9 @@ wb_cell_set_define(
   created_by = NULL,
   description = NULL,
   store_recipe = TRUE,
-  recipe = NULL
+  recipe = NULL,
+  role = NULL,
+  status = NULL
 )
 }
 \arguments{
@@ -34,6 +36,10 @@ wb_cell_set_define(
 \item{store_recipe}{If TRUE, writes a recipe row if a recipe is available (or provided).}
 
 \item{recipe}{Optional explicit recipe (list or JSON string). If NULL, tries attr(cells,"wb_recipe").}
+
+\item{role}{Optional lifecycle role for the cell set.}
+
+\item{status}{Optional lifecycle status for the cell set.}
 }
 \value{
 Invisible list summary: cell_set, n_written, recipe_stored (TRUE/FALSE).

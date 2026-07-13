@@ -2,7 +2,7 @@
 % Please edit documentation in R/promote_primitives.R
 \name{wb_promote_analysis}
 \alias{wb_promote_analysis}
-\title{Promote a session analysis DAG to persisted artifacts}
+\title{Promote a Session Analysis DAG to Persisted Artifacts}
 \usage{
 wb_promote_analysis(
   bundle,
@@ -11,9 +11,35 @@ wb_promote_analysis(
   name_prefix = NULL,
   description = NULL,
   created_by = NULL,
-  fail_fast = TRUE
+  fail_fast = TRUE,
+  allow_detached = FALSE
 )
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{runs}{Named list of \code{wb_run} objects, or a list that can be named by
+their \code{run_id} fields.}
+
+\item{head_run_id}{One or more run ids to promote as snapshot heads.}
+
+\item{name_prefix}{Optional prefix for generated artifact names.}
+
+\item{description}{Optional shared artifact description.}
+
+\item{created_by}{Optional actor label recorded in artifacts and provenance.}
+
+\item{fail_fast}{If \code{TRUE}, stop on the first failed output promotion.}
+
+\item{allow_detached}{If \code{TRUE}, allow promotion of runs whose parent lineage
+is not fully present in \code{runs}.}
+}
+\value{
+A data frame with promoted artifact ids, per-output status, and the
+persisted provenance \code{snapshot_id}.
+}
 \description{
-Promote a session analysis DAG to persisted artifacts
+Persists promotable outputs from the selected run heads and their ancestors,
+then records a provenance snapshot. Promotion writes artifact payloads only
+through registered primitive promoters.
 }

@@ -12,7 +12,9 @@ wb_matrix(bundle, matrix_id)
 \item{matrix_id}{Matrix identifier}
 }
 \value{
-BPCells matrix handle
+A BPCells matrix handle for a single-fragment logical matrix. This
+getter never materializes matrix values and errors for multi-fragment
+logical matrices; use fragment-aware slice getters in that case.
 }
 \description{
 Returns a BPCells matrix object; does not materialize into memory.

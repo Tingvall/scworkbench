@@ -14,6 +14,23 @@ wb_sel_vector_family(
   bundle = NULL
 )
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{vector_id}{Registered vector-family id or an artifact reference.}
+
+\item{key}{Family member key, for example a lineage id.}
+
+\item{min, max}{Optional inclusive numeric bounds.}
+
+\item{na.rm}{If \code{TRUE}, exclude cells with missing family values.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
+\value{
+Character cell ids in canonical bundle order, with the bundle and
+serializable selector recipe attached as attributes.
+}
 \description{
 Example: pseudotime for lineage "L1" between 5 and 25.
 }

@@ -3,7 +3,18 @@
 # using the *existing* migrate schema (no payload_json column needed).
 
 # ---- Main loader ----
-#' Load a promoted artifact as a primitive
+#' Load a Promoted Artifact as a Primitive
+#'
+#' Reconstructs a typed primitive from the bundle-owned artifact registry and
+#' payload tables. Consumers should use this function rather than reading
+#' artifact payload tables directly.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param artifact_id Promoted artifact identifier.
+#' @param expected_kind Optional expected primitive kind. When supplied, loading
+#'   fails if the stored artifact has another kind.
+#'
+#' @return A `wb_primitive` reconstructed from the promoted payload.
 #' @export
 wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
   con <- bundle$con

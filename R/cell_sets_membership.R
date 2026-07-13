@@ -78,7 +78,20 @@ wb_set_create <- function(bundle,
   invisible(list(cell_set = cell_set, n = length(cell_ids)))
 }
 
-#' Add existing cells to a set (membership-based)
+#' Add Existing Cells to a Cell Set
+#'
+#' Adds membership rows without removing current members. For recipe-aware,
+#' lifecycle-bearing sets, prefer [wb_cell_set_define()] or
+#' [wb_cell_set_derive()].
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param cell_set Target set name, with or without the `"set:"` prefix.
+#' @param cell_ids Non-empty character vector of canonical cell ids.
+#' @param source Provenance/source label stored with membership rows.
+#' @param created_by Optional actor label.
+#' @param description Optional membership description.
+#'
+#' @return Invisibly returns the normalized set name and number of added cells.
 #' @export
 wb_cell_set_add <- function(bundle,
                             cell_set,
@@ -149,8 +162,16 @@ wb_cell_set_add <- function(bundle,
   invisible(list(cell_set = cell_set, n_added = length(existing)))
 }
 
-#' Remove cells from a set
-#' If cell_ids is NULL, removes ALL membership for that set.
+#' Remove Cells From a Cell Set
+#'
+#' If `cell_ids` is `NULL`, removes all membership rows for the set.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param cell_set Target set name, with or without the `"set:"` prefix.
+#' @param cell_ids Optional character vector of member cell ids to remove.
+#'
+#' @return Invisibly returns the normalized set name, aliases considered, and
+#'   removal count when available.
 #' @export
 wb_cell_set_remove <- function(bundle, cell_set, cell_ids = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -192,7 +213,20 @@ wb_cell_set_remove <- function(bundle, cell_set, cell_ids = NULL) {
   invisible(list(cell_set = cell_set, aliases = aliases, n_removed = length(cell_ids)))
 }
 
-#' Overwrite membership for a set (replace with exactly cell_ids)
+#' Set Cell Set Membership
+#'
+#' Replace membership with exactly `cell_ids`. Unlike [wb_cell_set_derive()],
+#' this low-level helper does not persist a selector recipe or lifecycle
+#' manifest.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param cell_set Target set name, with or without the `"set:"` prefix.
+#' @param cell_ids Non-empty character vector of canonical cell ids.
+#' @param source Provenance/source label stored with membership rows.
+#' @param created_by Optional actor label.
+#' @param description Optional membership description.
+#'
+#' @return Invisibly returns the normalized set name and member count.
 #' @export
 wb_cell_set_set <- function(bundle,
                             cell_set,
@@ -229,6 +263,9 @@ wb_cell_set_set <- function(bundle,
 #' @param created_by optional
 #' @param description optional
 #' @param strict if TRUE, error if any cell_ids are missing from bundle
+#'
+#' @return Invisibly returns the normalized set name, inserted cell ids, and
+#'   any ignored missing ids when `strict = FALSE`.
 #' @export
 wb_cell_set_replace <- function(bundle,
                                 cell_set,

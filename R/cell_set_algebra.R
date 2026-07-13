@@ -48,5 +48,9 @@
 
 
 #' Get selector recipe metadata
+#'
+#' @param x A selector result or other object carrying `wb_recipe` metadata.
+#'
+#' @return The attached selector recipe list, or `NULL`.
 #' @export
 wb_recipe <- function(x) attr(x, "wb_recipe", exact = TRUE)

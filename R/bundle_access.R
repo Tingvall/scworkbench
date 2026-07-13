@@ -44,7 +44,10 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE) {
 }
 
 #' Close an scworkbench bundle
-#' @param bundle Bundle handle from wb_open_bundle()
+#'
+#' @param bundle Bundle handle from [wb_open_bundle()].
+#'
+#' @return `TRUE` invisibly after closing the SQLite connection.
 # pybench-parity: yes
 # pybench-counterpart: pybench.bundle.close_bundle
 #' @export

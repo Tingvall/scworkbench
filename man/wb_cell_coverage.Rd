@@ -12,7 +12,8 @@ wb_cell_coverage(bundle, cell_set, inputs = list())
 \item{cell_set}{Cell set selector (e.g. \code{"core"}, \code{"all"}, \code{"set:<name>"}).}
 
 \item{inputs}{Named list of required inputs. Recognized keys include
-\code{space_id}, \code{matrix_id}, and optional \code{dims} for space coverage.}
+\code{space_id}, \code{matrix_id}, optional \code{dims} for space coverage, and optional
+\code{cell_ids} to override the requested cell universe.}
 }
 \value{
 List with fields:

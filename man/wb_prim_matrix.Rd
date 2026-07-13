@@ -2,10 +2,16 @@
 % Please edit documentation in R/primitives.R
 \name{wb_prim_matrix}
 \alias{wb_prim_matrix}
-\title{Create a matrix primitive}
+\title{Create a \code{matrix} Primitive}
 \usage{
 wb_prim_matrix(matrix_id)
 }
+\arguments{
+\item{matrix_id}{Registered logical matrix identifier.}
+}
+\value{
+A \code{wb_primitive} of kind \code{matrix}.
+}
 \description{
-Create a matrix primitive
+Create a \code{matrix} Primitive
 }

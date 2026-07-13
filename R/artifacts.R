@@ -723,6 +723,11 @@ wb_art_trajectory_de_plot_slice <- function(bundle,
 }
 
 #' Read label rows for a label-like artifact
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param artifact_id Promoted label-like artifact identifier.
+#'
+#' @return A data frame with `cell_id` and `label`, ordered by cell id.
 #' @export
 wb_art_get_labels <- function(bundle, artifact_id) {
   con <- bundle$con

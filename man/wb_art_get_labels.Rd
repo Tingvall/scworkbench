@@ -6,6 +6,14 @@
 \usage{
 wb_art_get_labels(bundle, artifact_id)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{artifact_id}{Promoted label-like artifact identifier.}
+}
+\value{
+A data frame with \code{cell_id} and \code{label}, ordered by cell id.
+}
 \description{
 Read label rows for a label-like artifact
 }

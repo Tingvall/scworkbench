@@ -2,10 +2,21 @@
 % Please edit documentation in R/artifacts.R
 \name{wb_art_list}
 \alias{wb_art_list}
-\title{List promoted artifacts}
+\title{List Promoted Artifacts}
 \usage{
 wb_art_list(bundle, type = NULL)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{type}{Optional artifact type filter such as \code{"feature_table"} or
+\code{"obs_table"}.}
+}
+\value{
+A data frame of artifact registry rows ordered by \code{created_at}
+descending.
+}
 \description{
-List promoted artifacts
+Return artifact registry rows from the bundle, optionally restricted to a
+single promoted artifact type.
 }

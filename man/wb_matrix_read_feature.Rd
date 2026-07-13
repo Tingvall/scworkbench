@@ -2,10 +2,23 @@
 % Please edit documentation in R/getters_matrix_virtual.R
 \name{wb_matrix_read_feature}
 \alias{wb_matrix_read_feature}
-\title{Read one feature vector across cells from virtual matrix fragments}
+\title{Read One Feature Vector From Virtual Matrix Fragments}
 \usage{
 wb_matrix_read_feature(bundle, matrix_id, feature_id, cell_ids)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{matrix_id}{Matrix id.}
+
+\item{feature_id}{Feature id to read.}
+
+\item{cell_ids}{Requested cell ids.}
+}
+\value{
+Named numeric vector aligned to \code{cell_ids}.
+}
 \description{
-Read one feature vector across cells from virtual matrix fragments
+Resolve one feature across a requested cell set by reading and merging the
+relevant matrix fragments.
 }

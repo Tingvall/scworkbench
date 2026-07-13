@@ -2,10 +2,18 @@
 % Please edit documentation in R/session_context.R
 \name{wb_ref_run}
 \alias{wb_ref_run}
-\title{Create a reference to a run output}
+\title{Create a Reference to a Session Run Output}
 \usage{
 wb_ref_run(run_id, output_name)
 }
+\arguments{
+\item{run_id}{Session-local run identifier.}
+
+\item{output_name}{Name of the output on that run.}
+}
+\value{
+A symbolic run-reference list for use in typed op inputs.
+}
 \description{
-Create a reference to a run output
+Create a Reference to a Session Run Output
 }

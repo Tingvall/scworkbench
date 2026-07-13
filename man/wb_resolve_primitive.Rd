@@ -15,6 +15,9 @@ wb_resolve_primitive(bundle, spec, runs = NULL, expected_kind = NULL)
 
 \item{expected_kind}{optional kind safety (e.g. "cell_vector")}
 }
+\value{
+A resolved \code{wb_primitive}, or \code{NULL} only for \code{type = "none"}.
+}
 \description{
 Accepts:
 \itemize{

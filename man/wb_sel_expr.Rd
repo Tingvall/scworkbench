@@ -2,7 +2,7 @@
 % Please edit documentation in R/selectors.R
 \name{wb_sel_expr}
 \alias{wb_sel_expr}
-\title{Select by expression of a single feature (scalar getter)}
+\title{Select by Expression of a Single Feature}
 \usage{
 wb_sel_expr(
   x,
@@ -14,9 +14,22 @@ wb_sel_expr(
   bundle = NULL
 )
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{matrix_id}{Matrix identifier.}
+
+\item{feature_id}{Feature identifier in \code{matrix_id}.}
+
+\item{min, max}{Optional inclusive expression bounds.}
+
+\item{na.rm}{If \code{TRUE}, exclude cells with missing expression values.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
 \value{
 cell_ids (ordered, bundle-attached, recipe-attached)
 }
 \description{
-Select by expression of a single feature (scalar getter)
+Uses the matrix getter to read one feature over the current selector universe.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/primitives.R
 \name{wb_prim_model_ref}
 \alias{wb_prim_model_ref}
-\title{Create a model_ref primitive}
+\title{Create a \code{model_ref} Primitive}
 \usage{
 wb_prim_model_ref(
   model_space_id,
@@ -11,6 +11,18 @@ wb_prim_model_ref(
   artifact_id = NULL
 )
 }
+\arguments{
+\item{model_space_id}{Identifier of the space containing model coordinates.}
+
+\item{in_space_id}{Identifier of the model input space.}
+
+\item{engine}{Model engine name.}
+
+\item{artifact_id}{Optional promoted model artifact id.}
+}
+\value{
+A \code{wb_primitive} of kind \code{model_ref}.
+}
 \description{
-Create a model_ref primitive
+Create a \code{model_ref} Primitive
 }

@@ -30,12 +30,22 @@
 }
 
 # ---------- Refs ----------
-#' Create a reference to a run output
+#' Create a Reference to a Session Run Output
+#'
+#' @param run_id Session-local run identifier.
+#' @param output_name Name of the output on that run.
+#'
+#' @return A symbolic run-reference list for use in typed op inputs.
 #' @export
 wb_ref_run <- function(run_id, output_name) {
   list(ref_type = "run", run_id = as.character(run_id), output = as.character(output_name))
 }
-#' Create a reference to an artifact output
+#' Create a Reference to a Promoted Artifact
+#'
+#' @param artifact_id Promoted artifact identifier.
+#' @param output_name Declared output name represented by the artifact.
+#'
+#' @return A symbolic artifact-reference list for use in typed op inputs.
 #' @export
 wb_ref_artifact <- function(artifact_id, output_name) {
   list(ref_type = "artifact", artifact_id = as.character(artifact_id), output = as.character(output_name))

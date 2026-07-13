@@ -2,6 +2,11 @@
 #'
 #' Returns membership-backed set names from `cell_set_membership`.
 #' The legacy `cells.cell_set` column is not used.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#'
+#' @return Character vector of membership-backed set names with `"core"`
+#'   first when present.
 # pybench-parity: yes
 # pybench-counterpart: pybench.getters.cell_sets
 # contract-note: canonical display ordering puts 'core' first
@@ -33,6 +38,12 @@ wb_cell_sets <- function(bundle) {
 
 
 #' Resolve a cell_set selector to cell_ids
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param cell_set Set name, `"core"`, or `"all"`.
+#'
+#' @return Character vector of canonical member cell ids in stable bundle
+#'   order.
 # pybench-parity: yes
 # pybench-counterpart: pybench.getters.resolve_cell_set
 # contract-note: keep 'all' semantics and stable ordering aligned with wb_cells()/membership path

@@ -2,10 +2,18 @@
 % Please edit documentation in R/session_context.R
 \name{wb_ref_artifact}
 \alias{wb_ref_artifact}
-\title{Create a reference to an artifact output}
+\title{Create a Reference to a Promoted Artifact}
 \usage{
 wb_ref_artifact(artifact_id, output_name)
 }
+\arguments{
+\item{artifact_id}{Promoted artifact identifier.}
+
+\item{output_name}{Declared output name represented by the artifact.}
+}
+\value{
+A symbolic artifact-reference list for use in typed op inputs.
+}
 \description{
-Create a reference to an artifact output
+Create a Reference to a Promoted Artifact
 }

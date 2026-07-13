@@ -184,6 +184,14 @@ wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = 
 #' If vector is categorical (e.g. clusters), use wb_sel_vector_values().
 #' If vector is a family (e.g. pseudotime), use wb_sel_vector_family().
 #'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param vector_id Registered scalar vector id or an artifact reference.
+#' @param min,max Optional inclusive numeric bounds.
+#' @param na.rm If `TRUE`, exclude cells with missing vector values.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
+#' @return Character cell ids in canonical bundle order, with the bundle and
+#'   serializable selector recipe attached as attributes.
 #' @export
 wb_sel_vector <- function(x, vector_id, min = NULL, max = NULL, na.rm = TRUE, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
@@ -222,6 +230,14 @@ wb_sel_vector <- function(x, vector_id, min = NULL, max = NULL, na.rm = TRUE, bu
 #'
 #' Example: clusters with values "3" and "4".
 #'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param vector_id Registered scalar vector id or an artifact reference.
+#' @param values Non-empty vector of categorical values to retain.
+#' @param na.rm If `TRUE`, exclude cells with missing vector values.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
+#' @return Character cell ids in canonical bundle order, with the bundle and
+#'   serializable selector recipe attached as attributes.
 #' @export
 wb_sel_vector_values <- function(x, vector_id, values, na.rm = TRUE, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
@@ -252,6 +268,15 @@ wb_sel_vector_values <- function(x, vector_id, values, na.rm = TRUE, bundle = NU
 #'
 #' Example: pseudotime for lineage "L1" between 5 and 25.
 #'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param vector_id Registered vector-family id or an artifact reference.
+#' @param key Family member key, for example a lineage id.
+#' @param min,max Optional inclusive numeric bounds.
+#' @param na.rm If `TRUE`, exclude cells with missing family values.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
+#' @return Character cell ids in canonical bundle order, with the bundle and
+#'   serializable selector recipe attached as attributes.
 #' @export
 wb_sel_vector_family <- function(x, vector_id, key, min = NULL, max = NULL, na.rm = TRUE, bundle = NULL) {
   b <- .wb_sel_resolve_bundle(x, bundle = bundle)
@@ -277,8 +302,17 @@ wb_sel_vector_family <- function(x, vector_id, key, min = NULL, max = NULL, na.r
 }
 
 
-#' Select by expression of a single feature (scalar getter)
-#' @inheritParams wb_sel_expr
+#' Select by Expression of a Single Feature
+#'
+#' Uses the matrix getter to read one feature over the current selector universe.
+#'
+#' @param x Either a `scworkbench_bundle` or a selector result.
+#' @param matrix_id Matrix identifier.
+#' @param feature_id Feature identifier in `matrix_id`.
+#' @param min,max Optional inclusive expression bounds.
+#' @param na.rm If `TRUE`, exclude cells with missing expression values.
+#' @param bundle Optional bundle handle when `x` is plain character cell IDs.
+#'
 #' @return cell_ids (ordered, bundle-attached, recipe-attached)
 #' @export
 wb_sel_expr <- function(x, matrix_id, feature_id, min = NULL, max = NULL,
@@ -459,12 +493,21 @@ wb_sel_not <- function(x, universe = NULL, bundle = NULL) {
 }
 
 #' Get the recipe from a selector result
+#'
+#' @param x A selector result returned by a `wb_sel_*()` function.
+#'
+#' @return A serializable recipe list, or `NULL` when `x` has no selector
+#'   provenance attribute.
 #' @export
 wb_sel_recipe <- function(x) {
   attr(x, "wb_recipe", exact = TRUE)
 }
 
 #' Print a compact recipe summary
+#'
+#' @param x A selector result returned by a `wb_sel_*()` function.
+#'
+#' @return Invisibly returns the selector recipe, or `NULL` when unavailable.
 #' @export
 wb_sel_recipe_print <- function(x) {
   r <- wb_sel_recipe(x)

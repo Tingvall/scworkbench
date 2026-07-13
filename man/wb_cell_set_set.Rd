@@ -2,7 +2,7 @@
 % Please edit documentation in R/cell_sets_membership.R
 \name{wb_cell_set_set}
 \alias{wb_cell_set_set}
-\title{Overwrite membership for a set (replace with exactly cell_ids)}
+\title{Set Cell Set Membership}
 \usage{
 wb_cell_set_set(
   bundle,
@@ -13,6 +13,24 @@ wb_cell_set_set(
   description = NULL
 )
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{cell_set}{Target set name, with or without the \code{"set:"} prefix.}
+
+\item{cell_ids}{Non-empty character vector of canonical cell ids.}
+
+\item{source}{Provenance/source label stored with membership rows.}
+
+\item{created_by}{Optional actor label.}
+
+\item{description}{Optional membership description.}
+}
+\value{
+Invisibly returns the normalized set name and member count.
+}
 \description{
-Overwrite membership for a set (replace with exactly cell_ids)
+Replace membership with exactly \code{cell_ids}. Unlike \code{\link[=wb_cell_set_derive]{wb_cell_set_derive()}},
+this low-level helper does not persist a selector recipe or lifecycle
+manifest.
 }

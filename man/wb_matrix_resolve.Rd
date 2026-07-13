@@ -6,6 +6,16 @@
 \usage{
 wb_matrix_resolve(bundle, matrix_id)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{matrix_id}{Logical matrix identifier.}
+}
+\value{
+A data frame of fragment registry rows with bundle-relative paths
+resolved to absolute paths, or the matrix registry row for legacy
+single-directory storage.
+}
 \description{
 Resolve matrix fragments to absolute paths
 }

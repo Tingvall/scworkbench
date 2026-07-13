@@ -9,7 +9,18 @@
   invisible(TRUE)
 }
 
-#' Create a cell_vector_family primitive
+#' Create a `cell_vector_family` Primitive
+#'
+#' Construct a long-form cell-by-key numeric primitive. Typical uses include
+#' pseudotime, lineage weights, and per-cell signature families.
+#'
+#' @param key Family-member key for each row.
+#' @param cell_id Canonical cell id for each row.
+#' @param value Numeric value for each row.
+#' @param value_type Semantic value type, usually `"continuous"`.
+#' @param meta Optional named list of contract metadata.
+#'
+#' @return A `wb_primitive` of kind `cell_vector_family`.
 #' @export
 wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "continuous", meta = list()) {
   if (is.null(meta)) meta <- list()
@@ -27,11 +38,19 @@ wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "contin
   )
 }
 
-#' Create a relation_family primitive
+#' Create a `relation_family` Primitive
 #'
 #' Sparse long-form relation family (edge-table-like shape).
 #' Optional row-wise fields (`weight`, `value`, `distance`) must match the row count when provided.
 #'
+#' @param key Relation-family key for each row.
+#' @param cell_id Canonical cell id for each row.
+#' @param weight Optional numeric relation weight.
+#' @param value Optional numeric relation value.
+#' @param distance Optional numeric relation distance.
+#' @param meta Optional named list of contract metadata.
+#'
+#' @return A `wb_primitive` of kind `relation_family`.
 #' @export
 wb_prim_relation_family <- function(key, cell_id, weight = NULL, value = NULL, distance = NULL, meta = list()) {
   n <- length(key)
@@ -55,13 +74,25 @@ wb_prim_relation_family <- function(key, cell_id, weight = NULL, value = NULL, d
   )
 }
 
-#' Create a space primitive
+#' Create a `space` Primitive
+#'
+#' @param space_id Registered space identifier.
+#'
+#' @return A `wb_primitive` of kind `space`.
 #' @export
 wb_prim_space  <- function(space_id)  structure(list(kind="space",  space_id=as.character(space_id)),  class="wb_primitive")
-#' Create a matrix primitive
+#' Create a `matrix` Primitive
+#'
+#' @param matrix_id Registered logical matrix identifier.
+#'
+#' @return A `wb_primitive` of kind `matrix`.
 #' @export
 wb_prim_matrix <- function(matrix_id) structure(list(kind="matrix", matrix_id=as.character(matrix_id)), class="wb_primitive")
-#' Create a space_2d primitive
+#' Create a `space_2d` Primitive
+#'
+#' @param space_id Registered two-dimensional space identifier.
+#'
+#' @return A `wb_primitive` of kind `space_2d`.
 #' @export
 wb_prim_space_2d <- function(space_id) {
   structure(
@@ -71,7 +102,13 @@ wb_prim_space_2d <- function(space_id) {
 }
 
 
-#' Create a cell_vector primitive
+#' Create a `cell_vector` Primitive
+#'
+#' @param x Named atomic vector. Names must be canonical cell ids.
+#' @param value_type Semantic value type, such as `"categorical"` or
+#'   `"continuous"`.
+#'
+#' @return A `wb_primitive` of kind `cell_vector`.
 #' @export
 wb_prim_cell_vector <- function(x, value_type = "categorical") {
   stopifnot(is.atomic(x), !is.null(names(x)))
@@ -86,7 +123,14 @@ wb_prim_cell_vector <- function(x, value_type = "categorical") {
   )
 }
 
-#' Create a path_2d_family primitive
+#' Create a `path_2d_family` Primitive
+#'
+#' @param key Path-family key for each point, often a lineage or segment id.
+#' @param point Integer point index along each path.
+#' @param x,y Numeric display coordinates for each path point.
+#' @param meta Optional named list of display and provenance metadata.
+#'
+#' @return A `wb_primitive` of kind `path_2d_family`.
 #' @export
 wb_prim_path_2d_family <- function(key, point, x, y, meta = list()) {
   if (is.null(meta)) meta <- list()
@@ -103,7 +147,16 @@ wb_prim_path_2d_family <- function(key, point, x, y, meta = list()) {
   )
 }
 
-#' Create a space_path_family primitive
+#' Create a `space_path_family` Primitive
+#'
+#' @param space_id Registered space identifier for each path point.
+#' @param path_id Path identifier for each point.
+#' @param point Integer point index along each path.
+#' @param dim Coordinate dimension for each value.
+#' @param value Numeric coordinate value.
+#' @param meta Optional named list of contract metadata.
+#'
+#' @return A `wb_primitive` of kind `space_path_family`.
 #' @export
 wb_prim_space_path_family <- function(space_id, path_id, point, dim, value, meta = list()) {
   n <- length(path_id)
@@ -128,7 +181,14 @@ wb_prim_space_path_family <- function(space_id, path_id, point, dim, value, meta
 }
 
 
-#' Create a model_ref primitive
+#' Create a `model_ref` Primitive
+#'
+#' @param model_space_id Identifier of the space containing model coordinates.
+#' @param in_space_id Identifier of the model input space.
+#' @param engine Model engine name.
+#' @param artifact_id Optional promoted model artifact id.
+#'
+#' @return A `wb_primitive` of kind `model_ref`.
 #' @export
 wb_prim_model_ref <- function(model_space_id, in_space_id, engine = "uwot", artifact_id = NULL) {
   structure(

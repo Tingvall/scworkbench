@@ -2,10 +2,17 @@
 % Please edit documentation in R/introspect.R
 \name{wb_bundle_schema}
 \alias{wb_bundle_schema}
-\title{Bundle schema snapshot (debug helper)}
+\title{Inspect Bundle Schema}
 \usage{
 wb_bundle_schema(bundle)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+}
+\value{
+A named list of table schemas.
+}
 \description{
-Bundle schema snapshot (debug helper)
+Return SQLite table and column metadata for debugging and engine inspection.
+This is a diagnostic view, not a stable replacement for getter contracts.
 }

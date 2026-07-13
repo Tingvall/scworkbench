@@ -162,8 +162,10 @@ wb_list <- function(bundle, what = c("matrices", "features", "spaces", "datasets
 #' List cell IDs in canonical bundle order
 #'
 #' @param bundle scworkbench bundle handle
-#' @param dataset_id Optional dataset filter
 #' @param cell_set Which cell set to use: "core" (default), "all", or "set:<name>"
+#' @param dataset_id Optional dataset filter.
+#'
+#' @return Character vector of canonical cell ids in stable bundle order.
 # pybench-parity: yes
 # pybench-counterpart: pybench.getters.cells
 # contract-note: canonical ordering is cells.rowid (including set membership joins)
@@ -452,6 +454,10 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
 }
 
 #' List spaces in the bundle
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#'
+#' @return A data frame of registered spaces, excluding empty registry rows.
 # pybench-parity: yes
 # pybench-counterpart: pybench.getters.spaces
 # contract-note: filter phantom/empty space_id rows
@@ -496,7 +502,10 @@ wb_matrix_info <- function(bundle, matrix_id = NULL) {
 #'
 #' @param bundle Bundle handle from `wb_open_bundle()`
 #' @param matrix_id Matrix identifier
-#' @return BPCells matrix handle
+#'
+#' @return A BPCells matrix handle for a single-fragment logical matrix. This
+#'   getter never materializes matrix values and errors for multi-fragment
+#'   logical matrices; use fragment-aware slice getters in that case.
 #' @export
 wb_matrix <- function(bundle, matrix_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
@@ -764,6 +773,13 @@ wb_vector <- function(bundle, matrix_id, feature_id, cells = NULL) {
 
 
 #' Resolve matrix fragments to absolute paths
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param matrix_id Logical matrix identifier.
+#'
+#' @return A data frame of fragment registry rows with bundle-relative paths
+#'   resolved to absolute paths, or the matrix registry row for legacy
+#'   single-directory storage.
 #' @export
 wb_matrix_resolve <- function(bundle, matrix_id) {
   fr <- wb_matrix_fragments(bundle, matrix_id)

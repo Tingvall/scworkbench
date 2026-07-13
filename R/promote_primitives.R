@@ -187,7 +187,25 @@
 }
 
 # ---- New promotion entrypoint: promote analysis DAG from runs ----
-#' Promote a session analysis DAG to persisted artifacts
+#' Promote a Session Analysis DAG to Persisted Artifacts
+#'
+#' Persists promotable outputs from the selected run heads and their ancestors,
+#' then records a provenance snapshot. Promotion writes artifact payloads only
+#' through registered primitive promoters.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param runs Named list of `wb_run` objects, or a list that can be named by
+#'   their `run_id` fields.
+#' @param head_run_id One or more run ids to promote as snapshot heads.
+#' @param name_prefix Optional prefix for generated artifact names.
+#' @param description Optional shared artifact description.
+#' @param created_by Optional actor label recorded in artifacts and provenance.
+#' @param fail_fast If `TRUE`, stop on the first failed output promotion.
+#' @param allow_detached If `TRUE`, allow promotion of runs whose parent lineage
+#'   is not fully present in `runs`.
+#'
+#' @return A data frame with promoted artifact ids, per-output status, and the
+#'   persisted provenance `snapshot_id`.
 #' @export
 wb_promote_analysis <- function(bundle,
                                 runs,

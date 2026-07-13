@@ -1,4 +1,11 @@
-#' Bundle schema snapshot (debug helper)
+#' Inspect Bundle Schema
+#'
+#' Return SQLite table and column metadata for debugging and engine inspection.
+#' This is a diagnostic view, not a stable replacement for getter contracts.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#'
+#' @return A named list of table schemas.
 #' @export
 wb_bundle_schema <- function(bundle) {
   con <- bundle$con

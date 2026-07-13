@@ -2,19 +2,19 @@
 % Please edit documentation in R/primitives_coercion.R
 \name{wb_as_primitive}
 \alias{wb_as_primitive}
-\title{Coerce input into a wb_primitive}
+\title{Coerce Input Into A \code{wb_primitive}}
 \usage{
 wb_as_primitive(bundle, x, expected_kind = NULL)
 }
 \arguments{
-\item{bundle}{scworkbench_bundle}
+\item{bundle}{Open \code{scworkbench_bundle}.}
 
-\item{x}{wb_primitive or artifact_id string}
+\item{x}{\code{wb_primitive} or artifact id string.}
 
-\item{expected_kind}{optional primitive kind check (e.g. "cell_vector")}
+\item{expected_kind}{Optional primitive kind check such as \code{"cell_vector"}.}
 }
 \value{
-wb_primitive
+A \code{wb_primitive}.
 }
 \description{
 Accepts:

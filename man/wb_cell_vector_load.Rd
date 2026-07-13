@@ -2,10 +2,23 @@
 % Please edit documentation in R/cell_vectors.R
 \name{wb_cell_vector_load}
 \alias{wb_cell_vector_load}
-\title{Load a cell vector primitive by vector_id (artifact:* or session:\emph{:}).}
+\title{Load a Cell Vector Primitive}
 \usage{
 wb_cell_vector_load(bundle, session = NULL, vector_id, expected_kind = NULL)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{session}{Optional \code{wb_session} used to resolve \verb{session:*:*} ids.}
+
+\item{vector_id}{Artifact or session vector reference.}
+
+\item{expected_kind}{Optional expected primitive kind.}
+}
+\value{
+A \code{cell_vector} or \code{cell_vector_family} primitive.
+}
 \description{
-Load a cell vector primitive by vector_id (artifact:* or session:\emph{:}).
+Resolve an artifact-backed or session-backed vector reference to a typed
+primitive. This is a compatibility helper for vector-oriented consumers.
 }

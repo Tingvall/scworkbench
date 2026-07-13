@@ -11,7 +11,8 @@ wb_matrices(bundle)
 }
 \value{
 A data.frame with columns:
-matrix_id, layer, feature_type, n_features, n_cells, storage, path
+matrix_id, layer, feature_type, n_features, n_cells, storage, path,
+organism, genome_build, genome_provider
 }
 \description{
 Lists registered matrices from the bundle SQLite (matrices table).

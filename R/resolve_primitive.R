@@ -12,6 +12,8 @@
 #' @param spec object described above
 #' @param runs optional list of wb_run objects named by run_id (required for type="session")
 #' @param expected_kind optional kind safety (e.g. "cell_vector")
+#'
+#' @return A resolved `wb_primitive`, or `NULL` only for `type = "none"`.
 #' @export
 wb_resolve_primitive <- function(bundle, spec, runs = NULL, expected_kind = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -79,6 +81,9 @@ wb_resolve_primitive <- function(bundle, spec, runs = NULL, expected_kind = NULL
 #' @param cell_ids optional subset/order; if NULL uses all cells in bundle
 #' @param key lineage key for cell_vector_family (e.g. "L1")
 #' @param expected_kind optional: "cell_vector" or "cell_vector_family" or NULL
+#'
+#' @return A named vector aligned to `cell_ids`; cells absent from the source
+#'   primitive have `NA` values.
 #' @export
 wb_resolve_cell_vector <- function(bundle, x, runs = NULL, cell_ids = NULL, key = NULL, expected_kind = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")

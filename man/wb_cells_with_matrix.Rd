@@ -12,7 +12,8 @@ wb_cells_with_matrix(bundle, matrix_id)
 \item{matrix_id}{Matrix identifier.}
 }
 \value{
-Character vector of \code{cell_id} in canonical order, or empty if matrix_id is unknown.
+Character vector of \code{cell_id} in canonical order, or empty if
+\code{matrix_id} is unknown.
 }
 \description{
 Returns cell IDs that are available for \code{matrix_id}.

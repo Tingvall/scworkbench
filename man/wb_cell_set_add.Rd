@@ -2,7 +2,7 @@
 % Please edit documentation in R/cell_sets_membership.R
 \name{wb_cell_set_add}
 \alias{wb_cell_set_add}
-\title{Add existing cells to a set (membership-based)}
+\title{Add Existing Cells to a Cell Set}
 \usage{
 wb_cell_set_add(
   bundle,
@@ -13,6 +13,24 @@ wb_cell_set_add(
   description = NULL
 )
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{cell_set}{Target set name, with or without the \code{"set:"} prefix.}
+
+\item{cell_ids}{Non-empty character vector of canonical cell ids.}
+
+\item{source}{Provenance/source label stored with membership rows.}
+
+\item{created_by}{Optional actor label.}
+
+\item{description}{Optional membership description.}
+}
+\value{
+Invisibly returns the normalized set name and number of added cells.
+}
 \description{
-Add existing cells to a set (membership-based)
+Adds membership rows without removing current members. For recipe-aware,
+lifecycle-bearing sets, prefer \code{\link[=wb_cell_set_define]{wb_cell_set_define()}} or
+\code{\link[=wb_cell_set_derive]{wb_cell_set_derive()}}.
 }

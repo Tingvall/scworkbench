@@ -2,12 +2,21 @@
 % Please edit documentation in R/cell_sets_membership.R
 \name{wb_cell_set_remove}
 \alias{wb_cell_set_remove}
-\title{Remove cells from a set
-If cell_ids is NULL, removes ALL membership for that set.}
+\title{Remove Cells From a Cell Set}
 \usage{
 wb_cell_set_remove(bundle, cell_set, cell_ids = NULL)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{cell_set}{Target set name, with or without the \code{"set:"} prefix.}
+
+\item{cell_ids}{Optional character vector of member cell ids to remove.}
+}
+\value{
+Invisibly returns the normalized set name, aliases considered, and
+removal count when available.
+}
 \description{
-Remove cells from a set
-If cell_ids is NULL, removes ALL membership for that set.
+If \code{cell_ids} is \code{NULL}, removes all membership rows for the set.
 }

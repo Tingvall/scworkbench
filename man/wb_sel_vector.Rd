@@ -13,6 +13,21 @@ wb_sel_vector(
   bundle = NULL
 )
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{vector_id}{Registered scalar vector id or an artifact reference.}
+
+\item{min, max}{Optional inclusive numeric bounds.}
+
+\item{na.rm}{If \code{TRUE}, exclude cells with missing vector values.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
+\value{
+Character cell ids in canonical bundle order, with the bundle and
+serializable selector recipe attached as attributes.
+}
 \description{
 Expects wb_read_cell_vector() to return a numeric vector (continuous).
 If vector is categorical (e.g. clusters), use wb_sel_vector_values().

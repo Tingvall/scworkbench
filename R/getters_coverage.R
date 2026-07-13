@@ -8,7 +8,8 @@
 #' @param space_id Space identifier.
 #' @param dims Optional integer vector of required dimensions for long-form spaces.
 #'
-#' @return Character vector of `cell_id`.
+#' @return Character vector of canonical `cell_id` values with available
+#'   coordinates.
 #' @export
 wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
   con <- bundle$con
@@ -54,7 +55,8 @@ wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
 #' @param bundle scworkbench bundle handle.
 #' @param matrix_id Matrix identifier.
 #'
-#' @return Character vector of `cell_id` in canonical order, or empty if matrix_id is unknown.
+#' @return Character vector of `cell_id` in canonical order, or empty if
+#'   `matrix_id` is unknown.
 #' @export
 wb_cells_with_matrix <- function(bundle, matrix_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
@@ -197,4 +199,3 @@ wb_cell_coverage <- function(bundle, cell_set, inputs = list()) {
     min_cells = min_cells
   )
 }
-

@@ -6,6 +6,21 @@
 \usage{
 wb_sel_vector_values(x, vector_id, values, na.rm = TRUE, bundle = NULL)
 }
+\arguments{
+\item{x}{Either a \code{scworkbench_bundle} or a selector result.}
+
+\item{vector_id}{Registered scalar vector id or an artifact reference.}
+
+\item{values}{Non-empty vector of categorical values to retain.}
+
+\item{na.rm}{If \code{TRUE}, exclude cells with missing vector values.}
+
+\item{bundle}{Optional bundle handle when \code{x} is plain character cell IDs.}
+}
+\value{
+Character cell ids in canonical bundle order, with the bundle and
+serializable selector recipe attached as attributes.
+}
 \description{
-Example: clusters in {"3","4"}.
+Example: clusters with values "3" and "4".
 }

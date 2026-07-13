@@ -26,6 +26,10 @@ wb_resolve_cell_vector(
 
 \item{expected_kind}{optional: "cell_vector" or "cell_vector_family" or NULL}
 }
+\value{
+A named vector aligned to \code{cell_ids}; cells absent from the source
+primitive have \code{NA} values.
+}
 \description{
 Supports:
 \itemize{

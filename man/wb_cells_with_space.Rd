@@ -14,7 +14,8 @@ wb_cells_with_space(bundle, space_id, dims = NULL)
 \item{dims}{Optional integer vector of required dimensions for long-form spaces.}
 }
 \value{
-Character vector of \code{cell_id}.
+Character vector of canonical \code{cell_id} values with available
+coordinates.
 }
 \description{
 Returns the cell IDs that have coordinates available for \code{space_id}.

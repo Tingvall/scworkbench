@@ -7,7 +7,10 @@
 wb_close_bundle(bundle)
 }
 \arguments{
-\item{bundle}{Bundle handle from wb_open_bundle()}
+\item{bundle}{Bundle handle from \code{\link[=wb_open_bundle]{wb_open_bundle()}}.}
+}
+\value{
+\code{TRUE} invisibly after closing the SQLite connection.
 }
 \description{
 Close an scworkbench bundle

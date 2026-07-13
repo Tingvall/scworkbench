@@ -6,6 +6,12 @@
 \usage{
 wb_spaces(bundle)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+}
+\value{
+A data frame of registered spaces, excluding empty registry rows.
+}
 \description{
 List spaces in the bundle
 }

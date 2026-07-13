@@ -2,10 +2,23 @@
 % Please edit documentation in R/artifacts_load.R
 \name{wb_art_load}
 \alias{wb_art_load}
-\title{Load a promoted artifact as a primitive}
+\title{Load a Promoted Artifact as a Primitive}
 \usage{
 wb_art_load(bundle, artifact_id, expected_kind = NULL)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{artifact_id}{Promoted artifact identifier.}
+
+\item{expected_kind}{Optional expected primitive kind. When supplied, loading
+fails if the stored artifact has another kind.}
+}
+\value{
+A \code{wb_primitive} reconstructed from the promoted payload.
+}
 \description{
-Load a promoted artifact as a primitive
+Reconstructs a typed primitive from the bundle-owned artifact registry and
+payload tables. Consumers should use this function rather than reading
+artifact payload tables directly.
 }

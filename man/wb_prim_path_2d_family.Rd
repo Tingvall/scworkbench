@@ -2,10 +2,22 @@
 % Please edit documentation in R/primitives.R
 \name{wb_prim_path_2d_family}
 \alias{wb_prim_path_2d_family}
-\title{Create a path_2d_family primitive}
+\title{Create a \code{path_2d_family} Primitive}
 \usage{
-wb_prim_path_2d_family(key, point, x, y)
+wb_prim_path_2d_family(key, point, x, y, meta = list())
+}
+\arguments{
+\item{key}{Path-family key for each point, often a lineage or segment id.}
+
+\item{point}{Integer point index along each path.}
+
+\item{x, y}{Numeric display coordinates for each path point.}
+
+\item{meta}{Optional named list of display and provenance metadata.}
+}
+\value{
+A \code{wb_primitive} of kind \code{path_2d_family}.
 }
 \description{
-Create a path_2d_family primitive
+Create a \code{path_2d_family} Primitive
 }

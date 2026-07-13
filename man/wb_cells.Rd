@@ -11,7 +11,10 @@ wb_cells(bundle, cell_set = "core", dataset_id = NULL)
 
 \item{cell_set}{Which cell set to use: "core" (default), "all", or "set:\if{html}{\out{<name>}}"}
 
-\item{dataset_id}{Optional dataset filter}
+\item{dataset_id}{Optional dataset filter.}
+}
+\value{
+Character vector of canonical cell ids in stable bundle order.
 }
 \description{
 List cell IDs in canonical bundle order

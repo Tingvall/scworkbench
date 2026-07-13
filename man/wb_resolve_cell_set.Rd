@@ -6,6 +6,15 @@
 \usage{
 wb_resolve_cell_set(bundle, cell_set = "core")
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{cell_set}{Set name, \code{"core"}, or \code{"all"}.}
+}
+\value{
+Character vector of canonical member cell ids in stable bundle
+order.
+}
 \description{
 Resolve a cell_set selector to cell_ids
 }

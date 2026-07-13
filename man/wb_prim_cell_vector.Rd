@@ -2,10 +2,19 @@
 % Please edit documentation in R/primitives.R
 \name{wb_prim_cell_vector}
 \alias{wb_prim_cell_vector}
-\title{Create a cell_vector primitive}
+\title{Create a \code{cell_vector} Primitive}
 \usage{
 wb_prim_cell_vector(x, value_type = "categorical")
 }
+\arguments{
+\item{x}{Named atomic vector. Names must be canonical cell ids.}
+
+\item{value_type}{Semantic value type, such as \code{"categorical"} or
+\code{"continuous"}.}
+}
+\value{
+A \code{wb_primitive} of kind \code{cell_vector}.
+}
 \description{
-Create a cell_vector primitive
+Create a \code{cell_vector} Primitive
 }

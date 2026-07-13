@@ -2,10 +2,18 @@
 % Please edit documentation in R/getters_matrix_virtual.R
 \name{wb_matrix_fragments}
 \alias{wb_matrix_fragments}
-\title{List matrix fragments for a matrix}
+\title{List Matrix Fragments For A Matrix}
 \usage{
 wb_matrix_fragments(bundle, matrix_id)
 }
+\arguments{
+\item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{matrix_id}{Matrix id.}
+}
+\value{
+A data frame of fragment registry rows ordered by creation time.
+}
 \description{
-List matrix fragments for a matrix
+Return fragment registry rows for one logical matrix in the bundle.
 }

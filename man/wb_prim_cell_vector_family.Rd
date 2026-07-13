@@ -2,10 +2,31 @@
 % Please edit documentation in R/primitives.R
 \name{wb_prim_cell_vector_family}
 \alias{wb_prim_cell_vector_family}
-\title{Create a cell_vector_family primitive}
+\title{Create a \code{cell_vector_family} Primitive}
 \usage{
-wb_prim_cell_vector_family(key, cell_id, value, value_type = "continuous")
+wb_prim_cell_vector_family(
+  key,
+  cell_id,
+  value,
+  value_type = "continuous",
+  meta = list()
+)
+}
+\arguments{
+\item{key}{Family-member key for each row.}
+
+\item{cell_id}{Canonical cell id for each row.}
+
+\item{value}{Numeric value for each row.}
+
+\item{value_type}{Semantic value type, usually \code{"continuous"}.}
+
+\item{meta}{Optional named list of contract metadata.}
+}
+\value{
+A \code{wb_primitive} of kind \code{cell_vector_family}.
 }
 \description{
-Create a cell_vector_family primitive
+Construct a long-form cell-by-key numeric primitive. Typical uses include
+pseudotime, lineage weights, and per-cell signature families.
 }

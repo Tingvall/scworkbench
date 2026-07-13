@@ -29,6 +29,10 @@ wb_cell_set_replace(
 
 \item{strict}{if TRUE, error if any cell_ids are missing from bundle}
 }
+\value{
+Invisibly returns the normalized set name, inserted cell ids, and
+any ignored missing ids when \code{strict = FALSE}.
+}
 \description{
 \itemize{
 \item Clears existing membership for cell_set

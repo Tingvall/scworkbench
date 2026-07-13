@@ -2,10 +2,16 @@
 % Please edit documentation in R/primitives.R
 \name{wb_prim_space}
 \alias{wb_prim_space}
-\title{Create a space primitive}
+\title{Create a \code{space} Primitive}
 \usage{
 wb_prim_space(space_id)
 }
+\arguments{
+\item{space_id}{Registered space identifier.}
+}
+\value{
+A \code{wb_primitive} of kind \code{space}.
+}
 \description{
-Create a space primitive
+Create a \code{space} Primitive
 }

@@ -46,6 +46,12 @@ wb_attach_cell_vector <- function(bundle, vector_id, values, overwrite = TRUE) {
 #' 2) legacy DB vectors: vector_id = "<vector_id>"
 #'    - reads from cell_vector_values (numeric)
 #'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param vector_id Artifact-backed (`"artifact:<id>"`) or legacy vector id.
+#' @param cell_ids Requested cell ids and output order.
+#'
+#' @return Named numeric or character vector aligned to `cell_ids`, with
+#'   `NA` for unavailable values.
 #' @export
 wb_read_cell_vector <- function(bundle, vector_id, cell_ids) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -124,6 +130,13 @@ wb_read_cell_vector <- function(bundle, vector_id, cell_ids) {
 #' vector_id must be artifact-backed: "artifact:<artifact_id>"
 #' key selects which family member (e.g. "L1")
 #'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param vector_id Artifact-backed vector-family id.
+#' @param key Family member key, for example lineage `"L1"`.
+#' @param cell_ids Requested cell ids and output order.
+#'
+#' @return Named numeric vector aligned to `cell_ids`, with `NA` where the
+#'   selected family member is unavailable.
 #' @export
 wb_read_cell_vector_family <- function(bundle, vector_id, key, cell_ids) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -319,7 +332,17 @@ wb_register_cell_vector <- function(
   invisible(vector_id)
 }
 
-#' Load a cell vector primitive by vector_id (artifact:* or session:*:*).
+#' Load a Cell Vector Primitive
+#'
+#' Resolve an artifact-backed or session-backed vector reference to a typed
+#' primitive. This is a compatibility helper for vector-oriented consumers.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param session Optional `wb_session` used to resolve `session:*:*` ids.
+#' @param vector_id Artifact or session vector reference.
+#' @param expected_kind Optional expected primitive kind.
+#'
+#' @return A `cell_vector` or `cell_vector_family` primitive.
 #' @export
 wb_cell_vector_load <- function(bundle, session = NULL, vector_id, expected_kind = NULL) {
   .wb_assert(is.character(vector_id) && length(vector_id) == 1 && nzchar(vector_id), "vector_id invalid")
