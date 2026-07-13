@@ -74,6 +74,11 @@ script excludes local reports, existing SIF files, test outputs, VCS metadata,
 and IDE state before `%files` copies source into the image. Set
 `KEEP_BUILD_CONTEXT=1` only when diagnosing a failed build.
 
+For `pybench`, the compact context retains only installable package inputs:
+`pyproject.toml`, `README.md`, `CITATION.cff`, `LICENSE`, and `src/`. The
+metadata files are required by the Hatch build configuration; virtual
+environments, caches, tests, and VCS state remain excluded.
+
 Do not replace a deployed image based on the build smoke alone. Qualify each
 candidate against the current checkout with the non-forced package gate:
 

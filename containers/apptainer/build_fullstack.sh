@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 DEF_FILE="${SCRIPT_DIR}/scworkbench_fullstack.def"
+PYBENCH_ROOT="${REPO_ROOT}/../../pybench"
 
 SANDBOX_PATH="${1:-/tmp/scworkbench_fullstack_sandbox}"
 SIF_PATH="${2:-/tmp/scworkbench_fullstack_full.sif}"
@@ -14,8 +15,8 @@ if [[ ! -d "${REPO_ROOT}/../scworkbenchShiny" ]]; then
   exit 1
 fi
 
-if [[ ! -d "${REPO_ROOT}/../../pybench" ]]; then
-  echo "Expected sibling repo at ${REPO_ROOT}/../../pybench" >&2
+if [[ ! -d "${PYBENCH_ROOT}" ]]; then
+  echo "Expected sibling repo at ${PYBENCH_ROOT}" >&2
   exit 1
 fi
 
@@ -46,9 +47,28 @@ rsync -a \
   "${REPO_ROOT}/" "${BUILD_CONTEXT}/scworkbench/"
 rsync -a --exclude '.git/' --exclude '.Rproj.user/' --exclude '.agents/' --exclude '.codex/' \
   "${REPO_ROOT}/../scworkbenchShiny/" "${BUILD_CONTEXT}/scworkbenchShiny/"
+for required in pyproject.toml README.md CITATION.cff LICENSE; do
+  if [[ ! -f "${PYBENCH_ROOT}/${required}" ]]; then
+    echo "Missing required pybench packaging input: ${PYBENCH_ROOT}/${required}" >&2
+    exit 1
+  fi
+done
+if [[ ! -d "${PYBENCH_ROOT}/src/pybench" ]]; then
+  echo "Missing required pybench package source: ${PYBENCH_ROOT}/src/pybench" >&2
+  exit 1
+fi
+
 rsync -a --exclude '.git/' --exclude '.venv/' --exclude '.deps/' --exclude '__pycache__/' \
-  "${REPO_ROOT}/../../pybench/pyproject.toml" "${REPO_ROOT}/../../pybench/README.md" "${BUILD_CONTEXT}/pybench/"
-rsync -a --exclude '__pycache__/' "${REPO_ROOT}/../../pybench/src/" "${BUILD_CONTEXT}/pybench/src/"
+  "${PYBENCH_ROOT}/pyproject.toml" "${PYBENCH_ROOT}/README.md" \
+  "${PYBENCH_ROOT}/CITATION.cff" "${PYBENCH_ROOT}/LICENSE" "${BUILD_CONTEXT}/pybench/"
+rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/src/" "${BUILD_CONTEXT}/pybench/src/"
+
+for required in pyproject.toml README.md CITATION.cff LICENSE src/pybench; do
+  if [[ ! -e "${BUILD_CONTEXT}/pybench/${required}" ]]; then
+    echo "Compact context missing required pybench packaging input: ${required}" >&2
+    exit 1
+  fi
+done
 
 cd "${BUILD_CONTEXT}/scworkbench"
 
