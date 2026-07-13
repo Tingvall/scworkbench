@@ -64,9 +64,27 @@ Override them if needed:
 
 ```bash
 containers/apptainer/build_fullstack.sh \
-  /scratch/$USER/scworkbench_fullstack_sandbox \
-  /scratch/$USER/scworkbench_fullstack.sif
+  /scratch/$USER/scworkbench_fullstack_candidate_sandbox \
+  /scratch/$USER/scworkbench_fullstack_candidate_YYYYMMDD.sif \
+  /scratch/$USER/scworkbench_fullstack_candidate_context
 ```
+
+The optional third argument is a temporary compact build context. The build
+script excludes local reports, existing SIF files, test outputs, VCS metadata,
+and IDE state before `%files` copies source into the image. Set
+`KEEP_BUILD_CONTEXT=1` only when diagnosing a failed build.
+
+Do not replace a deployed image based on the build smoke alone. Qualify each
+candidate against the current checkout with the non-forced package gate:
+
+```bash
+containers/apptainer/qualify_fullstack_release.sh \
+  /scratch/$USER/scworkbench_fullstack_candidate_YYYYMMDD.sif
+```
+
+Qualification records the image SHA-256 and native R runtime provenance, then
+runs `inst/ci/check_release_package.sh`. Promotion requires the normal package
+check to end with `Status: OK`; a forced-Suggests result is not sufficient.
 
 If local builds are blocked on the cluster, use a remote builder or build on a
 trusted Linux host and copy the `.sif`.
@@ -218,7 +236,8 @@ For rebuilds after package or repo updates:
 
 1. update `containers/apptainer/scworkbench_fullstack.def` if dependency inputs changed
 2. rebuild with `containers/apptainer/build_fullstack.sh`
-3. replace the deployed `.sif`
+3. qualify the candidate with `qualify_fullstack_release.sh`
+4. replace the deployed `.sif` only after qualification passes
 
 This is especially important for:
 

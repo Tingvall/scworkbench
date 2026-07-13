@@ -138,6 +138,10 @@ install_if_missing <- function(pkgs) {
 
 install_if_missing(c("BiocManager", "remotes", "devtools"))
 
+# R BPCells is a native dependency. Pin the source commit rather than relying
+# on whichever GitHub HEAD happens to be available during an image build.
+bpcells_r_ref <- "c293a0a34e653c395c8e9bf9ed3133107324d7b7"
+
 cran_pkgs <- c(
   "DBI", "RSQLite", "jsonlite", "Seurat", "Matrix", "uwot", "igraph",
   "RANN", "ggplot2", "viridisLite", "shiny", "shinyFiles", "magrittr",
@@ -145,11 +149,20 @@ cran_pkgs <- c(
 )
 install_if_missing(cran_pkgs)
 
-if (!requireNamespace("BPCells", quietly = TRUE)) {
-  try(install.packages("BPCells"), silent = TRUE)
+if (requireNamespace("BPCells", quietly = TRUE)) {
+  remove.packages("BPCells")
 }
-if (!requireNamespace("BPCells", quietly = TRUE)) {
-  remotes::install_github("bnprks/BPCells/r")
+remotes::install_github(
+  repo = "bnprks/BPCells",
+  ref = bpcells_r_ref,
+  subdir = "r",
+  upgrade = "never"
+)
+installed_bpcells_ref <- as.character(utils::packageDescription("BPCells")$RemoteSha)
+if (is.na(installed_bpcells_ref) || !nzchar(installed_bpcells_ref)) installed_bpcells_ref <- ""
+if (!identical(installed_bpcells_ref, bpcells_r_ref)) {
+  stop("BPCells install did not produce the pinned commit: expected ", bpcells_r_ref,
+       ", got ", installed_bpcells_ref)
 }
 
 bioc_pkgs <- c(
@@ -169,6 +182,20 @@ if (!requireNamespace("monocle3", quietly = TRUE)) {
 }
 
 remotes::install_local("/opt/scworkbench", upgrade = "never", dependencies = TRUE, build = FALSE)
+
+runtime_provenance <- c(
+  paste0("built_at=", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
+  paste0("r_version=", getRversion()),
+  paste0("bpcells_version=", as.character(utils::packageVersion("BPCells"))),
+  paste0("bpcells_remote_sha=", {
+    x <- as.character(utils::packageDescription("BPCells")$RemoteSha)
+    if (is.na(x) || !nzchar(x)) "" else x
+  }),
+  paste0("rcpp_version=", as.character(utils::packageVersion("Rcpp"))),
+  paste0("rhdf5_version=", if (requireNamespace("rhdf5", quietly = TRUE)) as.character(utils::packageVersion("rhdf5")) else "not_installed"),
+  paste0("hdf5_system=", system("h5cc -showconfig 2>/dev/null | head -n 1", intern = TRUE))
+)
+writeLines(runtime_provenance, "/opt/scworkbench_runtime_provenance.txt")
 EOF
 
     Rscript /tmp/install_scworkbench_stack.R
