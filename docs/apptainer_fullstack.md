@@ -79,6 +79,12 @@ For `pybench`, the compact context retains only installable package inputs:
 metadata files are required by the Hatch build configuration; virtual
 environments, caches, tests, and VCS state remain excluded.
 
+The image build reconciles the genomic-range package family against the
+configured Bioconductor release and runs `inst/ci/check_genomicranges_runtime.R`.
+This prevents a development `Seqinfo` package from coexisting with release
+`GenomeInfoDb`, which would corrupt `GRanges` S4 method dispatch. Release
+qualification reruns the same preflight before the package gate.
+
 Do not replace a deployed image based on the build smoke alone. Qualify each
 candidate against the current checkout with the non-forced package gate:
 

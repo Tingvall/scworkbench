@@ -20,6 +20,13 @@ singularity exec --cleanenv "${IMAGE_PATH}" bash -lc '
   Rscript -e '\''cat("R=", as.character(getRversion()), "\n", sep=""); cat("BPCells=", as.character(packageVersion("BPCells")), "\n", sep=""); cat("BPCells RemoteSha=", as.character(packageDescription("BPCells")$RemoteSha), "\n", sep=""); cat("roxygen2=", as.character(packageVersion("roxygen2")), "\n", sep=""); cat("BSgenome.Hsapiens.UCSC.hg19=", as.character(packageVersion("BSgenome.Hsapiens.UCSC.hg19")), "\n", sep="")'\''
 '
 
+echo "==> GenomicRanges namespace preflight"
+singularity exec --cleanenv \
+  --bind "${CHECKOUT}:/work/scworkbench" \
+  --pwd /work/scworkbench \
+  "${IMAGE_PATH}" \
+  Rscript inst/ci/check_genomicranges_runtime.R
+
 echo "==> Non-forced release gate"
 singularity exec --cleanenv \
   --bind "${CHECKOUT}:/work/scworkbench" \

@@ -188,6 +188,43 @@ if (length(miss_bioc)) {
   BiocManager::install(miss_bioc, ask = FALSE, update = FALSE)
 }
 
+# The mutable base image can contain a mixture of release and development
+# genomic packages. GenomicRanges from development depends on the standalone
+# Seqinfo package, while release GenomeInfoDb owns the Seqinfo S4 API. Reinstall
+# every installed direct reverse dependency from the configured Bioconductor
+# release before removing the obsolete standalone package.
+if (requireNamespace("Seqinfo", quietly = TRUE)) {
+  seqinfo_dependents <- tools::package_dependencies(
+    "Seqinfo",
+    db = installed.packages(),
+    reverse = TRUE,
+    recursive = TRUE
+  )[["Seqinfo"]]
+  seqinfo_dependents <- setdiff(seqinfo_dependents, "Seqinfo")
+  if (length(seqinfo_dependents)) {
+    BiocManager::install(
+      seqinfo_dependents,
+      ask = FALSE,
+      update = FALSE,
+      force = TRUE
+    )
+  }
+
+  remaining_dependents <- tools::package_dependencies(
+    "Seqinfo",
+    db = installed.packages(),
+    reverse = TRUE,
+    recursive = FALSE
+  )[["Seqinfo"]]
+  if (length(remaining_dependents)) {
+    stop(
+      "Cannot remove standalone Seqinfo; release reconciliation left direct dependents: ",
+      paste(remaining_dependents, collapse = ", ")
+    )
+  }
+  remove.packages("Seqinfo")
+}
+
 if (!requireNamespace("monocle3", quietly = TRUE)) {
   remotes::install_github("cole-trapnell-lab/monocle3")
 }
@@ -213,6 +250,7 @@ EOF
 
     Rscript /tmp/install_scworkbench_stack.R
     rm -f /tmp/install_scworkbench_stack.R
+    Rscript /opt/scworkbench/inst/ci/check_genomicranges_runtime.R
 
     chmod +x /usr/local/bin/run-scworkbench-shiny
 
