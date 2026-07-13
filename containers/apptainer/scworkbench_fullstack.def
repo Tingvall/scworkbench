@@ -99,18 +99,23 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
 
     python3 -m venv /opt/pyenv
     /opt/pyenv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel pybind11 setuptools-scm
+    /opt/pyenv/bin/python -m pip install --no-cache-dir numpy pandas scipy
     DEB_MULTIARCH="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
     export CPATH=/usr/include/eigen3:/usr/include/hdf5/serial:/usr/include
     export LIBRARY_PATH=/usr/lib/${DEB_MULTIARCH}/hdf5/serial:/usr/lib/${DEB_MULTIARCH}
+    export BPCELLS_NUM_BUILD_JOBS=1
     chmod +x /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
     rm -rf /tmp/BPCells_python_fork_build
     /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh /tmp/BPCells_python_fork_build
-    /opt/pyenv/bin/python -m pip install --no-cache-dir /tmp/BPCells_python_fork_build/python
+    cp /tmp/BPCells_python_fork_build/scworkbench_bpcells_python_provenance.env /tmp/scworkbench_bpcells_python_provenance.env
+    rm -rf /tmp/BPCells_python_fork_wheel
+    /opt/pyenv/bin/python -m pip wheel --no-deps --wheel-dir /tmp/BPCells_python_fork_wheel /tmp/BPCells_python_fork_build/python
+    BPCELLS_PYTHON_WHEEL="$(find /tmp/BPCells_python_fork_wheel -maxdepth 1 -name 'bpcells-*.whl' -print -quit)"
+    test -n "${BPCELLS_PYTHON_WHEEL}"
+    /opt/pyenv/bin/python -m pip install --no-cache-dir "${BPCELLS_PYTHON_WHEEL}"
+    /opt/pyenv/bin/python -c 'import bpcells.experimental; print("Python BPCells fork import OK")'
     rm -rf /tmp/BPCells_python_fork_build
     /opt/pyenv/bin/python -m pip install --no-cache-dir \
-        numpy \
-        pandas \
-        scipy \
         scikit-learn \
         anndata \
         scanpy \
@@ -195,6 +200,8 @@ runtime_provenance <- c(
   paste0("rhdf5_version=", if (requireNamespace("rhdf5", quietly = TRUE)) as.character(utils::packageVersion("rhdf5")) else "not_installed"),
   paste0("hdf5_system=", system("h5cc -showconfig 2>/dev/null | head -n 1", intern = TRUE))
 )
+python_bpcells_provenance <- readLines("/tmp/scworkbench_bpcells_python_provenance.env", warn = FALSE)
+runtime_provenance <- c(runtime_provenance, python_bpcells_provenance)
 writeLines(runtime_provenance, "/opt/scworkbench_runtime_provenance.txt")
 EOF
 

@@ -125,6 +125,18 @@ Python layer:
 - `numpy`, `pandas`, `scanpy`
 - `palantir`
 - forked Python `bpcells` with native float/double bundle matrix reads
+
+The Python fork is reproducible rather than a moving upstream checkout. The
+image preparation script pins upstream BPCells commit
+`28759cdd512578b6cbe549e226e1cd52a2d2308c`, applies the committed
+`third_party/patches/bpcells-python-noninteger-read.patch`, builds a wheel,
+installs that wheel, and records the upstream SHA and patch SHA-256 in
+`/opt/scworkbench_runtime_provenance.txt`. Before an image build, the focused
+source/wheel/import probe can be run in a build-capable environment:
+
+```bash
+scripts/probe_bpcells_python_fork_build.sh
+```
 - `torch` CUDA-capable build
 - `scvi-tools`
 - notebook-friendly support packages
