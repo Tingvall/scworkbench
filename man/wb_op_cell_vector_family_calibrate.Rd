@@ -16,28 +16,31 @@ wb_op_cell_vector_family_calibrate(
 )
 }
 \arguments{
-\item{signal}{Cell-vector or cell-vector-family primitive containing per-cell scores.}
+\item{signal}{Required \code{signal} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{signal_keys}{Optional keys to retain from a cell-vector-family signal.}
+\item{signal_keys}{Optional signal-key subset within the cell_vector_family.}
 
-\item{method}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{method}{Calibration method applied independently within each key.}
 
-\item{center}{Logical control flag for this operation.}
+\item{center}{For z-score calibration, subtract the fitted center.}
 
-\item{scale}{Logical control flag for this operation.}
+\item{scale}{For z-score calibration, divide by the fitted scale.}
 
-\item{ties_method}{Named computational method; supported values are validated by the operation.}
+\item{ties_method}{Rank tie handling for percentile calibration.}
 
-\item{na_rm}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{na_rm}{Ignore non-finite values when fitting calibration.}
 }
 \value{
 Standard op result list with \code{calibrated_signal} and
 \code{calibration_summary}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Normalizes one keyed per-cell signal family so keys with different raw score
 ranges become more comparable. Calibration is applied independently within
 each key, preserving the original \verb{(cell_id, key)} structure.
+
+Normalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$calibrated_signal} (\code{cell_vector_family}): Calibrated per-cell values for each key in the signal family.; \code{outputs$calibration_summary} (\code{obs_table}): Per-key calibration statistics for raw and calibrated values.. Promotion eligibility is declared by the operation catalog.
 }

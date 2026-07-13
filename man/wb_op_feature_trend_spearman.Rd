@@ -19,25 +19,27 @@ wb_op_feature_trend_spearman(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{pseudotime}{Explicit \code{cell_vector_family} pseudotime primitive or compatible reference.}
+\item{pseudotime}{Required \code{pseudotime} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{features}{Optional feature ids to analyse; defaults are operation-specific.}
+\item{features}{Optional feature subset.}
 
-\item{min_pct_nonzero}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_pct_nonzero}{Minimum non-zero fraction filter.}
 
-\item{min_sd}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_sd}{Minimum per-feature standard deviation filter.}
 
-\item{p_adjust_method}{Multiple-testing adjustment method passed to \code{p.adjust()}.}
+\item{p_adjust_method}{Method passed to p.adjust.}
 
-\item{chunk_size}{Maximum chunk size for bounded-memory processing along the documented chunking axis.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{chunk_size}{Maximum chunk size used for bounded-memory processing.}
 }
 \description{
 Computes per-feature correlation against a continuous cell vector.
+
+Feature-level Spearman trend testing against continuous pseudotime-like vectors.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$trend_table} (\code{feature_table}): Per-feature trend statistics (rho, p, adjusted p).. Promotion eligibility is declared by the operation catalog.
 }

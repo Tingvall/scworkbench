@@ -19,13 +19,13 @@ wb_op_space_path_project_2d(
 
 \item{plot_space_id}{Registered two-dimensional display space used for projection.}
 
-\item{project_mode}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{project_mode}{Projection mode used to approximate the analytical path in a 2D plot space.}
 
-\item{approx_points}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{approx_points}{Optional target point count for display compaction.}
 }
 \description{
-Project An Analytical Space Path Into A 2D Plot Space
+Contract scaffold for projecting an analytical path into a drawable 2D path family.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$curves} (\code{path_2d_family}): Approximate 2D rendering of the analytical path.. Promotion eligibility is declared by the operation catalog.
 }

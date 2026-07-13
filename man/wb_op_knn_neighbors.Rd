@@ -16,24 +16,27 @@ wb_op_knn_neighbors(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{space_id}{Registered coordinate-space identifier.}
+\item{space_id}{Registered coordinate-space identifier consumed by this operation.}
 
-\item{query_cells}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{query_cells}{Query cells: explicit IDs or 'set:\if{html}{\out{<name>}}'}
 
-\item{candidate_cells}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{candidate_cells}{Optional candidate neighbor pool; defaults to all cells.}
 
-\item{k}{Number of nearest neighbors.}
+\item{k}{Nearest neighbors per query cell.}
 
-\item{include_query}{Logical control flag for this operation.}
+\item{include_query}{Include query cells themselves when they are in candidate pool.}
 }
 \value{
 A standard op result list with \code{outputs$neighbors},
 \code{outputs$neighbor_distance}, and normalized \code{params}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Finds nearest neighbors around query cells using a selected space embedding.
 This op does not require a matrix and is useful for geometry-only workflows
 (for example PeakVI latent-space neighborhood lookup).
+
+Find nearest neighbors in a latent space without requiring matrix aggregation.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$neighbors} (\code{obs_table}): Per-query neighbor table (cell_id, rank, distance).; \code{outputs$neighbor_distance} (\code{cell_vector_family}): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
 }

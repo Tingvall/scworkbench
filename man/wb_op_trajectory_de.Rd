@@ -22,35 +22,38 @@ wb_op_trajectory_de(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{model}{Typed \code{model_ref} trajectory/model primitive or compatible reference.}
+\item{model}{Required \code{model} input represented as \code{model_ref}; accepted symbolic references are resolved by the operation interface.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{lineage}{Optional trajectory lineage key to analyse.}
+\item{lineage}{Optional lineage key subset.}
 
-\item{feature_set}{Feature-set name or feature-set reference used by the operation.}
+\item{feature_set}{Optional feature set name from wb_feature_sets() for matrix.}
 
-\item{features}{Optional feature ids to analyse; defaults are operation-specific.}
+\item{features}{Optional explicit feature subset (intersected with feature_set when both provided).}
 
-\item{test}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{test}{Statistical test. The current implementation supports spearman.}
 
-\item{min_pct_nonzero}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_pct_nonzero}{Minimum non-zero fraction filter.}
 
-\item{min_sd}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_sd}{Minimum per-feature standard deviation filter.}
 
-\item{p_adjust_method}{Multiple-testing adjustment method passed to \code{p.adjust()}.}
+\item{p_adjust_method}{Method passed to p.adjust.}
 
-\item{chunk_size}{Maximum chunk size for bounded-memory processing along the documented chunking axis.}
+\item{chunk_size}{Maximum chunk size used for bounded-memory processing.}
 }
 \value{
 A standard op result list with \code{outputs} containing \code{de_table} and
 \code{fit_summary}, plus normalized \code{params}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 v1 supports \code{model_ref(engine = "slingshot" | "monocle3")} and computes
 feature-level trends against lineage pseudotime.
+
+Lineage-aware feature trend testing against trajectory pseudotime from model_ref.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$de_table} (\code{feature_table}): Per-lineage feature trend statistics (rho, p, adjusted p).; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage input and filtering diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

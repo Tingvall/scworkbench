@@ -18,25 +18,26 @@ wb_op_umap_transform(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{model_space_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{model_space_id}{Registered model-space identifier used to locate a stored projection model.}
 
-\item{in_space_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{in_space_id}{Registered input-space identifier expected by the stored projection model.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{cell_set}{Named bundle cell set used when an operation resolves its own cell universe.}
+\item{cell_set}{Named bundle cell set used to resolve the analysis universe.}
 
-\item{dims}{Optional coordinate dimensions to use from the selected space.}
+\item{dims}{Dims to use from the input space (e.g. 2:30).}
 
-\item{overwrite}{Whether an existing output with the same identifier may be replaced.}
+\item{overwrite}{Overwrite existing projected coordinates for those cells.}
 
-\item{...}{Additional engine-specific arguments passed only where the documented wrapper supports them.}
+\item{...}{Additional engine-specific arguments accepted by this wrapper.}
 }
 \value{
 list(n_projected=int, params=list(...))
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
-Project cells into an existing fitted UMAP space
+Project cells into an existing UMAP using a stored model.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$space_2d} (\code{space_2d}): Projected x/y in the target UMAP space.. Promotion eligibility is declared by the operation catalog.
 }

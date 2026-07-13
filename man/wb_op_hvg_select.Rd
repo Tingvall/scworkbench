@@ -23,36 +23,38 @@ wb_op_hvg_select(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{n_features}{Positive integer count controlling this operation.}
+\item{n_features}{Number of highly variable features to mark selected.}
 
-\item{method}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{method}{Feature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean).}
 
-\item{min_mean}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_mean}{Optional minimum feature mean filter.}
 
-\item{max_mean}{Maximum threshold controlling filtering or eligibility for this operation.}
+\item{max_mean}{Optional maximum feature mean filter.}
 
-\item{min_dispersion}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_dispersion}{Optional minimum HVG score filter.}
 
-\item{batch_key}{Optional metadata column describing batches; support is operation-specific.}
+\item{batch_key}{Reserved for future batch-aware HVG; currently unsupported if non-null.}
 
-\item{exclude_features}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{exclude_features}{Optional feature IDs to exclude before ranking.}
 
-\item{feature_type}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{feature_type}{Optional feature_type filter from the bundle feature registry.}
 
-\item{seed}{Optional integer random seed for reproducible stochastic computation.}
+\item{seed}{Integer random seed used to make stochastic computation reproducible.}
 
-\item{chunk_size}{Maximum chunk size for bounded-memory processing along the documented chunking axis.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{chunk_size}{Maximum chunk size used for bounded-memory processing.}
 }
 \description{
 Computes feature-wise mean, variance, detection fraction, and a method score
 from a matrix without materializing the whole matrix at once. The current
 \code{"vst"} method is a lightweight stabilized dispersion score,
 \code{log1p(variance / mean)}. Batch-aware HVG selection is not implemented.
+
+Select highly variable features from a matrix using chunked feature-wise summaries.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$selected_features} (\code{feature_table}): Feature-wise mean, variance, dispersion, score, rank, and selected flag.; \code{outputs$fit_summary} (\code{obs_table}): Input matrix, method, filters, dimensions, and selection counts.. Promotion eligibility is declared by the operation catalog.
 }

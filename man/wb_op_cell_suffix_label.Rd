@@ -15,18 +15,20 @@ wb_op_cell_suffix_label(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{sep}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{sep}{Separator used in cell IDs before suffix token.}
 
-\item{mapping}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{mapping}{Optional named mapping suffix->label.}
 
-\item{default_label}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{default_label}{Fallback label for unmapped suffixes.}
 }
 \description{
 Parses each cell ID by a separator and maps the suffix token to a label.
 Useful for source/dataset covariates when explicit metadata is absent.
+
+Build a categorical cell vector by parsing cell_id suffix tokens.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$labels} (\code{cell_vector}): Categorical label per cell from suffix parsing.; \code{outputs$label_table} (\code{obs_table}): Per-cell suffix/label table.. Promotion eligibility is declared by the operation catalog.
 }

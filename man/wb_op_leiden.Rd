@@ -24,7 +24,7 @@ wb_op_leiden(
 
 \item{cells}{Optional cell_ids (default all)}
 
-\item{cell_set}{Named bundle cell set used when an operation resolves its own cell universe.}
+\item{cell_set}{Named bundle cell set used to resolve the analysis universe.}
 
 \item{k}{kNN parameter for graph construction}
 
@@ -39,8 +39,6 @@ wb_op_leiden(
 \item{weight}{Use distance-derived edge weights?}
 }
 \value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
-
 A list with:
 \itemize{
 \item labels: data.frame(cell_id, cluster)
@@ -49,6 +47,11 @@ A list with:
 }
 }
 \description{
+Graph clustering on a kNN graph derived from an embedding space.
+
 Runs Leiden clustering using a kNN graph constructed from \code{space_id}.
 Returns per-cell cluster labels (ephemeral).
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$clusters} (\code{cell_vector}): Cluster label per cell (categorical cell vector).. Promotion eligibility is declared by the operation catalog.
 }

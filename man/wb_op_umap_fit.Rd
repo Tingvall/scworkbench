@@ -25,27 +25,27 @@ wb_op_umap_fit(
 
 \item{source_space_id}{Registered source coordinate space used for fitting.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{cell_set}{Named bundle cell set used when an operation resolves its own cell universe.}
+\item{cell_set}{Named bundle cell set used to resolve the analysis universe.}
 
-\item{dims}{Optional coordinate dimensions to use from the selected space.}
+\item{dims}{Dims to use (e.g. 2:30).}
 
-\item{space_id_out}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{space_id_out}{Output 2D space id. Defaults to umap.<source_space>.}
 
-\item{n_neighbors}{Positive integer count controlling this operation.}
+\item{n_neighbors}{UMAP neighborhood size.}
 
-\item{min_dist}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_dist}{UMAP minimum distance.}
 
-\item{metric}{Distance metric for neighborhood or embedding computation.}
+\item{metric}{Distance metric passed to uwot.}
 
-\item{nn_method}{Named computational method; supported values are validated by the operation.}
+\item{nn_method}{Nearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.}
 
-\item{spread}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{spread}{UMAP spread parameter.}
 
-\item{seed}{Optional integer random seed for reproducible stochastic computation.}
+\item{seed}{Integer random seed used to make stochastic computation reproducible.}
 
-\item{verbose}{Logical control flag for this operation.}
+\item{verbose}{Whether the underlying engine emits progress output.}
 }
 \value{
 list(
@@ -53,13 +53,13 @@ space_2d = list(space_id, n, cell_set),
 model    = list(space_id, model_path),
 params   = list(...)
 )
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Fits a 2D UMAP embedding from a high-dimensional space (e.g. LSI/PeakVI latent),
 writes the 2D coordinates to \code{space_2d}, and saves a uwot model to disk,
 registered in \code{space_models} for later \code{wb_op_umap_transform()}.
+
+Fit a UMAP model on a space and store it for future projection.
 }
 \details{
 Session contract:
@@ -70,4 +70,6 @@ Session contract:
 \code{n_neighbors}, \code{min_dist}, \code{metric}, \code{nn_method}, and \code{spread}
 control the UMAP neighborhood graph and layout. Their current validated
 defaults are exposed by \code{\link[=wb_op_interface]{wb_op_interface()}}.
+
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$model} (\code{model_ref}): Reference to the fitted UMAP model.; \code{outputs$space_2d} (\code{space_2d}): The fitted 2D embedding space id.. Promotion eligibility is declared by the operation catalog.
 }

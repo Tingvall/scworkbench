@@ -23,35 +23,37 @@ wb_op_pca_fit(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
 \item{feature_table}{Feature-table data frame or primitive supplying selected features and annotations.}
 
-\item{feature_ids}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{feature_ids}{Optional explicit feature IDs when not passing features as a feature_table reference.}
 
-\item{n_components}{Positive integer count controlling this operation.}
+\item{n_components}{Number of principal components to compute.}
 
-\item{center}{Logical control flag for this operation.}
+\item{center}{Center features before PCA.}
 
-\item{scale}{Logical control flag for this operation.}
+\item{scale}{Scale features before PCA.}
 
-\item{backend}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{backend}{PCA backend. 'irlba' is recommended for large sparse/backed matrices.}
 
-\item{seed}{Optional integer random seed for reproducible stochastic computation.}
+\item{seed}{Integer random seed used to make stochastic computation reproducible.}
 
-\item{space_id_out}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{space_id_out}{Bundle space id to create.}
 
-\item{overwrite}{Whether an existing output with the same identifier may be replaced.}
+\item{overwrite}{Replace an existing space_id_out if present.}
 
-\item{max_dense_gb}{Maximum threshold controlling filtering or eligibility for this operation.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{max_dense_gb}{Approximate dense selected-block size guard for dense backends.}
 }
 \description{
 Computes PCA coordinates from selected features and persists them as a normal
 scworkbench space. The default \code{backend = "irlba"} uses
 \code{irlba::prcomp_irlba()}.
+
+Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$space} (\code{space}): Reference to the persisted PCA space.; \code{outputs$loadings} (\code{feature_table}): Feature loadings per principal component.; \code{outputs$variance} (\code{obs_table}): Per-PC standard deviation and variance explained.; \code{outputs$fit_summary} (\code{obs_table}): Input matrix, feature count, backend, component count, and output space id.. Promotion eligibility is declared by the operation catalog.
 }

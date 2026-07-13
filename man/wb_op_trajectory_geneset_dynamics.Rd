@@ -52,100 +52,102 @@ wb_op_trajectory_geneset_dynamics(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{model}{Typed \code{model_ref} trajectory/model primitive or compatible reference.}
+\item{model}{Optional \code{model} input represented as \code{model_ref}; accepted symbolic references are resolved by the operation interface.}
 
-\item{pseudotime}{Explicit \code{cell_vector_family} pseudotime primitive or compatible reference.}
+\item{pseudotime}{Optional \code{pseudotime} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{pseudotime_key}{Key selecting one pseudotime coordinate from a vector family.}
+\item{pseudotime_key}{Required key for explicit cell_vector_family pseudotime when multiple keys are present.}
 
-\item{membership}{Optional cell-vector, cell-set, or compatible membership restriction.}
+\item{membership}{Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.}
 
-\item{namespace}{Feature-set namespace registered for the selected matrix and organism.}
+\item{namespace}{Feature-set namespace from wb_feature_sets() to screen.}
 
-\item{pseudotime_artifact_id}{Optional promoted pseudotime artifact id recorded for explicit-pseudotime provenance.}
+\item{pseudotime_artifact_id}{Optional promoted pseudotime artifact id recorded in explicit-pseudotime provenance.}
 
-\item{membership_artifact_id}{Optional promoted membership artifact id recorded for provenance.}
+\item{membership_artifact_id}{Optional promoted membership artifact id recorded in explicit-pseudotime provenance.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{lineage}{Optional trajectory lineage key to analyse.}
+\item{lineage}{Optional lineage key subset.}
 
-\item{feature_sets}{Optional feature-set names within the selected namespace.}
+\item{feature_sets}{Optional feature-set subset within the namespace.}
 
-\item{score_method}{Named computational method; supported values are validated by the operation.}
+\item{score_method}{How to score each feature set within each cell.}
 
-\item{n_bins}{Number of ordered pseudotime bins used for curve summaries.}
+\item{n_bins}{Number of pseudotime bins.}
 
-\item{summary_fun}{Within-bin summary statistic, usually \code{mean} or \code{median}.}
+\item{summary_fun}{Summary statistic across cells within each bin.}
 
-\item{min_cells_per_bin}{Minimum cells required for a pseudotime bin to contribute a summary.}
+\item{min_cells_per_bin}{Minimum cells required for an output bin.}
 
-\item{min_set_size}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_set_size}{Minimum feature-set size after intersecting with the matrix.}
 
-\item{max_set_size}{Maximum threshold controlling filtering or eligibility for this operation.}
+\item{max_set_size}{Maximum feature-set size after intersecting with the matrix.}
 
-\item{top_n}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{top_n}{Number of top-ranked feature sets retained in top_sets.}
 
-\item{on_off_min_delta}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{on_off_min_delta}{Minimum absolute late-early delta for turns_on/turns_off classes.}
 
-\item{monotonic_min_abs_rho}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{monotonic_min_abs_rho}{Minimum absolute Spearman rho for turns_on/turns_off classes.}
 
-\item{top_driver_genes}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{top_driver_genes}{Number of top member genes retained as curve drivers per feature set.}
 
-\item{pseudotime_direction}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{pseudotime_direction}{Use pseudotime as provided or invert it before binning and classification.}
 
-\item{start_label}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{start_label}{Optional biological start label recorded in output metadata.}
 
-\item{end_label}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{end_label}{Optional biological end label recorded in output metadata.}
 
-\item{min_amplitude}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_amplitude}{Minimum curve amplitude required for passes_filters.}
 
-\item{min_bins_observed}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_bins_observed}{Minimum retained bins required for passes_filters.}
 
-\item{min_features_detected}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_features_detected}{Minimum detected set members required for passes_filters.}
 
-\item{min_detected_fraction}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_detected_fraction}{Minimum fraction of detected set members required for passes_filters.}
 
-\item{min_mean_score}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_mean_score}{Optional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics.}
 
-\item{min_max_score}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_max_score}{Optional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves.}
 
-\item{min_signal_to_noise}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_signal_to_noise}{Optional minimum amplitude divided by mean bootstrap SE required for passes_filters.}
 
-\item{low_abundance_max_score}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{low_abundance_max_score}{Curves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set.}
 
-\item{smooth_method}{Curve smoothing method; supported values are operation-specific.}
+\item{smooth_method}{Optional smoothing method applied to binned curves before metrics/classes.}
 
-\item{loess_span}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{loess_span}{Span used when smooth_method='loess'.}
 
-\item{bootstrap_n}{Number of per-bin bootstrap replicates; zero disables confidence bands.}
+\item{bootstrap_n}{Bootstrap replicates per bin for confidence bands; 0 disables CIs.}
 
 \item{bootstrap_seed}{Random seed for bootstrap confidence bands.}
 
-\item{ci_level}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{ci_level}{Confidence level for bootstrap bands.}
 
-\item{class_min_amplitude}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{class_min_amplitude}{Minimum amplitude required before assigning non-flat curve classes.}
 
-\item{n_permutations}{Number of empirical pseudotime-association permutations; zero disables testing.}
+\item{n_permutations}{Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing.}
 
-\item{permutation_seed}{Random seed for empirical permutation testing.}
+\item{permutation_seed}{Random seed for empirical dynamic-score permutations.}
 
-\item{p_adjust_method}{Multiple-testing adjustment method passed to \code{p.adjust()}.}
+\item{p_adjust_method}{Multiple-testing correction method for q_dynamic.}
 }
 \value{
 A standard op result list with \code{outputs} containing \code{signature_table},
 \code{dynamics_table}, \code{top_sets}, \code{driver_table}, \code{driver_curve_table}, and
 \code{fit_summary}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Scores every feature set in a namespace per cell, smooths the scores over
 trajectory pseudotime bins, and ranks feature sets by dynamic behavior.
+
+Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.
 }
 \details{
 This is a discovery op for broad pathway or GSEA-style libraries already
 imported into the bundle as feature sets.
+
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$signature_table} (\code{obs_table}): Binned feature-set score curves along trajectory pseudotime.; \code{outputs$dynamics_table} (\code{obs_table}): Per-feature-set dynamic metrics and rank.; \code{outputs$top_sets} (\code{obs_table}): Top-ranked dynamic feature sets for report-first discovery.; \code{outputs$driver_table} (\code{obs_table}): Top dynamic member genes within each screened feature set.; \code{outputs$driver_curve_table} (\code{obs_table}): Binned curves for top driver genes within each screened feature set.; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage screening diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

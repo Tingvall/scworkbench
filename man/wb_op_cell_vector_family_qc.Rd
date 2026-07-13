@@ -13,24 +13,27 @@ wb_op_cell_vector_family_qc(
 )
 }
 \arguments{
-\item{signal}{Cell-vector or cell-vector-family primitive containing per-cell scores.}
+\item{signal}{Required \code{signal} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{signal_keys}{Optional keys to retain from a cell-vector-family signal.}
+\item{signal_keys}{Optional signal-key subset within the cell_vector_family.}
 
-\item{grouping}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{grouping}{Optional \code{grouping} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{correlation_methods}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{correlation_methods}{Pairwise correlation methods to compute between keys.}
 
-\item{tie_tol}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{tie_tol}{Tolerance used when counting tied top-key winners.}
 }
 \value{
 Standard op result list with \code{key_summary}, \code{pairwise_summary}, and
 \code{group_summary}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Computes generic quality-control summaries for one keyed per-cell signal
 family, including per-key distribution statistics and pairwise key
 relationships derived from shared cells.
+
+Compute per-key and pairwise diagnostics for one keyed per-cell signal family.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$key_summary} (\code{obs_table}): Per-key QC summaries including score distribution, finite coverage, and winner frequencies.; \code{outputs$pairwise_summary} (\code{obs_table}): Pairwise key relationships including overlap counts and correlations.; \code{outputs$group_summary} (\code{obs_table}): Per-group per-key QC summaries when an optional grouping vector is supplied.. Promotion eligibility is declared by the operation catalog.
 }

@@ -22,35 +22,38 @@ wb_op_trajectory_branch_compare(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{pseudotime}{Explicit \code{cell_vector_family} pseudotime primitive or compatible reference.}
+\item{pseudotime}{Required \code{pseudotime} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{branch_membership}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{branch_membership}{Required \code{branch_membership} input represented as \code{relation_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{branch_a}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{branch_a}{Branch/lineage key A.}
 
-\item{branch_b}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{branch_b}{Branch/lineage key B.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{feature_set}{Feature-set name or feature-set reference used by the operation.}
+\item{feature_set}{Optional feature set name from wb_feature_sets() for matrix.}
 
-\item{features}{Optional feature ids to analyse; defaults are operation-specific.}
+\item{features}{Optional explicit feature subset (intersected with feature_set when both provided).}
 
-\item{min_pct}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_pct}{Minimum detection fraction in either branch.}
 
-\item{p_adjust_method}{Multiple-testing adjustment method passed to \code{p.adjust()}.}
+\item{p_adjust_method}{Method passed to p.adjust.}
 }
 \value{
 Standard op result with \code{outputs$branch_de_table} and
 \code{outputs$branch_summary}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Branch-aware first-pass comparison between two lineage/branch memberships.
 v1 performs a Wilcoxon feature comparison after resolving branch-specific cell
 assignments and emits a feature-centric comparison table plus a one-row
 summary table.
+
+Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$branch_de_table} (\code{feature_table}): Per-feature branch comparison statistics and effect sizes.; \code{outputs$branch_summary} (\code{obs_table}): Branch-pair cell counts and pseudotime summary diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

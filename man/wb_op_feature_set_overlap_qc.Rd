@@ -19,26 +19,28 @@ wb_op_feature_set_overlap_qc(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{namespaces}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{namespaces}{Optional multiple feature-set namespaces to QC.}
 
-\item{namespace}{Feature-set namespace registered for the selected matrix and organism.}
+\item{namespace}{Single feature-set namespace to QC.}
 
-\item{feature_sets}{Optional feature-set names within the selected namespace.}
+\item{feature_sets}{Optional feature-set subset within selected namespaces.}
 
-\item{min_set_size}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_set_size}{Minimum mapped/detected genes required to include a set.}
 
-\item{max_set_size}{Maximum threshold controlling filtering or eligibility for this operation.}
+\item{max_set_size}{Maximum mapped/detected genes allowed to include a set.}
 
-\item{min_detected_fraction}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_detected_fraction}{Minimum fraction of source genes detected in the matrix.}
 
-\item{deduplicate_sets}{Logical control flag for this operation.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{deduplicate_sets}{If TRUE, duplicate mapped-gene signatures after the first are excluded.}
 }
 \description{
 Summarizes how registered feature sets overlap a target matrix before
 trajectory/pathway screening.
+
+Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$overlap_qc} (\code{obs_table}): One row per feature set with raw, mapped, detected counts and include/exclude status.; \code{outputs$namespace_summary} (\code{obs_table}): Namespace-level count and overlap summaries.. Promotion eligibility is declared by the operation catalog.
 }

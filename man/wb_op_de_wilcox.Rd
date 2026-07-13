@@ -30,11 +30,14 @@ wb_op_de_wilcox(
 \item{p_adjust_method}{P-value adjustment method.}
 }
 \value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
-
 A standard op result list with \code{outputs$de_table} and normalized
 \code{params}.
 }
 \description{
+Wilcoxon rank-sum DE between two cell groups (A vs B).
+
 Returns one row per feature with effect and significance metrics.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$de_table} (\code{feature_table}): Feature-level DE statistics table.. Promotion eligibility is declared by the operation catalog.
 }

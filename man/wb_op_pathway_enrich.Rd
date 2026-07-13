@@ -24,36 +24,38 @@ wb_op_pathway_enrich(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
 \item{feature_table}{Feature-table data frame or primitive supplying selected features and annotations.}
 
-\item{namespace}{Feature-set namespace registered for the selected matrix and organism.}
+\item{namespace}{Feature-set namespace from wb_feature_sets() (e.g. bcell_gsea).}
 
-\item{feature_col}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{feature_col}{Column in input feature table containing feature IDs (usually feature_id).}
 
-\item{p_adj_col}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{p_adj_col}{Adjusted p-value column used for query filtering.}
 
-\item{p_adj_max}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{p_adj_max}{Maximum adjusted p-value for query features.}
 
-\item{lfc_col}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{lfc_col}{Effect-size column used for directional filtering.}
 
-\item{direction}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{direction}{Directional filter: any|up|down.}
 
-\item{lfc_min_abs}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{lfc_min_abs}{Minimum |effect| when direction='any'.}
 
-\item{lfc_min}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{lfc_min}{Minimum effect for direction='up'/'down'.}
 
-\item{min_set_size}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_set_size}{Minimum pathway size to test.}
 
-\item{max_set_size}{Maximum threshold controlling filtering or eligibility for this operation.}
+\item{max_set_size}{Maximum pathway size to test.}
 
-\item{p_adjust_method}{Multiple-testing adjustment method passed to \code{p.adjust()}.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{p_adjust_method}{Method passed to p.adjust.}
 }
 \description{
 Enriches a query feature list (typically derived from a DE feature table)
 against all feature sets in the selected namespace for one matrix.
+
+Hypergeometric enrichment against all feature sets in a namespace.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$pathways} (\code{obs_table}): Pathway enrichment statistics for one namespace.. Promotion eligibility is declared by the operation catalog.
 }

@@ -15,23 +15,23 @@ wb_op_cell_vector_compare(
 )
 }
 \arguments{
-\item{a}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{a}{Required \code{a} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{b}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{b}{Required \code{b} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{compare_space}{Comparison scale, for example raw values or ranks.}
+\item{compare_space}{Whether to compare original numeric values or cell ranks.}
 
-\item{ties_method}{Named computational method; supported values are validated by the operation.}
+\item{ties_method}{Tie handling rule used when compare_space='rank'.}
 
-\item{signal_a}{Optional provenance label for the first compared signal.}
+\item{signal_a}{Optional label recorded in the summary table for signal A.}
 
-\item{signal_b}{Optional provenance label for the second compared signal.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{signal_b}{Optional label recorded in the summary table for signal B.}
 }
 \description{
-Compare two cell-level signals on shared cells
+Compare two cell-level signals on their shared cell universe in raw or rank space.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$summary} (\code{obs_table}): One-row comparison summary with concordance and delta metrics.; \code{outputs$comparison} (\code{obs_table}): Per-cell comparison table with original values, compared values, and deltas.. Promotion eligibility is declared by the operation catalog.
 }

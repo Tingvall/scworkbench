@@ -34,11 +34,12 @@ values.}
 \item{p_adjust_method}{P-value adjustment method.}
 }
 \value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
-
 A standard op result list with \code{outputs$markers} and normalized
 \code{params}.
 }
 \description{
-Marker genes per cluster via one-vs-rest Wilcoxon DE
+One-vs-rest Wilcoxon marker ranking for each cluster.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$markers} (\code{feature_table}): Cluster-marker table with per-feature statistics.. Promotion eligibility is declared by the operation catalog.
 }

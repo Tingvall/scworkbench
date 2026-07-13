@@ -38,72 +38,74 @@ wb_op_trajectory_signal_dynamics(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{signal}{Cell-vector or cell-vector-family primitive containing per-cell scores.}
+\item{signal}{Required \code{signal} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{model}{Typed \code{model_ref} trajectory/model primitive or compatible reference.}
+\item{model}{Optional \code{model} input represented as \code{model_ref}; accepted symbolic references are resolved by the operation interface.}
 
-\item{pseudotime}{Explicit \code{cell_vector_family} pseudotime primitive or compatible reference.}
+\item{pseudotime}{Optional \code{pseudotime} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{pseudotime_key}{Key selecting one pseudotime coordinate from a vector family.}
+\item{pseudotime_key}{Required key for explicit cell_vector_family pseudotime when multiple keys are present.}
 
-\item{membership}{Optional cell-vector, cell-set, or compatible membership restriction.}
+\item{membership}{Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.}
 
-\item{pseudotime_artifact_id}{Optional promoted pseudotime artifact id recorded for explicit-pseudotime provenance.}
+\item{pseudotime_artifact_id}{Optional promoted pseudotime artifact id recorded in explicit-pseudotime provenance.}
 
-\item{membership_artifact_id}{Optional promoted membership artifact id recorded for provenance.}
+\item{membership_artifact_id}{Optional promoted membership artifact id recorded in explicit-pseudotime provenance.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{lineage}{Optional trajectory lineage key to analyse.}
+\item{lineage}{Optional lineage key subset.}
 
-\item{signal_keys}{Optional keys to retain from a cell-vector-family signal.}
+\item{signal_keys}{Optional signal-key subset within the cell_vector_family.}
 
-\item{n_bins}{Number of ordered pseudotime bins used for curve summaries.}
+\item{n_bins}{Number of pseudotime bins.}
 
-\item{summary_fun}{Within-bin summary statistic, usually \code{mean} or \code{median}.}
+\item{summary_fun}{Summary statistic across cells within each bin.}
 
-\item{min_cells_per_bin}{Minimum cells required for a pseudotime bin to contribute a summary.}
+\item{min_cells_per_bin}{Minimum cells required for an output bin.}
 
-\item{top_n}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{top_n}{Number of top-ranked signals retained in top_signals.}
 
-\item{on_off_min_delta}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{on_off_min_delta}{Minimum absolute late-early delta for turns_on/turns_off classes.}
 
-\item{monotonic_min_abs_rho}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{monotonic_min_abs_rho}{Minimum absolute Spearman rho for turns_on/turns_off classes.}
 
-\item{pseudotime_direction}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{pseudotime_direction}{Use pseudotime as provided or invert it before binning and classification.}
 
-\item{start_label}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{start_label}{Optional biological start label recorded in output metadata.}
 
-\item{end_label}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{end_label}{Optional biological end label recorded in output metadata.}
 
-\item{min_amplitude}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_amplitude}{Minimum curve amplitude required for passes_filters.}
 
-\item{min_bins_observed}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_bins_observed}{Minimum retained bins required for passes_filters.}
 
-\item{smooth_method}{Curve smoothing method; supported values are operation-specific.}
+\item{smooth_method}{Optional smoothing method applied to binned curves before metrics/classes.}
 
-\item{loess_span}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{loess_span}{Span used when smooth_method='loess'.}
 
-\item{bootstrap_n}{Number of per-bin bootstrap replicates; zero disables confidence bands.}
+\item{bootstrap_n}{Bootstrap replicates per bin for confidence bands; 0 disables CIs.}
 
 \item{bootstrap_seed}{Random seed for bootstrap confidence bands.}
 
-\item{ci_level}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{ci_level}{Confidence level for bootstrap bands.}
 
-\item{class_min_amplitude}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{class_min_amplitude}{Minimum amplitude required before assigning non-flat curve classes.}
 }
 \value{
 A standard op result list with \code{outputs} containing \code{signal_table},
 \code{dynamics_table}, \code{top_signals}, and \code{fit_summary}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Ranks precomputed cell-level signals, such as UCell scores, chromVAR scores,
 or module scores, by dynamic behavior along trajectory pseudotime.
+
+Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.
 }
 \details{
 This is the signal-family sibling of \code{trajectory_geneset_dynamics}: it
 consumes a \code{cell_vector_family} directly instead of recomputing scores from a
 matrix and feature-set registry.
+
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$signal_table} (\code{obs_table}): Binned signal-score curves along trajectory pseudotime.; \code{outputs$dynamics_table} (\code{obs_table}): Per-signal dynamic metrics and rank.; \code{outputs$top_signals} (\code{obs_table}): Top-ranked dynamic signals for report-first discovery.; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage signal dynamics diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

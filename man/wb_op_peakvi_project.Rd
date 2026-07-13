@@ -18,25 +18,27 @@ wb_op_peakvi_project(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{peakvi_model}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{peakvi_model}{PeakVI \code{model_ref} primitive returned by the Python-backed fitting workflow.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{batch_key}{Optional metadata column describing batches; support is operation-specific.}
+\item{batch_key}{Optional observation field used as the PeakVI batch covariate during projection.}
 
-\item{use_gpu}{Whether an optional Python-backed method may request GPU execution.}
+\item{use_gpu}{If TRUE, request GPU-backed model loading/projection in scvi-tools.}
 
-\item{space_id_out}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{space_id_out}{Space id to write for the projected PeakVI latent embedding.}
 
-\item{python_bin}{Python executable used for the optional pybench runtime.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{python_bin}{Python executable used for an optional pybench-backed runtime.}
 }
 \description{
 Uses the stable R-side matrix staging bridge to hand query ATAC chunks to the
 pybench Python runtime, which loads a saved PeakVI model and emits a new
 latent space without refitting.
+
+Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$space} (\code{space}): Projected PeakVI latent space written into the bundle spaces registry.. Promotion eligibility is declared by the operation catalog.
 }

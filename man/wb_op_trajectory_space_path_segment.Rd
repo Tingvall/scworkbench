@@ -36,59 +36,61 @@ wb_op_trajectory_space_path_segment(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{path_scores}{Scored space-path output used to build a trajectory bridge segment.}
+\item{path_scores}{Required \code{path_scores} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{segment_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{segment_id}{Stable segment identifier.}
 
-\item{segment_order}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{segment_order}{Order of this bridge segment in a future composite.}
 
-\item{score_prefix}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{score_prefix}{Optional prefix used by space_path_score keys.}
 
-\item{candidate_cells}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{candidate_cells}{Optional candidate universe before distance thresholding.}
 
-\item{distance_threshold}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{distance_threshold}{Include cells with distance_to_path <= threshold.}
 
-\item{distance_quantile}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{distance_quantile}{Alternative threshold: include cells up to this distance quantile.}
 
-\item{start_label}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{start_label}{Biological start label.}
 
-\item{end_label}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{end_label}{Biological end label.}
 
 \item{path}{Path-family primitive or compatible path reference.}
 
-\item{display_path}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{display_path}{Optional \code{display_path} input represented as \code{path_2d_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{display_lineage}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{display_lineage}{Optional key/lineage to validate in display_path. Defaults to the only key if display_path has one.}
 
-\item{display_space_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{display_space_id}{2D display space used for endpoint cell-set coordinate QC.}
 
-\item{start_endpoint}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{start_endpoint}{Optional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.}
 
-\item{end_endpoint}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{end_endpoint}{Optional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.}
 
-\item{start_cell_set}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{start_cell_set}{Convenience start endpoint cell set for display-path QC.}
 
-\item{end_cell_set}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{end_cell_set}{Convenience end endpoint cell set for display-path QC.}
 
-\item{endpoint_summary_method}{Named computational method; supported values are validated by the operation.}
+\item{endpoint_summary_method}{How endpoint cell sets are summarized in display space for QC.}
 
-\item{endpoint_max_distance}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{endpoint_max_distance}{Optional absolute maximum endpoint distance before QC fails.}
 
-\item{endpoint_qc_action}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{endpoint_qc_action}{Action when display-path endpoint QC detects a large mismatch.}
 
 \item{composite_id}{Stable identifier for a derived composite trajectory.}
 
-\item{pseudotime_key}{Key selecting one pseudotime coordinate from a vector family.}
+\item{pseudotime_key}{Key for emitted bridge pseudotime. Defaults to segment_id.}
 
-\item{confidence_key}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{confidence_key}{Key for emitted bridge confidence. Defaults to segment_id.}
 
-\item{runs}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{runs}{Optional session run registry used to resolve symbolic input references.}
 }
 \description{
 Converts \code{space_path_score} output into a generic trajectory segment payload.
 The analytical coordinate is path arclength progress, and membership is based
 on an explicit distance-to-path rule.
+
+Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$pseudotime} (\code{cell_vector_family}): Bridge pseudotime from path arclength progress in \[0,1\].; \code{outputs$membership} (\code{cell_vector}): Cells passing the transparent distance-to-path bridge membership rule.; \code{outputs$confidence} (\code{cell_vector_family}): Distance-derived confidence for included bridge cells.; \code{outputs$segment_manifest} (\code{obs_table}): Audit manifest for the space-path bridge segment.; \code{outputs$display_endpoint_qc} (\code{obs_table}): Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
 }

@@ -19,30 +19,33 @@ wb_op_trajectory_segment_join(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{segments}{Ordered validated trajectory segment specifications to join.}
+\item{segments}{Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.}
 
 \item{composite_id}{Stable identifier for a derived composite trajectory.}
 
-\item{composite_key}{Key assigned to the composite pseudotime coordinate.}
+\item{composite_key}{Key used in the output composite pseudotime cell_vector_family objects.}
 
-\item{join_policy}{Named composite overlap policy; supported values are operation-specific.}
+\item{join_policy}{Overlap policy. The current implementation supports exact_boundary_collapse.}
 
-\item{min_weight}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_weight}{Optional minimum lineage weight required for segment-local membership when weights are supplied.}
 
-\item{allow_legacy}{Logical control flag for this operation.}
+\item{allow_legacy}{Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.}
 
-\item{runs}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{runs}{Optional session run registry used to resolve symbolic input references.}
 }
 \value{
 List with promotable primitives: \code{composite_pseudotime_unit_segment},
 \code{composite_pseudotime_cell_weighted_0_1}, \code{segment_local_table},
 \code{composite_manifest}, and \code{composite_membership}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Builds an auditable composite pseudotime from ordered trajectory segments
 without merging the parent trajectory model objects. Within each segment,
 trajectory artifacts must share one \code{trajectory_fit_id}; across segments,
 different fit IDs are allowed and recorded as parent fit families.
+
+Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$composite_pseudotime_unit_segment} (\code{cell_vector_family}): Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.; \code{outputs$composite_pseudotime_cell_weighted_0_1} (\code{cell_vector_family}): One-row-per-cell composite pseudotime normalized to \[0,1\] with segment lengths weighted by segment-local cell counts.; \code{outputs$segment_local_table} (\code{obs_table}): One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.; \code{outputs$composite_manifest} (\code{obs_table}): Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.; \code{outputs$composite_membership} (\code{cell_vector}): One-cell assignment to a unique segment or waypoint overlap.. Promotion eligibility is declared by the operation catalog.
 }

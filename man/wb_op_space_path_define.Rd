@@ -21,29 +21,29 @@ wb_op_space_path_define(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{space_id}{Registered coordinate-space identifier.}
+\item{space_id}{Registered coordinate-space identifier consumed by this operation.}
 
-\item{checkpoint_sets}{Ordered checkpoint cell sets defining a space path.}
+\item{checkpoint_sets}{Ordered checkpoint cell-set refs that anchor the path definition.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{fit_mode}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{fit_mode}{Path fitting mode. The current implementation supports linear and a conservative manifold smoothing mode.}
 
-\item{checkpoint_summary}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{checkpoint_summary}{Checkpoint summarization rule used to derive anchors from checkpoint cells.}
 
-\item{n_path_points}{Positive integer count controlling this operation.}
+\item{n_path_points}{Optional explicit number of fitted path points.}
 
-\item{smooth_k}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{smooth_k}{For fit_mode='manifold_smooth', number of nearest cells used per provisional path point.}
 
-\item{smooth_n_iter}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{smooth_n_iter}{For fit_mode='manifold_smooth', number of refinement passes.}
 
-\item{smooth_weight}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{smooth_weight}{For fit_mode='manifold_smooth', distance-weighting rule for local cell pull.}
 
-\item{path_id_out}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{path_id_out}{Path id to record for the emitted analytical path.}
 }
 \description{
-Define A Checkpoint-Anchored Path In A Space
+Contract scaffold for checkpoint-anchored path construction in a named analytical space.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$path} (\code{space_path_family}): Analytical path in the original latent space.. Promotion eligibility is declared by the operation catalog.
 }

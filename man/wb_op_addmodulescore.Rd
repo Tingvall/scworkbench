@@ -19,33 +19,35 @@ wb_op_addmodulescore(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{features}{Optional feature ids to analyse; defaults are operation-specific.}
+\item{features}{Module feature IDs: character vector or list of vectors.}
 
-\item{pool}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{pool}{Optional control feature pool; defaults to all matrix features.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{nbin}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{nbin}{Number of expression bins for control matching.}
 
-\item{ctrl}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{ctrl}{Control features sampled per module feature.}
 
-\item{name}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{name}{Prefix for module names when features are unnamed.}
 
-\item{seed}{Optional integer random seed for reproducible stochastic computation.}
+\item{seed}{Integer random seed used to make stochastic computation reproducible.}
 }
 \value{
 A standard op result list with \code{outputs$module_scores} and
 normalized \code{params}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Computes per-cell module scores as:
 mean(expression of module genes) - mean(expression of matched control genes)
+
+Seurat-style module scoring using matched control features by expression bin.
 }
 \details{
 Control genes are sampled from expression bins (equal-frequency bins across a pool),
 matching Seurat's AddModuleScore strategy.
+
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$module_scores} (\code{cell_vector_family}): Per-cell module scores for one or more signatures.. Promotion eligibility is declared by the operation catalog.
 }

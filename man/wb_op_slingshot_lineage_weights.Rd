@@ -7,12 +7,14 @@
 wb_op_slingshot_lineage_weights(model_ref)
 }
 \arguments{
-\item{model_ref}{Slingshot \code{model_ref} primitive with an in-memory or loadable model payload.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{model_ref}{Typed \code{model_ref} primitive required by this engine-specific helper.}
 }
 \description{
+Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
+
 This is the safe backfill path for accepted Slingshot fits: it preserves the
 fit-family identity and lineage mapping stored on the existing \code{model_ref}.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$lineage_weights} (\code{cell_vector_family}): Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.. Promotion eligibility is declared by the operation catalog.
 }

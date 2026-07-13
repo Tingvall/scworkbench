@@ -27,45 +27,48 @@ wb_op_cell_vector_family_graph_smooth(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{signal}{Cell-vector or cell-vector-family primitive containing per-cell scores.}
+\item{signal}{Required \code{signal} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{space_id}{Registered coordinate-space identifier.}
+\item{space_id}{Registered coordinate-space identifier consumed by this operation.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{signal_keys}{Optional keys to retain from a cell-vector-family signal.}
+\item{signal_keys}{Optional key subset within the cell_vector_family.}
 
-\item{dims}{Optional coordinate dimensions to use from the selected space.}
+\item{dims}{Optional dimensions of the selected space. NULL uses all dimensions.}
 
-\item{k}{Number of nearest neighbors.}
+\item{k}{Nearest-neighbor count per cell.}
 
-\item{alpha}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{alpha}{Blend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean.}
 
-\item{distance_metric}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{distance_metric}{Distance metric used for nearest-neighbor search.}
 
-\item{query_chunk_size}{Maximum query-cell chunk used during nearest-neighbor processing.}
+\item{query_chunk_size}{Number of query cells processed per nearest-neighbor chunk.}
 
-\item{include_self}{Logical control flag for this operation.}
+\item{include_self}{Include each cell itself in its neighbor mean.}
 
-\item{na_policy}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{na_policy}{How missing signal values are handled during neighbor averaging.}
 
-\item{cell_set}{Named bundle cell set used when an operation resolves its own cell universe.}
+\item{cell_set}{Named bundle cell set used to resolve the analysis universe.}
 
-\item{source_signal_artifact_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{source_signal_artifact_id}{Optional source cell_vector_family artifact ID copied into metadata.}
 
-\item{source_run_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{source_run_id}{Optional source run ID copied into metadata.}
 
-\item{source_snapshot_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{source_snapshot_id}{Optional source provenance snapshot ID copied into metadata.}
 }
 \value{
 Standard op result with \code{outputs$smoothed_signal} as a
 \code{cell_vector_family} and \code{outputs$smoothing_summary} as an \code{obs_table}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Uses nearest neighbors in a bundle space to smooth each key of a
 \code{cell_vector_family} independently. The operation is generic: keys can be
 UCell signatures, chromVAR motifs, classifier probabilities, module scores,
 or any other numeric per-cell signal family.
+
+Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$smoothed_signal} (\code{cell_vector_family}): Geometry-smoothed per-cell values for each selected key.; \code{outputs$smoothing_summary} (\code{obs_table}): Per-key smoothing diagnostics and parameter echo.. Promotion eligibility is declared by the operation catalog.
 }

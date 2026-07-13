@@ -17,21 +17,21 @@ wb_op_space_path_score(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{space_id}{Registered coordinate-space identifier.}
+\item{space_id}{Registered coordinate-space identifier consumed by this operation.}
 
 \item{path}{Path-family primitive or compatible path reference.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{score_mode}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{score_mode}{Scoring mode. The current implementation standardizes on orthogonal projection semantics.}
 
-\item{distance_metric}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{distance_metric}{Distance metric used for path-relative scoring.}
 
-\item{score_prefix}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{score_prefix}{Optional prefix for emitted score-family keys.}
 }
 \description{
-Score Cells Against An Analytical Space Path
+Contract scaffold for path-relative scoring in a named analytical space.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$path_scores} (\code{cell_vector_family}): Per-cell path-relative scores such as progress and distance.; \code{outputs$fit_summary} (\code{obs_table}): Compact path-level scoring diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

@@ -19,27 +19,29 @@ wb_op_palantir_project(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{model}{Typed \code{model_ref} trajectory/model primitive or compatible reference.}
+\item{model}{Required \code{model} input represented as \code{model_ref}; accepted symbolic references are resolved by the operation interface.}
 
 \item{plot_space_id}{Registered two-dimensional display space used for projection.}
 
-\item{prob_min}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{prob_min}{Minimum branch probability mask threshold for branch trajectory interpolation.}
 
-\item{smoothness}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{smoothness}{Palantir-style mellon trajectory smoothing multiplier (higher = smoother).}
 
-\item{min_cells_per_branch}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_cells_per_branch}{Minimum eligible cells required to derive a branch trajectory.}
 
-\item{approx_points}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{approx_points}{Number of trajectory sample points per branch (curve resolution).}
 
-\item{python_bin}{Python executable used for the optional pybench runtime.}
+\item{python_bin}{Python executable used for an optional pybench-backed runtime.}
 
-\item{...}{Additional engine-specific arguments passed only where the documented wrapper supports them.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{...}{Additional engine-specific arguments accepted by this wrapper.}
 }
 \description{
 Derived display projection mirroring Palantir's trajectory plotting idea:
 interpolate branch-specific embedding coordinates across pseudotime to obtain
 branch paths suitable for Scene overlays.
+
+Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$curves} (\code{path_2d_family}): Palantir-style smoothed branch trajectories projected into the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 }

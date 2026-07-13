@@ -24,36 +24,38 @@ wb_op_slingshot_fit(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{fit_space_id}{Registered coordinate space used for model fitting.}
+\item{fit_space_id}{Registered coordinate space used to fit the model.}
 
-\item{clusters}{Named cell-level cluster-label vector or compatible cell-vector primitive.}
+\item{clusters}{Required \code{clusters} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{exclude_cells}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{exclude_cells}{Optional cell ids excluded before fitting.}
 
-\item{include_clusters}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{include_clusters}{Optional cluster labels retained before fitting.}
 
-\item{exclude_clusters}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{exclude_clusters}{Cluster id(s) to exclude before fitting.}
 
-\item{start.clus}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{start.clus}{Starting cluster id.}
 
-\item{end.clus}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{end.clus}{Ending cluster id(s).}
 
-\item{stretch}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{stretch}{Slingshot curve stretching.}
 
-\item{reweight}{Logical control flag for this operation.}
+\item{reweight}{Whether to reweight assignments during fitting.}
 
-\item{shrink}{Logical control flag for this operation.}
+\item{shrink}{Engine shrinkage control for fitted trajectory curves.}
 
-\item{maxit}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{maxit}{Maximum engine fitting iterations.}
 
-\item{...}{Additional engine-specific arguments passed only where the documented wrapper supports them.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{...}{Additional engine-specific arguments accepted by this wrapper.}
 }
 \description{
+Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
+
 Returns lineage pseudotime and a session-chainable \code{model_ref(engine="slingshot")}.
 Model promotion is not yet supported; this phase is for fit/project split semantics.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$pseudotime} (\code{cell_vector_family}): Lineage-specific pseudotime values per cell (fit space inference).; \code{outputs$lineage_weights} (\code{cell_vector_family}): Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.; \code{outputs$model} (\code{model_ref}): Session-chainable Slingshot fit model (engine='slingshot').. Promotion eligibility is declared by the operation catalog.
 }

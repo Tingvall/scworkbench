@@ -29,50 +29,53 @@ wb_op_monocle3_fit(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{fit_space_id}{Registered coordinate space used for model fitting.}
+\item{fit_space_id}{Registered coordinate space used to fit the model.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{dims}{Optional coordinate dimensions to use from the selected space.}
+\item{dims}{Optional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).}
 
-\item{root_cells}{Root cell identifiers used to orient a trajectory.}
+\item{root_cells}{Root cell IDs (exactly one of root_cells or root_pr_nodes).}
 
-\item{root_pr_nodes}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{root_pr_nodes}{Principal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes).}
 
-\item{k}{Number of nearest neighbors.}
+\item{k}{kNN size for monocle3 clustering.}
 
-\item{cluster_method}{Named computational method; supported values are validated by the operation.}
+\item{cluster_method}{Monocle3 clustering backend.}
 
-\item{num_iter}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{num_iter}{Monocle3 clustering iterations.}
 
-\item{partition_qval}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{partition_qval}{Partition significance threshold.}
 
-\item{weight}{Whether to compute or use weighted neighborhood relationships.}
+\item{weight}{Whether weighted nearest-neighbor relationships are used by the engine.}
 
-\item{resolution}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{resolution}{Optional clustering resolution (NULL lets monocle3 choose).}
 
-\item{random_seed}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{random_seed}{Random seed for clustering.}
 
-\item{use_partition}{Logical control flag for this operation.}
+\item{use_partition}{Learn graph per partition. FALSE is recommended for current tree semantics.}
 
-\item{close_loop}{Logical control flag for this operation.}
+\item{close_loop}{Allow loop closure in graph learning. FALSE is required for tree-derived lineages.}
 
-\item{verbose}{Logical control flag for this operation.}
+\item{verbose}{Whether the underlying engine emits progress output.}
 
-\item{nn_control}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{nn_control}{Optional nearest-neighbor control list passed to the underlying engine.}
 
-\item{learn_graph_control}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{learn_graph_control}{Optional principal-graph learning control list passed to the underlying engine.}
 
-\item{...}{Additional engine-specific arguments passed only where the documented wrapper supports them.}
+\item{...}{Additional engine-specific arguments accepted by this wrapper.}
 }
 \value{
 A standard op result list with \code{outputs} containing \code{pseudotime},
 \code{branch_membership}, and \code{model}, plus normalized \code{params}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Hybrid design: scworkbench provides the fit coordinates (\code{space} primitive),
 which are injected into \code{reducedDims(cds)$UMAP} so monocle3 can run its graph
 learning and ordering pipeline while preserving engine-side space selection.
+
+Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$pseudotime} (\code{cell_vector}): Rooted global pseudotime per cell from monocle3.; \code{outputs$branch_membership} (\code{relation_family}): Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).; \code{outputs$model} (\code{model_ref}): Session-chainable monocle3 CDS model (engine='monocle3').. Promotion eligibility is declared by the operation catalog.
 }

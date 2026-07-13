@@ -25,40 +25,43 @@ wb_op_trajectory_route_smooth(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{pseudotime}{Explicit \code{cell_vector_family} pseudotime primitive or compatible reference.}
+\item{pseudotime}{Required \code{pseudotime} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{branch_membership}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{branch_membership}{Required \code{branch_membership} input represented as \code{relation_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{route_key}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{route_key}{Required route/branch key within branch_membership.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{feature_set}{Feature-set name or feature-set reference used by the operation.}
+\item{feature_set}{Optional feature set name from wb_feature_sets() for matrix.}
 
-\item{features}{Optional feature ids to analyse; defaults are operation-specific.}
+\item{features}{Optional explicit feature subset (intersected with feature_set when both provided).}
 
-\item{n_bins}{Number of ordered pseudotime bins used for curve summaries.}
+\item{n_bins}{Number of pseudotime bins.}
 
-\item{summary_fun}{Within-bin summary statistic, usually \code{mean} or \code{median}.}
+\item{summary_fun}{Summary statistic across cells within each bin. Weighted routes currently support mean only.}
 
-\item{min_cells_per_bin}{Minimum cells required for a pseudotime bin to contribute a summary.}
+\item{min_cells_per_bin}{Minimum cells required for an output bin.}
 
-\item{weight_mode}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{weight_mode}{Use route probabilities directly or threshold to a binary route membership.}
 
-\item{prob_min}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{prob_min}{Minimum route probability required to include a cell.}
 
-\item{chunk_size}{Maximum chunk size for bounded-memory processing along the documented chunking axis.}
+\item{chunk_size}{Maximum chunk size used for bounded-memory processing.}
 }
 \value{
 Standard op result with \code{outputs$trend_table} and \code{outputs$fit_summary}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Summarizes per-feature expression along an explicit route using global
 pseudotime plus route membership weights. This is the generic surface needed
 for methods such as Palantir that emit global pseudotime and route
 probabilities rather than lineage-specific pseudotime families.
+
+Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$trend_table} (\code{obs_table}): Per-feature binned summaries along a selected route.; \code{outputs$fit_summary} (\code{obs_table}): Route smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

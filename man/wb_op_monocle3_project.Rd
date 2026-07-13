@@ -15,22 +15,25 @@ wb_op_monocle3_project(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{monocle3_model}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{monocle3_model}{Monocle3 \code{model_ref} primitive returned by \code{wb_op_monocle3_fit()}.}
 
 \item{plot_space_id}{Registered two-dimensional display space used for projection.}
 
-\item{approx_points}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{approx_points}{Target max curve points per lineage for display (0/NULL = no compaction).}
 
-\item{...}{Additional engine-specific arguments passed only where the documented wrapper supports them.}
+\item{...}{Additional engine-specific arguments accepted by this wrapper.}
 }
 \value{
 A standard op result list with \code{outputs$curves} and normalized
 \code{params}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Consumes \code{model_ref(engine="monocle3")} produced by \code{wb_op_monocle3_fit()} and
 emits drawable \code{path_2d_family} curves by mapping lineage graph nodes to
 centroids of fitted cells in the requested 2D display space.
+
+Project a fitted monocle3 trajectory graph into a 2D display space.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$curves} (\code{path_2d_family}): Projected monocle3 root-qualified lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 }

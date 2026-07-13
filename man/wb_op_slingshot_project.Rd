@@ -17,22 +17,24 @@ wb_op_slingshot_project(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{slingshot_model}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{slingshot_model}{Slingshot \code{model_ref} primitive returned by \code{wb_op_slingshot_fit()}.}
 
 \item{plot_space_id}{Registered two-dimensional display space used for projection.}
 
-\item{stretch}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{stretch}{Optional override of stretch during embedding.}
 
-\item{shrink}{Logical control flag for this operation.}
+\item{shrink}{Engine shrinkage control for fitted trajectory curves.}
 
-\item{approx_points}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{approx_points}{Target max curve points per lineage for display (0/NULL = no compaction).}
 
-\item{...}{Additional engine-specific arguments passed only where the documented wrapper supports them.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{...}{Additional engine-specific arguments accepted by this wrapper.}
 }
 \description{
+Project a fitted Slingshot model into a 2D display space (e.g. UMAP).
+
 Consumes \code{model_ref(engine="slingshot")} produced by \code{wb_op_slingshot_fit()}
 and emits drawable 2D curves (\code{path_2d_family}) using \code{slingshot::embedCurves()}.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$curves} (\code{path_2d_family}): Projected Slingshot lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 }

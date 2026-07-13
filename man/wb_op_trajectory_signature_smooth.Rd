@@ -20,31 +20,34 @@ wb_op_trajectory_signature_smooth(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{model}{Typed \code{model_ref} trajectory/model primitive or compatible reference.}
+\item{model}{Required \code{model} input represented as \code{model_ref}; accepted symbolic references are resolved by the operation interface.}
 
-\item{feature_set}{Feature-set name or feature-set reference used by the operation.}
+\item{feature_set}{Required feature set name from wb_feature_sets() for matrix.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{lineage}{Optional trajectory lineage key to analyse.}
+\item{lineage}{Optional lineage key subset.}
 
-\item{score_method}{Named computational method; supported values are validated by the operation.}
+\item{score_method}{How to score the feature set within each cell.}
 
-\item{n_bins}{Number of ordered pseudotime bins used for curve summaries.}
+\item{n_bins}{Number of pseudotime bins.}
 
-\item{summary_fun}{Within-bin summary statistic, usually \code{mean} or \code{median}.}
+\item{summary_fun}{Summary statistic across cells within each bin.}
 
-\item{min_cells_per_bin}{Minimum cells required for a pseudotime bin to contribute a summary.}
+\item{min_cells_per_bin}{Minimum cells required for an output bin.}
 }
 \value{
 A standard op result list with \code{outputs} containing \code{signature_table}
 and \code{fit_summary}, plus normalized \code{params}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Computes per-cell signature scores from a feature set, then summarizes those scores
 along lineage pseudotime from a trajectory model.
+
+Summarize feature-set signature scores along trajectory pseudotime into reusable trend tables.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$signature_table} (\code{obs_table}): Per-signature binned summaries along trajectory pseudotime.; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage signature smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

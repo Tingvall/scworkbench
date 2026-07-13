@@ -23,34 +23,36 @@ wb_op_palantir_fit(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{fit_space_id}{Registered coordinate space used for model fitting.}
+\item{fit_space_id}{Registered coordinate space used to fit the model.}
 
-\item{cells}{Optional canonical cell ids defining the analysis universe; operations may require an explicit effective universe.}
+\item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 
-\item{root_cell}{Root cell identifier used to orient a trajectory.}
+\item{root_cell}{Single Palantir early/root cell ID (Palantir-native single-root semantics).}
 
-\item{terminal_cells}{Terminal cell identifiers used to define trajectory endpoints.}
+\item{terminal_cells}{Optional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities).}
 
-\item{dims}{Optional coordinate dimensions to use from the selected space.}
+\item{dims}{Optional fit-space dimensions to use (for example 1:20 as explicit integer vector).}
 
-\item{knn}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{knn}{kNN size for Palantir diffusion graph and pseudotime.}
 
-\item{n_diffusion_components}{Positive integer count controlling this operation.}
+\item{n_diffusion_components}{Number of diffusion components for Palantir.}
 
-\item{n_waypoints}{Positive integer count controlling this operation.}
+\item{n_waypoints}{Number of Palantir waypoints.}
 
-\item{use_early_cell_as_start}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{use_early_cell_as_start}{Pass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start.}
 
-\item{seed}{Optional integer random seed for reproducible stochastic computation.}
+\item{seed}{Integer random seed used to make stochastic computation reproducible.}
 
-\item{cell_set}{Named bundle cell set used when an operation resolves its own cell universe.}
+\item{cell_set}{Named bundle cell set used to resolve the analysis universe.}
 
-\item{python_bin}{Python executable used for the optional pybench runtime.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{python_bin}{Python executable used for an optional pybench-backed runtime.}
 }
 \description{
 Bench remains provenance/registry authority; Python writes payload tables/files
 for pre-registered artifacts and returns a protocol receipt.
+
+Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$pseudotime} (\code{cell_vector}): Palantir pseudotime (single-root, global).; \code{outputs$branch_membership} (\code{relation_family}): Palantir branch probabilities as cell-to-branch relations (\verb{branch:*} keys; weights are probabilities).; \code{outputs$branch_summary} (\code{obs_table}): Palantir branch probability summary table.; \code{outputs$entropy} (\code{cell_vector}): Palantir entropy per cell.; \code{outputs$model} (\code{model_ref}): Palantir Python model payload (engine='palantir').. Promotion eligibility is declared by the operation catalog.
 }

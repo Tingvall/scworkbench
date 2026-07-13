@@ -15,27 +15,30 @@ wb_op_cell_vector_winners(
 )
 }
 \arguments{
-\item{signal}{Cell-vector or cell-vector-family primitive containing per-cell scores.}
+\item{signal}{Required \code{signal} input represented as \code{cell_vector_family}; accepted symbolic references are resolved by the operation interface.}
 
-\item{signal_keys}{Optional keys to retain from a cell-vector-family signal.}
+\item{signal_keys}{Optional key subset within the cell_vector_family.}
 
-\item{min_winners}{Minimum threshold controlling filtering or eligibility for this operation.}
+\item{min_winners}{Minimum raw winner count required for a winner label to pass pruning.}
 
-\item{tie_method}{Named computational method; supported values are validated by the operation.}
+\item{tie_method}{Deterministic tie handling for top-score winners.}
 
-\item{source_score_artifact_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{source_score_artifact_id}{Optional source cell_vector_family artifact ID copied into winner table metadata.}
 
-\item{source_run_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{source_run_id}{Optional source run ID copied into winner table metadata.}
 
-\item{source_snapshot_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{source_snapshot_id}{Optional source provenance snapshot ID copied into winner table metadata.}
 }
 \value{
 Standard op result with \code{outputs$winners} as an \code{obs_table}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Reduces a continuous keyed per-cell score family to one winner row per cell,
 including runner-up, margin, percentile, confidence score, confidence ranks,
 and pruning status.
+
+Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$winners} (\code{obs_table}): Per-cell winner, runner-up, confidence, and pruning table.. Promotion eligibility is declared by the operation catalog.
 }

@@ -34,58 +34,60 @@ wb_op_feature_set_import(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{source_path}{Input file path for a feature-set import.}
+\item{source_path}{Path to GMT, RDS list/data.frame, or CSV-like table source.}
 
-\item{source_format}{Declared source format for a feature-set import.}
+\item{source_format}{Input parser. auto infers from file extension.}
 
-\item{table}{Optional in-memory source table for a feature-set import.}
+\item{table}{Optional in-memory feature-set source table.}
 
-\item{sets}{Optional in-memory named gene-set list for import.}
+\item{sets}{Optional named in-memory feature-set list.}
 
-\item{namespace}{Feature-set namespace registered for the selected matrix and organism.}
+\item{namespace}{Target feature-set namespace base label.}
 
-\item{collection}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{collection}{Optional collection label recorded in import manifests.}
 
-\item{subcollection}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{subcollection}{Optional subcollection label; used for namespace splitting when requested.}
 
-\item{species}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{species}{Species/organism label recorded in feature-set metadata.}
 
-\item{organism}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{organism}{Organism label recorded with the imported feature-set namespace.}
 
-\item{gene_id_type}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{gene_id_type}{Identifier type expected in source genes, for example gene_symbol.}
 
-\item{set_id_col}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{set_id_col}{For table sources, column containing set identifiers.}
 
-\item{set_name_col}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{set_name_col}{For table sources, optional human-readable set-name column.}
 
-\item{gene_col}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{gene_col}{For table sources, column containing gene/feature identifiers.}
 
-\item{description_col}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{description_col}{For table sources, optional set description column.}
 
-\item{split_by_collection}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{split_by_collection}{If TRUE, append detected/declared subcollection to the namespace base.}
 
-\item{overwrite}{Whether an existing output with the same identifier may be replaced.}
+\item{overwrite}{If FALSE, existing feature sets are skipped instead of replaced.}
 
-\item{strict}{Whether invalid or unmatched input should fail rather than be reported.}
+\item{strict}{If TRUE, error on genes absent from the matrix; otherwise drop absent genes.}
 
-\item{created_by}{Optional actor label recorded in import provenance.}
+\item{created_by}{Optional actor label recorded in provenance.}
 
-\item{source_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{source_id}{Optional source/library identifier stored in feature-set metadata.}
 
-\item{source_version}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{source_version}{Optional source/library version stored in feature-set metadata.}
 
-\item{origin}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{origin}{Human-readable origin label recorded for imported source material.}
 
-\item{is_readonly}{Logical control flag for this operation.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{is_readonly}{Whether imported feature sets are marked read-only after registration.}
 }
 \description{
 Parses GMT, RDS list/data.frame, or a direct data.frame/list source and
 registers feature sets through the canonical bundle feature-set registry.
 Outputs are obs_table primitives that can be promoted to make the registry
 mutation auditable.
+
+Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$import_summary} (\code{obs_table}): One-row summary of parsed/imported/skipped/rejected set counts.; \code{outputs$import_manifest} (\code{obs_table}): One row per parsed feature set with target namespace, overlap counts, and import status.; \code{outputs$rejected_sets} (\code{obs_table}): Feature sets rejected during import, typically because no genes mapped to the matrix.. Promotion eligibility is declared by the operation catalog.
 }

@@ -6,6 +6,7 @@
 #' @param matrix_id Matrix id (RNA counts / data)
 #' @param features Character vector of feature IDs
 #' @param cells Optional cell subset (default all)
+#' @param cell_set Named bundle cell set used to resolve the analysis universe
 #' @param na_rm If TRUE, ignore NA values in the mean
 #' @export
 wb_op_meanexpr <- function(bundle, matrix_id, features,  cells = NULL,
@@ -53,4 +54,3 @@ wb_op_meanexpr <- function(bundle, matrix_id, features,  cells = NULL,
     )
   )
 }
-

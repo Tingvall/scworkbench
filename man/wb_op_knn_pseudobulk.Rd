@@ -19,29 +19,32 @@ wb_op_knn_pseudobulk(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{matrix_id}{Registered logical matrix identifier; getters resolve its physical storage.}
+\item{matrix_id}{Registered logical matrix identifier consumed by this operation.}
 
-\item{space_id}{Registered coordinate-space identifier.}
+\item{space_id}{Registered coordinate-space identifier consumed by this operation.}
 
-\item{query_cells}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{query_cells}{Query cells: explicit IDs or 'set:\if{html}{\out{<name>}}'}
 
-\item{candidate_cells}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{candidate_cells}{Optional candidate neighbor pool; defaults to all cells.}
 
-\item{features}{Optional feature ids to analyse; defaults are operation-specific.}
+\item{features}{Optional feature subset for pseudobulk output.}
 
-\item{k}{Number of nearest neighbors.}
+\item{k}{Nearest neighbors per query cell.}
 
-\item{include_query}{Logical control flag for this operation.}
+\item{include_query}{Include query cells themselves when they are in candidate pool.}
 
-\item{aggregate}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{aggregate}{Aggregation mode: sum or mean.}
 }
 \value{
 A standard op result list with \code{outputs$pseudobulk_table},
 \code{outputs$neighbor_distance}, and normalized \code{params}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Treats query cells (for example projected bulk samples) as anchors in a shared
 latent space, finds nearest neighbors, and aggregates expression in a matrix.
+
+Find k nearest neighbors in latent space around query cells and aggregate matrix values.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$pseudobulk_table} (\code{feature_table}): Feature-level pseudobulk values keyed by query cell.; \code{outputs$neighbor_distance} (\code{cell_vector_family}): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
 }

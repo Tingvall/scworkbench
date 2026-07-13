@@ -7,15 +7,17 @@
 wb_op_cell_vector_assoc(vector_cont, vector_group, min_n_per_group = 3L)
 }
 \arguments{
-\item{vector_cont}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{vector_cont}{Required \code{vector_cont} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{vector_group}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{vector_group}{Required \code{vector_group} input represented as \code{cell_vector}; accepted symbolic references are resolved by the operation interface.}
 
-\item{min_n_per_group}{Minimum threshold controlling filtering or eligibility for this operation.}
-}
-\value{
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
+\item{min_n_per_group}{Minimum cells per group.}
 }
 \description{
 Computes per-group summaries and omnibus association tests.
+
+Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$assoc_summary} (\code{feature_table}): Omnibus association test summary (Kruskal/ANOVA).; \code{outputs$group_stats} (\code{obs_table}): Per-group descriptive statistics.. Promotion eligibility is declared by the operation catalog.
 }

@@ -1787,8 +1787,7 @@
         list(name = "spread", type = "dbl", default = 1.0, min = 0,
              help = "UMAP spread parameter."),
         list(name = "seed", type = "int", default = 1,
-             help = "Random seed."),
-        list(name = "overwrite", type = "bool", default = TRUE, help = "Overwrite existing model/coords.")
+             help = "Random seed.")
       ),
       interface_produces = list(
         model = list(kind = "model_ref", description = "Reference to the fitted UMAP model."),

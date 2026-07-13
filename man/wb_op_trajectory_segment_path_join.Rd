@@ -20,29 +20,32 @@ wb_op_trajectory_segment_path_join(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{paths}{Ordered display-path segment specifications to join.}
+\item{paths}{Ordered path segment specs with path ref, lineage key, segment ID, labels, and order.}
 
 \item{composite_id}{Stable identifier for a derived composite trajectory.}
 
-\item{composite_key}{Key assigned to the composite pseudotime coordinate.}
+\item{composite_key}{Key used in the output composite path_2d_family.}
 
-\item{display_space_id}{Identifier or key interpreted by this operation according to its interface contract.}
+\item{display_space_id}{2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets.}
 
-\item{endpoint_summary_method}{Named computational method; supported values are validated by the operation.}
+\item{endpoint_summary_method}{How endpoint cell sets are summarized in display space for QC.}
 
-\item{endpoint_max_distance}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{endpoint_max_distance}{Optional absolute maximum endpoint distance before QC fails.}
 
-\item{endpoint_qc_action}{Operation-specific parameter. See \code{wb_op_interface()} for its validated runtime contract and defaults.}
+\item{endpoint_qc_action}{Action when display-path endpoint QC detects a large mismatch.}
 
-\item{allow_legacy}{Logical control flag for this operation.}
+\item{allow_legacy}{Allow missing trajectory_fit_id on parent paths with warning.}
 }
 \value{
 Standard op result with \code{curves} and \code{path_manifest}.
-
-A typed operation result or interface object. Inspect \code{wb_op_interface()} for declared primitive outputs and promotion behavior.
 }
 \description{
 Derives a display-only composite \code{path_2d_family} from ordered parent
 \code{path_2d_family} segment artifacts. This does not merge or refit parent
 trajectory models.
+
+Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.
+}
+\details{
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$curves} (\code{path_2d_family}): Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.; \code{outputs$path_manifest} (\code{obs_table}): Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.; \code{outputs$endpoint_qc} (\code{obs_table}): Endpoint-distance QC for joined display paths with declared endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
 }
