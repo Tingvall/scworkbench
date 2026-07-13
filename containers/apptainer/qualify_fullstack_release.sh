@@ -17,7 +17,7 @@ sha256sum "${IMAGE_PATH}"
 echo "==> Native runtime provenance"
 singularity exec --cleanenv "${IMAGE_PATH}" bash -lc '
   cat /opt/scworkbench_runtime_provenance.txt
-  Rscript -e '\''cat("R=", as.character(getRversion()), "\\n", sep=""); cat("BPCells=", packageVersion("BPCells"), "\\n", sep=""); cat("BPCells RemoteSha=", packageDescription("BPCells")$RemoteSha, "\\n", sep=""); cat("roxygen2=", packageVersion("roxygen2"), "\\n", sep=""); cat("BSgenome.Hsapiens.UCSC.hg19=", packageVersion("BSgenome.Hsapiens.UCSC.hg19"), "\\n", sep="")'\''
+  Rscript -e '\''cat("R=", as.character(getRversion()), "\n", sep=""); cat("BPCells=", as.character(packageVersion("BPCells")), "\n", sep=""); cat("BPCells RemoteSha=", as.character(packageDescription("BPCells")$RemoteSha), "\n", sep=""); cat("roxygen2=", as.character(packageVersion("roxygen2")), "\n", sep=""); cat("BSgenome.Hsapiens.UCSC.hg19=", as.character(packageVersion("BSgenome.Hsapiens.UCSC.hg19")), "\n", sep="")'\''
 '
 
 echo "==> Non-forced release gate"
