@@ -181,7 +181,8 @@ bioc_pkgs <- c(
   "SummarizedExperiment", "SingleCellExperiment", "GenomicRanges",
   "GenomeInfoDb", "TFBSTools", "chromVAR", "motifmatchr", "JASPAR2020",
   "BSgenome", "BSgenome.Mmusculus.UCSC.mm10",
-  "BSgenome.Hsapiens.UCSC.hg19", "slingshot", "monocle3"
+  "BSgenome.Hsapiens.UCSC.hg19", "slingshot", "UCell", "zellkonverter",
+  "monocle3"
 )
 miss_bioc <- bioc_pkgs[!vapply(bioc_pkgs, requireNamespace, logical(1), quietly = TRUE)]
 if (length(miss_bioc)) {
@@ -252,6 +253,9 @@ EOF
 
     Rscript /tmp/install_scworkbench_stack.R
     rm -f /tmp/install_scworkbench_stack.R
+    Rscript /opt/scworkbench/inst/ci/check_declared_suggests.R \
+      --description /opt/scworkbench/DESCRIPTION \
+      --manifest /opt/scworkbench_declared_suggests.csv
     Rscript /opt/scworkbench/inst/ci/check_genomicranges_runtime.R
 
     chmod +x /usr/local/bin/run-scworkbench-shiny

@@ -86,6 +86,13 @@ runs `inst/ci/check_genomicranges_runtime.R`. This prevents a development
 corrupt `GRanges` S4 method dispatch. Release qualification reruns the same
 preflight before the package gate.
 
+The fullstack image also installs every package declared in `DESCRIPTION`
+`Suggests`, including Bioconductor `UCell` and `zellkonverter`. The
+`inst/ci/check_declared_suggests.R` preflight derives its inventory directly
+from `DESCRIPTION`, writes `/opt/scworkbench_declared_suggests.csv` during the
+image build, and is rerun against the checked-out `DESCRIPTION` by release
+qualification.
+
 Do not replace a deployed image based on the build smoke alone. Qualify each
 candidate against the current checkout with the non-forced package gate:
 

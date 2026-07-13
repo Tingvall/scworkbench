@@ -27,6 +27,17 @@ singularity exec --cleanenv \
   "${IMAGE_PATH}" \
   Rscript inst/ci/check_genomicranges_runtime.R
 
+echo "==> Declared Suggests preflight"
+singularity exec --cleanenv \
+  --bind "${CHECKOUT}:/work/scworkbench" \
+  --pwd /work/scworkbench \
+  "${IMAGE_PATH}" \
+  Rscript inst/ci/check_declared_suggests.R --description DESCRIPTION
+
+echo "==> Baked declared Suggests manifest"
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  cat /opt/scworkbench_declared_suggests.csv
+
 echo "==> Non-forced release gate"
 singularity exec --cleanenv \
   --bind "${CHECKOUT}:/work/scworkbench" \
