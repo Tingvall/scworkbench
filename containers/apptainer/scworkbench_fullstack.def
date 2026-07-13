@@ -188,11 +188,19 @@ if (length(miss_bioc)) {
   BiocManager::install(miss_bioc, ask = FALSE, update = FALSE)
 }
 
-# The mutable base image can contain a mixture of release and development
-# genomic packages. GenomicRanges from development depends on the standalone
-# Seqinfo package, while release GenomeInfoDb owns the Seqinfo S4 API. Reinstall
-# every installed direct reverse dependency from the configured Bioconductor
-# release before removing the obsolete standalone package.
+if (!requireNamespace("monocle3", quietly = TRUE)) {
+  remotes::install_github("cole-trapnell-lab/monocle3")
+}
+
+remotes::install_local("/opt/scworkbench", upgrade = "never", dependencies = TRUE, build = FALSE)
+
+# Reconcile last: monocle3 and local scworkbench installation can install or
+# update optional Bioconductor dependencies. The mutable base image can contain
+# a mixture of release and development genomic packages. Development
+# GenomicRanges depends on standalone Seqinfo, while release GenomeInfoDb owns
+# the Seqinfo S4 API. Reinstall every installed reverse dependency from the
+# configured Bioconductor release before removing the obsolete standalone
+# package.
 if (requireNamespace("Seqinfo", quietly = TRUE)) {
   seqinfo_dependents <- tools::package_dependencies(
     "Seqinfo",
@@ -224,12 +232,6 @@ if (requireNamespace("Seqinfo", quietly = TRUE)) {
   }
   remove.packages("Seqinfo")
 }
-
-if (!requireNamespace("monocle3", quietly = TRUE)) {
-  remotes::install_github("cole-trapnell-lab/monocle3")
-}
-
-remotes::install_local("/opt/scworkbench", upgrade = "never", dependencies = TRUE, build = FALSE)
 
 runtime_provenance <- c(
   paste0("built_at=", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
