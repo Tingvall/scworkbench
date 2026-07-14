@@ -86,12 +86,14 @@ runs `inst/ci/check_genomicranges_runtime.R`. This prevents a development
 corrupt `GRanges` S4 method dispatch. Release qualification reruns the same
 preflight before the package gate.
 
-The fullstack image also installs every package declared in `DESCRIPTION`
-`Suggests`, including Bioconductor `UCell` and `zellkonverter`. The
-`inst/ci/check_declared_suggests.R` preflight derives its inventory directly
-from `DESCRIPTION`, writes `/opt/scworkbench_declared_suggests.csv` during the
-image build, and is rerun against the checked-out `DESCRIPTION` by release
-qualification.
+The fullstack image assigns every `DESCRIPTION` `Suggests` package to one
+non-overlapping source class: CRAN, the configured Bioconductor release, pinned
+GitHub, or R base. `UCell` and `zellkonverter` are Bioconductor release-managed;
+`BPCells` and `monocle3` are pinned GitHub-managed. The image writes both
+`/opt/scworkbench_declared_suggests.csv` and
+`/opt/scworkbench_package_sources.csv` during the build. Qualification prints
+both manifests and reruns the `DESCRIPTION`-derived Suggests preflight against
+the checked-out source tree.
 
 Do not replace a deployed image based on the build smoke alone. Qualify each
 candidate against the current checkout with the non-forced package gate:

@@ -147,18 +147,31 @@ install_if_missing <- function(pkgs) {
   if (length(miss)) install.packages(miss)
 }
 
+verify_namespaces <- function(pkgs, source_class) {
+  missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing)) {
+    stop(source_class, " package installation left missing namespaces: ",
+         paste(missing, collapse = ", "))
+  }
+}
+
 install_if_missing(c("BiocManager", "remotes", "devtools"))
 
-# R BPCells is a native dependency. Pin the source commit rather than relying
-# on whichever GitHub HEAD happens to be available during an image build.
+# Pinned GitHub-managed packages. Release images must not depend on a moving
+# GitHub branch tip.
 bpcells_r_ref <- "c293a0a34e653c395c8e9bf9ed3133107324d7b7"
+monocle3_ref <- "4f4239a0afb0dd1941a0359ba6bec95eb0ccf628"
 
+# CRAN-managed packages. This includes declared Suggests and runtime support
+# packages needed by the Shiny reference client.
 cran_pkgs <- c(
   "DBI", "RSQLite", "jsonlite", "Seurat", "Matrix", "uwot", "igraph",
   "RANN", "ggplot2", "viridisLite", "shiny", "shinyFiles", "magrittr",
-  "DT", "plotly", "visNetwork", "zip", "colourpicker"
+  "DT", "plotly", "visNetwork", "zip", "colourpicker", "digest",
+  "SeuratObject", "irlba", "rnndescent", "FNN"
 )
 install_if_missing(cran_pkgs)
+verify_namespaces(cran_pkgs, "CRAN-managed")
 
 if (requireNamespace("BPCells", quietly = TRUE)) {
   remove.packages("BPCells")
@@ -176,49 +189,60 @@ if (!identical(installed_bpcells_ref, bpcells_r_ref)) {
        ", got ", installed_bpcells_ref)
 }
 
-bioc_pkgs <- c(
+# Bioconductor release-managed declared Suggests and their direct genomic
+# support packages. Do not add GitHub-only packages to this list.
+bioc_suggests <- c(
+  "BiocParallel", "BSgenome.Hsapiens.UCSC.hg19",
+  "BSgenome.Mmusculus.UCSC.mm10", "chromVAR", "GenomeInfoDb",
+  "GenomicRanges", "IRanges", "JASPAR2020", "motifmatchr",
+  "SingleCellExperiment", "SummarizedExperiment", "S4Vectors",
+  "zellkonverter", "rhdf5", "slingshot", "TFBSTools", "UCell"
+)
+bioc_support_pkgs <- c(
   "BiocParallel", "S4Vectors", "IRanges", "Biostrings",
   "SummarizedExperiment", "SingleCellExperiment", "GenomicRanges",
   "GenomeInfoDb", "TFBSTools", "chromVAR", "motifmatchr", "JASPAR2020",
   "BSgenome", "BSgenome.Mmusculus.UCSC.mm10",
   "BSgenome.Hsapiens.UCSC.hg19", "slingshot", "UCell", "zellkonverter",
-  "monocle3"
+  "rhdf5"
 )
-miss_bioc <- bioc_pkgs[!vapply(bioc_pkgs, requireNamespace, logical(1), quietly = TRUE)]
-if (length(miss_bioc)) {
-  BiocManager::install(miss_bioc, ask = FALSE, update = FALSE)
+BiocManager::install(bioc_support_pkgs, ask = FALSE, update = FALSE, force = TRUE)
+verify_namespaces(bioc_suggests, "Bioconductor release-managed")
+
+installed_monocle3_ref <- if (requireNamespace("monocle3", quietly = TRUE)) {
+  as.character(utils::packageDescription("monocle3")$RemoteSha)
+} else {
+  ""
+}
+if (is.na(installed_monocle3_ref) || !identical(installed_monocle3_ref, monocle3_ref)) {
+  if (requireNamespace("monocle3", quietly = TRUE)) remove.packages("monocle3")
+  remotes::install_github(
+    repo = "cole-trapnell-lab/monocle3",
+    ref = monocle3_ref,
+    upgrade = "never"
+  )
+  installed_monocle3_ref <- as.character(utils::packageDescription("monocle3")$RemoteSha)
+}
+if (is.na(installed_monocle3_ref) || !identical(installed_monocle3_ref, monocle3_ref)) {
+  stop("monocle3 install did not produce the pinned commit: expected ", monocle3_ref,
+       ", got ", installed_monocle3_ref)
 }
 
-if (!requireNamespace("monocle3", quietly = TRUE)) {
-  remotes::install_github("cole-trapnell-lab/monocle3")
-}
+remotes::install_local("/opt/scworkbench", upgrade = "never", dependencies = FALSE, build = FALSE)
 
-remotes::install_local("/opt/scworkbench", upgrade = "never", dependencies = TRUE, build = FALSE)
-
-# Reconcile last: monocle3 and local scworkbench installation can install or
-# update optional Bioconductor dependencies. The mutable base image can contain
-# a mixture of release and development genomic packages. Development
-# GenomicRanges depends on standalone Seqinfo, while release GenomeInfoDb owns
-# the Seqinfo S4 API. Reinstall every installed reverse dependency from the
-# configured Bioconductor release before removing the obsolete standalone
-# package.
+# Reconcile the explicit Bioconductor genomic family after all release and
+# GitHub package installation. Never recursively reinstall arbitrary reverse
+# dependencies through BiocManager: GitHub-only packages are not release
+# managed. Development GenomicRanges depends on standalone Seqinfo, while
+# release GenomeInfoDb owns the Seqinfo S4 API.
+seqinfo_release_family <- c(
+  "GenomeInfoDb", "GenomicRanges", "IRanges", "S4Vectors", "Biostrings",
+  "SummarizedExperiment", "SingleCellExperiment", "BSgenome",
+  "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Mmusculus.UCSC.mm10",
+  "chromVAR", "motifmatchr", "TFBSTools", "slingshot"
+)
+BiocManager::install(seqinfo_release_family, ask = FALSE, update = FALSE, force = TRUE)
 if (requireNamespace("Seqinfo", quietly = TRUE)) {
-  seqinfo_dependents <- tools::package_dependencies(
-    "Seqinfo",
-    db = installed.packages(),
-    reverse = TRUE,
-    recursive = TRUE
-  )[["Seqinfo"]]
-  seqinfo_dependents <- setdiff(seqinfo_dependents, "Seqinfo")
-  if (length(seqinfo_dependents)) {
-    BiocManager::install(
-      seqinfo_dependents,
-      ask = FALSE,
-      update = FALSE,
-      force = TRUE
-    )
-  }
-
   remaining_dependents <- tools::package_dependencies(
     "Seqinfo",
     db = installed.packages(),
@@ -234,6 +258,36 @@ if (requireNamespace("Seqinfo", quietly = TRUE)) {
   remove.packages("Seqinfo")
 }
 
+source_class <- c(
+  setNames(rep("CRAN", length(cran_pkgs)), cran_pkgs),
+  setNames(rep("Bioconductor release", length(bioc_suggests)), bioc_suggests),
+  BPCells = "Pinned GitHub",
+  monocle3 = "Pinned GitHub",
+  methods = "R base"
+)
+declared_suggests <- trimws(strsplit(read.dcf("/opt/scworkbench/DESCRIPTION")[1L, "Suggests"], ",", fixed = TRUE)[[1L]])
+declared_suggests <- trimws(sub("\\s*\\(.*$", "", declared_suggests))
+unclassified <- setdiff(declared_suggests, names(source_class))
+if (length(unclassified)) {
+  stop("Declared Suggests have no fullstack source class: ", paste(unclassified, collapse = ", "))
+}
+source_ref <- source_class
+source_ref[source_class == "CRAN"] <- getOption("repos")[["CRAN"]]
+source_ref[source_class == "Bioconductor release"] <- paste0("Bioconductor ", BiocManager::version())
+source_ref["BPCells"] <- paste0("github:bnprks/BPCells@", bpcells_r_ref)
+source_ref["monocle3"] <- paste0("github:cole-trapnell-lab/monocle3@", monocle3_ref)
+source_ref["methods"] <- paste0("R ", getRversion())
+source_manifest <- data.frame(
+  package = declared_suggests,
+  source_class = unname(source_class[declared_suggests]),
+  source_ref = unname(source_ref[declared_suggests]),
+  version = vapply(declared_suggests, function(package) {
+    as.character(utils::packageVersion(package))
+  }, character(1)),
+  stringsAsFactors = FALSE
+)
+write.csv(source_manifest, "/opt/scworkbench_package_sources.csv", row.names = FALSE, quote = TRUE)
+
 runtime_provenance <- c(
   paste0("built_at=", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
   paste0("r_version=", getRversion()),
@@ -244,7 +298,11 @@ runtime_provenance <- c(
   }),
   paste0("rcpp_version=", as.character(utils::packageVersion("Rcpp"))),
   paste0("rhdf5_version=", if (requireNamespace("rhdf5", quietly = TRUE)) as.character(utils::packageVersion("rhdf5")) else "not_installed"),
-  paste0("hdf5_system=", system("h5cc -showconfig 2>/dev/null | head -n 1", intern = TRUE))
+  paste0("hdf5_system=", system("h5cc -showconfig 2>/dev/null | head -n 1", intern = TRUE)),
+  paste0("bioconductor_version=", BiocManager::version()),
+  paste0("github_bpcells_ref=", bpcells_r_ref),
+  paste0("github_monocle3_ref=", monocle3_ref),
+  "package_source_manifest=/opt/scworkbench_package_sources.csv"
 )
 python_bpcells_provenance <- readLines("/tmp/scworkbench_bpcells_python_provenance.env", warn = FALSE)
 runtime_provenance <- c(runtime_provenance, python_bpcells_provenance)

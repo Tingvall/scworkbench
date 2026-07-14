@@ -38,6 +38,10 @@ echo "==> Baked declared Suggests manifest"
 singularity exec --cleanenv "${IMAGE_PATH}" \
   cat /opt/scworkbench_declared_suggests.csv
 
+echo "==> Baked package source manifest"
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  cat /opt/scworkbench_package_sources.csv
+
 echo "==> Non-forced release gate"
 singularity exec --cleanenv \
   --bind "${CHECKOUT}:/work/scworkbench" \
