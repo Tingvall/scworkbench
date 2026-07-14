@@ -170,7 +170,8 @@ cran_pkgs <- c(
   "DT", "plotly", "visNetwork", "zip", "colourpicker", "digest",
   "SeuratObject", "irlba", "rnndescent", "FNN"
 )
-install_if_missing(cran_pkgs)
+source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
+provision_cran_namespaces(cran_pkgs, repo = getOption("repos")[["CRAN"]])
 verify_namespaces(cran_pkgs, "CRAN-managed")
 
 if (requireNamespace("BPCells", quietly = TRUE)) {

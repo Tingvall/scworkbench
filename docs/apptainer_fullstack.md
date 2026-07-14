@@ -95,6 +95,11 @@ GitHub, or R base. `UCell` and `zellkonverter` are Bioconductor release-managed;
 both manifests and reruns the `DESCRIPTION`-derived Suggests preflight against
 the checked-out source tree.
 
+CRAN package provisioning is per-package and namespace-based. A package is
+considered available only after `loadNamespace()` succeeds. Failed candidate
+builds report the package, install action, repository, installed version,
+library paths, installer condition, and namespace-load condition.
+
 Do not replace a deployed image based on the build smoke alone. Qualify each
 candidate against the current checkout with the non-forced package gate:
 
