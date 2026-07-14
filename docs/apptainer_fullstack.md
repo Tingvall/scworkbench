@@ -100,6 +100,16 @@ considered available only after `loadNamespace()` succeeds. Failed candidate
 builds report the package, install action, repository, installed version,
 library paths, installer condition, and namespace-load condition.
 
+`containers/apptainer/fullstack_r_dependencies.dcf` is the versioned R product
+dependency lock input. It declares the CRAN and Bioconductor-release package
+sets, the minimal genomic reconciliation family, and pinned GitHub refs. CRAN
+and Bioconductor installation resolve only Depends, Imports, and LinkingTo
+(`dependencies = NA`); scworkbench optional capabilities remain explicit in
+the lock rather than inheriting arbitrary Suggests from dependencies. After all
+installation and Seqinfo reconciliation, a fresh R process runs
+`inst/ci/validate_fullstack_r_dependencies.R`, followed by the declared-Suggests
+and genomic-runtime preflights.
+
 Do not replace a deployed image based on the build smoke alone. Qualify each
 candidate against the current checkout with the non-forced package gate:
 

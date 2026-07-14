@@ -139,49 +139,45 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
     rm -rf /opt/scworkbench/reports
 
     cat >/tmp/install_scworkbench_stack.R <<'EOF'
-options(repos = c(CRAN = "https://cloud.r-project.org"))
 options(Ncpus = max(1L, parallel::detectCores()))
 
-install_if_missing <- function(pkgs) {
-  miss <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
-  if (length(miss)) install.packages(miss)
-}
+options(repos = c(CRAN = "https://cloud.r-project.org"))
 
-verify_namespaces <- function(pkgs, source_class) {
-  missing <- pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
-  if (length(missing)) {
-    stop(source_class, " package installation left missing namespaces: ",
-         paste(missing, collapse = ", "))
+bootstrap_cran <- c("BiocManager", "remotes", "devtools")
+for (package in bootstrap_cran) {
+  if (!package %in% rownames(installed.packages())) {
+    utils::install.packages(package, dependencies = NA)
   }
 }
+missing_bootstrap <- bootstrap_cran[!bootstrap_cran %in% rownames(installed.packages())]
+if (length(missing_bootstrap)) stop("Missing bootstrap package(s): ", paste(missing_bootstrap, collapse = ", "))
 
-install_if_missing(c("BiocManager", "remotes", "devtools"))
+lock_path <- "/opt/scworkbench/containers/apptainer/fullstack_r_dependencies.dcf"
+source("/opt/scworkbench/inst/ci/fullstack_r_dependency_lock.R")
+lock <- read_fullstack_r_dependency_lock(lock_path)
+configure_fullstack_repositories(lock)
+is_installed <- function(package) package %in% rownames(installed.packages())
 
 # Pinned GitHub-managed packages. Release images must not depend on a moving
 # GitHub branch tip.
-bpcells_r_ref <- "c293a0a34e653c395c8e9bf9ed3133107324d7b7"
-monocle3_ref <- "4f4239a0afb0dd1941a0359ba6bec95eb0ccf628"
+bpcells_r_ref <- lock$GitHubBPCellsRef
+monocle3_ref <- lock$GitHubMonocle3Ref
 
 # CRAN-managed packages. This includes declared Suggests and runtime support
 # packages needed by the Shiny reference client.
-cran_pkgs <- c(
-  "DBI", "RSQLite", "jsonlite", "Seurat", "Matrix", "uwot", "igraph",
-  "RANN", "ggplot2", "viridisLite", "shiny", "shinyFiles", "magrittr",
-  "DT", "plotly", "visNetwork", "zip", "colourpicker", "digest",
-  "SeuratObject", "irlba", "rnndescent", "FNN"
-)
+cran_pkgs <- lock$CRANPackages
 source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
 provision_cran_namespaces(cran_pkgs, repo = getOption("repos")[["CRAN"]])
-verify_namespaces(cran_pkgs, "CRAN-managed")
 
-if (requireNamespace("BPCells", quietly = TRUE)) {
+if (is_installed("BPCells")) {
   remove.packages("BPCells")
 }
 remotes::install_github(
-  repo = "bnprks/BPCells",
+  repo = lock$GitHubBPCellsRepo,
   ref = bpcells_r_ref,
-  subdir = "r",
-  upgrade = "never"
+  subdir = lock$GitHubBPCellsSubdir,
+  upgrade = "never",
+  dependencies = NA
 )
 installed_bpcells_ref <- as.character(utils::packageDescription("BPCells")$RemoteSha)
 if (is.na(installed_bpcells_ref) || !nzchar(installed_bpcells_ref)) installed_bpcells_ref <- ""
@@ -192,35 +188,21 @@ if (!identical(installed_bpcells_ref, bpcells_r_ref)) {
 
 # Bioconductor release-managed declared Suggests and their direct genomic
 # support packages. Do not add GitHub-only packages to this list.
-bioc_suggests <- c(
-  "BiocParallel", "BSgenome.Hsapiens.UCSC.hg19",
-  "BSgenome.Mmusculus.UCSC.mm10", "chromVAR", "GenomeInfoDb",
-  "GenomicRanges", "IRanges", "JASPAR2020", "motifmatchr",
-  "SingleCellExperiment", "SummarizedExperiment", "S4Vectors",
-  "zellkonverter", "rhdf5", "slingshot", "TFBSTools", "UCell"
-)
-bioc_support_pkgs <- c(
-  "BiocParallel", "S4Vectors", "IRanges", "Biostrings",
-  "SummarizedExperiment", "SingleCellExperiment", "GenomicRanges",
-  "GenomeInfoDb", "TFBSTools", "chromVAR", "motifmatchr", "JASPAR2020",
-  "BSgenome", "BSgenome.Mmusculus.UCSC.mm10",
-  "BSgenome.Hsapiens.UCSC.hg19", "slingshot", "UCell", "zellkonverter",
-  "rhdf5"
-)
-BiocManager::install(bioc_support_pkgs, ask = FALSE, update = FALSE, force = TRUE)
-verify_namespaces(bioc_suggests, "Bioconductor release-managed")
+bioc_support_pkgs <- lock$BioconductorPackages
+BiocManager::install(bioc_support_pkgs, ask = FALSE, update = FALSE, force = TRUE, dependencies = NA)
 
-installed_monocle3_ref <- if (requireNamespace("monocle3", quietly = TRUE)) {
+installed_monocle3_ref <- if (is_installed("monocle3")) {
   as.character(utils::packageDescription("monocle3")$RemoteSha)
 } else {
   ""
 }
 if (is.na(installed_monocle3_ref) || !identical(installed_monocle3_ref, monocle3_ref)) {
-  if (requireNamespace("monocle3", quietly = TRUE)) remove.packages("monocle3")
+  if (is_installed("monocle3")) remove.packages("monocle3")
   remotes::install_github(
-    repo = "cole-trapnell-lab/monocle3",
+    repo = lock$GitHubMonocle3Repo,
     ref = monocle3_ref,
-    upgrade = "never"
+    upgrade = "never",
+    dependencies = NA
   )
   installed_monocle3_ref <- as.character(utils::packageDescription("monocle3")$RemoteSha)
 }
@@ -236,14 +218,9 @@ remotes::install_local("/opt/scworkbench", upgrade = "never", dependencies = FAL
 # dependencies through BiocManager: GitHub-only packages are not release
 # managed. Development GenomicRanges depends on standalone Seqinfo, while
 # release GenomeInfoDb owns the Seqinfo S4 API.
-seqinfo_release_family <- c(
-  "GenomeInfoDb", "GenomicRanges", "IRanges", "S4Vectors", "Biostrings",
-  "SummarizedExperiment", "SingleCellExperiment", "BSgenome",
-  "BSgenome.Hsapiens.UCSC.hg19", "BSgenome.Mmusculus.UCSC.mm10",
-  "chromVAR", "motifmatchr", "TFBSTools", "slingshot"
-)
-BiocManager::install(seqinfo_release_family, ask = FALSE, update = FALSE, force = TRUE)
-if (requireNamespace("Seqinfo", quietly = TRUE)) {
+seqinfo_release_family <- lock$BioconductorGenomicFamily
+BiocManager::install(seqinfo_release_family, ask = FALSE, update = FALSE, force = TRUE, dependencies = NA)
+if (is_installed("Seqinfo")) {
   remaining_dependents <- tools::package_dependencies(
     "Seqinfo",
     db = installed.packages(),
@@ -259,30 +236,14 @@ if (requireNamespace("Seqinfo", quietly = TRUE)) {
   remove.packages("Seqinfo")
 }
 
-source_class <- c(
-  setNames(rep("CRAN", length(cran_pkgs)), cran_pkgs),
-  setNames(rep("Bioconductor release", length(bioc_suggests)), bioc_suggests),
-  BPCells = "Pinned GitHub",
-  monocle3 = "Pinned GitHub",
-  methods = "R base"
-)
-declared_suggests <- trimws(strsplit(read.dcf("/opt/scworkbench/DESCRIPTION")[1L, "Suggests"], ",", fixed = TRUE)[[1L]])
-declared_suggests <- trimws(sub("\\s*\\(.*$", "", declared_suggests))
-unclassified <- setdiff(declared_suggests, names(source_class))
-if (length(unclassified)) {
-  stop("Declared Suggests have no fullstack source class: ", paste(unclassified, collapse = ", "))
-}
-source_ref <- source_class
-source_ref[source_class == "CRAN"] <- getOption("repos")[["CRAN"]]
-source_ref[source_class == "Bioconductor release"] <- paste0("Bioconductor ", BiocManager::version())
-source_ref["BPCells"] <- paste0("github:bnprks/BPCells@", bpcells_r_ref)
-source_ref["monocle3"] <- paste0("github:cole-trapnell-lab/monocle3@", monocle3_ref)
-source_ref["methods"] <- paste0("R ", getRversion())
+source_class <- fullstack_source_classes(lock, "/opt/scworkbench/DESCRIPTION")
+source_ref <- fullstack_source_refs(lock, source_class)
+product_packages <- names(source_class)
 source_manifest <- data.frame(
-  package = declared_suggests,
-  source_class = unname(source_class[declared_suggests]),
-  source_ref = unname(source_ref[declared_suggests]),
-  version = vapply(declared_suggests, function(package) {
+  package = product_packages,
+  source_class = unname(source_class[product_packages]),
+  source_ref = unname(source_ref[product_packages]),
+  version = vapply(product_packages, function(package) {
     as.character(utils::packageVersion(package))
   }, character(1)),
   stringsAsFactors = FALSE
@@ -298,12 +259,13 @@ runtime_provenance <- c(
     if (is.na(x) || !nzchar(x)) "" else x
   }),
   paste0("rcpp_version=", as.character(utils::packageVersion("Rcpp"))),
-  paste0("rhdf5_version=", if (requireNamespace("rhdf5", quietly = TRUE)) as.character(utils::packageVersion("rhdf5")) else "not_installed"),
+  paste0("rhdf5_version=", if (is_installed("rhdf5")) as.character(utils::packageVersion("rhdf5")) else "not_installed"),
   paste0("hdf5_system=", system("h5cc -showconfig 2>/dev/null | head -n 1", intern = TRUE)),
   paste0("bioconductor_version=", BiocManager::version()),
   paste0("github_bpcells_ref=", bpcells_r_ref),
   paste0("github_monocle3_ref=", monocle3_ref),
-  "package_source_manifest=/opt/scworkbench_package_sources.csv"
+  "package_source_manifest=/opt/scworkbench_package_sources.csv",
+  "package_validation_manifest=/opt/scworkbench_package_validation.csv"
 )
 python_bpcells_provenance <- readLines("/tmp/scworkbench_bpcells_python_provenance.env", warn = FALSE)
 runtime_provenance <- c(runtime_provenance, python_bpcells_provenance)
@@ -312,6 +274,10 @@ EOF
 
     Rscript /tmp/install_scworkbench_stack.R
     rm -f /tmp/install_scworkbench_stack.R
+    Rscript /opt/scworkbench/inst/ci/validate_fullstack_r_dependencies.R \
+      --lock /opt/scworkbench/containers/apptainer/fullstack_r_dependencies.dcf \
+      --description /opt/scworkbench/DESCRIPTION \
+      --manifest /opt/scworkbench_package_validation.csv
     Rscript /opt/scworkbench/inst/ci/check_declared_suggests.R \
       --description /opt/scworkbench/DESCRIPTION \
       --manifest /opt/scworkbench_declared_suggests.csv

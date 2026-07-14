@@ -42,6 +42,10 @@ echo "==> Baked package source manifest"
 singularity exec --cleanenv "${IMAGE_PATH}" \
   cat /opt/scworkbench_package_sources.csv
 
+echo "==> Baked fresh-process package validation"
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  cat /opt/scworkbench_package_validation.csv
+
 echo "==> Non-forced release gate"
 singularity exec --cleanenv \
   --bind "${CHECKOUT}:/work/scworkbench" \

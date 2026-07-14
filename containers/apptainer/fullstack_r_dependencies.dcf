@@ -1,0 +1,21 @@
+SchemaVersion: scworkbench.fullstack.rdeps.v1
+CRANRepository: https://cloud.r-project.org
+BioconductorRelease: 3.21
+CRANPackages: DBI, RSQLite, jsonlite, Seurat, Matrix, uwot, igraph,
+    RANN, ggplot2, viridisLite, shiny, shinyFiles, magrittr, DT, plotly,
+    visNetwork, zip, colourpicker, digest, SeuratObject, irlba, rnndescent,
+    FNN
+BioconductorPackages: BiocParallel, BSgenome.Hsapiens.UCSC.hg19,
+    BSgenome.Mmusculus.UCSC.mm10, chromVAR, GenomeInfoDb, GenomicRanges,
+    IRanges, JASPAR2020, motifmatchr, SingleCellExperiment,
+    SummarizedExperiment, S4Vectors, zellkonverter, rhdf5, slingshot,
+    TFBSTools, UCell, Biostrings, BSgenome
+BioconductorGenomicFamily: GenomeInfoDb, GenomicRanges, IRanges, S4Vectors,
+    Biostrings, SummarizedExperiment, SingleCellExperiment, BSgenome,
+    BSgenome.Hsapiens.UCSC.hg19, BSgenome.Mmusculus.UCSC.mm10, chromVAR,
+    motifmatchr, TFBSTools, slingshot
+GitHubBPCellsRepo: bnprks/BPCells
+GitHubBPCellsRef: c293a0a34e653c395c8e9bf9ed3133107324d7b7
+GitHubBPCellsSubdir: r
+GitHubMonocle3Repo: cole-trapnell-lab/monocle3
+GitHubMonocle3Ref: 4f4239a0afb0dd1941a0359ba6bec95eb0ccf628
