@@ -19,7 +19,8 @@ semantics locally.
 ## Core Contract References
 
 - Engine identity and guardrails: `AGENTS.md`
-- Shared foundation: `docs/agent_shared_foundation.md`
+- Shipped onboarding library: `inst/onboarding/README.md`
+- Shared foundation: `inst/onboarding/SHARED_FOUNDATION.md`
 - Stable foundation contracts: `inst/foundation_contracts.md`
 - Extension rules: `docs/engine_extension_patterns.md`
 - Exported surface map: `docs/exported_functions_overview.md`
@@ -124,7 +125,7 @@ Any cross-repo or contract-adjacent change should carry a dated handoff under:
 ../handoffs/YYYY-MM-DD_short_description.md
 ```
 
-Use `docs/agent_handoff_template.md` as the source template, then paste the
+Use `inst/onboarding/templates/HANDOFF_TEMPLATE.md` as the source template, then paste the
 completed handoff into the controller/accountant thread.
 
 Minimum declaration:

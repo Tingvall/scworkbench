@@ -57,10 +57,10 @@ wb_session_dag(s, bundle = b, include_artifacts = TRUE, include_active = TRUE)
 
 ## Where To Read Next
 
-- `docs/agent_shared_foundation.md`
-- `docs/agent_engineer_onboarding.md`
-- `docs/agent_biologist_onboarding.md`
-- `docs/agent_playbook.md`
-- `docs/agent_recipes.md`
+- `inst/onboarding/SHARED_FOUNDATION.md`
+- `inst/onboarding/AGENT_ENGINEER_GUIDE.md`
+- `inst/onboarding/AGENT_BIOLOGIST_GUIDE.md`
+- `inst/onboarding/PLAYBOOK.md`
+- `inst/onboarding/RECIPES.md`
 - `docs/foundation_checklist.md`
 - `docs/tabular_primitives.md`

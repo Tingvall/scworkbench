@@ -162,6 +162,9 @@ See `docs/exported_functions_overview.md` for a broader function map.
 
 Start here:
 
+- `inst/onboarding/README.md`: shipped onboarding library for any agent or
+  computational operator. After installation, obtain it with
+  `system.file("onboarding", package = "scworkbench")`.
 - `AGENTS.md`: engine guardrails and coding-agent brief.
 - `docs/contracts.md`: cross-repo contract index.
 - `inst/foundation_contracts.md`: bundle/getter/selector foundation contracts.
