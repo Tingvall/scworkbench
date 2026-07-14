@@ -1,6 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.Rhistory$
+^\.git$
 ^\.tmp_exports_overview\.csv$
 ^\.agents$
 ^\.codex$
