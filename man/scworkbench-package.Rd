@@ -8,4 +8,16 @@
 \description{
 A portable bundle format + IO layer for single-cell work.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://gitlab.liu.se/hende58/scworkbench}
+  \item Report bugs at \url{https://gitlab.liu.se/hende58/scworkbench/-/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Hendrik de Weerd \email{dirkdeweerd.work@gmail.com}
+
+}
 \keyword{internal}
