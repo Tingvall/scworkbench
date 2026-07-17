@@ -13,7 +13,8 @@ wb_client_run(session, bundle, op_name, ..., inputs = list(), notes = NULL)
 
 \item{op_name}{Operation name.}
 
-\item{...}{Additional op args forwarded to \code{wb_session_run_op()}.}
+\item{...}{Must be empty. Supply all operation inputs and parameters through
+\code{inputs}.}
 
 \item{inputs}{Named list of op inputs.}
 

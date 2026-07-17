@@ -6,6 +6,31 @@
   x
 }
 
+# BPCells packed compression is intended for integer-like count matrices. A
+# normalized matrix is continuous, so persist it as an explicit uncompressed
+# double matrix rather than relying on packed floating-point conversion.
+.wb_matrix_write_continuous <- function(mat, out_dir) {
+  .wb_require_pkg("BPCells", "continuous matrix transform write")
+  typed <- BPCells::convert_matrix_type(mat, "double")
+  BPCells::write_matrix_dir(typed, out_dir, compress = FALSE)
+  .wb_bp_open_matrix_dir(out_dir)
+}
+
+.wb_matrix_assert_transform_signal <- function(persisted, source_library_size, context) {
+  source_library_size <- as.numeric(source_library_size)
+  source_nonzero <- is.finite(source_library_size) & source_library_size > 0
+  if (!any(source_nonzero)) return(invisible(TRUE))
+
+  output_signal <- as.numeric(Matrix::colSums(persisted))
+  .wb_assert(length(output_signal) == length(source_library_size),
+             paste0(context, ": persisted output cell count does not match source library sizes."))
+  .wb_assert(any(is.finite(output_signal) & output_signal > 0),
+             paste0(context, ": source matrix contains nonzero signal but persisted normalized output is all zero; output was not registered."))
+  .wb_assert(all(is.finite(output_signal[source_nonzero]) & output_signal[source_nonzero] > 0),
+             paste0(context, ": one or more nonzero source cells lost all signal during normalized matrix write; output was not registered."))
+  invisible(TRUE)
+}
+
 .wb_matrix_remove_existing <- function(bundle, matrix_id) {
   con <- bundle$con
   rows <- DBI::dbGetQuery(
@@ -59,6 +84,7 @@
                                             layer,
                                             feature_type,
                                             description,
+                                            source_library_size,
                                             source = "matrix_log_normalize") {
   con <- bundle$con
   safe_id <- .wb_matrix_id_path_safe(matrix_id)
@@ -67,10 +93,22 @@
   if (dir.exists(abs_path) || file.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
 
   .wb_require_pkg("BPCells", "matrix transform write")
-  BPCells::write_matrix_dir(mat, abs_path)
+  persisted <- tryCatch({
+    .wb_matrix_write_continuous(mat, abs_path)
+  }, error = function(e) {
+    if (dir.exists(abs_path) || file.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
+    stop(e)
+  })
+  tryCatch(
+    .wb_matrix_assert_transform_signal(persisted, source_library_size, "matrix_log_normalize"),
+    error = function(e) {
+      if (dir.exists(abs_path) || file.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
+      stop(e)
+    }
+  )
 
   now <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-  DBI::dbWithTransaction(con, {
+  tryCatch(DBI::dbWithTransaction(con, {
     DBI::dbWriteTable(
       con,
       "matrices",
@@ -130,6 +168,9 @@
       )
     }
     DBI::dbWriteTable(con, "features", feats_df, append = TRUE)
+  }), error = function(e) {
+    if (dir.exists(abs_path) || file.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
+    stop(e)
   })
 
   rel_path
@@ -152,26 +193,9 @@
   first_rel_path <- NA_character_
   all_cell_ids <- character(0)
   lib_sizes <- numeric(0)
+  created_paths <- character(0)
 
-  DBI::dbWithTransaction(con, {
-    DBI::dbWriteTable(
-      con,
-      "matrices",
-      data.frame(
-        matrix_id = as.character(matrix_id),
-        layer = as.character(layer),
-        feature_type = as.character(feature_type),
-        n_features = as.integer(length(feature_ids)),
-        n_cells = as.integer(sum(as.integer(fragments$n_cells))),
-        storage = "bpcells",
-        path = NA_character_,
-        description = as.character(description %||% paste0("Derived from ", source_matrix_id)),
-        stringsAsFactors = FALSE
-      ),
-      append = TRUE
-    )
-
-    src_feats <- DBI::dbGetQuery(
+  src_feats <- DBI::dbGetQuery(
       con,
       "SELECT feature_id, feature_type, chr, start, end
        FROM features
@@ -179,7 +203,7 @@
        ORDER BY rowid;",
       params = list(as.character(source_matrix_id))
     )
-    if (nrow(src_feats)) {
+  if (nrow(src_feats)) {
       src_feats <- src_feats[match(as.character(feature_ids), as.character(src_feats$feature_id)), , drop = FALSE]
       feats_df <- data.frame(
         matrix_id = as.character(matrix_id),
@@ -190,7 +214,7 @@
         end = suppressWarnings(as.integer(src_feats$end %||% NA_integer_)),
         stringsAsFactors = FALSE
       )
-    } else {
+  } else {
       feats_df <- data.frame(
         matrix_id = as.character(matrix_id),
         feature_id = as.character(feature_ids),
@@ -200,9 +224,8 @@
         end = NA_integer_,
         stringsAsFactors = FALSE
       )
-    }
-    DBI::dbWriteTable(con, "features", feats_df, append = TRUE)
-  })
+  }
+  fragment_rows <- vector("list", nrow(fragments))
 
   tryCatch({
     for (i in seq_len(nrow(fragments))) {
@@ -238,16 +261,16 @@
       )
       abs_path <- file.path(bundle$dir, rel_path)
       if (dir.exists(abs_path) || file.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
-      BPCells::write_matrix_dir(norm, abs_path)
-
-      wb_register_matrix_fragment(
-        con = con,
-        matrix_id = as.character(matrix_id),
-        path_rel = rel_path,
-        feature_ids = as.character(feature_ids),
+      created_paths <- c(created_paths, abs_path)
+      persisted <- .wb_matrix_write_continuous(norm, abs_path)
+      .wb_matrix_assert_transform_signal(
+        persisted,
+        lib_size,
+        paste0("matrix_log_normalize fragment ", frow$fragment_id[1])
+      )
+      fragment_rows[[i]] <- list(
+        path = rel_path,
         cell_ids = frag_cells,
-        source = "matrix_log_normalize",
-        created_at = now,
         description = paste0("Log-normalized fragment from ", frow$fragment_id[1])
       )
       if (is.na(first_rel_path)) first_rel_path <- rel_path
@@ -255,13 +278,42 @@
       lib_sizes <- c(lib_sizes, lib_size)
     }
 
-    DBI::dbExecute(
-      con,
-      "UPDATE matrices SET path = ?, n_cells = ? WHERE matrix_id = ?;",
-      params = list(first_rel_path, as.integer(length(all_cell_ids)), as.character(matrix_id))
-    )
+    DBI::dbWithTransaction(con, {
+      DBI::dbWriteTable(
+        con,
+        "matrices",
+        data.frame(
+          matrix_id = as.character(matrix_id),
+          layer = as.character(layer),
+          feature_type = as.character(feature_type),
+          n_features = as.integer(length(feature_ids)),
+          n_cells = as.integer(length(all_cell_ids)),
+          storage = "bpcells",
+          path = first_rel_path,
+          description = as.character(description %||% paste0("Derived from ", source_matrix_id)),
+          stringsAsFactors = FALSE
+        ),
+        append = TRUE
+      )
+      DBI::dbWriteTable(con, "features", feats_df, append = TRUE)
+      for (fragment_row in fragment_rows) {
+        wb_register_matrix_fragment(
+          con = con,
+          matrix_id = as.character(matrix_id),
+          path_rel = fragment_row$path,
+          feature_ids = as.character(feature_ids),
+          cell_ids = fragment_row$cell_ids,
+          source = "matrix_log_normalize",
+          created_at = now,
+          description = fragment_row$description
+        )
+      }
+    })
   }, error = function(e) {
     try(.wb_matrix_remove_existing(bundle, matrix_id), silent = TRUE)
+    for (path in created_paths) {
+      if (dir.exists(path) || file.exists(path)) unlink(path, recursive = TRUE, force = TRUE)
+    }
     stop(e)
   })
 
@@ -368,6 +420,7 @@ wb_op_matrix_log_normalize <- function(bundle,
       layer = layer,
       feature_type = feature_type,
       description = description,
+      source_library_size = lib_size,
       source = "matrix_log_normalize"
     )
     n_fragments <- as.integer(max(nrow(frags), 1L))
@@ -390,6 +443,7 @@ wb_op_matrix_log_normalize <- function(bundle,
     median_library_size = suppressWarnings(stats::median(lib_size, na.rm = TRUE)),
     max_library_size = suppressWarnings(max(lib_size, na.rm = TRUE)),
     path = rel_path,
+    storage_representation = "bpcells_uncompressed_double",
     stringsAsFactors = FALSE
   )
 

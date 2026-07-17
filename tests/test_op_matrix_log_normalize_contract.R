@@ -54,6 +54,10 @@ test_op_matrix_log_normalize_contract <- function() {
   expected <- log1p(t(t(as.matrix(mat)) / lib_size * 10000))
   dimnames(expected) <- dimnames(mat)
   stopifnot(isTRUE(all.equal(got, expected, tolerance = 1e-8, check.attributes = FALSE)))
+  out_info <- wb_matrix_info(b, "RNA_log1p_cp10k")
+  out_path <- file.path(b$dir, as.character(out_info$path[1]))
+  stopifnot(identical(BPCells::matrix_type(.wb_bp_open_matrix_dir(out_path)), "double"))
+  stopifnot(any(got != 0))
 
   summary <- rr$run$outputs$summary$table
   stopifnot(identical(as.character(summary$output_matrix_id[1]), "RNA_log1p_cp10k"))
@@ -79,6 +83,28 @@ test_op_matrix_log_normalize_contract <- function() {
     silent = TRUE
   )
   stopifnot(inherits(err, "try-error"))
+
+  # A persistence failure must not leave an all-zero transform registered when
+  # its declared source has nonzero library sizes.
+  bad_id <- "RNA_log_bad_zero"
+  zero_expr <- BPCells::multiply_cols(wb_matrix(b, "RNA_counts"), rep(0, length(cells)))
+  zero_err <- try(
+    .wb_matrix_register_transformed(
+      bundle = b,
+      matrix_id = bad_id,
+      source_matrix_id = "RNA_counts",
+      mat = zero_expr,
+      feature_ids = c("g1", "g2"),
+      cell_ids = cells,
+      layer = "log1p_cp10000",
+      feature_type = "gene",
+      description = "intentional zero-write regression fixture",
+      source_library_size = lib_size
+    ),
+    silent = TRUE
+  )
+  stopifnot(inherits(zero_err, "try-error"))
+  stopifnot(nrow(wb_matrix_info(b, bad_id)) == 0L)
 
   TRUE
 }
@@ -178,6 +204,10 @@ test_op_matrix_log_normalize_multifragment_contract <- function() {
   expected <- log1p(t(t(src) / lib_size * 10000))
   dimnames(expected) <- dimnames(src)
   stopifnot(isTRUE(all.equal(got, expected, tolerance = 1e-8, check.attributes = FALSE)))
+  for (path in file.path(b$dir, as.character(out_frags$path))) {
+    stopifnot(identical(BPCells::matrix_type(.wb_bp_open_matrix_dir(path)), "double"))
+  }
+  stopifnot(any(got != 0))
 
   summary <- rr$run$outputs$summary$table
   stopifnot(identical(as.integer(summary$n_cells[1]), 4L))

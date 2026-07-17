@@ -19,6 +19,30 @@
   if (!nzchar(x)) fallback else x
 }
 
+.wb_ingest_promote_staged_bundle <- function(stage_dir, final_dir, source_type) {
+  stage_manifest_path <- file.path(stage_dir, "manifest.json")
+  stage_manifest <- jsonlite::read_json(stage_manifest_path, simplifyVector = TRUE)
+  if (dir.exists(final_dir)) unlink(final_dir, recursive = TRUE, force = TRUE)
+  if (!isTRUE(file.rename(stage_dir, final_dir))) {
+    stop("Failed to promote staged ", source_type, " bundle to final bundle_dir: ", final_dir, call. = FALSE)
+  }
+
+  bundle <- wb_open_bundle(final_dir)
+  final_id <- basename(normalizePath(final_dir, winslash = "/", mustWork = FALSE))
+  id_policy <- bundle$manifest$id_policy %||% list()
+  id_policy$staging_provenance <- list(
+    source_type = as.character(source_type),
+    staging_bundle_id = as.character(stage_manifest$bundle_id %||% NA_character_)[1],
+    staging_bundle_name = as.character(stage_manifest$bundle_name %||% NA_character_)[1],
+    staging_dir_basename = basename(stage_dir)
+  )
+  bundle$manifest$bundle_id <- final_id
+  bundle$manifest$bundle_name <- final_id
+  bundle$manifest$id_policy <- id_policy
+  wb_refresh_manifest(bundle)
+  bundle
+}
+
 .wb_ingest_as_metadata_df <- function(x, row_ids, id_col = "cell_id") {
   if (is.null(x)) {
     out <- data.frame(stringsAsFactors = FALSE)
@@ -805,12 +829,7 @@ wb_bundle_from_10x_mtx <- function(input,
     wb_refresh_manifest(bundle)
     wb_close_bundle(bundle)
     bundle <- NULL
-    if (dir.exists(final_dir)) unlink(final_dir, recursive = TRUE, force = TRUE)
-    ok <- file.rename(stage_dir, final_dir)
-    if (!isTRUE(ok)) {
-      stop("Failed to promote staged 10x bundle to final bundle_dir: ", final_dir, call. = FALSE)
-    }
-    wb_open_bundle(final_dir)
+    .wb_ingest_promote_staged_bundle(stage_dir, final_dir, source_type = "10x_mtx")
   }, error = function(e) {
     if (!is.null(bundle)) try(wb_close_bundle(bundle), silent = TRUE)
     if (dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)
@@ -1207,12 +1226,7 @@ wb_bundle_from_h5ad <- function(input,
     wb_refresh_manifest(bundle)
     wb_close_bundle(bundle)
     bundle <- NULL
-    if (dir.exists(final_dir)) unlink(final_dir, recursive = TRUE, force = TRUE)
-    ok <- file.rename(stage_dir, final_dir)
-    if (!isTRUE(ok)) {
-      stop("Failed to promote staged h5ad bundle to final bundle_dir: ", final_dir, call. = FALSE)
-    }
-    wb_open_bundle(final_dir)
+    .wb_ingest_promote_staged_bundle(stage_dir, final_dir, source_type = "h5ad")
   }, error = function(e) {
     if (!is.null(bundle)) try(wb_close_bundle(bundle), silent = TRUE)
     if (dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)

@@ -400,6 +400,10 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(identical(as.integer(tenx_row$n_features[1]), 5L))
   stopifnot(identical(wb_feature_ids(b10x, "RNA_counts"), rownames(mat_a)))
   stopifnot(isTRUE(wb_validate_bundle(out_10x)))
+  tenx_manifest <- wb_manifest(b10x)
+  stopifnot(identical(as.character(tenx_manifest$bundle_id), basename(out_10x)))
+  stopifnot(identical(as.character(tenx_manifest$bundle_name), basename(out_10x)))
+  stopifnot(identical(as.character(tenx_manifest$id_policy$staging_provenance$source_type), "10x_mtx"))
   tenx_arts <- wb_art_list(b10x)
   stopifnot(any(tenx_arts$type == "obs_table" & tenx_arts$name == "container_ingest_report" & tenx_arts$source_op == "bundle_ingest_10x_mtx"))
   stopifnot(any(tenx_arts$type == "feature_table" & tenx_arts$name == "RNA_counts_feature_metadata"))
@@ -408,6 +412,40 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(identical(as.character(tenx_report$duplicate_cell_id_policy[1]), "prefix"))
   stopifnot(identical(as.integer(tenx_report$duplicate_cell_id_rows[1]), 2L))
   stopifnot(identical(as.character(tenx_report$duplicate_feature_id_policy[1]), "error"))
+
+  tenx_norm <- wb_session_run_op(
+    session = wb_session_new(),
+    bundle = b10x,
+    op_name = "matrix_log_normalize",
+    inputs = list(
+      matrix = "RNA_counts",
+      cell_set = "all",
+      min_cells = 1L,
+      output_matrix_id = "RNA_log1p_cp10k",
+      scale_factor = 10000,
+      overwrite = TRUE
+    )
+  )
+  tenx_source <- cbind(as.matrix(mat_a), as.matrix(mat_b))
+  tenx_expected <- log1p(t(t(tenx_source) / Matrix::colSums(tenx_source) * 10000))
+  tenx_got <- as.matrix(wb_slice(b10x, "RNA_log1p_cp10k", rownames(mat_a), tenx_cells))
+  stopifnot(isTRUE(all.equal(tenx_got, tenx_expected, tolerance = 1e-8, check.attributes = FALSE)))
+  stopifnot(any(tenx_got != 0))
+
+  tenx_hvg <- wb_session_run_op(
+    session = tenx_norm$session,
+    bundle = b10x,
+    op_name = "hvg_select",
+    inputs = list(
+      matrix = "RNA_log1p_cp10k",
+      cell_set = "all",
+      min_cells = 1L,
+      n_features = 3L,
+      method = "variance"
+    )
+  )
+  tenx_hvg_table <- tenx_hvg$run$outputs$selected_features$table
+  stopifnot(any(tenx_hvg_table$variance > 0))
 
   tenx_dup_feature_root <- tempfile("wb_10x_dup_feature_")
   dup_feature_mat <- mat_a

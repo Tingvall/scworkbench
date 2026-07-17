@@ -189,6 +189,8 @@ wb_op_markers_topn <- function(bundle,
     params = list(
       matrix_id = matrix_id,
       n_clusters = length(labs),
+      n_features_requested = length(feature_ids),
+      feature_subset_supplied = !is.null(features),
       n_markers = nrow(markers),
       top_n = as.integer(top_n),
       min_pct = as.numeric(min_pct),

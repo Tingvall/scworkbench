@@ -118,8 +118,10 @@ where optional packages differ from the development workstation.
 materialization.
 
 `matrix_log_normalize` supports both single-fragment and multi-fragment BPCells
-matrices. Multi-fragment logical matrices are normalized fragment-by-fragment
-and registered as multi-fragment output matrices with the same cell partitions.
+matrices. It persists normalized continuous values as uncompressed BPCells
+double matrices, verifies that nonzero source signal remains nonzero after the
+write, and only then registers the output. Multi-fragment logical matrices are
+normalized fragment-by-fragment and retain the same cell partitions.
 
 `pca_fit` reads only the selected feature block. The default backend is
 `irlba::prcomp_irlba()`, which is the intended path for large sparse/backed

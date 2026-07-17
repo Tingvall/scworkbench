@@ -128,6 +128,11 @@ parameters, outputs, runtime requirements, and promotion behavior. Semantic
 catalog/search clients may assist discovery, but the operation interface is the
 final execution contract.
 
+Supply every operation input and parameter exclusively through the named
+`inputs` list. `wb_session_run_op(..., top_n = 3)` is rejected; use
+`inputs = list(..., top_n = 3)` so the complete execution contract is visible
+and recorded with the run.
+
 ## From Scientific Question to Computation
 
 Decompose a question into explicit, evidence-bearing subquestions. For

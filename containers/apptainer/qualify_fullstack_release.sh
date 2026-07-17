@@ -10,9 +10,16 @@ CHECKOUT="${2:-${REPO_ROOT}}"
 
 test -f "${IMAGE_PATH}"
 test -f "${CHECKOUT}/inst/ci/check_release_package.sh"
+test -f "${CHECKOUT}/inst/onboarding/AGENT_OPERATOR_GUIDE.md"
 
 echo "==> Candidate image"
 sha256sum "${IMAGE_PATH}"
+
+echo "==> Shipped onboarding path"
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  test -f /opt/scworkbench/inst/onboarding/AGENT_OPERATOR_GUIDE.md
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  Rscript -e 'stopifnot(nzchar(system.file("onboarding", "README.md", package = "scworkbench"))); stopifnot(nzchar(system.file("onboarding", "AGENT_OPERATOR_GUIDE.md", package = "scworkbench")))'
 
 echo "==> Native runtime provenance"
 singularity exec --cleanenv "${IMAGE_PATH}" bash -lc '

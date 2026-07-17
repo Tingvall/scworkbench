@@ -13,7 +13,8 @@ wb_session_run_op(session, bundle, op_name, ..., inputs = list(), notes = NULL)
 
 \item{op_name}{Registered operation name.}
 
-\item{...}{Operation parameters forwarded to the registered runner.}
+\item{...}{Must be empty. Supply all operation inputs and parameters through
+the named \code{inputs} list.}
 
 \item{inputs}{Named typed primitives, references, or supported symbolic
 inputs for the operation.}
@@ -21,7 +22,9 @@ inputs for the operation.}
 \item{notes}{Optional run notes.}
 }
 \value{
-The updated session containing the completed run.
+A list with \code{session} (the updated \code{wb_session}), \code{run} (the
+completed \code{wb_run}), and \code{result} (the operation result). Continue a
+session with \verb{rr <- wb_session_run_op(...); session <- rr$session}.
 }
 \description{
 This is the programmatic session executor used by clients and integrations.

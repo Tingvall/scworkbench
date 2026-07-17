@@ -69,17 +69,22 @@ wb_client_select <- function(bundle, plan, session = NULL, runs = NULL) {
 #' @param session wb_session object.
 #' @param bundle scworkbench bundle handle.
 #' @param op_name Operation name.
-#' @param ... Additional op args forwarded to `wb_session_run_op()`.
+#' @param ... Must be empty. Supply all operation inputs and parameters through
+#'   `inputs`.
 #' @param inputs Named list of op inputs.
 #' @param notes Optional run notes.
 #' @return List with `session`, `run`, and `result` from `wb_session_run_op()`.
 #' @export
 wb_client_run <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
+  dots <- list(...)
+  .wb_assert(
+    length(dots) == 0L,
+    "wb_client_run(): operation inputs and parameters must be supplied in inputs."
+  )
   wb_session_run_op(
     session = session,
     bundle = bundle,
     op_name = op_name,
-    ...,
     inputs = inputs,
     notes = notes
   )

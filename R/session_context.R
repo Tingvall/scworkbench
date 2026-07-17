@@ -258,13 +258,25 @@ wb_session_add_run <- function(session, run) {
 #' @param session A `wb_session`.
 #' @param bundle An open scworkbench bundle.
 #' @param op_name Registered operation name.
-#' @param ... Operation parameters forwarded to the registered runner.
+#' @param ... Must be empty. Supply all operation inputs and parameters through
+#'   the named `inputs` list.
 #' @param inputs Named typed primitives, references, or supported symbolic
 #'   inputs for the operation.
 #' @param notes Optional run notes.
-#' @return The updated session containing the completed run.
+#' @return A list with `session` (the updated `wb_session`), `run` (the
+#'   completed `wb_run`), and `result` (the operation result). Continue a
+#'   session with `rr <- wb_session_run_op(...); session <- rr$session`.
 #' @export
 wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
+  dots <- list(...)
+  .wb_assert(
+    length(dots) == 0L,
+    paste0(
+      "wb_session_run_op(): operation inputs and parameters must be supplied in inputs. ",
+      "Use wb_session_run_op(session, bundle, '", as.character(op_name)[1],
+      "', inputs = list(matrix = ..., features = ..., top_n = ...))."
+    )
+  )
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   op <- .wb_op(op_name)
   .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs)
@@ -313,8 +325,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     bundle = bundle,
     resolved = resolved,
     effective_cells = effective_cells,
-    inputs = inputs,
-    ...
+    inputs = inputs
   )
   res <- .wb_assert_op_result(op_name, res)
 

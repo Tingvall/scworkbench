@@ -29,5 +29,8 @@ test_validate_bundle_contract <- function() {
   wb_attach_matrix(b, matrix_id = "RNA_counts", mat = mat, feature_type = "gene")
 
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
+  wrong_type <- try(wb_validate_bundle(b), silent = TRUE)
+  stopifnot(inherits(wrong_type, "try-error"))
+  stopifnot(grepl("one non-empty path string", as.character(wrong_type), fixed = TRUE))
   TRUE
 }

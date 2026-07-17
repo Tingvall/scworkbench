@@ -9,6 +9,12 @@
 #' @return TRUE if valid, otherwise errors
 #' @export
 wb_validate_bundle <- function(bundle_dir) {
+  if (!is.character(bundle_dir) || length(bundle_dir) != 1L || is.na(bundle_dir) || !nzchar(bundle_dir)) {
+    stop(
+      "wb_validate_bundle(): bundle_dir must be one non-empty path string; pass bundle$dir, not an open scworkbench_bundle handle.",
+      call. = FALSE
+    )
+  }
   failed_marker <- file.path(bundle_dir, "INGEST_FAILED.json")
   if (file.exists(failed_marker)) {
     stop("Bundle ingestion failed/incomplete; see marker: ", failed_marker, call. = FALSE)
