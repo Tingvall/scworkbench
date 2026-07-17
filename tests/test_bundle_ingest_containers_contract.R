@@ -447,6 +447,95 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   tenx_hvg_table <- tenx_hvg$run$outputs$selected_features$table
   stopifnot(any(tenx_hvg_table$variance > 0))
 
+  # A one-library Matrix Market import is a single physical fragment. BPCells
+  # payload dimnames are optional here, so normalization must use the fragment
+  # registry rather than colnames() to align library sizes with cell IDs.
+  one_tenx_root <- tempfile("wb_10x_one_library_")
+  p_one <- write_10x_triplet(one_tenx_root, "GSM1_R1_Pupa", mat_a)
+  one_st <- data.frame(
+    sample_id = "R1_Pupa",
+    matrix_path = p_one$matrix_path,
+    barcodes_path = p_one$barcodes_path,
+    features_path = p_one$features_path,
+    stage = "Pupa",
+    stringsAsFactors = FALSE
+  )
+  out_10x_one <- tempfile("wb_10x_one_library_bundle_")
+  b10x_one <- wb_bundle_from_10x_mtx(
+    one_tenx_root,
+    bundle_dir = out_10x_one,
+    sample_table = one_st,
+    matrix_id = "RNA_counts",
+    overwrite = TRUE,
+    created_by = "test"
+  )
+  on.exit(wb_close_bundle(b10x_one), add = TRUE)
+  one_cells <- wb_cells(b10x_one, "core")
+  one_raw <- wb_matrix(b10x_one, "RNA_counts")
+  one_raw_without_names <- one_raw
+  colnames(one_raw_without_names) <- NULL
+  stopifnot(is.null(colnames(one_raw_without_names)))
+  legacy_sizes <- as.numeric(Matrix::colSums(one_raw_without_names))
+  names(legacy_sizes) <- colnames(one_raw_without_names)
+  legacy_sizes <- legacy_sizes[match(one_cells, names(legacy_sizes))]
+  stopifnot(all(is.na(legacy_sizes)))
+  stopifnot(identical(
+    .wb_matrix_single_fragment_cell_ids(
+      b10x_one,
+      "RNA_counts",
+      one_raw_without_names,
+      one_cells
+    ),
+    one_cells
+  ))
+  wrong_order <- try(
+    .wb_matrix_single_fragment_cell_ids(
+      b10x_one,
+      "RNA_counts",
+      one_raw_without_names,
+      rev(one_cells)
+    ),
+    silent = TRUE
+  )
+  stopifnot(inherits(wrong_order, "try-error"))
+
+  one_norm <- wb_session_run_op(
+    session = wb_session_new(),
+    bundle = b10x_one,
+    op_name = "matrix_log_normalize",
+    inputs = list(
+      matrix = "RNA_counts",
+      cell_set = "all",
+      min_cells = 1L,
+      output_matrix_id = "RNA_log1p_cp10k",
+      scale_factor = 10000,
+      overwrite = TRUE
+    )
+  )
+  one_expected <- log1p(t(t(as.matrix(mat_a)) / Matrix::colSums(mat_a) * 10000))
+  one_got <- as.matrix(wb_slice(b10x_one, "RNA_log1p_cp10k", rownames(mat_a), one_cells))
+  one_summary <- one_norm$run$outputs$summary$table
+  one_info <- wb_matrix_info(b10x_one, "RNA_log1p_cp10k")
+  one_path <- file.path(b10x_one$dir, as.character(one_info$path[1]))
+  stopifnot(isTRUE(all.equal(one_got, one_expected, tolerance = 1e-8, check.attributes = FALSE)))
+  stopifnot(any(one_got != 0))
+  stopifnot(identical(as.integer(one_summary$n_zero_library_cells[1]), 0L))
+  stopifnot(identical(BPCells::matrix_type(.wb_bp_open_matrix_dir(one_path)), "double"))
+
+  one_hvg <- wb_session_run_op(
+    session = one_norm$session,
+    bundle = b10x_one,
+    op_name = "hvg_select",
+    inputs = list(
+      matrix = "RNA_log1p_cp10k",
+      cell_set = "all",
+      min_cells = 1L,
+      n_features = 3L,
+      method = "variance"
+    )
+  )
+  stopifnot(any(one_hvg$run$outputs$selected_features$table$variance > 0))
+
   tenx_dup_feature_root <- tempfile("wb_10x_dup_feature_")
   dup_feature_mat <- mat_a
   rownames(dup_feature_mat) <- c("dup_gene", "dup_gene", "gene3", "gene4", "gene5")

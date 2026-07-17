@@ -31,6 +31,29 @@
   invisible(TRUE)
 }
 
+.wb_matrix_single_fragment_cell_ids <- function(bundle, matrix_id, mat, bundle_cell_ids) {
+  fragments <- wb_matrix_fragments(bundle, matrix_id)
+  .wb_assert(
+    nrow(fragments) == 1L,
+    paste0("matrix_log_normalize: single-fragment matrix '", matrix_id,
+           "' requires exactly one registered matrix fragment to resolve cell order.")
+  )
+  fragment_cell_ids <- as.character(jsonlite::fromJSON(fragments$cell_ids_json[1]))
+  .wb_assert(
+    length(fragment_cell_ids) == ncol(mat),
+    paste0("matrix_log_normalize: fragment cell count does not match matrix columns for '", matrix_id, "'.")
+  )
+  .wb_assert(
+    identical(fragment_cell_ids, as.character(bundle_cell_ids)),
+    paste0("matrix_log_normalize: registered fragment cell order does not match the logical bundle cell universe for '", matrix_id, "'.")
+  )
+
+  # Payload dimnames are optional convenience metadata. For example, a 10x
+  # payload may retain raw barcodes while the bundle uses sample-prefixed
+  # canonical IDs. Never use payload dimnames to resolve cell identity here.
+  fragment_cell_ids
+}
+
 .wb_matrix_remove_existing <- function(bundle, matrix_id) {
   con <- bundle$con
   rows <- DBI::dbGetQuery(
@@ -398,9 +421,14 @@ wb_op_matrix_log_normalize <- function(bundle,
     n_fragments <- reg$n_fragments
   } else {
     m <- wb_matrix(bundle, matrix_id)
+    cell_ids <- .wb_matrix_single_fragment_cell_ids(
+      bundle = bundle,
+      matrix_id = matrix_id,
+      mat = m,
+      bundle_cell_ids = cell_ids
+    )
     lib_size <- as.numeric(Matrix::colSums(m))
-    names(lib_size) <- colnames(m)
-    lib_size <- lib_size[match(cell_ids, names(lib_size))]
+    names(lib_size) <- cell_ids
     .wb_assert(length(lib_size) == length(cell_ids), "library size/cell alignment failed")
     denom <- lib_size
     denom[!is.finite(denom) | denom <= 0] <- Inf
