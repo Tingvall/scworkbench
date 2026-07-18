@@ -42,6 +42,26 @@
   dst
 }
 
+.wb_prepare_staged_payload <- function(staging_bundle, workspace, rel_path) {
+  rel_path <- as.character(rel_path %||% "")[1]
+  .wb_assert(nzchar(rel_path) && !startsWith(rel_path, "/") && !grepl("(^|/)\\.\\.(/|$)", rel_path), "Unsafe staged payload path")
+  src <- file.path(staging_bundle$dir, rel_path)
+  pending_path <- .wb_promotion_workspace_path(workspace, rel_path)
+  .wb_assert(file.exists(src) || dir.exists(src), paste0("Missing staged payload: ", src))
+  ok <- file.copy(src, dirname(pending_path), recursive = TRUE, copy.date = TRUE)
+  .wb_assert(isTRUE(ok), paste0("Failed to prepare staged payload: ", rel_path))
+  invisible(rel_path)
+}
+
+.wb_stage_prepare_matrix_payloads <- function(staging_bundle, workspace, matrix_id) {
+  row <- DBI::dbGetQuery(staging_bundle$con, "SELECT * FROM matrices WHERE matrix_id = ?;", params = list(matrix_id))
+  .wb_assert(nrow(row) == 1L, paste0("Staged matrix is missing: ", matrix_id))
+  frags <- DBI::dbGetQuery(staging_bundle$con, "SELECT * FROM matrix_fragments WHERE matrix_id = ?;", params = list(matrix_id))
+  paths <- unique(c(as.character(row$path %||% character(0)), as.character(frags$path %||% character(0))))
+  for (p in paths[nzchar(paths)]) .wb_prepare_staged_payload(staging_bundle, workspace, p)
+  invisible(workspace)
+}
+
 .wb_stage_commit_matrix <- function(staging_bundle, bundle, matrix_id) {
   src <- staging_bundle$con
   dst <- bundle$con

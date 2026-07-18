@@ -4,8 +4,14 @@
   pending_root <- file.path(bundle$dir, "provenance", ".pending", as.character(commit_id))
   .wb_assert(!dir.exists(pending_root), paste0("Promotion workspace already exists: ", pending_root))
   dir.create(pending_root, recursive = TRUE, showWarnings = FALSE)
-  structure(list(bundle = bundle, commit_id = as.character(commit_id), pending_root = pending_root,
-                 mappings = list(), published = character(0)), class = "wb_promotion_workspace")
+  workspace <- new.env(parent = emptyenv())
+  workspace$bundle <- bundle
+  workspace$commit_id <- as.character(commit_id)
+  workspace$pending_root <- pending_root
+  workspace$mappings <- list()
+  workspace$published <- character(0)
+  class(workspace) <- "wb_promotion_workspace"
+  workspace
 }
 
 .wb_promotion_workspace_path <- function(workspace, final_rel) {
@@ -17,7 +23,7 @@
   pending_abs <- file.path(workspace$pending_root, final_rel)
   dir.create(dirname(pending_abs), recursive = TRUE, showWarnings = FALSE)
   workspace$mappings[[final_rel]] <- list(pending = pending_abs, final = final_abs)
-  list(workspace = workspace, pending_path = pending_abs)
+  pending_abs
 }
 
 .wb_promotion_workspace_publish <- function(workspace) {
