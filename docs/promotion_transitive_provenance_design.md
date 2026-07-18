@@ -22,6 +22,16 @@ Intermediate closure runs are durable provenance records. They are not
 individually promoted artifacts unless the caller explicitly selects their
 outputs for promotion. Abandoned session branches are not committed.
 
+The first implementation must prove this contract for the release workflow:
+
+```text
+10x counts -> log normalize -> HVG -> PCA -> UMAP -> Leiden -> markers
+```
+
+It is not sufficient to implement only table or vector outputs. The staged
+matrix and space chain required by this workflow is part of the first vertical
+slice.
+
 ## Current State And Gap
 
 The engine already has useful pieces of the required model:
@@ -69,6 +79,35 @@ the session is discarded. A staged run records:
 The session object remains the interactive view of these records. No successful
 staged run appears in the bundle-level provenance DAG before promotion.
 
+Staging belongs to the session, not to the portable bundle. After a successful
+commit, staged payloads may be removed only after the committed copy/move has
+passed digest validation. Abandoned staging is removed through explicit
+`wb_session_discard()` or close semantics and a separately invoked garbage
+collection command. The initial implementation must not introduce silent
+time-based deletion.
+
+### Parent identity invariant
+
+A session-produced value retains its producing-run identity even when a caller
+uses a convenient matrix, space, or output name. A string such as
+`"RNA_log_normalized"` or `"pca"` must never silently downgrade a
+session-produced value to an unrelated committed bundle object with the same
+name.
+
+The canonical ergonomic route is **unambiguous session-active resolution**:
+
+- `wb_session_run_op()` records every produced output in `session$active` as a
+  typed `wb_ref_run(run_id, output)` reference.
+- An input name may resolve through that active binding only when it identifies
+  exactly one compatible session output.
+- A caller may always use an explicit `wb_ref_run(run_id, output)` reference.
+- If a string is both a compatible committed bundle identifier and an active
+  session output, resolution fails and asks for an explicit typed reference.
+
+The resolved-input snapshot stores the producing `run_id` and `output` for a
+session value. The promotion closure uses that identity to create the parent
+edge. Names remain usability aliases, never lineage identifiers.
+
 ### Operation side effects
 
 The desired default is that a session op writes new mutable payloads only into
@@ -79,6 +118,10 @@ Migration must classify operations before changing behavior:
 
 - **stage-capable**: tabular/vector/model/path payloads can be materialized in
   staging and promoted through the commit path.
+- **PBMC vertical-slice capable**: matrix normalization, HVG feature table,
+  PCA space, UMAP space, Leiden vector, and marker table are staged and linked
+  through the parent-identity invariant. These are mandatory in the first
+  implementation.
 - **eager bundle mutation**: the operation currently writes a matrix, space,
   registry row, or other final bundle state while it runs.
 - **external materialization**: output is produced by a Python tool, cluster
@@ -129,6 +172,84 @@ tests for interruption between filesystem and SQLite steps.
 transaction. A multi-head API may later offer independent transactions, but it
 must not silently commit a partial closure under one snapshot id.
 
+### PBMC vertical-slice data flow
+
+The required first vertical slice has this data flow. `S:` denotes session
+staging, `C:` a committed internal materialization, and `A:` a public artifact.
+
+```text
+Committed bundle
+  matrix: RNA_counts
+        |
+        | resolved committed input identity
+        v
+S:<session>/runs/r_norm/matrix/RNA_log_normalized
+  log_normalize (run r_norm)
+        |
+        | session-active typed reference: wb_ref_run(r_norm, "matrix")
+        v
+S:<session>/runs/r_hvg/table/selected_features
+  hvg_select (run r_hvg)
+        |
+        | wb_ref_run(r_norm, "matrix"), wb_ref_run(r_hvg, "selected_features")
+        v
+S:<session>/runs/r_pca/space/pca
+  pca (run r_pca)
+        |
+        | wb_ref_run(r_pca, "space")
+        v
+S:<session>/runs/r_umap/space/umap
+  umap_fit (run r_umap)
+        |
+        | wb_ref_run(r_umap, "space")
+        v
+S:<session>/runs/r_leiden/vector/clusters
+  leiden (run r_leiden)
+        |
+        | optional terminal promotion here
+        +------------------------------+
+                                       |
+S:<session>/runs/r_markers/table/markers
+  markers_topn (run r_markers)         |
+        |                              |
+        | selected terminal output     |
+        v                              v
+================ promotion transaction boundary ================
+  C:matrix/RNA_log_normalized     C:feature-table/selected_features
+  C:space/pca                    C:space/umap
+  internal provenance runs r_norm -> r_hvg -> r_pca -> r_umap -> r_leiden
+  A:cell_vector/clusters (only if selected)
+  A:feature_table/markers (only if selected)
+===============================================================
+        |
+        v
+Reopened bundle
+  wb_prov_artifact_lineage(A:markers) or wb_prov_bundle_dag()
+  returns every committed run and parent edge, while internal materializations
+  remain distinct from public artifacts.
+```
+
+Promotion of Leiden selects `A:clusters` and commits the closure through
+`r_leiden`; promotion of markers selects `A:markers` and commits the complete
+closure through `r_markers`. No other output is public merely because it is an
+ancestor.
+
+### UMAP-to-Leiden typing decision required before implementation
+
+The current op catalog gives `umap_fit` a `space_2d` output and gives `leiden`
+a required `space` input. Therefore the literal edge `umap_fit -> leiden` in
+the PBMC chain is not currently a valid typed edge. The first implementation
+must resolve this deliberately rather than bypassing typed input validation.
+
+The preferred resolution is to define whether a `space_2d` is a compatible
+subtype for the existing Leiden `space` input, with validation and provenance
+recording that preserve its `space_2d` identity. A separate explicit adapter is
+acceptable if subtype compatibility would weaken the primitive contract. Until
+one route is implemented, a current PBMC workflow can use PCA as the Leiden
+input and UMAP as a sibling visualization branch, but that does **not** satisfy
+the required literal UMAP-to-Leiden ancestry regression. Controller review is
+needed on the compatibility choice before runtime work begins.
+
 ## Materialization And Replay Boundary
 
 Every closure output is classified as one of:
@@ -156,8 +277,20 @@ resolve. The provenance validator should report reproducibility grades such as
 `replayable`, `inspectable_only`, or `missing_materialization`; it must not
 overstate replayability.
 
-The current `prov_runs` JSON fields are a useful base, but operation version
-and output materialization identity are not yet a complete replay contract.
+Every committed closure must record at minimum:
+
+- installed `scworkbench` package version and source revision when available;
+- R version;
+- operation implementation/version fingerprint;
+- relevant package and runtime fingerprint; and
+- container image digest when the execution is known to have occurred in a
+  Singularity/Apptainer image.
+
+The current `prov_runs` JSON fields are a useful base, but operation version,
+runtime fingerprint, and output materialization identity are not yet a complete
+replay contract. A closure is labelled `replayable` only when its required
+inputs/materializations and all required fingerprints validate. Otherwise it is
+labelled `inspectable_only` with the unmet conditions recorded.
 
 ## Proposed Schema Migration
 
@@ -199,9 +332,13 @@ s <- wb_session_run_op(s, b, "...", inputs = list(...))$session
 wb_session_promote_current(b, s, outputs = c("terminal_result"))
 ```
 
-The exact argument name for explicit output selection is an implementation
-decision. It must make terminal selection explicit and must default safely:
+The `outputs` argument selects public terminal outputs. Its default is defined
+as follows:
 
+- if the selected head has exactly one public/promotable terminal output, it
+  may be selected by default;
+- if the selected head has more than one public/promotable terminal output,
+  `outputs=` is required and the error lists available choices;
 - no implicit promotion of every ancestor output;
 - no implicit omission of a required internal materialization;
 - a clear result separating `public_artifacts`, `internal_materializations`,
@@ -250,15 +387,21 @@ that every parent output is a public artifact.
 
 ## Implementation Sequence
 
-1. Add a narrow contract test for terminal-only promotion of a two- or
-   three-run session closure. Assert all runs persist, only selected outputs are
-   public artifacts, and replay/audit can traverse the closure after reopening.
-2. Add transaction/commit metadata and change provenance snapshot writing to
-   record closure completeness independently of public artifacts.
-3. Stage primitive payload promotion for existing in-memory primitive kinds.
-4. Migrate one eager side-effect family at a time, beginning with the matrix and
-   space operations used in the PBMC workflow.
-5. Add crash/recovery tests and compatibility readers for legacy snapshots.
+1. Implement the PBMC vertical slice: stage the normalized matrix, HVG result,
+   PCA space, UMAP space, Leiden vector, and marker table in one session.
+   Regression tests must consume the matrix and both spaces through the
+   canonical session-active route and verify their producer-run edges survive
+   close/reopen.
+2. Add terminal-only promotion and transaction/commit metadata. Assert that a
+   promoted Leiden or markers result has the complete ancestry closure but only
+   selected terminal outputs are public artifacts.
+3. Change provenance snapshot writing to record closure completeness
+   independently of public artifacts, including resolved selections and replay
+   fingerprints.
+4. Add crash/recovery tests and compatibility readers for legacy snapshots.
+5. Migrate other eager side-effect families one at a time. Before migration,
+   they must clearly fail or be classified as eager/unavailable for discardable
+   session mode.
 6. Update DAG, identity-card, semantic catalog, fullstack, and consumer
    contracts only after the engine transaction is proven.
 
@@ -272,13 +415,6 @@ that every parent output is a public artifact.
 
 ## Controller Decisions Still Needed
 
-1. Is the first implementation allowed to support only stage-capable primitive
-   outputs and reject eager matrix/space operations, or must it migrate the
-   PBMC matrix/space chain in the same release?
-2. Should `wb_session_promote_current()` require explicit output names whenever
-   a head run has multiple promotable outputs, or use a documented terminal-head
-   default?
-3. What retention policy applies to completed session staging work after a
-   successful commit and to abandoned session work after a timeout?
-4. Which runtime fingerprints are mandatory for a result to be labelled
-   `replayable` rather than `inspectable_only`?
+The Controller decisions above resolve the first implementation boundary,
+terminal selection, staging retention, and minimum replayability fingerprint.
+Implementation remains paused pending review of this amended design.
