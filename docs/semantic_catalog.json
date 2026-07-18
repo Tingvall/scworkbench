@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-07-12T15:26:03+0200",
-  "record_count": 303,
+  "generated_at": "2026-07-18T14:36:08+0200",
+  "record_count": 304,
   "record_type_counts": {
     "artifact_type": 71,
-    "getter": 71,
+    "getter": 72,
     "op": 54,
     "parameter": 59,
     "plot": 12,
@@ -436,7 +436,7 @@
       "name": "umap_fit",
       "title": "UMAP fit (train model)",
       "description": "Fit a UMAP model on a space and store it for future projection.",
-      "search_text": "UMAP fit (train model)\nFit a UMAP model on a space and store it for future projection.\numap\nfit\nspace\nTRUE\ncell_set\nselect\nmodel\nmodel_ref\nReference to the fitted UMAP model.\nspace_2d\nThe fitted 2D embedding space id.\ndims\nint_range\nDims to use (e.g. 2:30).\nspace_id_out\nstring\nOutput 2D space id. Defaults to umap.<source_space>.\nn_neighbors\nint\n30\n2\n1e+05\nUMAP neighborhood size.\nmin_dist\ndbl\n0.3\n0\n1\nUMAP minimum distance.\nmetric\neuclidean\nDistance metric passed to uwot.\nnn_method\nchoice\nnndescent\nannoy\nfnn\nNearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.\nspread\nUMAP spread parameter.\nseed\nRandom seed.\noverwrite\nbool\nOverwrite existing model/coords.",
+      "search_text": "UMAP fit (train model)\nFit a UMAP model on a space and store it for future projection.\numap\nfit\nspace\nTRUE\ncell_set\nselect\nmodel\nmodel_ref\nReference to the fitted UMAP model.\nspace_2d\nThe fitted 2D embedding space id.\ndims\nint_range\nDims to use (e.g. 2:30).\nspace_id_out\nstring\nOutput 2D space id. Defaults to umap.<source_space>.\nn_neighbors\nint\n30\n2\n1e+05\nUMAP neighborhood size.\nmin_dist\ndbl\n0.3\n0\n1\nUMAP minimum distance.\nmetric\neuclidean\nDistance metric passed to uwot.\nnn_method\nchoice\nnndescent\nannoy\nfnn\nNearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.\nspread\nUMAP spread parameter.\nseed\nRandom seed.",
       "tags": ["op", "umap", "fit"],
       "payload": {
         "op_name": "umap_fit",
@@ -533,12 +533,6 @@
             "type": "int",
             "default": 1,
             "help": "Random seed."
-          },
-          {
-            "name": "overwrite",
-            "type": "bool",
-            "default": true,
-            "help": "Overwrite existing model/coords."
           }
         ],
         "promotable": ["space_2d", "model"],
@@ -7424,6 +7418,26 @@
       }
     },
     {
+      "record_id": "getter:wb_session_view",
+      "record_type": "getter",
+      "name": "wb_session_view",
+      "title": "Session Staging View",
+      "description": "Open the session-local bundle overlay containing staged outputs before promotion.",
+      "search_text": "Session Staging View\nOpen the session-local bundle overlay containing staged outputs before promotion.\nsession\nscworkbench_bundle\ninspect staged matrix or space output before promotion\ncontinue session-local analysis without mutating the portable bundle",
+      "tags": ["getter", "session"],
+      "payload": {
+        "function_name": "wb_session_view",
+        "title": "Session Staging View",
+        "category": "session",
+        "description": "Open the session-local bundle overlay containing staged outputs before promotion.",
+        "returns": "scworkbench_bundle",
+        "payload_level": "data",
+        "arguments": "session",
+        "use_when": ["inspect staged matrix or space output before promotion", "continue session-local analysis without mutating the portable bundle"],
+        "mutates": false
+      }
+    },
+    {
       "record_id": "getter:wb_nav_entities",
       "record_type": "getter",
       "name": "wb_nav_entities",
@@ -11459,9 +11473,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-07-12T15:26:03+0200",
-    "node_count": 303,
-    "edge_count": 882,
+    "generated_at": "2026-07-18T14:36:08+0200",
+    "node_count": 304,
+    "edge_count": 881,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -12170,6 +12184,12 @@
         "record_type": "getter",
         "name": "wb_session_dag_run_details",
         "title": "Session DAG Run Details"
+      },
+      {
+        "record_id": "getter:wb_session_view",
+        "record_type": "getter",
+        "name": "wb_session_view",
+        "title": "Session Staging View"
       },
       {
         "record_id": "getter:wb_nav_entities",
@@ -13492,12 +13512,6 @@
         "to": "parameter:seed",
         "edge_type": "has_parameter_semantics",
         "label": "param:seed"
-      },
-      {
-        "from": "op:umap_fit",
-        "to": "parameter:overwrite",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:overwrite"
       },
       {
         "from": "op:umap_fit",

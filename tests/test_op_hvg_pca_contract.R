@@ -101,7 +101,7 @@ test_op_hvg_pca_contract <- function() {
   stopifnot(identical(as.character(rr_pca$run$outputs$space$kind), "space"))
   stopifnot(identical(as.character(rr_pca$run$outputs$space$space_id), "rna.pca"))
   stopifnot(!"rna.pca" %in% as.character(wb_spaces(b)$space_id))
-  coords <- wb_space(rr_pca$session$staging_bundle, "rna.pca")
+  coords <- wb_space(wb_session_view(rr_pca$session), "rna.pca")
   stopifnot(is.data.frame(coords), nrow(coords) == 8L)
   stopifnot(all(c("cell_id", "x", "y") %in% names(coords)))
   stopifnot(all(is.finite(coords$x)), all(is.finite(coords$y)))

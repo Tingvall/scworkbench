@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-07-12T15:26:03+0200",
-  "node_count": 303,
-  "edge_count": 882,
+  "generated_at": "2026-07-18T14:36:08+0200",
+  "node_count": 304,
+  "edge_count": 881,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -711,6 +711,12 @@
       "record_type": "getter",
       "name": "wb_session_dag_run_details",
       "title": "Session DAG Run Details"
+    },
+    {
+      "record_id": "getter:wb_session_view",
+      "record_type": "getter",
+      "name": "wb_session_view",
+      "title": "Session Staging View"
     },
     {
       "record_id": "getter:wb_nav_entities",
@@ -2033,12 +2039,6 @@
       "to": "parameter:seed",
       "edge_type": "has_parameter_semantics",
       "label": "param:seed"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "parameter:overwrite",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:overwrite"
     },
     {
       "from": "op:umap_fit",

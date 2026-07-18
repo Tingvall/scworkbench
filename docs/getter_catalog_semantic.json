@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "2026-07-12T15:26:02+0200",
-  "getter_count": 71,
+  "generated_at": "2026-07-18T14:36:07+0200",
+  "getter_count": 72,
   "getters": [
     {
       "function_name": "wb_status",
@@ -705,6 +705,17 @@
       "payload_level": "metadata",
       "arguments": ["session", "run_id", "bundle"],
       "use_when": "explain one current session run",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_session_view",
+      "title": "Session Staging View",
+      "category": "session",
+      "description": "Open the session-local bundle overlay containing staged outputs before promotion.",
+      "returns": "scworkbench_bundle",
+      "payload_level": "data",
+      "arguments": "session",
+      "use_when": ["inspect staged matrix or space output before promotion", "continue session-local analysis without mutating the portable bundle"],
       "mutates": false
     },
     {

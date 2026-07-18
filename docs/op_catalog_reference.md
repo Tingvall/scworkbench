@@ -1,7 +1,8 @@
 # scworkbench Operation Catalog
+
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-07-12T15:26:02+0200
+Generated at: 2026-07-18T14:36:07+0200
 
 Operation count: 54
 
@@ -144,7 +145,6 @@ Key parameters:
 - `nn_method` (choice, default=nndescent): Nearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.
 - `spread` (dbl, default=1): UMAP spread parameter.
 - `seed` (int, default=1): Random seed.
-- `overwrite` (bool, default=TRUE): Overwrite existing model/coords.
 
 ## `umap_transform`
 

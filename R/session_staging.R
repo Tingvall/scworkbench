@@ -82,3 +82,22 @@ wb_session_discard <- function(session) {
   session$staging_source_dir <- NULL
   session
 }
+
+#' Get the Ephemeral Bundle View for a Session
+#'
+#' Returns the session-local bundle overlay that contains staged outputs from
+#' [wb_session_run_op()]. The handle is valid only while the session has not
+#' been discarded. Use it to inspect staged matrices or spaces before promotion;
+#' use the original bundle after promotion and reopen it for portable state.
+#'
+#' @param session A `wb_session` returned by [wb_session_run_op()].
+#' @return An open `scworkbench_bundle` session view.
+#' @export
+wb_session_view <- function(session) {
+  .wb_assert(wb_is_session(session), "session must be wb_session")
+  .wb_assert(
+    !is.null(session$staging_bundle) && inherits(session$staging_bundle, "scworkbench_bundle"),
+    "This session has no active staged bundle view. Run an operation first, or the session was discarded."
+  )
+  session$staging_bundle
+}

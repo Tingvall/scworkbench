@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-07-12T15:26:03+0200
+Generated at: 2026-07-18T14:36:08+0200
 
-Record count: 303
+Record count: 304
 
-Graph edges: 882
+Graph edges: 881
 
 ## artifact_type
 
@@ -821,6 +821,12 @@ Description: Inspect an in-memory session DAG.
 Title: Session DAG Run Details
 
 Description: Inspect one run node from an in-memory session DAG.
+
+### `getter:wb_session_view`
+
+Title: Session Staging View
+
+Description: Open the session-local bundle overlay containing staged outputs before promotion.
 
 ### `getter:wb_nav_entities`
 

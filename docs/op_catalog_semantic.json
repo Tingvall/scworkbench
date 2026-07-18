@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-07-12T15:26:02+0200",
+  "generated_at": "2026-07-18T14:36:07+0200",
   "op_count": 54,
   "ops": [
     {
@@ -479,12 +479,6 @@
           "type": "int",
           "default": 1,
           "help": "Random seed."
-        },
-        {
-          "name": "overwrite",
-          "type": "bool",
-          "default": true,
-          "help": "Overwrite existing model/coords."
         }
       ],
       "promotable": ["space_2d", "model"],

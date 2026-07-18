@@ -129,6 +129,7 @@
 "getter:wb_search_features","getter","wb_search_features","Search Features","Search feature IDs or feature metadata."
 "getter:wb_session_dag","getter","wb_session_dag","Session DAG","Inspect an in-memory session DAG."
 "getter:wb_session_dag_run_details","getter","wb_session_dag_run_details","Session DAG Run Details","Inspect one run node from an in-memory session DAG."
+"getter:wb_session_view","getter","wb_session_view","Session Staging View","Open the session-local bundle overlay containing staged outputs before promotion."
 "getter:wb_slice","getter","wb_slice","Matrix Slice","Read a feature-by-cell matrix slice."
 "getter:wb_space","getter","wb_space","Space Coordinates","Read coordinates for a space, optionally restricted to cells and dimensions."
 "getter:wb_space_info","getter","wb_space_info","Space Info","Read space registry metadata, optionally for one space."

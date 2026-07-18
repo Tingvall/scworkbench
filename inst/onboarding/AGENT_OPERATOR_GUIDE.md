@@ -43,8 +43,8 @@ user interface is gone.
 | Selector | Reproducible rule for choosing cells or features. |
 | Primitive | Typed computational input/output, such as a matrix, space, cell vector, feature table, model reference, or path family. |
 | Operation (op) | Explicit computation with declared inputs, parameters, outputs, and provenance. |
-| Session | Exploratory chain of operation runs. A session may contain work not yet accepted as durable state. |
-| Promotion | Persisting selected session outputs as typed artifacts and recording a provenance snapshot. |
+| Session | Exploratory chain of operation runs. Outputs are held in a session-local staging view until promotion. |
+| Promotion | Atomically committing selected terminal outputs as typed artifacts plus their required ancestral provenance/materializations. |
 | Artifact | A promoted result that can be loaded, inspected, plotted, cited, or used by later operations. |
 | Provenance graph | The bundle-level graph linking source state, runs, artifacts, inputs, parameters, and derived results. |
 
@@ -179,6 +179,19 @@ result <- wb_session_run_op(
 s <- result$session
 ```
 
+Outputs from this call are not yet portable bundle state. Continue the analysis
+through typed session references, and inspect staged matrices or spaces through
+the public session view:
+
+```r
+staged <- wb_session_view(s)
+wb_matrices(staged)
+wb_spaces(staged)
+```
+
+Discard exploratory work explicitly with `wb_session_discard(s)`. Do not read a
+staged output from `b` before promotion.
+
 The exact input names and reference shapes must come from
 `wb_op_interface()`. Do not substitute aliases such as `model_ref` for `model`
 unless the interface explicitly accepts them.
@@ -201,6 +214,7 @@ provenance snapshot:
 wb_session_promote_current(
   bundle = b,
   session = s,
+  outputs = c("terminal_output"),
   name_prefix = "analysis_name",
   created_by = "operator",
   fail_fast = TRUE

@@ -82,7 +82,7 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
 
   # A bad terminal request must not create a completed promotion branch.
   before_commits <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits WHERE state = 'complete';")$n[1]
-  bad <- try(wb_promote_analysis(b, s$runs, head_run_id = r_markers$run$run_id, outputs = "not_an_output", staging_bundle = s$staging_bundle), silent = TRUE)
+  bad <- try(wb_promote_analysis(b, s$runs, head_run_id = r_markers$run$run_id, outputs = "not_an_output", staging_bundle = wb_session_view(s)), silent = TRUE)
   stopifnot(inherits(bad, "try-error"))
   after_commits <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits WHERE state = 'complete';")$n[1]
   stopifnot(identical(before_commits, after_commits))

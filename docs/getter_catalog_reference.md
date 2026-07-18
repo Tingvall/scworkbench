@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-07-12T15:26:02+0200
+Generated at: 2026-07-18T14:36:07+0200
 
-Getter count: 71
+Getter count: 72
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -944,6 +944,22 @@ Arguments: session, run_id, bundle
 
 Use when:
 - explain one current session run
+
+### `wb_session_view`
+
+Title: Session Staging View
+
+Description: Open the session-local bundle overlay containing staged outputs before promotion.
+
+Returns: scworkbench_bundle
+
+Payload level: data
+
+Arguments: session
+
+Use when:
+- inspect staged matrix or space output before promotion
+- continue session-local analysis without mutating the portable bundle
 
 ## spaces
 

@@ -643,6 +643,16 @@
       use_when = c("explain one current session run")
     ),
     list(
+      function_name = "wb_session_view",
+      title = "Session Staging View",
+      category = "session",
+      description = "Open the session-local bundle overlay containing staged outputs before promotion.",
+      returns = "scworkbench_bundle",
+      payload_level = "data",
+      arguments = c("session"),
+      use_when = c("inspect staged matrix or space output before promotion", "continue session-local analysis without mutating the portable bundle")
+    ),
+    list(
       function_name = "wb_nav_entities",
       title = "Navigation Entities",
       category = "navigation",

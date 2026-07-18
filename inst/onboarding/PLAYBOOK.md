@@ -14,9 +14,14 @@ Current phase note:
 2. Execute with session
 - Use `wb_session_new()` + `wb_session_run_op()` chain.
 - Keep notes fields meaningful.
+- Session outputs are staged and ephemeral until promotion. Inspect staged
+  matrices/spaces with `wb_session_view(session)`; do not expect them in the
+  portable bundle before promotion.
 
 3. Promote selectively
-- Use `wb_session_promote_current()` for intended outputs only.
+- Use `wb_session_promote_current(outputs = ...)` for intended terminal
+  outputs only. Required ancestors become internal committed provenance, not
+  public artifacts.
 
 4. Emit provenance artifacts
 - Save report markdown/html.

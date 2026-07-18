@@ -46,16 +46,17 @@ test_op_matrix_log_normalize_contract <- function() {
   stopifnot(identical(as.character(rr$run$outputs$matrix$matrix_id), "RNA_log1p_cp10k"))
   stopifnot(identical(as.character(rr$run$outputs$summary$table_type), "matrix_log_normalize_summary"))
 
-  mats <- wb_matrices(b)
+  staged <- wb_session_view(rr$session)
+  mats <- wb_matrices(staged)
   stopifnot("RNA_log1p_cp10k" %in% as.character(mats$matrix_id))
 
-  got <- as.matrix(wb_slice(b, matrix_id = "RNA_log1p_cp10k", features = c("g1", "g2"), cells = cells))
+  got <- as.matrix(wb_slice(staged, matrix_id = "RNA_log1p_cp10k", features = c("g1", "g2"), cells = cells))
   lib_size <- as.numeric(Matrix::colSums(mat))
   expected <- log1p(t(t(as.matrix(mat)) / lib_size * 10000))
   dimnames(expected) <- dimnames(mat)
   stopifnot(isTRUE(all.equal(got, expected, tolerance = 1e-8, check.attributes = FALSE)))
-  out_info <- wb_matrix_info(b, "RNA_log1p_cp10k")
-  out_path <- file.path(b$dir, as.character(out_info$path[1]))
+  out_info <- wb_matrix_info(staged, "RNA_log1p_cp10k")
+  out_path <- file.path(staged$dir, as.character(out_info$path[1]))
   stopifnot(identical(BPCells::matrix_type(.wb_bp_open_matrix_dir(out_path)), "double"))
   stopifnot(any(got != 0))
 
@@ -68,7 +69,7 @@ test_op_matrix_log_normalize_contract <- function() {
 
   err <- try(
     wb_session_run_op(
-      session = wb_session_new(),
+      session = rr$session,
       bundle = b,
       op_name = "matrix_log_normalize",
       inputs = list(
