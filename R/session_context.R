@@ -62,9 +62,13 @@ wb_ref_artifact <- function(artifact_id, output_name) {
 #' @export
 wb_session_new <- function() {
   s <- list(
+    session_id = paste0("session_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")),
     runs = list(),         # run_id -> wb_run
     active = list(),       # output_name -> ref
-    head_run_id = NULL
+    head_run_id = NULL,
+    staging_dir = NULL,
+    staging_bundle = NULL,
+    staging_source_dir = NULL
   )
   class(s) <- "wb_session"
   s
@@ -116,6 +120,26 @@ wb_session_add_run <- function(session, run) {
   r
 }
 
+.wb_session_output_refs_by_id <- function(session, expected_kind, value) {
+  if (!is.character(value) || length(value) != 1L || !nzchar(value)) return(list())
+  out <- list()
+  for (rid in names(session$runs %||% list())) {
+    run <- session$runs[[rid]]
+    for (nm in names(run$outputs %||% list())) {
+      prim <- run$outputs[[nm]]
+      if (!.wb_is_primitive(prim) || !identical(as.character(prim$kind), expected_kind)) next
+      id <- switch(expected_kind,
+        matrix = as.character(prim$matrix_id %||% "")[1],
+        space = as.character(prim$space_id %||% "")[1],
+        space_2d = as.character(prim$space_id %||% "")[1],
+        ""
+      )
+      if (identical(id, value)) out[[paste0(rid, "::", nm)]] <- wb_ref_run(rid, nm)
+    }
+  }
+  out
+}
+
 # ---------- Resolve required inputs ----------
 # Required inputs are keyed by name (e.g. "clusters") with an expected kind (e.g. "cell_vector").
 # Resolution priority:
@@ -150,6 +174,24 @@ wb_session_add_run <- function(session, run) {
     val <- NULL
   }
 
+  # A matrix/space id can be a convenient alias for a session-produced value,
+  # but it must retain the producer run edge. Resolve it before lifting strings
+  # into bare primitives; ambiguity is never silently downgraded to bundle state.
+  if (!is.null(val) && is.character(val) && length(val) == 1L &&
+      expected_kind %in% c("matrix", "space", "space_2d")) {
+    candidates <- .wb_session_output_refs_by_id(session, expected_kind, as.character(val)[1])
+    if (length(candidates) > 1L) {
+      stop(
+        "Ambiguous session-produced ", expected_kind, " id '", as.character(val)[1],
+        "'. Use wb_ref_run(run_id, output_name) explicitly.", call. = FALSE
+      )
+    }
+    if (length(candidates) == 1L) {
+      ref <- candidates[[1]]
+      val <- NULL
+    }
+  }
+
   if (is.null(val)) {
     ref <- ref %||%
       inputs[[paste0(name, "_ref")]] %||%
@@ -180,7 +222,13 @@ wb_session_add_run <- function(session, run) {
         val <- run$outputs[[ref$output]]
         parents <- unique(c(parents, ref$run_id))
       } else if (identical(ref$ref_type, "artifact")) {
-        val <- wb_art_load(bundle, artifact_id = ref$artifact_id, expected_kind = expected_kind)
+        val <- try(wb_art_load(bundle, artifact_id = ref$artifact_id, expected_kind = expected_kind), silent = TRUE)
+        if (inherits(val, "try-error") && !is.null(session$staging_source_dir)) {
+          source_bundle <- wb_open_bundle(session$staging_source_dir, validate = FALSE)
+          on.exit(wb_close_bundle(source_bundle), add = TRUE)
+          val <- wb_art_load(source_bundle, artifact_id = ref$artifact_id, expected_kind = expected_kind)
+        }
+        if (inherits(val, "try-error")) stop(val)
         prov_refs[[name]] <- ref
       } else {
         stop("Unknown ref_type: ", ref$ref_type, call. = FALSE)
@@ -281,10 +329,14 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   op <- .wb_op(op_name)
   .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs)
 
+  staged <- .wb_session_stage_bundle(bundle, session)
+  session <- staged$session
+  work_bundle <- staged$bundle
+
   # Resolve effective_cells once, here. Nothing else is allowed to compute cells.
   cell_set <- inputs$cell_set %||% "all"
   effective_cells <- .wb_effective_cells(
-    bundle = bundle,
+    bundle = work_bundle,
     cell_set = cell_set,
     inputs = inputs,     # your coverage function can inspect space_id/matrix_id etc if you want
     op_name = op_name,
@@ -300,7 +352,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   if (length(req)) {
     for (nm in names(req)) {
       kind <- req[[nm]]
-      rr <- .wb_resolve_input(bundle, session, nm, kind, inputs)
+      rr <- .wb_resolve_input(work_bundle, session, nm, kind, inputs)
       resolved[[nm]] <- rr$value
       parents <- unique(c(parents, rr$parents))
       prov_refs <- c(prov_refs, rr$prov_refs)
@@ -312,7 +364,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     for (nm in names(opt_req)) {
       if (!.wb_optional_input_present(session, nm, inputs)) next
       kind <- opt_req[[nm]]
-      rr <- .wb_resolve_input(bundle, session, nm, kind, inputs)
+      rr <- .wb_resolve_input(work_bundle, session, nm, kind, inputs)
       resolved[[nm]] <- rr$value
       parents <- unique(c(parents, rr$parents))
       prov_refs <- c(prov_refs, rr$prov_refs)
@@ -322,7 +374,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
   res <- runner(
-    bundle = bundle,
+    bundle = work_bundle,
     resolved = resolved,
     effective_cells = effective_cells,
     inputs = inputs

@@ -80,6 +80,9 @@ test_all <- function(bundle_dir){
   if (exists("test_op_hvg_pca_contract", mode = "function")) {
     stopifnot(test_op_hvg_pca_contract())
   }
+  if (exists("test_transitive_promotion_pbmc_vertical_slice_contract", mode = "function")) {
+    stopifnot(test_transitive_promotion_pbmc_vertical_slice_contract())
+  }
   if (exists("test_op_umap_runtime_preflight_contract", mode = "function")) {
     stopifnot(test_op_umap_runtime_preflight_contract())
   }

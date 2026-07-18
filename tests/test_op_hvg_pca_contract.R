@@ -72,7 +72,8 @@ test_op_hvg_pca_contract <- function() {
     bundle = b,
     session = rr_hvg$session,
     name_prefix = "hvg_pca_test",
-    created_by = "test"
+    created_by = "test",
+    outputs = "selected_features"
   )
   hvg_art <- as.character(prom$promoted$artifact_id[as.character(prom$promoted$output) == "selected_features"][1])
   stopifnot(nzchar(hvg_art))
@@ -99,8 +100,8 @@ test_op_hvg_pca_contract <- function() {
 
   stopifnot(identical(as.character(rr_pca$run$outputs$space$kind), "space"))
   stopifnot(identical(as.character(rr_pca$run$outputs$space$space_id), "rna.pca"))
-  stopifnot("rna.pca" %in% as.character(wb_spaces(b)$space_id))
-  coords <- wb_space(b, "rna.pca")
+  stopifnot(!"rna.pca" %in% as.character(wb_spaces(b)$space_id))
+  coords <- wb_space(rr_pca$session$staging_bundle, "rna.pca")
   stopifnot(is.data.frame(coords), nrow(coords) == 8L)
   stopifnot(all(c("cell_id", "x", "y") %in% names(coords)))
   stopifnot(all(is.finite(coords$x)), all(is.finite(coords$y)))

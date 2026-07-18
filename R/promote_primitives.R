@@ -133,14 +133,24 @@
       n_parent_promoted <- as.integer(n_parent_promoted)
     }
 
+    n_parent_persisted <- 0L
+    if (n_par > 0L) {
+      qmarks <- paste(rep("?", n_par), collapse = ",")
+      n_parent_persisted <- DBI::dbGetQuery(
+        con,
+        paste0("SELECT COUNT(DISTINCT run_id) AS n FROM prov_runs WHERE snapshot_id = ? AND run_id IN (", qmarks, ");"),
+        params = c(list(sid), as.list(parents))
+      )$n[[1]] %||% 0L
+    }
+
     status <- if (!isTRUE(as.integer(has_link) >= 1L)) {
       "detached"
     } else if (n_par == 0L) {
       "complete"
-    } else if (n_parent_promoted >= n_par) {
+    } else if (n_parent_persisted >= n_par) {
       "complete"
     } else {
-      "snapshot_only"
+      "detached"
     }
 
     out_rows[[i]] <- data.frame(
@@ -203,6 +213,10 @@
 #' @param fail_fast If `TRUE`, stop on the first failed output promotion.
 #' @param allow_detached If `TRUE`, allow promotion of runs whose parent lineage
 #'   is not fully present in `runs`.
+#' @param outputs Optional terminal output names to expose as public artifacts.
+#'   Ancestor outputs are committed as internal provenance materializations.
+#' @param staging_bundle Optional session-local bundle overlay containing staged
+#'   matrix/space payloads produced by `runs`.
 #'
 #' @return A data frame with promoted artifact ids, per-output status, and the
 #'   persisted provenance `snapshot_id`.
@@ -214,7 +228,9 @@ wb_promote_analysis <- function(bundle,
                                 description = NULL,
                                 created_by = NULL,
                                 fail_fast = TRUE,
-                                allow_detached = FALSE) {
+                                allow_detached = FALSE,
+                                outputs = NULL,
+                                staging_bundle = NULL) {
   wb_migrate_artifacts(bundle)
 
   .wb_assert(is.list(runs) && length(runs) > 0, "runs must be a non-empty list.")
@@ -242,9 +258,65 @@ wb_promote_analysis <- function(bundle,
   }
   for (h in heads) visit(h)
 
+  available <- unique(unlist(lapply(heads, function(rid) {
+    op <- .wb_get_op(runs[[rid]]$op_name)
+    intersect(as.character(op$promotable %||% character(0)), names(runs[[rid]]$outputs %||% list()))
+  }), use.names = FALSE))
+  selected_outputs <- as.character(outputs %||% character(0))
+  if (!length(selected_outputs)) {
+    # Low-level callers historically promote all outputs from the selected head.
+    # This remains head-local; ancestor outputs are never selected implicitly.
+    selected_outputs <- available
+  }
+  .wb_assert(all(selected_outputs %in% available),
+             paste0("Requested outputs are not promotable terminal outputs: ",
+                    paste(setdiff(selected_outputs, available), collapse = ", ")))
+
+  commit_id <- .wb_promotion_commit_id()
+  runtime_fingerprint <- .wb_promotion_runtime_fingerprint()
+  .wb_migrate_provenance_tables(bundle$con)
+  DBI::dbExecute(
+    bundle$con,
+    "INSERT INTO prov_commits(commit_id, created_at, created_by, state, selected_outputs_json, runtime_fingerprint_json, error_message)
+     VALUES(?, ?, ?, ?, ?, ?, ?);",
+    params = list(
+      commit_id, format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"), created_by %||% NA_character_, "pending",
+      jsonlite::toJSON(selected_outputs, auto_unbox = FALSE),
+      jsonlite::toJSON(runtime_fingerprint, auto_unbox = TRUE, null = "null"), NA_character_
+    )
+  )
+
+  materializations <- tryCatch({
+    if (!is.null(staging_bundle)) {
+      .wb_stage_commit_materializations(staging_bundle, bundle, runs, topo, commit_id)
+    } else {
+      # Legacy/in-memory callers still receive durable internal output payloads.
+      root <- file.path(bundle$dir, "provenance", "materializations", commit_id)
+      dir.create(root, recursive = TRUE, showWarnings = FALSE)
+      rows <- list(); i <- 0L
+      for (rid in topo) for (nm in names(runs[[rid]]$outputs %||% list())) {
+        prim <- runs[[rid]]$outputs[[nm]]
+        if (!.wb_is_primitive(prim)) next
+        rel <- file.path("provenance", "materializations", commit_id, rid, paste0(nm, ".rds"))
+        abs <- file.path(bundle$dir, rel); dir.create(dirname(abs), recursive = TRUE, showWarnings = FALSE)
+        saveRDS(prim, abs, version = 3)
+        i <- i + 1L
+        rows[[i]] <- data.frame(commit_id = commit_id, run_id = rid, output_name = nm,
+          primitive_kind = prim$kind, path = rel,
+          output_hash = .wb_hash_text(serialize(prim, NULL, version = 3)), stringsAsFactors = FALSE)
+      }
+      if (length(rows)) do.call(rbind, rows) else data.frame()
+    }
+  }, error = function(e) {
+    DBI::dbExecute(bundle$con, "UPDATE prov_commits SET state = ?, error_message = ? WHERE commit_id = ?;",
+      params = list("failed", conditionMessage(e), commit_id))
+    stop(e)
+  })
+
   # Artifact pool: lets downstream promotions reference upstream artifacts if they want
   # (most primitive promoters won't need it, but keep it for provenance)
   artifact_pool <- list()
+  promoted_by_run <- list()
 
   rows <- list()
   row_i <- 0L
@@ -253,12 +325,16 @@ wb_promote_analysis <- function(bundle,
     run <- runs[[rid]]
     op <- .wb_get_op(run$op_name)
 
-    # only promote outputs declared promotable by op contract
-    promotable <- op$promotable %||% character(0)
+    # Only explicitly selected terminal outputs become public artifacts.
+    promotable <- if (rid %in% heads) intersect(op$promotable %||% character(0), selected_outputs) else character(0)
 
     # promote each promotable output that exists on the run
     promoted_ids <- list()
     err <- NULL
+    parent_artifacts <- list()
+    for (parent_run_id in unique(as.character(run$inputs$parents %||% character(0)))) {
+      parent_artifacts <- c(parent_artifacts, promoted_by_run[[parent_run_id]] %||% list())
+    }
 
     tryCatch({
       for (out_name in promotable) {
@@ -286,7 +362,7 @@ wb_promote_analysis <- function(bundle,
           name = nm,
           description = description,
           created_by = created_by,
-          parent_artifacts = artifact_pool
+          parent_artifacts = parent_artifacts
         )
 
         promoted_ids[[out_name]] <- artifact_id
@@ -303,6 +379,7 @@ wb_promote_analysis <- function(bundle,
           artifact_pool[[k]] <- promoted_ids[[k]]
         }
       }
+      promoted_by_run[[rid]] <- promoted_ids
 
       for (out_name in names(promoted_ids)) {
         row_i <- row_i + 1L
@@ -321,7 +398,7 @@ wb_promote_analysis <- function(bundle,
       rows[[row_i]] <- data.frame(
         run_id = run$run_id,
         op_name = run$op_name,
-        output = NA_character_,
+        output = "",
         artifact_id = NA_character_,
         status = if (is.null(err)) "skipped" else "error",
         error = if (is.null(err)) NA_character_ else err,
@@ -339,8 +416,12 @@ wb_promote_analysis <- function(bundle,
     promoted_df = promoted_df,
     name_prefix = name_prefix,
     description = description,
-    created_by = created_by
+    created_by = created_by,
+    commit_id = commit_id,
+    materializations = materializations,
+    runtime_fingerprint = runtime_fingerprint
   )
+  DBI::dbExecute(bundle$con, "UPDATE prov_commits SET state = ? WHERE commit_id = ?;", params = list("complete", commit_id))
   promoted_df$snapshot_id <- snapshot_id
 
   lineage_df <- .wb_artifact_lineage_statuses(bundle, promoted_df = promoted_df, snapshot_id = snapshot_id)

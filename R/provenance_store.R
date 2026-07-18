@@ -23,7 +23,7 @@
   paste0(sprintf("%08x", as.integer(h1)), sprintf("%08x", as.integer(h2)))
 }
 
-.wb_prov_schema_version <- function() "1.1"
+.wb_prov_schema_version <- function() "1.2"
 
 .wb_migrate_provenance_tables <- function(con) {
   DBI::dbExecute(con, "
@@ -44,6 +44,24 @@
     DBI::dbExecute(con, "ALTER TABLE prov_heads ADD COLUMN schema_version TEXT;")
     DBI::dbExecute(con, "UPDATE prov_heads SET schema_version = ? WHERE schema_version IS NULL OR schema_version = '';", params = list(.wb_prov_schema_version()))
   }
+  if (!.wb_db_has_column(con, "prov_heads", "commit_id")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_heads ADD COLUMN commit_id TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_heads", "replay_status")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_heads ADD COLUMN replay_status TEXT;")
+  }
+
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS prov_commits (
+      commit_id TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL,
+      created_by TEXT,
+      state TEXT NOT NULL,
+      selected_outputs_json TEXT NOT NULL,
+      runtime_fingerprint_json TEXT NOT NULL,
+      error_message TEXT
+    );
+  ")
 
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_runs (
@@ -66,6 +84,12 @@
   }
   if (!.wb_db_has_column(con, "prov_runs", "execution_inputs_json")) {
     DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN execution_inputs_json TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_runs", "op_version")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN op_version TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_runs", "runtime_fingerprint_json")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN runtime_fingerprint_json TEXT;")
   }
 
   DBI::dbExecute(con, "
@@ -93,6 +117,23 @@
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_prov_outputs_snapshot ON prov_run_outputs(snapshot_id);")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_prov_outputs_artifact ON prov_run_outputs(artifact_id);")
+  if (!.wb_db_has_column(con, "prov_run_outputs", "materialization_class")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN materialization_class TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "materialization_path")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN materialization_path TEXT;")
+  }
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS prov_materializations (
+      commit_id TEXT NOT NULL,
+      run_id TEXT NOT NULL,
+      output_name TEXT NOT NULL,
+      primitive_kind TEXT NOT NULL,
+      path TEXT NOT NULL,
+      output_hash TEXT NOT NULL,
+      PRIMARY KEY(commit_id, run_id, output_name)
+    );
+  ")
 
   invisible(TRUE)
 }
@@ -104,7 +145,10 @@
                                     promoted_df,
                                     name_prefix = NULL,
                                     description = NULL,
-                                    created_by = NULL) {
+                                    created_by = NULL,
+                                    commit_id = NULL,
+                                    materializations = NULL,
+                                    runtime_fingerprint = NULL) {
   .wb_require_pkg("jsonlite", "provenance snapshot write")
   con <- bundle$con
   .wb_migrate_provenance_tables(con)
@@ -136,12 +180,14 @@
   DBI::dbWithTransaction(con, {
     DBI::dbExecute(
       con,
-      "INSERT INTO prov_heads(snapshot_id, created_at, created_by, name_prefix, description, schema_version, head_run_ids_json, n_runs, n_artifacts)
-       VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?);",
+      "INSERT INTO prov_heads(snapshot_id, created_at, created_by, name_prefix, description, schema_version, head_run_ids_json, n_runs, n_artifacts, commit_id, replay_status)
+       VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
       params = list(
         sid, created_at, created_by %||% NA_character_, name_prefix %||% NA_character_,
         description %||% NA_character_, .wb_prov_schema_version(),
-        as.character(head_json), as.integer(length(topo)), as.integer(n_artifacts)
+        as.character(head_json), as.integer(length(topo)), as.integer(n_artifacts),
+        as.character(commit_id %||% NA_character_),
+        if (is.null(runtime_fingerprint)) "inspectable_only" else "replayable"
       )
     )
 
@@ -162,8 +208,8 @@
 
       DBI::dbExecute(
         con,
-        "INSERT INTO prov_runs(snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash)
-         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        "INSERT INTO prov_runs(snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, op_version, runtime_fingerprint_json)
+         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
         params = list(
           sid,
           as.character(run$run_id),
@@ -174,7 +220,9 @@
           as.character(inputs_json),
           as.character(symbolic_inputs_json),
           as.character(execution_inputs_json),
-          as.character(run_hash)
+          as.character(run_hash),
+          as.character(utils::packageVersion("scworkbench")),
+          as.character(jsonlite::toJSON(runtime_fingerprint %||% list(), auto_unbox = TRUE, null = "null"))
         )
       )
 
@@ -222,19 +270,29 @@
           }
           out_hash <- .wb_hash_text(c(kind, sum_txt))
           art_id <- artifact_map[[paste0(rid, "::", nm)]] %||% NA_character_
+          mat_row <- if (is.data.frame(materializations) && nrow(materializations)) {
+            materializations[as.character(materializations$run_id) == as.character(rid) &
+              as.character(materializations$output_name) == as.character(nm), , drop = FALSE]
+          } else data.frame()
+          mat_path <- if (nrow(mat_row)) as.character(mat_row$path[1]) else NA_character_
+          mat_class <- if (!is.na(art_id) && nzchar(as.character(art_id))) "public_artifact" else if (nrow(mat_row)) "internal_materialization" else "none"
 
           DBI::dbExecute(
             con,
-            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id)
-             VALUES(?, ?, ?, ?, ?, ?);",
+            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, materialization_class, materialization_path)
+             VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
             params = list(
-              sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id)
+              sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id), mat_class, mat_path
             )
           )
         }
       }
     }
   })
+
+  if (is.data.frame(materializations) && nrow(materializations)) {
+    DBI::dbAppendTable(con, "prov_materializations", materializations)
+  }
 
   sid
 }
