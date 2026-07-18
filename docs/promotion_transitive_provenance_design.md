@@ -25,7 +25,10 @@ outputs for promotion. Abandoned session branches are not committed.
 The first implementation must prove this contract for the release workflow:
 
 ```text
-10x counts -> log normalize -> HVG -> PCA -> UMAP -> Leiden -> markers
+10x counts -> log normalize -> HVG -> PCA
+                                      |  \\
+                                      v   v
+                                    UMAP Leiden -> markers
 ```
 
 It is not sufficient to implement only table or vector outputs. The staged
@@ -184,7 +187,7 @@ Committed bundle
         | resolved committed input identity
         v
 S:<session>/runs/r_norm/matrix/RNA_log_normalized
-  log_normalize (run r_norm)
+  matrix_log_normalize (run r_norm)
         |
         | session-active typed reference: wb_ref_run(r_norm, "matrix")
         v
@@ -194,32 +197,30 @@ S:<session>/runs/r_hvg/table/selected_features
         | wb_ref_run(r_norm, "matrix"), wb_ref_run(r_hvg, "selected_features")
         v
 S:<session>/runs/r_pca/space/pca
-  pca (run r_pca)
-        |
-        | wb_ref_run(r_pca, "space")
-        v
-S:<session>/runs/r_umap/space/umap
-  umap_fit (run r_umap)
-        |
-        | wb_ref_run(r_umap, "space")
-        v
-S:<session>/runs/r_leiden/vector/clusters
-  leiden (run r_leiden)
-        |
-        | optional terminal promotion here
-        +------------------------------+
-                                       |
-S:<session>/runs/r_markers/table/markers
-  markers_topn (run r_markers)         |
-        |                              |
-        | selected terminal output     |
-        v                              v
+  pca_fit (run r_pca)
+        |-------------------------------+
+        |                               |
+        | wb_ref_run(r_pca, "space")    | wb_ref_run(r_pca, "space")
+        v                               v
+S:<session>/runs/r_umap/space_2d/umap  S:<session>/runs/r_leiden/vector/clusters
+  umap_fit (run r_umap)                  leiden (run r_leiden)
+        |                               |
+        | [optional terminal selection]  | wb_ref_run(r_norm, "matrix"),
+        |                                | wb_ref_run(r_leiden, "clusters")
+        |                                v
+        |                        S:<session>/runs/r_markers/table/markers
+        |                          markers_topn (run r_markers)
+        |                               |
+        |                               | [optional terminal selection]
+        +-------------------------------+
 ================ promotion transaction boundary ================
   C:matrix/RNA_log_normalized     C:feature-table/selected_features
-  C:space/pca                    C:space/umap
-  internal provenance runs r_norm -> r_hvg -> r_pca -> r_umap -> r_leiden
+  C:space/pca
+  internal provenance runs r_norm -> r_hvg -> r_pca -> r_leiden -> r_markers
+  optional internal/public UMAP branch: r_pca -> r_umap
   A:cell_vector/clusters (only if selected)
   A:feature_table/markers (only if selected)
+  A:space_2d/umap (only if selected)
 ===============================================================
         |
         v
@@ -231,24 +232,11 @@ Reopened bundle
 
 Promotion of Leiden selects `A:clusters` and commits the closure through
 `r_leiden`; promotion of markers selects `A:markers` and commits the complete
-closure through `r_markers`. No other output is public merely because it is an
-ancestor.
-
-### UMAP-to-Leiden typing decision required before implementation
-
-The current op catalog gives `umap_fit` a `space_2d` output and gives `leiden`
-a required `space` input. Therefore the literal edge `umap_fit -> leiden` in
-the PBMC chain is not currently a valid typed edge. The first implementation
-must resolve this deliberately rather than bypassing typed input validation.
-
-The preferred resolution is to define whether a `space_2d` is a compatible
-subtype for the existing Leiden `space` input, with validation and provenance
-recording that preserve its `space_2d` identity. A separate explicit adapter is
-acceptable if subtype compatibility would weaken the primitive contract. Until
-one route is implemented, a current PBMC workflow can use PCA as the Leiden
-input and UMAP as a sibling visualization branch, but that does **not** satisfy
-the required literal UMAP-to-Leiden ancestry regression. Controller review is
-needed on the compatibility choice before runtime work begins.
+closure through `r_markers`. If a portable UMAP display is also wanted, the
+caller explicitly selects the UMAP `space_2d` as another terminal output. The
+resulting closure is the union of the true ancestors of all selected terminals.
+If only markers are selected, the sibling UMAP branch is not committed. No
+other output is public merely because it is an ancestor.
 
 ## Materialization And Replay Boundary
 
@@ -389,9 +377,11 @@ that every parent output is a public artifact.
 
 1. Implement the PBMC vertical slice: stage the normalized matrix, HVG result,
    PCA space, UMAP space, Leiden vector, and marker table in one session.
-   Regression tests must consume the matrix and both spaces through the
-   canonical session-active route and verify their producer-run edges survive
-   close/reopen.
+   Regression tests must consume the normalized matrix, PCA space, and UMAP
+   space through the canonical session-active route and verify their producer-
+   run edges survive close/reopen. The graph is branched: PCA is the true input
+   to UMAP and Leiden; markers consumes normalized expression plus Leiden
+   clusters.
 2. Add terminal-only promotion and transaction/commit metadata. Assert that a
    promoted Leiden or markers result has the complete ancestry closure but only
    selected terminal outputs are public artifacts.
