@@ -148,7 +148,8 @@
                                     created_by = NULL,
                                     commit_id = NULL,
                                     materializations = NULL,
-                                    runtime_fingerprint = NULL) {
+                                    runtime_fingerprint = NULL,
+                                    transaction_open = FALSE) {
   .wb_require_pkg("jsonlite", "provenance snapshot write")
   con <- bundle$con
   .wb_migrate_provenance_tables(con)
@@ -177,7 +178,7 @@
     }
   }
 
-  DBI::dbWithTransaction(con, {
+  write_snapshot <- function() {
     DBI::dbExecute(
       con,
       "INSERT INTO prov_heads(snapshot_id, created_at, created_by, name_prefix, description, schema_version, head_run_ids_json, n_runs, n_artifacts, commit_id, replay_status)
@@ -288,7 +289,8 @@
         }
       }
     }
-  })
+  }
+  if (isTRUE(transaction_open)) write_snapshot() else DBI::dbWithTransaction(con, write_snapshot())
 
   if (is.data.frame(materializations) && nrow(materializations)) {
     DBI::dbAppendTable(con, "prov_materializations", materializations)

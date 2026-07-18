@@ -27,10 +27,13 @@
 }
 
 .wb_promotion_workspace_publish <- function(workspace) {
-  for (m in workspace$mappings) {
+  for (final_rel in names(workspace$mappings)) {
+    m <- workspace$mappings[[final_rel]]
     .wb_assert(file.exists(m$pending) || dir.exists(m$pending), paste0("Missing pending payload: ", m$pending))
     dir.create(dirname(m$final), recursive = TRUE, showWarnings = FALSE)
     .wb_assert(!file.exists(m$final) && !dir.exists(m$final), paste0("Promotion final path already exists: ", m$final))
+    hook <- getOption("scworkbench.promotion_workspace_publish_hook", NULL)
+    if (is.function(hook)) hook(workspace, final_rel)
     ok <- file.rename(m$pending, m$final)
     .wb_assert(isTRUE(ok), paste0("Failed to publish promotion payload: ", m$final))
     workspace$published <- c(workspace$published, m$final)

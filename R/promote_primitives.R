@@ -275,43 +275,43 @@ wb_promote_analysis <- function(bundle,
   commit_id <- .wb_promotion_commit_id()
   runtime_fingerprint <- .wb_promotion_runtime_fingerprint()
   .wb_migrate_provenance_tables(bundle$con)
-  DBI::dbExecute(
-    bundle$con,
-    "INSERT INTO prov_commits(commit_id, created_at, created_by, state, selected_outputs_json, runtime_fingerprint_json, error_message)
-     VALUES(?, ?, ?, ?, ?, ?, ?);",
-    params = list(
-      commit_id, format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"), created_by %||% NA_character_, "pending",
-      jsonlite::toJSON(selected_outputs, auto_unbox = FALSE),
-      jsonlite::toJSON(runtime_fingerprint, auto_unbox = TRUE, null = "null"), NA_character_
-    )
-  )
-
+  workspace <- .wb_promotion_workspace_new(bundle, commit_id)
   materializations <- tryCatch({
     if (!is.null(staging_bundle)) {
-      .wb_stage_commit_materializations(staging_bundle, bundle, runs, topo, commit_id)
+      .wb_stage_prepare_materializations(staging_bundle, bundle, workspace, runs, topo, commit_id)
     } else {
-      # Legacy/in-memory callers still receive durable internal output payloads.
-      root <- file.path(bundle$dir, "provenance", "materializations", commit_id)
-      dir.create(root, recursive = TRUE, showWarnings = FALSE)
-      rows <- list(); i <- 0L
-      for (rid in topo) for (nm in names(runs[[rid]]$outputs %||% list())) {
-        prim <- runs[[rid]]$outputs[[nm]]
-        if (!.wb_is_primitive(prim)) next
-        rel <- file.path("provenance", "materializations", commit_id, rid, paste0(nm, ".rds"))
-        abs <- file.path(bundle$dir, rel); dir.create(dirname(abs), recursive = TRUE, showWarnings = FALSE)
-        saveRDS(prim, abs, version = 3)
-        i <- i + 1L
-        rows[[i]] <- data.frame(commit_id = commit_id, run_id = rid, output_name = nm,
-          primitive_kind = prim$kind, path = rel,
-          output_hash = .wb_hash_text(serialize(prim, NULL, version = 3)), stringsAsFactors = FALSE)
-      }
-      if (length(rows)) do.call(rbind, rows) else data.frame()
+      .wb_prepare_materialization_payloads(workspace, runs, topo, commit_id)
     }
   }, error = function(e) {
-    DBI::dbExecute(bundle$con, "UPDATE prov_commits SET state = ?, error_message = ? WHERE commit_id = ?;",
-      params = list("failed", conditionMessage(e), commit_id))
+    .wb_promotion_workspace_cleanup(workspace)
     stop(e)
   })
+
+  transaction_open <- FALSE
+  promotion_error <- NULL
+  on.exit({
+    if (transaction_open) try(DBI::dbRollback(bundle$con), silent = TRUE)
+    if (!is.null(promotion_error)) .wb_promotion_workspace_cleanup(workspace)
+  }, add = TRUE)
+  DBI::dbBegin(bundle$con)
+  transaction_open <- TRUE
+  tryCatch({
+    DBI::dbExecute(
+      bundle$con,
+      "INSERT INTO prov_commits(commit_id, created_at, created_by, state, selected_outputs_json, runtime_fingerprint_json, error_message)
+       VALUES(?, ?, ?, ?, ?, ?, ?);",
+      params = list(
+        commit_id, format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"), created_by %||% NA_character_, "pending",
+        jsonlite::toJSON(selected_outputs, auto_unbox = FALSE),
+        jsonlite::toJSON(runtime_fingerprint, auto_unbox = TRUE, null = "null"), NA_character_
+      )
+    )
+    if (!is.null(staging_bundle)) {
+      for (rid in topo) for (prim in unname(runs[[rid]]$outputs %||% list())) {
+        if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id)
+        if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) .wb_stage_commit_space(staging_bundle, bundle, prim$space_id)
+      }
+    }
 
   # Artifact pool: lets downstream promotions reference upstream artifacts if they want
   # (most primitive promoters won't need it, but keep it for provenance)
@@ -419,7 +419,8 @@ wb_promote_analysis <- function(bundle,
     created_by = created_by,
     commit_id = commit_id,
     materializations = materializations,
-    runtime_fingerprint = runtime_fingerprint
+    runtime_fingerprint = runtime_fingerprint,
+    transaction_open = TRUE
   )
   DBI::dbExecute(bundle$con, "UPDATE prov_commits SET state = ? WHERE commit_id = ?;", params = list("complete", commit_id))
   promoted_df$snapshot_id <- snapshot_id
@@ -457,11 +458,20 @@ wb_promote_analysis <- function(bundle,
     }
   }
 
+  .wb_promotion_workspace_publish(workspace)
+  DBI::dbCommit(bundle$con)
+  transaction_open <- FALSE
+  if (dir.exists(workspace$pending_root)) unlink(workspace$pending_root, recursive = TRUE, force = TRUE)
+
   list(
     artifact_pool = artifact_pool,
     promoted = promoted_df,
     provenance_snapshot_id = snapshot_id
   )
+  }, error = function(e) {
+    promotion_error <<- e
+    stop(e)
+  })
 }
 
 # ------------------------------------------------------------------

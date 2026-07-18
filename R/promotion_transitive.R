@@ -70,25 +70,51 @@
   row <- DBI::dbGetQuery(src, "SELECT * FROM matrices WHERE matrix_id = ?;", params = list(matrix_id))
   .wb_assert(nrow(row) == 1L, paste0("Staged matrix is missing: ", matrix_id))
   frags <- DBI::dbGetQuery(src, "SELECT * FROM matrix_fragments WHERE matrix_id = ? ORDER BY fragment_id;", params = list(matrix_id))
-  paths <- unique(c(as.character(row$path %||% character(0)), as.character(frags$path %||% character(0))))
-  paths <- paths[nzchar(paths)]
-  copied <- character(0)
-  tryCatch({
-    for (p in paths) copied <- c(copied, .wb_copy_staged_payload(staging_bundle, bundle, p))
-    .wb_copy_db_rows(src, dst, "matrices", "matrix_id = ?", list(matrix_id))
-    .wb_copy_db_rows(src, dst, "features", "matrix_id = ?", list(matrix_id))
-    .wb_copy_db_rows(src, dst, "matrix_fragments", "matrix_id = ?", list(matrix_id))
-    if (nrow(frags)) {
-      ids <- as.character(frags$fragment_id)
-      q <- paste(rep("?", length(ids)), collapse = ",")
-      .wb_copy_db_rows(src, dst, "matrix_fragment_cells", paste0("fragment_id IN (", q, ")"), as.list(ids))
-      .wb_copy_db_rows(src, dst, "matrix_fragment_features", paste0("fragment_id IN (", q, ")"), as.list(ids))
-    }
-  }, error = function(e) {
-    for (p in copied) if (file.exists(p) || dir.exists(p)) unlink(p, recursive = TRUE, force = TRUE)
-    stop(e)
-  })
+  .wb_copy_db_rows(src, dst, "matrices", "matrix_id = ?", list(matrix_id))
+  .wb_copy_db_rows(src, dst, "features", "matrix_id = ?", list(matrix_id))
+  .wb_copy_db_rows(src, dst, "matrix_fragments", "matrix_id = ?", list(matrix_id))
+  if (nrow(frags)) {
+    ids <- as.character(frags$fragment_id)
+    q <- paste(rep("?", length(ids)), collapse = ",")
+    .wb_copy_db_rows(src, dst, "matrix_fragment_cells", paste0("fragment_id IN (", q, ")"), as.list(ids))
+    .wb_copy_db_rows(src, dst, "matrix_fragment_features", paste0("fragment_id IN (", q, ")"), as.list(ids))
+  }
   invisible(TRUE)
+}
+
+.wb_stage_prepare_materializations <- function(staging_bundle, bundle, workspace, runs, topo, commit_id) {
+  .wb_assert(inherits(staging_bundle, "scworkbench_bundle"), "staging_bundle must be scworkbench_bundle")
+  for (rid in topo) {
+    for (prim in unname(runs[[rid]]$outputs %||% list())) {
+      if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) {
+        exists <- DBI::dbGetQuery(bundle$con, "SELECT matrix_id FROM matrices WHERE matrix_id = ?;", params = list(prim$matrix_id))
+        if (!nrow(exists)) .wb_stage_prepare_matrix_payloads(staging_bundle, workspace, prim$matrix_id)
+      }
+    }
+  }
+  .wb_prepare_materialization_payloads(workspace, runs, topo, commit_id)
+}
+
+.wb_prepare_materialization_payloads <- function(workspace, runs, topo, commit_id) {
+  root_rel <- file.path("provenance", "materializations", commit_id)
+  rows <- list(); i <- 0L
+  for (rid in topo) {
+    run <- runs[[rid]]
+    for (nm in names(run$outputs %||% list())) {
+      prim <- run$outputs[[nm]]
+      if (!.wb_is_primitive(prim)) next
+      rel <- file.path(root_rel, rid, paste0(nm, ".rds"))
+      saveRDS(prim, .wb_promotion_workspace_path(workspace, rel), version = 3)
+      i <- i + 1L
+      rows[[i]] <- data.frame(
+        commit_id = commit_id, run_id = rid, output_name = nm,
+        primitive_kind = as.character(prim$kind), path = rel,
+        output_hash = .wb_hash_text(serialize(prim, NULL, version = 3)),
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+  if (length(rows)) do.call(rbind, rows) else data.frame()
 }
 
 .wb_stage_commit_space <- function(staging_bundle, bundle, space_id) {

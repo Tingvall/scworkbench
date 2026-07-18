@@ -83,6 +83,9 @@ test_all <- function(bundle_dir){
   if (exists("test_transitive_promotion_pbmc_vertical_slice_contract", mode = "function")) {
     stopifnot(test_transitive_promotion_pbmc_vertical_slice_contract())
   }
+  if (exists("test_promotion_workspace_matrix_atomicity_contract", mode = "function")) {
+    stopifnot(test_promotion_workspace_matrix_atomicity_contract())
+  }
   if (exists("test_op_umap_runtime_preflight_contract", mode = "function")) {
     stopifnot(test_op_umap_runtime_preflight_contract())
   }
