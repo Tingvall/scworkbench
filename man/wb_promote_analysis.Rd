@@ -12,7 +12,9 @@ wb_promote_analysis(
   description = NULL,
   created_by = NULL,
   fail_fast = TRUE,
-  allow_detached = FALSE
+  allow_detached = FALSE,
+  outputs = NULL,
+  staging_bundle = NULL
 )
 }
 \arguments{
@@ -33,6 +35,12 @@ their \code{run_id} fields.}
 
 \item{allow_detached}{If \code{TRUE}, allow promotion of runs whose parent lineage
 is not fully present in \code{runs}.}
+
+\item{outputs}{Optional terminal output names to expose as public artifacts.
+Ancestor outputs are committed as internal provenance materializations.}
+
+\item{staging_bundle}{Optional session-local bundle overlay containing staged
+matrix/space payloads produced by \code{runs}.}
 }
 \value{
 A data frame with promoted artifact ids, per-output status, and the

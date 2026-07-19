@@ -187,7 +187,14 @@ test_op_trajectory_segment_join_contract <- function() {
     session = rr$session,
     name_prefix = "segment join",
     created_by = "test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = c(
+      "composite_pseudotime_unit_segment",
+      "composite_pseudotime_cell_weighted_0_1",
+      "segment_local_table",
+      "composite_manifest",
+      "composite_membership"
+    )
   )
   output_col <- if ("output_name" %in% names(prom$promoted)) "output_name" else "output"
   promoted <- stats::setNames(as.character(prom$promoted$artifact_id), as.character(prom$promoted[[output_col]]))

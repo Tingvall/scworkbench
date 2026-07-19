@@ -53,6 +53,13 @@ bundle_dir <- if (length(bundle_arg)) {
 
 load_engine(repo)
 
+if (identical(Sys.getenv("SCWORKBENCH_CONTRACT_TRACEBACK"), "1")) {
+  options(error = function() {
+    traceback(2)
+    q(status = 1)
+  })
+}
+
 test_dir <- file.path(repo, "tests")
 test_files <- sort(list.files(test_dir, pattern = "^test_.*\\.R$", full.names = TRUE))
 test_all_file <- file.path(test_dir, "test_all.R")

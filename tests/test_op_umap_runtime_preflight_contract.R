@@ -61,11 +61,13 @@ test_op_umap_runtime_preflight_contract <- function() {
 
   stopifnot(identical(as.character(rr$run$outputs$space_2d$kind), "space_2d"))
   stopifnot(identical(as.character(rr$run$outputs$model$kind), "model_ref"))
-  stopifnot("rna.umap" %in% as.character(wb_spaces(b)$space_id))
+  # UMAP output remains in the session staging overlay until promotion.
+  staged <- wb_session_view(rr$session)
+  stopifnot("rna.umap" %in% as.character(wb_spaces(staged)$space_id))
   stopifnot(identical(as.character(rr$run$params$uwot$nn_method), "annoy"))
   stopifnot(identical(as.integer(rr$run$params$uwot$n_neighbors), 3L))
 
-  sm <- DBI::dbGetQuery(b$con, "SELECT uwot_args_json FROM space_models WHERE space_id = ?;", params = list("rna.umap"))
+  sm <- DBI::dbGetQuery(staged$con, "SELECT uwot_args_json FROM space_models WHERE space_id = ?;", params = list("rna.umap"))
   stopifnot(nrow(sm) == 1L)
   args <- jsonlite::fromJSON(sm$uwot_args_json[1])
   stopifnot(identical(as.character(args$nn_method), "annoy"))

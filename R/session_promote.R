@@ -23,6 +23,9 @@
 #' @param fail_fast If TRUE, stop on first promotion failure
 #' @param outputs Optional terminal output names to expose as public artifacts.
 #'   Required ancestors are committed as internal provenance materializations.
+#'   When an output name occurs in multiple session runs, the active head run is
+#'   selected when it provides that output; otherwise the name must resolve
+#'   uniquely within the session.
 #' @return The result of wb_promote_analysis(): list(artifact_pool=..., promoted=...)
 #' @export
 wb_session_promote_current <- function(bundle,
@@ -57,7 +60,16 @@ wb_session_promote_current <- function(bundle,
   }
 
   output_heads <- character(0)
+  head <- session$runs[[session$head_run_id]]
   for (out_name in as.character(outputs)) {
+    # Prefer the active head when it produces the requested output. Output
+    # names are op-level names, so earlier independent fits can legitimately
+    # have another `pseudotime` or `model` output in the same session.
+    if (out_name %in% names(head$outputs %||% list()) &&
+        out_name %in% as.character(.wb_get_op(head$op_name)$promotable %||% character(0))) {
+      output_heads <- c(output_heads, session$head_run_id)
+      next
+    }
     candidates <- vapply(session$runs, function(run) {
       out_name %in% names(run$outputs %||% list()) &&
         out_name %in% as.character(.wb_get_op(run$op_name)$promotable %||% character(0))

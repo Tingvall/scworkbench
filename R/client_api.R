@@ -152,14 +152,16 @@ wb_client_promote <- function(bundle,
                               name_prefix = NULL,
                               description = NULL,
                               created_by = NULL,
-                              fail_fast = TRUE) {
+                              fail_fast = TRUE,
+                              outputs = NULL) {
   wb_session_promote_current(
     bundle = bundle,
     session = session,
     name_prefix = name_prefix,
     description = description,
     created_by = created_by,
-    fail_fast = fail_fast
+    fail_fast = fail_fast,
+    outputs = outputs
   )
 }
 

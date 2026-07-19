@@ -9,7 +9,8 @@ wb_new_run(
   inputs = list(),
   params = list(),
   outputs = list(),
-  notes = NULL
+  notes = NULL,
+  run_id = NULL
 )
 }
 \arguments{

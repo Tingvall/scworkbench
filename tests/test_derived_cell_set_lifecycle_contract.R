@@ -124,14 +124,18 @@ test_derived_cell_set_lifecycle_contract <- function() {
     notes = "session-derived cell-set fixture"
   )
   stopifnot(identical(as.character(r_derive$run$outputs$manifest$table_type), "derived_cell_set_manifest"))
-  stopifnot(identical(as.character(wb_cells(b, cell_set = "set:test_claim_universe_session")), c("c3", "c5", "c8")))
+  stopifnot(identical(
+    as.character(wb_cells(wb_session_view(r_derive$session), cell_set = "set:test_claim_universe_session")),
+    c("c3", "c5", "c8")
+  ))
 
   prom <- wb_session_promote_current(
     bundle = b,
     session = r_derive$session,
     name_prefix = "Derived Cell Set Contract",
     created_by = "test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = "manifest"
   )
   manifest_artifact_id <- as.character(prom$promoted$artifact_id[
     as.character(prom$promoted$output) == "manifest"

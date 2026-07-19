@@ -30,6 +30,19 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
      WHERE artifact_id = ?;",
     params = list(artifact_id)
   )
+  if (nrow(art) != 1L) {
+    # A session overlay is a point-in-time SQLite copy. Resolve only against
+    # its explicitly recorded source bundle when a promoted artifact was
+    # created after the overlay began; never search arbitrary paths.
+    source_dir <- as.character(bundle$staging_source_dir %||% "")[1]
+    if (nzchar(source_dir) && dir.exists(source_dir) &&
+        !identical(normalizePath(source_dir, winslash = "/", mustWork = TRUE),
+                   normalizePath(bundle$dir, winslash = "/", mustWork = TRUE))) {
+      source_bundle <- wb_open_bundle(source_dir, validate = FALSE)
+      on.exit(wb_close_bundle(source_bundle), add = TRUE)
+      return(wb_art_load(source_bundle, artifact_id = artifact_id, expected_kind = expected_kind))
+    }
+  }
   .wb_assert(nrow(art) == 1, paste0("wb_art_load(): artifact not found: ", artifact_id))
 
   type <- as.character(art$type[[1]])

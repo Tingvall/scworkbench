@@ -10,7 +10,8 @@ wb_session_promote_current(
   name_prefix = NULL,
   description = NULL,
   created_by = NULL,
-  fail_fast = TRUE
+  fail_fast = TRUE,
+  outputs = NULL
 )
 }
 \arguments{
@@ -25,6 +26,12 @@ wb_session_promote_current(
 \item{created_by}{Optional actor string (user/agent)}
 
 \item{fail_fast}{If TRUE, stop on first promotion failure}
+
+\item{outputs}{Optional terminal output names to expose as public artifacts.
+Required ancestors are committed as internal provenance materializations.
+When an output name occurs in multiple session runs, the active head run is
+selected when it provides that output; otherwise the name must resolve
+uniquely within the session.}
 }
 \value{
 The result of wb_promote_analysis(): list(artifact_pool=..., promoted=...)

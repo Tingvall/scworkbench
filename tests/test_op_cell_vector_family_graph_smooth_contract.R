@@ -105,7 +105,8 @@ test_op_cell_vector_family_graph_smooth_contract <- function() {
     bundle = b,
     session = r1$session,
     name_prefix = "Graph Smooth Test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = c("smoothed_signal", "smoothing_summary")
   )
   smoothed_id <- as.character(prom1$promoted$artifact_id[
     as.character(prom1$promoted$output) == "smoothed_signal"

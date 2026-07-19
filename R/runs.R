@@ -11,9 +11,9 @@
 #' @param notes Optional run notes.
 #' @return A `wb_run` object.
 #' @export
-wb_new_run <- function(op_name, inputs = list(), params = list(), outputs = list(), notes = NULL) {
+wb_new_run <- function(op_name, inputs = list(), params = list(), outputs = list(), notes = NULL, run_id = NULL) {
   run <- list(
-    run_id = paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")),
+    run_id = as.character(run_id %||% paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")))[1],
     op_name = op_name,
     created_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
     inputs = inputs,

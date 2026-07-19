@@ -250,7 +250,8 @@ test_composite_pseudotime_dynamics_contract <- function() {
     session = pj$session,
     name_prefix = "composite path join",
     created_by = "test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = c("curves", "path_manifest")
   )
   output_col <- if ("output_name" %in% names(prom$promoted)) "output_name" else "output"
   promoted <- stats::setNames(as.character(prom$promoted$artifact_id), as.character(prom$promoted[[output_col]]))

@@ -26,8 +26,13 @@
     return(list(session = session, bundle = session$staging_bundle))
   }
 
-  stage_dir <- file.path(.wb_session_stage_root(), as.character(session$session_id))
-  .wb_assert(!dir.exists(stage_dir), paste0("Session staging directory already exists: ", stage_dir))
+  # Session IDs label execution state, but callers may set the R RNG for
+  # deterministic analyses. A filesystem staging path must remain unique even
+  # if that produces the same generated session ID in a later session.
+  stage_dir <- tempfile(
+    pattern = paste0(as.character(session$session_id), "_"),
+    tmpdir = .wb_session_stage_root()
+  )
   dir.create(stage_dir, recursive = TRUE, showWarnings = FALSE)
 
   # Flush the source DB before copying it. Payload directories are linked read-only
@@ -56,9 +61,13 @@
   for (nm in mutable) dir.create(file.path(stage_dir, nm), recursive = TRUE, showWarnings = FALSE)
 
   stage_bundle <- wb_open_bundle(stage_dir, validate = FALSE)
+  # Runners receive this overlay bundle directly. Retain the known source
+  # bundle location solely to resolve already-promoted artifact references
+  # created after the overlay snapshot; no filesystem search is performed.
+  stage_bundle$staging_source_dir <- normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
   session$staging_dir <- stage_dir
   session$staging_bundle <- stage_bundle
-  session$staging_source_dir <- normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
+  session$staging_source_dir <- stage_bundle$staging_source_dir
   list(session = session, bundle = stage_bundle)
 }
 

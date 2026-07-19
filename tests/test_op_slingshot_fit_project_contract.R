@@ -112,7 +112,8 @@ test_op_slingshot_fit_project_contract <- function(bundle_dir) {
     session = s,
     name_prefix = "test_slingshot_fit_weights",
     created_by = "test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = c("pseudotime", "lineage_weights", "model")
   )
   promoted <- prom_fit$promoted
   pseudotime_artifact_id <- as.character(promoted$artifact_id[as.character(promoted$output) == "pseudotime"][1])
@@ -251,7 +252,8 @@ test_op_slingshot_fit_project_contract <- function(bundle_dir) {
     session = x2b$session,
     name_prefix = "test_slingshot_fit_weights_second_family",
     created_by = "test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = c("pseudotime", "lineage_weights", "model")
   )
   lineage_weights_artifact_id_b <- as.character(prom_fit_b$promoted$artifact_id[
     as.character(prom_fit_b$promoted$output) == "lineage_weights"

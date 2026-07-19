@@ -109,9 +109,10 @@ test_op_cell_vector_winners_contract <- function() {
   manifest <- r2$run$outputs$manifest
   stopifnot(inherits(manifest, "wb_primitive"), identical(as.character(manifest$table_type), "winner_cell_set_manifest"))
   stopifnot(all(c("cell_set", "winner", "n_cells", "selection_rule", "source_winner_artifact_id", "source_score_artifact_id") %in% colnames(manifest$table)))
-  stopifnot(all(as.character(manifest$table$cell_set) %in% wb_cell_sets(b)))
-  stopifnot(length(wb_cells(b, cell_set = "set:winner_A")) == 3L)
-  stopifnot(length(wb_cells(b, cell_set = "set:winner_B")) == 2L)
+  staged <- wb_session_view(s)
+  stopifnot(all(as.character(manifest$table$cell_set) %in% wb_cell_sets(staged)))
+  stopifnot(length(wb_cells(staged, cell_set = "set:winner_A")) == 3L)
+  stopifnot(length(wb_cells(staged, cell_set = "set:winner_B")) == 2L)
 
   prom2 <- wb_session_promote_current(
     bundle = b,

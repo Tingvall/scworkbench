@@ -775,13 +775,13 @@
 }
 
 .wb_runner_feature_set_namespace_transfer <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(inputs$source_matrix_id), "feature_set_namespace_transfer runner: inputs$source_matrix_id is required.")
-  .wb_assert(!is.null(inputs$target_matrix_id), "feature_set_namespace_transfer runner: inputs$target_matrix_id is required.")
+  .wb_assert(!is.null(resolved$source_matrix), "feature_set_namespace_transfer runner: missing resolved$source_matrix.")
+  .wb_assert(!is.null(resolved$target_matrix), "feature_set_namespace_transfer runner: missing resolved$target_matrix.")
 
   raw <- wb_feature_set_namespace_transfer(
     bundle = bundle,
-    source_matrix_id = as.character(inputs$source_matrix_id)[1],
-    target_matrix_id = as.character(inputs$target_matrix_id)[1],
+    source_matrix_id = resolved$source_matrix$matrix_id,
+    target_matrix_id = resolved$target_matrix$matrix_id,
     namespace = inputs$namespace %||% NULL,
     namespaces = inputs$namespaces %||% NULL,
     feature_sets = inputs$feature_sets %||% NULL,
@@ -2488,7 +2488,7 @@
       title = "Feature-Set Namespace Transfer",
       description = "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
       intent = c("feature_set", "transfer", "namespace", "matrix", "provenance"),
-      requires = list(),
+      requires = list(source_matrix = "matrix", target_matrix = "matrix"),
       produces = list(
         transfer_summary = "obs_table",
         transfer_manifest = "obs_table",
@@ -2498,10 +2498,6 @@
       runner = .wb_runner_feature_set_namespace_transfer,
       inputs = list(),
       params = list(
-        list(name = "source_matrix_id", type = "string", default = NULL,
-             help = "Source matrix containing the existing matrix-scoped feature-set namespace."),
-        list(name = "target_matrix_id", type = "string", default = NULL,
-             help = "Target matrix that will receive transferred feature-set memberships."),
         list(name = "namespace", type = "string", default = NULL,
              help = "Single source namespace to transfer."),
         list(name = "namespaces", type = "string_vec", default = NULL,

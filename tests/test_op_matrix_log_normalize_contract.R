@@ -194,18 +194,21 @@ test_op_matrix_log_normalize_multifragment_contract <- function() {
   )
 
   stopifnot(identical(as.character(rr$run$outputs$matrix$matrix_id), "RNA_log_norm"))
-  out_frags <- wb_matrix_fragments(b, "RNA_log_norm")
+  # Normalization output is deliberately private until promoted. Inspect the
+  # session-local bundle overlay rather than the unchanged source bundle.
+  staged <- wb_session_view(rr$session)
+  out_frags <- wb_matrix_fragments(staged, "RNA_log_norm")
   stopifnot(nrow(out_frags) == 2L)
   stopifnot(sum(as.integer(out_frags$n_cells)) == 4L)
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 
-  got <- as.matrix(wb_slice(b, matrix_id = "RNA_log_norm", features = features, cells = cells))
+  got <- as.matrix(wb_slice(staged, matrix_id = "RNA_log_norm", features = features, cells = cells))
   src <- cbind(as.matrix(frag1), as.matrix(frag2))
   lib_size <- as.numeric(Matrix::colSums(src))
   expected <- log1p(t(t(src) / lib_size * 10000))
   dimnames(expected) <- dimnames(src)
   stopifnot(isTRUE(all.equal(got, expected, tolerance = 1e-8, check.attributes = FALSE)))
-  for (path in file.path(b$dir, as.character(out_frags$path))) {
+  for (path in file.path(staged$dir, as.character(out_frags$path))) {
     stopifnot(identical(BPCells::matrix_type(.wb_bp_open_matrix_dir(path)), "double"))
   }
   stopifnot(any(got != 0))
