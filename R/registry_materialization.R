@@ -11,6 +11,8 @@
   options(scworkbench.registry_replay_transaction_open = TRUE)
   on.exit(options(scworkbench.registry_replay_transaction_open = old), add = TRUE)
   for (i in seq_len(nrow(events))) {
+    hook <- getOption("scworkbench.registry_replay_hook", NULL)
+    if (is.function(hook)) hook(events[i, , drop = FALSE])
     key <- jsonlite::fromJSON(as.character(events$registry_key_json[i]), simplifyVector = FALSE)
     action <- as.character(events$action[i])
     .wb_assert(identical(as.character(events$registry_type[i]), "feature_set"), "Unsupported registry mutation event")
