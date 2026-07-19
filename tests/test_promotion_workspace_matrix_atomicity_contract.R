@@ -42,5 +42,19 @@ test_promotion_workspace_matrix_atomicity_contract <- function() {
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == 0L)
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == 0L)
   stopifnot(nrow(wb_art_list(b)) == 0L)
+
+  space_run <- wb_new_run(
+    op_name = "umap_fit",
+    inputs = list(parents = character(0), user_inputs = list()),
+    params = list(),
+    outputs = list(space_2d = wb_prim_space_2d(space_id = "staged_umap"))
+  )
+  guarded <- try(wb_promote_analysis(
+    b, list(space_run), head_run_id = space_run$run_id,
+    outputs = "space_2d", staging_bundle = b
+  ), silent = TRUE)
+  stopifnot(inherits(guarded, "try-error"),
+            grepl("Staged-space atomic promotion is not yet implemented", as.character(guarded), fixed = TRUE))
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == 0L)
   TRUE
 }
