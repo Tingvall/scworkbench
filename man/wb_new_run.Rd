@@ -23,6 +23,11 @@ wb_new_run(
 \item{outputs}{Named primitive outputs.}
 
 \item{notes}{Optional run notes.}
+
+\item{run_id}{Advanced/internal optional preallocated stable run identifier.
+Ordinary callers should leave this \code{NULL}; session execution allocates it
+before invoking a runner so staged registry mutations can be journaled
+against the eventual run without changing the public \code{wb_run} contract.}
 }
 \value{
 A \code{wb_run} object.

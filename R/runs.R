@@ -9,6 +9,10 @@
 #' @param params Named operation parameters.
 #' @param outputs Named primitive outputs.
 #' @param notes Optional run notes.
+#' @param run_id Advanced/internal optional preallocated stable run identifier.
+#'   Ordinary callers should leave this `NULL`; session execution allocates it
+#'   before invoking a runner so staged registry mutations can be journaled
+#'   against the eventual run without changing the public `wb_run` contract.
 #' @return A `wb_run` object.
 #' @export
 wb_new_run <- function(op_name, inputs = list(), params = list(), outputs = list(), notes = NULL, run_id = NULL) {
