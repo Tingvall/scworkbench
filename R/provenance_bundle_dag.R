@@ -296,6 +296,31 @@
   )
 }
 
+.wb_prov_bundle_replayed_registry_mutations <- function(bundle, snapshot_ids = character(0)) {
+  con <- bundle$con
+  if (!.wb_table_exists(con, "prov_registry_mutations") || !.wb_table_exists(con, "prov_heads")) {
+    return(list(nodes = .wb_prov_bundle_empty_nodes(), edges = .wb_prov_bundle_empty_edges()))
+  }
+  rows <- DBI::dbGetQuery(con, "SELECT prm.*, ph.snapshot_id FROM prov_registry_mutations prm JOIN prov_heads ph ON ph.commit_id = prm.commit_id;")
+  if (length(snapshot_ids)) rows <- rows[as.character(rows$snapshot_id) %in% as.character(snapshot_ids), , drop = FALSE]
+  if (!nrow(rows)) return(list(nodes = .wb_prov_bundle_empty_nodes(), edges = .wb_prov_bundle_empty_edges()))
+  nodes <- list(); edges <- list(); ni <- 0L; ei <- 0L
+  for (i in seq_len(nrow(rows))) {
+    if (!identical(as.character(rows$registry_type[i]), "feature_set")) next
+    key <- .wb_prov_json_read(as.character(rows$registry_key_json[i]))
+    fs <- as.character(key$feature_set %||% "")[1]; mid <- as.character(key$matrix_id %||% "")[1]
+    if (!nzchar(fs)) next
+    payload <- .wb_prov_json_read(as.character(rows$payload_json[i] %||% "{}"))
+    meta <- payload$metadata %||% list()
+    ns <- as.character(meta$namespace %||% "")[1]
+    label <- paste(c(ns, fs, mid)[nzchar(c(ns, fs, mid))], collapse = "/")
+    node_id <- paste0("feature_set:", if (nzchar(ns)) paste0(ns, ":") else "", fs, if (nzchar(mid)) paste0("@", mid) else "")
+    ni <- ni + 1L; nodes[[ni]] <- .wb_prov_bundle_node(id = node_id, node_type = "feature_set", label = label, title = paste0("Feature set ", label), snapshot_id = rows$snapshot_id[i], status = if (identical(rows$action[i], "delete")) "deleted" else "registered")
+    ei <- ei + 1L; edges[[ei]] <- .wb_prov_bundle_edge(from = paste0("run:", rows$run_id[i]), to = node_id, edge_type = "MUTATES_REGISTRY", label = as.character(rows$action[i]), run_id = rows$run_id[i], snapshot_id = rows$snapshot_id[i])
+  }
+  list(nodes = .wb_prov_bundle_bind(nodes, .wb_prov_bundle_empty_nodes), edges = .wb_prov_bundle_bind(edges, .wb_prov_bundle_empty_edges))
+}
+
 .wb_prov_bundle_subgraph <- function(graph,
                                      start_ids,
                                      direction = c("both", "upstream", "downstream"),
@@ -623,6 +648,9 @@ wb_prov_bundle_dag <- function(bundle,
   edges_df <- .wb_prov_bundle_bind(edges, .wb_prov_bundle_empty_edges)
 
   if (isTRUE(include_registry_mutations)) {
+    replayed <- .wb_prov_bundle_replayed_registry_mutations(bundle = bundle, snapshot_ids = sid_filter)
+    if (nrow(replayed$nodes)) nodes_df <- unique(rbind(nodes_df, replayed$nodes))
+    if (nrow(replayed$edges)) edges_df <- unique(rbind(edges_df, replayed$edges))
     reg <- .wb_prov_bundle_registry_mutations(
       bundle = bundle,
       artifact_ids = nodes_df$artifact_id[nodes_df$node_type == "artifact"]
