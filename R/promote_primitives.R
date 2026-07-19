@@ -35,14 +35,12 @@
   chunk_size <- as.integer(chunk_size)
   .wb_assert(chunk_size >= 1L, "chunk_size must be >= 1")
 
-  n <- nrow(df)
-  idx <- seq.int(1L, n, by = chunk_size)
-  for (i in idx) {
-    j <- min(i + chunk_size - 1L, n)
-    sub <- df[i:j, , drop = FALSE]
-    # dbAppendTable avoids some sqlite temp-file issues seen with large dbWriteTable append calls.
-    DBI::dbAppendTable(con, table, sub)
-  }
+  fields <- names(df)
+  quote_ident <- function(x) paste0('"', gsub('"', '""', x, fixed = TRUE), '"')
+  sql <- paste0("INSERT INTO ", quote_ident(table), " (", paste(vapply(fields, quote_ident, character(1)), collapse = ", "), ") VALUES (", paste(rep("?", length(fields)), collapse = ", "), ");")
+  stmt <- DBI::dbSendStatement(con, sql)
+  on.exit(DBI::dbClearResult(stmt), add = TRUE)
+  for (i in seq_len(nrow(df))) DBI::dbBind(stmt, unname(as.list(df[i, fields, drop = FALSE])))
   invisible(TRUE)
 }
 

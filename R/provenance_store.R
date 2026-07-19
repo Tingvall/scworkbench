@@ -293,7 +293,7 @@
   if (isTRUE(transaction_open)) write_snapshot() else DBI::dbWithTransaction(con, write_snapshot())
 
   if (is.data.frame(materializations) && nrow(materializations)) {
-    DBI::dbAppendTable(con, "prov_materializations", materializations)
+    .wb_db_append_chunked(con, "prov_materializations", materializations)
   }
 
   sid
