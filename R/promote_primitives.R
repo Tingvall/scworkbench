@@ -311,6 +311,7 @@ wb_promote_analysis <- function(bundle,
         if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id)
         if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) .wb_stage_commit_space(staging_bundle, bundle, prim$space_id)
       }
+      .wb_replay_registry_mutations(staging_bundle, bundle, topo, commit_id)
     }
 
   # Artifact pool: lets downstream promotions reference upstream artifacts if they want

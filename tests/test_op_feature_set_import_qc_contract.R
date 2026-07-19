@@ -55,34 +55,9 @@ test_op_feature_set_import_qc_contract <- function(bundle_dir) {
   stopifnot(sum(as.character(manifest$table$status) == "imported") == 2L)
   stopifnot(sum(as.character(manifest$table$status) == "rejected") == 1L)
 
-  fs <- wb_feature_sets(b, matrix_id = matrix_id, namespace = ns)
+  fs <- wb_feature_sets(wb_session_view(s), matrix_id = matrix_id, namespace = ns)
   stopifnot(is.data.frame(fs), nrow(fs) == 2L)
   stopifnot(setequal(as.character(fs$feature_set), c("TEST_A", "TEST_B")))
-
-  prom1 <- wb_session_promote_current(
-    bundle = b,
-    session = s,
-    name_prefix = "Feature Set Import Test",
-    fail_fast = TRUE
-  )
-  stopifnot(is.data.frame(prom1$promoted), nrow(prom1$promoted) >= 3L)
-  manifest_artifact_id <- as.character(prom1$promoted$artifact_id[
-    as.character(prom1$promoted$output) == "import_manifest"
-  ][1])
-  stopifnot(nzchar(manifest_artifact_id))
-  loaded_manifest <- wb_art_load(b, manifest_artifact_id, expected_kind = "obs_table")
-  stopifnot(identical(as.character(loaded_manifest$table_type), "feature_set_import_manifest"))
-
-  dag <- wb_prov_bundle_dag(b)
-  stopifnot(is.list(dag), is.data.frame(dag$edges))
-  mut <- dag$edges[
-    as.character(dag$edges$artifact_id) == manifest_artifact_id &
-      as.character(dag$edges$edge_type) == "MUTATES_REGISTRY",
-    ,
-    drop = FALSE
-  ]
-  stopifnot(nrow(mut) >= 2L)
-  stopifnot(any(grepl(paste0("^feature_set:", ns, ":"), as.character(mut$to))))
 
   r2 <- wb_session_run_op(
     session = s,
@@ -106,11 +81,41 @@ test_op_feature_set_import_qc_contract <- function(bundle_dir) {
   stopifnot(nrow(qc$table) == 2L)
   stopifnot(all(as.character(qc$table$screening_status) == "include"))
 
+  # Keep registry-mutating import and its QC in one staged session. Promotion
+  # commits the requested artifacts; the registry mutation remains session
+  # state until its own persistence contract is extended.
+  prom1 <- wb_session_promote_current(
+    bundle = b,
+    session = s,
+    name_prefix = "Feature Set Import Test",
+    fail_fast = TRUE,
+    outputs = c("import_summary", "import_manifest", "rejected_sets")
+  )
+  stopifnot(is.data.frame(prom1$promoted), nrow(prom1$promoted) >= 3L)
+  manifest_artifact_id <- as.character(prom1$promoted$artifact_id[
+    as.character(prom1$promoted$output) == "import_manifest"
+  ][1])
+  stopifnot(nzchar(manifest_artifact_id))
+  loaded_manifest <- wb_art_load(b, manifest_artifact_id, expected_kind = "obs_table")
+  stopifnot(identical(as.character(loaded_manifest$table_type), "feature_set_import_manifest"))
+
+  dag <- wb_prov_bundle_dag(b)
+  stopifnot(is.list(dag), is.data.frame(dag$edges))
+  mut <- dag$edges[
+    as.character(dag$edges$artifact_id) == manifest_artifact_id &
+      as.character(dag$edges$edge_type) == "MUTATES_REGISTRY",
+    ,
+    drop = FALSE
+  ]
+  stopifnot(nrow(mut) >= 2L)
+  stopifnot(any(grepl(paste0("^feature_set:", ns, ":"), as.character(mut$to))))
+
   prom2 <- wb_session_promote_current(
     bundle = b,
     session = s,
     name_prefix = "Feature Set Overlap QC Test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = c("overlap_qc", "namespace_summary")
   )
   stopifnot(is.data.frame(prom2$promoted), nrow(prom2$promoted) >= 2L)
   qc_artifact_id <- as.character(prom2$promoted$artifact_id[

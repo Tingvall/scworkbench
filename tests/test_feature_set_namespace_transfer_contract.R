@@ -75,7 +75,7 @@ test_feature_set_namespace_transfer_contract <- function() {
   stopifnot(identical(as.character(iface$produces$transfer_manifest$kind), "obs_table"))
   stopifnot("feature_set_namespace_transfer" %in% wb_list_ops())
 
-  s <- wb_session_new()
+  s <- r_norm$session
   r <- wb_session_run_op(
     session = s,
     bundle = b,
@@ -83,8 +83,8 @@ test_feature_set_namespace_transfer_contract <- function() {
     inputs = list(
       cell_set = "all",
       min_cells = 1L,
-      source_matrix_id = "RNA_counts",
-      target_matrix_id = "RNA_log_norm",
+      source_matrix = "RNA_counts",
+      target_matrix = "RNA_log_norm",
       namespace = "test_ns",
       mode = "mirror",
       overwrite = TRUE,
@@ -105,16 +105,17 @@ test_feature_set_namespace_transfer_contract <- function() {
   stopifnot(all(as.character(manifest$table$mode) == "mirror"))
   stopifnot(all(as.integer(manifest$table$n_dropped_features) == 0L))
 
-  fs_target <- wb_feature_sets(b, matrix_id = "RNA_log_norm", namespace = "test_ns")
+  fs_target <- wb_feature_sets(wb_session_view(s), matrix_id = "RNA_log_norm", namespace = "test_ns")
   stopifnot(is.data.frame(fs_target), nrow(fs_target) == 2L)
   stopifnot(setequal(as.character(fs_target$feature_set), c("SET_A", "SET_B")))
-  stopifnot(identical(wb_feature_set_get(b, "SET_A", "RNA_log_norm"), c("g1", "g2")))
+  stopifnot(identical(wb_feature_set_get(wb_session_view(s), "SET_A", "RNA_log_norm"), c("g1", "g2")))
 
   prom <- wb_session_promote_current(
     bundle = b,
     session = s,
     name_prefix = "Feature Set Transfer Test",
-    fail_fast = TRUE
+    fail_fast = TRUE,
+    outputs = "transfer_manifest"
   )
   manifest_artifact_id <- as.character(prom$promoted$artifact_id[
     as.character(prom$promoted$output) == "transfer_manifest"
