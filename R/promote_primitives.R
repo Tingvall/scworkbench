@@ -362,7 +362,8 @@ wb_promote_analysis <- function(bundle,
           name = nm,
           description = description,
           created_by = created_by,
-          parent_artifacts = parent_artifacts
+          parent_artifacts = parent_artifacts,
+          workspace = workspace
         )
 
         promoted_ids[[out_name]] <- artifact_id
@@ -615,7 +616,7 @@ wb_promote_analysis <- function(bundle,
 # contract-note: Python writes payload rows only; bench owns artifacts registry + provenance
 .wb_promote_cell_vector <- function(bundle, run, out_name, prim,
                                     name = NULL, description = NULL, created_by = NULL,
-                                    parent_artifacts = list()) {
+                                    parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
   wb_migrate_artifacts(bundle)
@@ -674,7 +675,7 @@ wb_promote_analysis <- function(bundle,
 # pybench-counterpart: pybench.artifacts_payload.write_artifact_relation_family_payload
 .wb_promote_relation_family <- function(bundle, run, out_name, prim,
                                         name = NULL, description = NULL, created_by = NULL,
-                                        parent_artifacts = list()) {
+                                        parent_artifacts = list(), workspace = NULL) {
   con <- bundle$con
   wb_migrate_artifacts(bundle)
 
@@ -729,7 +730,7 @@ wb_promote_analysis <- function(bundle,
 # ---- cell_vector_family -> artifact_pseudotime (fits your schema) ----
 .wb_promote_cell_vector_family <- function(bundle, run, out_name, prim,
                                            name = NULL, description = NULL, created_by = NULL,
-                                           parent_artifacts = list()) {
+                                           parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
   wb_migrate_artifacts(bundle)
@@ -783,7 +784,7 @@ wb_promote_analysis <- function(bundle,
 # pybench-counterpart: pybench.artifacts_payload.write_artifact_path_2d_family_payload
 .wb_promote_path_2d_family <- function(bundle, run, out_name, prim,
                                        name = NULL, description = NULL, created_by = NULL,
-                                       parent_artifacts = list()) {
+                                       parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
   wb_migrate_artifacts(bundle)
@@ -838,7 +839,7 @@ wb_promote_analysis <- function(bundle,
 # ---- space_path_family -> artifact_space_path_rows/meta ----
 .wb_promote_space_path_family <- function(bundle, run, out_name, prim,
                                           name = NULL, description = NULL, created_by = NULL,
-                                          parent_artifacts = list()) {
+                                          parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
   wb_migrate_artifacts(bundle)
@@ -904,7 +905,7 @@ wb_promote_analysis <- function(bundle,
 # ---- space_2d and model_ref promoters (optional snapshot/reference) ----
 .wb_promote_space_2d_ref <- function(bundle, run, out_name, prim,
                                      name = NULL, description = NULL, created_by = NULL,
-                                     parent_artifacts = list()) {
+                                     parent_artifacts = list(), workspace = NULL) {
 
   con <- bundle$con
   wb_migrate_artifacts(bundle)
@@ -960,7 +961,7 @@ wb_promote_analysis <- function(bundle,
 
 .wb_promote_model_ref <- function(bundle, run, out_name, prim,
                                   name = NULL, description = NULL, created_by = NULL,
-                                  parent_artifacts = list()) {
+                                  parent_artifacts = list(), workspace = NULL) {
   # pybench-parity: yes (payload contract)
   # pybench-counterpart: pybench.artifacts_payload.write_artifact_model_ref_payload
   # contract-note: Python writer fills artifact_model_ref row; file path ownership remains runtime-specific
@@ -975,24 +976,27 @@ wb_promote_analysis <- function(bundle,
   in_space_id <- as.character(prim$in_space_id %||% "")[1]
   model_type <- as.character(prim$model_type %||% "")[1]
 
+  artifact_id <- .wb_new_artifact_id("model_ref")
   model_path <- as.character(prim$model_path %||% "")[1]
-  if (!nzchar(model_path) || !file.exists(model_path)) {
-    if (!is.null(prim$model_obj)) {
-      artifact_tmp_id <- .wb_new_artifact_id("model_ref")
-      models_dir <- file.path(bundle$dir, "artifact_models")
-      if (!dir.exists(models_dir)) dir.create(models_dir, recursive = TRUE, showWarnings = FALSE)
-      model_path <- file.path(models_dir, paste0(artifact_tmp_id, ".rds"))
-      saveRDS(prim$model_obj, model_path)
-    } else if (identical(engine, "uwot")) {
-      # Existing UMAP flow stores model in bundle space_models path.
-      model_path <- wb_space_model_path(bundle, space_id)
+  if (!is.null(prim$model_obj)) {
+    .wb_assert(inherits(workspace, "wb_promotion_workspace"), "In-memory model_ref promotion requires a promotion workspace.")
+    stored_model_path <- file.path("artifact_models", paste0(artifact_id, ".rds"))
+    saveRDS(prim$model_obj, .wb_promotion_workspace_path(workspace, stored_model_path), version = 3)
+  } else {
+    if (!nzchar(model_path) && identical(engine, "uwot")) model_path <- wb_space_model_path(bundle, space_id)
+    mapped_rel <- if (inherits(workspace, "wb_promotion_workspace")) {
+      .wb_promotion_workspace_final_rel_for_source(workspace, model_path)
+    } else NULL
+    if (!is.null(mapped_rel)) {
+      stored_model_path <- mapped_rel
+    } else {
+      .wb_assert(nzchar(model_path) && file.exists(model_path),
+                 paste0("model_ref promotion requires an existing model file or in-memory model_obj (engine=", engine, ")."))
+      stored_model_path <- .wb_model_ref_bundle_relative_path(bundle, model_path)
+      .wb_assert(!.wb_path_is_absolute(stored_model_path),
+                 "model_ref promotion cannot retain an external model path; provide model_obj or a durable bundle-owned model path.")
     }
   }
-  .wb_assert(nzchar(model_path) && file.exists(model_path),
-             paste0("model_ref promotion requires an existing model file or in-memory model_obj (engine=", engine, ")."))
-  stored_model_path <- .wb_model_ref_bundle_relative_path(bundle, model_path)
-
-  artifact_id <- .wb_new_artifact_id("model_ref")
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 
@@ -1033,7 +1037,7 @@ wb_promote_analysis <- function(bundle,
 
 .wb_promote_feature_table <- function(bundle, run, out_name, prim,
                                       name = NULL, description = NULL, created_by = NULL,
-                                      parent_artifacts = list()) {
+                                      parent_artifacts = list(), workspace = NULL) {
   .wb_assert(prim$kind == "feature_table", "Expected kind=feature_table")
   .wb_assert(is.data.frame(prim$table), "feature_table missing data.frame 'table'")
   if (!("feature_id" %in% names(prim$table))) {
@@ -1056,7 +1060,7 @@ wb_promote_analysis <- function(bundle,
 
 .wb_promote_obs_table <- function(bundle, run, out_name, prim,
                                   name = NULL, description = NULL, created_by = NULL,
-                                  parent_artifacts = list()) {
+                                  parent_artifacts = list(), workspace = NULL) {
   .wb_assert(prim$kind == "obs_table", "Expected kind=obs_table")
   .wb_assert(is.data.frame(prim$table), "obs_table missing data.frame 'table'")
 

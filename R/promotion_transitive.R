@@ -34,6 +34,7 @@
   src <- file.path(staging_bundle$dir, rel_path)
   pending_path <- .wb_promotion_workspace_path(workspace, rel_path)
   .wb_assert(file.exists(src) || dir.exists(src), paste0("Missing staged payload: ", src))
+  workspace$mappings[[rel_path]]$source <- normalizePath(src, winslash = "/", mustWork = TRUE)
   ok <- file.copy(src, dirname(pending_path), recursive = TRUE, copy.date = TRUE)
   .wb_assert(isTRUE(ok), paste0("Failed to prepare staged payload: ", rel_path))
   invisible(rel_path)

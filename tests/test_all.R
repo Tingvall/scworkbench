@@ -89,6 +89,9 @@ test_all <- function(bundle_dir){
   if (exists("test_promotion_workspace_mixed_matrix_space_atomicity_contract", mode = "function")) {
     stopifnot(test_promotion_workspace_mixed_matrix_space_atomicity_contract())
   }
+  if (exists("test_promotion_artifact_payload_atomicity_contract", mode = "function")) {
+    stopifnot(test_promotion_artifact_payload_atomicity_contract())
+  }
   if (exists("test_op_umap_runtime_preflight_contract", mode = "function")) {
     stopifnot(test_op_umap_runtime_preflight_contract())
   }

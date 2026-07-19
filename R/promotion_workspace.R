@@ -46,3 +46,13 @@
   for (path in workspace$published) if (file.exists(path) || dir.exists(path)) unlink(path, recursive = TRUE, force = TRUE)
   invisible(TRUE)
 }
+
+.wb_promotion_workspace_final_rel_for_source <- function(workspace, source_path) {
+  source_path <- normalizePath(as.character(source_path %||% "")[1], winslash = "/", mustWork = FALSE)
+  if (!nzchar(source_path)) return(NULL)
+  for (final_rel in names(workspace$mappings)) {
+    mapped <- as.character(workspace$mappings[[final_rel]]$source %||% "")[1]
+    if (nzchar(mapped) && identical(mapped, source_path)) return(final_rel)
+  }
+  NULL
+}
