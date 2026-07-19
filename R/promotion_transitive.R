@@ -28,20 +28,6 @@
   invisible(nrow(rows))
 }
 
-.wb_copy_staged_payload <- function(staging_bundle, bundle, rel_path) {
-  rel_path <- as.character(rel_path %||% "")[1]
-  .wb_assert(nzchar(rel_path) && !startsWith(rel_path, "/") && !grepl("(^|/)\\.\\.(/|$)", rel_path),
-             paste0("Unsafe staged payload path: ", rel_path))
-  src <- file.path(staging_bundle$dir, rel_path)
-  dst <- file.path(bundle$dir, rel_path)
-  .wb_assert(file.exists(src) || dir.exists(src), paste0("Missing staged payload: ", src))
-  .wb_assert(!file.exists(dst) && !dir.exists(dst), paste0("Promotion destination already exists: ", dst))
-  dir.create(dirname(dst), recursive = TRUE, showWarnings = FALSE)
-  ok <- file.copy(src, dirname(dst), recursive = TRUE, copy.date = TRUE)
-  .wb_assert(isTRUE(ok) && (file.exists(dst) || dir.exists(dst)), paste0("Failed to copy staged payload: ", rel_path))
-  dst
-}
-
 .wb_prepare_staged_payload <- function(staging_bundle, workspace, rel_path) {
   rel_path <- as.character(rel_path %||% "")[1]
   .wb_assert(nzchar(rel_path) && !startsWith(rel_path, "/") && !grepl("(^|/)\\.\\.(/|$)", rel_path), "Unsafe staged payload path")
@@ -59,6 +45,17 @@
   frags <- DBI::dbGetQuery(staging_bundle$con, "SELECT * FROM matrix_fragments WHERE matrix_id = ?;", params = list(matrix_id))
   paths <- unique(c(as.character(row$path %||% character(0)), as.character(frags$path %||% character(0))))
   for (p in paths[nzchar(paths)]) .wb_prepare_staged_payload(staging_bundle, workspace, p)
+  invisible(workspace)
+}
+
+.wb_stage_prepare_space_payloads <- function(staging_bundle, workspace, space_id) {
+  sm <- if (.wb_table_exists(staging_bundle$con, "space_models")) {
+    DBI::dbGetQuery(staging_bundle$con, "SELECT * FROM space_models WHERE space_id = ?;", params = list(space_id))
+  } else data.frame()
+  if (nrow(sm) && "model_path" %in% names(sm)) {
+    paths <- unique(as.character(sm$model_path))
+    for (path in paths[nzchar(paths)]) .wb_prepare_staged_payload(staging_bundle, workspace, path)
+  }
   invisible(workspace)
 }
 
@@ -89,6 +86,10 @@
       if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) {
         exists <- DBI::dbGetQuery(bundle$con, "SELECT matrix_id FROM matrices WHERE matrix_id = ?;", params = list(prim$matrix_id))
         if (!nrow(exists)) .wb_stage_prepare_matrix_payloads(staging_bundle, workspace, prim$matrix_id)
+      }
+      if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) {
+        exists <- DBI::dbGetQuery(bundle$con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(prim$space_id))
+        if (!nrow(exists)) .wb_stage_prepare_space_payloads(staging_bundle, workspace, prim$space_id)
       }
     }
   }
@@ -124,58 +125,9 @@
   if (nrow(exists)) return(invisible(FALSE))
   row <- DBI::dbGetQuery(src, "SELECT * FROM spaces WHERE space_id = ?;", params = list(space_id))
   .wb_assert(nrow(row) == 1L, paste0("Staged space is missing: ", space_id))
-  sm <- if (.wb_table_exists(src, "space_models")) DBI::dbGetQuery(src, "SELECT * FROM space_models WHERE space_id = ?;", params = list(space_id)) else data.frame()
-  copied <- character(0)
-  tryCatch({
-    if (nrow(sm) && "model_path" %in% names(sm) && nzchar(as.character(sm$model_path[1]))) {
-      copied <- c(copied, .wb_copy_staged_payload(staging_bundle, bundle, as.character(sm$model_path[1])))
-    }
-    .wb_copy_db_rows(src, dst, "spaces", "space_id = ?", list(space_id))
-    .wb_copy_db_rows(src, dst, "space_2d", "space_id = ?", list(space_id))
-    .wb_copy_db_rows(src, dst, "space_coords", "space_id = ?", list(space_id))
-    .wb_copy_db_rows(src, dst, "space_models", "space_id = ?", list(space_id))
-  }, error = function(e) {
-    for (p in copied) if (file.exists(p) || dir.exists(p)) unlink(p, recursive = TRUE, force = TRUE)
-    stop(e)
-  })
+  .wb_copy_db_rows(src, dst, "spaces", "space_id = ?", list(space_id))
+  .wb_copy_db_rows(src, dst, "space_2d", "space_id = ?", list(space_id))
+  .wb_copy_db_rows(src, dst, "space_coords", "space_id = ?", list(space_id))
+  .wb_copy_db_rows(src, dst, "space_models", "space_id = ?", list(space_id))
   invisible(TRUE)
-}
-
-.wb_stage_commit_materializations <- function(staging_bundle, bundle, runs, topo, commit_id) {
-  .wb_assert(inherits(staging_bundle, "scworkbench_bundle"), "staging_bundle must be scworkbench_bundle")
-  for (rid in topo) {
-    run <- runs[[rid]]
-    for (prim in unname(run$outputs %||% list())) {
-      if (!.wb_is_primitive(prim)) next
-      if (identical(prim$kind, "matrix")) .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id)
-      if (prim$kind %in% c("space", "space_2d")) .wb_stage_commit_space(staging_bundle, bundle, prim$space_id)
-    }
-  }
-  if (exists("wb_refresh_manifest", mode = "function")) wb_refresh_manifest(bundle)
-
-  root_rel <- file.path("provenance", "materializations", commit_id)
-  root_abs <- file.path(bundle$dir, root_rel)
-  dir.create(root_abs, recursive = TRUE, showWarnings = FALSE)
-  rows <- list()
-  i <- 0L
-  for (rid in topo) {
-    run <- runs[[rid]]
-    for (nm in names(run$outputs %||% list())) {
-      prim <- run$outputs[[nm]]
-      if (!.wb_is_primitive(prim)) next
-      rel <- file.path(root_rel, rid, paste0(nm, ".rds"))
-      abs <- file.path(bundle$dir, rel)
-      dir.create(dirname(abs), recursive = TRUE, showWarnings = FALSE)
-      saveRDS(prim, abs, version = 3)
-      i <- i + 1L
-      rows[[i]] <- data.frame(
-        commit_id = commit_id, run_id = rid, output_name = nm,
-        primitive_kind = as.character(prim$kind), path = rel,
-        output_hash = .wb_hash_text(serialize(prim, NULL, version = 3)),
-        stringsAsFactors = FALSE
-      )
-    }
-  }
-  if (!length(rows)) return(data.frame())
-  do.call(rbind, rows)
 }

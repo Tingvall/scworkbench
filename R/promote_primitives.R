@@ -272,16 +272,6 @@ wb_promote_analysis <- function(bundle,
              paste0("Requested outputs are not promotable terminal outputs: ",
                     paste(setdiff(selected_outputs, available), collapse = ", ")))
 
-  if (!is.null(staging_bundle)) {
-    has_staged_space <- any(vapply(topo, function(rid) {
-      any(vapply(unname(runs[[rid]]$outputs %||% list()), function(prim) {
-        .wb_is_primitive(prim) && as.character(prim$kind %||% "")[1] %in% c("space", "space_2d")
-      }, logical(1)))
-    }, logical(1)))
-    .wb_assert(!has_staged_space,
-               "Staged-space atomic promotion is not yet implemented; promote a closure without staged space or space_2d outputs.")
-  }
-
   commit_id <- .wb_promotion_commit_id()
   runtime_fingerprint <- .wb_promotion_runtime_fingerprint()
   .wb_migrate_provenance_tables(bundle$con)
@@ -319,6 +309,7 @@ wb_promote_analysis <- function(bundle,
     if (!is.null(staging_bundle)) {
       for (rid in topo) for (prim in unname(runs[[rid]]$outputs %||% list())) {
         if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id)
+        if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) .wb_stage_commit_space(staging_bundle, bundle, prim$space_id)
       }
     }
 
