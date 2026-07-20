@@ -647,6 +647,17 @@ wb_prov_bundle_dag <- function(bundle,
   nodes_df <- .wb_prov_bundle_bind(nodes, .wb_prov_bundle_empty_nodes)
   edges_df <- .wb_prov_bundle_bind(edges, .wb_prov_bundle_empty_edges)
 
+  if (.wb_table_exists(con, "prov_run_entity_bindings")) {
+    bindings <- DBI::dbGetQuery(con, "SELECT * FROM prov_run_entity_bindings;")
+    if (has_sid_filter && nrow(bindings)) bindings <- bindings[as.character(bindings$snapshot_id) %in% sid_filter, , drop = FALSE]
+    if (nrow(bindings)) for (i in seq_len(nrow(bindings))) {
+      kind <- as.character(bindings$entity_kind[i]); id <- as.character(bindings$entity_id[i])
+      node_id <- paste0(kind, ":", id)
+      nodes_df <- unique(rbind(nodes_df, .wb_prov_bundle_node(id = node_id, node_type = kind, label = id, title = paste(kind, id), snapshot_id = bindings$snapshot_id[i], status = "durable")))
+      edges_df <- unique(rbind(edges_df, .wb_prov_bundle_edge(from = paste0("run:", bindings$run_id[i]), to = node_id, edge_type = as.character(bindings$relationship_type[i]), label = as.character(bindings$binding_name[i]), run_id = bindings$run_id[i], snapshot_id = bindings$snapshot_id[i])))
+    }
+  }
+
   if (isTRUE(include_registry_mutations)) {
     replayed <- .wb_prov_bundle_replayed_registry_mutations(bundle = bundle, snapshot_ids = sid_filter)
     if (nrow(replayed$nodes)) nodes_df <- unique(rbind(nodes_df, replayed$nodes))
