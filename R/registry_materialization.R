@@ -1,11 +1,46 @@
 # Replay selected session registry mutations through canonical registry APIs.
 
+.wb_ensure_registry_mutation_events_table <- function(con) {
+  DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS registry_mutation_events (event_id TEXT PRIMARY KEY, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, created_at TEXT NOT NULL);")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_registry_mutation_events_run ON registry_mutation_events(run_id);")
+  invisible(TRUE)
+}
+
+.wb_journal_registry_mutation <- function(bundle, registry_type, action, key, payload = NULL) {
+  ctx <- getOption("scworkbench.registry_mutation_context")
+  if (is.null(bundle$staging_source_dir) || !is.list(ctx) || !nzchar(as.character(ctx$run_id %||% "")[1])) {
+    return(invisible(FALSE))
+  }
+  .wb_ensure_registry_mutation_events_table(bundle$con)
+  payload_json <- if (is.null(payload)) NA_character_ else jsonlite::toJSON(
+    payload, dataframe = "rows", auto_unbox = TRUE, null = "null"
+  )
+  DBI::dbExecute(
+    bundle$con,
+    "INSERT INTO registry_mutation_events(event_id, run_id, registry_type, action, registry_key_json, payload_json, created_at) VALUES(?, ?, ?, ?, ?, ?, ?);",
+    params = list(
+      paste0("registry_event_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")),
+      as.character(ctx$run_id)[1],
+      as.character(registry_type)[1],
+      as.character(action)[1],
+      jsonlite::toJSON(key, auto_unbox = TRUE, null = "null"),
+      payload_json,
+      format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
+    )
+  )
+  invisible(TRUE)
+}
+
 .wb_replay_registry_mutations <- function(staging_bundle, bundle, topo, commit_id) {
   if (is.null(staging_bundle) || !.wb_table_exists(staging_bundle$con, "registry_mutation_events")) return(invisible(data.frame()))
   ids <- unique(as.character(topo))
   if (!length(ids)) return(invisible(data.frame()))
   q <- paste(rep("?", length(ids)), collapse = ",")
-  events <- DBI::dbGetQuery(staging_bundle$con, paste0("SELECT * FROM registry_mutation_events WHERE run_id IN (", q, ") ORDER BY created_at, event_id;"), params = as.list(ids))
+  events <- DBI::dbGetQuery(
+    staging_bundle$con,
+    paste0("SELECT * FROM registry_mutation_events WHERE run_id IN (", q, ") ORDER BY rowid;"),
+    params = as.list(ids)
+  )
   if (!nrow(events)) return(invisible(events))
   old <- getOption("scworkbench.registry_replay_transaction_open")
   options(scworkbench.registry_replay_transaction_open = TRUE)
@@ -15,8 +50,8 @@
     if (is.function(hook)) hook(events[i, , drop = FALSE])
     key <- jsonlite::fromJSON(as.character(events$registry_key_json[i]), simplifyVector = FALSE)
     action <- as.character(events$action[i])
-    .wb_assert(identical(as.character(events$registry_type[i]), "feature_set"), "Unsupported registry mutation event")
-    if (identical(action, "replace")) {
+    registry_type <- as.character(events$registry_type[i])
+    if (identical(registry_type, "feature_set") && identical(action, "replace")) {
       payload <- jsonlite::fromJSON(as.character(events$payload_json[i]), simplifyVector = FALSE)
       meta <- as.data.frame(payload$metadata, stringsAsFactors = FALSE)
       .wb_assert(nrow(meta) == 1L, "Feature-set replace event metadata is invalid")
@@ -27,12 +62,63 @@
         organism = as.character(meta$organism[1] %||% NA_character_), source_id = as.character(meta$source_id[1] %||% NA_character_),
         source_version = as.character(meta$source_version[1] %||% NA_character_), origin = as.character(meta$origin[1] %||% NA_character_),
         recipe = as.character(meta$recipe_json[1] %||% NA_character_), is_readonly = as.integer(meta$is_readonly[1] %||% 0L))
-    } else if (identical(action, "delete")) {
+    } else if (identical(registry_type, "feature_set") && identical(action, "delete")) {
       wb_feature_set_delete(bundle, feature_set = key$feature_set, matrix_id = key$matrix_id %||% NULL)
-    } else stop("Unsupported registry mutation action: ", action, call. = FALSE)
+    } else if (identical(registry_type, "cell_set")) {
+      payload <- jsonlite::fromJSON(as.character(events$payload_json[i]), simplifyVector = FALSE)
+      metadata <- payload$metadata %||% list()
+      if (identical(action, "replace")) {
+        wb_cell_set_replace(
+          bundle,
+          cell_set = key$cell_set,
+          cell_ids = as.character(unlist(payload$cell_ids %||% character(0), use.names = FALSE)),
+          source = as.character(metadata$source %||% "session_promotion")[1],
+          created_by = as.character(metadata$created_by %||% NA_character_)[1],
+          description = as.character(metadata$description %||% NA_character_)[1],
+          strict = TRUE
+        )
+      } else if (identical(action, "add")) {
+        ids_add <- as.character(unlist(payload$cell_ids %||% character(0), use.names = FALSE))
+        if (length(ids_add)) {
+          wb_cell_set_add(
+            bundle,
+            cell_set = key$cell_set,
+            cell_ids = ids_add,
+            source = as.character(metadata$source %||% "session_promotion")[1],
+            created_by = as.character(metadata$created_by %||% NA_character_)[1],
+            description = as.character(metadata$description %||% NA_character_)[1]
+          )
+        }
+      } else if (identical(action, "remove")) {
+        ids_remove <- payload$cell_ids %||% NULL
+        if (!is.null(ids_remove)) ids_remove <- as.character(unlist(ids_remove, use.names = FALSE))
+        wb_cell_set_remove(bundle, cell_set = key$cell_set, cell_ids = ids_remove)
+      } else {
+        stop("Unsupported cell-set registry mutation action: ", action, call. = FALSE)
+      }
+    } else if (identical(registry_type, "cell_set_recipe") && identical(action, "upsert")) {
+      payload <- jsonlite::fromJSON(as.character(events$payload_json[i]), simplifyVector = FALSE)
+      .wb_cell_set_recipe_row_upsert(
+        bundle = bundle,
+        cell_set = key$cell_set,
+        recipe_json = as.character(payload$recipe_json %||% "")[1],
+        created_at = as.character(payload$created_at %||% .wb_now_sqlite())[1],
+        created_by = as.character(payload$created_by %||% NA_character_)[1],
+        source = as.character(payload$source %||% NA_character_)[1],
+        description = as.character(payload$description %||% NA_character_)[1],
+        role = as.character(payload$role %||% NA_character_)[1],
+        status = as.character(payload$status %||% NA_character_)[1]
+      )
+    } else {
+      stop("Unsupported registry mutation event: ", registry_type, "/", action, call. = FALSE)
+    }
   }
-  .wb_ensure_feature_set_tables(bundle$con)
+  .wb_ensure_registry_mutation_events_table(bundle$con)
   DBI::dbExecute(bundle$con, "CREATE TABLE IF NOT EXISTS prov_registry_mutations (commit_id TEXT NOT NULL, event_id TEXT NOT NULL, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, PRIMARY KEY(commit_id, event_id));")
-  DBI::dbAppendTable(bundle$con, "prov_registry_mutations", transform(events, commit_id = commit_id)[, c("commit_id", "event_id", "run_id", "registry_type", "action", "registry_key_json", "payload_json")])
+  .wb_db_append_chunked(
+    bundle$con,
+    "prov_registry_mutations",
+    transform(events, commit_id = commit_id)[, c("commit_id", "event_id", "run_id", "registry_type", "action", "registry_key_json", "payload_json")]
+  )
   invisible(events)
 }

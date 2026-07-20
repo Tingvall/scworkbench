@@ -172,17 +172,20 @@ wb_op_umap_fit <- function(bundle,
       con,
       "INSERT INTO space_2d(space_id, cell_id, x, y) VALUES(?, ?, ?, ?);"
     )
-    on.exit(DBI::dbClearResult(stmt), add = TRUE)
-
-    # row-bind (good enough for now; can chunk like transform if needed)
-    for (i in seq_len(nrow(df2))) {
-      DBI::dbBind(stmt, params = list(
-        space_id_out,
-        df2$cell_id[i],
-        df2$x[i],
-        df2$y[i]
-      ))
-    }
+    tryCatch(
+      {
+        # row-bind (good enough for now; can chunk like transform if needed)
+        for (i in seq_len(nrow(df2))) {
+          DBI::dbBind(stmt, params = list(
+            space_id_out,
+            df2$cell_id[i],
+            df2$x[i],
+            df2$y[i]
+          ))
+        }
+      },
+      finally = DBI::dbClearResult(stmt)
+    )
   })
 
   # ---- Persist model to disk + register in space_models ----

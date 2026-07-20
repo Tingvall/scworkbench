@@ -84,7 +84,7 @@ test_promotion_workspace_mixed_matrix_space_atomicity_contract <- function() {
   })
   failed <- try(wb_promote_analysis(
     b, s$runs, head_run_id = r_umap$run$run_id,
-    outputs = "space_2d", staging_bundle = staged_bundle
+    outputs = c("model", "space_2d"), staging_bundle = staged_bundle
   ), silent = TRUE)
   stopifnot(inherits(failed, "try-error"), hook_calls >= 3L)
   stopifnot(!"RNA_log" %in% as.character(wb_matrices(b)$matrix_id))
@@ -95,5 +95,7 @@ test_promotion_workspace_mixed_matrix_space_atomicity_contract <- function() {
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == 0L)
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == 0L)
   stopifnot(nrow(wb_art_list(b)) == 0L)
+  stopifnot(!.wb_table_exists(b$con, "space_models") || DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM space_models;")$n[1] == 0L)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM artifact_model_ref;")$n[1] == 0L)
   TRUE
 }

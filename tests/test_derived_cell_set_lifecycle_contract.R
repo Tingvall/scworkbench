@@ -2,6 +2,7 @@ test_derived_cell_set_lifecycle_contract <- function() {
   tmp <- tempfile("scwb_derived_cell_set_")
   b <- wb_init_bundle(tmp, overwrite = TRUE)
   on.exit({
+    options(scworkbench.registry_replay_hook = NULL)
     try(wb_close_bundle(b), silent = TRUE)
     unlink(tmp, recursive = TRUE, force = TRUE)
   }, add = TRUE)
@@ -143,6 +144,15 @@ test_derived_cell_set_lifecycle_contract <- function() {
   stopifnot(nzchar(manifest_artifact_id))
   loaded_manifest <- wb_art_load(b, manifest_artifact_id, expected_kind = "obs_table")
   stopifnot(identical(as.character(loaded_manifest$table_type), "derived_cell_set_manifest"))
+  wb_close_bundle(b); b <- wb_open_bundle(tmp)
+  stopifnot(identical(
+    as.character(wb_cells(b, cell_set = "set:test_claim_universe_session")),
+    c("c3", "c5", "c8")
+  ))
+  promoted_recipe <- wb_get_cell_set_recipe(b, "set:test_claim_universe_session")
+  stopifnot(nrow(promoted_recipe) == 1L)
+  stopifnot(identical(as.character(promoted_recipe$role[1]), "analysis_universe"))
+  stopifnot(identical(as.character(promoted_recipe$status[1]), "candidate"))
 
   dag <- wb_prov_bundle_dag(b)
   stopifnot(any(
@@ -150,6 +160,47 @@ test_derived_cell_set_lifecycle_contract <- function() {
       as.character(dag$edges$edge_type) == "MUTATES_REGISTRY" &
       as.character(dag$edges$to) == "cell_set:set:test_claim_universe_session"
   ))
+
+  replay_events <- DBI::dbGetQuery(
+    b$con,
+    "SELECT registry_type, action FROM prov_registry_mutations WHERE run_id = ? ORDER BY registry_type;",
+    params = list(r_derive$run$run_id)
+  )
+  stopifnot(setequal(as.character(replay_events$registry_type), c("cell_set", "cell_set_recipe")))
+
+  failed_derive <- wb_session_run_op(
+    wb_session_new(), b, "cell_set_derive",
+    inputs = list(
+      cell_set = "set:test_claim_universe",
+      min_cells = 1L,
+      target_cell_set = "set:test_claim_universe_rollback",
+      role = "analysis_universe",
+      status = "candidate",
+      created_by = "test"
+    )
+  )
+  artifact_n_before <- nrow(wb_art_list(b))
+  commit_n_before <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1]
+  replay_calls <- 0L
+  options(scworkbench.registry_replay_hook = function(event) {
+    replay_calls <<- replay_calls + 1L
+    if (replay_calls == 2L) stop("forced cell-set recipe replay failure", call. = FALSE)
+  })
+  failed_promotion <- try(
+    wb_session_promote_current(
+      b, failed_derive$session, outputs = "manifest", created_by = "test"
+    ),
+    silent = TRUE
+  )
+  options(scworkbench.registry_replay_hook = NULL)
+  stopifnot(inherits(failed_promotion, "try-error"), replay_calls == 2L)
+  stopifnot(!nrow(DBI::dbGetQuery(
+    b$con,
+    "SELECT 1 FROM cell_set_membership WHERE cell_set = 'set:test_claim_universe_rollback' LIMIT 1;"
+  )))
+  stopifnot(!nrow(wb_get_cell_set_recipe(b, "set:test_claim_universe_rollback")))
+  stopifnot(nrow(wb_art_list(b)) == artifact_n_before)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == commit_n_before)
 
   TRUE
 }

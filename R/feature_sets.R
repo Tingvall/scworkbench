@@ -62,8 +62,7 @@
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_fset_feature ON feature_set_membership(feature_id);")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_fsets_namespace ON feature_sets(namespace);")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_fsets_source ON feature_sets(source_id);")
-  DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS registry_mutation_events (event_id TEXT PRIMARY KEY, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, created_at TEXT NOT NULL);")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_registry_mutation_events_run ON registry_mutation_events(run_id);")
+  .wb_ensure_registry_mutation_events_table(con)
   invisible(TRUE)
 }
 
@@ -396,12 +395,13 @@ wb_feature_set_replace <- function(bundle,
   }
   if (isTRUE(getOption("scworkbench.registry_replay_transaction_open"))) write_replace() else DBI::dbWithTransaction(con, write_replace())
 
-  ctx <- getOption("scworkbench.registry_mutation_context")
-  if (!is.null(bundle$staging_source_dir) && is.list(ctx) && nzchar(as.character(ctx$run_id %||% "")[1])) {
-    row <- wb_feature_set_info(bundle, feature_set = feature_set, matrix_id = matrix_id)
-    members <- wb_feature_set_get(bundle, feature_set = feature_set, matrix_id = matrix_id)
-    DBI::dbExecute(con, "INSERT INTO registry_mutation_events(event_id, run_id, registry_type, action, registry_key_json, payload_json, created_at) VALUES(?, ?, ?, ?, ?, ?, ?);", params = list(paste0("registry_event_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")), as.character(ctx$run_id)[1], "feature_set", "replace", jsonlite::toJSON(list(feature_set = feature_set, matrix_id = matrix_id), auto_unbox = TRUE), jsonlite::toJSON(list(metadata = row[1, , drop = FALSE], feature_ids = members), dataframe = "rows", auto_unbox = TRUE, null = "null"), format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")))
-  }
+  row <- wb_feature_set_info(bundle, feature_set = feature_set, matrix_id = matrix_id)
+  members <- wb_feature_set_get(bundle, feature_set = feature_set, matrix_id = matrix_id)
+  .wb_journal_registry_mutation(
+    bundle, "feature_set", "replace",
+    key = list(feature_set = feature_set, matrix_id = matrix_id),
+    payload = list(metadata = row[1, , drop = FALSE], feature_ids = members)
+  )
 
   invisible(list(
     feature_set = as.character(feature_set),
@@ -617,9 +617,9 @@ wb_feature_set_delete <- function(bundle, feature_set, matrix_id = NULL) {
   }
   if (!is.null(matrix_id)) .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
   if (isTRUE(getOption("scworkbench.registry_replay_transaction_open"))) write_delete() else DBI::dbWithTransaction(con, write_delete())
-  ctx <- getOption("scworkbench.registry_mutation_context")
-  if (!is.null(bundle$staging_source_dir) && is.list(ctx) && nzchar(as.character(ctx$run_id %||% "")[1])) {
-    DBI::dbExecute(con, "INSERT INTO registry_mutation_events(event_id, run_id, registry_type, action, registry_key_json, payload_json, created_at) VALUES(?, ?, ?, ?, ?, ?, ?);", params = list(paste0("registry_event_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")), as.character(ctx$run_id)[1], "feature_set", "delete", jsonlite::toJSON(list(feature_set = feature_set, matrix_id = matrix_id), auto_unbox = TRUE, null = "null"), NA_character_, format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")))
-  }
+  .wb_journal_registry_mutation(
+    bundle, "feature_set", "delete",
+    key = list(feature_set = feature_set, matrix_id = matrix_id)
+  )
   invisible(list(feature_set = as.character(feature_set), matrix_id = as.character(matrix_id)))
 }

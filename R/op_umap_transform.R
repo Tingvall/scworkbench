@@ -85,41 +85,39 @@ wb_op_umap_transform <- function(bundle,
   # 6) Write to space_2d for model_space_id (ONLY these cells)
   con <- bundle$con
 
-  if (isTRUE(overwrite)) {
-    DBI::dbExecute(
-      con,
-      "DELETE FROM space_2d WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
-      params = list(model_space_id, jsonlite::toJSON(as.list(cells), auto_unbox = TRUE))
-    )
-  }
-
-  DBI::dbExecute(con, "BEGIN;")
-  on.exit(try(DBI::dbExecute(con, "ROLLBACK;"), silent = TRUE), add = TRUE)
-
-  stmt <- DBI::dbSendStatement(
-    con,
-    "INSERT INTO space_2d(space_id, cell_id, x, y) VALUES(?, ?, ?, ?);"
-  )
-  on.exit(try(DBI::dbClearResult(stmt), silent = TRUE), add = TRUE)
-
-  chunk_size <- 5000L
-  for (i in seq(1, nrow(df2), by = chunk_size)) {
-    j <- min(i + chunk_size - 1L, nrow(df2))
-    sub <- df2[i:j, , drop = FALSE]
-
-    for (k in seq_len(nrow(sub))) {
-      DBI::dbBind(stmt, list(
-        model_space_id,
-        sub$cell_id[k],
-        sub$x[k],
-        sub$y[k]
-      ))
+  DBI::dbWithTransaction(con, {
+    if (isTRUE(overwrite)) {
+      DBI::dbExecute(
+        con,
+        "DELETE FROM space_2d WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
+        params = list(model_space_id, jsonlite::toJSON(as.list(cells), auto_unbox = TRUE))
+      )
     }
-  }
 
-  DBI::dbClearResult(stmt)
-  DBI::dbExecute(con, "COMMIT;")
-  on.exit(NULL, add = FALSE)
+    stmt <- DBI::dbSendStatement(
+      con,
+      "INSERT INTO space_2d(space_id, cell_id, x, y) VALUES(?, ?, ?, ?);"
+    )
+    tryCatch(
+      {
+        chunk_size <- 5000L
+        for (i in seq(1, nrow(df2), by = chunk_size)) {
+          j <- min(i + chunk_size - 1L, nrow(df2))
+          sub <- df2[i:j, , drop = FALSE]
+
+          for (k in seq_len(nrow(sub))) {
+            DBI::dbBind(stmt, list(
+              model_space_id,
+              sub$cell_id[k],
+              sub$x[k],
+              sub$y[k]
+            ))
+          }
+        }
+      },
+      finally = DBI::dbClearResult(stmt)
+    )
+  })
 
   out_space_2d <- list(
     space_id = model_space_id,
@@ -134,9 +132,14 @@ wb_op_umap_transform <- function(bundle,
     overwrite = overwrite
   )
 
+  space_prim <- wb_prim_space_2d(model_space_id)
+  space_prim$promotion_mode <- "merge_space_2d"
+  space_prim$cell_ids <- cells
+  space_prim$overwrite <- isTRUE(overwrite)
+
   list(
     outputs = list(
-      space_2d = wb_prim_space_2d(model_space_id)
+      space_2d = space_prim
     ),
     space_2d = out_space_2d,
     n_projected = nrow(df2),

@@ -122,6 +122,19 @@
       as.character(status %||% NA_character_)[1]
     )
   )
+  .wb_journal_registry_mutation(
+    bundle, "cell_set_recipe", "upsert",
+    key = list(cell_set = cell_set),
+    payload = list(
+      recipe_json = recipe_json,
+      created_at = created_at,
+      created_by = created_by,
+      source = source,
+      description = description,
+      role = role,
+      status = status
+    )
+  )
   invisible(TRUE)
 }
 

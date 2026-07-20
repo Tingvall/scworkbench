@@ -306,8 +306,33 @@
   if (!nrow(rows)) return(list(nodes = .wb_prov_bundle_empty_nodes(), edges = .wb_prov_bundle_empty_edges()))
   nodes <- list(); edges <- list(); ni <- 0L; ei <- 0L
   for (i in seq_len(nrow(rows))) {
-    if (!identical(as.character(rows$registry_type[i]), "feature_set")) next
+    registry_type <- as.character(rows$registry_type[i])
     key <- .wb_prov_json_read(as.character(rows$registry_key_json[i]))
+    if (registry_type %in% c("cell_set", "cell_set_recipe")) {
+      cs <- as.character(key$cell_set %||% "")[1]
+      if (!nzchar(cs)) next
+      node_id <- paste0("cell_set:", cs)
+      ni <- ni + 1L
+      nodes[[ni]] <- .wb_prov_bundle_node(
+        id = node_id,
+        node_type = "cell_set",
+        label = cs,
+        title = paste0("Cell set ", cs),
+        snapshot_id = rows$snapshot_id[i],
+        status = if (identical(rows$action[i], "remove")) "removed" else "registered"
+      )
+      ei <- ei + 1L
+      edges[[ei]] <- .wb_prov_bundle_edge(
+        from = paste0("run:", rows$run_id[i]),
+        to = node_id,
+        edge_type = "MUTATES_REGISTRY",
+        label = as.character(rows$action[i]),
+        run_id = rows$run_id[i],
+        snapshot_id = rows$snapshot_id[i]
+      )
+      next
+    }
+    if (!identical(registry_type, "feature_set")) next
     fs <- as.character(key$feature_set %||% "")[1]; mid <- as.character(key$matrix_id %||% "")[1]
     if (!nzchar(fs)) next
     payload <- .wb_prov_json_read(as.character(rows$payload_json[i] %||% "{}"))

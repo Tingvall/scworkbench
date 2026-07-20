@@ -126,6 +126,9 @@ test_op_cell_vector_winners_contract <- function() {
   stopifnot(nzchar(manifest_artifact_id))
   loaded_manifest <- wb_art_load(b, manifest_artifact_id, expected_kind = "obs_table")
   stopifnot(identical(as.character(loaded_manifest$table_type), "winner_cell_set_manifest"))
+  wb_close_bundle(b); b <- wb_open_bundle(tmp)
+  stopifnot(length(wb_cells(b, cell_set = "set:winner_A")) == 3L)
+  stopifnot(length(wb_cells(b, cell_set = "set:winner_B")) == 2L)
 
   TRUE
 }

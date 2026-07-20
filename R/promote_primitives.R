@@ -305,9 +305,22 @@ wb_promote_analysis <- function(bundle,
       )
     )
     if (!is.null(staging_bundle)) {
-      for (rid in topo) for (prim in unname(runs[[rid]]$outputs %||% list())) {
-        if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id)
-        if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) .wb_stage_commit_space(staging_bundle, bundle, prim$space_id)
+      committed_space_ids <- if (.wb_table_exists(bundle$con, "spaces")) {
+        as.character(DBI::dbGetQuery(bundle$con, "SELECT space_id FROM spaces;")$space_id)
+      } else character(0)
+      copied_new_space_ids <- character(0)
+      for (rid in topo) {
+        if (.wb_run_is_committed(bundle, rid)) next
+        for (prim in unname(runs[[rid]]$outputs %||% list())) {
+          if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id)
+          if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) {
+            space_id <- as.character(prim$space_id)[1]
+            if (space_id %in% committed_space_ids || !space_id %in% copied_new_space_ids) {
+              .wb_stage_commit_space(staging_bundle, bundle, space_id, prim = prim)
+              if (!space_id %in% committed_space_ids) copied_new_space_ids <- c(copied_new_space_ids, space_id)
+            }
+          }
+        }
       }
       .wb_replay_registry_mutations(staging_bundle, bundle, topo, commit_id)
     }

@@ -43,39 +43,26 @@ wb_set_create <- function(bundle,
   .wb_assert(is.character(set_name) && nzchar(set_name), "set_name invalid")
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids invalid")
 
-  con <- bundle$con
-  .wb_ensure_cell_set_membership_table(con)
-
   cell_set <- paste0("set:", set_name)
   cell_ids <- unique(as.character(cell_ids))
   cell_ids <- cell_ids[nzchar(cell_ids)]
   .wb_assert(length(cell_ids) > 0, "cell_ids empty after cleaning")
+  res <- if (isTRUE(overwrite)) {
+    wb_cell_set_replace(
+      bundle, cell_set = cell_set, cell_ids = cell_ids, source = source,
+      created_by = created_by, description = description, strict = TRUE
+    )
+  } else {
+    wb_cell_set_add(
+      bundle, cell_set = cell_set, cell_ids = cell_ids, source = source,
+      created_by = created_by, description = description
+    )
+  }
 
-  # validate existence
-  existing <- wb_cells(bundle, cell_set = "all")
-  miss <- setdiff(cell_ids, existing)
-  .wb_assert(length(miss) == 0, paste0("Some cell_ids do not exist in bundle. Example: ", miss[[1]]))
-
-  created_at <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
-
-  DBI::dbWithTransaction(con, {
-    if (isTRUE(overwrite)) {
-      DBI::dbExecute(con, "DELETE FROM cell_set_membership WHERE cell_set = ?;", params = list(cell_set))
-    }
-
-    stmt <- DBI::dbSendStatement(con, "
-      INSERT OR IGNORE INTO cell_set_membership(
-        cell_set, cell_id, source, created_at, created_by, description
-      ) VALUES(?, ?, ?, ?, ?, ?);
-    ")
-    on.exit(DBI::dbClearResult(stmt), add = TRUE)
-
-    for (cid in cell_ids) {
-      DBI::dbBind(stmt, list(cell_set, cid, source, created_at, created_by, description))
-    }
-  })
-
-  invisible(list(cell_set = cell_set, n = length(cell_ids)))
+  invisible(list(
+    cell_set = cell_set,
+    n = as.integer(res$n_written %||% res$n_added %||% length(cell_ids))
+  ))
 }
 
 #' Add Existing Cells to a Cell Set
@@ -138,7 +125,7 @@ wb_cell_set_add <- function(bundle,
   )
 
   # insert, ignore duplicates via PK(cell_set, cell_id)
-  DBI::dbWithTransaction(con, {
+  write_add <- function() {
     stmt <- DBI::dbSendStatement(
       con,
       "INSERT OR IGNORE INTO cell_set_membership
@@ -157,7 +144,17 @@ wb_cell_set_add <- function(bundle,
         df$description[i]
       ))
     }
-  })
+  }
+  if (isTRUE(getOption("scworkbench.registry_replay_transaction_open"))) write_add() else DBI::dbWithTransaction(con, write_add())
+
+  .wb_journal_registry_mutation(
+    bundle, "cell_set", "add",
+    key = list(cell_set = cell_set),
+    payload = list(
+      cell_ids = existing,
+      metadata = list(source = source, created_by = created_by, description = description)
+    )
+  )
 
   invisible(list(cell_set = cell_set, n_added = length(existing)))
 }
@@ -193,6 +190,11 @@ wb_cell_set_remove <- function(bundle, cell_set, cell_ids = NULL) {
       paste0("DELETE FROM cell_set_membership WHERE cell_set IN ", q$sql, ";"),
       params = q$params
     )
+    .wb_journal_registry_mutation(
+      bundle, "cell_set", "remove",
+      key = list(cell_set = cell_set),
+      payload = list(cell_ids = NULL)
+    )
     return(invisible(list(cell_set = cell_set, aliases = aliases, n_removed = NA_integer_)))
   }
 
@@ -208,6 +210,12 @@ wb_cell_set_remove <- function(bundle, cell_set, cell_ids = NULL) {
          AND cell_id IN (SELECT value FROM json_each(?));"
     ),
     params = c(q$params, list(js))
+  )
+
+  .wb_journal_registry_mutation(
+    bundle, "cell_set", "remove",
+    key = list(cell_set = cell_set),
+    payload = list(cell_ids = cell_ids)
   )
 
   invisible(list(cell_set = cell_set, aliases = aliases, n_removed = length(cell_ids)))
@@ -238,17 +246,17 @@ wb_cell_set_set <- function(bundle,
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids must be non-empty")
   if (!startsWith(cell_set, "set:")) cell_set <- paste0("set:", cell_set)
 
-  con <- bundle$con
-  .wb_ensure_cell_set_membership_table(con)
+  res <- wb_cell_set_replace(
+    bundle = bundle,
+    cell_set = cell_set,
+    cell_ids = cell_ids,
+    source = source,
+    created_by = created_by,
+    description = description,
+    strict = TRUE
+  )
 
-  DBI::dbWithTransaction(con, {
-    DBI::dbExecute(con, "DELETE FROM cell_set_membership WHERE cell_set = ?;",
-                   params = list(cell_set))
-    wb_cell_set_add(bundle, cell_set = cell_set, cell_ids = cell_ids,
-                    source = source, created_by = created_by, description = description)
-  })
-
-  invisible(list(cell_set = cell_set, n = length(unique(cell_ids))))
+  invisible(list(cell_set = cell_set, n = as.integer(res$n_written)))
 }
 
 #' Replace membership of a set (set becomes exactly these cells)
@@ -306,7 +314,7 @@ wb_cell_set_replace <- function(bundle,
 
   created_at <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
 
-  DBI::dbWithTransaction(con, {
+  write_replace <- function() {
     # 1) clear set
     DBI::dbExecute(con, "DELETE FROM cell_set_membership WHERE cell_set = ?;",
                    params = list(cell_set))
@@ -332,7 +340,17 @@ wb_cell_set_replace <- function(bundle,
         ))
       }
     }
-  })
+  }
+  if (isTRUE(getOption("scworkbench.registry_replay_transaction_open"))) write_replace() else DBI::dbWithTransaction(con, write_replace())
+
+  .wb_journal_registry_mutation(
+    bundle, "cell_set", "replace",
+    key = list(cell_set = cell_set),
+    payload = list(
+      cell_ids = existing,
+      metadata = list(source = source, created_by = created_by, description = description)
+    )
+  )
 
   invisible(list(
     cell_set = cell_set,
