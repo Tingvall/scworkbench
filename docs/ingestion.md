@@ -201,6 +201,13 @@ report records:
   prefixing, and Cell Ranger metadata when present;
 - unsupported or presence-only fields.
 
+Each successful report also records a durable ingestion provenance run. Its
+typed entity bindings materialize every imported matrix (for example
+`RNA_counts`) and produce the report artifact. `wb_prov_bundle_dag()` joins
+these bindings to later operation inputs, so the raw matrix is connected to
+its ingest run without decoding artifact payloads or inferring edges from
+names.
+
 Failed h5ad imports do not promote a partial bundle. They leave a lightweight
 `INGEST_FAILED.json` marker in `bundle_dir` when a final marker can be safely
 written.

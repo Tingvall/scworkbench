@@ -24,9 +24,25 @@
 }
 
 .wb_prov_primitive_entity_binding <- function(x) {
-  if (!.wb_is_primitive(x)) return(NULL)
+  # execution_inputs stores compact primitive summaries, not payloads. Those
+  # summaries are an explicit provenance contract and are safe to bind.
+  if (!.wb_is_primitive(x) && !(is.list(x) && as.character(x$kind %||% "")[1] %in% c("matrix", "space", "space_2d", "model_ref"))) return(NULL)
   kind <- as.character(x$kind %||% "")[1]
-  id <- if (identical(kind, "matrix")) x$matrix_id else if (kind %in% c("space", "space_2d")) x$space_id else if (identical(kind, "model_ref")) x$model_space_id %||% x$space_id else NULL
+  id <- if (identical(kind, "matrix")) {
+    x$matrix_id
+  } else if (kind %in% c("space", "space_2d")) {
+    x$space_id
+  } else if (identical(kind, "model_ref")) {
+    # A fitted model is not interchangeable with the space it projects into.
+    # Keep this identifier opaque and stable across reopen; model_space_id alone
+    # is insufficient when different engines share a destination space.
+    paste(
+      as.character(x$engine %||% "unknown")[1],
+      as.character(x$model_space_id %||% x$space_id %||% "")[1],
+      as.character(x$in_space_id %||% "")[1],
+      sep = "|"
+    )
+  } else NULL
   if (is.null(id) || !nzchar(as.character(id)[1])) return(NULL)
   list(entity_kind = if (kind %in% c("space", "space_2d")) "space" else kind, entity_id = as.character(id)[1])
 }
@@ -41,7 +57,45 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.2"
+.wb_prov_schema_version <- function() "1.3"
+
+.wb_prov_insert_entity_binding <- function(con, snapshot_id, commit_id, run_id,
+                                           direction, binding_name, entity_kind,
+                                           entity_id, relationship_type, path = NA_character_,
+                                           content_hash = NA_character_, source) {
+  DBI::dbExecute(
+    con,
+    "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+    params = list(snapshot_id, commit_id %||% NA_character_, run_id, direction,
+                  binding_name, entity_kind, entity_id, relationship_type,
+                  path, content_hash, source)
+  )
+}
+
+.wb_prov_record_ingestion <- function(bundle, run, artifact_id = NA_character_,
+                                      matrix_ids = character(0), created_by = NULL,
+                                      transaction_open = FALSE) {
+  .wb_assert(wb_is_run(run), "run must be a wb_run")
+  matrix_ids <- unique(as.character(matrix_ids %||% character(0)))
+  matrix_ids <- matrix_ids[nzchar(matrix_ids)]
+  matrix_outputs <- if (length(matrix_ids)) {
+    stats::setNames(lapply(matrix_ids, wb_prim_matrix), paste0("matrix_", matrix_ids))
+  } else list()
+  run$outputs <- c(run$outputs %||% list(), matrix_outputs)
+  promoted <- data.frame(
+    run_id = as.character(run$run_id),
+    output = "ingest_report",
+    artifact_id = as.character(artifact_id %||% NA_character_)[1],
+    status = if (nzchar(as.character(artifact_id %||% "")[1])) "ok" else "skipped",
+    stringsAsFactors = FALSE
+  )
+  .wb_prov_write_snapshot(
+    bundle = bundle, runs = stats::setNames(list(run), run$run_id), topo = run$run_id,
+    heads = run$run_id, promoted_df = promoted, name_prefix = "ingestion",
+    description = "Durable ingestion entity bindings", created_by = created_by,
+    transaction_open = transaction_open
+  )
+}
 
 .wb_migrate_provenance_tables <- function(con) {
   DBI::dbExecute(con, "
@@ -279,7 +333,10 @@
         }
       }
       input_bindings <- c(.wb_prov_collect_entity_bindings(run$inputs$execution_inputs %||% list(), "resolved"), .wb_prov_collect_entity_bindings(run$inputs$user_inputs %||% list(), "input"))
-      if (length(input_bindings)) for (binding in input_bindings) DBI::dbExecute(con, "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", params = list(sid, commit_id %||% NA_character_, rid, "input", binding$binding_name, binding$entity_kind, binding$entity_id, "CONSUMES", NA_character_, NA_character_, "resolved_operation_input"))
+      if (length(input_bindings)) for (binding in input_bindings) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "input", binding$binding_name, binding$entity_kind, binding$entity_id, "CONSUMES", source = "resolved_operation_input")
+      artifact_refs <- .wb_dag_collect_refs(run$inputs$provenance_refs %||% list(), path = "provenance_refs")
+      artifact_refs <- artifact_refs[artifact_refs$ref_type == "artifact" & nzchar(as.character(artifact_refs$artifact_id)), , drop = FALSE]
+      if (nrow(artifact_refs)) for (j in seq_len(nrow(artifact_refs))) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "input", as.character(artifact_refs$path[j]), "artifact", as.character(artifact_refs$artifact_id[j]), "CONSUMES", source = "resolved_artifact_input")
 
       outs <- run$outputs %||% list()
       if (length(outs)) {
@@ -308,9 +365,9 @@
               sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id), mat_class, mat_path
             )
           )
-          entity_id <- if (.wb_is_primitive(prim) && identical(kind, "matrix")) as.character(prim$matrix_id) else if (.wb_is_primitive(prim) && kind %in% c("space", "space_2d", "model_ref")) as.character(prim$space_id %||% prim$model_space_id) else if (!is.na(art_id) && nzchar(art_id)) as.character(art_id) else NA_character_
-          entity_kind <- if (!is.na(art_id) && nzchar(art_id)) "artifact" else if (kind %in% c("space", "space_2d")) "space" else kind
-          if (!is.na(entity_id) && nzchar(entity_id)) DBI::dbExecute(con, "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", params = list(sid, commit_id %||% NA_character_, rid, "output", nm, entity_kind, entity_id, if (identical(entity_kind, "artifact")) "PRODUCES" else "MATERIALIZES", mat_path, out_hash, "promotion_materialization"))
+          primitive_binding <- .wb_prov_primitive_entity_binding(prim)
+          if (!is.null(primitive_binding)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, primitive_binding$entity_kind, primitive_binding$entity_id, "MATERIALIZES", mat_path, out_hash, "promotion_materialization")
+          if (!is.na(art_id) && nzchar(art_id)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, "artifact", as.character(art_id), "PRODUCES", mat_path, out_hash, "promotion_artifact")
         }
       }
     }

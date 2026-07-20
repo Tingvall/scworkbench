@@ -49,7 +49,9 @@
                                        normalization,
                                        result,
                                        created_by = NULL,
-                                       source = "ingest") {
+                                       source = "ingest",
+                                       matrix_ids = character(0),
+                                       transaction_open = FALSE) {
   .wb_require_pkg("jsonlite", "ingest report artifact")
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   if (!exists(".wb_promote_obs_table", mode = "function")) return(NA_character_)
@@ -96,7 +98,7 @@
     notes = "Ingest report artifact"
   )
 
-  .wb_promote_obs_table(
+  artifact_id <- .wb_promote_obs_table(
     bundle = bundle,
     run = run,
     out_name = "ingest_report",
@@ -106,6 +108,12 @@
     created_by = created_by,
     parent_artifacts = list()
   )
+  .wb_prov_record_ingestion(
+    bundle = bundle, run = run, artifact_id = artifact_id,
+    matrix_ids = matrix_ids, created_by = created_by,
+    transaction_open = transaction_open
+  )
+  artifact_id
 }
 
 #' Validate ingest payload (dry-run)
@@ -446,7 +454,8 @@ wb_ingest_apply <- function(bundle,
         normalization = norm$report %||% list(),
         result = res %||% list(),
         created_by = created_by,
-        source = source
+        source = source,
+        matrix_ids = names(norm$matrices %||% list())
       )
     }
   } else {
@@ -467,7 +476,9 @@ wb_ingest_apply <- function(bundle,
             normalization = norm$report %||% list(),
             result = r0 %||% list(),
             created_by = created_by,
-            source = source
+            source = source,
+            matrix_ids = names(norm$matrices %||% list()),
+            transaction_open = TRUE
           )
         }
         list(result = r0, artifact_id = a0)

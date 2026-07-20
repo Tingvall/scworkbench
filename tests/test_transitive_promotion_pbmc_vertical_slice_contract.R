@@ -14,8 +14,15 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
   feature_ids <- paste0("g", seq_len(12L))
   counts <- matrix(stats::rpois(length(cell_ids) * length(feature_ids), lambda = 3),
                    nrow = length(feature_ids), dimnames = list(feature_ids, cell_ids))
-  wb_define_cells(b, cell_ids)
-  wb_attach_matrix(b, matrix_id = "RNA_counts", mat = counts, feature_type = "gene")
+  ingested <- wb_ingest_apply(
+    b, set_name = "core", cell_ids = cell_ids,
+    matrices = list(RNA_counts = counts), source = "pbmc_fixture",
+    created_by = "test", emit_report_artifact = TRUE
+  )
+  ingest_artifact <- attr(ingested, "ingest_report_artifact_id", exact = TRUE)
+  stopifnot(nzchar(as.character(ingest_artifact)[1]))
+  ingest_heads <- nrow(wb_prov_list_heads(b))
+  ingest_artifacts <- nrow(wb_art_list(b))
 
   # A staged session must leave the source bundle unchanged until promotion.
   s_discard <- wb_session_new()
@@ -24,7 +31,7 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
     inputs = list(matrix = "RNA_counts", output_matrix_id = "RNA_discard", scale_factor = 1000)
   )
   stopifnot(!"RNA_discard" %in% as.character(wb_matrices(b)$matrix_id))
-  stopifnot(nrow(wb_prov_list_heads(b)) == 0L, nrow(wb_art_list(b)) == 0L)
+  stopifnot(nrow(wb_prov_list_heads(b)) == ingest_heads, nrow(wb_art_list(b)) == ingest_artifacts)
   s_discard <- wb_session_discard(x_discard$session)
   stopifnot(is.null(s_discard$staging_bundle), !dir.exists(file.path(root, "mat", "RNA_discard")))
 
@@ -62,13 +69,13 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
   stopifnot(inherits(ambiguous, "try-error"))
 
   promoted <- wb_session_promote_current(
-    b, s, outputs = c("space_2d", "clusters", "markers"), created_by = "test"
+    b, s, outputs = c("selected_features", "space_2d", "clusters", "markers"), created_by = "test"
   )
   ok <- promoted$promoted[as.character(promoted$promoted$status) == "ok", , drop = FALSE]
-  stopifnot(setequal(as.character(ok$output), c("space_2d", "clusters", "markers")))
+  stopifnot(setequal(as.character(ok$output), c("selected_features", "space_2d", "clusters", "markers")))
   arts <- wb_art_list(b)
-  stopifnot(nrow(arts) == 3L)
-  stopifnot(setequal(as.character(arts$source_op), c("umap_fit", "leiden", "markers_topn")))
+  stopifnot(nrow(arts) == 5L)
+  stopifnot(setequal(as.character(arts$source_op), c("ingest_apply", "hvg_select", "umap_fit", "leiden", "markers_topn")))
   stopifnot(all(as.character(ok$lineage_status) == "complete"))
   stopifnot("RNA_log" %in% as.character(wb_matrices(b)$matrix_id))
   stopifnot(all(c("pca", "umap") %in% as.character(wb_spaces(b)$space_id)))
@@ -89,14 +96,62 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
 
   wb_close_bundle(b)
   b <- wb_open_bundle(root)
-  dag <- wb_prov_bundle_dag(b, snapshot_id = sid)
+  dag <- wb_prov_bundle_dag(b)
   run_nodes <- as.character(dag$nodes$run_id[dag$nodes$node_type == "run"])
   stopifnot(all(c(r_norm$run$run_id, r_hvg$run$run_id, r_pca$run$run_id, r_umap$run$run_id, r_leiden$run$run_id, r_markers$run$run_id) %in% run_nodes))
   edges <- dag$edges
   key <- paste(edges$from, edges$to, edges$edge_type, sep = "|")
+  bindings <- DBI::dbGetQuery(b$con, "SELECT run_id, entity_kind, entity_id, relationship_type FROM prov_run_entity_bindings;")
+  ingest_run <- DBI::dbGetQuery(b$con, "SELECT run_id FROM prov_runs WHERE op_name = 'ingest_apply';")$run_id[1]
+  stopifnot(any(bindings$run_id == ingest_run & bindings$entity_kind == "matrix" & bindings$entity_id == "RNA_counts" & bindings$relationship_type == "MATERIALIZES"))
+  stopifnot(any(key == paste("matrix:RNA_counts", paste0("run:", r_norm$run$run_id), "CONSUMES", sep = "|")))
+  stopifnot(any(key == paste(paste0("run:", ingest_run), "matrix:RNA_counts", "MATERIALIZES", sep = "|")))
+  umap_model <- .wb_prov_primitive_entity_binding(r_umap$run$outputs$model)$entity_id
+  stopifnot(any(key == paste(paste0("run:", r_umap$run$run_id), paste0("model_ref:", umap_model), "MATERIALIZES", sep = "|")))
   stopifnot(any(key == paste(paste0("run:", r_pca$run$run_id), paste0("run:", r_umap$run$run_id), "DERIVED_FROM", sep = "|")))
   stopifnot(any(key == paste(paste0("run:", r_pca$run$run_id), paste0("run:", r_leiden$run$run_id), "DERIVED_FROM", sep = "|")))
   stopifnot(!any(key == paste(paste0("run:", r_umap$run$run_id), paste0("run:", r_leiden$run$run_id), "DERIVED_FROM", sep = "|")))
+
+  # The composed graph must retain a directed, durable entity/run route from
+  # ingestion through all persisted PBMC intermediates to the final artifact.
+  artifact_for <- function(run_id, output) {
+    as.character(ok$artifact_id[as.character(ok$run_id) == run_id & as.character(ok$output) == output][1])
+  }
+  hvg_artifact <- artifact_for(r_hvg$run$run_id, "selected_features")
+  cluster_artifact <- artifact_for(r_leiden$run$run_id, "clusters")
+  markers_artifact <- artifact_for(r_markers$run$run_id, "markers")
+  stopifnot(all(nzchar(c(hvg_artifact, cluster_artifact, markers_artifact))))
+  next_nodes <- split(as.character(edges$to), as.character(edges$from))
+  directed_path <- function(from, to) {
+    seen <- from; queue <- from; parent <- stats::setNames(NA_character_, from)
+    while (length(queue)) {
+      here <- queue[[1]]; queue <- queue[-1]
+      if (identical(here, to)) break
+      for (there in next_nodes[[here]] %||% character(0)) if (!(there %in% seen)) {
+        seen <- c(seen, there); parent[[there]] <- here; queue <- c(queue, there)
+      }
+    }
+    if (!(to %in% seen)) return(character(0))
+    path <- to
+    while (!identical(path[[1]], from)) path <- c(parent[[path[[1]]]], path)
+    path
+  }
+  required_route_nodes <- c(
+    paste0("run:", ingest_run), "matrix:RNA_counts", paste0("run:", r_norm$run$run_id),
+    "matrix:RNA_log", paste0("run:", r_hvg$run$run_id), paste0("artifact:", hvg_artifact),
+    paste0("run:", r_pca$run$run_id), "space:pca", paste0("run:", r_leiden$run$run_id),
+    paste0("artifact:", cluster_artifact), paste0("run:", r_markers$run$run_id),
+    paste0("artifact:", markers_artifact)
+  )
+  route_parts <- lapply(seq_len(length(required_route_nodes) - 1L), function(i) {
+    directed_path(required_route_nodes[i], required_route_nodes[i + 1L])
+  })
+  stopifnot(all(lengths(route_parts) > 0L))
+  route <- unique(unlist(route_parts, use.names = FALSE))
+  .wb_assert(all(required_route_nodes %in% route), paste0(
+    "Directed provenance route omitted: ",
+    paste(setdiff(required_route_nodes, route), collapse = ", ")
+  ))
 
   TRUE
 }

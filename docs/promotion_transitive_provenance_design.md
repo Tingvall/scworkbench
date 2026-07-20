@@ -180,6 +180,14 @@ must not silently commit a partial closure under one snapshot id.
 The required first vertical slice has this data flow. `S:` denotes session
 staging, `C:` a committed internal materialization, and `A:` a public artifact.
 
+Persisted composition uses typed `prov_run_entity_bindings` rows rather than
+payload decoding: runs `CONSUME` matrices, spaces, model references, and
+artifacts; they `MATERIALIZE` matrices/spaces/model references and `PRODUCE`
+artifacts. An ingest-report run materializes the initial raw matrix. Thus a
+composed bundle DAG can trace markers through Leiden, PCA, normalized matrix
+and HVGs to `RNA_counts` and its ingest run, while UMAP remains a sibling
+PCA-consuming branch that materializes both its 2D space and model reference.
+
 ```text
 Committed bundle
   matrix: RNA_counts

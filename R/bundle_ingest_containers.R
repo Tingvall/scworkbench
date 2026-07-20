@@ -216,7 +216,8 @@
                                                 feature_id_policy = NULL,
                                                 status = "completed",
                                                 phase = "completed",
-                                                created_by = NULL) {
+                                                created_by = NULL,
+                                                matrix_ids = character(0)) {
   .wb_require_pkg("jsonlite", "container ingestion report")
   if (!exists(".wb_promote_obs_table", mode = "function")) return(NA_character_)
   cell_id_policy <- cell_id_policy %||% list(
@@ -267,7 +268,7 @@
     outputs = list(ingest_report = prim),
     notes = "Container ingestion report"
   )
-  .wb_promote_obs_table(
+  artifact_id <- .wb_promote_obs_table(
     bundle = bundle,
     run = run,
     out_name = "ingest_report",
@@ -277,6 +278,11 @@
     created_by = created_by,
     parent_artifacts = list()
   )
+  .wb_prov_record_ingestion(
+    bundle = bundle, run = run, artifact_id = artifact_id,
+    matrix_ids = matrix_ids, created_by = created_by
+  )
+  artifact_id
 }
 
 .wb_ingest_failure_marker <- function(bundle_dir,
@@ -821,7 +827,8 @@ wb_bundle_from_10x_mtx <- function(input,
         ),
         status = "completed",
         phase = phase,
-        created_by = created_by
+        created_by = created_by,
+        matrix_ids = matrix_id
       )
     }
 
@@ -935,7 +942,8 @@ wb_bundle_from_seurat <- function(input,
       spaces_imported = space_ids,
       categorical_sets = cat_sets,
       unsupported = list(misc = "not imported", graphs = "not imported", commands = "not imported"),
-      created_by = created_by
+      created_by = created_by,
+      matrix_ids = imported
     )
   }
   bundle
@@ -1103,7 +1111,8 @@ wb_bundle_from_sce <- function(input,
         duplicate_feature_id_unique_values = length(feature_repair$duplicate_ids),
         original_feature_id_column = original_feature_id_col
       ),
-      created_by = created_by
+      created_by = created_by,
+      matrix_ids = imported
     )
   }
   bundle
@@ -1219,7 +1228,8 @@ wb_bundle_from_h5ad <- function(input,
         ),
         status = "completed",
         phase = phase,
-        created_by = created_by
+        created_by = created_by,
+        matrix_ids = wb_matrices(bundle)$matrix_id
       )
     }
     phase <- "finalize_staging"
