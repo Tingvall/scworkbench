@@ -594,6 +594,39 @@ wb_prov_bundle_dag <- function(bundle,
         snapshot_id = sid
       )
     }
+
+    # A promoted artifact is the durable representation of a referenced parent
+    # output. Relay an explicit input_run_ref through that artifact when the
+    # output/artifact mapping is persisted in prov_run_outputs. This is a
+    # typed join over run id and output name, not payload inspection.
+    run_ref_edges <- run_edges_src[
+      as.character(run_edges_src$edge_type) == "input_run_ref" &
+        nzchar(as.character(run_edges_src$edge_label %||% "")),
+      , drop = FALSE
+    ]
+    if (nrow(run_ref_edges) && nrow(outputs)) for (i in seq_len(nrow(run_ref_edges))) {
+      parent <- as.character(run_ref_edges$parent_run_id[i])
+      child <- as.character(run_ref_edges$child_run_id[i])
+      sid <- as.character(run_ref_edges$snapshot_id[i])
+      output_name <- as.character(run_ref_edges$edge_label[i])
+      matched <- outputs[
+        as.character(outputs$snapshot_id) == sid &
+          as.character(outputs$run_id) == parent &
+          as.character(outputs$output_name) == output_name &
+          !is.na(outputs$artifact_id) & nzchar(as.character(outputs$artifact_id)),
+        , drop = FALSE
+      ]
+      if (!nrow(matched)) next
+      for (j in seq_len(nrow(matched))) {
+        aid <- as.character(matched$artifact_id[j])
+        ei <- ei + 1L
+        edges[[ei]] <- .wb_prov_bundle_edge(
+          from = paste0("artifact:", aid), to = paste0("run:", child),
+          edge_type = "CONSUMES", label = output_name, run_id = child,
+          snapshot_id = sid, artifact_id = aid
+        )
+      }
+    }
   }
 
   if (nrow(runs)) {
@@ -654,7 +687,14 @@ wb_prov_bundle_dag <- function(bundle,
       kind <- as.character(bindings$entity_kind[i]); id <- as.character(bindings$entity_id[i])
       node_id <- paste0(kind, ":", id)
       nodes_df <- unique(rbind(nodes_df, .wb_prov_bundle_node(id = node_id, node_type = kind, label = id, title = paste(kind, id), snapshot_id = bindings$snapshot_id[i], status = "durable")))
-      edges_df <- unique(rbind(edges_df, .wb_prov_bundle_edge(from = paste0("run:", bindings$run_id[i]), to = node_id, edge_type = as.character(bindings$relationship_type[i]), label = as.character(bindings$binding_name[i]), run_id = bindings$run_id[i], snapshot_id = bindings$snapshot_id[i])))
+      consumes <- identical(as.character(bindings$relationship_type[i]), "CONSUMES")
+      edges_df <- unique(rbind(edges_df, .wb_prov_bundle_edge(
+        from = if (consumes) node_id else paste0("run:", bindings$run_id[i]),
+        to = if (consumes) paste0("run:", bindings$run_id[i]) else node_id,
+        edge_type = as.character(bindings$relationship_type[i]),
+        label = as.character(bindings$binding_name[i]), run_id = bindings$run_id[i],
+        snapshot_id = bindings$snapshot_id[i]
+      )))
     }
   }
 
