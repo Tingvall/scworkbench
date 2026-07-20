@@ -23,6 +23,24 @@
   paste0(sprintf("%08x", as.integer(h1)), sprintf("%08x", as.integer(h2)))
 }
 
+.wb_prov_primitive_entity_binding <- function(x) {
+  if (!.wb_is_primitive(x)) return(NULL)
+  kind <- as.character(x$kind %||% "")[1]
+  id <- if (identical(kind, "matrix")) x$matrix_id else if (kind %in% c("space", "space_2d")) x$space_id else if (identical(kind, "model_ref")) x$model_space_id %||% x$space_id else NULL
+  if (is.null(id) || !nzchar(as.character(id)[1])) return(NULL)
+  list(entity_kind = if (kind %in% c("space", "space_2d")) "space" else kind, entity_id = as.character(id)[1])
+}
+
+.wb_prov_collect_entity_bindings <- function(x, name = "input") {
+  out <- list()
+  walk <- function(v, path) {
+    b <- .wb_prov_primitive_entity_binding(v)
+    if (!is.null(b)) out[[length(out) + 1L]] <<- c(list(binding_name = path), b)
+    if (is.list(v) && !inherits(v, "wb_primitive")) for (nm in names(v) %||% seq_along(v)) walk(v[[nm]], paste0(path, ".", nm))
+  }
+  walk(x, name); out
+}
+
 .wb_prov_schema_version <- function() "1.2"
 
 .wb_migrate_provenance_tables <- function(con) {
@@ -117,6 +135,8 @@
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_prov_outputs_snapshot ON prov_run_outputs(snapshot_id);")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_prov_outputs_artifact ON prov_run_outputs(artifact_id);")
+  DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS prov_run_entity_bindings (snapshot_id TEXT NOT NULL, commit_id TEXT, run_id TEXT NOT NULL, direction TEXT NOT NULL, binding_name TEXT NOT NULL, entity_kind TEXT NOT NULL, entity_id TEXT NOT NULL, relationship_type TEXT NOT NULL, path TEXT, content_hash TEXT, source TEXT NOT NULL, PRIMARY KEY(snapshot_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type));")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_prov_entity_bindings_snapshot ON prov_run_entity_bindings(snapshot_id, run_id);")
   if (!.wb_db_has_column(con, "prov_run_outputs", "materialization_class")) {
     DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN materialization_class TEXT;")
   }
@@ -258,6 +278,8 @@
           }
         }
       }
+      input_bindings <- c(.wb_prov_collect_entity_bindings(run$inputs$execution_inputs %||% list(), "resolved"), .wb_prov_collect_entity_bindings(run$inputs$user_inputs %||% list(), "input"))
+      if (length(input_bindings)) for (binding in input_bindings) DBI::dbExecute(con, "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", params = list(sid, commit_id %||% NA_character_, rid, "input", binding$binding_name, binding$entity_kind, binding$entity_id, "CONSUMES", NA_character_, NA_character_, "resolved_operation_input"))
 
       outs <- run$outputs %||% list()
       if (length(outs)) {
@@ -286,6 +308,9 @@
               sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id), mat_class, mat_path
             )
           )
+          entity_id <- if (.wb_is_primitive(prim) && identical(kind, "matrix")) as.character(prim$matrix_id) else if (.wb_is_primitive(prim) && kind %in% c("space", "space_2d", "model_ref")) as.character(prim$space_id %||% prim$model_space_id) else if (!is.na(art_id) && nzchar(art_id)) as.character(art_id) else NA_character_
+          entity_kind <- if (!is.na(art_id) && nzchar(art_id)) "artifact" else if (kind %in% c("space", "space_2d")) "space" else kind
+          if (!is.na(entity_id) && nzchar(entity_id)) DBI::dbExecute(con, "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);", params = list(sid, commit_id %||% NA_character_, rid, "output", nm, entity_kind, entity_id, if (identical(entity_kind, "artifact")) "PRODUCES" else "MATERIALIZES", mat_path, out_hash, "promotion_materialization"))
         }
       }
     }
