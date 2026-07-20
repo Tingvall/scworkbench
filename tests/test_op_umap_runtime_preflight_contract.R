@@ -72,5 +72,13 @@ test_op_umap_runtime_preflight_contract <- function() {
   args <- jsonlite::fromJSON(sm$uwot_args_json[1])
   stopifnot(identical(as.character(args$nn_method), "annoy"))
 
+  promoted <- wb_session_promote_current(b, rr$session, outputs = c("model", "space_2d"), created_by = "test")
+  wb_close_bundle(b); b <- wb_open_bundle(tmp)
+  stopifnot("rna.umap" %in% as.character(wb_spaces(b)$space_id))
+  stopifnot(nrow(wb_space_model(b, "rna.umap")) == 1L)
+  stopifnot(file.exists(wb_space_model_path(b, "rna.umap")))
+  stopifnot(all(as.character(promoted$promoted$lineage_status[promoted$promoted$status == "ok"]) == "complete"))
+  stopifnot(isTRUE(wb_validate_bundle(tmp)))
+
   TRUE
 }

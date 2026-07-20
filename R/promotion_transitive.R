@@ -24,7 +24,7 @@
   if (!nrow(rows)) return(invisible(0L))
   fields <- intersect(DBI::dbListFields(from_con, table), DBI::dbListFields(to_con, table))
   rows <- rows[, fields, drop = FALSE]
-  DBI::dbAppendTable(to_con, table, rows)
+  .wb_db_append_chunked(to_con, table, rows)
   invisible(nrow(rows))
 }
 
@@ -126,6 +126,8 @@
   if (nrow(exists)) return(invisible(FALSE))
   row <- DBI::dbGetQuery(src, "SELECT * FROM spaces WHERE space_id = ?;", params = list(space_id))
   .wb_assert(nrow(row) == 1L, paste0("Staged space is missing: ", space_id))
+  staged_model <- .wb_table_exists(src, "space_models") && nrow(DBI::dbGetQuery(src, "SELECT space_id FROM space_models WHERE space_id = ?;", params = list(space_id))) > 0L
+  if (isTRUE(staged_model)) .wb_ensure_space_models_table(dst)
   .wb_copy_db_rows(src, dst, "spaces", "space_id = ?", list(space_id))
   .wb_copy_db_rows(src, dst, "space_2d", "space_id = ?", list(space_id))
   .wb_copy_db_rows(src, dst, "space_coords", "space_id = ?", list(space_id))

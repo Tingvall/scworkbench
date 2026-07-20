@@ -982,12 +982,24 @@ wb_promote_analysis <- function(bundle,
     stored_model_path <- file.path("artifact_models", paste0(artifact_id, ".rds"))
     saveRDS(prim$model_obj, .wb_promotion_workspace_path(workspace, stored_model_path), version = 3)
   } else {
+    if (!nzchar(model_path) && identical(engine, "uwot") && inherits(workspace, "wb_promotion_workspace")) {
+      sm <- DBI::dbGetQuery(con, "SELECT model_path FROM space_models WHERE space_id = ?;", params = list(space_id))
+      if (nrow(sm) == 1L) {
+        candidate <- as.character(sm$model_path[1])
+        mapping <- workspace$mappings[[candidate]]
+        .wb_assert(!is.null(mapping) && (file.exists(mapping$pending) || dir.exists(mapping$pending)),
+                   paste0("Missing pending workspace model payload for space_id=", space_id))
+        model_path <- candidate
+      }
+    }
     if (!nzchar(model_path) && identical(engine, "uwot")) model_path <- wb_space_model_path(bundle, space_id)
     mapped_rel <- if (inherits(workspace, "wb_promotion_workspace")) {
       .wb_promotion_workspace_final_rel_for_source(workspace, model_path)
     } else NULL
     if (!is.null(mapped_rel)) {
       stored_model_path <- mapped_rel
+    } else if (inherits(workspace, "wb_promotion_workspace") && !.wb_path_is_absolute(model_path) && !is.null(workspace$mappings[[model_path]])) {
+      stored_model_path <- model_path
     } else {
       .wb_assert(nzchar(model_path) && file.exists(model_path),
                  paste0("model_ref promotion requires an existing model file or in-memory model_obj (engine=", engine, ")."))
