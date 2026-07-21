@@ -51,7 +51,8 @@
                                        created_by = NULL,
                                        source = "ingest",
                                        matrix_ids = character(0),
-                                       transaction_open = FALSE) {
+                                       transaction_open = FALSE,
+                                       source_identity = NULL) {
   .wb_require_pkg("jsonlite", "ingest report artifact")
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   if (!exists(".wb_promote_obs_table", mode = "function")) return(NA_character_)
@@ -111,7 +112,7 @@
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, artifact_id = artifact_id,
     matrix_ids = matrix_ids, created_by = created_by,
-    transaction_open = transaction_open
+    transaction_open = transaction_open, source_identity = source_identity
   )
   artifact_id
 }
@@ -379,6 +380,8 @@ wb_ingest_normalize <- function(bundle,
 #'
 #' @inheritParams wb_ingest_validate
 #' @param source Provenance source tag
+#' @param source_identity Optional immutable structured record describing the
+#'   supplied source. See `wb_prov_source_identity()` for retrieval.
 #' @param created_by Optional author tag
 #' @param validate_only If TRUE, return normalized payload and do not write.
 #' @param apply_mode `"atomic"` applies all validated data together;
@@ -393,6 +396,7 @@ wb_ingest_apply <- function(bundle,
                             spaces = list(),
                             matrices = list(),
                             source = "ingest",
+                            source_identity = NULL,
                             created_by = NULL,
                             validate_only = FALSE,
                             apply_mode = c("atomic", "best_effort"),
@@ -455,7 +459,7 @@ wb_ingest_apply <- function(bundle,
         result = res %||% list(),
         created_by = created_by,
         source = source,
-        matrix_ids = names(norm$matrices %||% list())
+        matrix_ids = names(norm$matrices %||% list()), source_identity = source_identity
       )
     }
   } else {
@@ -478,7 +482,7 @@ wb_ingest_apply <- function(bundle,
             created_by = created_by,
             source = source,
             matrix_ids = names(norm$matrices %||% list()),
-            transaction_open = TRUE
+            transaction_open = TRUE, source_identity = source_identity
           )
         }
         list(result = r0, artifact_id = a0)

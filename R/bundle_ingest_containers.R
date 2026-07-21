@@ -217,7 +217,8 @@
                                                 status = "completed",
                                                 phase = "completed",
                                                 created_by = NULL,
-                                                matrix_ids = character(0)) {
+                                                matrix_ids = character(0),
+                                                source_identity = NULL) {
   .wb_require_pkg("jsonlite", "container ingestion report")
   if (!exists(".wb_promote_obs_table", mode = "function")) return(NA_character_)
   cell_id_policy <- cell_id_policy %||% list(
@@ -284,7 +285,7 @@
   )
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, artifact_id = artifact_id,
-    matrix_ids = matrix_ids, created_by = created_by
+    matrix_ids = matrix_ids, created_by = created_by, source_identity = source_identity
   )
   artifact_id
 }
@@ -575,6 +576,8 @@
 #'   IDs before any repair.
 #' @param emit_report_artifact Whether to promote the ingestion QC/provenance
 #'   report artifact.
+#' @param source_identity Optional immutable structured record describing the
+#'   supplied source. It is not inferred from `input`.
 #'
 #' @return An open scworkbench_bundle at bundle_dir.
 #'
@@ -588,7 +591,8 @@ wb_bundle_from_10x_mtx <- function(input,
                                    duplicate_cell_id_policy = c("prefix", "make_unique", "error"),
                                    duplicate_feature_id_policy = c("error", "make_unique"),
                                    original_feature_id_col = "original_feature_id",
-                                   emit_report_artifact = TRUE) {
+                                   emit_report_artifact = TRUE,
+                                   source_identity = NULL) {
   .wb_require_pkg("Matrix", "10x Matrix Market ingestion")
   .wb_require_pkg("BPCells", "10x Matrix Market ingestion")
   duplicate_cell_id_policy <- match.arg(duplicate_cell_id_policy)
@@ -834,7 +838,8 @@ wb_bundle_from_10x_mtx <- function(input,
         status = "completed",
         phase = phase,
         created_by = created_by,
-        matrix_ids = matrix_id
+        matrix_ids = matrix_id,
+        source_identity = source_identity
       )
     }
 
