@@ -12,6 +12,7 @@ wb_ingest_apply(
   spaces = list(),
   matrices = list(),
   source = "ingest",
+  source_identity = NULL,
   created_by = NULL,
   validate_only = FALSE,
   apply_mode = c("atomic", "best_effort"),
@@ -32,6 +33,9 @@ wb_ingest_apply(
 \item{matrices}{Optional named list of matrix payloads}
 
 \item{source}{Provenance source tag}
+
+\item{source_identity}{Optional immutable structured record describing the
+supplied source. See \code{wb_prov_source_identity()} for retrieval.}
 
 \item{created_by}{Optional author tag}
 

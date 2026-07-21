@@ -1606,6 +1606,11 @@
       op_name = "matrix_log_normalize",
       title = "Log-normalize count matrix",
       description = "Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.",
+      semantics = list(
+        transform = "log1p(count / cell_library_size * scale_factor)",
+        library_size = "sum of input counts across features for each cell",
+        scale_factor = "per-cell target count before log1p"
+      ),
       intent = c("matrix", "normalize", "rna", "transform"),
       requires = list(matrix = "matrix"),
       produces = list(

@@ -57,7 +57,79 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.3"
+.wb_prov_schema_version <- function() "1.4"
+
+.wb_prov_source_identity_validate <- function(x) {
+  if (is.null(x)) return(NULL)
+  .wb_assert(is.list(x), "source_identity must be a named list")
+  .wb_assert(!is.null(names(x)) && all(nzchar(names(x))), "source_identity fields must be named")
+  x
+}
+
+.wb_prov_record_source_identity <- function(bundle, snapshot_id, run_id, matrix_ids, source_identity) {
+  source_identity <- .wb_prov_source_identity_validate(source_identity)
+  if (is.null(source_identity)) return(invisible(FALSE))
+  .wb_require_pkg("jsonlite", "source identity provenance")
+  matrix_ids <- unique(as.character(matrix_ids %||% character(0)))
+  canonical_json <- jsonlite::toJSON(.wb_json_sanitize(source_identity), auto_unbox = TRUE, null = "null")
+  for (matrix_id in matrix_ids[nzchar(matrix_ids)]) {
+    existing <- DBI::dbGetQuery(
+      bundle$con,
+      "SELECT source_identity_json FROM prov_source_identities WHERE snapshot_id = ? AND run_id = ? AND matrix_id = ?;",
+      params = list(snapshot_id, run_id, matrix_id)
+    )
+    if (!nrow(existing)) {
+      DBI::dbExecute(
+        bundle$con,
+        "INSERT INTO prov_source_identities(snapshot_id, run_id, matrix_id, source_identity_json) VALUES(?, ?, ?, ?);",
+        params = list(snapshot_id, run_id, matrix_id, canonical_json)
+      )
+    } else if (!identical(as.character(existing$source_identity_json[1]), as.character(canonical_json))) {
+      stop(paste0("Conflicting immutable source identity for snapshot_id=", snapshot_id,
+                  ", run_id=", run_id, ", matrix_id=", matrix_id), call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
+.wb_prov_runtime_fingerprint <- function(op_name) {
+  loaded <- sort(loadedNamespaces())
+  package_versions <- vapply(loaded, function(pkg) {
+    tryCatch(as.character(utils::packageVersion(pkg)), error = function(e) NA_character_)
+  }, character(1))
+  image_sha <- Sys.getenv("SCWORKBENCH_RUNTIME_IMAGE_SHA256", unset = "")
+  list(
+    schema = "scworkbench.runtime_attestation.v1",
+    r_version = R.version.string,
+    platform = R.version$platform,
+    scworkbench_version = as.character(utils::packageVersion("scworkbench")),
+    operation = list(name = as.character(op_name)[1], version = "1"),
+    namespaces = as.list(package_versions),
+    bpcells = list(
+      version = if (requireNamespace("BPCells", quietly = TRUE)) as.character(utils::packageVersion("BPCells")) else NA_character_,
+      native_provenance = tryCatch(as.character(utils::packageDescription("BPCells")$RemoteSha %||% NA_character_), error = function(e) NA_character_)
+    ),
+    image = if (nzchar(image_sha)) list(status = "bound", sha256 = image_sha) else list(status = "unavailable", sha256 = NA_character_),
+    runtime_provenance = list(
+      source_revision = Sys.getenv("SCWORKBENCH_SOURCE_REVISION", unset = NA_character_),
+      container_digest = Sys.getenv("SCWORKBENCH_CONTAINER_DIGEST", unset = NA_character_)
+    )
+  )
+}
+
+.wb_prov_contract_snapshot <- function(run) {
+  op <- .wb_op_catalog()[[as.character(run$op_name)[1]]] %||% list()
+  interface <- list(
+    op_name = as.character(run$op_name)[1],
+    title = op$title %||% NA_character_, description = op$description %||% NA_character_,
+    inputs = op$inputs %||% list(), params = op$params %||% list(),
+    produces = op$interface_produces %||% op$produces %||% list(),
+    semantics = op$semantics %||% list()
+  )
+  list(version = "1", interface = interface,
+       resolved_inputs = run$inputs$execution_inputs %||% list(),
+       parameters = run$params %||% list())
+}
 
 .wb_prov_insert_entity_binding <- function(con, snapshot_id, commit_id, run_id,
                                            direction, binding_name, entity_kind,
@@ -74,7 +146,7 @@
 
 .wb_prov_record_ingestion <- function(bundle, run, artifact_id = NA_character_,
                                       matrix_ids = character(0), created_by = NULL,
-                                      transaction_open = FALSE) {
+                                      transaction_open = FALSE, source_identity = NULL) {
   .wb_assert(wb_is_run(run), "run must be a wb_run")
   matrix_ids <- unique(as.character(matrix_ids %||% character(0)))
   matrix_ids <- matrix_ids[nzchar(matrix_ids)]
@@ -89,12 +161,14 @@
     status = if (nzchar(as.character(artifact_id %||% "")[1])) "ok" else "skipped",
     stringsAsFactors = FALSE
   )
-  .wb_prov_write_snapshot(
+  sid <- .wb_prov_write_snapshot(
     bundle = bundle, runs = stats::setNames(list(run), run$run_id), topo = run$run_id,
     heads = run$run_id, promoted_df = promoted, name_prefix = "ingestion",
     description = "Durable ingestion entity bindings", created_by = created_by,
     transaction_open = transaction_open
   )
+  .wb_prov_record_source_identity(bundle, sid, run$run_id, matrix_ids, source_identity)
+  sid
 }
 
 .wb_prov_record_ingestion_substep <- function(bundle, run, artifact_id, created_by = NULL) {
@@ -175,6 +249,9 @@
   if (!.wb_db_has_column(con, "prov_runs", "runtime_fingerprint_json")) {
     DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN runtime_fingerprint_json TEXT;")
   }
+  if (!.wb_db_has_column(con, "prov_runs", "contract_json")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN contract_json TEXT;")
+  if (!.wb_db_has_column(con, "prov_runs", "contract_hash")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN contract_hash TEXT;")
+  DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS prov_source_identities (snapshot_id TEXT NOT NULL, run_id TEXT NOT NULL, matrix_id TEXT NOT NULL, source_identity_json TEXT NOT NULL, PRIMARY KEY(snapshot_id, run_id, matrix_id));")
 
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_run_edges (
@@ -295,8 +372,8 @@
 
       DBI::dbExecute(
         con,
-        "INSERT INTO prov_runs(snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, op_version, runtime_fingerprint_json)
-         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        "INSERT INTO prov_runs(snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, op_version, runtime_fingerprint_json, contract_json, contract_hash)
+         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
         params = list(
           sid,
           as.character(run$run_id),
@@ -308,8 +385,10 @@
           as.character(symbolic_inputs_json),
           as.character(execution_inputs_json),
           as.character(run_hash),
-          as.character(utils::packageVersion("scworkbench")),
-          as.character(jsonlite::toJSON(runtime_fingerprint %||% list(), auto_unbox = TRUE, null = "null"))
+          "1",
+          as.character(jsonlite::toJSON(utils::modifyList(.wb_prov_runtime_fingerprint(run$op_name), runtime_fingerprint %||% list()), auto_unbox = TRUE, null = "null")),
+          as.character(jsonlite::toJSON(.wb_json_sanitize(.wb_prov_contract_snapshot(run)), auto_unbox = TRUE, null = "null")),
+          as.character(.wb_hash_text(jsonlite::toJSON(.wb_json_sanitize(.wb_prov_contract_snapshot(run)), auto_unbox = TRUE, null = "null")))
         )
       )
 
@@ -564,7 +643,7 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
   rr <- DBI::dbGetQuery(
     con,
     paste0(
-      "SELECT run_id, op_name, created_at, notes, params_json, inputs_json, ",
+      "SELECT run_id, op_name, created_at, notes, params_json, inputs_json, op_version, runtime_fingerprint_json, contract_json, contract_hash, ",
       if (has_sym) "symbolic_inputs_json" else "NULL AS symbolic_inputs_json",
       ", ",
       if (has_exec) "execution_inputs_json" else "NULL AS execution_inputs_json",
@@ -623,12 +702,35 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
       inputs = jsonlite::fromJSON(as.character(rr$inputs_json[1]), simplifyVector = FALSE),
       symbolic_inputs = jsonlite::fromJSON(as.character(rr$symbolic_inputs_json[1] %||% "null"), simplifyVector = FALSE),
       execution_inputs = jsonlite::fromJSON(as.character(rr$execution_inputs_json[1] %||% "null"), simplifyVector = FALSE),
-      run_hash = as.character(rr$run_hash[1])
+      run_hash = as.character(rr$run_hash[1]),
+      operation_version = as.character(rr$op_version[1] %||% NA_character_),
+      runtime_fingerprint = jsonlite::fromJSON(as.character(rr$runtime_fingerprint_json[1] %||% "null"), simplifyVector = FALSE),
+      contract = jsonlite::fromJSON(as.character(rr$contract_json[1] %||% "null"), simplifyVector = FALSE),
+      contract_hash = as.character(rr$contract_hash[1] %||% NA_character_)
     ),
     parents = parents,
     children = children,
     outputs = outs
   )
+}
+
+#' Get Immutable Ingestion Source Identity
+#' @param bundle Open bundle.
+#' @param matrix_id Optional matrix identifier.
+#' @return Data frame with persisted source identity JSON; empty for legacy or
+#' unavailable identity records.
+#' @export
+wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_migrate_provenance_tables(bundle$con)
+  q <- "SELECT snapshot_id, run_id, matrix_id, source_identity_json FROM prov_source_identities"
+  params <- list()
+  if (!is.null(matrix_id)) { q <- paste0(q, " WHERE matrix_id = ?"); params <- list(as.character(matrix_id)[1]) }
+  q <- paste0(q, " ORDER BY snapshot_id, run_id, matrix_id;")
+  out <- if (length(params)) DBI::dbGetQuery(bundle$con, q, params = params) else DBI::dbGetQuery(bundle$con, q)
+  if (!nrow(out)) return(data.frame(snapshot_id=character(), run_id=character(), matrix_id=character(), source_identity_json=character(), status=character(), stringsAsFactors=FALSE))
+  out$status <- "available"
+  out
 }
 
 .wb_r_single_quote_escape <- function(x) {

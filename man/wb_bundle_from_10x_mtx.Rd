@@ -14,7 +14,8 @@ wb_bundle_from_10x_mtx(
   duplicate_cell_id_policy = c("prefix", "make_unique", "error"),
   duplicate_feature_id_policy = c("error", "make_unique"),
   original_feature_id_col = "original_feature_id",
-  emit_report_artifact = TRUE
+  emit_report_artifact = TRUE,
+  source_identity = NULL
 )
 }
 \arguments{
@@ -48,6 +49,9 @@ IDs before any repair.}
 
 \item{emit_report_artifact}{Whether to promote the ingestion QC/provenance
 report artifact.}
+
+\item{source_identity}{Optional immutable structured record describing the
+supplied source. It is not inferred from \code{input}.}
 }
 \value{
 An open scworkbench_bundle at bundle_dir.

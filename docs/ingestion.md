@@ -58,6 +58,28 @@ the compatibility aliases are not public ingestion APIs.
 
 ## Examples
 
+### Release-attested 10x source
+
+Supply source facts only when they are known by the caller; scworkbench never
+infers a URI or checksum from a local path.
+
+```r
+b <- wb_bundle_from_10x_mtx(
+  input = "/data/filtered_feature_bc_matrix",
+  bundle_dir = "pbmc.bundle",
+  source_identity = list(
+    uri = "https://example.org/datasets/pbmc3k",
+    dataset_name = "PBMC 3k release",
+    checksum_algorithm = "sha256",
+    checksum = "<release-file-or-directory-sha256>",
+    source_object = "filtered_feature_bc_matrix",
+    organism = "Homo sapiens", genome = "GRCh38", assay = "RNA"
+  )
+)
+```
+
+Inspect the immutable record with `wb_prov_source_identity(b, "RNA_counts")`.
+
 ### Seurat
 
 ```r
