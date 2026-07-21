@@ -2,16 +2,19 @@
 % Please edit documentation in R/getters.R
 \name{wb_manifest}
 \alias{wb_manifest}
-\title{Get the manifest from an scworkbench bundle}
+\title{Get the Current Bundle Manifest}
 \usage{
 wb_manifest(bundle)
 }
 \arguments{
-\item{bundle}{Bundle handle from \code{wb_open_bundle()}}
+\item{bundle}{Bundle handle from \code{wb_open_bundle()}
+\code{wb_manifest()} is a dynamic current-state summary. Its \code{creation} field is
+immutable bundle-creation metadata; current counts and listings are rebuilt
+from authoritative registries on every call.}
 }
 \value{
-Parsed manifest list
+Current manifest list with immutable \code{creation} metadata.
 }
 \description{
-Get the manifest from an scworkbench bundle
+Get the Current Bundle Manifest
 }

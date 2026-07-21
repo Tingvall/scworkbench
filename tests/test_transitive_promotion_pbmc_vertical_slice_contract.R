@@ -153,5 +153,25 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
     paste(setdiff(required_route_nodes, route), collapse = ", ")
   ))
 
+  manifest <- wb_manifest(b)
+  overview <- wb_bundle_overview(b, validate = FALSE)
+  live_matrices <- wb_matrices(b)
+  live_spaces <- wb_spaces(b)
+  live_artifacts <- wb_art_list(b)
+  stopifnot(
+    identical(as.integer(manifest$counts$n_matrices), nrow(live_matrices)),
+    identical(as.integer(manifest$counts$n_spaces), nrow(live_spaces)),
+    identical(as.integer(manifest$counts$n_artifacts), nrow(live_artifacts)),
+    identical(nrow(overview$matrices), nrow(live_matrices)),
+    identical(nrow(overview$spaces), nrow(live_spaces))
+  )
+  reports <- wb_ingest_reports(b)
+  stopifnot(any(as.character(reports$artifact_id) == as.character(ingest_artifact)[1]),
+            any(as.character(reports$report_type) == "ingest_report"))
+  before_manifest <- wb_manifest(b)
+  failed_attach <- try(wb_attach_matrix(b, "RNA_invalid", matrix(1, nrow = 1), feature_type = "gene"), silent = TRUE)
+  stopifnot(inherits(failed_attach, "try-error"),
+            identical(wb_manifest(b)$counts, before_manifest$counts))
+
   TRUE
 }

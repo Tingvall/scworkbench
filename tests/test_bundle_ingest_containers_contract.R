@@ -408,6 +408,13 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(any(tenx_arts$type == "obs_table" & tenx_arts$name == "container_ingest_report" & tenx_arts$source_op == "bundle_ingest_10x_mtx"))
   stopifnot(any(tenx_arts$type == "feature_table" & tenx_arts$name == "RNA_counts_feature_metadata"))
   tenx_report_id <- as.character(tenx_arts$artifact_id[tenx_arts$type == "obs_table" & tenx_arts$name == "container_ingest_report" & tenx_arts$source_op == "bundle_ingest_10x_mtx"][1])
+  tenx_feature_id <- as.character(tenx_arts$artifact_id[tenx_arts$type == "feature_table" & tenx_arts$name == "RNA_counts_feature_metadata"][1])
+  tenx_reports <- wb_ingest_reports(b10x)
+  stopifnot(any(as.character(tenx_reports$artifact_id) == tenx_report_id),
+            any(as.character(tenx_reports$report_type) == "container_ingest_report"))
+  feature_lineage <- wb_prov_artifact_lineage(b10x, tenx_feature_id, direction = "both")
+  stopifnot(any(as.character(feature_lineage$nodes$artifact_id) == tenx_feature_id),
+            any(as.character(feature_lineage$nodes$node_type) == "run"))
   tenx_report <- wb_art_load(b10x, tenx_report_id, expected_kind = "obs_table")$table
   stopifnot(identical(as.character(tenx_report$duplicate_cell_id_policy[1]), "prefix"))
   stopifnot(identical(as.integer(tenx_report$duplicate_cell_id_rows[1]), 2L))

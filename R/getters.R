@@ -129,18 +129,34 @@
   stop("Installed BPCells does not export open_matrix_dir(), required for bundle matrix directories.", call. = FALSE)
 }
 
-#' Get the manifest from an scworkbench bundle
+#' Get the Current Bundle Manifest
 #'
 #' @param bundle Bundle handle from `wb_open_bundle()`
-#' @return Parsed manifest list
+#' `wb_manifest()` is a dynamic current-state summary. Its `creation` field is
+#' immutable bundle-creation metadata; current counts and listings are rebuilt
+#' from authoritative registries on every call.
+#' @return Current manifest list with immutable `creation` metadata.
 #' @export
 wb_manifest <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
   man_path <- file.path(bundle$dir, "manifest.json")
+  cached <- bundle$manifest %||% list()
   if (file.exists(man_path)) {
-    return(jsonlite::read_json(man_path, simplifyVector = TRUE))
+    cached <- jsonlite::read_json(man_path, simplifyVector = TRUE)
   }
-  bundle$manifest
+  creation <- cached$creation %||% list(
+    bundle_id = cached$bundle_id %||% basename(bundle$dir),
+    bundle_name = cached$bundle_name %||% cached$bundle_id %||% basename(bundle$dir),
+    created_at = cached$created_at %||% NA_character_,
+    id_policy = cached$id_policy %||% list()
+  )
+  .wb_bundle_build_manifest(
+    bundle_dir = bundle$dir, con = bundle$con,
+    bundle_id = as.character(creation$bundle_id %||% basename(bundle$dir))[1],
+    bundle_name = as.character(creation$bundle_name %||% creation$bundle_id %||% basename(bundle$dir))[1],
+    created_at = as.character(creation$created_at %||% NA_character_)[1],
+    id_policy = creation$id_policy %||% list()
+  )
 }
 
 #' List registry tables in the bundle

@@ -2,12 +2,15 @@
 
 #' List ingest report artifacts
 #'
-#' Returns artifact metadata for ingest reports emitted by `wb_ingest_apply(..., emit_report_artifact=TRUE)`.
+#' Returns reports from every supported ingestion route. Rows are ordered by
+#' `created_at` descending, then `artifact_id` descending. Stable fields are
+#' `artifact_id`, `name`, `description`, `created_at`, `created_by`,
+#' `source_op`, `cell_set`, `report_type`, `entity_kind`, and `meta_json`.
 #'
 #' @param bundle scworkbench bundle
 #' @param set_name Optional set name filter (matches report `set_name` or `cell_set` suffix)
 #' @param limit Optional max number of rows
-#' @return data.frame of ingest report artifact metadata
+#' @return data.frame with the stable fields documented above.
 #' @export
 wb_ingest_reports <- function(bundle, set_name = NULL, limit = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -16,10 +19,10 @@ wb_ingest_reports <- function(bundle, set_name = NULL, limit = NULL) {
 
   q <- paste(
     "SELECT a.artifact_id, a.name, a.description, a.created_at, a.created_by,",
-    "a.source_op, a.cell_set, t.table_type, t.entity_kind, t.meta_json",
+    "a.source_op, a.cell_set, t.table_type AS report_type, t.entity_kind, t.meta_json",
     "FROM artifacts a",
     "JOIN artifact_tables t ON t.artifact_id = a.artifact_id",
-    "WHERE a.type = 'obs_table' AND t.table_type = 'ingest_report'"
+    "WHERE a.type = 'obs_table' AND t.table_type IN ('ingest_report', 'container_ingest_report')"
   )
   params <- list()
 
@@ -32,7 +35,7 @@ wb_ingest_reports <- function(bundle, set_name = NULL, limit = NULL) {
     params <- c(params, list(sn, paste0("set:", sn), paste0("%", sn, "%")))
   }
 
-  q <- paste0(q, " ORDER BY a.created_at DESC")
+  q <- paste0(q, " ORDER BY a.created_at DESC, a.artifact_id DESC")
   if (!is.null(limit)) {
     lim <- as.integer(limit)[1]
     if (!is.na(lim) && lim > 0L) {
@@ -50,7 +53,7 @@ wb_ingest_reports <- function(bundle, set_name = NULL, limit = NULL) {
       created_by = character(0),
       source_op = character(0),
       cell_set = character(0),
-      table_type = character(0),
+      report_type = character(0),
       entity_kind = character(0),
       meta_json = character(0),
       stringsAsFactors = FALSE
@@ -76,7 +79,7 @@ wb_ingest_report <- function(bundle, artifact_id, parse_json = TRUE) {
   .wb_assert(nrow(meta) == 1, paste0("Ingest report artifact not found: ", aid))
 
   prim <- wb_art_load(bundle, artifact_id = aid, expected_kind = "obs_table")
-  .wb_assert(identical(as.character(prim$table_type %||% "")[1], "ingest_report"),
+  .wb_assert(as.character(prim$table_type %||% "")[1] %in% c("ingest_report", "container_ingest_report"),
              paste0("Artifact is not ingest_report: ", aid))
 
   tbl <- prim$table

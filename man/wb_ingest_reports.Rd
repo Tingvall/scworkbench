@@ -14,8 +14,11 @@ wb_ingest_reports(bundle, set_name = NULL, limit = NULL)
 \item{limit}{Optional max number of rows}
 }
 \value{
-data.frame of ingest report artifact metadata
+data.frame with the stable fields documented above.
 }
 \description{
-Returns artifact metadata for ingest reports emitted by \code{wb_ingest_apply(..., emit_report_artifact=TRUE)}.
+Returns reports from every supported ingestion route. Rows are ordered by
+\code{created_at} descending, then \code{artifact_id} descending. Stable fields are
+\code{artifact_id}, \code{name}, \code{description}, \code{created_at}, \code{created_by},
+\code{source_op}, \code{cell_set}, \code{report_type}, \code{entity_kind}, and \code{meta_json}.
 }

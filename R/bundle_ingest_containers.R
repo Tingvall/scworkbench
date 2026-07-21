@@ -263,7 +263,11 @@
   )
   run <- wb_new_run(
     op_name = paste0("bundle_ingest_", tolower(gsub("[^A-Za-z0-9]+", "_", source_type))),
-    inputs = list(cell_set = "all", parents = character(0), user_inputs = list(source_path = source_path)),
+    inputs = list(
+      cell_set = "all", parents = character(0),
+      provenance_refs = if (nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list(),
+      user_inputs = list(source_path = source_path)
+    ),
     params = list(importer_version = .wb_ingest_version(), cell_id_policy = cell_id_policy, feature_id_policy = feature_id_policy, status = status, phase = phase),
     outputs = list(ingest_report = prim),
     notes = "Container ingestion report"
@@ -276,7 +280,7 @@
     name = "container_ingest_report",
     description = "Container ingestion metadata and v1 unsupported field summary",
     created_by = created_by,
-    parent_artifacts = list()
+    parent_artifacts = if (nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list()
   )
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, artifact_id = artifact_id,
@@ -332,7 +336,7 @@
     outputs = list(feature_metadata = prim),
     notes = "Container feature metadata import"
   )
-  .wb_promote_feature_table(
+  artifact_id <- .wb_promote_feature_table(
     bundle = bundle,
     run = run,
     out_name = "feature_metadata",
@@ -342,6 +346,8 @@
     created_by = created_by,
     parent_artifacts = list()
   )
+  .wb_prov_record_ingestion_substep(bundle, run, artifact_id, created_by = created_by)
+  artifact_id
 }
 
 .wb_ingest_10x_read_tsv <- function(path, col_names) {

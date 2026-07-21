@@ -97,6 +97,18 @@
   )
 }
 
+.wb_prov_record_ingestion_substep <- function(bundle, run, artifact_id, created_by = NULL) {
+  .wb_assert(wb_is_run(run), "run must be a wb_run")
+  .wb_prov_write_snapshot(
+    bundle = bundle, runs = stats::setNames(list(run), run$run_id), topo = run$run_id,
+    heads = run$run_id,
+    promoted_df = data.frame(run_id = run$run_id, output = "feature_metadata",
+      artifact_id = artifact_id, status = "ok", stringsAsFactors = FALSE),
+    name_prefix = "ingestion", description = "Ingestion feature metadata substep",
+    created_by = created_by
+  )
+}
+
 .wb_migrate_provenance_tables <- function(con) {
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_heads (

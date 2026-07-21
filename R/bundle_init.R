@@ -349,23 +349,34 @@ wb_refresh_manifest <- function(bundle) {
   if (inherits(sp_tbl, "try-error") || !is.data.frame(sp_tbl)) sp_tbl <- data.frame()
 
   list(
-    scworkbench_manifest_version = "2.0.0",
+    scworkbench_manifest_version = "2.1.0",
     bundle_id = as.character(bundle_id)[1],
     bundle_name = as.character(bundle_name)[1],
     created_at = as.character(created_at)[1],
+    creation = list(
+      bundle_id = as.character(bundle_id)[1],
+      bundle_name = as.character(bundle_name)[1],
+      created_at = as.character(created_at)[1],
+      id_policy = id_policy %||% list()
+    ),
     counts = list(
       n_cells = as.integer(n_cells %||% 0L),
       n_datasets = as.integer(n_datasets %||% 0L),
       n_spaces = as.integer(n_spaces %||% 0L),
       n_features = as.integer(n_features %||% 0L),
-      n_matrices = as.integer(if (nrow(mat_tbl)) nrow(mat_tbl) else 0L)
+      n_matrices = as.integer(if (nrow(mat_tbl)) nrow(mat_tbl) else 0L),
+      n_artifacts = as.integer(if (.wb_table_exists(con, "artifacts")) DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM artifacts;")$n[1] else 0L)
     ),
     storage = list(
       sqlite = list(path = "db/app.sqlite"),
       matrices = if (nrow(mat_tbl) > 0L) split(mat_tbl, mat_tbl$matrix_id) else list()
     ),
     id_policy = id_policy %||% list(),
-    spaces = if (nrow(sp_tbl) > 0L) as.list(sp_tbl) else list()
+    spaces = if (nrow(sp_tbl) > 0L) as.list(sp_tbl) else list(),
+    artifacts = if (.wb_table_exists(con, "artifacts")) {
+      art_tbl <- DBI::dbGetQuery(con, "SELECT artifact_id, type, name, created_at, source_op FROM artifacts ORDER BY created_at, artifact_id;")
+      if (nrow(art_tbl)) as.list(art_tbl) else list()
+    } else list()
   )
 }
 
