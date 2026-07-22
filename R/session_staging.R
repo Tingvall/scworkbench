@@ -12,8 +12,16 @@
   for (src in kids) {
     dst <- file.path(target, basename(src))
     if (file.exists(dst) || dir.exists(dst)) next
-    ok <- file.symlink(src, dst)
-    .wb_assert(isTRUE(ok), paste0("Failed to link immutable session payload: ", src))
+    # Mutable roots are a copy-on-write overlay.  Linking a whole child
+    # directory would let a staged writer traverse that link and create a new
+    # payload in the live bundle (for example models/umap/<new>.uwot).  Keep
+    # directory nodes private and link only immutable leaf payloads.
+    if (dir.exists(src)) {
+      .wb_session_stage_link_children(src, dst)
+    } else {
+      ok <- file.symlink(src, dst)
+      .wb_assert(isTRUE(ok), paste0("Failed to link immutable session payload: ", src))
+    }
   }
   invisible(TRUE)
 }

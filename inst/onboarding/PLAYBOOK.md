@@ -22,6 +22,10 @@ Current phase note:
 - Use `wb_session_promote_current(outputs = ...)` for intended terminal
   outputs only. Required ancestors become internal committed provenance, not
   public artifacts.
+- If promotion fails, discard the private session workspace with
+  `wb_session_discard(session)` before retrying. Never delete an existing
+  bundle target to clear a collision: use a new output ID unless ownership of
+  the abandoned private workspace is established.
 
 4. Emit provenance artifacts
 - Save report markdown/html.

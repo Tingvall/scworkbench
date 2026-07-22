@@ -126,6 +126,25 @@ wb_op_umap_fit <- function(bundle,
     space_id_out <- paste0("umap.", source_space_id)
   }
 
+  # Preflight all public names before creating either staged registry rows or
+  # a model payload.  A session overlay may contain linked durable payloads,
+  # so writing through an existing target is never safe.
+  con <- bundle$con
+  existing_space <- DBI::dbGetQuery(
+    con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id_out)
+  )
+  .wb_assert(!nrow(existing_space), paste0(
+    "umap_fit: output space already exists: ", space_id_out,
+    ". Use a new output space ID."
+  ))
+  model_file <- paste0(space_id_out, ".uwot")
+  model_path_rel <- file.path("models", "umap", model_file)
+  model_path_abs <- file.path(bundle$dir, model_path_rel)
+  .wb_assert(!file.exists(model_path_abs) && !dir.exists(model_path_abs), paste0(
+    "umap_fit: output model path already exists: ", model_path_rel,
+    ". Use a new output space ID."
+  ))
+
   # ---- RNG ----
   if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) set.seed(1)
   set.seed(as.integer(seed))
@@ -153,8 +172,6 @@ wb_op_umap_fit <- function(bundle,
   )
 
   # ---- Persist embedding to bundle ----
-  con <- bundle$con
-
   .wb_upsert_space_row(
     con,
     space_id = space_id_out,
@@ -194,10 +211,6 @@ wb_op_umap_fit <- function(bundle,
   model_dir <- file.path(bundle$dir, "models", "umap")
   dir.create(model_dir, recursive = TRUE, showWarnings = FALSE)
   .wb_assert(dir.exists(model_dir), paste0("Failed to create model directory: ", model_dir))
-
-  model_file <- paste0(space_id_out, ".uwot")
-  model_path_abs <- file.path(model_dir, model_file)
-  model_path_rel <- file.path("models", "umap", model_file)
 
   uwot::save_uwot(model = fit, file = model_path_abs, verbose = isTRUE(verbose))
 
