@@ -86,6 +86,9 @@ test_all <- function(bundle_dir){
   if (exists("test_provenance_attestation_contract", mode = "function")) {
     stopifnot(test_provenance_attestation_contract())
   }
+  if (exists("test_recipient_audit_external_source_contract", mode = "function")) {
+    stopifnot(test_recipient_audit_external_source_contract())
+  }
   if (exists("test_promotion_workspace_matrix_atomicity_contract", mode = "function")) {
     stopifnot(test_promotion_workspace_matrix_atomicity_contract())
   }

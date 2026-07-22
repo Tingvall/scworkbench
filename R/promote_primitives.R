@@ -229,6 +229,7 @@ wb_promote_analysis <- function(bundle,
                                 allow_detached = FALSE,
                                 outputs = NULL,
                                 staging_bundle = NULL) {
+  .wb_assert_bundle_writable(bundle, "promotion")
   wb_migrate_artifacts(bundle)
 
   .wb_assert(is.list(runs) && length(runs) > 0, "runs must be a non-empty list.")
@@ -1184,6 +1185,7 @@ wb_promote_analysis <- function(bundle,
 #'
 #' @export
 wb_migrate_artifacts <- function(bundle) {
+  if (isTRUE(bundle$read_only)) return(invisible(FALSE))
   con <- bundle$con
 
   DBI::dbExecute(con, "

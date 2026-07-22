@@ -2,6 +2,16 @@
 
 Operational workflow for reliable analysis and code changes.
 
+## Recipient read-only audit
+
+Mount a bundle read-only and open it explicitly with
+`wb_open_bundle(path, read_only = TRUE, validate = TRUE)`. This mode never
+migrates SQLite or writes WAL/journal/staging state. Use normal getters,
+`wb_prov_bundle_dag()`, `wb_kg_provenance_graph()`,
+`wb_art_birth_certificate()`, `wb_prov_run_details()`, and
+`wb_prov_source_inputs()` for the recipient audit. Mutation, session, and
+promotion APIs fail before attempting a write.
+
 Current phase note:
 - Before adding new features, prioritize hardening/bugfixing. See `docs/next_pass_hardening_notes.md`.
 

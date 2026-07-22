@@ -31,6 +31,7 @@ wb_add_space <- function(bundle,
                          source = NULL,
                          overwrite = FALSE,
                          chunk = 20000) {
+  .wb_assert_bundle_writable(bundle, "space mutation")
   con <- bundle$con
 
   .wb_assert(is.character(space_id) && length(space_id) == 1 && nzchar(space_id),

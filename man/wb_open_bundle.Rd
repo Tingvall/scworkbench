@@ -4,12 +4,15 @@
 \alias{wb_open_bundle}
 \title{Open an scworkbench bundle}
 \usage{
-wb_open_bundle(bundle_dir, validate = FALSE)
+wb_open_bundle(bundle_dir, validate = FALSE, read_only = FALSE)
 }
 \arguments{
 \item{bundle_dir}{Path to bundle directory}
 
-\item{validate}{If TRUE, run wb_validate_bundle()}
+\item{validate}{If TRUE, run wb_validate_bundle().}
+
+\item{read_only}{If TRUE, open SQLite explicitly read-only and disable all
+schema migration or bundle mutation. Use for recipient inspection mounts.}
 }
 \value{
 A bundle handle

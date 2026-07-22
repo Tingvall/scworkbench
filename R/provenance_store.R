@@ -57,13 +57,44 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.4"
+.wb_prov_schema_version <- function() "1.5"
 
 .wb_prov_source_identity_validate <- function(x) {
   if (is.null(x)) return(NULL)
   .wb_assert(is.list(x), "source_identity must be a named list")
   .wb_assert(!is.null(names(x)) && all(nzchar(names(x))), "source_identity fields must be named")
+  if (!is.null(x$inputs)) {
+    .wb_assert(is.list(x$inputs), "source_identity$inputs must be a list")
+    x$inputs <- lapply(x$inputs, function(input) {
+      .wb_assert(is.list(input) && !is.null(names(input)), "each source_identity$inputs entry must be a named list")
+      .wb_assert(any(nzchar(as.character(input$path %||% input$uri %||% input$accession %||% "")[1])),
+                 "each source input requires path, uri, or accession")
+      input
+    })
+  }
   x
+}
+
+.wb_prov_record_source_inputs <- function(bundle, snapshot_id, run_id, source_identity) {
+  inputs <- source_identity$inputs %||% list()
+  if (!length(inputs)) return(invisible(FALSE))
+  con <- bundle$con
+  commit <- DBI::dbGetQuery(con, "SELECT commit_id FROM prov_heads WHERE snapshot_id = ?;", params = list(snapshot_id))$commit_id
+  for (i in seq_along(inputs)) {
+    input <- inputs[[i]]
+    canonical <- jsonlite::toJSON(.wb_json_sanitize(input), auto_unbox = TRUE, null = "null")
+    source_id <- as.character(input$source_id %||% paste0("source_", .wb_hash_text(canonical)))[1]
+    checksum <- as.character(input$checksum %||% NA_character_)[1]
+    status <- if (nzchar(checksum) && !is.na(checksum)) "checksummed" else "declared_no_checksum"
+    old <- DBI::dbGetQuery(con, "SELECT source_json FROM prov_source_inputs WHERE snapshot_id=? AND run_id=? AND source_id=?;", params=list(snapshot_id, run_id, source_id))
+    if (!nrow(old)) DBI::dbExecute(con, "INSERT INTO prov_source_inputs(snapshot_id, run_id, source_id, source_json, checksum_status) VALUES(?, ?, ?, ?, ?);", params=list(snapshot_id, run_id, source_id, canonical, status))
+    else if (!identical(as.character(old$source_json[1]), as.character(canonical))) stop(paste0("Conflicting immutable external source input: ", source_id), call.=FALSE)
+    .wb_prov_insert_entity_binding(con, snapshot_id, as.character(commit[1] %||% NA_character_), run_id,
+      "input", paste0("external_input.", i), "external_source", source_id, "CONSUMES",
+      path=as.character(input$uri %||% input$path %||% input$accession %||% NA_character_)[1], content_hash=checksum,
+      source="declared_ingestion_input")
+  }
+  invisible(TRUE)
 }
 
 .wb_prov_record_source_identity <- function(bundle, snapshot_id, run_id, matrix_ids, source_identity) {
@@ -168,6 +199,7 @@
     transaction_open = transaction_open
   )
   .wb_prov_record_source_identity(bundle, sid, run$run_id, matrix_ids, source_identity)
+  .wb_prov_record_source_inputs(bundle, sid, run$run_id, source_identity %||% list())
   sid
 }
 
@@ -184,6 +216,7 @@
 }
 
 .wb_migrate_provenance_tables <- function(con) {
+  if (isTRUE(attr(con, "scworkbench_read_only"))) return(invisible(FALSE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_heads (
       snapshot_id TEXT PRIMARY KEY,
@@ -252,6 +285,7 @@
   if (!.wb_db_has_column(con, "prov_runs", "contract_json")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN contract_json TEXT;")
   if (!.wb_db_has_column(con, "prov_runs", "contract_hash")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN contract_hash TEXT;")
   DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS prov_source_identities (snapshot_id TEXT NOT NULL, run_id TEXT NOT NULL, matrix_id TEXT NOT NULL, source_identity_json TEXT NOT NULL, PRIMARY KEY(snapshot_id, run_id, matrix_id));")
+  DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS prov_source_inputs (snapshot_id TEXT NOT NULL, run_id TEXT NOT NULL, source_id TEXT NOT NULL, source_json TEXT NOT NULL, checksum_status TEXT NOT NULL, PRIMARY KEY(snapshot_id, run_id, source_id));")
 
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_run_edges (
@@ -723,6 +757,7 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
 wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_migrate_provenance_tables(bundle$con)
+  if (!.wb_table_exists(bundle$con, "prov_source_identities")) return(data.frame(snapshot_id=character(), run_id=character(), matrix_id=character(), source_identity_json=character(), status=character(), stringsAsFactors=FALSE))
   q <- "SELECT snapshot_id, run_id, matrix_id, source_identity_json FROM prov_source_identities"
   params <- list()
   if (!is.null(matrix_id)) { q <- paste0(q, " WHERE matrix_id = ?"); params <- list(as.character(matrix_id)[1]) }
@@ -730,6 +765,22 @@ wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
   out <- if (length(params)) DBI::dbGetQuery(bundle$con, q, params = params) else DBI::dbGetQuery(bundle$con, q)
   if (!nrow(out)) return(data.frame(snapshot_id=character(), run_id=character(), matrix_id=character(), source_identity_json=character(), status=character(), stringsAsFactors=FALSE))
   out$status <- "available"
+  out
+}
+
+#' List declared external ingestion inputs
+#'
+#' @param bundle scworkbench bundle.
+#' @param run_id Optional ingestion run id.
+#' @return Durable declared external source records, including checksum status.
+#' @export
+wb_prov_source_inputs <- function(bundle, run_id = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_migrate_provenance_tables(bundle$con)
+  empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), checksum_status=character(), stringsAsFactors=FALSE)
+  if (!.wb_table_exists(bundle$con, "prov_source_inputs")) return(empty)
+  out <- DBI::dbGetQuery(bundle$con, "SELECT snapshot_id, run_id, source_id, source_json, checksum_status FROM prov_source_inputs ORDER BY snapshot_id, run_id, source_id;")
+  if (!is.null(run_id)) out <- out[as.character(out$run_id) %in% as.character(run_id), , drop=FALSE]
   out
 }
 

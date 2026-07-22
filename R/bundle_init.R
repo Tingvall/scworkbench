@@ -315,6 +315,7 @@ wb_attach_metadata <- function(bundle,
 #' @return The refreshed manifest list.
 #' @export
 wb_refresh_manifest <- function(bundle) {
+  .wb_assert_bundle_writable(bundle, "manifest refresh")
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
   man_old <- try(bundle$manifest, silent = TRUE)

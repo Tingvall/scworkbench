@@ -6,13 +6,15 @@
 #' - bundle path
 #'
 #' @param bundle_dir Path to bundle directory
-#' @param validate If TRUE, run wb_validate_bundle()
+#' @param validate If TRUE, run wb_validate_bundle().
+#' @param read_only If TRUE, open SQLite explicitly read-only and disable all
+#'   schema migration or bundle mutation. Use for recipient inspection mounts.
 #' @return A bundle handle
 # pybench-parity: yes
 # pybench-counterpart: pybench.bundle.open_bundle
 # contract-note: manifest.json + manifest$storage$sqlite$path resolution must stay aligned
 #' @export
-wb_open_bundle <- function(bundle_dir, validate = FALSE) {
+wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
   if (!dir.exists(bundle_dir)) stop("Bundle directory does not exist: ", bundle_dir)
 
   man_path <- file.path(bundle_dir, "manifest.json")
@@ -26,21 +28,30 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE) {
   db_path <- file.path(bundle_dir, db_rel)
   if (!file.exists(db_path)) stop("SQLite DB not found: ", db_path)
 
-  con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
+  con <- if (isTRUE(read_only)) {
+    DBI::dbConnect(RSQLite::SQLite(), db_path, flags = RSQLite::SQLITE_RO)
+  } else DBI::dbConnect(RSQLite::SQLite(), db_path)
+  attr(con, "scworkbench_read_only") <- isTRUE(read_only)
 
   bundle <- list(
     dir = bundle_dir,
     manifest = manifest,
-    con = con
+    con = con, read_only = isTRUE(read_only)
   )
   class(bundle) <- "scworkbench_bundle"
 
   if (isTRUE(validate)) {
-    wb_validate_bundle(bundle_dir)
+    wb_validate_bundle(bundle_dir, read_only = read_only)
   }
-  wb_migrate_artifacts(bundle)
+  if (!isTRUE(read_only)) wb_migrate_artifacts(bundle)
 
   bundle
+}
+
+.wb_assert_bundle_writable <- function(bundle, action = "mutation") {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(!isTRUE(bundle$read_only), paste0(action, " is unavailable: bundle was opened read_only=TRUE."))
+  invisible(TRUE)
 }
 
 #' Close an scworkbench bundle

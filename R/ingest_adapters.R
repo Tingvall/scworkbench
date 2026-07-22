@@ -401,6 +401,7 @@ wb_ingest_apply <- function(bundle,
                             validate_only = FALSE,
                             apply_mode = c("atomic", "best_effort"),
                             emit_report_artifact = FALSE) {
+  .wb_assert_bundle_writable(bundle, "ingestion")
   apply_mode <- match.arg(apply_mode)
   chk <- wb_ingest_validate(
     bundle = bundle,

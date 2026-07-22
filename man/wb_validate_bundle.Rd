@@ -4,10 +4,12 @@
 \alias{wb_validate_bundle}
 \title{Validate an scworkbench bundle on disk}
 \usage{
-wb_validate_bundle(bundle_dir)
+wb_validate_bundle(bundle_dir, read_only = FALSE)
 }
 \arguments{
 \item{bundle_dir}{Path to bundle directory}
+
+\item{read_only}{Open SQLite explicitly read-only for recipient audit.}
 }
 \value{
 TRUE if valid, otherwise errors

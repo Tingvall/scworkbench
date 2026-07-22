@@ -316,6 +316,7 @@ wb_session_add_run <- function(session, run) {
 #'   session with `rr <- wb_session_run_op(...); session <- rr$session`.
 #' @export
 wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
+  .wb_assert_bundle_writable(bundle, "session operations")
   dots <- list(...)
   .wb_assert(
     length(dots) == 0L,

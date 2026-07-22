@@ -405,6 +405,15 @@ wb_kg_bundle_graph <- function(bundle) {
     }
   }
 
+  if (.wb_table_exists(con, "prov_source_inputs")) {
+    src <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, source_id, source_json, checksum_status FROM prov_source_inputs ORDER BY snapshot_id, run_id, source_id;")
+    if (nrow(src)) for (i in seq_len(nrow(src))) {
+      snid <- paste0("external_source:", .wb_kg_slug(src$source_id[i]))
+      nodes[[length(nodes) + 1L]] <- .wb_kg_node(snid, as.character(src$source_id[i]), "ExternalSource", "declared_ingestion_input", payload=as.list(src[i, , drop=FALSE]))
+      edges[[length(edges) + 1L]] <- .wb_kg_edge(snid, paste0("run:", .wb_kg_slug(src$run_id[i])), "SUPPLIED_TO", "declared_ingestion_input", payload=as.list(src[i, , drop=FALSE]))
+    }
+  }
+
   if (.wb_table_exists(con, "prov_run_outputs")) {
     outs <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id FROM prov_run_outputs ORDER BY snapshot_id, run_id, output_name;")
     if (nrow(outs)) {

@@ -6,9 +6,10 @@
 #' - BPCells matrices
 #'
 #' @param bundle_dir Path to bundle directory
+#' @param read_only Open SQLite explicitly read-only for recipient audit.
 #' @return TRUE if valid, otherwise errors
 #' @export
-wb_validate_bundle <- function(bundle_dir) {
+wb_validate_bundle <- function(bundle_dir, read_only = FALSE) {
   if (!is.character(bundle_dir) || length(bundle_dir) != 1L || is.na(bundle_dir) || !nzchar(bundle_dir)) {
     stop(
       "wb_validate_bundle(): bundle_dir must be one non-empty path string; pass bundle$dir, not an open scworkbench_bundle handle.",
@@ -20,7 +21,7 @@ wb_validate_bundle <- function(bundle_dir) {
     stop("Bundle ingestion failed/incomplete; see marker: ", failed_marker, call. = FALSE)
   }
 
-  b <- wb_open_bundle(bundle_dir, validate = FALSE)
+  b <- wb_open_bundle(bundle_dir, validate = FALSE, read_only = read_only)
   on.exit(wb_close_bundle(b), add = TRUE)
 
   con <- b$con
