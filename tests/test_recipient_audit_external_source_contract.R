@@ -17,6 +17,8 @@ test_recipient_audit_external_source_contract <- function() {
   key <- paste(dag$edges$from, dag$edges$to, sep="|")
   stopifnot(all(paste0("external_source:", inputs$source_id, "|run:", run) %in% key), any(paste0("run:", run, "|artifact:", art) == key))
   stopifnot(any(grepl("^external_source:", wb_kg_provenance_graph(b)$nodes$id)))
+  finalized <- wb_finalize_recipient_bundle(b)
+  stopifnot(isTRUE(finalized$ready), identical(as.character(finalized$journal_mode), "delete"))
   wb_close_bundle(b); before <- file.info(file.path(root, "db", "app.sqlite"))$mtime
   ro <- wb_open_bundle(root, read_only=TRUE, validate=TRUE)
   on.exit(try(wb_close_bundle(ro), silent=TRUE), add=TRUE)

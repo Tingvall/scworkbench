@@ -12,6 +12,11 @@ migrates SQLite or writes WAL/journal/staging state. Use normal getters,
 `wb_prov_source_inputs()` for the recipient audit. Mutation, session, and
 promotion APIs fail before attempting a write.
 
+Before transferring a writable bundle, run `wb_finalize_recipient_bundle(b)`
+and confirm `wb_recipient_readiness(path)$ready`. The supported container audit
+is `containers/apptainer/recipient_readonly_audit.sh IMAGE BUNDLE_DIR`; it
+uses `singularity --bind BUNDLE_DIR:/bundle:ro` and never clones the bundle.
+
 Current phase note:
 - Before adding new features, prioritize hardening/bugfixing. See `docs/next_pass_hardening_notes.md`.
 

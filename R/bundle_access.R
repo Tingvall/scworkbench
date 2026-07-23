@@ -29,7 +29,14 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
   if (!file.exists(db_path)) stop("SQLite DB not found: ", db_path)
 
   con <- if (isTRUE(read_only)) {
-    DBI::dbConnect(RSQLite::SQLite(), db_path, flags = RSQLite::SQLITE_RO)
+    # SQLite WAL readers may create -shm/-wal even with SQLITE_RO.  An
+    # immutable URI is the only direct :ro-mount mode that forbids that I/O.
+    # It is safe only after finalization has proved no uncheckpointed WAL
+    # state exists; otherwise immutable could silently omit WAL frames.
+    if (file.exists(paste0(db_path, "-wal")) || file.exists(paste0(db_path, "-shm"))) {
+      stop("Bundle is not recipient-finalized: unresolved SQLite WAL sidecars are present. Open writable and run wb_finalize_recipient_bundle() before read-only transfer.", call.=FALSE)
+    }
+    DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db_path, winslash="/", mustWork=TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO)
   } else DBI::dbConnect(RSQLite::SQLite(), db_path)
   attr(con, "scworkbench_read_only") <- isTRUE(read_only)
 
@@ -67,4 +74,43 @@ wb_close_bundle <- function(bundle) {
     DBI::dbDisconnect(bundle$con)
   }
   invisible(TRUE)
+}
+
+#' Check whether a bundle is ready for direct recipient read-only inspection
+#'
+#' A finalized recipient bundle has no unresolved SQLite WAL sidecars. A
+#' persistent `journal_mode=WAL` setting is acceptable only when the WAL is
+#' absent (all frames checkpointed); use `wb_finalize_recipient_bundle()` to
+#' switch a writable bundle to rollback-journal mode before transfer.
+#' @param bundle_dir Bundle directory.
+#' @return Named readiness record.
+#' @export
+wb_recipient_readiness <- function(bundle_dir) {
+  man <- jsonlite::read_json(file.path(bundle_dir, "manifest.json"), simplifyVector=TRUE)
+  db <- file.path(bundle_dir, as.character(man$storage$sqlite$path)[1])
+  wal <- paste0(db, "-wal"); shm <- paste0(db, "-shm")
+  unresolved <- file.exists(wal) || file.exists(shm)
+  jm <- if (unresolved) NA_character_ else {
+    con <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db, winslash="/", mustWork=TRUE), "?immutable=1"), flags=RSQLite::SQLITE_RO)
+    on.exit(DBI::dbDisconnect(con), add=TRUE)
+    as.character(DBI::dbGetQuery(con, "PRAGMA journal_mode;")[[1]][1])
+  }
+  list(ready=!unresolved, journal_mode=jm,
+       wal_path=wal, shm_path=shm,
+       reason=if (unresolved) "unresolved SQLite WAL state; finalize before transfer" else "no WAL sidecars")
+}
+
+#' Finalize a writable bundle for recipient read-only transfer
+#'
+#' @param bundle Open writable bundle.
+#' @return Recipient readiness record.
+#' @export
+wb_finalize_recipient_bundle <- function(bundle) {
+  .wb_assert_bundle_writable(bundle, "recipient finalization")
+  DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")
+  DBI::dbGetQuery(bundle$con, "PRAGMA journal_mode=DELETE;")
+  DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")
+  out <- wb_recipient_readiness(bundle$dir)
+  .wb_assert(isTRUE(out$ready), out$reason)
+  out
 }
