@@ -12,6 +12,13 @@ migrates SQLite or writes WAL/journal/staging state. Use normal getters,
 `wb_prov_source_inputs()` for the recipient audit. Mutation, session, and
 promotion APIs fail before attempting a write.
 
+For external inputs, use `source_identity$inputs` entries with `sha256` (the
+canonical SHA-256 field), optional `path`/`uri`, `role`, and `format`.
+`wb_prov_source_inputs()` normalizes these to `checksum_algorithm`,
+`checksum_value`, and `checksum_status`. In `wb_prov_bundle_dag()` the node
+classification column is `node_type`; filter `node_type == "external_source"`
+and `edge_type == "CONSUMES"` to inspect source-to-ingestion edges.
+
 Before transferring a writable bundle, run `wb_finalize_recipient_bundle(b)`
 and confirm `wb_recipient_readiness(path)$ready`. The supported container audit
 is `containers/apptainer/recipient_readonly_audit.sh IMAGE BUNDLE_DIR`; it

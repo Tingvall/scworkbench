@@ -777,11 +777,22 @@ wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
 wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_migrate_provenance_tables(bundle$con)
-  empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), checksum_status=character(), stringsAsFactors=FALSE)
+  empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), path=character(), uri=character(), role=character(), format=character(), checksum_algorithm=character(), checksum_value=character(), checksum_status=character(), stringsAsFactors=FALSE)
   if (!.wb_table_exists(bundle$con, "prov_source_inputs")) return(empty)
   out <- DBI::dbGetQuery(bundle$con, "SELECT snapshot_id, run_id, source_id, source_json, checksum_status FROM prov_source_inputs ORDER BY snapshot_id, run_id, source_id;")
   if (!is.null(run_id)) out <- out[as.character(out$run_id) %in% as.character(run_id), , drop=FALSE]
-  out
+  if (!nrow(out)) return(empty)
+  norm <- lapply(out$source_json, function(txt) {
+    x <- tryCatch(jsonlite::fromJSON(as.character(txt), simplifyVector=FALSE), error=function(e) list())
+    sha <- as.character(x$sha256 %||% "")[1]
+    alg <- tolower(as.character(x$checksum_algorithm %||% if (nzchar(sha)) "sha256" else "")[1])
+    val <- as.character(if (nzchar(sha)) sha else x$checksum %||% "")[1]
+    valid_sha <- identical(alg, "sha256") && grepl("^[A-Fa-f0-9]{64}$", val)
+    status <- if (!nzchar(val)) "declared_no_checksum" else if (valid_sha) "checksummed" else if (identical(alg, "sha256") || nzchar(sha)) "malformed_checksum" else "unsupported_checksum"
+    list(path=as.character(x$path %||% NA_character_)[1], uri=as.character(x$uri %||% NA_character_)[1], role=as.character(x$role %||% x$file_kind %||% NA_character_)[1], format=as.character(x$format %||% NA_character_)[1], checksum_algorithm=if(nzchar(alg)) alg else NA_character_, checksum_value=if(nzchar(val)) val else NA_character_, checksum_status=status)
+  })
+  extra <- do.call(rbind, lapply(norm, as.data.frame, stringsAsFactors=FALSE))
+  cbind(out[, c("snapshot_id", "run_id", "source_id", "source_json"), drop=FALSE], extra, stringsAsFactors=FALSE)
 }
 
 .wb_r_single_quote_escape <- function(x) {
