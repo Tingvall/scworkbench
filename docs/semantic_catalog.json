@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-07-18T14:36:08+0200",
+  "generated_at": "2026-07-24T20:27:33+0200",
   "record_count": 304,
   "record_type_counts": {
     "artifact_type": 71,
@@ -19,7 +19,7 @@
       "name": "leiden",
       "title": "Leiden clustering",
       "description": "Graph clustering on a kNN graph derived from an embedding space.",
-      "search_text": "Leiden clustering\nGraph clustering on a kNN graph derived from an embedding space.\ncluster\nspace\nTRUE\ncell_set\nselect\nclusters\ncell_vector\nCluster label per cell (categorical cell vector).\ndims\nint_range\n1:30\nWhich dimensions of the space to use (1-indexed).\nk\nint\n30\n5\n200\nNumber of neighbors for kNN graph.\nresolution\ndbl\n1\n0.01\n10\nLeiden resolution parameter.\nseed\nRandom seed.",
+      "search_text": "Leiden clustering\nGraph clustering on a kNN graph derived from an embedding space.\ncluster\nspace\nTRUE\ncell_set\nselect\nclusters\ncell_vector\nterminal_artifact\nCluster label per cell (categorical cell vector).\ndims\nint_range\n1:30\nWhich dimensions of the space to use (1-indexed).\nk\nint\n30\n5\n200\nNumber of neighbors for kNN graph.\nresolution\ndbl\n1\n0.01\n10\nLeiden resolution parameter.\nseed\nRandom seed.",
       "tags": ["op", "cluster"],
       "payload": {
         "op_name": "leiden",
@@ -41,6 +41,11 @@
           {
             "name": "clusters",
             "kind": "cell_vector",
+            "output_name": "clusters",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "clusters",
             "description": "Cluster label per cell (categorical cell vector)."
           }
         ],
@@ -97,7 +102,7 @@
       "name": "matrix_log_normalize",
       "title": "Log-normalize count matrix",
       "description": "Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.",
-      "search_text": "Log-normalize count matrix\nCreate a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.\nmatrix\nnormalize\nrna\ntransform\nTRUE\ncell_set\nselect\nReference to the newly registered log-normalized matrix.\nsummary\nobs_table\nTransform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.\noutput_matrix_id\nstring\nMatrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.\nscale_factor\ndbl\n10000\n1\n1e+09\nPer-cell target count scale before log1p; 10000 is the common CP10K convention.\noverwrite\nbool\nFALSE\nIf TRUE, replace an existing output matrix with the same id.\nall\nMust be 'all' because the output matrix is registered as a full bundle matrix.",
+      "search_text": "Log-normalize count matrix\nCreate a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.\nmatrix\nnormalize\nrna\ntransform\nTRUE\ncell_set\nselect\nmaterialization\nFALSE\nsummary\nReference to the newly registered log-normalized matrix.\nobs_table\nterminal_artifact\nTransform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.\noutput_matrix_id\nstring\nMatrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.\nscale_factor\ndbl\n10000\n1\n1e+09\nPer-cell target count scale before log1p; 10000 is the common CP10K convention.\noverwrite\nbool\nIf TRUE, replace an existing output matrix with the same id.\nall\nMust be 'all' because the output matrix is registered as a full bundle matrix.",
       "tags": ["op", "matrix", "normalize", "rna", "transform"],
       "payload": {
         "op_name": "matrix_log_normalize",
@@ -119,11 +124,21 @@
           {
             "name": "matrix",
             "kind": "matrix",
+            "output_name": "matrix",
+            "primitive_kind": "matrix",
+            "durability_role": "materialization",
+            "promotable_directly": false,
+            "materialized_by_terminals": "summary",
             "description": "Reference to the newly registered log-normalized matrix."
           },
           {
             "name": "summary",
             "kind": "obs_table",
+            "output_name": "summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "summary",
             "description": "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
           }
         ],
@@ -177,7 +192,7 @@
       "name": "hvg_select",
       "title": "Highly Variable Feature Selection",
       "description": "Select highly variable features from a matrix using chunked feature-wise summaries.",
-      "search_text": "Highly Variable Feature Selection\nSelect highly variable features from a matrix using chunked feature-wise summaries.\nmatrix\nfeature_selection\nrna\nhvg\nTRUE\ncell_set\nselect\nselected_features\nfeature_table\nFeature-wise mean, variance, dispersion, score, rank, and selected flag.\nfit_summary\nobs_table\nInput matrix, method, filters, dimensions, and selection counts.\nn_features\nint\n2000\n1\n1e+06\nNumber of highly variable features to mark selected.\nmethod\nchoice\nvst\ndispersion\nvariance\nFeature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean).\nmin_mean\ndbl\n0\nOptional minimum feature mean filter.\nmax_mean\nOptional maximum feature mean filter.\nmin_dispersion\nOptional minimum HVG score filter.\nbatch_key\nstring\nReserved for future batch-aware HVG; currently unsupported if non-null.\nexclude_features\nstring_vec\nOptional feature IDs to exclude before ranking.\nfeature_type\nOptional feature_type filter from the bundle feature registry.\nseed\nRandom seed reserved for deterministic future methods.\nchunk_size\n256\n1e+05\nFeature chunk size for backed matrix reads.",
+      "search_text": "Highly Variable Feature Selection\nSelect highly variable features from a matrix using chunked feature-wise summaries.\nmatrix\nfeature_selection\nrna\nhvg\nTRUE\ncell_set\nselect\nselected_features\nfeature_table\nterminal_artifact\nFeature-wise mean, variance, dispersion, score, rank, and selected flag.\nfit_summary\nobs_table\nInput matrix, method, filters, dimensions, and selection counts.\nn_features\nint\n2000\n1\n1e+06\nNumber of highly variable features to mark selected.\nmethod\nchoice\nvst\ndispersion\nvariance\nFeature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean).\nmin_mean\ndbl\n0\nOptional minimum feature mean filter.\nmax_mean\nOptional maximum feature mean filter.\nmin_dispersion\nOptional minimum HVG score filter.\nbatch_key\nstring\nReserved for future batch-aware HVG; currently unsupported if non-null.\nexclude_features\nstring_vec\nOptional feature IDs to exclude before ranking.\nfeature_type\nOptional feature_type filter from the bundle feature registry.\nseed\nRandom seed reserved for deterministic future methods.\nchunk_size\n256\n1e+05\nFeature chunk size for backed matrix reads.",
       "tags": ["op", "matrix", "feature_selection", "rna", "hvg"],
       "payload": {
         "op_name": "hvg_select",
@@ -199,11 +214,21 @@
           {
             "name": "selected_features",
             "kind": "feature_table",
+            "output_name": "selected_features",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "selected_features",
             "description": "Feature-wise mean, variance, dispersion, score, rank, and selected flag."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Input matrix, method, filters, dimensions, and selection counts."
           }
         ],
@@ -305,7 +330,7 @@
       "name": "pca_fit",
       "title": "PCA Fit",
       "description": "Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.",
-      "search_text": "PCA Fit\nCompute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.\nmatrix\npca\nspace\nrna\ndimension_reduction\nTRUE\nfeatures\nfeature_table\nFALSE\ncell_set\nselect\nReference to the persisted PCA space.\nloadings\nFeature loadings per principal component.\nvariance\nobs_table\nPer-PC standard deviation and variance explained.\nfit_summary\nInput matrix, feature count, backend, component count, and output space id.\nfeature_ids\nstring_vec\nOptional explicit feature IDs when not passing features as a feature_table reference.\nn_components\nint\n50\n2\n10000\nNumber of principal components to compute.\ncenter\nbool\nCenter features before PCA.\nscale\nScale features before PCA.\nbackend\nchoice\nirlba\nprcomp\nPCA backend. 'irlba' is recommended for large sparse/backed matrices.\nseed\n1\nRandom seed.\nspace_id_out\nstring\nrna.pca\nBundle space id to create.\noverwrite\nReplace an existing space_id_out if present.\nmax_dense_gb\ndbl\n8\n0.1\nApproximate dense selected-block size guard for dense backends.",
+      "search_text": "PCA Fit\nCompute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.\nmatrix\npca\nspace\nrna\ndimension_reduction\nTRUE\nfeatures\nfeature_table\nFALSE\ncell_set\nselect\nmaterialization\nloadings\nvariance\nfit_summary\nReference to the persisted PCA space.\nterminal_artifact\nFeature loadings per principal component.\nobs_table\nPer-PC standard deviation and variance explained.\nInput matrix, feature count, backend, component count, and output space id.\nfeature_ids\nstring_vec\nOptional explicit feature IDs when not passing features as a feature_table reference.\nn_components\nint\n50\n2\n10000\nNumber of principal components to compute.\ncenter\nbool\nCenter features before PCA.\nscale\nScale features before PCA.\nbackend\nchoice\nirlba\nprcomp\nPCA backend. 'irlba' is recommended for large sparse/backed matrices.\nseed\n1\nRandom seed.\nspace_id_out\nstring\nrna.pca\nBundle space id to create.\noverwrite\nReplace an existing space_id_out if present.\nmax_dense_gb\ndbl\n8\n0.1\nApproximate dense selected-block size guard for dense backends.",
       "tags": ["op", "matrix", "pca", "space", "rna", "dimension_reduction"],
       "payload": {
         "op_name": "pca_fit",
@@ -332,21 +357,41 @@
           {
             "name": "space",
             "kind": "space",
+            "output_name": "space",
+            "primitive_kind": "space",
+            "durability_role": "materialization",
+            "promotable_directly": false,
+            "materialized_by_terminals": ["loadings", "variance", "fit_summary"],
             "description": "Reference to the persisted PCA space."
           },
           {
             "name": "loadings",
             "kind": "feature_table",
+            "output_name": "loadings",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "loadings",
             "description": "Feature loadings per principal component."
           },
           {
             "name": "variance",
             "kind": "obs_table",
+            "output_name": "variance",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "variance",
             "description": "Per-PC standard deviation and variance explained."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Input matrix, feature count, backend, component count, and output space id."
           }
         ],
@@ -436,7 +481,7 @@
       "name": "umap_fit",
       "title": "UMAP fit (train model)",
       "description": "Fit a UMAP model on a space and store it for future projection.",
-      "search_text": "UMAP fit (train model)\nFit a UMAP model on a space and store it for future projection.\numap\nfit\nspace\nTRUE\ncell_set\nselect\nmodel\nmodel_ref\nReference to the fitted UMAP model.\nspace_2d\nThe fitted 2D embedding space id.\ndims\nint_range\nDims to use (e.g. 2:30).\nspace_id_out\nstring\nOutput 2D space id. Defaults to umap.<source_space>.\nn_neighbors\nint\n30\n2\n1e+05\nUMAP neighborhood size.\nmin_dist\ndbl\n0.3\n0\n1\nUMAP minimum distance.\nmetric\neuclidean\nDistance metric passed to uwot.\nnn_method\nchoice\nnndescent\nannoy\nfnn\nNearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.\nspread\nUMAP spread parameter.\nseed\nRandom seed.",
+      "search_text": "UMAP fit (train model)\nFit a UMAP model on a space and store it for future projection.\numap\nfit\nspace\nTRUE\ncell_set\nselect\nmodel\nmodel_ref\nterminal_artifact\nReference to the fitted UMAP model.\nspace_2d\nThe fitted 2D embedding space id.\ndims\nint_range\nDims to use (e.g. 2:30).\nspace_id_out\nstring\nOutput 2D space id. Defaults to umap.<source_space>.\nn_neighbors\nint\n30\n2\n1e+05\nUMAP neighborhood size.\nmin_dist\ndbl\n0.3\n0\n1\nUMAP minimum distance.\nmetric\neuclidean\nDistance metric passed to uwot.\nnn_method\nchoice\nnndescent\nannoy\nfnn\nNearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.\nspread\nUMAP spread parameter.\nseed\nRandom seed.",
       "tags": ["op", "umap", "fit"],
       "payload": {
         "op_name": "umap_fit",
@@ -458,11 +503,21 @@
           {
             "name": "model",
             "kind": "model_ref",
+            "output_name": "model",
+            "primitive_kind": "model_ref",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "model",
             "description": "Reference to the fitted UMAP model."
           },
           {
             "name": "space_2d",
             "kind": "space_2d",
+            "output_name": "space_2d",
+            "primitive_kind": "space_2d",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "space_2d",
             "description": "The fitted 2D embedding space id."
           }
         ],
@@ -545,7 +600,7 @@
       "name": "umap_transform",
       "title": "UMAP transform (project cells)",
       "description": "Project cells into an existing UMAP using a stored model.",
-      "search_text": "UMAP transform (project cells)\nProject cells into an existing UMAP using a stored model.\nprojection\numap\nmodel\nmodel_ref\nTRUE\nin_space\nspace\nFALSE\ncell_set\nselect\nspace_2d\nProjected x/y in the target UMAP space.\ndims\nint_range\nDims to use from the input space (e.g. 2:30).\noverwrite\nbool\nOverwrite existing projected coordinates for those cells.",
+      "search_text": "UMAP transform (project cells)\nProject cells into an existing UMAP using a stored model.\nprojection\numap\nmodel\nmodel_ref\nTRUE\nin_space\nspace\nFALSE\ncell_set\nselect\nspace_2d\nterminal_artifact\nProjected x/y in the target UMAP space.\ndims\nint_range\nDims to use from the input space (e.g. 2:30).\noverwrite\nbool\nOverwrite existing projected coordinates for those cells.",
       "tags": ["op", "projection", "umap"],
       "payload": {
         "op_name": "umap_transform",
@@ -572,6 +627,11 @@
           {
             "name": "space_2d",
             "kind": "space_2d",
+            "output_name": "space_2d",
+            "primitive_kind": "space_2d",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "space_2d",
             "description": "Projected x/y in the target UMAP space."
           }
         ],
@@ -616,7 +676,7 @@
       "name": "addmodulescore",
       "title": "Add module score",
       "description": "Seurat-style module scoring using matched control features by expression bin.",
-      "search_text": "Add module score\nSeurat-style module scoring using matched control features by expression bin.\nexpression\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\nmodule_scores\ncell_vector_family\nPer-cell module scores for one or more signatures.\nfeatures\nstring_vec_or_list\nModule feature IDs: character vector or list of vectors.\npool\nstring_vec\nOptional control feature pool; defaults to all matrix features.\nnbin\nint\n24\n2\n200\nNumber of expression bins for control matching.\nctrl\n100\n1\n1000\nControl features sampled per module feature.\nname\nstring\nModule\nPrefix for module names when features are unnamed.\nseed\nRandom seed for control sampling.",
+      "search_text": "Add module score\nSeurat-style module scoring using matched control features by expression bin.\nexpression\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\nmodule_scores\ncell_vector_family\nterminal_artifact\nPer-cell module scores for one or more signatures.\nfeatures\nstring_vec_or_list\nModule feature IDs: character vector or list of vectors.\npool\nstring_vec\nOptional control feature pool; defaults to all matrix features.\nnbin\nint\n24\n2\n200\nNumber of expression bins for control matching.\nctrl\n100\n1\n1000\nControl features sampled per module feature.\nname\nstring\nModule\nPrefix for module names when features are unnamed.\nseed\nRandom seed for control sampling.",
       "tags": ["op", "expression", "signature", "score"],
       "payload": {
         "op_name": "addmodulescore",
@@ -638,6 +698,11 @@
           {
             "name": "module_scores",
             "kind": "cell_vector_family",
+            "output_name": "module_scores",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "module_scores",
             "description": "Per-cell module scores for one or more signatures."
           }
         ],
@@ -705,7 +770,7 @@
       "name": "ucell",
       "title": "UCell Signature Scoring",
       "description": "Rank-based per-cell signature scoring using the UCell method.",
-      "search_text": "UCell Signature Scoring\nRank-based per-cell signature scoring using the UCell method.\nexpression\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\nsignature_scores\ncell_vector_family\nPer-cell UCell scores for one or more signatures.\nsignature_summary\nobs_table\nPer-signature scoring summary and feature-match diagnostics.\nfeatures\nstring_vec_or_list\nSignature feature IDs: character vector or list of vectors.\nname\nstring\nSignature\nPrefix for signature names when features are unnamed.\nmax_rank\nint\n1500\n1\n1e+06\nMaximum rank considered by UCell.\nncores\n1024\nNumber of worker processes requested by UCell.\nparallel_backend\nchoice\nauto\nserial\nExecution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems.\nchunk_size\n2000\n8\nCell-axis chunk size for engine-owned UCell execution. Use NULL to disable chunking.\nmissing_features_policy\ndrop\nerror\nHow to handle signature features missing from the matrix.",
+      "search_text": "UCell Signature Scoring\nRank-based per-cell signature scoring using the UCell method.\nexpression\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\nsignature_scores\ncell_vector_family\nterminal_artifact\nPer-cell UCell scores for one or more signatures.\nsignature_summary\nobs_table\nPer-signature scoring summary and feature-match diagnostics.\nfeatures\nstring_vec_or_list\nSignature feature IDs: character vector or list of vectors.\nname\nstring\nSignature\nPrefix for signature names when features are unnamed.\nmax_rank\nint\n1500\n1\n1e+06\nMaximum rank considered by UCell.\nncores\n1024\nNumber of worker processes requested by UCell.\nparallel_backend\nchoice\nauto\nserial\nExecution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems.\nchunk_size\n2000\n8\nCell-axis chunk size for engine-owned UCell execution. Use NULL to disable chunking.\nmissing_features_policy\ndrop\nerror\nHow to handle signature features missing from the matrix.",
       "tags": ["op", "expression", "signature", "score"],
       "payload": {
         "op_name": "ucell",
@@ -727,11 +792,21 @@
           {
             "name": "signature_scores",
             "kind": "cell_vector_family",
+            "output_name": "signature_scores",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "signature_scores",
             "description": "Per-cell UCell scores for one or more signatures."
           },
           {
             "name": "signature_summary",
             "kind": "obs_table",
+            "output_name": "signature_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "signature_summary",
             "description": "Per-signature scoring summary and feature-match diagnostics."
           }
         ],
@@ -819,7 +894,7 @@
       "name": "cell_vector_family_reduce",
       "title": "Reduce Cell Vector Family",
       "description": "Compress a cell_vector_family into one categorical cell_vector using explicit reduction and abstention rules.",
-      "search_text": "Reduce Cell Vector Family\nCompress a cell_vector_family into one categorical cell_vector using explicit reduction and abstention rules.\nlabel\nreduce\nsignal\ncell_vector_family\nTRUE\ncell_set\nselect\ncell_vector\nPer-cell categorical labels after reducing the signal family.\ntop_score\nWinning score for each cell.\nrunner_up_score\nSecond-best score for each cell.\nscore_margin\nWinning minus runner-up score for each cell.\nabstain_reason\nPer-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`).\ndecision_table\nobs_table\nPer-cell reduction diagnostics including label, scores, margin, and abstention reason.\nlabel_summary\nPer-label counts and score summaries after reduction.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nrule\nchoice\nargmax\nReduction rule used to choose one label per cell.\nmin_score\ndbl\n-1e+09\n1e+09\nOptional minimum winning score required to emit a non-unknown label.\nmin_margin\n0\nOptional minimum top-vs-second margin required to emit a non-unknown label.\nunknown_label\nstring\nunknown\nFallback label emitted when thresholds or ties abstain.\nties\nfirst\nHow to handle tied top scores.\ntie_tol\n1e-08\n1\nTolerance used when detecting ties.",
+      "search_text": "Reduce Cell Vector Family\nCompress a cell_vector_family into one categorical cell_vector using explicit reduction and abstention rules.\nlabel\nreduce\nsignal\ncell_vector_family\nTRUE\ncell_set\nselect\ncell_vector\nterminal_artifact\nPer-cell categorical labels after reducing the signal family.\ntop_score\nWinning score for each cell.\nrunner_up_score\nSecond-best score for each cell.\nscore_margin\nWinning minus runner-up score for each cell.\nabstain_reason\nPer-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`).\ndecision_table\nobs_table\nPer-cell reduction diagnostics including label, scores, margin, and abstention reason.\nlabel_summary\nPer-label counts and score summaries after reduction.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nrule\nchoice\nargmax\nReduction rule used to choose one label per cell.\nmin_score\ndbl\n-1e+09\n1e+09\nOptional minimum winning score required to emit a non-unknown label.\nmin_margin\n0\nOptional minimum top-vs-second margin required to emit a non-unknown label.\nunknown_label\nstring\nunknown\nFallback label emitted when thresholds or ties abstain.\nties\nfirst\nHow to handle tied top scores.\ntie_tol\n1e-08\n1\nTolerance used when detecting ties.",
       "tags": ["op", "label", "reduce", "signal"],
       "payload": {
         "op_name": "cell_vector_family_reduce",
@@ -841,36 +916,71 @@
           {
             "name": "label",
             "kind": "cell_vector",
+            "output_name": "label",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "label",
             "description": "Per-cell categorical labels after reducing the signal family."
           },
           {
             "name": "top_score",
             "kind": "cell_vector",
+            "output_name": "top_score",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "top_score",
             "description": "Winning score for each cell."
           },
           {
             "name": "runner_up_score",
             "kind": "cell_vector",
+            "output_name": "runner_up_score",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "runner_up_score",
             "description": "Second-best score for each cell."
           },
           {
             "name": "score_margin",
             "kind": "cell_vector",
+            "output_name": "score_margin",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "score_margin",
             "description": "Winning minus runner-up score for each cell."
           },
           {
             "name": "abstain_reason",
             "kind": "cell_vector",
+            "output_name": "abstain_reason",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "abstain_reason",
             "description": "Per-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`)."
           },
           {
             "name": "decision_table",
             "kind": "obs_table",
+            "output_name": "decision_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "decision_table",
             "description": "Per-cell reduction diagnostics including label, scores, margin, and abstention reason."
           },
           {
             "name": "label_summary",
             "kind": "obs_table",
+            "output_name": "label_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "label_summary",
             "description": "Per-label counts and score summaries after reduction."
           }
         ],
@@ -948,7 +1058,7 @@
       "name": "cell_vector_family_calibrate",
       "title": "Calibrate Cell Vector Family",
       "description": "Normalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.",
-      "search_text": "Calibrate Cell Vector Family\nNormalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.\nsignal\ncalibrate\nnormalize\ncell_vector_family\nTRUE\ncell_set\nselect\ncalibrated_signal\nCalibrated per-cell values for each key in the signal family.\ncalibration_summary\nobs_table\nPer-key calibration statistics for raw and calibrated values.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nmethod\nchoice\npercentile\nzscore\nrobust_zscore\nCalibration method applied independently within each key.\ncenter\nbool\nFor z-score calibration, subtract the fitted center.\nscale\nFor z-score calibration, divide by the fitted scale.\nties_method\naverage\nfirst\nrandom\nmax\nmin\nRank tie handling for percentile calibration.\nna_rm\nIgnore non-finite values when fitting calibration.",
+      "search_text": "Calibrate Cell Vector Family\nNormalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.\nsignal\ncalibrate\nnormalize\ncell_vector_family\nTRUE\ncell_set\nselect\ncalibrated_signal\nterminal_artifact\nCalibrated per-cell values for each key in the signal family.\ncalibration_summary\nobs_table\nPer-key calibration statistics for raw and calibrated values.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nmethod\nchoice\npercentile\nzscore\nrobust_zscore\nCalibration method applied independently within each key.\ncenter\nbool\nFor z-score calibration, subtract the fitted center.\nscale\nFor z-score calibration, divide by the fitted scale.\nties_method\naverage\nfirst\nrandom\nmax\nmin\nRank tie handling for percentile calibration.\nna_rm\nIgnore non-finite values when fitting calibration.",
       "tags": ["op", "signal", "calibrate", "normalize"],
       "payload": {
         "op_name": "cell_vector_family_calibrate",
@@ -970,11 +1080,21 @@
           {
             "name": "calibrated_signal",
             "kind": "cell_vector_family",
+            "output_name": "calibrated_signal",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "calibrated_signal",
             "description": "Calibrated per-cell values for each key in the signal family."
           },
           {
             "name": "calibration_summary",
             "kind": "obs_table",
+            "output_name": "calibration_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "calibration_summary",
             "description": "Per-key calibration statistics for raw and calibrated values."
           }
         ],
@@ -1040,7 +1160,7 @@
       "name": "cell_vector_family_qc",
       "title": "QC Cell Vector Family",
       "description": "Compute per-key and pairwise diagnostics for one keyed per-cell signal family.",
-      "search_text": "QC Cell Vector Family\nCompute per-key and pairwise diagnostics for one keyed per-cell signal family.\nsignal\nqc\ndiagnostics\ncell_vector_family\nTRUE\ngrouping\ncell_vector\nFALSE\ncell_set\nselect\nkey_summary\nobs_table\nPer-key QC summaries including score distribution, finite coverage, and winner frequencies.\npairwise_summary\nPairwise key relationships including overlap counts and correlations.\ngroup_summary\nPer-group per-key QC summaries when an optional grouping vector is supplied.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\ncorrelation_methods\npearson\nspearman\nPairwise correlation methods to compute between keys.\ntie_tol\ndbl\n1e-08\n0\n1\nTolerance used when counting tied top-key winners.",
+      "search_text": "QC Cell Vector Family\nCompute per-key and pairwise diagnostics for one keyed per-cell signal family.\nsignal\nqc\ndiagnostics\ncell_vector_family\nTRUE\ngrouping\ncell_vector\nFALSE\ncell_set\nselect\nkey_summary\nobs_table\nterminal_artifact\nPer-key QC summaries including score distribution, finite coverage, and winner frequencies.\npairwise_summary\nPairwise key relationships including overlap counts and correlations.\ngroup_summary\nPer-group per-key QC summaries when an optional grouping vector is supplied.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\ncorrelation_methods\npearson\nspearman\nPairwise correlation methods to compute between keys.\ntie_tol\ndbl\n1e-08\n0\n1\nTolerance used when counting tied top-key winners.",
       "tags": ["op", "signal", "qc", "diagnostics"],
       "payload": {
         "op_name": "cell_vector_family_qc",
@@ -1067,16 +1187,31 @@
           {
             "name": "key_summary",
             "kind": "obs_table",
+            "output_name": "key_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "key_summary",
             "description": "Per-key QC summaries including score distribution, finite coverage, and winner frequencies."
           },
           {
             "name": "pairwise_summary",
             "kind": "obs_table",
+            "output_name": "pairwise_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pairwise_summary",
             "description": "Pairwise key relationships including overlap counts and correlations."
           },
           {
             "name": "group_summary",
             "kind": "obs_table",
+            "output_name": "group_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "group_summary",
             "description": "Per-group per-key QC summaries when an optional grouping vector is supplied."
           }
         ],
@@ -1128,7 +1263,7 @@
       "name": "cell_vector_family_graph_smooth",
       "title": "Graph Smooth Cell Vector Family",
       "description": "Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.",
-      "search_text": "Graph Smooth Cell Vector Family\nSmooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.\nsignal\nsmoothing\ngeometry\ncell_vector_family\nTRUE\nspace\ncell_set\nselect\nsmoothed_signal\nGeometry-smoothed per-cell values for each selected key.\nsmoothing_summary\nobs_table\nPer-key smoothing diagnostics and parameter echo.\nsignal_keys\nstring_vec\nOptional key subset within the cell_vector_family.\ndims\nint_vec\nOptional dimensions of the selected space. NULL uses all dimensions.\nk\nint\n30\n1\n1e+05\nNearest-neighbor count per cell.\nalpha\ndbl\n0.5\n0\nBlend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean.\ndistance_metric\nchoice\neuclidean\nDistance metric used for nearest-neighbor search.\nquery_chunk_size\n512\n1e+06\nNumber of query cells processed per nearest-neighbor chunk.\ninclude_self\nbool\nFALSE\nInclude each cell itself in its neighbor mean.\nna_policy\nignore\nzero\npropagate\nHow missing signal values are handled during neighbor averaging.\nsource_signal_artifact_id\nstring\nOptional source cell_vector_family artifact ID copied into metadata.\nsource_run_id\nOptional source run ID copied into metadata.\nsource_snapshot_id\nOptional source provenance snapshot ID copied into metadata.",
+      "search_text": "Graph Smooth Cell Vector Family\nSmooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.\nsignal\nsmoothing\ngeometry\ncell_vector_family\nTRUE\nspace\ncell_set\nselect\nsmoothed_signal\nterminal_artifact\nGeometry-smoothed per-cell values for each selected key.\nsmoothing_summary\nobs_table\nPer-key smoothing diagnostics and parameter echo.\nsignal_keys\nstring_vec\nOptional key subset within the cell_vector_family.\ndims\nint_vec\nOptional dimensions of the selected space. NULL uses all dimensions.\nk\nint\n30\n1\n1e+05\nNearest-neighbor count per cell.\nalpha\ndbl\n0.5\n0\nBlend weight for raw score in alpha * raw + (1 - alpha) * neighbor_mean.\ndistance_metric\nchoice\neuclidean\nDistance metric used for nearest-neighbor search.\nquery_chunk_size\n512\n1e+06\nNumber of query cells processed per nearest-neighbor chunk.\ninclude_self\nbool\nFALSE\nInclude each cell itself in its neighbor mean.\nna_policy\nignore\nzero\npropagate\nHow missing signal values are handled during neighbor averaging.\nsource_signal_artifact_id\nstring\nOptional source cell_vector_family artifact ID copied into metadata.\nsource_run_id\nOptional source run ID copied into metadata.\nsource_snapshot_id\nOptional source provenance snapshot ID copied into metadata.",
       "tags": ["op", "signal", "smoothing", "geometry"],
       "payload": {
         "op_name": "cell_vector_family_graph_smooth",
@@ -1155,11 +1290,21 @@
           {
             "name": "smoothed_signal",
             "kind": "cell_vector_family",
+            "output_name": "smoothed_signal",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "smoothed_signal",
             "description": "Geometry-smoothed per-cell values for each selected key."
           },
           {
             "name": "smoothing_summary",
             "kind": "obs_table",
+            "output_name": "smoothing_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "smoothing_summary",
             "description": "Per-key smoothing diagnostics and parameter echo."
           }
         ],
@@ -1265,7 +1410,7 @@
       "name": "cell_vector_winners",
       "title": "Cell Vector Winner Assignment",
       "description": "Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.",
-      "search_text": "Cell Vector Winner Assignment\nAssign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.\nsignal\nlabeling\nwinner\ncell_vector_family\nTRUE\ncell_set\nselect\nwinners\nobs_table\nPer-cell winner, runner-up, confidence, and pruning table.\nsignal_keys\nstring_vec\nOptional key subset within the cell_vector_family.\nmin_winners\nint\n10\n0\n1e+08\nMinimum raw winner count required for a winner label to pass pruning.\ntie_method\nchoice\nfirst\nlast\nDeterministic tie handling for top-score winners.\nsource_score_artifact_id\nstring\nOptional source cell_vector_family artifact ID copied into winner table metadata.\nsource_run_id\nOptional source run ID copied into winner table metadata.\nsource_snapshot_id\nOptional source provenance snapshot ID copied into winner table metadata.",
+      "search_text": "Cell Vector Winner Assignment\nAssign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.\nsignal\nlabeling\nwinner\ncell_vector_family\nTRUE\ncell_set\nselect\nwinners\nobs_table\nterminal_artifact\nPer-cell winner, runner-up, confidence, and pruning table.\nsignal_keys\nstring_vec\nOptional key subset within the cell_vector_family.\nmin_winners\nint\n10\n0\n1e+08\nMinimum raw winner count required for a winner label to pass pruning.\ntie_method\nchoice\nfirst\nlast\nDeterministic tie handling for top-score winners.\nsource_score_artifact_id\nstring\nOptional source cell_vector_family artifact ID copied into winner table metadata.\nsource_run_id\nOptional source run ID copied into winner table metadata.\nsource_snapshot_id\nOptional source provenance snapshot ID copied into winner table metadata.",
       "tags": ["op", "signal", "labeling", "winner"],
       "payload": {
         "op_name": "cell_vector_winners",
@@ -1287,6 +1432,11 @@
           {
             "name": "winners",
             "kind": "obs_table",
+            "output_name": "winners",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "winners",
             "description": "Per-cell winner, runner-up, confidence, and pruning table."
           }
         ],
@@ -1353,7 +1503,7 @@
       "name": "winner_cell_sets",
       "title": "Winner Cell-Set Registration",
       "description": "Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.",
-      "search_text": "Winner Cell-Set Registration\nRegister bundle cell sets from a cell_vector_winners obs_table and return a manifest table.\nsignal\nlabeling\ncell_sets\nwinners\nobs_table\nTRUE\ncell_set\nselect\nmanifest\nOne row per registered winner cell set.\nsource_winner_artifact_id\nstring\nOptional source winner obs_table artifact ID copied into manifest metadata.\ncell_set_prefix\nwinner_\nPrefix used after set: when creating winner cell-set names.\nwinner_col\nwinner\nWinner-label column in the winner table.\npasses_col\npasses_pruning\nLogical pruning-pass column in the winner table.\nsource\ncell_vector_winners\nSource label stored on cell-set membership rows.\ncreated_by\nOptional actor stored on cell-set membership rows.\nreplace\nlogical\nIf TRUE, replace existing winner cell-set memberships.",
+      "search_text": "Winner Cell-Set Registration\nRegister bundle cell sets from a cell_vector_winners obs_table and return a manifest table.\nsignal\nlabeling\ncell_sets\nwinners\nobs_table\nTRUE\ncell_set\nselect\nmanifest\nterminal_artifact\nOne row per registered winner cell set.\nsource_winner_artifact_id\nstring\nOptional source winner obs_table artifact ID copied into manifest metadata.\ncell_set_prefix\nwinner_\nPrefix used after set: when creating winner cell-set names.\nwinner_col\nwinner\nWinner-label column in the winner table.\npasses_col\npasses_pruning\nLogical pruning-pass column in the winner table.\nsource\ncell_vector_winners\nSource label stored on cell-set membership rows.\ncreated_by\nOptional actor stored on cell-set membership rows.\nreplace\nlogical\nIf TRUE, replace existing winner cell-set memberships.",
       "tags": ["op", "signal", "labeling", "cell_sets"],
       "payload": {
         "op_name": "winner_cell_sets",
@@ -1375,6 +1525,11 @@
           {
             "name": "manifest",
             "kind": "obs_table",
+            "output_name": "manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "manifest",
             "description": "One row per registered winner cell set."
           }
         ],
@@ -1444,7 +1599,7 @@
       "name": "chromvar",
       "title": "chromVAR deviations",
       "description": "Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.",
-      "search_text": "chromVAR deviations\nBias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.\natac\nmotif\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\ndeviation_z\ncell_vector_family\nPer-cell chromVAR z-scores keyed by motif.\ndeviation_raw\nPer-cell raw chromVAR deviations keyed by motif.\nmotif_summary\nobs_table\nPer-motif chromVAR summary statistics.\nmotif_library\nstring\nCanonical motif-library key from the motif registry.\nmotifs\nstring_vec\nOptional motif-key subset within motif_library.\nmotif_match_set\nOptional canonical motif-match-set key to reuse cached motif-to-peak matches.\nmin_motif_peaks\nint\n10\n1\n1e+05\nMinimum number of matched peaks per retained motif.\nmax_motif_peaks\n1e+06\nOptional maximum number of matched peaks per retained motif.\nmotif_p_cutoff\ndbl\n5e-05\n0\nMotifmatchr p-value cutoff.\nmotif_w\n7\n100\nMotifmatchr background window width.\nseqlevels_mode\nchoice\nstandard\nall\nSeqlevel policy; standard chromosomes are the default.\nseqlevels_include\nOptional explicit seqlevels to keep after applying seqlevels_mode.\nseqlevels_exclude\nOptional explicit seqlevels to drop after applying seqlevels_mode.\nbackground_iterations\n50\n1000\nNumber of chromVAR background iterations.\nbackground_w\n0.1\nBackground peak matching window width.\nbackground_bs\n2\nBackground peak matching bin count.",
+      "search_text": "chromVAR deviations\nBias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.\natac\nmotif\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\ndeviation_z\ncell_vector_family\nterminal_artifact\nPer-cell chromVAR z-scores keyed by motif.\ndeviation_raw\nPer-cell raw chromVAR deviations keyed by motif.\nmotif_summary\nobs_table\nPer-motif chromVAR summary statistics.\nmotif_library\nstring\nCanonical motif-library key from the motif registry.\nmotifs\nstring_vec\nOptional motif-key subset within motif_library.\nmotif_match_set\nOptional canonical motif-match-set key to reuse cached motif-to-peak matches.\nmin_motif_peaks\nint\n10\n1\n1e+05\nMinimum number of matched peaks per retained motif.\nmax_motif_peaks\n1e+06\nOptional maximum number of matched peaks per retained motif.\nmotif_p_cutoff\ndbl\n5e-05\n0\nMotifmatchr p-value cutoff.\nmotif_w\n7\n100\nMotifmatchr background window width.\nseqlevels_mode\nchoice\nstandard\nall\nSeqlevel policy; standard chromosomes are the default.\nseqlevels_include\nOptional explicit seqlevels to keep after applying seqlevels_mode.\nseqlevels_exclude\nOptional explicit seqlevels to drop after applying seqlevels_mode.\nbackground_iterations\n50\n1000\nNumber of chromVAR background iterations.\nbackground_w\n0.1\nBackground peak matching window width.\nbackground_bs\n2\nBackground peak matching bin count.",
       "tags": ["op", "atac", "motif", "signature", "score"],
       "payload": {
         "op_name": "chromvar",
@@ -1466,16 +1621,31 @@
           {
             "name": "deviation_z",
             "kind": "cell_vector_family",
+            "output_name": "deviation_z",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "deviation_z",
             "description": "Per-cell chromVAR z-scores keyed by motif."
           },
           {
             "name": "deviation_raw",
             "kind": "cell_vector_family",
+            "output_name": "deviation_raw",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "deviation_raw",
             "description": "Per-cell raw chromVAR deviations keyed by motif."
           },
           {
             "name": "motif_summary",
             "kind": "obs_table",
+            "output_name": "motif_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "motif_summary",
             "description": "Per-motif chromVAR summary statistics."
           }
         ],
@@ -1596,7 +1766,7 @@
       "name": "de_wilcox",
       "title": "Differential Expression (Wilcoxon)",
       "description": "Wilcoxon rank-sum DE between two cell groups (A vs B).",
-      "search_text": "Differential Expression (Wilcoxon)\nWilcoxon rank-sum DE between two cell groups (A vs B).\nde\nmarkers\ncomparison\nmatrix\nTRUE\ncell_set\nselect\nde_table\nfeature_table\nFeature-level DE statistics table.\ngroup_a\ncell_ids_or_set\nGroup A cells: vector of cell IDs or 'set:<name>'.\ngroup_b\nGroup B cells: vector of cell IDs or 'set:<name>'.\nfeatures\nstring_vec\nOptional feature subset.\nmin_pct\ndbl\n0\n1\nMinimum detection fraction in either group.\np_adjust_method\nstring\nBH\nMethod passed to p.adjust.",
+      "search_text": "Differential Expression (Wilcoxon)\nWilcoxon rank-sum DE between two cell groups (A vs B).\nde\nmarkers\ncomparison\nmatrix\nTRUE\ncell_set\nselect\nde_table\nfeature_table\nterminal_artifact\nFeature-level DE statistics table.\ngroup_a\ncell_ids_or_set\nGroup A cells: vector of cell IDs or 'set:<name>'.\ngroup_b\nGroup B cells: vector of cell IDs or 'set:<name>'.\nfeatures\nstring_vec\nOptional feature subset.\nmin_pct\ndbl\n0\n1\nMinimum detection fraction in either group.\np_adjust_method\nstring\nBH\nMethod passed to p.adjust.",
       "tags": ["op", "de", "markers", "comparison"],
       "payload": {
         "op_name": "de_wilcox",
@@ -1618,6 +1788,11 @@
           {
             "name": "de_table",
             "kind": "feature_table",
+            "output_name": "de_table",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "de_table",
             "description": "Feature-level DE statistics table."
           }
         ],
@@ -1677,7 +1852,7 @@
       "name": "markers_topn",
       "title": "Top Markers Per Cluster",
       "description": "One-vs-rest Wilcoxon marker ranking for each cluster.",
-      "search_text": "Top Markers Per Cluster\nOne-vs-rest Wilcoxon marker ranking for each cluster.\nmarkers\ncluster\nmatrix\nTRUE\nclusters\ncell_vector\ncell_set\nselect\nfeature_table\nCluster-marker table with per-feature statistics.\nfeatures\nstring_vec\nOptional feature subset.\ntop_n\nint\n20\n1\n1000\nTop markers retained per cluster.\nmin_pct\ndbl\n0.1\n0\nMinimum detection fraction in either group.\np_adjust_method\nstring\nBH\nMethod passed to p.adjust.",
+      "search_text": "Top Markers Per Cluster\nOne-vs-rest Wilcoxon marker ranking for each cluster.\nmarkers\ncluster\nmatrix\nTRUE\nclusters\ncell_vector\ncell_set\nselect\nfeature_table\nterminal_artifact\nCluster-marker table with per-feature statistics.\nfeatures\nstring_vec\nOptional feature subset.\ntop_n\nint\n20\n1\n1000\nTop markers retained per cluster.\nmin_pct\ndbl\n0.1\n0\nMinimum detection fraction in either group.\np_adjust_method\nstring\nBH\nMethod passed to p.adjust.",
       "tags": ["op", "markers", "cluster"],
       "payload": {
         "op_name": "markers_topn",
@@ -1704,6 +1879,11 @@
           {
             "name": "markers",
             "kind": "feature_table",
+            "output_name": "markers",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "markers",
             "description": "Cluster-marker table with per-feature statistics."
           }
         ],
@@ -1763,7 +1943,7 @@
       "name": "pathway_enrich",
       "title": "Pathway Enrichment (Namespace)",
       "description": "Hypergeometric enrichment against all feature sets in a namespace.",
-      "search_text": "Pathway Enrichment (Namespace)\nHypergeometric enrichment against all feature sets in a namespace.\npathway\nenrichment\nmatrix\nTRUE\nfeature_table\ncell_set\nselect\npathways\nobs_table\nPathway enrichment statistics for one namespace.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() (e.g. bcell_gsea).\nfeature_col\nfeature_id\nColumn in input feature table containing feature IDs (usually feature_id).\np_adj_col\np_val_adj\nAdjusted p-value column used for query filtering.\np_adj_max\ndbl\n0.05\n0\n1\nMaximum adjusted p-value for query features.\nlfc_col\navg_log1p_fc\nEffect-size column used for directional filtering.\ndirection\nany\nDirectional filter: any|up|down.\nlfc_min_abs\nMinimum |effect| when direction='any'.\nlfc_min\n0.25\nMinimum effect for direction='up'/'down'.\nmin_set_size\nint\n5\nMinimum pathway size to test.\nmax_set_size\n5000\nMaximum pathway size to test.\np_adjust_method\nBH\nMethod passed to p.adjust.",
+      "search_text": "Pathway Enrichment (Namespace)\nHypergeometric enrichment against all feature sets in a namespace.\npathway\nenrichment\nmatrix\nTRUE\nfeature_table\ncell_set\nselect\npathways\nobs_table\nterminal_artifact\nPathway enrichment statistics for one namespace.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() (e.g. bcell_gsea).\nfeature_col\nfeature_id\nColumn in input feature table containing feature IDs (usually feature_id).\np_adj_col\np_val_adj\nAdjusted p-value column used for query filtering.\np_adj_max\ndbl\n0.05\n0\n1\nMaximum adjusted p-value for query features.\nlfc_col\navg_log1p_fc\nEffect-size column used for directional filtering.\ndirection\nany\nDirectional filter: any|up|down.\nlfc_min_abs\nMinimum |effect| when direction='any'.\nlfc_min\n0.25\nMinimum effect for direction='up'/'down'.\nmin_set_size\nint\n5\nMinimum pathway size to test.\nmax_set_size\n5000\nMaximum pathway size to test.\np_adjust_method\nBH\nMethod passed to p.adjust.",
       "tags": ["op", "pathway", "enrichment"],
       "payload": {
         "op_name": "pathway_enrich",
@@ -1790,6 +1970,11 @@
           {
             "name": "pathways",
             "kind": "obs_table",
+            "output_name": "pathways",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pathways",
             "description": "Pathway enrichment statistics for one namespace."
           }
         ],
@@ -1894,7 +2079,7 @@
       "name": "feature_set_import",
       "title": "Feature-Set Library Import",
       "description": "Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.",
-      "search_text": "Feature-Set Library Import\nImport GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.\nfeature_set\nimport\ngene_set\nprovenance\nlibrary\nmatrix\nTRUE\ncell_set\nselect\nimport_summary\nobs_table\nOne-row summary of parsed/imported/skipped/rejected set counts.\nimport_manifest\nOne row per parsed feature set with target namespace, overlap counts, and import status.\nrejected_sets\nFeature sets rejected during import, typically because no genes mapped to the matrix.\nsource_path\npath\nPath to GMT, RDS list/data.frame, or CSV-like table source.\nsource_format\nchoice\nauto\ngmt\nrds\ntable\nInput parser. auto infers from file extension.\nnamespace\nstring\nTarget feature-set namespace base label.\ncollection\nOptional collection label recorded in import manifests.\nsubcollection\nOptional subcollection label; used for namespace splitting when requested.\nspecies\nSpecies/organism label recorded in feature-set metadata.\ngene_id_type\nIdentifier type expected in source genes, for example gene_symbol.\nset_id_col\nFor table sources, column containing set identifiers.\nset_name_col\nFor table sources, optional human-readable set-name column.\ngene_col\nfeature_id\nFor table sources, column containing gene/feature identifiers.\ndescription_col\ndescription\nFor table sources, optional set description column.\nsplit_by_collection\nbool\nFALSE\nIf TRUE, append detected/declared subcollection to the namespace base.\noverwrite\nIf FALSE, existing feature sets are skipped instead of replaced.\nstrict\nIf TRUE, error on genes absent from the matrix; otherwise drop absent genes.\nsource_id\nOptional source/library identifier stored in feature-set metadata.\nsource_version\nOptional source/library version stored in feature-set metadata.",
+      "search_text": "Feature-Set Library Import\nImport GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.\nfeature_set\nimport\ngene_set\nprovenance\nlibrary\nmatrix\nTRUE\ncell_set\nselect\nimport_summary\nobs_table\nterminal_artifact\nOne-row summary of parsed/imported/skipped/rejected set counts.\nimport_manifest\nOne row per parsed feature set with target namespace, overlap counts, and import status.\nrejected_sets\nFeature sets rejected during import, typically because no genes mapped to the matrix.\nsource_path\npath\nPath to GMT, RDS list/data.frame, or CSV-like table source.\nsource_format\nchoice\nauto\ngmt\nrds\ntable\nInput parser. auto infers from file extension.\nnamespace\nstring\nTarget feature-set namespace base label.\ncollection\nOptional collection label recorded in import manifests.\nsubcollection\nOptional subcollection label; used for namespace splitting when requested.\nspecies\nSpecies/organism label recorded in feature-set metadata.\ngene_id_type\nIdentifier type expected in source genes, for example gene_symbol.\nset_id_col\nFor table sources, column containing set identifiers.\nset_name_col\nFor table sources, optional human-readable set-name column.\ngene_col\nfeature_id\nFor table sources, column containing gene/feature identifiers.\ndescription_col\ndescription\nFor table sources, optional set description column.\nsplit_by_collection\nbool\nFALSE\nIf TRUE, append detected/declared subcollection to the namespace base.\noverwrite\nIf FALSE, existing feature sets are skipped instead of replaced.\nstrict\nIf TRUE, error on genes absent from the matrix; otherwise drop absent genes.\nsource_id\nOptional source/library identifier stored in feature-set metadata.\nsource_version\nOptional source/library version stored in feature-set metadata.",
       "tags": ["op", "feature_set", "import", "gene_set", "provenance", "library"],
       "payload": {
         "op_name": "feature_set_import",
@@ -1916,16 +2101,31 @@
           {
             "name": "import_summary",
             "kind": "obs_table",
+            "output_name": "import_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "import_summary",
             "description": "One-row summary of parsed/imported/skipped/rejected set counts."
           },
           {
             "name": "import_manifest",
             "kind": "obs_table",
+            "output_name": "import_manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "import_manifest",
             "description": "One row per parsed feature set with target namespace, overlap counts, and import status."
           },
           {
             "name": "rejected_sets",
             "kind": "obs_table",
+            "output_name": "rejected_sets",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "rejected_sets",
             "description": "Feature sets rejected during import, typically because no genes mapped to the matrix."
           }
         ],
@@ -2050,7 +2250,7 @@
       "name": "feature_set_overlap_qc",
       "title": "Feature-Set Matrix Overlap QC",
       "description": "Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.",
-      "search_text": "Feature-Set Matrix Overlap QC\nScreen imported feature-set namespaces against a matrix before pathway or trajectory discovery.\nfeature_set\nqc\ngene_set\nscreening\ntrajectory\nmatrix\nTRUE\ncell_set\nselect\noverlap_qc\nobs_table\nOne row per feature set with raw, mapped, detected counts and include/exclude status.\nnamespace_summary\nNamespace-level count and overlap summaries.\nnamespace\nstring\nSingle feature-set namespace to QC.\nnamespaces\nstring_vec\nOptional multiple feature-set namespaces to QC.\nfeature_sets\nOptional feature-set subset within selected namespaces.\nmin_set_size\nint\n1\n0\nMinimum mapped/detected genes required to include a set.\nmax_set_size\ndbl\nInf\nMaximum mapped/detected genes allowed to include a set.\nmin_detected_fraction\nMinimum fraction of source genes detected in the matrix.\ndeduplicate_sets\nbool\nIf TRUE, duplicate mapped-gene signatures after the first are excluded.",
+      "search_text": "Feature-Set Matrix Overlap QC\nScreen imported feature-set namespaces against a matrix before pathway or trajectory discovery.\nfeature_set\nqc\ngene_set\nscreening\ntrajectory\nmatrix\nTRUE\ncell_set\nselect\noverlap_qc\nobs_table\nterminal_artifact\nOne row per feature set with raw, mapped, detected counts and include/exclude status.\nnamespace_summary\nNamespace-level count and overlap summaries.\nnamespace\nstring\nSingle feature-set namespace to QC.\nnamespaces\nstring_vec\nOptional multiple feature-set namespaces to QC.\nfeature_sets\nOptional feature-set subset within selected namespaces.\nmin_set_size\nint\n1\n0\nMinimum mapped/detected genes required to include a set.\nmax_set_size\ndbl\nInf\nMaximum mapped/detected genes allowed to include a set.\nmin_detected_fraction\nMinimum fraction of source genes detected in the matrix.\ndeduplicate_sets\nbool\nIf TRUE, duplicate mapped-gene signatures after the first are excluded.",
       "tags": ["op", "feature_set", "qc", "gene_set", "screening", "trajectory"],
       "payload": {
         "op_name": "feature_set_overlap_qc",
@@ -2072,11 +2272,21 @@
           {
             "name": "overlap_qc",
             "kind": "obs_table",
+            "output_name": "overlap_qc",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "overlap_qc",
             "description": "One row per feature set with raw, mapped, detected counts and include/exclude status."
           },
           {
             "name": "namespace_summary",
             "kind": "obs_table",
+            "output_name": "namespace_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "namespace_summary",
             "description": "Namespace-level count and overlap summaries."
           }
         ],
@@ -2150,7 +2360,7 @@
       "name": "feature_set_namespace_transfer",
       "title": "Feature-Set Namespace Transfer",
       "description": "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
-      "search_text": "Feature-Set Namespace Transfer\nTransfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.\nfeature_set\ntransfer\nnamespace\nmatrix\nprovenance\ncell_set\nselect\ntransfer_summary\nobs_table\nNamespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.\ntransfer_manifest\nOne row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.\ntransfer_rejected\nFeature sets rejected during intersect transfer because retained members failed thresholds.\nsource_matrix_id\nstring\nSource matrix containing the existing matrix-scoped feature-set namespace.\ntarget_matrix_id\nTarget matrix that will receive transferred feature-set memberships.\nSingle source namespace to transfer.\nnamespaces\nstring_vec\nOptional multiple source namespaces to transfer.\nfeature_sets\nOptional feature-set subset within selected source namespaces.\nmode\nchoice\nmirror\nintersect\nmirror requires identical feature universes; intersect retains only target-valid members and records loss.\ntarget_namespace\nOptional target namespace override. Defaults to the source namespace.\noverwrite\nbool\nFALSE\nIf FALSE, existing target feature sets are skipped instead of replaced.\nstrict\nTRUE\nIf TRUE, fail when intersect mode rejects any selected set by retention thresholds.\nmin_retained_features\nint\n1\n0\nMinimum target-retained members required to transfer a set.\nmin_retained_fraction\ndbl\nMinimum fraction of source members retained on the target matrix.\ncreated_by\nOptional created_by metadata for transferred registry rows.\nnotes\nOptional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.",
+      "search_text": "Feature-Set Namespace Transfer\nTransfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.\nfeature_set\ntransfer\nnamespace\nmatrix\nprovenance\ncell_set\nselect\ntransfer_summary\nobs_table\nterminal_artifact\nTRUE\nNamespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.\ntransfer_manifest\nOne row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.\ntransfer_rejected\nFeature sets rejected during intersect transfer because retained members failed thresholds.\nstring\nSingle source namespace to transfer.\nnamespaces\nstring_vec\nOptional multiple source namespaces to transfer.\nfeature_sets\nOptional feature-set subset within selected source namespaces.\nmode\nchoice\nmirror\nintersect\nmirror requires identical feature universes; intersect retains only target-valid members and records loss.\ntarget_namespace\nOptional target namespace override. Defaults to the source namespace.\noverwrite\nbool\nFALSE\nIf FALSE, existing target feature sets are skipped instead of replaced.\nstrict\nIf TRUE, fail when intersect mode rejects any selected set by retention thresholds.\nmin_retained_features\nint\n1\n0\nMinimum target-retained members required to transfer a set.\nmin_retained_fraction\ndbl\nMinimum fraction of source members retained on the target matrix.\ncreated_by\nOptional created_by metadata for transferred registry rows.\nnotes\nOptional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.",
       "tags": ["op", "feature_set", "transfer", "namespace", "matrix", "provenance"],
       "payload": {
         "op_name": "feature_set_namespace_transfer",
@@ -2167,16 +2377,31 @@
           {
             "name": "transfer_summary",
             "kind": "obs_table",
+            "output_name": "transfer_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "transfer_summary",
             "description": "Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts."
           },
           {
             "name": "transfer_manifest",
             "kind": "obs_table",
+            "output_name": "transfer_manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "transfer_manifest",
             "description": "One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs."
           },
           {
             "name": "transfer_rejected",
             "kind": "obs_table",
+            "output_name": "transfer_rejected",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "transfer_rejected",
             "description": "Feature sets rejected during intersect transfer because retained members failed thresholds."
           }
         ],
@@ -2189,18 +2414,6 @@
           }
         },
         "params": [
-          {
-            "name": "source_matrix_id",
-            "type": "string",
-            "default": null,
-            "help": "Source matrix containing the existing matrix-scoped feature-set namespace."
-          },
-          {
-            "name": "target_matrix_id",
-            "type": "string",
-            "default": null,
-            "help": "Target matrix that will receive transferred feature-set memberships."
-          },
           {
             "name": "namespace",
             "type": "string",
@@ -2282,7 +2495,7 @@
       "name": "cell_suffix_label",
       "title": "Cell Labels From ID Suffix",
       "description": "Build a categorical cell vector by parsing cell_id suffix tokens.",
-      "search_text": "Cell Labels From ID Suffix\nBuild a categorical cell vector by parsing cell_id suffix tokens.\nannotation\nmetadata\ncell_set\nselect\nlabels\ncell_vector\nCategorical label per cell from suffix parsing.\nlabel_table\nobs_table\nPer-cell suffix/label table.\nsep\nstring\n-\nSeparator used in cell IDs before suffix token.\nmapping\nstring_vec\nOptional named mapping suffix->label.\ndefault_label\nUNKNOWN\nFallback label for unmapped suffixes.",
+      "search_text": "Cell Labels From ID Suffix\nBuild a categorical cell vector by parsing cell_id suffix tokens.\nannotation\nmetadata\ncell_set\nselect\nlabels\ncell_vector\nterminal_artifact\nTRUE\nCategorical label per cell from suffix parsing.\nlabel_table\nobs_table\nPer-cell suffix/label table.\nsep\nstring\n-\nSeparator used in cell IDs before suffix token.\nmapping\nstring_vec\nOptional named mapping suffix->label.\ndefault_label\nUNKNOWN\nFallback label for unmapped suffixes.",
       "tags": ["op", "annotation", "metadata"],
       "payload": {
         "op_name": "cell_suffix_label",
@@ -2299,11 +2512,21 @@
           {
             "name": "labels",
             "kind": "cell_vector",
+            "output_name": "labels",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "labels",
             "description": "Categorical label per cell from suffix parsing."
           },
           {
             "name": "label_table",
             "kind": "obs_table",
+            "output_name": "label_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "label_table",
             "description": "Per-cell suffix/label table."
           }
         ],
@@ -2345,7 +2568,7 @@
       "name": "cell_set_derive",
       "title": "Derived Cell Set",
       "description": "Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.",
-      "search_text": "Derived Cell Set\nMaterialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.\nselection\nprovenance\nregistry\ncell_set\nselect\nmanifest\nobs_table\nOne-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary.\nrule_table\nOrdered per-rule derivation audit table with input/output/removal counts and source fields.\ntarget_cell_set\nstring\nName of the derived cell set to create, for example set:universe_b_l1_weight090.\nrole\nchoice\nanalysis_universe\ncore\nannotation\nexclusion_set\nendpoint_set\ndiagnostic\ntemporary\nLifecycle role of the derived set.\nstatus\ncandidate\nactive\naccepted\nsuperseded\nrejected\nLifecycle status controlling interpretation and default visibility.\nsource\nselector_recipe\nSource/provenance label stored on membership rows.\ncreated_by\nOptional creator label.\ndescription\nHuman-readable derivation rationale.\noverwrite\nbool\nTRUE\nIf TRUE, replace existing membership for the target set; if FALSE, add cells to it.",
+      "search_text": "Derived Cell Set\nMaterialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.\nselection\nprovenance\nregistry\ncell_set\nselect\nmanifest\nobs_table\nterminal_artifact\nTRUE\nOne-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary.\nrule_table\nOrdered per-rule derivation audit table with input/output/removal counts and source fields.\ntarget_cell_set\nstring\nName of the derived cell set to create, for example set:universe_b_l1_weight090.\nrole\nchoice\nanalysis_universe\ncore\nannotation\nexclusion_set\nendpoint_set\ndiagnostic\ntemporary\nLifecycle role of the derived set.\nstatus\ncandidate\nactive\naccepted\nsuperseded\nrejected\nLifecycle status controlling interpretation and default visibility.\nsource\nselector_recipe\nSource/provenance label stored on membership rows.\ncreated_by\nOptional creator label.\ndescription\nHuman-readable derivation rationale.\noverwrite\nbool\nIf TRUE, replace existing membership for the target set; if FALSE, add cells to it.",
       "tags": ["op", "selection", "provenance", "registry"],
       "payload": {
         "op_name": "cell_set_derive",
@@ -2362,11 +2585,21 @@
           {
             "name": "manifest",
             "kind": "obs_table",
+            "output_name": "manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "manifest",
             "description": "One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary."
           },
           {
             "name": "rule_table",
             "kind": "obs_table",
+            "output_name": "rule_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "rule_table",
             "description": "Ordered per-rule derivation audit table with input/output/removal counts and source fields."
           }
         ],
@@ -2434,7 +2667,7 @@
       "name": "cell_vector_assoc",
       "title": "Cell Vector Association",
       "description": "Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.",
-      "search_text": "Cell Vector Association\nTest whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.\nstatistics\nassociation\nconfounding\nvector_cont\ncell_vector\nTRUE\nExamples: pseudotime, module score, gene-program score.\nvector_group\nExamples: cluster labels, cell type labels, condition labels.\ncell_set\nselect\nassoc_summary\nfeature_table\nOmnibus association test summary (Kruskal/ANOVA).\ngroup_stats\nobs_table\nPer-group descriptive statistics.\nmin_n_per_group\nint\n3\n1\n1e+05\nMinimum cells per group.",
+      "search_text": "Cell Vector Association\nTest whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.\nstatistics\nassociation\nconfounding\nvector_cont\ncell_vector\nTRUE\nExamples: pseudotime, module score, gene-program score.\nvector_group\nExamples: cluster labels, cell type labels, condition labels.\ncell_set\nselect\nassoc_summary\nfeature_table\nterminal_artifact\nOmnibus association test summary (Kruskal/ANOVA).\ngroup_stats\nobs_table\nPer-group descriptive statistics.\nmin_n_per_group\nint\n3\n1\n1e+05\nMinimum cells per group.",
       "tags": ["op", "statistics", "association", "confounding"],
       "payload": {
         "op_name": "cell_vector_assoc",
@@ -2463,11 +2696,21 @@
           {
             "name": "assoc_summary",
             "kind": "feature_table",
+            "output_name": "assoc_summary",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "assoc_summary",
             "description": "Omnibus association test summary (Kruskal/ANOVA)."
           },
           {
             "name": "group_stats",
             "kind": "obs_table",
+            "output_name": "group_stats",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "group_stats",
             "description": "Per-group descriptive statistics."
           }
         ],
@@ -2511,7 +2754,7 @@
       "name": "cell_vector_compare",
       "title": "Cell Vector Comparison",
       "description": "Compare two cell-level signals on their shared cell universe in raw or rank space.",
-      "search_text": "Cell Vector Comparison\nCompare two cell-level signals on their shared cell universe in raw or rank space.\nstatistics\ncomparison\nsignal\na\ncell_vector\nTRUE\nContinuous or rankable numeric signal per cell.\nb\ncell_set\nselect\nsummary\nobs_table\nOne-row comparison summary with concordance and delta metrics.\nPer-cell comparison table with original values, compared values, and deltas.\ncompare_space\nchoice\nrank\nraw\nWhether to compare original numeric values or cell ranks.\nties_method\naverage\nfirst\nlast\nrandom\nmax\nmin\nTie handling rule used when compare_space='rank'.\nsignal_a\nstring\nOptional label recorded in the summary table for signal A.\nsignal_b\nOptional label recorded in the summary table for signal B.",
+      "search_text": "Cell Vector Comparison\nCompare two cell-level signals on their shared cell universe in raw or rank space.\nstatistics\ncomparison\nsignal\na\ncell_vector\nTRUE\nContinuous or rankable numeric signal per cell.\nb\ncell_set\nselect\nsummary\nobs_table\nterminal_artifact\nOne-row comparison summary with concordance and delta metrics.\nPer-cell comparison table with original values, compared values, and deltas.\ncompare_space\nchoice\nrank\nraw\nWhether to compare original numeric values or cell ranks.\nties_method\naverage\nfirst\nlast\nrandom\nmax\nmin\nTie handling rule used when compare_space='rank'.\nsignal_a\nstring\nOptional label recorded in the summary table for signal A.\nsignal_b\nOptional label recorded in the summary table for signal B.",
       "tags": ["op", "statistics", "comparison", "signal"],
       "payload": {
         "op_name": "cell_vector_compare",
@@ -2540,11 +2783,21 @@
           {
             "name": "summary",
             "kind": "obs_table",
+            "output_name": "summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "summary",
             "description": "One-row comparison summary with concordance and delta metrics."
           },
           {
             "name": "comparison",
             "kind": "obs_table",
+            "output_name": "comparison",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "comparison",
             "description": "Per-cell comparison table with original values, compared values, and deltas."
           }
         ],
@@ -2606,7 +2859,7 @@
       "name": "feature_trend_spearman",
       "title": "Feature Trends vs Continuous Vector",
       "description": "Feature-level Spearman trend testing against continuous pseudotime-like vectors.",
-      "search_text": "Feature Trends vs Continuous Vector\nFeature-level Spearman trend testing against continuous pseudotime-like vectors.\ntrend\nstatistics\ntrajectory\nmatrix\nTRUE\npseudotime\ncell_vector\ncell_set\nselect\ntrend_table\nfeature_table\nPer-feature trend statistics (rho, p, adjusted p).\nfeatures\nstring_vec\nOptional feature subset.\nmin_pct_nonzero\ndbl\n0\n1\nMinimum non-zero fraction filter.\nmin_sd\n1e+06\nMinimum per-feature standard deviation filter.\np_adjust_method\nstring\nBH\nMethod passed to p.adjust.\nchunk_size\nint\n128\n8\n4096\nChunk size for matrix slicing.",
+      "search_text": "Feature Trends vs Continuous Vector\nFeature-level Spearman trend testing against continuous pseudotime-like vectors.\ntrend\nstatistics\ntrajectory\nmatrix\nTRUE\npseudotime\ncell_vector\ncell_set\nselect\ntrend_table\nfeature_table\nterminal_artifact\nPer-feature trend statistics (rho, p, adjusted p).\nfeatures\nstring_vec\nOptional feature subset.\nmin_pct_nonzero\ndbl\n0\n1\nMinimum non-zero fraction filter.\nmin_sd\n1e+06\nMinimum per-feature standard deviation filter.\np_adjust_method\nstring\nBH\nMethod passed to p.adjust.\nchunk_size\nint\n128\n8\n4096\nChunk size for matrix slicing.",
       "tags": ["op", "trend", "statistics", "trajectory"],
       "payload": {
         "op_name": "feature_trend_spearman",
@@ -2633,6 +2886,11 @@
           {
             "name": "trend_table",
             "kind": "feature_table",
+            "output_name": "trend_table",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "trend_table",
             "description": "Per-feature trend statistics (rho, p, adjusted p)."
           }
         ],
@@ -2709,7 +2967,7 @@
       "name": "trajectory_de",
       "title": "Trajectory DE",
       "description": "Lineage-aware feature trend testing against trajectory pseudotime from model_ref.",
-      "search_text": "Trajectory DE\nLineage-aware feature trend testing against trajectory pseudotime from model_ref.\ntrajectory\ntrend\nstatistics\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nde_table\nfeature_table\nPer-lineage feature trend statistics (rho, p, adjusted p).\nfit_summary\nobs_table\nPer-lineage input and filtering diagnostics.\nlineage\nstring_vec\nOptional lineage key subset.\nfeature_set\nstring\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nOptional explicit feature subset (intersected with feature_set when both provided).\ntest\nchoice\nspearman\nStatistical test. The current implementation supports spearman.\nmin_pct_nonzero\ndbl\n0\n1\nMinimum non-zero fraction filter.\nmin_sd\n1e+06\nMinimum per-feature standard deviation filter.\np_adjust_method\nBH\nMethod passed to p.adjust.\nchunk_size\nint\n128\n8\n4096\nChunk size for matrix slicing.",
+      "search_text": "Trajectory DE\nLineage-aware feature trend testing against trajectory pseudotime from model_ref.\ntrajectory\ntrend\nstatistics\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nde_table\nfeature_table\nterminal_artifact\nPer-lineage feature trend statistics (rho, p, adjusted p).\nfit_summary\nobs_table\nPer-lineage input and filtering diagnostics.\nlineage\nstring_vec\nOptional lineage key subset.\nfeature_set\nstring\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nOptional explicit feature subset (intersected with feature_set when both provided).\ntest\nchoice\nspearman\nStatistical test. The current implementation supports spearman.\nmin_pct_nonzero\ndbl\n0\n1\nMinimum non-zero fraction filter.\nmin_sd\n1e+06\nMinimum per-feature standard deviation filter.\np_adjust_method\nBH\nMethod passed to p.adjust.\nchunk_size\nint\n128\n8\n4096\nChunk size for matrix slicing.",
       "tags": ["op", "trajectory", "trend", "statistics"],
       "payload": {
         "op_name": "trajectory_de",
@@ -2736,11 +2994,21 @@
           {
             "name": "de_table",
             "kind": "feature_table",
+            "output_name": "de_table",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "de_table",
             "description": "Per-lineage feature trend statistics (rho, p, adjusted p)."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Per-lineage input and filtering diagnostics."
           }
         ],
@@ -2837,7 +3105,7 @@
       "name": "trajectory_smooth",
       "title": "Trajectory Feature Smoothing",
       "description": "Summarize per-feature expression along trajectory pseudotime into reusable trend tables.",
-      "search_text": "Trajectory Feature Smoothing\nSummarize per-feature expression along trajectory pseudotime into reusable trend tables.\ntrajectory\nsummary\nexpression\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\ntrend_table\nobs_table\nPer-feature binned expression summaries along trajectory pseudotime.\nfit_summary\nPer-lineage smoothing diagnostics.\nlineage\nstring_vec\nOptional lineage key subset.\nfeature_set\nstring\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nOptional explicit feature subset (intersected with feature_set when both provided).\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nchoice\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nchunk_size\n128\n8\n4096\nChunk size for matrix slicing.",
+      "search_text": "Trajectory Feature Smoothing\nSummarize per-feature expression along trajectory pseudotime into reusable trend tables.\ntrajectory\nsummary\nexpression\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\ntrend_table\nobs_table\nterminal_artifact\nPer-feature binned expression summaries along trajectory pseudotime.\nfit_summary\nPer-lineage smoothing diagnostics.\nlineage\nstring_vec\nOptional lineage key subset.\nfeature_set\nstring\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nOptional explicit feature subset (intersected with feature_set when both provided).\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nchoice\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nchunk_size\n128\n8\n4096\nChunk size for matrix slicing.",
       "tags": ["op", "trajectory", "summary", "expression"],
       "payload": {
         "op_name": "trajectory_smooth",
@@ -2864,11 +3132,21 @@
           {
             "name": "trend_table",
             "kind": "obs_table",
+            "output_name": "trend_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "trend_table",
             "description": "Per-feature binned expression summaries along trajectory pseudotime."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Per-lineage smoothing diagnostics."
           }
         ],
@@ -2959,7 +3237,7 @@
       "name": "trajectory_branch_compare",
       "title": "Trajectory Branch Compare",
       "description": "Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.",
-      "search_text": "Trajectory Branch Compare\nCompare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.\ntrajectory\ncomparison\nstatistics\nmatrix\nTRUE\npseudotime\ncell_vector_family\nbranch_membership\nrelation_family\ncell_set\nselect\nbranch_de_table\nfeature_table\nPer-feature branch comparison statistics and effect sizes.\nbranch_summary\nobs_table\nBranch-pair cell counts and pseudotime summary diagnostics.\nbranch_a\nstring\nBranch/lineage key A.\nbranch_b\nBranch/lineage key B.\nfeature_set\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nstring_vec\nOptional explicit feature subset (intersected with feature_set when both provided).\nmin_pct\ndbl\n0\n1\nMinimum detection fraction in either branch.\np_adjust_method\nBH\nMethod passed to p.adjust.",
+      "search_text": "Trajectory Branch Compare\nCompare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.\ntrajectory\ncomparison\nstatistics\nmatrix\nTRUE\npseudotime\ncell_vector_family\nbranch_membership\nrelation_family\ncell_set\nselect\nbranch_de_table\nfeature_table\nterminal_artifact\nPer-feature branch comparison statistics and effect sizes.\nbranch_summary\nobs_table\nBranch-pair cell counts and pseudotime summary diagnostics.\nbranch_a\nstring\nBranch/lineage key A.\nbranch_b\nBranch/lineage key B.\nfeature_set\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nstring_vec\nOptional explicit feature subset (intersected with feature_set when both provided).\nmin_pct\ndbl\n0\n1\nMinimum detection fraction in either branch.\np_adjust_method\nBH\nMethod passed to p.adjust.",
       "tags": ["op", "trajectory", "comparison", "statistics"],
       "payload": {
         "op_name": "trajectory_branch_compare",
@@ -2991,11 +3269,21 @@
           {
             "name": "branch_de_table",
             "kind": "feature_table",
+            "output_name": "branch_de_table",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "branch_de_table",
             "description": "Per-feature branch comparison statistics and effect sizes."
           },
           {
             "name": "branch_summary",
             "kind": "obs_table",
+            "output_name": "branch_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "branch_summary",
             "description": "Branch-pair cell counts and pseudotime summary diagnostics."
           }
         ],
@@ -3069,7 +3357,7 @@
       "name": "trajectory_signature_smooth",
       "title": "Trajectory Signature Smoothing",
       "description": "Summarize feature-set signature scores along trajectory pseudotime into reusable trend tables.",
-      "search_text": "Trajectory Signature Smoothing\nSummarize feature-set signature scores along trajectory pseudotime into reusable trend tables.\ntrajectory\nsummary\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignature_table\nobs_table\nPer-signature binned summaries along trajectory pseudotime.\nfit_summary\nPer-lineage signature smoothing diagnostics.\nfeature_set\nstring\nRequired feature set name from wb_feature_sets() for matrix.\nlineage\nstring_vec\nOptional lineage key subset.\nscore_method\nchoice\nmean\nsum\nHow to score the feature set within each cell.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.",
+      "search_text": "Trajectory Signature Smoothing\nSummarize feature-set signature scores along trajectory pseudotime into reusable trend tables.\ntrajectory\nsummary\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignature_table\nobs_table\nterminal_artifact\nPer-signature binned summaries along trajectory pseudotime.\nfit_summary\nPer-lineage signature smoothing diagnostics.\nfeature_set\nstring\nRequired feature set name from wb_feature_sets() for matrix.\nlineage\nstring_vec\nOptional lineage key subset.\nscore_method\nchoice\nmean\nsum\nHow to score the feature set within each cell.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.",
       "tags": ["op", "trajectory", "summary", "signature"],
       "payload": {
         "op_name": "trajectory_signature_smooth",
@@ -3096,11 +3384,21 @@
           {
             "name": "signature_table",
             "kind": "obs_table",
+            "output_name": "signature_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "signature_table",
             "description": "Per-signature binned summaries along trajectory pseudotime."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Per-lineage signature smoothing diagnostics."
           }
         ],
@@ -3174,7 +3472,7 @@
       "name": "trajectory_geneset_dynamics",
       "title": "Trajectory Gene-Set Dynamics",
       "description": "Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.",
-      "search_text": "Trajectory Gene-Set Dynamics\nScreen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.\ntrajectory\npathway\ndiscovery\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\nFALSE\npseudotime\ncell_vector_family\ncell_set\nselect\nsignature_table\nobs_table\nBinned feature-set score curves along trajectory pseudotime.\ndynamics_table\nPer-feature-set dynamic metrics and rank.\ntop_sets\nTop-ranked dynamic feature sets for report-first discovery.\ndriver_table\nTop dynamic member genes within each screened feature set.\ndriver_curve_table\nBinned curves for top driver genes within each screened feature set.\nfit_summary\nPer-lineage screening diagnostics.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() to screen.\nfeature_sets\nstring_vec\nOptional feature-set subset within the namespace.\nlineage\nOptional lineage key subset.\npseudotime_key\nRequired key for explicit cell_vector_family pseudotime when multiple keys are present.\nmembership\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\nscore_method\nchoice\nmean\nsum\nrank_mean\nHow to score each feature set within each cell.\npseudotime_direction\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nmin_set_size\nMinimum feature-set size after intersecting with the matrix.\nmax_set_size\n5000\n1e+06\nMaximum feature-set size after intersecting with the matrix.\ntop_n\n10000\nNumber of top-ranked feature sets retained in top_sets.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\ntop_driver_genes\nNumber of top member genes retained as curve drivers per feature set.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nmin_features_detected\nMinimum detected set members required for passes_filters.\nmin_detected_fraction\nMinimum fraction of detected set members required for passes_filters.\nmin_mean_score\nOptional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics.\nmin_max_score\nOptional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves.\nmin_signal_to_noise\nOptional minimum amplitude divided by mean bootstrap SE required for passes_filters.\nlow_abundance_max_score\n0.1\nCurves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.\nn_permutations\nNumber of empirical permutations for dynamic-score p-values; 0 disables permutation testing.\npermutation_seed\nRandom seed for empirical dynamic-score permutations.\np_adjust_method\nBH\nholm\nhochberg\nhommel\nbonferroni\nBY\nfdr\nMultiple-testing correction method for q_dynamic.",
+      "search_text": "Trajectory Gene-Set Dynamics\nScreen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.\ntrajectory\npathway\ndiscovery\nsignature\nmatrix\nTRUE\nmodel\nmodel_ref\nFALSE\npseudotime\ncell_vector_family\ncell_set\nselect\nsignature_table\nobs_table\nterminal_artifact\nBinned feature-set score curves along trajectory pseudotime.\ndynamics_table\nPer-feature-set dynamic metrics and rank.\ntop_sets\nTop-ranked dynamic feature sets for report-first discovery.\ndriver_table\nTop dynamic member genes within each screened feature set.\ndriver_curve_table\nBinned curves for top driver genes within each screened feature set.\nfit_summary\nPer-lineage screening diagnostics.\nnamespace\nstring\nFeature-set namespace from wb_feature_sets() to screen.\nfeature_sets\nstring_vec\nOptional feature-set subset within the namespace.\nlineage\nOptional lineage key subset.\npseudotime_key\nRequired key for explicit cell_vector_family pseudotime when multiple keys are present.\nmembership\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\nscore_method\nchoice\nmean\nsum\nrank_mean\nHow to score each feature set within each cell.\npseudotime_direction\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nmin_set_size\nMinimum feature-set size after intersecting with the matrix.\nmax_set_size\n5000\n1e+06\nMaximum feature-set size after intersecting with the matrix.\ntop_n\n10000\nNumber of top-ranked feature sets retained in top_sets.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\ntop_driver_genes\nNumber of top member genes retained as curve drivers per feature set.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nmin_features_detected\nMinimum detected set members required for passes_filters.\nmin_detected_fraction\nMinimum fraction of detected set members required for passes_filters.\nmin_mean_score\nOptional minimum mean smoothed score required for passes_filters; use to suppress very low-abundance dynamics.\nmin_max_score\nOptional minimum maximum smoothed score required for passes_filters; use to suppress near-zero curves.\nmin_signal_to_noise\nOptional minimum amplitude divided by mean bootstrap SE required for passes_filters.\nlow_abundance_max_score\n0.1\nCurves with max_score below this value are flagged low_abundance_flag but not filtered unless min_max_score is set.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.\nn_permutations\nNumber of empirical permutations for dynamic-score p-values; 0 disables permutation testing.\npermutation_seed\nRandom seed for empirical dynamic-score permutations.\np_adjust_method\nBH\nholm\nhochberg\nhommel\nbonferroni\nBY\nfdr\nMultiple-testing correction method for q_dynamic.",
       "tags": ["op", "trajectory", "pathway", "discovery", "signature"],
       "payload": {
         "op_name": "trajectory_geneset_dynamics",
@@ -3206,31 +3504,61 @@
           {
             "name": "signature_table",
             "kind": "obs_table",
+            "output_name": "signature_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "signature_table",
             "description": "Binned feature-set score curves along trajectory pseudotime."
           },
           {
             "name": "dynamics_table",
             "kind": "obs_table",
+            "output_name": "dynamics_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "dynamics_table",
             "description": "Per-feature-set dynamic metrics and rank."
           },
           {
             "name": "top_sets",
             "kind": "obs_table",
+            "output_name": "top_sets",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "top_sets",
             "description": "Top-ranked dynamic feature sets for report-first discovery."
           },
           {
             "name": "driver_table",
             "kind": "obs_table",
+            "output_name": "driver_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "driver_table",
             "description": "Top dynamic member genes within each screened feature set."
           },
           {
             "name": "driver_curve_table",
             "kind": "obs_table",
+            "output_name": "driver_curve_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "driver_curve_table",
             "description": "Binned curves for top driver genes within each screened feature set."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Per-lineage screening diagnostics."
           }
         ],
@@ -3518,7 +3846,7 @@
       "name": "trajectory_route_smooth",
       "title": "Trajectory Route Smoothing",
       "description": "Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.",
-      "search_text": "Trajectory Route Smoothing\nSummarize per-feature expression along an explicit route using global pseudotime plus route membership weights.\ntrajectory\nsummary\nroute\nmatrix\nTRUE\npseudotime\ncell_vector\nbranch_membership\nrelation_family\ncell_set\nselect\ntrend_table\nobs_table\nPer-feature binned summaries along a selected route.\nfit_summary\nRoute smoothing diagnostics.\nroute_key\nstring\nRequired route/branch key within branch_membership.\nfeature_set\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nstring_vec\nOptional explicit feature subset (intersected with feature_set when both provided).\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nchoice\nmean\nmedian\nSummary statistic across cells within each bin. Weighted routes currently support mean only.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nweight_mode\nprobability\nbinary_threshold\nUse route probabilities directly or threshold to a binary route membership.\nprob_min\ndbl\n0\nMinimum route probability required to include a cell.\nchunk_size\n128\nFeature chunk size for matrix slicing.",
+      "search_text": "Trajectory Route Smoothing\nSummarize per-feature expression along an explicit route using global pseudotime plus route membership weights.\ntrajectory\nsummary\nroute\nmatrix\nTRUE\npseudotime\ncell_vector\nbranch_membership\nrelation_family\ncell_set\nselect\ntrend_table\nobs_table\nterminal_artifact\nPer-feature binned summaries along a selected route.\nfit_summary\nRoute smoothing diagnostics.\nroute_key\nstring\nRequired route/branch key within branch_membership.\nfeature_set\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nstring_vec\nOptional explicit feature subset (intersected with feature_set when both provided).\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nchoice\nmean\nmedian\nSummary statistic across cells within each bin. Weighted routes currently support mean only.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nweight_mode\nprobability\nbinary_threshold\nUse route probabilities directly or threshold to a binary route membership.\nprob_min\ndbl\n0\nMinimum route probability required to include a cell.\nchunk_size\n128\nFeature chunk size for matrix slicing.",
       "tags": ["op", "trajectory", "summary", "route"],
       "payload": {
         "op_name": "trajectory_route_smooth",
@@ -3550,11 +3878,21 @@
           {
             "name": "trend_table",
             "kind": "obs_table",
+            "output_name": "trend_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "trend_table",
             "description": "Per-feature binned summaries along a selected route."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Route smoothing diagnostics."
           }
         ],
@@ -3654,7 +3992,7 @@
       "name": "trajectory_vector_smooth",
       "title": "Trajectory Signal Smoothing",
       "description": "Summarize cell-level signal families along trajectory pseudotime into reusable trend tables.",
-      "search_text": "Trajectory Signal Smoothing\nSummarize cell-level signal families along trajectory pseudotime into reusable trend tables.\ntrajectory\nsummary\nsignal\ncell_vector_family\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignal_table\nobs_table\nPer-signal binned summaries along trajectory pseudotime.\nfit_summary\nPer-lineage signal smoothing diagnostics.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nlineage\nOptional lineage key subset.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nchoice\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.",
+      "search_text": "Trajectory Signal Smoothing\nSummarize cell-level signal families along trajectory pseudotime into reusable trend tables.\ntrajectory\nsummary\nsignal\ncell_vector_family\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nsignal_table\nobs_table\nterminal_artifact\nPer-signal binned summaries along trajectory pseudotime.\nfit_summary\nPer-lineage signal smoothing diagnostics.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nlineage\nOptional lineage key subset.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nchoice\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.",
       "tags": ["op", "trajectory", "summary", "signal"],
       "payload": {
         "op_name": "trajectory_vector_smooth",
@@ -3681,11 +4019,21 @@
           {
             "name": "signal_table",
             "kind": "obs_table",
+            "output_name": "signal_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "signal_table",
             "description": "Per-signal binned summaries along trajectory pseudotime."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Per-lineage signal smoothing diagnostics."
           }
         ],
@@ -3752,7 +4100,7 @@
       "name": "trajectory_signal_dynamics",
       "title": "Trajectory Signal Dynamics",
       "description": "Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.",
-      "search_text": "Trajectory Signal Dynamics\nRank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.\ntrajectory\nsignal\ndiscovery\ndynamics\ncell_vector_family\nTRUE\nmodel\nmodel_ref\nFALSE\npseudotime\ncell_set\nselect\nsignal_table\nobs_table\nBinned signal-score curves along trajectory pseudotime.\ndynamics_table\nPer-signal dynamic metrics and rank.\ntop_signals\nTop-ranked dynamic signals for report-first discovery.\nfit_summary\nPer-lineage signal dynamics diagnostics.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nlineage\nOptional lineage key subset.\npseudotime_key\nstring\nRequired key for explicit cell_vector_family pseudotime when multiple keys are present.\nmembership\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\npseudotime_direction\nchoice\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\ntop_n\n10000\nNumber of top-ranked signals retained in top_signals.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.",
+      "search_text": "Trajectory Signal Dynamics\nRank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.\ntrajectory\nsignal\ndiscovery\ndynamics\ncell_vector_family\nTRUE\nmodel\nmodel_ref\nFALSE\npseudotime\ncell_set\nselect\nsignal_table\nobs_table\nterminal_artifact\nBinned signal-score curves along trajectory pseudotime.\ndynamics_table\nPer-signal dynamic metrics and rank.\ntop_signals\nTop-ranked dynamic signals for report-first discovery.\nfit_summary\nPer-lineage signal dynamics diagnostics.\nsignal_keys\nstring_vec\nOptional signal-key subset within the cell_vector_family.\nlineage\nOptional lineage key subset.\npseudotime_key\nstring\nRequired key for explicit cell_vector_family pseudotime when multiple keys are present.\nmembership\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\npseudotime_direction\nchoice\nas_is\ninvert\nUse pseudotime as provided or invert it before binning and classification.\nstart_label\nOptional biological start label recorded in output metadata.\nend_label\nOptional biological end label recorded in output metadata.\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nmean\nmedian\nSummary statistic across cells within each bin.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\ntop_n\n10000\nNumber of top-ranked signals retained in top_signals.\non_off_min_delta\ndbl\n0\nMinimum absolute late-early delta for turns_on/turns_off classes.\nmonotonic_min_abs_rho\n0.5\nMinimum absolute Spearman rho for turns_on/turns_off classes.\nmin_amplitude\nMinimum curve amplitude required for passes_filters.\nmin_bins_observed\nMinimum retained bins required for passes_filters.\nsmooth_method\nnone\nloess\nspline\nOptional smoothing method applied to binned curves before metrics/classes.\nloess_span\n0.01\nSpan used when smooth_method='loess'.\nbootstrap_n\nBootstrap replicates per bin for confidence bands; 0 disables CIs.\nbootstrap_seed\nRandom seed for bootstrap confidence bands.\nci_level\n0.95\n0.999\nConfidence level for bootstrap bands.\nclass_min_amplitude\nMinimum amplitude required before assigning non-flat curve classes.",
       "tags": ["op", "trajectory", "signal", "discovery", "dynamics"],
       "payload": {
         "op_name": "trajectory_signal_dynamics",
@@ -3784,21 +4132,41 @@
           {
             "name": "signal_table",
             "kind": "obs_table",
+            "output_name": "signal_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "signal_table",
             "description": "Binned signal-score curves along trajectory pseudotime."
           },
           {
             "name": "dynamics_table",
             "kind": "obs_table",
+            "output_name": "dynamics_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "dynamics_table",
             "description": "Per-signal dynamic metrics and rank."
           },
           {
             "name": "top_signals",
             "kind": "obs_table",
+            "output_name": "top_signals",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "top_signals",
             "description": "Top-ranked dynamic signals for report-first discovery."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Per-lineage signal dynamics diagnostics."
           }
         ],
@@ -3983,7 +4351,7 @@
       "name": "knn_pseudobulk",
       "title": "kNN Pseudobulk Around Query Cell(s)",
       "description": "Find k nearest neighbors in latent space around query cells and aggregate matrix values.",
-      "search_text": "kNN Pseudobulk Around Query Cell(s)\nFind k nearest neighbors in latent space around query cells and aggregate matrix values.\npseudobulk\nneighbors\nprojection\nmatrix\nTRUE\nspace\ncell_set\nselect\npseudobulk_table\nfeature_table\nFeature-level pseudobulk values keyed by query cell.\nneighbor_distance\ncell_vector_family\nNeighbor distances per query cell.\nquery_cells\ncell_ids_or_set\nQuery cells: explicit IDs or 'set:<name>'\ncandidate_cells\nOptional candidate neighbor pool; defaults to all cells.\nfeatures\nstring_vec\nOptional feature subset for pseudobulk output.\nk\nint\n100\n1\n50000\nNearest neighbors per query cell.\ninclude_query\nbool\nFALSE\nInclude query cells themselves when they are in candidate pool.\naggregate\nstring\nsum\nAggregation mode: sum or mean.",
+      "search_text": "kNN Pseudobulk Around Query Cell(s)\nFind k nearest neighbors in latent space around query cells and aggregate matrix values.\npseudobulk\nneighbors\nprojection\nmatrix\nTRUE\nspace\ncell_set\nselect\npseudobulk_table\nfeature_table\nterminal_artifact\nFeature-level pseudobulk values keyed by query cell.\nneighbor_distance\ncell_vector_family\nNeighbor distances per query cell.\nquery_cells\ncell_ids_or_set\nQuery cells: explicit IDs or 'set:<name>'\ncandidate_cells\nOptional candidate neighbor pool; defaults to all cells.\nfeatures\nstring_vec\nOptional feature subset for pseudobulk output.\nk\nint\n100\n1\n50000\nNearest neighbors per query cell.\ninclude_query\nbool\nFALSE\nInclude query cells themselves when they are in candidate pool.\naggregate\nstring\nsum\nAggregation mode: sum or mean.",
       "tags": ["op", "pseudobulk", "neighbors", "projection"],
       "payload": {
         "op_name": "knn_pseudobulk",
@@ -4010,11 +4378,21 @@
           {
             "name": "pseudobulk_table",
             "kind": "feature_table",
+            "output_name": "pseudobulk_table",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudobulk_table",
             "description": "Feature-level pseudobulk values keyed by query cell."
           },
           {
             "name": "neighbor_distance",
             "kind": "cell_vector_family",
+            "output_name": "neighbor_distance",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "neighbor_distance",
             "description": "Neighbor distances per query cell."
           }
         ],
@@ -4084,7 +4462,7 @@
       "name": "knn_neighbors",
       "title": "kNN neighbors around query cell(s)",
       "description": "Find nearest neighbors in a latent space without requiring matrix aggregation.",
-      "search_text": "kNN neighbors around query cell(s)\nFind nearest neighbors in a latent space without requiring matrix aggregation.\nneighbors\ngeometry\nprojection\nspace\nTRUE\ncell_set\nselect\nobs_table\nPer-query neighbor table (cell_id, rank, distance).\nneighbor_distance\ncell_vector_family\nNeighbor distances per query cell.\nquery_cells\ncell_ids_or_set\nQuery cells: explicit IDs or 'set:<name>'\ncandidate_cells\nOptional candidate neighbor pool; defaults to all cells.\nk\nint\n100\n1\n50000\nNearest neighbors per query cell.\ninclude_query\nbool\nFALSE\nInclude query cells themselves when they are in candidate pool.",
+      "search_text": "kNN neighbors around query cell(s)\nFind nearest neighbors in a latent space without requiring matrix aggregation.\nneighbors\ngeometry\nprojection\nspace\nTRUE\ncell_set\nselect\nobs_table\nterminal_artifact\nPer-query neighbor table (cell_id, rank, distance).\nneighbor_distance\ncell_vector_family\nNeighbor distances per query cell.\nquery_cells\ncell_ids_or_set\nQuery cells: explicit IDs or 'set:<name>'\ncandidate_cells\nOptional candidate neighbor pool; defaults to all cells.\nk\nint\n100\n1\n50000\nNearest neighbors per query cell.\ninclude_query\nbool\nFALSE\nInclude query cells themselves when they are in candidate pool.",
       "tags": ["op", "neighbors", "geometry", "projection"],
       "payload": {
         "op_name": "knn_neighbors",
@@ -4106,11 +4484,21 @@
           {
             "name": "neighbors",
             "kind": "obs_table",
+            "output_name": "neighbors",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "neighbors",
             "description": "Per-query neighbor table (cell_id, rank, distance)."
           },
           {
             "name": "neighbor_distance",
             "kind": "cell_vector_family",
+            "output_name": "neighbor_distance",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "neighbor_distance",
             "description": "Neighbor distances per query cell."
           }
         ],
@@ -4164,7 +4552,7 @@
       "name": "slingshot",
       "title": "Slingshot trajectory",
       "description": "Infer lineage curves and pseudotime from clusters in a 2D space.",
-      "search_text": "Slingshot trajectory\nInfer lineage curves and pseudotime from clusters in a 2D space.\ntrajectory\nspace\nTRUE\nplot_space\nFALSE\nclusters\ncell_vector\ncell_set\nselect\npseudotime\ncell_vector_family\nLineage-specific pseudotime values per cell.\ncurves\npath_2d_family\nLineage curve paths in 2D.\nstart.clus\nstring\nStarting cluster id.\nend.clus\nstring_vec\nEnding cluster id(s).\nexclude_clusters\nCluster id(s) to exclude before fitting.\nstretch\ndbl\n2\n0\n10\nSlingshot curve stretching.\nreweight\nbool\nWhether to reweight assignments during fitting.",
+      "search_text": "Slingshot trajectory\nInfer lineage curves and pseudotime from clusters in a 2D space.\ntrajectory\nspace\nTRUE\nplot_space\nFALSE\nclusters\ncell_vector\ncell_set\nselect\npseudotime\ncell_vector_family\nterminal_artifact\nLineage-specific pseudotime values per cell.\ncurves\npath_2d_family\nLineage curve paths in 2D.\nstart.clus\nstring\nStarting cluster id.\nend.clus\nstring_vec\nEnding cluster id(s).\nexclude_clusters\nCluster id(s) to exclude before fitting.\nstretch\ndbl\n2\n0\n10\nSlingshot curve stretching.\nreweight\nbool\nWhether to reweight assignments during fitting.",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "slingshot",
@@ -4196,11 +4584,21 @@
           {
             "name": "pseudotime",
             "kind": "cell_vector_family",
+            "output_name": "pseudotime",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudotime",
             "description": "Lineage-specific pseudotime values per cell."
           },
           {
             "name": "curves",
             "kind": "path_2d_family",
+            "output_name": "curves",
+            "primitive_kind": "path_2d_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "curves",
             "description": "Lineage curve paths in 2D."
           }
         ],
@@ -4271,7 +4669,7 @@
       "name": "slingshot_fit",
       "title": "Slingshot fit",
       "description": "Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).",
-      "search_text": "Slingshot fit\nFit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).\ntrajectory\nfit_space\nspace\nTRUE\nclusters\ncell_vector\ncell_set\nselect\npseudotime\ncell_vector_family\nLineage-specific pseudotime values per cell (fit space inference).\nlineage_weights\nSlingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.\nmodel\nmodel_ref\nSession-chainable Slingshot fit model (engine='slingshot').\nstart.clus\nstring\nStarting cluster id.\nend.clus\nstring_vec\nEnding cluster id(s).\ninclude_clusters\nRestrict fitting to these cluster id(s).\nexclude_clusters\nCluster id(s) to exclude before fitting.\nexclude_cells\ncell_ids\nOptional cell IDs to exclude before fitting.\nstretch\ndbl\n2\n0\n10\nSlingshot curve stretching.\nreweight\nbool\nWhether to reweight assignments during fitting.\nshrink\n1\nCurve shrinkage toward shared segments.\nmaxit\nint\n200\nMaximum fitting iterations.",
+      "search_text": "Slingshot fit\nFit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).\ntrajectory\nfit_space\nspace\nTRUE\nclusters\ncell_vector\ncell_set\nselect\npseudotime\ncell_vector_family\nterminal_artifact\nLineage-specific pseudotime values per cell (fit space inference).\nlineage_weights\nSlingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.\nmodel\nmodel_ref\nSession-chainable Slingshot fit model (engine='slingshot').\nstart.clus\nstring\nStarting cluster id.\nend.clus\nstring_vec\nEnding cluster id(s).\ninclude_clusters\nRestrict fitting to these cluster id(s).\nexclude_clusters\nCluster id(s) to exclude before fitting.\nexclude_cells\ncell_ids\nOptional cell IDs to exclude before fitting.\nstretch\ndbl\n2\n0\n10\nSlingshot curve stretching.\nreweight\nbool\nWhether to reweight assignments during fitting.\nshrink\n1\nCurve shrinkage toward shared segments.\nmaxit\nint\n200\nMaximum fitting iterations.",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "slingshot_fit",
@@ -4298,16 +4696,31 @@
           {
             "name": "pseudotime",
             "kind": "cell_vector_family",
+            "output_name": "pseudotime",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudotime",
             "description": "Lineage-specific pseudotime values per cell (fit space inference)."
           },
           {
             "name": "lineage_weights",
             "kind": "cell_vector_family",
+            "output_name": "lineage_weights",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "lineage_weights",
             "description": "Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime."
           },
           {
             "name": "model",
             "kind": "model_ref",
+            "output_name": "model",
+            "primitive_kind": "model_ref",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "model",
             "description": "Session-chainable Slingshot fit model (engine='slingshot')."
           }
         ],
@@ -4400,7 +4813,7 @@
       "name": "slingshot_lineage_weights",
       "title": "Slingshot lineage weights",
       "description": "Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.",
-      "search_text": "Slingshot lineage weights\nExtract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.\ntrajectory\nprovenance\nbackfill\nmodel\nmodel_ref\nTRUE\ncell_set\nselect\nlineage_weights\ncell_vector_family\nSlingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.",
+      "search_text": "Slingshot lineage weights\nExtract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.\ntrajectory\nprovenance\nbackfill\nmodel\nmodel_ref\nTRUE\ncell_set\nselect\nlineage_weights\ncell_vector_family\nterminal_artifact\nSlingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.",
       "tags": ["op", "trajectory", "provenance", "backfill"],
       "payload": {
         "op_name": "slingshot_lineage_weights",
@@ -4422,6 +4835,11 @@
           {
             "name": "lineage_weights",
             "kind": "cell_vector_family",
+            "output_name": "lineage_weights",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "lineage_weights",
             "description": "Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed."
           }
         ],
@@ -4448,7 +4866,7 @@
       "name": "trajectory_segment_join",
       "title": "Trajectory segment join",
       "description": "Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.",
-      "search_text": "Trajectory segment join\nJoin ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.\ntrajectory\nprovenance\ncomposition\ncell_set\nselect\ncomposite_pseudotime_unit_segment\ncell_vector_family\nCanonical one-row-per-cell composite pseudotime with exact integer segment boundaries.\ncomposite_pseudotime_cell_weighted_0_1\nOne-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts.\nsegment_local_table\nobs_table\nOne row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.\ncomposite_manifest\nAudit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.\ncomposite_membership\ncell_vector\nOne-cell assignment to a unique segment or waypoint overlap.\nsegments\nlist\nOrdered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.\ncomposite_id\nstring\nOptional stable trajectory_composite_id. Generated when omitted.\ncomposite_key\ncomposite_L1\nKey used in the output composite pseudotime cell_vector_family objects.\njoin_policy\nexact_boundary_collapse\nOverlap policy. The current implementation supports exact_boundary_collapse.\nmin_weight\ndbl\nOptional minimum lineage weight required for segment-local membership when weights are supplied.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.",
+      "search_text": "Trajectory segment join\nJoin ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.\ntrajectory\nprovenance\ncomposition\ncell_set\nselect\ncomposite_pseudotime_unit_segment\ncell_vector_family\nterminal_artifact\nTRUE\nCanonical one-row-per-cell composite pseudotime with exact integer segment boundaries.\ncomposite_pseudotime_cell_weighted_0_1\nOne-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts.\nsegment_local_table\nobs_table\nOne row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.\ncomposite_manifest\nAudit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.\ncomposite_membership\ncell_vector\nOne-cell assignment to a unique segment or waypoint overlap.\nsegments\nlist\nOrdered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.\ncomposite_id\nstring\nOptional stable trajectory_composite_id. Generated when omitted.\ncomposite_key\ncomposite_L1\nKey used in the output composite pseudotime cell_vector_family objects.\njoin_policy\nexact_boundary_collapse\nOverlap policy. The current implementation supports exact_boundary_collapse.\nmin_weight\ndbl\nOptional minimum lineage weight required for segment-local membership when weights are supplied.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.",
       "tags": ["op", "trajectory", "provenance", "composition"],
       "payload": {
         "op_name": "trajectory_segment_join",
@@ -4465,26 +4883,51 @@
           {
             "name": "composite_pseudotime_unit_segment",
             "kind": "cell_vector_family",
+            "output_name": "composite_pseudotime_unit_segment",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "composite_pseudotime_unit_segment",
             "description": "Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries."
           },
           {
             "name": "composite_pseudotime_cell_weighted_0_1",
             "kind": "cell_vector_family",
+            "output_name": "composite_pseudotime_cell_weighted_0_1",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "composite_pseudotime_cell_weighted_0_1",
             "description": "One-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts."
           },
           {
             "name": "segment_local_table",
             "kind": "obs_table",
+            "output_name": "segment_local_table",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "segment_local_table",
             "description": "One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role."
           },
           {
             "name": "composite_manifest",
             "kind": "obs_table",
+            "output_name": "composite_manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "composite_manifest",
             "description": "Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats."
           },
           {
             "name": "composite_membership",
             "kind": "cell_vector",
+            "output_name": "composite_membership",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "composite_membership",
             "description": "One-cell assignment to a unique segment or waypoint overlap."
           }
         ],
@@ -4544,7 +4987,7 @@
       "name": "trajectory_segment_from_artifacts",
       "title": "Trajectory fitted-artifact segment",
       "description": "Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.",
-      "search_text": "Trajectory fitted-artifact segment\nMaterialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.\ntrajectory\nadapter\ncomposition\nprovenance\npseudotime\ncell_vector_family\nTRUE\nmodel\nmodel_ref\nFALSE\nlineage_weights\nconfidence\npath\npath_2d_family\ncell_set\nselect\nFitted-model segment pseudotime for the selected lineage/key.\nmembership\ncell_vector\nCells included in the fitted-model segment.\nSegment confidence, derived from supplied confidence/lineage weights or defaulting to 1.\nsegment_manifest\nobs_table\nAudit manifest for the fitted-model segment.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this fitted segment in a future composite.\nlineage\nLineage/key to extract from fitted pseudotime and optional weights.\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\nconfidence_key\nOptional key for confidence cell_vector_family. Defaults to lineage.\nsource_engine\nFitted trajectory engine, usually slingshot, monocle3, or palantir.\nstart_label\nBiological start label.\nend_label\nBiological end label.\nallow_legacy\nbool\nAllow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.",
+      "search_text": "Trajectory fitted-artifact segment\nMaterialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.\ntrajectory\nadapter\ncomposition\nprovenance\npseudotime\ncell_vector_family\nTRUE\nmodel\nmodel_ref\nFALSE\nlineage_weights\nconfidence\npath\npath_2d_family\ncell_set\nselect\nterminal_artifact\nFitted-model segment pseudotime for the selected lineage/key.\nmembership\ncell_vector\nCells included in the fitted-model segment.\nSegment confidence, derived from supplied confidence/lineage weights or defaulting to 1.\nsegment_manifest\nobs_table\nAudit manifest for the fitted-model segment.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this fitted segment in a future composite.\nlineage\nLineage/key to extract from fitted pseudotime and optional weights.\ncell_ids_or_set\nOptional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.\nconfidence_key\nOptional key for confidence cell_vector_family. Defaults to lineage.\nsource_engine\nFitted trajectory engine, usually slingshot, monocle3, or palantir.\nstart_label\nBiological start label.\nend_label\nBiological end label.\nallow_legacy\nbool\nAllow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.",
       "tags": ["op", "trajectory", "adapter", "composition", "provenance"],
       "payload": {
         "op_name": "trajectory_segment_from_artifacts",
@@ -4586,21 +5029,41 @@
           {
             "name": "pseudotime",
             "kind": "cell_vector_family",
+            "output_name": "pseudotime",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudotime",
             "description": "Fitted-model segment pseudotime for the selected lineage/key."
           },
           {
             "name": "membership",
             "kind": "cell_vector",
+            "output_name": "membership",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "membership",
             "description": "Cells included in the fitted-model segment."
           },
           {
             "name": "confidence",
             "kind": "cell_vector_family",
+            "output_name": "confidence",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "confidence",
             "description": "Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1."
           },
           {
             "name": "segment_manifest",
             "kind": "obs_table",
+            "output_name": "segment_manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "segment_manifest",
             "description": "Audit manifest for the fitted-model segment."
           }
         ],
@@ -4698,7 +5161,7 @@
       "name": "trajectory_space_path_segment",
       "title": "Trajectory space-path segment",
       "description": "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
-      "search_text": "Trajectory space-path segment\nConvert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.\ntrajectory\nbridge\ncomposition\ngeometry\npath_scores\ncell_vector_family\nTRUE\ndisplay_path\npath_2d_family\nFALSE\ncell_set\nselect\npseudotime\nBridge pseudotime from path arclength progress in [0,1].\nmembership\ncell_vector\nCells passing the transparent distance-to-path bridge membership rule.\nconfidence\nDistance-derived confidence for included bridge cells.\nsegment_manifest\nobs_table\nAudit manifest for the space-path bridge segment.\ndisplay_endpoint_qc\nEndpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this bridge segment in a future composite.\nscore_prefix\nOptional prefix used by space_path_score keys.\ncandidate_cells\ncell_ids_or_set\nOptional candidate universe before distance thresholding.\ndistance_threshold\nInclude cells with distance_to_path <= threshold.\ndistance_quantile\nAlternative threshold: include cells up to this distance quantile.\nstart_label\nBiological start label.\nend_label\nBiological end label.\ndisplay_lineage\nOptional key/lineage to validate in display_path. Defaults to the only key if display_path has one.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC.\nstart_endpoint\nlist_or_cell_set\nOptional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nend_endpoint\nOptional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nstart_cell_set\nConvenience start endpoint cell set for display-path QC.\nend_cell_set\nConvenience end endpoint cell set for display-path QC.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\npseudotime_key\nKey for emitted bridge pseudotime. Defaults to segment_id.\nconfidence_key\nKey for emitted bridge confidence. Defaults to segment_id.",
+      "search_text": "Trajectory space-path segment\nConvert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.\ntrajectory\nbridge\ncomposition\ngeometry\npath_scores\ncell_vector_family\nTRUE\ndisplay_path\npath_2d_family\nFALSE\ncell_set\nselect\npseudotime\nterminal_artifact\nBridge pseudotime from path arclength progress in [0,1].\nmembership\ncell_vector\nCells passing the transparent distance-to-path bridge membership rule.\nconfidence\nDistance-derived confidence for included bridge cells.\nsegment_manifest\nobs_table\nAudit manifest for the space-path bridge segment.\ndisplay_endpoint_qc\nEndpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this bridge segment in a future composite.\nscore_prefix\nOptional prefix used by space_path_score keys.\ncandidate_cells\ncell_ids_or_set\nOptional candidate universe before distance thresholding.\ndistance_threshold\nInclude cells with distance_to_path <= threshold.\ndistance_quantile\nAlternative threshold: include cells up to this distance quantile.\nstart_label\nBiological start label.\nend_label\nBiological end label.\ndisplay_lineage\nOptional key/lineage to validate in display_path. Defaults to the only key if display_path has one.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC.\nstart_endpoint\nlist_or_cell_set\nOptional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nend_endpoint\nOptional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nstart_cell_set\nConvenience start endpoint cell set for display-path QC.\nend_cell_set\nConvenience end endpoint cell set for display-path QC.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\npseudotime_key\nKey for emitted bridge pseudotime. Defaults to segment_id.\nconfidence_key\nKey for emitted bridge confidence. Defaults to segment_id.",
       "tags": ["op", "trajectory", "bridge", "composition", "geometry"],
       "payload": {
         "op_name": "trajectory_space_path_segment",
@@ -4725,26 +5188,51 @@
           {
             "name": "pseudotime",
             "kind": "cell_vector_family",
+            "output_name": "pseudotime",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudotime",
             "description": "Bridge pseudotime from path arclength progress in [0,1]."
           },
           {
             "name": "membership",
             "kind": "cell_vector",
+            "output_name": "membership",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "membership",
             "description": "Cells passing the transparent distance-to-path bridge membership rule."
           },
           {
             "name": "confidence",
             "kind": "cell_vector_family",
+            "output_name": "confidence",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "confidence",
             "description": "Distance-derived confidence for included bridge cells."
           },
           {
             "name": "segment_manifest",
             "kind": "obs_table",
+            "output_name": "segment_manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "segment_manifest",
             "description": "Audit manifest for the space-path bridge segment."
           },
           {
             "name": "display_endpoint_qc",
             "kind": "obs_table",
+            "output_name": "display_endpoint_qc",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "display_endpoint_qc",
             "description": "Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors."
           }
         ],
@@ -4892,7 +5380,7 @@
       "name": "trajectory_segment_path_join",
       "title": "Trajectory segment path join",
       "description": "Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.",
-      "search_text": "Trajectory segment path join\nJoin ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.\ntrajectory\nvisualization\nprovenance\ncomposition\ncell_set\nselect\ncurves\npath_2d_family\nDerived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.\npath_manifest\nobs_table\nAudit manifest recording parent path artifacts, segment order, point boundaries, and caveats.\nendpoint_qc\nEndpoint-distance QC for joined display paths with declared endpoint descriptors.\npaths\nlist\nOrdered path segment specs with path ref, lineage key, segment ID, labels, and order.\ncomposite_id\nstring\nOptional trajectory_composite_id shared with a segmented pseudotime join.\ncomposite_key\ncomposite_path\nKey used in the output composite path_2d_family.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\ndbl\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id on parent paths with warning.",
+      "search_text": "Trajectory segment path join\nJoin ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.\ntrajectory\nvisualization\nprovenance\ncomposition\ncell_set\nselect\ncurves\npath_2d_family\nterminal_artifact\nTRUE\nDerived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.\npath_manifest\nobs_table\nAudit manifest recording parent path artifacts, segment order, point boundaries, and caveats.\nendpoint_qc\nEndpoint-distance QC for joined display paths with declared endpoint descriptors.\npaths\nlist\nOrdered path segment specs with path ref, lineage key, segment ID, labels, and order.\ncomposite_id\nstring\nOptional trajectory_composite_id shared with a segmented pseudotime join.\ncomposite_key\ncomposite_path\nKey used in the output composite path_2d_family.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\ndbl\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\nallow_legacy\nbool\nFALSE\nAllow missing trajectory_fit_id on parent paths with warning.",
       "tags": ["op", "trajectory", "visualization", "provenance", "composition"],
       "payload": {
         "op_name": "trajectory_segment_path_join",
@@ -4909,16 +5397,31 @@
           {
             "name": "curves",
             "kind": "path_2d_family",
+            "output_name": "curves",
+            "primitive_kind": "path_2d_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "curves",
             "description": "Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model."
           },
           {
             "name": "path_manifest",
             "kind": "obs_table",
+            "output_name": "path_manifest",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "path_manifest",
             "description": "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
           },
           {
             "name": "endpoint_qc",
             "kind": "obs_table",
+            "output_name": "endpoint_qc",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "endpoint_qc",
             "description": "Endpoint-distance QC for joined display paths with declared endpoint descriptors."
           }
         ],
@@ -4992,7 +5495,7 @@
       "name": "slingshot_project",
       "title": "Slingshot project curves",
       "description": "Project a fitted Slingshot model into a 2D display space (e.g. UMAP).",
-      "search_text": "Slingshot project curves\nProject a fitted Slingshot model into a 2D display space (e.g. UMAP).\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nProjected Slingshot lineage curves in the chosen 2D display space.\nstretch\ndbl\n0\n10\nOptional override of stretch during embedding.\nshrink\n1\nOptional override of shrink during embedding.\napprox_points\nint\n200\n5000\nTarget max curve points per lineage for display (0/NULL = no compaction).",
+      "search_text": "Slingshot project curves\nProject a fitted Slingshot model into a 2D display space (e.g. UMAP).\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nterminal_artifact\nProjected Slingshot lineage curves in the chosen 2D display space.\nstretch\ndbl\n0\n10\nOptional override of stretch during embedding.\nshrink\n1\nOptional override of shrink during embedding.\napprox_points\nint\n200\n5000\nTarget max curve points per lineage for display (0/NULL = no compaction).",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "slingshot_project",
@@ -5019,6 +5522,11 @@
           {
             "name": "curves",
             "kind": "path_2d_family",
+            "output_name": "curves",
+            "primitive_kind": "path_2d_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "curves",
             "description": "Projected Slingshot lineage curves in the chosen 2D display space."
           }
         ],
@@ -5076,7 +5584,7 @@
       "name": "monocle3_fit",
       "title": "Monocle3 fit (hybrid space)",
       "description": "Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.",
-      "search_text": "Monocle3 fit (hybrid space)\nFit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.\ntrajectory\nfit_space\nspace\nTRUE\ncell_set\nselect\npseudotime\ncell_vector\nRooted global pseudotime per cell from monocle3.\nbranch_membership\nrelation_family\nDerived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).\nmodel\nmodel_ref\nSession-chainable monocle3 CDS model (engine='monocle3').\ndims\nstring_vec\nOptional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).\nroot_cells\ncell_ids\nRoot cell IDs (exactly one of root_cells or root_pr_nodes).\nroot_pr_nodes\nPrincipal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes).\nk\nint\n20\n2\n500\nkNN size for monocle3 clustering.\ncluster_method\nchoice\nleiden\nlouvain\nMonocle3 clustering backend.\nnum_iter\n1\n200\nMonocle3 clustering iterations.\npartition_qval\ndbl\n0.05\n0\nPartition significance threshold.\nweight\nbool\nFALSE\nUse weighted nearest-neighbor graph for monocle3 clustering.\nresolution\n100\nOptional clustering resolution (NULL lets monocle3 choose).\nrandom_seed\n42\n999999\nRandom seed for clustering.\nuse_partition\nLearn graph per partition. FALSE is recommended for current tree semantics.\nclose_loop\nAllow loop closure in graph learning. FALSE is required for tree-derived lineages.\nverbose\nVerbose monocle3 output.",
+      "search_text": "Monocle3 fit (hybrid space)\nFit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.\ntrajectory\nfit_space\nspace\nTRUE\ncell_set\nselect\npseudotime\ncell_vector\nterminal_artifact\nRooted global pseudotime per cell from monocle3.\nbranch_membership\nrelation_family\nDerived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).\nmodel\nmodel_ref\nSession-chainable monocle3 CDS model (engine='monocle3').\ndims\nstring_vec\nOptional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).\nroot_cells\ncell_ids\nRoot cell IDs (exactly one of root_cells or root_pr_nodes).\nroot_pr_nodes\nPrincipal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes).\nk\nint\n20\n2\n500\nkNN size for monocle3 clustering.\ncluster_method\nchoice\nleiden\nlouvain\nMonocle3 clustering backend.\nnum_iter\n1\n200\nMonocle3 clustering iterations.\npartition_qval\ndbl\n0.05\n0\nPartition significance threshold.\nweight\nbool\nFALSE\nUse weighted nearest-neighbor graph for monocle3 clustering.\nresolution\n100\nOptional clustering resolution (NULL lets monocle3 choose).\nrandom_seed\n42\n999999\nRandom seed for clustering.\nuse_partition\nLearn graph per partition. FALSE is recommended for current tree semantics.\nclose_loop\nAllow loop closure in graph learning. FALSE is required for tree-derived lineages.\nverbose\nVerbose monocle3 output.",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "monocle3_fit",
@@ -5098,16 +5606,31 @@
           {
             "name": "pseudotime",
             "kind": "cell_vector",
+            "output_name": "pseudotime",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudotime",
             "description": "Rooted global pseudotime per cell from monocle3."
           },
           {
             "name": "branch_membership",
             "kind": "relation_family",
+            "output_name": "branch_membership",
+            "primitive_kind": "relation_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "branch_membership",
             "description": "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation)."
           },
           {
             "name": "model",
             "kind": "model_ref",
+            "output_name": "model",
+            "primitive_kind": "model_ref",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "model",
             "description": "Session-chainable monocle3 CDS model (engine='monocle3')."
           }
         ],
@@ -5225,7 +5748,7 @@
       "name": "monocle3_project",
       "title": "Monocle3 project curves",
       "description": "Project a fitted monocle3 trajectory graph into a 2D display space.",
-      "search_text": "Monocle3 project curves\nProject a fitted monocle3 trajectory graph into a 2D display space.\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nProjected monocle3 root-qualified lineage curves in the chosen 2D display space.\napprox_points\nint\n200\n0\n5000\nTarget max curve points per lineage for display (0/NULL = no compaction).",
+      "search_text": "Monocle3 project curves\nProject a fitted monocle3 trajectory graph into a 2D display space.\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nterminal_artifact\nProjected monocle3 root-qualified lineage curves in the chosen 2D display space.\napprox_points\nint\n200\n0\n5000\nTarget max curve points per lineage for display (0/NULL = no compaction).",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "monocle3_project",
@@ -5252,6 +5775,11 @@
           {
             "name": "curves",
             "kind": "path_2d_family",
+            "output_name": "curves",
+            "primitive_kind": "path_2d_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "curves",
             "description": "Projected monocle3 root-qualified lineage curves in the chosen 2D display space."
           }
         ],
@@ -5293,7 +5821,7 @@
       "name": "peakvi_fit",
       "title": "PeakVI fit (pybench)",
       "description": "Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.",
-      "search_text": "PeakVI fit (pybench)\nTrain a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.\nlatent\nmodel\npython\nmatrix\nTRUE\ncell_set\nselect\nspace\nPeakVI latent space written into the bundle spaces registry.\nmodel_ref\nSerialized PeakVI Python model payload (engine='peakvi').\nn_latent\nint\n20\n2\n1024\nTarget latent dimensionality for the emitted PeakVI space.\nn_layers\n1\n32\nNumber of hidden layers passed to the PeakVI model constructor.\nn_hidden\n256\n8192\nHidden width passed to the PeakVI model constructor.\ndropout\nnumber\n0.2\n0\nDropout rate passed to the PeakVI model constructor.\nbatch_key\nstring\nOptional observation field used as the PeakVI batch covariate.\nmax_epochs\n500\n1e+05\nMaximum training epochs passed through to scvi-tools.\nlr\n0.001\nOptional learning rate passed through in train plan_kwargs.\nearly_stopping\nbool\nIf TRUE, enable scvi-tools early stopping during PeakVI training.\nseed\n999999\nRandom seed for PeakVI training.\nuse_gpu\nFALSE\nIf TRUE, request GPU-backed training in scvi-tools.\nspace_id_out\npeakvi_space\nSpace id to write for the learned PeakVI latent embedding.",
+      "search_text": "PeakVI fit (pybench)\nTrain a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.\nlatent\nmodel\npython\nmatrix\nTRUE\ncell_set\nselect\nspace\nmaterialization\nFALSE\nPeakVI latent space written into the bundle spaces registry.\nmodel_ref\nterminal_artifact\nSerialized PeakVI Python model payload (engine='peakvi').\nn_latent\nint\n20\n2\n1024\nTarget latent dimensionality for the emitted PeakVI space.\nn_layers\n1\n32\nNumber of hidden layers passed to the PeakVI model constructor.\nn_hidden\n256\n8192\nHidden width passed to the PeakVI model constructor.\ndropout\nnumber\n0.2\n0\nDropout rate passed to the PeakVI model constructor.\nbatch_key\nstring\nOptional observation field used as the PeakVI batch covariate.\nmax_epochs\n500\n1e+05\nMaximum training epochs passed through to scvi-tools.\nlr\n0.001\nOptional learning rate passed through in train plan_kwargs.\nearly_stopping\nbool\nIf TRUE, enable scvi-tools early stopping during PeakVI training.\nseed\n999999\nRandom seed for PeakVI training.\nuse_gpu\nIf TRUE, request GPU-backed training in scvi-tools.\nspace_id_out\npeakvi_space\nSpace id to write for the learned PeakVI latent embedding.",
       "tags": ["op", "latent", "model", "python"],
       "payload": {
         "op_name": "peakvi_fit",
@@ -5315,11 +5843,21 @@
           {
             "name": "space",
             "kind": "space",
+            "output_name": "space",
+            "primitive_kind": "space",
+            "durability_role": "materialization",
+            "promotable_directly": false,
+            "materialized_by_terminals": "model",
             "description": "PeakVI latent space written into the bundle spaces registry."
           },
           {
             "name": "model",
             "kind": "model_ref",
+            "output_name": "model",
+            "primitive_kind": "model_ref",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "model",
             "description": "Serialized PeakVI Python model payload (engine='peakvi')."
           }
         ],
@@ -5426,7 +5964,7 @@
       "name": "scvi_train",
       "title": "scVI train (pybench)",
       "description": "Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.",
-      "search_text": "scVI train (pybench)\nTrain an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.\nlatent\nmodel\npython\nrna\ncounts\nmatrix\nTRUE\ncell_set\nselect\nspace\nscVI latent space written into the bundle spaces registry.\nmodel_ref\nSerialized scVI Python model payload (engine='scvi').\nfit_summary\nobs_table\nTraining summary, parameter, runtime, and metric table emitted by pybench.\nn_latent\nint\n30\n2\n1024\nTarget latent dimensionality for the emitted scVI space.\nn_hidden\n128\n1\n8192\nHidden width passed to the scVI model constructor.\nn_layers\n32\nNumber of hidden layers passed to the scVI model constructor.\ndropout\nnumber\n0.1\n0\nDropout rate passed to the scVI model constructor.\nbatch_key\nstring\nOptional cell metadata field used as the scVI batch covariate.\ncategorical_covariates\nstring_array\nOptional categorical cell metadata covariates passed to scVI setup_anndata.\ncontinuous_covariates\nOptional continuous cell metadata covariates passed to scVI setup_anndata.\nmax_epochs\n1e+05\nOptional maximum training epochs passed through to scvi-tools.\nearly_stopping\nbool\nIf TRUE, enable scvi-tools early stopping during scVI training.\nseed\n999999\nRandom seed for scVI training.\nuse_gpu\nFALSE\nIf TRUE, request GPU-backed training in scvi-tools.\noutput_space_id\nrna.scvi\nSpace id to write for the learned scVI latent embedding.\nmodel_artifact_id\nOptional preregistered model artifact id. NULL lets scworkbench assign one.\noverwrite\nIf TRUE, allow replacing an existing output_space_id.\nallow_non_counts\nIf TRUE, bypass raw/count-like matrix checks. Use only for intentional expert overrides.",
+      "search_text": "scVI train (pybench)\nTrain an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.\nlatent\nmodel\npython\nrna\ncounts\nmatrix\nTRUE\ncell_set\nselect\nspace\nmaterialization\nFALSE\nfit_summary\nscVI latent space written into the bundle spaces registry.\nmodel_ref\nterminal_artifact\nSerialized scVI Python model payload (engine='scvi').\nobs_table\nTraining summary, parameter, runtime, and metric table emitted by pybench.\nn_latent\nint\n30\n2\n1024\nTarget latent dimensionality for the emitted scVI space.\nn_hidden\n128\n1\n8192\nHidden width passed to the scVI model constructor.\nn_layers\n32\nNumber of hidden layers passed to the scVI model constructor.\ndropout\nnumber\n0.1\n0\nDropout rate passed to the scVI model constructor.\nbatch_key\nstring\nOptional cell metadata field used as the scVI batch covariate.\ncategorical_covariates\nstring_array\nOptional categorical cell metadata covariates passed to scVI setup_anndata.\ncontinuous_covariates\nOptional continuous cell metadata covariates passed to scVI setup_anndata.\nmax_epochs\n1e+05\nOptional maximum training epochs passed through to scvi-tools.\nearly_stopping\nbool\nIf TRUE, enable scvi-tools early stopping during scVI training.\nseed\n999999\nRandom seed for scVI training.\nuse_gpu\nIf TRUE, request GPU-backed training in scvi-tools.\noutput_space_id\nrna.scvi\nSpace id to write for the learned scVI latent embedding.\nmodel_artifact_id\nOptional preregistered model artifact id. NULL lets scworkbench assign one.\noverwrite\nIf TRUE, allow replacing an existing output_space_id.\nallow_non_counts\nIf TRUE, bypass raw/count-like matrix checks. Use only for intentional expert overrides.",
       "tags": ["op", "latent", "model", "python", "rna", "counts"],
       "payload": {
         "op_name": "scvi_train",
@@ -5448,16 +5986,31 @@
           {
             "name": "space",
             "kind": "space",
+            "output_name": "space",
+            "primitive_kind": "space",
+            "durability_role": "materialization",
+            "promotable_directly": false,
+            "materialized_by_terminals": ["model", "fit_summary"],
             "description": "scVI latent space written into the bundle spaces registry."
           },
           {
             "name": "model",
             "kind": "model_ref",
+            "output_name": "model",
+            "primitive_kind": "model_ref",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "model",
             "description": "Serialized scVI Python model payload (engine='scvi')."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Training summary, parameter, runtime, and metric table emitted by pybench."
           }
         ],
@@ -5587,7 +6140,7 @@
       "name": "peakvi_project",
       "title": "PeakVI project (pybench)",
       "description": "Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.",
-      "search_text": "PeakVI project (pybench)\nProject cells from an ATAC matrix through a saved PeakVI model and emit a latent space.\nprojection\nlatent\npython\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nspace\nProjected PeakVI latent space written into the bundle spaces registry.\nbatch_key\nstring\nOptional observation field used as the PeakVI batch covariate during projection.\nuse_gpu\nbool\nFALSE\nIf TRUE, request GPU-backed model loading/projection in scvi-tools.\nspace_id_out\npeakvi_project_space\nSpace id to write for the projected PeakVI latent embedding.",
+      "search_text": "PeakVI project (pybench)\nProject cells from an ATAC matrix through a saved PeakVI model and emit a latent space.\nprojection\nlatent\npython\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nspace\nmaterialization\nFALSE\nfit_summary\nProjected PeakVI latent space written into the bundle spaces registry.\nobs_table\nterminal_artifact\nProjection receipt and output-space summary.\nbatch_key\nstring\nOptional observation field used as the PeakVI batch covariate during projection.\nuse_gpu\nbool\nIf TRUE, request GPU-backed model loading/projection in scvi-tools.\nspace_id_out\npeakvi_project_space\nSpace id to write for the projected PeakVI latent embedding.",
       "tags": ["op", "projection", "latent", "python"],
       "payload": {
         "op_name": "peakvi_project",
@@ -5614,7 +6167,22 @@
           {
             "name": "space",
             "kind": "space",
+            "output_name": "space",
+            "primitive_kind": "space",
+            "durability_role": "materialization",
+            "promotable_directly": false,
+            "materialized_by_terminals": "fit_summary",
             "description": "Projected PeakVI latent space written into the bundle spaces registry."
+          },
+          {
+            "name": "fit_summary",
+            "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
+            "description": "Projection receipt and output-space summary."
           }
         ],
         "inputs": {
@@ -5653,7 +6221,7 @@
             "help": "Space id to write for the projected PeakVI latent embedding."
           }
         ],
-        "promotable": [],
+        "promotable": "fit_summary",
         "chunking": null
       }
     },
@@ -5663,7 +6231,7 @@
       "name": "space_path_define",
       "title": "Define analytical space path",
       "description": "Contract scaffold for checkpoint-anchored path construction in a named analytical space.",
-      "search_text": "Define analytical space path\nContract scaffold for checkpoint-anchored path construction in a named analytical space.\ntrajectory\ngeometry\npath\nspace\nTRUE\ncell_set\nselect\nspace_path_family\nAnalytical path in the original latent space.\ncheckpoint_sets\nstring_vec\nOrdered checkpoint cell-set refs that anchor the path definition.\nfit_mode\nchoice\nlinear\nmanifold_smooth\nPath fitting mode. The current implementation supports linear and a conservative manifold smoothing mode.\ncheckpoint_summary\ncentroid\nCheckpoint summarization rule used to derive anchors from checkpoint cells.\nn_path_points\nint\n2\n50000\nOptional explicit number of fitted path points.\nsmooth_k\n30\n5000\nFor fit_mode='manifold_smooth', number of nearest cells used per provisional path point.\nsmooth_n_iter\n1\n50\nFor fit_mode='manifold_smooth', number of refinement passes.\nsmooth_weight\ninverse_distance\ngaussian\nFor fit_mode='manifold_smooth', distance-weighting rule for local cell pull.\npath_id_out\nstring\nspace_path\nPath id to record for the emitted analytical path.",
+      "search_text": "Define analytical space path\nContract scaffold for checkpoint-anchored path construction in a named analytical space.\ntrajectory\ngeometry\npath\nspace\nTRUE\ncell_set\nselect\nspace_path_family\nterminal_artifact\nAnalytical path in the original latent space.\ncheckpoint_sets\nstring_vec\nOrdered checkpoint cell-set refs that anchor the path definition.\nfit_mode\nchoice\nlinear\nmanifold_smooth\nPath fitting mode. The current implementation supports linear and a conservative manifold smoothing mode.\ncheckpoint_summary\ncentroid\nCheckpoint summarization rule used to derive anchors from checkpoint cells.\nn_path_points\nint\n2\n50000\nOptional explicit number of fitted path points.\nsmooth_k\n30\n5000\nFor fit_mode='manifold_smooth', number of nearest cells used per provisional path point.\nsmooth_n_iter\n1\n50\nFor fit_mode='manifold_smooth', number of refinement passes.\nsmooth_weight\ninverse_distance\ngaussian\nFor fit_mode='manifold_smooth', distance-weighting rule for local cell pull.\npath_id_out\nstring\nspace_path\nPath id to record for the emitted analytical path.",
       "tags": ["op", "trajectory", "geometry", "path"],
       "payload": {
         "op_name": "space_path_define",
@@ -5685,6 +6253,11 @@
           {
             "name": "path",
             "kind": "space_path_family",
+            "output_name": "path",
+            "primitive_kind": "space_path_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "path",
             "description": "Analytical path in the original latent space."
           }
         ],
@@ -5769,7 +6342,7 @@
       "name": "space_path_score",
       "title": "Score cells against analytical path",
       "description": "Contract scaffold for path-relative scoring in a named analytical space.",
-      "search_text": "Score cells against analytical path\nContract scaffold for path-relative scoring in a named analytical space.\ntrajectory\ngeometry\npath\nspace\nTRUE\nspace_path_family\ncell_set\nselect\npath_scores\ncell_vector_family\nPer-cell path-relative scores such as progress and distance.\nfit_summary\nobs_table\nCompact path-level scoring diagnostics.\nscore_mode\nchoice\northogonal_projection\nScoring mode. The current implementation standardizes on orthogonal projection semantics.\ndistance_metric\neuclidean\nDistance metric used for path-relative scoring.\nscore_prefix\nstring\nOptional prefix for emitted score-family keys.",
+      "search_text": "Score cells against analytical path\nContract scaffold for path-relative scoring in a named analytical space.\ntrajectory\ngeometry\npath\nspace\nTRUE\nspace_path_family\ncell_set\nselect\npath_scores\ncell_vector_family\nterminal_artifact\nPer-cell path-relative scores such as progress and distance.\nfit_summary\nobs_table\nCompact path-level scoring diagnostics.\nscore_mode\nchoice\northogonal_projection\nScoring mode. The current implementation standardizes on orthogonal projection semantics.\ndistance_metric\neuclidean\nDistance metric used for path-relative scoring.\nscore_prefix\nstring\nOptional prefix for emitted score-family keys.",
       "tags": ["op", "trajectory", "geometry", "path"],
       "payload": {
         "op_name": "space_path_score",
@@ -5796,11 +6369,21 @@
           {
             "name": "path_scores",
             "kind": "cell_vector_family",
+            "output_name": "path_scores",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "path_scores",
             "description": "Per-cell path-relative scores such as progress and distance."
           },
           {
             "name": "fit_summary",
             "kind": "obs_table",
+            "output_name": "fit_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "fit_summary",
             "description": "Compact path-level scoring diagnostics."
           }
         ],
@@ -5852,7 +6435,7 @@
       "name": "space_path_project_2d",
       "title": "Project analytical path into 2D",
       "description": "Contract scaffold for projecting an analytical path into a drawable 2D path family.",
-      "search_text": "Project analytical path into 2D\nContract scaffold for projecting an analytical path into a drawable 2D path family.\ntrajectory\ngeometry\npath\ndisplay\nspace_path_family\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nApproximate 2D rendering of the analytical path.\nproject_mode\nchoice\nlocal_interpolation\nProjection mode used to approximate the analytical path in a 2D plot space.\napprox_points\nint\n2\n50000\nOptional target point count for display compaction.",
+      "search_text": "Project analytical path into 2D\nContract scaffold for projecting an analytical path into a drawable 2D path family.\ntrajectory\ngeometry\npath\ndisplay\nspace_path_family\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nterminal_artifact\nApproximate 2D rendering of the analytical path.\nproject_mode\nchoice\nlocal_interpolation\nProjection mode used to approximate the analytical path in a 2D plot space.\napprox_points\nint\n2\n50000\nOptional target point count for display compaction.",
       "tags": ["op", "trajectory", "geometry", "path", "display"],
       "payload": {
         "op_name": "space_path_project_2d",
@@ -5879,6 +6462,11 @@
           {
             "name": "curves",
             "kind": "path_2d_family",
+            "output_name": "curves",
+            "primitive_kind": "path_2d_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "curves",
             "description": "Approximate 2D rendering of the analytical path."
           }
         ],
@@ -5925,7 +6513,7 @@
       "name": "palantir_fit",
       "title": "Palantir fit (pybench)",
       "description": "Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.",
-      "search_text": "Palantir fit (pybench)\nRun Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.\ntrajectory\nfit_space\nspace\nTRUE\ncell_set\nselect\npseudotime\ncell_vector\nPalantir pseudotime (single-root, global).\nbranch_membership\nrelation_family\nPalantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).\nbranch_summary\nobs_table\nPalantir branch probability summary table.\nentropy\nPalantir entropy per cell.\nmodel\nmodel_ref\nPalantir Python model payload (engine='palantir').\nroot_cell\nstring\nSingle Palantir early/root cell ID (Palantir-native single-root semantics).\nterminal_cells\ncell_ids\nOptional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities).\ndims\nstring_vec\nOptional fit-space dimensions to use (for example 1:20 as explicit integer vector).\nknn\nint\n30\n2\n1000\nkNN size for Palantir diffusion graph and pseudotime.\nn_diffusion_components\n10\n200\nNumber of diffusion components for Palantir.\nn_waypoints\n300\n10000\nNumber of Palantir waypoints.\nuse_early_cell_as_start\nbool\nPass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start.\nseed\n20\n0\n999999\nRandom seed for Palantir stochastic steps.",
+      "search_text": "Palantir fit (pybench)\nRun Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.\ntrajectory\nfit_space\nspace\nTRUE\ncell_set\nselect\npseudotime\ncell_vector\nterminal_artifact\nPalantir pseudotime (single-root, global).\nbranch_membership\nrelation_family\nPalantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).\nbranch_summary\nobs_table\nPalantir branch probability summary table.\nentropy\nPalantir entropy per cell.\nmodel\nmodel_ref\nPalantir Python model payload (engine='palantir').\nroot_cell\nstring\nSingle Palantir early/root cell ID (Palantir-native single-root semantics).\nterminal_cells\ncell_ids\nOptional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities).\ndims\nstring_vec\nOptional fit-space dimensions to use (for example 1:20 as explicit integer vector).\nknn\nint\n30\n2\n1000\nkNN size for Palantir diffusion graph and pseudotime.\nn_diffusion_components\n10\n200\nNumber of diffusion components for Palantir.\nn_waypoints\n300\n10000\nNumber of Palantir waypoints.\nuse_early_cell_as_start\nbool\nPass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start.\nseed\n20\n0\n999999\nRandom seed for Palantir stochastic steps.",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "palantir_fit",
@@ -5947,26 +6535,51 @@
           {
             "name": "pseudotime",
             "kind": "cell_vector",
+            "output_name": "pseudotime",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudotime",
             "description": "Palantir pseudotime (single-root, global)."
           },
           {
             "name": "branch_membership",
             "kind": "relation_family",
+            "output_name": "branch_membership",
+            "primitive_kind": "relation_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "branch_membership",
             "description": "Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities)."
           },
           {
             "name": "branch_summary",
             "kind": "obs_table",
+            "output_name": "branch_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "branch_summary",
             "description": "Palantir branch probability summary table."
           },
           {
             "name": "entropy",
             "kind": "cell_vector",
+            "output_name": "entropy",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "entropy",
             "description": "Palantir entropy per cell."
           },
           {
             "name": "model",
             "kind": "model_ref",
+            "output_name": "model",
+            "primitive_kind": "model_ref",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "model",
             "description": "Palantir Python model payload (engine='palantir')."
           }
         ],
@@ -6051,7 +6664,7 @@
       "name": "palantir_project",
       "title": "Palantir project trajectories",
       "description": "Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.",
-      "search_text": "Palantir project trajectories\nProject Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nPalantir-style smoothed branch trajectories projected into the chosen 2D display space.\nprob_min\ndbl\n0.05\n0\n1\nMinimum branch probability mask threshold for branch trajectory interpolation.\nsmoothness\n20\nPalantir-style mellon trajectory smoothing multiplier (higher = smoother).\nmin_cells_per_branch\nint\n50\n2\n1e+06\nMinimum eligible cells required to derive a branch trajectory.\napprox_points\n200\n5000\nNumber of trajectory sample points per branch (curve resolution).",
+      "search_text": "Palantir project trajectories\nProject Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\ncurves\npath_2d_family\nterminal_artifact\nPalantir-style smoothed branch trajectories projected into the chosen 2D display space.\nprob_min\ndbl\n0.05\n0\n1\nMinimum branch probability mask threshold for branch trajectory interpolation.\nsmoothness\n20\nPalantir-style mellon trajectory smoothing multiplier (higher = smoother).\nmin_cells_per_branch\nint\n50\n2\n1e+06\nMinimum eligible cells required to derive a branch trajectory.\napprox_points\n200\n5000\nNumber of trajectory sample points per branch (curve resolution).",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "palantir_project",
@@ -6078,6 +6691,11 @@
           {
             "name": "curves",
             "kind": "path_2d_family",
+            "output_name": "curves",
+            "primitive_kind": "path_2d_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "curves",
             "description": "Palantir-style smoothed branch trajectories projected into the chosen 2D display space."
           }
         ],
@@ -11473,9 +12091,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-07-18T14:36:08+0200",
+    "generated_at": "2026-07-24T20:27:33+0200",
     "node_count": 304,
-    "edge_count": 881,
+    "edge_count": 880,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -14217,18 +14835,6 @@
       },
       {
         "from": "op:feature_set_namespace_transfer",
-        "to": "parameter:source_matrix_id",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:source_matrix_id"
-      },
-      {
-        "from": "op:feature_set_namespace_transfer",
-        "to": "parameter:target_matrix_id",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:target_matrix_id"
-      },
-      {
-        "from": "op:feature_set_namespace_transfer",
         "to": "parameter:namespace",
         "edge_type": "has_parameter_semantics",
         "label": "param:namespace"
@@ -16086,6 +16692,12 @@
         "to": "primitive:space",
         "edge_type": "produces",
         "label": "output:space"
+      },
+      {
+        "from": "op:peakvi_project",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:fit_summary"
       },
       {
         "from": "primitive:space",

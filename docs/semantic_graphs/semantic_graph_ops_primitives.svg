@@ -153,6 +153,7 @@
 <line x1="300" y1="2047" x2="370" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:pca_fit produces primitive:space</title></line>
 <line x1="300" y1="2119" x2="370" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_fit produces primitive:model_ref</title></line>
 <line x1="300" y1="2119" x2="370" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_fit produces primitive:space</title></line>
+<line x1="300" y1="2191" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_project produces primitive:obs_table</title></line>
 <line x1="300" y1="2191" x2="370" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_project produces primitive:space</title></line>
 <line x1="300" y1="2263" x2="370" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:scvi_train produces primitive:model_ref</title></line>
 <line x1="300" y1="2263" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:scvi_train produces primitive:obs_table</title></line>

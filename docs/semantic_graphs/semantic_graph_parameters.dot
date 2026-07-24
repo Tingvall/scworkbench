@@ -160,8 +160,6 @@ digraph scworkbench_semantic_graph {
   n14 -> n77 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];
   n14 -> n83 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];
   n14 -> n86 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];
-  n14 -> n101 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];
-  n14 -> n109 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];
   n14 -> n110 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];
   n15 -> n56 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];
   n15 -> n60 [label="has_parameter_semantics", style=dashed,color="#b24c6a"];

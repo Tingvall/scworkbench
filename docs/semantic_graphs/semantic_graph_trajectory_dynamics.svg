@@ -379,6 +379,7 @@
 <line x1="960" y1="1255" x2="1690" y2="607" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:palantir_fit produces primitive:relation_family</title></line>
 <line x1="960" y1="1327" x2="1690" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:palantir_project produces primitive:path_2d_family</title></line>
 <line x1="960" y1="1399" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:pathway_enrich produces primitive:obs_table</title></line>
+<line x1="960" y1="1471" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_project produces primitive:obs_table</title></line>
 <line x1="960" y1="1471" x2="1690" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_project produces primitive:space</title></line>
 <line x1="960" y1="1543" x2="1690" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot produces primitive:cell_vector_family</title></line>
 <line x1="960" y1="1543" x2="1690" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot produces primitive:path_2d_family</title></line>

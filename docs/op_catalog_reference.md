@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-07-18T14:36:07+0200
+Generated at: 2026-07-24T20:27:31+0200
 
 Operation count: 54
 
@@ -18,8 +18,8 @@ Intent: cluster
 Description: Graph clustering on a kNN graph derived from an embedding space.
 
 Consumes:
-- `space`: space
-- `cell_set`: select
+- `space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `clusters`: cell_vector - Cluster label per cell (categorical cell vector).
@@ -41,8 +41,8 @@ Intent: matrix, normalize, rna, transform
 Description: Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `matrix`: matrix - Reference to the newly registered log-normalized matrix.
@@ -65,8 +65,8 @@ Intent: matrix, feature_selection, rna, hvg
 Description: Select highly variable features from a matrix using chunked feature-wise summaries.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `selected_features`: feature_table - Feature-wise mean, variance, dispersion, score, rank, and selected flag.
@@ -95,9 +95,9 @@ Intent: matrix, pca, space, rna, dimension_reduction
 Description: Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.
 
 Consumes:
-- `matrix`: matrix
-- `features`: feature_table
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `features`: feature_table [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `space`: space - Reference to the persisted PCA space.
@@ -127,8 +127,8 @@ Intent: umap, fit
 Description: Fit a UMAP model on a space and store it for future projection.
 
 Consumes:
-- `space`: space
-- `cell_set`: select
+- `space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `model`: model_ref - Reference to the fitted UMAP model.
@@ -155,9 +155,9 @@ Intent: projection, umap
 Description: Project cells into an existing UMAP using a stored model.
 
 Consumes:
-- `model`: model_ref
-- `in_space`: space
-- `cell_set`: select
+- `model`: model_ref [terminal artifact]
+- `in_space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `space_2d`: space_2d - Projected x/y in the target UMAP space.
@@ -177,8 +177,8 @@ Intent: expression, signature, score
 Description: Seurat-style module scoring using matched control features by expression bin.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `module_scores`: cell_vector_family - Per-cell module scores for one or more signatures.
@@ -202,8 +202,8 @@ Intent: expression, signature, score
 Description: Rank-based per-cell signature scoring using the UCell method.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `signature_scores`: cell_vector_family - Per-cell UCell scores for one or more signatures.
@@ -229,8 +229,8 @@ Intent: label, reduce, signal
 Description: Compress a cell_vector_family into one categorical cell_vector using explicit reduction and abstention rules.
 
 Consumes:
-- `signal`: cell_vector_family
-- `cell_set`: select
+- `signal`: cell_vector_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `label`: cell_vector - Per-cell categorical labels after reducing the signal family.
@@ -261,8 +261,8 @@ Intent: signal, calibrate, normalize
 Description: Normalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.
 
 Consumes:
-- `signal`: cell_vector_family
-- `cell_set`: select
+- `signal`: cell_vector_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `calibrated_signal`: cell_vector_family - Calibrated per-cell values for each key in the signal family.
@@ -287,9 +287,9 @@ Intent: signal, qc, diagnostics
 Description: Compute per-key and pairwise diagnostics for one keyed per-cell signal family.
 
 Consumes:
-- `signal`: cell_vector_family
-- `grouping`: cell_vector
-- `cell_set`: select
+- `signal`: cell_vector_family [terminal artifact]
+- `grouping`: cell_vector [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `key_summary`: obs_table - Per-key QC summaries including score distribution, finite coverage, and winner frequencies.
@@ -312,9 +312,9 @@ Intent: signal, smoothing, geometry
 Description: Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.
 
 Consumes:
-- `signal`: cell_vector_family
-- `space`: space
-- `cell_set`: select
+- `signal`: cell_vector_family [terminal artifact]
+- `space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `smoothed_signal`: cell_vector_family - Geometry-smoothed per-cell values for each selected key.
@@ -344,8 +344,8 @@ Intent: signal, labeling, winner
 Description: Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.
 
 Consumes:
-- `signal`: cell_vector_family
-- `cell_set`: select
+- `signal`: cell_vector_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `winners`: obs_table - Per-cell winner, runner-up, confidence, and pruning table.
@@ -369,8 +369,8 @@ Intent: signal, labeling, cell_sets
 Description: Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.
 
 Consumes:
-- `winners`: obs_table
-- `cell_set`: select
+- `winners`: obs_table [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `manifest`: obs_table - One row per registered winner cell set.
@@ -395,8 +395,8 @@ Intent: atac, motif, signature, score
 Description: Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `deviation_z`: cell_vector_family - Per-cell chromVAR z-scores keyed by motif.
@@ -429,8 +429,8 @@ Intent: de, markers, comparison
 Description: Wilcoxon rank-sum DE between two cell groups (A vs B).
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `de_table`: feature_table - Feature-level DE statistics table.
@@ -453,9 +453,9 @@ Intent: markers, cluster
 Description: One-vs-rest Wilcoxon marker ranking for each cluster.
 
 Consumes:
-- `matrix`: matrix
-- `clusters`: cell_vector
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `clusters`: cell_vector [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `markers`: feature_table - Cluster-marker table with per-feature statistics.
@@ -477,9 +477,9 @@ Intent: pathway, enrichment
 Description: Hypergeometric enrichment against all feature sets in a namespace.
 
 Consumes:
-- `matrix`: matrix
-- `feature_table`: feature_table
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `feature_table`: feature_table [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pathways`: obs_table - Pathway enrichment statistics for one namespace.
@@ -508,8 +508,8 @@ Intent: feature_set, import, gene_set, provenance, library
 Description: Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `import_summary`: obs_table - One-row summary of parsed/imported/skipped/rejected set counts.
@@ -545,8 +545,8 @@ Intent: feature_set, qc, gene_set, screening, trajectory
 Description: Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `overlap_qc`: obs_table - One row per feature set with raw, mapped, detected counts and include/exclude status.
@@ -572,7 +572,7 @@ Intent: feature_set, transfer, namespace, matrix, provenance
 Description: Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.
 
 Consumes:
-- `cell_set`: select
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `transfer_summary`: obs_table - Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.
@@ -582,8 +582,6 @@ Produces:
 Promotable outputs: transfer_summary, transfer_manifest, transfer_rejected
 
 Key parameters:
-- `source_matrix_id` (string, default=NULL): Source matrix containing the existing matrix-scoped feature-set namespace.
-- `target_matrix_id` (string, default=NULL): Target matrix that will receive transferred feature-set memberships.
 - `namespace` (string, default=NULL): Single source namespace to transfer.
 - `namespaces` (string_vec, default=NULL): Optional multiple source namespaces to transfer.
 - `feature_sets` (string_vec, default=NULL): Optional feature-set subset within selected source namespaces.
@@ -605,7 +603,7 @@ Intent: annotation, metadata
 Description: Build a categorical cell vector by parsing cell_id suffix tokens.
 
 Consumes:
-- `cell_set`: select
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `labels`: cell_vector - Categorical label per cell from suffix parsing.
@@ -627,7 +625,7 @@ Intent: selection, provenance, registry
 Description: Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.
 
 Consumes:
-- `cell_set`: select
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `manifest`: obs_table - One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary.
@@ -653,9 +651,9 @@ Intent: statistics, association, confounding
 Description: Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
 
 Consumes:
-- `vector_cont`: cell_vector - Examples: pseudotime, module score, gene-program score.
-- `vector_group`: cell_vector - Examples: cluster labels, cell type labels, condition labels.
-- `cell_set`: select
+- `vector_cont`: cell_vector [terminal artifact] - Examples: pseudotime, module score, gene-program score.
+- `vector_group`: cell_vector [terminal artifact] - Examples: cluster labels, cell type labels, condition labels.
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `assoc_summary`: feature_table - Omnibus association test summary (Kruskal/ANOVA).
@@ -675,9 +673,9 @@ Intent: statistics, comparison, signal
 Description: Compare two cell-level signals on their shared cell universe in raw or rank space.
 
 Consumes:
-- `a`: cell_vector - Continuous or rankable numeric signal per cell.
-- `b`: cell_vector - Continuous or rankable numeric signal per cell.
-- `cell_set`: select
+- `a`: cell_vector [terminal artifact] - Continuous or rankable numeric signal per cell.
+- `b`: cell_vector [terminal artifact] - Continuous or rankable numeric signal per cell.
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `summary`: obs_table - One-row comparison summary with concordance and delta metrics.
@@ -700,9 +698,9 @@ Intent: trend, statistics, trajectory
 Description: Feature-level Spearman trend testing against continuous pseudotime-like vectors.
 
 Consumes:
-- `matrix`: matrix
-- `pseudotime`: cell_vector
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `pseudotime`: cell_vector [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `trend_table`: feature_table - Per-feature trend statistics (rho, p, adjusted p).
@@ -725,9 +723,9 @@ Intent: trajectory, trend, statistics
 Description: Lineage-aware feature trend testing against trajectory pseudotime from model_ref.
 
 Consumes:
-- `matrix`: matrix
-- `model`: model_ref
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `de_table`: feature_table - Per-lineage feature trend statistics (rho, p, adjusted p).
@@ -754,9 +752,9 @@ Intent: trajectory, summary, expression
 Description: Summarize per-feature expression along trajectory pseudotime into reusable trend tables.
 
 Consumes:
-- `matrix`: matrix
-- `model`: model_ref
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `trend_table`: obs_table - Per-feature binned expression summaries along trajectory pseudotime.
@@ -782,10 +780,10 @@ Intent: trajectory, comparison, statistics
 Description: Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.
 
 Consumes:
-- `matrix`: matrix
-- `pseudotime`: cell_vector_family
-- `branch_membership`: relation_family
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `pseudotime`: cell_vector_family [terminal artifact]
+- `branch_membership`: relation_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `branch_de_table`: feature_table - Per-feature branch comparison statistics and effect sizes.
@@ -810,9 +808,9 @@ Intent: trajectory, summary, signature
 Description: Summarize feature-set signature scores along trajectory pseudotime into reusable trend tables.
 
 Consumes:
-- `matrix`: matrix
-- `model`: model_ref
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `signature_table`: obs_table - Per-signature binned summaries along trajectory pseudotime.
@@ -837,10 +835,10 @@ Intent: trajectory, pathway, discovery, signature
 Description: Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.
 
 Consumes:
-- `matrix`: matrix
-- `model`: model_ref
-- `pseudotime`: cell_vector_family
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `pseudotime`: cell_vector_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `signature_table`: obs_table - Binned feature-set score curves along trajectory pseudotime.
@@ -898,10 +896,10 @@ Intent: trajectory, summary, route
 Description: Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.
 
 Consumes:
-- `matrix`: matrix
-- `pseudotime`: cell_vector
-- `branch_membership`: relation_family
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `pseudotime`: cell_vector [terminal artifact]
+- `branch_membership`: relation_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `trend_table`: obs_table - Per-feature binned summaries along a selected route.
@@ -929,9 +927,9 @@ Intent: trajectory, summary, signal
 Description: Summarize cell-level signal families along trajectory pseudotime into reusable trend tables.
 
 Consumes:
-- `signal`: cell_vector_family
-- `model`: model_ref
-- `cell_set`: select
+- `signal`: cell_vector_family [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `signal_table`: obs_table - Per-signal binned summaries along trajectory pseudotime.
@@ -955,10 +953,10 @@ Intent: trajectory, signal, discovery, dynamics
 Description: Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.
 
 Consumes:
-- `signal`: cell_vector_family
-- `model`: model_ref
-- `pseudotime`: cell_vector_family
-- `cell_set`: select
+- `signal`: cell_vector_family [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `pseudotime`: cell_vector_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `signal_table`: obs_table - Binned signal-score curves along trajectory pseudotime.
@@ -1000,9 +998,9 @@ Intent: pseudobulk, neighbors, projection
 Description: Find k nearest neighbors in latent space around query cells and aggregate matrix values.
 
 Consumes:
-- `matrix`: matrix
-- `space`: space
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pseudobulk_table`: feature_table - Feature-level pseudobulk values keyed by query cell.
@@ -1027,8 +1025,8 @@ Intent: neighbors, geometry, projection
 Description: Find nearest neighbors in a latent space without requiring matrix aggregation.
 
 Consumes:
-- `space`: space
-- `cell_set`: select
+- `space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `neighbors`: obs_table - Per-query neighbor table (cell_id, rank, distance).
@@ -1051,10 +1049,10 @@ Intent: trajectory
 Description: Infer lineage curves and pseudotime from clusters in a 2D space.
 
 Consumes:
-- `space`: space
-- `plot_space`: space
-- `clusters`: cell_vector
-- `cell_set`: select
+- `space`: space [terminal artifact]
+- `plot_space`: space [terminal artifact]
+- `clusters`: cell_vector [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pseudotime`: cell_vector_family - Lineage-specific pseudotime values per cell.
@@ -1078,9 +1076,9 @@ Intent: trajectory
 Description: Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
 
 Consumes:
-- `fit_space`: space
-- `clusters`: cell_vector
-- `cell_set`: select
+- `fit_space`: space [terminal artifact]
+- `clusters`: cell_vector [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pseudotime`: cell_vector_family - Lineage-specific pseudotime values per cell (fit space inference).
@@ -1109,8 +1107,8 @@ Intent: trajectory, provenance, backfill
 Description: Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
 
 Consumes:
-- `model`: model_ref
-- `cell_set`: select
+- `model`: model_ref [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `lineage_weights`: cell_vector_family - Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.
@@ -1129,7 +1127,7 @@ Intent: trajectory, provenance, composition
 Description: Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
 
 Consumes:
-- `cell_set`: select
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `composite_pseudotime_unit_segment`: cell_vector_family - Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.
@@ -1157,12 +1155,12 @@ Intent: trajectory, adapter, composition, provenance
 Description: Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.
 
 Consumes:
-- `pseudotime`: cell_vector_family
-- `model`: model_ref
-- `lineage_weights`: cell_vector_family
-- `confidence`: cell_vector_family
-- `path`: path_2d_family
-- `cell_set`: select
+- `pseudotime`: cell_vector_family [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `lineage_weights`: cell_vector_family [terminal artifact]
+- `confidence`: cell_vector_family [terminal artifact]
+- `path`: path_2d_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pseudotime`: cell_vector_family - Fitted-model segment pseudotime for the selected lineage/key.
@@ -1192,9 +1190,9 @@ Intent: trajectory, bridge, composition, geometry
 Description: Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
 
 Consumes:
-- `path_scores`: cell_vector_family
-- `display_path`: path_2d_family
-- `cell_set`: select
+- `path_scores`: cell_vector_family [terminal artifact]
+- `display_path`: path_2d_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pseudotime`: cell_vector_family - Bridge pseudotime from path arclength progress in [0,1].
@@ -1235,7 +1233,7 @@ Intent: trajectory, visualization, provenance, composition
 Description: Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.
 
 Consumes:
-- `cell_set`: select
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `curves`: path_2d_family - Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.
@@ -1263,9 +1261,9 @@ Intent: trajectory
 Description: Project a fitted Slingshot model into a 2D display space (e.g. UMAP).
 
 Consumes:
-- `model`: model_ref
-- `plot_space`: space_2d
-- `cell_set`: select
+- `model`: model_ref [terminal artifact]
+- `plot_space`: space_2d [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `curves`: path_2d_family - Projected Slingshot lineage curves in the chosen 2D display space.
@@ -1286,8 +1284,8 @@ Intent: trajectory
 Description: Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
 
 Consumes:
-- `fit_space`: space
-- `cell_set`: select
+- `fit_space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pseudotime`: cell_vector - Rooted global pseudotime per cell from monocle3.
@@ -1320,9 +1318,9 @@ Intent: trajectory
 Description: Project a fitted monocle3 trajectory graph into a 2D display space.
 
 Consumes:
-- `model`: model_ref
-- `plot_space`: space_2d
-- `cell_set`: select
+- `model`: model_ref [terminal artifact]
+- `plot_space`: space_2d [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `curves`: path_2d_family - Projected monocle3 root-qualified lineage curves in the chosen 2D display space.
@@ -1341,8 +1339,8 @@ Intent: latent, model, python
 Description: Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `space`: space - PeakVI latent space written into the bundle spaces registry.
@@ -1372,8 +1370,8 @@ Intent: latent, model, python, rna, counts
 Description: Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.
 
 Consumes:
-- `matrix`: matrix
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `space`: space - scVI latent space written into the bundle spaces registry.
@@ -1408,14 +1406,15 @@ Intent: projection, latent, python
 Description: Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
 
 Consumes:
-- `matrix`: matrix
-- `model`: model_ref
-- `cell_set`: select
+- `matrix`: matrix [terminal artifact]
+- `model`: model_ref [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `space`: space - Projected PeakVI latent space written into the bundle spaces registry.
+- `fit_summary`: obs_table - Projection receipt and output-space summary.
 
-Promotable outputs: (none)
+Promotable outputs: fit_summary
 
 Key parameters:
 - `batch_key` (string, default=NULL): Optional observation field used as the PeakVI batch covariate during projection.
@@ -1431,8 +1430,8 @@ Intent: trajectory, geometry, path
 Description: Contract scaffold for checkpoint-anchored path construction in a named analytical space.
 
 Consumes:
-- `space`: space
-- `cell_set`: select
+- `space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `path`: space_path_family - Analytical path in the original latent space.
@@ -1458,9 +1457,9 @@ Intent: trajectory, geometry, path
 Description: Contract scaffold for path-relative scoring in a named analytical space.
 
 Consumes:
-- `space`: space
-- `path`: space_path_family
-- `cell_set`: select
+- `space`: space [terminal artifact]
+- `path`: space_path_family [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `path_scores`: cell_vector_family - Per-cell path-relative scores such as progress and distance.
@@ -1482,9 +1481,9 @@ Intent: trajectory, geometry, path, display
 Description: Contract scaffold for projecting an analytical path into a drawable 2D path family.
 
 Consumes:
-- `path`: space_path_family
-- `plot_space`: space_2d
-- `cell_set`: select
+- `path`: space_path_family [terminal artifact]
+- `plot_space`: space_2d [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `curves`: path_2d_family - Approximate 2D rendering of the analytical path.
@@ -1504,8 +1503,8 @@ Intent: trajectory
 Description: Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.
 
 Consumes:
-- `fit_space`: space
-- `cell_set`: select
+- `fit_space`: space [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `pseudotime`: cell_vector - Palantir pseudotime (single-root, global).
@@ -1535,9 +1534,9 @@ Intent: trajectory
 Description: Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.
 
 Consumes:
-- `model`: model_ref
-- `plot_space`: space_2d
-- `cell_set`: select
+- `model`: model_ref [terminal artifact]
+- `plot_space`: space_2d [terminal artifact]
+- `cell_set`: select [terminal artifact]
 
 Produces:
 - `curves`: path_2d_family - Palantir-style smoothed branch trajectories projected into the chosen 2D display space.
@@ -1549,3 +1548,4 @@ Key parameters:
 - `smoothness` (dbl, default=1): Palantir-style mellon trajectory smoothing multiplier (higher = smoother).
 - `min_cells_per_branch` (int, default=50): Minimum eligible cells required to derive a branch trajectory.
 - `approx_points` (int, default=200): Number of trajectory sample points per branch (curve resolution).
+

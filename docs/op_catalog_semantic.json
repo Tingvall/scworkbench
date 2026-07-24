@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-07-18T14:36:07+0200",
+  "generated_at": "2026-07-24T20:27:31+0200",
   "op_count": 54,
   "ops": [
     {
@@ -23,6 +23,11 @@
         {
           "name": "clusters",
           "kind": "cell_vector",
+          "output_name": "clusters",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "clusters",
           "description": "Cluster label per cell (categorical cell vector)."
         }
       ],
@@ -92,11 +97,21 @@
         {
           "name": "matrix",
           "kind": "matrix",
+          "output_name": "matrix",
+          "primitive_kind": "matrix",
+          "durability_role": "materialization",
+          "promotable_directly": false,
+          "materialized_by_terminals": "summary",
           "description": "Reference to the newly registered log-normalized matrix."
         },
         {
           "name": "summary",
           "kind": "obs_table",
+          "output_name": "summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "summary",
           "description": "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
         }
       ],
@@ -163,11 +178,21 @@
         {
           "name": "selected_features",
           "kind": "feature_table",
+          "output_name": "selected_features",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "selected_features",
           "description": "Feature-wise mean, variance, dispersion, score, rank, and selected flag."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Input matrix, method, filters, dimensions, and selection counts."
         }
       ],
@@ -287,21 +312,41 @@
         {
           "name": "space",
           "kind": "space",
+          "output_name": "space",
+          "primitive_kind": "space",
+          "durability_role": "materialization",
+          "promotable_directly": false,
+          "materialized_by_terminals": ["loadings", "variance", "fit_summary"],
           "description": "Reference to the persisted PCA space."
         },
         {
           "name": "loadings",
           "kind": "feature_table",
+          "output_name": "loadings",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "loadings",
           "description": "Feature loadings per principal component."
         },
         {
           "name": "variance",
           "kind": "obs_table",
+          "output_name": "variance",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "variance",
           "description": "Per-PC standard deviation and variance explained."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Input matrix, feature count, backend, component count, and output space id."
         }
       ],
@@ -404,11 +449,21 @@
         {
           "name": "model",
           "kind": "model_ref",
+          "output_name": "model",
+          "primitive_kind": "model_ref",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "model",
           "description": "Reference to the fitted UMAP model."
         },
         {
           "name": "space_2d",
           "kind": "space_2d",
+          "output_name": "space_2d",
+          "primitive_kind": "space_2d",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "space_2d",
           "description": "The fitted 2D embedding space id."
         }
       ],
@@ -509,6 +564,11 @@
         {
           "name": "space_2d",
           "kind": "space_2d",
+          "output_name": "space_2d",
+          "primitive_kind": "space_2d",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "space_2d",
           "description": "Projected x/y in the target UMAP space."
         }
       ],
@@ -566,6 +626,11 @@
         {
           "name": "module_scores",
           "kind": "cell_vector_family",
+          "output_name": "module_scores",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "module_scores",
           "description": "Per-cell module scores for one or more signatures."
         }
       ],
@@ -646,11 +711,21 @@
         {
           "name": "signature_scores",
           "kind": "cell_vector_family",
+          "output_name": "signature_scores",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "signature_scores",
           "description": "Per-cell UCell scores for one or more signatures."
         },
         {
           "name": "signature_summary",
           "kind": "obs_table",
+          "output_name": "signature_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "signature_summary",
           "description": "Per-signature scoring summary and feature-match diagnostics."
         }
       ],
@@ -751,36 +826,71 @@
         {
           "name": "label",
           "kind": "cell_vector",
+          "output_name": "label",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "label",
           "description": "Per-cell categorical labels after reducing the signal family."
         },
         {
           "name": "top_score",
           "kind": "cell_vector",
+          "output_name": "top_score",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "top_score",
           "description": "Winning score for each cell."
         },
         {
           "name": "runner_up_score",
           "kind": "cell_vector",
+          "output_name": "runner_up_score",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "runner_up_score",
           "description": "Second-best score for each cell."
         },
         {
           "name": "score_margin",
           "kind": "cell_vector",
+          "output_name": "score_margin",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "score_margin",
           "description": "Winning minus runner-up score for each cell."
         },
         {
           "name": "abstain_reason",
           "kind": "cell_vector",
+          "output_name": "abstain_reason",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "abstain_reason",
           "description": "Per-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`)."
         },
         {
           "name": "decision_table",
           "kind": "obs_table",
+          "output_name": "decision_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "decision_table",
           "description": "Per-cell reduction diagnostics including label, scores, margin, and abstention reason."
         },
         {
           "name": "label_summary",
           "kind": "obs_table",
+          "output_name": "label_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "label_summary",
           "description": "Per-label counts and score summaries after reduction."
         }
       ],
@@ -871,11 +981,21 @@
         {
           "name": "calibrated_signal",
           "kind": "cell_vector_family",
+          "output_name": "calibrated_signal",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "calibrated_signal",
           "description": "Calibrated per-cell values for each key in the signal family."
         },
         {
           "name": "calibration_summary",
           "kind": "obs_table",
+          "output_name": "calibration_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "calibration_summary",
           "description": "Per-key calibration statistics for raw and calibrated values."
         }
       ],
@@ -959,16 +1079,31 @@
         {
           "name": "key_summary",
           "kind": "obs_table",
+          "output_name": "key_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "key_summary",
           "description": "Per-key QC summaries including score distribution, finite coverage, and winner frequencies."
         },
         {
           "name": "pairwise_summary",
           "kind": "obs_table",
+          "output_name": "pairwise_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pairwise_summary",
           "description": "Pairwise key relationships including overlap counts and correlations."
         },
         {
           "name": "group_summary",
           "kind": "obs_table",
+          "output_name": "group_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "group_summary",
           "description": "Per-group per-key QC summaries when an optional grouping vector is supplied."
         }
       ],
@@ -1038,11 +1173,21 @@
         {
           "name": "smoothed_signal",
           "kind": "cell_vector_family",
+          "output_name": "smoothed_signal",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "smoothed_signal",
           "description": "Geometry-smoothed per-cell values for each selected key."
         },
         {
           "name": "smoothing_summary",
           "kind": "obs_table",
+          "output_name": "smoothing_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "smoothing_summary",
           "description": "Per-key smoothing diagnostics and parameter echo."
         }
       ],
@@ -1161,6 +1306,11 @@
         {
           "name": "winners",
           "kind": "obs_table",
+          "output_name": "winners",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "winners",
           "description": "Per-cell winner, runner-up, confidence, and pruning table."
         }
       ],
@@ -1240,6 +1390,11 @@
         {
           "name": "manifest",
           "kind": "obs_table",
+          "output_name": "manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "manifest",
           "description": "One row per registered winner cell set."
         }
       ],
@@ -1322,16 +1477,31 @@
         {
           "name": "deviation_z",
           "kind": "cell_vector_family",
+          "output_name": "deviation_z",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "deviation_z",
           "description": "Per-cell chromVAR z-scores keyed by motif."
         },
         {
           "name": "deviation_raw",
           "kind": "cell_vector_family",
+          "output_name": "deviation_raw",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "deviation_raw",
           "description": "Per-cell raw chromVAR deviations keyed by motif."
         },
         {
           "name": "motif_summary",
           "kind": "obs_table",
+          "output_name": "motif_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "motif_summary",
           "description": "Per-motif chromVAR summary statistics."
         }
       ],
@@ -1465,6 +1635,11 @@
         {
           "name": "de_table",
           "kind": "feature_table",
+          "output_name": "de_table",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "de_table",
           "description": "Feature-level DE statistics table."
         }
       ],
@@ -1542,6 +1717,11 @@
         {
           "name": "markers",
           "kind": "feature_table",
+          "output_name": "markers",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "markers",
           "description": "Cluster-marker table with per-feature statistics."
         }
       ],
@@ -1619,6 +1799,11 @@
         {
           "name": "pathways",
           "kind": "obs_table",
+          "output_name": "pathways",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pathways",
           "description": "Pathway enrichment statistics for one namespace."
         }
       ],
@@ -1736,16 +1921,31 @@
         {
           "name": "import_summary",
           "kind": "obs_table",
+          "output_name": "import_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "import_summary",
           "description": "One-row summary of parsed/imported/skipped/rejected set counts."
         },
         {
           "name": "import_manifest",
           "kind": "obs_table",
+          "output_name": "import_manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "import_manifest",
           "description": "One row per parsed feature set with target namespace, overlap counts, and import status."
         },
         {
           "name": "rejected_sets",
           "kind": "obs_table",
+          "output_name": "rejected_sets",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "rejected_sets",
           "description": "Feature sets rejected during import, typically because no genes mapped to the matrix."
         }
       ],
@@ -1883,11 +2083,21 @@
         {
           "name": "overlap_qc",
           "kind": "obs_table",
+          "output_name": "overlap_qc",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "overlap_qc",
           "description": "One row per feature set with raw, mapped, detected counts and include/exclude status."
         },
         {
           "name": "namespace_summary",
           "kind": "obs_table",
+          "output_name": "namespace_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "namespace_summary",
           "description": "Namespace-level count and overlap summaries."
         }
       ],
@@ -1969,16 +2179,31 @@
         {
           "name": "transfer_summary",
           "kind": "obs_table",
+          "output_name": "transfer_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "transfer_summary",
           "description": "Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts."
         },
         {
           "name": "transfer_manifest",
           "kind": "obs_table",
+          "output_name": "transfer_manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "transfer_manifest",
           "description": "One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs."
         },
         {
           "name": "transfer_rejected",
           "kind": "obs_table",
+          "output_name": "transfer_rejected",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "transfer_rejected",
           "description": "Feature sets rejected during intersect transfer because retained members failed thresholds."
         }
       ],
@@ -1991,18 +2216,6 @@
         }
       },
       "params": [
-        {
-          "name": "source_matrix_id",
-          "type": "string",
-          "default": null,
-          "help": "Source matrix containing the existing matrix-scoped feature-set namespace."
-        },
-        {
-          "name": "target_matrix_id",
-          "type": "string",
-          "default": null,
-          "help": "Target matrix that will receive transferred feature-set memberships."
-        },
         {
           "name": "namespace",
           "type": "string",
@@ -2092,11 +2305,21 @@
         {
           "name": "labels",
           "kind": "cell_vector",
+          "output_name": "labels",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "labels",
           "description": "Categorical label per cell from suffix parsing."
         },
         {
           "name": "label_table",
           "kind": "obs_table",
+          "output_name": "label_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "label_table",
           "description": "Per-cell suffix/label table."
         }
       ],
@@ -2146,11 +2369,21 @@
         {
           "name": "manifest",
           "kind": "obs_table",
+          "output_name": "manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "manifest",
           "description": "One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary."
         },
         {
           "name": "rule_table",
           "kind": "obs_table",
+          "output_name": "rule_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "rule_table",
           "description": "Ordered per-rule derivation audit table with input/output/removal counts and source fields."
         }
       ],
@@ -2238,11 +2471,21 @@
         {
           "name": "assoc_summary",
           "kind": "feature_table",
+          "output_name": "assoc_summary",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "assoc_summary",
           "description": "Omnibus association test summary (Kruskal/ANOVA)."
         },
         {
           "name": "group_stats",
           "kind": "obs_table",
+          "output_name": "group_stats",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "group_stats",
           "description": "Per-group descriptive statistics."
         }
       ],
@@ -2306,11 +2549,21 @@
         {
           "name": "summary",
           "kind": "obs_table",
+          "output_name": "summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "summary",
           "description": "One-row comparison summary with concordance and delta metrics."
         },
         {
           "name": "comparison",
           "kind": "obs_table",
+          "output_name": "comparison",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "comparison",
           "description": "Per-cell comparison table with original values, compared values, and deltas."
         }
       ],
@@ -2390,6 +2643,11 @@
         {
           "name": "trend_table",
           "kind": "feature_table",
+          "output_name": "trend_table",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "trend_table",
           "description": "Per-feature trend statistics (rho, p, adjusted p)."
         }
       ],
@@ -2484,11 +2742,21 @@
         {
           "name": "de_table",
           "kind": "feature_table",
+          "output_name": "de_table",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "de_table",
           "description": "Per-lineage feature trend statistics (rho, p, adjusted p)."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Per-lineage input and filtering diagnostics."
         }
       ],
@@ -2603,11 +2871,21 @@
         {
           "name": "trend_table",
           "kind": "obs_table",
+          "output_name": "trend_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "trend_table",
           "description": "Per-feature binned expression summaries along trajectory pseudotime."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Per-lineage smoothing diagnostics."
         }
       ],
@@ -2721,11 +2999,21 @@
         {
           "name": "branch_de_table",
           "kind": "feature_table",
+          "output_name": "branch_de_table",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "branch_de_table",
           "description": "Per-feature branch comparison statistics and effect sizes."
         },
         {
           "name": "branch_summary",
           "kind": "obs_table",
+          "output_name": "branch_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "branch_summary",
           "description": "Branch-pair cell counts and pseudotime summary diagnostics."
         }
       ],
@@ -2817,11 +3105,21 @@
         {
           "name": "signature_table",
           "kind": "obs_table",
+          "output_name": "signature_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "signature_table",
           "description": "Per-signature binned summaries along trajectory pseudotime."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Per-lineage signature smoothing diagnostics."
         }
       ],
@@ -2918,31 +3216,61 @@
         {
           "name": "signature_table",
           "kind": "obs_table",
+          "output_name": "signature_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "signature_table",
           "description": "Binned feature-set score curves along trajectory pseudotime."
         },
         {
           "name": "dynamics_table",
           "kind": "obs_table",
+          "output_name": "dynamics_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "dynamics_table",
           "description": "Per-feature-set dynamic metrics and rank."
         },
         {
           "name": "top_sets",
           "kind": "obs_table",
+          "output_name": "top_sets",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "top_sets",
           "description": "Top-ranked dynamic feature sets for report-first discovery."
         },
         {
           "name": "driver_table",
           "kind": "obs_table",
+          "output_name": "driver_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "driver_table",
           "description": "Top dynamic member genes within each screened feature set."
         },
         {
           "name": "driver_curve_table",
           "kind": "obs_table",
+          "output_name": "driver_curve_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "driver_curve_table",
           "description": "Binned curves for top driver genes within each screened feature set."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Per-lineage screening diagnostics."
         }
       ],
@@ -3253,11 +3581,21 @@
         {
           "name": "trend_table",
           "kind": "obs_table",
+          "output_name": "trend_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "trend_table",
           "description": "Per-feature binned summaries along a selected route."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Route smoothing diagnostics."
         }
       ],
@@ -3375,11 +3713,21 @@
         {
           "name": "signal_table",
           "kind": "obs_table",
+          "output_name": "signal_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "signal_table",
           "description": "Per-signal binned summaries along trajectory pseudotime."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Per-lineage signal smoothing diagnostics."
         }
       ],
@@ -3469,21 +3817,41 @@
         {
           "name": "signal_table",
           "kind": "obs_table",
+          "output_name": "signal_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "signal_table",
           "description": "Binned signal-score curves along trajectory pseudotime."
         },
         {
           "name": "dynamics_table",
           "kind": "obs_table",
+          "output_name": "dynamics_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "dynamics_table",
           "description": "Per-signal dynamic metrics and rank."
         },
         {
           "name": "top_signals",
           "kind": "obs_table",
+          "output_name": "top_signals",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "top_signals",
           "description": "Top-ranked dynamic signals for report-first discovery."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Per-lineage signal dynamics diagnostics."
         }
       ],
@@ -3686,11 +4054,21 @@
         {
           "name": "pseudobulk_table",
           "kind": "feature_table",
+          "output_name": "pseudobulk_table",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudobulk_table",
           "description": "Feature-level pseudobulk values keyed by query cell."
         },
         {
           "name": "neighbor_distance",
           "kind": "cell_vector_family",
+          "output_name": "neighbor_distance",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "neighbor_distance",
           "description": "Neighbor distances per query cell."
         }
       ],
@@ -3773,11 +4151,21 @@
         {
           "name": "neighbors",
           "kind": "obs_table",
+          "output_name": "neighbors",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "neighbors",
           "description": "Per-query neighbor table (cell_id, rank, distance)."
         },
         {
           "name": "neighbor_distance",
           "kind": "cell_vector_family",
+          "output_name": "neighbor_distance",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "neighbor_distance",
           "description": "Neighbor distances per query cell."
         }
       ],
@@ -3854,11 +4242,21 @@
         {
           "name": "pseudotime",
           "kind": "cell_vector_family",
+          "output_name": "pseudotime",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudotime",
           "description": "Lineage-specific pseudotime values per cell."
         },
         {
           "name": "curves",
           "kind": "path_2d_family",
+          "output_name": "curves",
+          "primitive_kind": "path_2d_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "curves",
           "description": "Lineage curve paths in 2D."
         }
       ],
@@ -3947,16 +4345,31 @@
         {
           "name": "pseudotime",
           "kind": "cell_vector_family",
+          "output_name": "pseudotime",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudotime",
           "description": "Lineage-specific pseudotime values per cell (fit space inference)."
         },
         {
           "name": "lineage_weights",
           "kind": "cell_vector_family",
+          "output_name": "lineage_weights",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "lineage_weights",
           "description": "Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime."
         },
         {
           "name": "model",
           "kind": "model_ref",
+          "output_name": "model",
+          "primitive_kind": "model_ref",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "model",
           "description": "Session-chainable Slingshot fit model (engine='slingshot')."
         }
       ],
@@ -4062,6 +4475,11 @@
         {
           "name": "lineage_weights",
           "kind": "cell_vector_family",
+          "output_name": "lineage_weights",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "lineage_weights",
           "description": "Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed."
         }
       ],
@@ -4096,26 +4514,51 @@
         {
           "name": "composite_pseudotime_unit_segment",
           "kind": "cell_vector_family",
+          "output_name": "composite_pseudotime_unit_segment",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "composite_pseudotime_unit_segment",
           "description": "Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries."
         },
         {
           "name": "composite_pseudotime_cell_weighted_0_1",
           "kind": "cell_vector_family",
+          "output_name": "composite_pseudotime_cell_weighted_0_1",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "composite_pseudotime_cell_weighted_0_1",
           "description": "One-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts."
         },
         {
           "name": "segment_local_table",
           "kind": "obs_table",
+          "output_name": "segment_local_table",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "segment_local_table",
           "description": "One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role."
         },
         {
           "name": "composite_manifest",
           "kind": "obs_table",
+          "output_name": "composite_manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "composite_manifest",
           "description": "Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats."
         },
         {
           "name": "composite_membership",
           "kind": "cell_vector",
+          "output_name": "composite_membership",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "composite_membership",
           "description": "One-cell assignment to a unique segment or waypoint overlap."
         }
       ],
@@ -4208,21 +4651,41 @@
         {
           "name": "pseudotime",
           "kind": "cell_vector_family",
+          "output_name": "pseudotime",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudotime",
           "description": "Fitted-model segment pseudotime for the selected lineage/key."
         },
         {
           "name": "membership",
           "kind": "cell_vector",
+          "output_name": "membership",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "membership",
           "description": "Cells included in the fitted-model segment."
         },
         {
           "name": "confidence",
           "kind": "cell_vector_family",
+          "output_name": "confidence",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "confidence",
           "description": "Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1."
         },
         {
           "name": "segment_manifest",
           "kind": "obs_table",
+          "output_name": "segment_manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "segment_manifest",
           "description": "Audit manifest for the fitted-model segment."
         }
       ],
@@ -4338,26 +4801,51 @@
         {
           "name": "pseudotime",
           "kind": "cell_vector_family",
+          "output_name": "pseudotime",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudotime",
           "description": "Bridge pseudotime from path arclength progress in [0,1]."
         },
         {
           "name": "membership",
           "kind": "cell_vector",
+          "output_name": "membership",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "membership",
           "description": "Cells passing the transparent distance-to-path bridge membership rule."
         },
         {
           "name": "confidence",
           "kind": "cell_vector_family",
+          "output_name": "confidence",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "confidence",
           "description": "Distance-derived confidence for included bridge cells."
         },
         {
           "name": "segment_manifest",
           "kind": "obs_table",
+          "output_name": "segment_manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "segment_manifest",
           "description": "Audit manifest for the space-path bridge segment."
         },
         {
           "name": "display_endpoint_qc",
           "kind": "obs_table",
+          "output_name": "display_endpoint_qc",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "display_endpoint_qc",
           "description": "Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors."
         }
       ],
@@ -4513,16 +5001,31 @@
         {
           "name": "curves",
           "kind": "path_2d_family",
+          "output_name": "curves",
+          "primitive_kind": "path_2d_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "curves",
           "description": "Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model."
         },
         {
           "name": "path_manifest",
           "kind": "obs_table",
+          "output_name": "path_manifest",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "path_manifest",
           "description": "Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats."
         },
         {
           "name": "endpoint_qc",
           "kind": "obs_table",
+          "output_name": "endpoint_qc",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "endpoint_qc",
           "description": "Endpoint-distance QC for joined display paths with declared endpoint descriptors."
         }
       ],
@@ -4614,6 +5117,11 @@
         {
           "name": "curves",
           "kind": "path_2d_family",
+          "output_name": "curves",
+          "primitive_kind": "path_2d_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "curves",
           "description": "Projected Slingshot lineage curves in the chosen 2D display space."
         }
       ],
@@ -4684,16 +5192,31 @@
         {
           "name": "pseudotime",
           "kind": "cell_vector",
+          "output_name": "pseudotime",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudotime",
           "description": "Rooted global pseudotime per cell from monocle3."
         },
         {
           "name": "branch_membership",
           "kind": "relation_family",
+          "output_name": "branch_membership",
+          "primitive_kind": "relation_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "branch_membership",
           "description": "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation)."
         },
         {
           "name": "model",
           "kind": "model_ref",
+          "output_name": "model",
+          "primitive_kind": "model_ref",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "model",
           "description": "Session-chainable monocle3 CDS model (engine='monocle3')."
         }
       ],
@@ -4829,6 +5352,11 @@
         {
           "name": "curves",
           "kind": "path_2d_family",
+          "output_name": "curves",
+          "primitive_kind": "path_2d_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "curves",
           "description": "Projected monocle3 root-qualified lineage curves in the chosen 2D display space."
         }
       ],
@@ -4883,11 +5411,21 @@
         {
           "name": "space",
           "kind": "space",
+          "output_name": "space",
+          "primitive_kind": "space",
+          "durability_role": "materialization",
+          "promotable_directly": false,
+          "materialized_by_terminals": "model",
           "description": "PeakVI latent space written into the bundle spaces registry."
         },
         {
           "name": "model",
           "kind": "model_ref",
+          "output_name": "model",
+          "primitive_kind": "model_ref",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "model",
           "description": "Serialized PeakVI Python model payload (engine='peakvi')."
         }
       ],
@@ -5007,16 +5545,31 @@
         {
           "name": "space",
           "kind": "space",
+          "output_name": "space",
+          "primitive_kind": "space",
+          "durability_role": "materialization",
+          "promotable_directly": false,
+          "materialized_by_terminals": ["model", "fit_summary"],
           "description": "scVI latent space written into the bundle spaces registry."
         },
         {
           "name": "model",
           "kind": "model_ref",
+          "output_name": "model",
+          "primitive_kind": "model_ref",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "model",
           "description": "Serialized scVI Python model payload (engine='scvi')."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Training summary, parameter, runtime, and metric table emitted by pybench."
         }
       ],
@@ -5164,7 +5717,22 @@
         {
           "name": "space",
           "kind": "space",
+          "output_name": "space",
+          "primitive_kind": "space",
+          "durability_role": "materialization",
+          "promotable_directly": false,
+          "materialized_by_terminals": "fit_summary",
           "description": "Projected PeakVI latent space written into the bundle spaces registry."
+        },
+        {
+          "name": "fit_summary",
+          "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
+          "description": "Projection receipt and output-space summary."
         }
       ],
       "inputs": {
@@ -5203,7 +5771,7 @@
           "help": "Space id to write for the projected PeakVI latent embedding."
         }
       ],
-      "promotable": [],
+      "promotable": "fit_summary",
       "chunking": null
     },
     {
@@ -5226,6 +5794,11 @@
         {
           "name": "path",
           "kind": "space_path_family",
+          "output_name": "path",
+          "primitive_kind": "space_path_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "path",
           "description": "Analytical path in the original latent space."
         }
       ],
@@ -5328,11 +5901,21 @@
         {
           "name": "path_scores",
           "kind": "cell_vector_family",
+          "output_name": "path_scores",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "path_scores",
           "description": "Per-cell path-relative scores such as progress and distance."
         },
         {
           "name": "fit_summary",
           "kind": "obs_table",
+          "output_name": "fit_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "fit_summary",
           "description": "Compact path-level scoring diagnostics."
         }
       ],
@@ -5402,6 +5985,11 @@
         {
           "name": "curves",
           "kind": "path_2d_family",
+          "output_name": "curves",
+          "primitive_kind": "path_2d_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "curves",
           "description": "Approximate 2D rendering of the analytical path."
         }
       ],
@@ -5461,26 +6049,51 @@
         {
           "name": "pseudotime",
           "kind": "cell_vector",
+          "output_name": "pseudotime",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudotime",
           "description": "Palantir pseudotime (single-root, global)."
         },
         {
           "name": "branch_membership",
           "kind": "relation_family",
+          "output_name": "branch_membership",
+          "primitive_kind": "relation_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "branch_membership",
           "description": "Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities)."
         },
         {
           "name": "branch_summary",
           "kind": "obs_table",
+          "output_name": "branch_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "branch_summary",
           "description": "Palantir branch probability summary table."
         },
         {
           "name": "entropy",
           "kind": "cell_vector",
+          "output_name": "entropy",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "entropy",
           "description": "Palantir entropy per cell."
         },
         {
           "name": "model",
           "kind": "model_ref",
+          "output_name": "model",
+          "primitive_kind": "model_ref",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "model",
           "description": "Palantir Python model payload (engine='palantir')."
         }
       ],
@@ -5583,6 +6196,11 @@
         {
           "name": "curves",
           "kind": "path_2d_family",
+          "output_name": "curves",
+          "primitive_kind": "path_2d_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "curves",
           "description": "Palantir-style smoothed branch trajectories projected into the chosen 2D display space."
         }
       ],
