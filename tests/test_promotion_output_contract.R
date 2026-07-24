@@ -5,5 +5,7 @@ test_promotion_output_contract <- function() {
   }
   scvi <- wb_op_interface("scvi_train")$produces
   stopifnot(identical(scvi$space$durability_role, "materialization"), !isTRUE(scvi$space$promotable_directly), all(c("model","fit_summary") %in% scvi$space$materialized_by_terminals))
+  peak <- wb_op_interface("peakvi_project")$produces
+  stopifnot(identical(peak$space$durability_role, "materialization"), identical(peak$space$materialized_by_terminals, "fit_summary"), isTRUE(peak$fit_summary$promotable_directly))
   TRUE
 }

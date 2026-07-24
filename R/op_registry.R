@@ -61,6 +61,7 @@ wb_ops <- function() {
     z <- list(name = nm)
     if (nzchar(kind)) z$kind <- kind
     if (!is.null(rec$required)) z$required <- isTRUE(rec$required)
+    for (field in c("output_name", "primitive_kind", "durability_role", "promotable_directly", "materialized_by_terminals")) if (!is.null(rec[[field]])) z[[field]] <- rec[[field]]
     if (isTRUE(include_description) && nzchar(desc)) z$description <- desc
     z
   })
