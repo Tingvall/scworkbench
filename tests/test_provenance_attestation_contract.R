@@ -17,6 +17,9 @@ test_provenance_attestation_contract <- function() {
   conflicting <- try(.wb_prov_record_source_identity(b, src$snapshot_id[1], src$run_id[1], "RNA_counts", utils::modifyList(source_record, list(checksum="different"))), silent=TRUE)
   stopifnot(inherits(conflicting, "try-error"), identical(wb_prov_source_identity(b, "RNA_counts")$source_identity_json, src$source_identity_json))
   rr <- wb_session_run_op(wb_session_new(), b, "matrix_log_normalize", inputs=list(matrix="RNA_counts", output_matrix_id="RNA_log", scale_factor=5000, min_cells=1L))
+  before_bad <- nrow(wb_art_list(b))
+  bad_materialization <- try(wb_session_promote_current(b, rr$session, outputs="matrix"), silent=TRUE)
+  stopifnot(inherits(bad_materialization, "try-error"), grepl("durability_role=materialization", as.character(bad_materialization)), grepl("summary", as.character(bad_materialization)), nrow(wb_art_list(b)) == before_bad)
   promoted <- wb_session_promote_current(b, rr$session, outputs="summary")
   sid <- as.character(promoted$provenance_snapshot_id)
   detail <- wb_prov_run_details(b, rr$run$run_id, sid)
@@ -24,7 +27,9 @@ test_provenance_attestation_contract <- function() {
             identical(as.character(detail$run$runtime_fingerprint$image$sha256), "abc123recipientdigest"),
             identical(as.character(detail$run$contract$interface$semantics$transform), "log1p(count / cell_library_size * scale_factor)"),
             identical(as.numeric(detail$run$contract$parameters$scale_factor), 5000),
-            identical(as.character(detail$run$operation_version), "1"), nzchar(as.character(detail$run$contract_hash)))
+            identical(as.character(detail$run$operation_version), "1"), nzchar(as.character(detail$run$contract_hash)),
+            identical(as.character(detail$run$contract$interface$produces$matrix$durability_role), "materialization"),
+            identical(as.character(detail$run$contract$interface$promotion_terminals), "summary"))
   Sys.unsetenv("SCWORKBENCH_RUNTIME_IMAGE_SHA256")
   rr2 <- wb_session_run_op(wb_session_new(), b, "hvg_select", inputs=list(matrix="RNA_counts", n_features=2L, min_cells=1L))
   p2 <- wb_session_promote_current(b, rr2$session, outputs="selected_features")
