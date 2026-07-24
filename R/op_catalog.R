@@ -485,7 +485,12 @@
   raw$outputs$fit_summary <- wb_prim_obs_table(data.frame(
     matrix_id=matrix_id, output_space_id=as.character(raw$params$space_id_out %||% inputs$space_id_out),
     n_cells=length(effective_cells), n_features=as.integer(raw$params$n_features %||% NA_integer_),
-    batch_key=as.character(inputs$batch_key %||% NA_character_), use_gpu=isTRUE(inputs$use_gpu %||% FALSE), stringsAsFactors=FALSE),
+    model_space_id=as.character(raw$params$model_space_id %||% resolved$model$model_space_id %||% NA_character_),
+    model_artifact_id=as.character(resolved$model$artifact_id %||% NA_character_),
+    batch_key=as.character(inputs$batch_key %||% NA_character_), use_gpu=isTRUE(inputs$use_gpu %||% FALSE),
+    pybench_protocol_version=as.character(raw$params$pybench_runtime$protocol_version %||% NA_character_),
+    pybench_version=as.character(raw$params$pybench_runtime$pybench_version %||% NA_character_),
+    pybench_timings_json=jsonlite::toJSON(raw$params$pybench_runtime$timings %||% list(), auto_unbox=TRUE, null="null"), stringsAsFactors=FALSE),
     table_type="peakvi_project_summary")
   raw
 }
