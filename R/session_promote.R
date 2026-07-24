@@ -76,6 +76,15 @@ wb_session_promote_current <- function(bundle,
         out_name %in% as.character(.wb_get_op(run$op_name)$promotable %||% character(0))
     }, logical(1))
     ids <- names(session$runs)[candidates]
+    if (!length(ids)) {
+      materialized <- vapply(session$runs, function(run) out_name %in% names(run$outputs %||% list()), logical(1))
+      mids <- names(session$runs)[materialized]
+      if (length(mids)) {
+        run <- session$runs[[mids[1]]]
+        terminals <- intersect(as.character(.wb_get_op(run$op_name)$promotable %||% character(0)), names(run$outputs %||% list()))
+        stop(paste0("Output '", out_name, "' is a durability_role=materialization, not a terminal artifact. It is materialized when promoting terminal output(s): ", paste(terminals, collapse=", "), ". Request one or more of those terminal outputs."), call.=FALSE)
+      }
+    }
     .wb_assert(length(ids) == 1L,
                paste0("Output '", out_name, "' must resolve to exactly one promotable session run; found ", length(ids), "."))
     output_heads <- c(output_heads, ids)

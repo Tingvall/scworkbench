@@ -44,6 +44,10 @@ Current phase note:
 - Use `wb_session_promote_current(outputs = ...)` for intended terminal
   outputs only. Required ancestors become internal committed provenance, not
   public artifacts.
+- `wb_op_interface(op)$produces[[name]]` is machine-readable: only outputs
+  with `promotable_directly=TRUE` are valid `outputs=` terminals. Outputs with
+  `durability_role="materialization"` are committed transitively by the listed
+  `materialized_by_terminals`.
 - If promotion fails, discard the private session workspace with
   `wb_session_discard(session)` before retrying. Never delete an existing
   bundle target to clear a collision: use a new output ID unless ownership of
