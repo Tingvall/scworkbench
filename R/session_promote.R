@@ -52,6 +52,8 @@ wb_session_promote_current <- function(bundle,
     )
     if (length(choices) == 1L) {
       outputs <- choices
+    } else if (!length(choices)) {
+      stop("wb_session_promote_current(): head run has zero promotable terminal outputs; no durable output can be committed.", call.=FALSE)
     } else {
       stop(
         "wb_session_promote_current(): head run has multiple promotable outputs. Supply outputs= explicitly. Available: ",

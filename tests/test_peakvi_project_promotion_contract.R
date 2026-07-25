@@ -21,5 +21,9 @@ test_peakvi_project_promotion_contract <- function() {
   p <- wb_session_promote_current(b,rr$session,outputs="fit_summary")
   wb_close_bundle(b); b <- wb_open_bundle(root)
   stopifnot("projected" %in% wb_spaces(b)$space_id, nrow(p$promoted[p$promoted$output=="fit_summary",])==1L, isTRUE(wb_validate_bundle(root)))
+  failed <- wb_session_run_op(wb_session_new(),b,"peakvi_project",inputs=list(matrix="ATAC_counts",model=model,cell_set="all",min_cells=1L,space_id_out="rollback_projected"))
+  before_heads <- nrow(wb_prov_list_heads(b)); options(scworkbench.promotion_workspace_publish_hook=function(...) stop("forced",call.=FALSE))
+  bad <- try(wb_session_promote_current(b,failed$session,outputs="fit_summary"),silent=TRUE); options(scworkbench.promotion_workspace_publish_hook=NULL)
+  stopifnot(inherits(bad,"try-error"), !"rollback_projected" %in% wb_spaces(b)$space_id, nrow(wb_prov_list_heads(b))==before_heads, isTRUE(wb_validate_bundle(root)))
   TRUE
 }
