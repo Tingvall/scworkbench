@@ -154,7 +154,8 @@
     op_name = as.character(run$op_name)[1],
     title = op$title %||% NA_character_, description = op$description %||% NA_character_,
     inputs = op$inputs %||% list(), params = op$params %||% list(),
-    produces = op$interface_produces %||% op$produces %||% list(),
+    produces = .wb_op_interface_registry()[[as.character(run$op_name)[1]]]$produces %||% op$interface_produces %||% op$produces %||% list(),
+    promotion_terminals = as.character(op$promotable %||% character(0)),
     semantics = op$semantics %||% list()
   )
   list(version = "1", interface = interface,

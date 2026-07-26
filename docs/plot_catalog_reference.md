@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_plot_catalog_semantic(); do not edit plot entries by hand. -->
 
-Generated at: 2026-07-18T14:36:07+0200
+Generated at: 2026-07-24T20:31:31+0200
 
 Plot count: 12
 
@@ -381,3 +381,4 @@ Optional fields:
 
 Mappers:
 - `trajectory_pseudotime_signature_line_v1` (priority=10)
+

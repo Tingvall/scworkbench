@@ -3,6 +3,18 @@
 .wb_op_interface_registry <- function() {
   cat <- .wb_op_catalog()
   lapply(cat, function(x) {
+    produces <- x$interface_produces %||% list()
+    declared <- x$produces %||% list()
+    terminals <- as.character(x$promotable %||% character(0))
+    for (nm in names(declared)) {
+      item <- produces[[nm]] %||% list()
+      item$output_name <- nm
+      item$primitive_kind <- as.character(item$kind %||% declared[[nm]])[1]
+      item$durability_role <- if (nm %in% terminals) "terminal_artifact" else "materialization"
+      item$promotable_directly <- nm %in% terminals
+      item$materialized_by_terminals <- if (nm %in% terminals) nm else terminals
+      produces[[nm]] <- item
+    }
     list(
       op_name = as.character(x$op_name),
       title = as.character(x$title %||% ""),
@@ -10,7 +22,7 @@
       intent = as.character(x$intent %||% character(0)),
       inputs = x$inputs %||% list(),
       params = x$params %||% list(),
-      produces = x$interface_produces %||% list(),
+      produces = produces,
       chunking = x$chunking %||% NULL
     )
   })

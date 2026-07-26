@@ -38,6 +38,12 @@ test_all <- function(bundle_dir){
   if (exists("test_op_catalog_semantic_contract", mode = "function")) {
     stopifnot(test_op_catalog_semantic_contract())
   }
+  if (exists("test_promotion_output_contract", mode = "function")) {
+    stopifnot(test_promotion_output_contract())
+  }
+  if (exists("test_peakvi_project_promotion_contract", mode = "function")) {
+    stopifnot(test_peakvi_project_promotion_contract())
+  }
   if (exists("test_plot_catalog_semantic_contract", mode = "function")) {
     stopifnot(test_plot_catalog_semantic_contract())
   }

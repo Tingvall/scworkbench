@@ -482,6 +482,16 @@
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "peakvi_project must return list(outputs=<list>, params=<list>).")
+  raw$outputs$fit_summary <- wb_prim_obs_table(data.frame(
+    matrix_id=matrix_id, output_space_id=as.character(raw$params$space_id_out %||% inputs$space_id_out),
+    n_cells=length(effective_cells), n_features=as.integer(raw$params$n_features %||% NA_integer_),
+    model_space_id=as.character(raw$params$model_space_id %||% resolved$model$model_space_id %||% NA_character_),
+    model_artifact_id=as.character(resolved$model$artifact_id %||% NA_character_),
+    batch_key=as.character(inputs$batch_key %||% NA_character_), use_gpu=isTRUE(inputs$use_gpu %||% FALSE),
+    pybench_protocol_version=as.character(raw$params$pybench_runtime$protocol_version %||% NA_character_),
+    pybench_version=as.character(raw$params$pybench_runtime$pybench_version %||% NA_character_),
+    pybench_timings_json=jsonlite::toJSON(raw$params$pybench_runtime$timings %||% list(), auto_unbox=TRUE, null="null"), stringsAsFactors=FALSE),
+    table_type="peakvi_project_summary")
   raw
 }
 
@@ -3973,9 +3983,9 @@
       intent = c("projection", "latent", "python"),
       requires = list(matrix = "matrix", model = "model_ref"),
       produces = list(
-        space = "space"
+        space = "space", fit_summary = "obs_table"
       ),
-      promotable = character(0),
+      promotable = c("fit_summary"),
       runner = .wb_runner_peakvi_project,
       inputs = list(
         matrix = list(required = TRUE, kind = "matrix"),
@@ -3993,7 +4003,8 @@
         space = list(
           kind = "space",
           description = "Projected PeakVI latent space written into the bundle spaces registry."
-        )
+        ),
+        fit_summary = list(kind="obs_table", description="Projection receipt and output-space summary.")
       )
     ),
     space_path_define = list(

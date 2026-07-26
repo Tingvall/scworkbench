@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-07-18T14:36:07+0200
+Generated at: 2026-07-24T20:31:30+0200
 
 Operation count: 54
 
@@ -22,7 +22,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `clusters`: cell_vector - Cluster label per cell (categorical cell vector).
+- `clusters`: cell_vector [terminal artifact] - Cluster label per cell (categorical cell vector).
 
 Promotable outputs: clusters
 
@@ -45,8 +45,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `matrix`: matrix - Reference to the newly registered log-normalized matrix.
-- `summary`: obs_table - Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.
+- `matrix`: matrix [materialization; committed by: summary] - Reference to the newly registered log-normalized matrix.
+- `summary`: obs_table [terminal artifact] - Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.
 
 Promotable outputs: summary
 
@@ -69,8 +69,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `selected_features`: feature_table - Feature-wise mean, variance, dispersion, score, rank, and selected flag.
-- `fit_summary`: obs_table - Input matrix, method, filters, dimensions, and selection counts.
+- `selected_features`: feature_table [terminal artifact] - Feature-wise mean, variance, dispersion, score, rank, and selected flag.
+- `fit_summary`: obs_table [terminal artifact] - Input matrix, method, filters, dimensions, and selection counts.
 
 Promotable outputs: selected_features, fit_summary
 
@@ -100,10 +100,10 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `space`: space - Reference to the persisted PCA space.
-- `loadings`: feature_table - Feature loadings per principal component.
-- `variance`: obs_table - Per-PC standard deviation and variance explained.
-- `fit_summary`: obs_table - Input matrix, feature count, backend, component count, and output space id.
+- `space`: space [materialization; committed by: loadings, variance, fit_summary] - Reference to the persisted PCA space.
+- `loadings`: feature_table [terminal artifact] - Feature loadings per principal component.
+- `variance`: obs_table [terminal artifact] - Per-PC standard deviation and variance explained.
+- `fit_summary`: obs_table [terminal artifact] - Input matrix, feature count, backend, component count, and output space id.
 
 Promotable outputs: loadings, variance, fit_summary
 
@@ -131,8 +131,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `model`: model_ref - Reference to the fitted UMAP model.
-- `space_2d`: space_2d - The fitted 2D embedding space id.
+- `model`: model_ref [terminal artifact] - Reference to the fitted UMAP model.
+- `space_2d`: space_2d [terminal artifact] - The fitted 2D embedding space id.
 
 Promotable outputs: space_2d, model
 
@@ -160,7 +160,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `space_2d`: space_2d - Projected x/y in the target UMAP space.
+- `space_2d`: space_2d [terminal artifact] - Projected x/y in the target UMAP space.
 
 Promotable outputs: space_2d
 
@@ -181,7 +181,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `module_scores`: cell_vector_family - Per-cell module scores for one or more signatures.
+- `module_scores`: cell_vector_family [terminal artifact] - Per-cell module scores for one or more signatures.
 
 Promotable outputs: module_scores
 
@@ -206,8 +206,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `signature_scores`: cell_vector_family - Per-cell UCell scores for one or more signatures.
-- `signature_summary`: obs_table - Per-signature scoring summary and feature-match diagnostics.
+- `signature_scores`: cell_vector_family [terminal artifact] - Per-cell UCell scores for one or more signatures.
+- `signature_summary`: obs_table [terminal artifact] - Per-signature scoring summary and feature-match diagnostics.
 
 Promotable outputs: signature_scores, signature_summary
 
@@ -233,13 +233,13 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `label`: cell_vector - Per-cell categorical labels after reducing the signal family.
-- `top_score`: cell_vector - Winning score for each cell.
-- `runner_up_score`: cell_vector - Second-best score for each cell.
-- `score_margin`: cell_vector - Winning minus runner-up score for each cell.
-- `abstain_reason`: cell_vector - Per-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`).
-- `decision_table`: obs_table - Per-cell reduction diagnostics including label, scores, margin, and abstention reason.
-- `label_summary`: obs_table - Per-label counts and score summaries after reduction.
+- `label`: cell_vector [terminal artifact] - Per-cell categorical labels after reducing the signal family.
+- `top_score`: cell_vector [terminal artifact] - Winning score for each cell.
+- `runner_up_score`: cell_vector [terminal artifact] - Second-best score for each cell.
+- `score_margin`: cell_vector [terminal artifact] - Winning minus runner-up score for each cell.
+- `abstain_reason`: cell_vector [terminal artifact] - Per-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`).
+- `decision_table`: obs_table [terminal artifact] - Per-cell reduction diagnostics including label, scores, margin, and abstention reason.
+- `label_summary`: obs_table [terminal artifact] - Per-label counts and score summaries after reduction.
 
 Promotable outputs: label, top_score, runner_up_score, score_margin, abstain_reason, decision_table, label_summary
 
@@ -265,8 +265,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `calibrated_signal`: cell_vector_family - Calibrated per-cell values for each key in the signal family.
-- `calibration_summary`: obs_table - Per-key calibration statistics for raw and calibrated values.
+- `calibrated_signal`: cell_vector_family [terminal artifact] - Calibrated per-cell values for each key in the signal family.
+- `calibration_summary`: obs_table [terminal artifact] - Per-key calibration statistics for raw and calibrated values.
 
 Promotable outputs: calibrated_signal, calibration_summary
 
@@ -292,9 +292,9 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `key_summary`: obs_table - Per-key QC summaries including score distribution, finite coverage, and winner frequencies.
-- `pairwise_summary`: obs_table - Pairwise key relationships including overlap counts and correlations.
-- `group_summary`: obs_table - Per-group per-key QC summaries when an optional grouping vector is supplied.
+- `key_summary`: obs_table [terminal artifact] - Per-key QC summaries including score distribution, finite coverage, and winner frequencies.
+- `pairwise_summary`: obs_table [terminal artifact] - Pairwise key relationships including overlap counts and correlations.
+- `group_summary`: obs_table [terminal artifact] - Per-group per-key QC summaries when an optional grouping vector is supplied.
 
 Promotable outputs: key_summary, pairwise_summary, group_summary
 
@@ -317,8 +317,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `smoothed_signal`: cell_vector_family - Geometry-smoothed per-cell values for each selected key.
-- `smoothing_summary`: obs_table - Per-key smoothing diagnostics and parameter echo.
+- `smoothed_signal`: cell_vector_family [terminal artifact] - Geometry-smoothed per-cell values for each selected key.
+- `smoothing_summary`: obs_table [terminal artifact] - Per-key smoothing diagnostics and parameter echo.
 
 Promotable outputs: smoothed_signal, smoothing_summary
 
@@ -348,7 +348,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `winners`: obs_table - Per-cell winner, runner-up, confidence, and pruning table.
+- `winners`: obs_table [terminal artifact] - Per-cell winner, runner-up, confidence, and pruning table.
 
 Promotable outputs: winners
 
@@ -373,7 +373,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `manifest`: obs_table - One row per registered winner cell set.
+- `manifest`: obs_table [terminal artifact] - One row per registered winner cell set.
 
 Promotable outputs: manifest
 
@@ -399,9 +399,9 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `deviation_z`: cell_vector_family - Per-cell chromVAR z-scores keyed by motif.
-- `deviation_raw`: cell_vector_family - Per-cell raw chromVAR deviations keyed by motif.
-- `motif_summary`: obs_table - Per-motif chromVAR summary statistics.
+- `deviation_z`: cell_vector_family [terminal artifact] - Per-cell chromVAR z-scores keyed by motif.
+- `deviation_raw`: cell_vector_family [terminal artifact] - Per-cell raw chromVAR deviations keyed by motif.
+- `motif_summary`: obs_table [terminal artifact] - Per-motif chromVAR summary statistics.
 
 Promotable outputs: deviation_z, deviation_raw, motif_summary
 
@@ -433,7 +433,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `de_table`: feature_table - Feature-level DE statistics table.
+- `de_table`: feature_table [terminal artifact] - Feature-level DE statistics table.
 
 Promotable outputs: de_table
 
@@ -458,7 +458,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `markers`: feature_table - Cluster-marker table with per-feature statistics.
+- `markers`: feature_table [terminal artifact] - Cluster-marker table with per-feature statistics.
 
 Promotable outputs: markers
 
@@ -482,7 +482,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pathways`: obs_table - Pathway enrichment statistics for one namespace.
+- `pathways`: obs_table [terminal artifact] - Pathway enrichment statistics for one namespace.
 
 Promotable outputs: pathways
 
@@ -512,9 +512,9 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `import_summary`: obs_table - One-row summary of parsed/imported/skipped/rejected set counts.
-- `import_manifest`: obs_table - One row per parsed feature set with target namespace, overlap counts, and import status.
-- `rejected_sets`: obs_table - Feature sets rejected during import, typically because no genes mapped to the matrix.
+- `import_summary`: obs_table [terminal artifact] - One-row summary of parsed/imported/skipped/rejected set counts.
+- `import_manifest`: obs_table [terminal artifact] - One row per parsed feature set with target namespace, overlap counts, and import status.
+- `rejected_sets`: obs_table [terminal artifact] - Feature sets rejected during import, typically because no genes mapped to the matrix.
 
 Promotable outputs: import_summary, import_manifest, rejected_sets
 
@@ -549,8 +549,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `overlap_qc`: obs_table - One row per feature set with raw, mapped, detected counts and include/exclude status.
-- `namespace_summary`: obs_table - Namespace-level count and overlap summaries.
+- `overlap_qc`: obs_table [terminal artifact] - One row per feature set with raw, mapped, detected counts and include/exclude status.
+- `namespace_summary`: obs_table [terminal artifact] - Namespace-level count and overlap summaries.
 
 Promotable outputs: overlap_qc, namespace_summary
 
@@ -575,15 +575,13 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `transfer_summary`: obs_table - Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.
-- `transfer_manifest`: obs_table - One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.
-- `transfer_rejected`: obs_table - Feature sets rejected during intersect transfer because retained members failed thresholds.
+- `transfer_summary`: obs_table [terminal artifact] - Namespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.
+- `transfer_manifest`: obs_table [terminal artifact] - One row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.
+- `transfer_rejected`: obs_table [terminal artifact] - Feature sets rejected during intersect transfer because retained members failed thresholds.
 
 Promotable outputs: transfer_summary, transfer_manifest, transfer_rejected
 
 Key parameters:
-- `source_matrix_id` (string, default=NULL): Source matrix containing the existing matrix-scoped feature-set namespace.
-- `target_matrix_id` (string, default=NULL): Target matrix that will receive transferred feature-set memberships.
 - `namespace` (string, default=NULL): Single source namespace to transfer.
 - `namespaces` (string_vec, default=NULL): Optional multiple source namespaces to transfer.
 - `feature_sets` (string_vec, default=NULL): Optional feature-set subset within selected source namespaces.
@@ -608,8 +606,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `labels`: cell_vector - Categorical label per cell from suffix parsing.
-- `label_table`: obs_table - Per-cell suffix/label table.
+- `labels`: cell_vector [terminal artifact] - Categorical label per cell from suffix parsing.
+- `label_table`: obs_table [terminal artifact] - Per-cell suffix/label table.
 
 Promotable outputs: labels, label_table
 
@@ -630,8 +628,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `manifest`: obs_table - One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary.
-- `rule_table`: obs_table - Ordered per-rule derivation audit table with input/output/removal counts and source fields.
+- `manifest`: obs_table [terminal artifact] - One-row lifecycle manifest for the named derived cell set, including counts, role, status, recipe availability, and source summary.
+- `rule_table`: obs_table [terminal artifact] - Ordered per-rule derivation audit table with input/output/removal counts and source fields.
 
 Promotable outputs: manifest, rule_table
 
@@ -658,8 +656,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `assoc_summary`: feature_table - Omnibus association test summary (Kruskal/ANOVA).
-- `group_stats`: obs_table - Per-group descriptive statistics.
+- `assoc_summary`: feature_table [terminal artifact] - Omnibus association test summary (Kruskal/ANOVA).
+- `group_stats`: obs_table [terminal artifact] - Per-group descriptive statistics.
 
 Promotable outputs: assoc_summary, group_stats
 
@@ -680,8 +678,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `summary`: obs_table - One-row comparison summary with concordance and delta metrics.
-- `comparison`: obs_table - Per-cell comparison table with original values, compared values, and deltas.
+- `summary`: obs_table [terminal artifact] - One-row comparison summary with concordance and delta metrics.
+- `comparison`: obs_table [terminal artifact] - Per-cell comparison table with original values, compared values, and deltas.
 
 Promotable outputs: summary, comparison
 
@@ -705,7 +703,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `trend_table`: feature_table - Per-feature trend statistics (rho, p, adjusted p).
+- `trend_table`: feature_table [terminal artifact] - Per-feature trend statistics (rho, p, adjusted p).
 
 Promotable outputs: trend_table
 
@@ -730,8 +728,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `de_table`: feature_table - Per-lineage feature trend statistics (rho, p, adjusted p).
-- `fit_summary`: obs_table - Per-lineage input and filtering diagnostics.
+- `de_table`: feature_table [terminal artifact] - Per-lineage feature trend statistics (rho, p, adjusted p).
+- `fit_summary`: obs_table [terminal artifact] - Per-lineage input and filtering diagnostics.
 
 Promotable outputs: de_table, fit_summary
 
@@ -759,8 +757,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `trend_table`: obs_table - Per-feature binned expression summaries along trajectory pseudotime.
-- `fit_summary`: obs_table - Per-lineage smoothing diagnostics.
+- `trend_table`: obs_table [terminal artifact] - Per-feature binned expression summaries along trajectory pseudotime.
+- `fit_summary`: obs_table [terminal artifact] - Per-lineage smoothing diagnostics.
 
 Promotable outputs: trend_table, fit_summary
 
@@ -788,8 +786,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `branch_de_table`: feature_table - Per-feature branch comparison statistics and effect sizes.
-- `branch_summary`: obs_table - Branch-pair cell counts and pseudotime summary diagnostics.
+- `branch_de_table`: feature_table [terminal artifact] - Per-feature branch comparison statistics and effect sizes.
+- `branch_summary`: obs_table [terminal artifact] - Branch-pair cell counts and pseudotime summary diagnostics.
 
 Promotable outputs: branch_de_table, branch_summary
 
@@ -815,8 +813,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `signature_table`: obs_table - Per-signature binned summaries along trajectory pseudotime.
-- `fit_summary`: obs_table - Per-lineage signature smoothing diagnostics.
+- `signature_table`: obs_table [terminal artifact] - Per-signature binned summaries along trajectory pseudotime.
+- `fit_summary`: obs_table [terminal artifact] - Per-lineage signature smoothing diagnostics.
 
 Promotable outputs: signature_table, fit_summary
 
@@ -843,12 +841,12 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `signature_table`: obs_table - Binned feature-set score curves along trajectory pseudotime.
-- `dynamics_table`: obs_table - Per-feature-set dynamic metrics and rank.
-- `top_sets`: obs_table - Top-ranked dynamic feature sets for report-first discovery.
-- `driver_table`: obs_table - Top dynamic member genes within each screened feature set.
-- `driver_curve_table`: obs_table - Binned curves for top driver genes within each screened feature set.
-- `fit_summary`: obs_table - Per-lineage screening diagnostics.
+- `signature_table`: obs_table [terminal artifact] - Binned feature-set score curves along trajectory pseudotime.
+- `dynamics_table`: obs_table [terminal artifact] - Per-feature-set dynamic metrics and rank.
+- `top_sets`: obs_table [terminal artifact] - Top-ranked dynamic feature sets for report-first discovery.
+- `driver_table`: obs_table [terminal artifact] - Top dynamic member genes within each screened feature set.
+- `driver_curve_table`: obs_table [terminal artifact] - Binned curves for top driver genes within each screened feature set.
+- `fit_summary`: obs_table [terminal artifact] - Per-lineage screening diagnostics.
 
 Promotable outputs: signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, fit_summary
 
@@ -904,8 +902,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `trend_table`: obs_table - Per-feature binned summaries along a selected route.
-- `fit_summary`: obs_table - Route smoothing diagnostics.
+- `trend_table`: obs_table [terminal artifact] - Per-feature binned summaries along a selected route.
+- `fit_summary`: obs_table [terminal artifact] - Route smoothing diagnostics.
 
 Promotable outputs: trend_table, fit_summary
 
@@ -934,8 +932,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `signal_table`: obs_table - Per-signal binned summaries along trajectory pseudotime.
-- `fit_summary`: obs_table - Per-lineage signal smoothing diagnostics.
+- `signal_table`: obs_table [terminal artifact] - Per-signal binned summaries along trajectory pseudotime.
+- `fit_summary`: obs_table [terminal artifact] - Per-lineage signal smoothing diagnostics.
 
 Promotable outputs: signal_table, fit_summary
 
@@ -961,10 +959,10 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `signal_table`: obs_table - Binned signal-score curves along trajectory pseudotime.
-- `dynamics_table`: obs_table - Per-signal dynamic metrics and rank.
-- `top_signals`: obs_table - Top-ranked dynamic signals for report-first discovery.
-- `fit_summary`: obs_table - Per-lineage signal dynamics diagnostics.
+- `signal_table`: obs_table [terminal artifact] - Binned signal-score curves along trajectory pseudotime.
+- `dynamics_table`: obs_table [terminal artifact] - Per-signal dynamic metrics and rank.
+- `top_signals`: obs_table [terminal artifact] - Top-ranked dynamic signals for report-first discovery.
+- `fit_summary`: obs_table [terminal artifact] - Per-lineage signal dynamics diagnostics.
 
 Promotable outputs: signal_table, dynamics_table, top_signals, fit_summary
 
@@ -1005,8 +1003,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pseudobulk_table`: feature_table - Feature-level pseudobulk values keyed by query cell.
-- `neighbor_distance`: cell_vector_family - Neighbor distances per query cell.
+- `pseudobulk_table`: feature_table [terminal artifact] - Feature-level pseudobulk values keyed by query cell.
+- `neighbor_distance`: cell_vector_family [terminal artifact] - Neighbor distances per query cell.
 
 Promotable outputs: pseudobulk_table, neighbor_distance
 
@@ -1031,8 +1029,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `neighbors`: obs_table - Per-query neighbor table (cell_id, rank, distance).
-- `neighbor_distance`: cell_vector_family - Neighbor distances per query cell.
+- `neighbors`: obs_table [terminal artifact] - Per-query neighbor table (cell_id, rank, distance).
+- `neighbor_distance`: cell_vector_family [terminal artifact] - Neighbor distances per query cell.
 
 Promotable outputs: neighbors, neighbor_distance
 
@@ -1057,8 +1055,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pseudotime`: cell_vector_family - Lineage-specific pseudotime values per cell.
-- `curves`: path_2d_family - Lineage curve paths in 2D.
+- `pseudotime`: cell_vector_family [terminal artifact] - Lineage-specific pseudotime values per cell.
+- `curves`: path_2d_family [terminal artifact] - Lineage curve paths in 2D.
 
 Promotable outputs: pseudotime, curves
 
@@ -1083,9 +1081,9 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pseudotime`: cell_vector_family - Lineage-specific pseudotime values per cell (fit space inference).
-- `lineage_weights`: cell_vector_family - Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.
-- `model`: model_ref - Session-chainable Slingshot fit model (engine='slingshot').
+- `pseudotime`: cell_vector_family [terminal artifact] - Lineage-specific pseudotime values per cell (fit space inference).
+- `lineage_weights`: cell_vector_family [terminal artifact] - Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.
+- `model`: model_ref [terminal artifact] - Session-chainable Slingshot fit model (engine='slingshot').
 
 Promotable outputs: pseudotime, lineage_weights, model
 
@@ -1113,7 +1111,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `lineage_weights`: cell_vector_family - Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.
+- `lineage_weights`: cell_vector_family [terminal artifact] - Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.
 
 Promotable outputs: lineage_weights
 
@@ -1132,11 +1130,11 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `composite_pseudotime_unit_segment`: cell_vector_family - Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.
-- `composite_pseudotime_cell_weighted_0_1`: cell_vector_family - One-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts.
-- `segment_local_table`: obs_table - One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.
-- `composite_manifest`: obs_table - Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.
-- `composite_membership`: cell_vector - One-cell assignment to a unique segment or waypoint overlap.
+- `composite_pseudotime_unit_segment`: cell_vector_family [terminal artifact] - Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.
+- `composite_pseudotime_cell_weighted_0_1`: cell_vector_family [terminal artifact] - One-row-per-cell composite pseudotime normalized to [0,1] with segment lengths weighted by segment-local cell counts.
+- `segment_local_table`: obs_table [terminal artifact] - One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.
+- `composite_manifest`: obs_table [terminal artifact] - Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.
+- `composite_membership`: cell_vector [terminal artifact] - One-cell assignment to a unique segment or waypoint overlap.
 
 Promotable outputs: composite_pseudotime_unit_segment, composite_pseudotime_cell_weighted_0_1, segment_local_table, composite_manifest, composite_membership
 
@@ -1165,10 +1163,10 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pseudotime`: cell_vector_family - Fitted-model segment pseudotime for the selected lineage/key.
-- `membership`: cell_vector - Cells included in the fitted-model segment.
-- `confidence`: cell_vector_family - Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1.
-- `segment_manifest`: obs_table - Audit manifest for the fitted-model segment.
+- `pseudotime`: cell_vector_family [terminal artifact] - Fitted-model segment pseudotime for the selected lineage/key.
+- `membership`: cell_vector [terminal artifact] - Cells included in the fitted-model segment.
+- `confidence`: cell_vector_family [terminal artifact] - Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1.
+- `segment_manifest`: obs_table [terminal artifact] - Audit manifest for the fitted-model segment.
 
 Promotable outputs: pseudotime, membership, confidence, segment_manifest
 
@@ -1197,11 +1195,11 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pseudotime`: cell_vector_family - Bridge pseudotime from path arclength progress in [0,1].
-- `membership`: cell_vector - Cells passing the transparent distance-to-path bridge membership rule.
-- `confidence`: cell_vector_family - Distance-derived confidence for included bridge cells.
-- `segment_manifest`: obs_table - Audit manifest for the space-path bridge segment.
-- `display_endpoint_qc`: obs_table - Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.
+- `pseudotime`: cell_vector_family [terminal artifact] - Bridge pseudotime from path arclength progress in [0,1].
+- `membership`: cell_vector [terminal artifact] - Cells passing the transparent distance-to-path bridge membership rule.
+- `confidence`: cell_vector_family [terminal artifact] - Distance-derived confidence for included bridge cells.
+- `segment_manifest`: obs_table [terminal artifact] - Audit manifest for the space-path bridge segment.
+- `display_endpoint_qc`: obs_table [terminal artifact] - Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.
 
 Promotable outputs: pseudotime, membership, confidence, segment_manifest, display_endpoint_qc
 
@@ -1238,9 +1236,9 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `curves`: path_2d_family - Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.
-- `path_manifest`: obs_table - Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.
-- `endpoint_qc`: obs_table - Endpoint-distance QC for joined display paths with declared endpoint descriptors.
+- `curves`: path_2d_family [terminal artifact] - Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.
+- `path_manifest`: obs_table [terminal artifact] - Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.
+- `endpoint_qc`: obs_table [terminal artifact] - Endpoint-distance QC for joined display paths with declared endpoint descriptors.
 
 Promotable outputs: curves, path_manifest, endpoint_qc
 
@@ -1268,7 +1266,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `curves`: path_2d_family - Projected Slingshot lineage curves in the chosen 2D display space.
+- `curves`: path_2d_family [terminal artifact] - Projected Slingshot lineage curves in the chosen 2D display space.
 
 Promotable outputs: curves
 
@@ -1290,9 +1288,9 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pseudotime`: cell_vector - Rooted global pseudotime per cell from monocle3.
-- `branch_membership`: relation_family - Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).
-- `model`: model_ref - Session-chainable monocle3 CDS model (engine='monocle3').
+- `pseudotime`: cell_vector [terminal artifact] - Rooted global pseudotime per cell from monocle3.
+- `branch_membership`: relation_family [terminal artifact] - Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).
+- `model`: model_ref [terminal artifact] - Session-chainable monocle3 CDS model (engine='monocle3').
 
 Promotable outputs: pseudotime, branch_membership, model
 
@@ -1325,7 +1323,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `curves`: path_2d_family - Projected monocle3 root-qualified lineage curves in the chosen 2D display space.
+- `curves`: path_2d_family [terminal artifact] - Projected monocle3 root-qualified lineage curves in the chosen 2D display space.
 
 Promotable outputs: curves
 
@@ -1345,8 +1343,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `space`: space - PeakVI latent space written into the bundle spaces registry.
-- `model`: model_ref - Serialized PeakVI Python model payload (engine='peakvi').
+- `space`: space [materialization; committed by: model] - PeakVI latent space written into the bundle spaces registry.
+- `model`: model_ref [terminal artifact] - Serialized PeakVI Python model payload (engine='peakvi').
 
 Promotable outputs: model
 
@@ -1376,9 +1374,9 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `space`: space - scVI latent space written into the bundle spaces registry.
-- `model`: model_ref - Serialized scVI Python model payload (engine='scvi').
-- `fit_summary`: obs_table - Training summary, parameter, runtime, and metric table emitted by pybench.
+- `space`: space [materialization; committed by: model, fit_summary] - scVI latent space written into the bundle spaces registry.
+- `model`: model_ref [terminal artifact] - Serialized scVI Python model payload (engine='scvi').
+- `fit_summary`: obs_table [terminal artifact] - Training summary, parameter, runtime, and metric table emitted by pybench.
 
 Promotable outputs: model, fit_summary
 
@@ -1413,9 +1411,10 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `space`: space - Projected PeakVI latent space written into the bundle spaces registry.
+- `space`: space [materialization; committed by: fit_summary] - Projected PeakVI latent space written into the bundle spaces registry.
+- `fit_summary`: obs_table [terminal artifact] - Projection receipt and output-space summary.
 
-Promotable outputs: (none)
+Promotable outputs: fit_summary
 
 Key parameters:
 - `batch_key` (string, default=NULL): Optional observation field used as the PeakVI batch covariate during projection.
@@ -1435,7 +1434,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `path`: space_path_family - Analytical path in the original latent space.
+- `path`: space_path_family [terminal artifact] - Analytical path in the original latent space.
 
 Promotable outputs: path
 
@@ -1463,8 +1462,8 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `path_scores`: cell_vector_family - Per-cell path-relative scores such as progress and distance.
-- `fit_summary`: obs_table - Compact path-level scoring diagnostics.
+- `path_scores`: cell_vector_family [terminal artifact] - Per-cell path-relative scores such as progress and distance.
+- `fit_summary`: obs_table [terminal artifact] - Compact path-level scoring diagnostics.
 
 Promotable outputs: path_scores, fit_summary
 
@@ -1487,7 +1486,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `curves`: path_2d_family - Approximate 2D rendering of the analytical path.
+- `curves`: path_2d_family [terminal artifact] - Approximate 2D rendering of the analytical path.
 
 Promotable outputs: curves
 
@@ -1508,11 +1507,11 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `pseudotime`: cell_vector - Palantir pseudotime (single-root, global).
-- `branch_membership`: relation_family - Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).
-- `branch_summary`: obs_table - Palantir branch probability summary table.
-- `entropy`: cell_vector - Palantir entropy per cell.
-- `model`: model_ref - Palantir Python model payload (engine='palantir').
+- `pseudotime`: cell_vector [terminal artifact] - Palantir pseudotime (single-root, global).
+- `branch_membership`: relation_family [terminal artifact] - Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).
+- `branch_summary`: obs_table [terminal artifact] - Palantir branch probability summary table.
+- `entropy`: cell_vector [terminal artifact] - Palantir entropy per cell.
+- `model`: model_ref [terminal artifact] - Palantir Python model payload (engine='palantir').
 
 Promotable outputs: pseudotime, branch_membership, branch_summary, entropy, model
 
@@ -1540,7 +1539,7 @@ Consumes:
 - `cell_set`: select
 
 Produces:
-- `curves`: path_2d_family - Palantir-style smoothed branch trajectories projected into the chosen 2D display space.
+- `curves`: path_2d_family [terminal artifact] - Palantir-style smoothed branch trajectories projected into the chosen 2D display space.
 
 Promotable outputs: curves
 
@@ -1549,3 +1548,4 @@ Key parameters:
 - `smoothness` (dbl, default=1): Palantir-style mellon trajectory smoothing multiplier (higher = smoother).
 - `min_cells_per_branch` (int, default=50): Minimum eligible cells required to derive a branch trajectory.
 - `approx_points` (int, default=200): Number of trajectory sample points per branch (curve resolution).
+

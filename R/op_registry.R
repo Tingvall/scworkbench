@@ -61,6 +61,7 @@ wb_ops <- function() {
     z <- list(name = nm)
     if (nzchar(kind)) z$kind <- kind
     if (!is.null(rec$required)) z$required <- isTRUE(rec$required)
+    for (field in c("output_name", "primitive_kind", "durability_role", "promotable_directly", "materialized_by_terminals")) if (!is.null(rec[[field]])) z[[field]] <- rec[[field]]
     if (isTRUE(include_description) && nzchar(desc)) z$description <- desc
     z
   })
@@ -154,7 +155,8 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
       for (x in produces) {
         desc <- as.character(x$description %||% "")[1]
         suffix <- if (nzchar(desc)) paste0(" - ", desc) else ""
-        lines <- c(lines, paste0("- `", as.character(x$name %||% "")[1], "`: ", as.character(x$kind %||% "")[1], suffix))
+        promo <- if (identical(as.character(x$durability_role %||% "")[1], "materialization")) paste0(" [materialization; committed by: ", paste(as.character(x$materialized_by_terminals %||% character()), collapse=", "), "]") else " [terminal artifact]"
+        lines <- c(lines, paste0("- `", as.character(x$name %||% "")[1], "`: ", as.character(x$kind %||% "")[1], promo, suffix))
       }
     } else {
       lines <- c(lines, "- (none)")

@@ -149,8 +149,6 @@
 <line x1="960" y1="1039" x2="1030" y2="1687" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_namespace_transfer has_parameter_semantics parameter:min_retained_fraction</title></line>
 <line x1="960" y1="1039" x2="1030" y2="2119" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_namespace_transfer has_parameter_semantics parameter:namespace</title></line>
 <line x1="960" y1="1039" x2="1030" y2="2335" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_namespace_transfer has_parameter_semantics parameter:overwrite</title></line>
-<line x1="960" y1="1039" x2="1030" y2="3415" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_namespace_transfer has_parameter_semantics parameter:source_matrix_id</title></line>
-<line x1="960" y1="1039" x2="1030" y2="3991" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_namespace_transfer has_parameter_semantics parameter:target_matrix_id</title></line>
 <line x1="960" y1="1039" x2="1030" y2="4063" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_namespace_transfer has_parameter_semantics parameter:target_namespace</title></line>
 <line x1="960" y1="1111" x2="1030" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_overlap_qc has_parameter_semantics parameter:cell_set</title></line>
 <line x1="960" y1="1111" x2="1030" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_overlap_qc has_parameter_semantics parameter:feature_sets</title></line>
@@ -519,6 +517,7 @@
 <line x1="960" y1="2047" x2="1690" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:pca_fit produces primitive:space</title></line>
 <line x1="960" y1="2119" x2="1690" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_fit produces primitive:model_ref</title></line>
 <line x1="960" y1="2119" x2="1690" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_fit produces primitive:space</title></line>
+<line x1="960" y1="2191" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_project produces primitive:obs_table</title></line>
 <line x1="960" y1="2191" x2="1690" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:peakvi_project produces primitive:space</title></line>
 <line x1="960" y1="2263" x2="1690" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:scvi_train produces primitive:model_ref</title></line>
 <line x1="960" y1="2263" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:scvi_train produces primitive:obs_table</title></line>

@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-07-18T14:36:08+0200",
+  "generated_at": "2026-07-24T20:31:32+0200",
   "node_count": 304,
-  "edge_count": 881,
+  "edge_count": 880,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -2744,18 +2744,6 @@
     },
     {
       "from": "op:feature_set_namespace_transfer",
-      "to": "parameter:source_matrix_id",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:source_matrix_id"
-    },
-    {
-      "from": "op:feature_set_namespace_transfer",
-      "to": "parameter:target_matrix_id",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:target_matrix_id"
-    },
-    {
-      "from": "op:feature_set_namespace_transfer",
       "to": "parameter:namespace",
       "edge_type": "has_parameter_semantics",
       "label": "param:namespace"
@@ -4613,6 +4601,12 @@
       "to": "primitive:space",
       "edge_type": "produces",
       "label": "output:space"
+    },
+    {
+      "from": "op:peakvi_project",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:fit_summary"
     },
     {
       "from": "primitive:space",

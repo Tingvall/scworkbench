@@ -537,6 +537,7 @@ digraph scworkbench_semantic_graph {
   n63 -> n144 [label="produces", color="#2f6f8f"];
   n64 -> n143 [label="produces", color="#2f6f8f"];
   n65 -> n142 [label="produces", color="#2f6f8f"];
+  n66 -> n142 [label="produces", color="#2f6f8f"];
   n66 -> n145 [label="produces", color="#2f6f8f"];
   n67 -> n138 [label="produces", color="#2f6f8f"];
   n67 -> n143 [label="produces", color="#2f6f8f"];
