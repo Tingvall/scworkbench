@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 provision_cran_namespaces <- function(packages,
-                                      repo = getOption("repos")[["CRAN"]]) {
+                                      repo = getOption("repos")[["CRAN"]], retries = 3L) {
   packages <- unique(as.character(packages))
   if (!length(packages)) return(invisible(data.frame()))
   if (!is.character(repo) || length(repo) != 1L || !nzchar(repo)) {
@@ -15,13 +15,12 @@ provision_cran_namespaces <- function(packages,
     action <- if (installed) "already_installed" else "install"
 
     if (!installed) {
-      install_error <- tryCatch(
-        {
-          utils::install.packages(package, repos = repo, dependencies = NA)
-          NULL
-        },
-        error = function(error) conditionMessage(error)
-      )
+      install_error <- NULL
+      for (attempt in seq_len(as.integer(retries))) {
+        install_error <- tryCatch({utils::install.packages(package, repos = repo, dependencies = NA); NULL}, error = function(error) conditionMessage(error))
+        if (package %in% rownames(installed.packages())) break
+        if (attempt < retries) Sys.sleep(min(2^(attempt-1L), 8L))
+      }
       installed <- package %in% rownames(installed.packages())
       if (!installed) {
         stop(
@@ -30,7 +29,7 @@ provision_cran_namespaces <- function(packages,
           "; repository=", repo,
           "; installed_version=<none>",
           "; library_paths=", paste(.libPaths(), collapse = " | "),
-          "; install_error=", ifelse(is.null(install_error), "<none>", install_error)
+          "; retries=", retries, "; install_error=", ifelse(is.null(install_error), "<none>", install_error)
         )
       }
     }
