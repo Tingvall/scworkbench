@@ -20,5 +20,31 @@ GitHubBPCellsSubdir: r
 GitHubBPCellsPrerequisites: progress, tzdb, hms, vroom, hexbin, readr
 GitHubMonocle3Repo: cole-trapnell-lab/monocle3
 GitHubMonocle3Ref: 4f4239a0afb0dd1941a0359ba6bec95eb0ccf628
-GitHubMonocle3CRANPrerequisites: ggrastr, lme4, pheatmap, RhpcBLASctl, viridis
-GitHubMonocle3BioconductorPrerequisites: batchelor, HDF5Array, limma
+GitHubMonocle3CRANPrerequisites: abind, askpass, assertthat, base64enc, beeswarm, BH, biglm, boot,
+    bslib, cachem, Cairo, class, classInt, cli, codetools, commonmark, cpp11,
+    crayon, crosstalk, curl, data.table, DBI, deldir, digest, distributional,
+    dplyr, dqrng, e1071, evaluate, farver, fastmap, FNN, fontawesome, formatR,
+    fs, furrr, futile.logger, futile.options, future, generics, ggbeeswarm,
+    ggdist, ggforce, ggplot2, ggrastr, ggrepel, globals, glue, gridExtra, gtable,
+    highr, htmltools, htmlwidgets, httpuv, httr, igraph, irlba, isoband,
+    jquerylib, jsonlite, KernSmooth, knitr, labeling, lambda.r, later, lattice,
+    lazyeval, leidenbase, lifecycle, listenv, lme4, lmtest, magrittr, MASS,
+    Matrix, matrixStats, memoise, mime, minqa, nlme, nloptr, numDeriv, openssl,
+    otel, parallelly, pbapply, pbmcapply, pheatmap, pillar, pkgconfig, plotly,
+    plyr, png, polyclip, promises, proxy, pscl, purrr, quadprog, R6, ragg, RANN,
+    rappdirs, rbibutils, RColorBrewer, Rcpp, RcppAnnoy, RcppEigen, RcppHNSW,
+    RcppProgress, Rdpack, reformulas, reshape2, RhpcBLASctl, rlang, rmarkdown,
+    rsample, RSpectra, rsvd, Rtsne, s2, S7, sass, scales, sf, shiny, sitmo,
+    slam, slider, snow, sourcetools, sp, spData, spdep, statmod, stringi,
+    stringr, sys, systemfonts, textshaping, tibble, tidyr, tidyselect, tinytex,
+    tweenr, units, utf8, uwot, vctrs, vipor, viridis, viridisLite, warp, withr,
+    wk, xfun, xtable, yaml, zoo
+GitHubMonocle3BioconductorPrerequisites: assorthead, batchelor, beachmat, Biobase,
+    BiocGenerics, BiocNeighbors, BiocParallel, BiocSingular, DelayedArray,
+    DelayedMatrixStats, GenomeInfoDb, GenomeInfoDbData, GenomicRanges, HDF5Array,
+    IRanges, limma, MatrixGenerics, ResidualMatrix, rhdf5, rhdf5filters,
+    Rhdf5lib, S4Arrays, S4Vectors, ScaledMatrix, scuttle, SingleCellExperiment,
+    SparseArray, sparseMatrixStats, SummarizedExperiment, UCSC.utils, XVector,
+    zlibbioc
+GitHubMonocle3GitHubPrerequisites: grr=cran/grr@3e7a63ef9b62dec659792d0da5eba6f51ee586eb,
+    speedglm=cole-trapnell-lab/speedglm@ca34b4e53319424b60c442bb550adf3574b4bfec

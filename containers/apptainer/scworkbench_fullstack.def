@@ -157,6 +157,10 @@ source("/opt/scworkbench/inst/ci/fullstack_r_dependency_lock.R")
 lock <- read_fullstack_r_dependency_lock(lock_path)
 configure_fullstack_repositories(lock)
 is_installed <- function(package) package %in% rownames(installed.packages())
+fullstack_validate_monocle3_closure(
+  lock,
+  "/opt/scworkbench/inst/ci/monocle3_4f4239a_dependency_snapshot.dcf"
+)
 
 # Pinned GitHub-managed packages. Release images must not depend on a moving
 # GitHub branch tip.
@@ -168,6 +172,35 @@ monocle3_ref <- lock$GitHubMonocle3Ref
 cran_pkgs <- unique(c(lock$CRANPackages, lock$GitHubBPCellsPrerequisites, lock$GitHubMonocle3CRANPrerequisites))
 source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
 provision_cran_namespaces(cran_pkgs, repo = getOption("repos")[["CRAN"]])
+
+install_pinned_github_prerequisites <- function(records, retries = 3L) {
+  for (package in names(records)) {
+    record <- records[[package]]
+    parts <- strsplit(record, "@", fixed = TRUE)[[1L]]
+    repo <- parts[[1L]]
+    ref <- parts[[2L]]
+    installed_ref <- if (is_installed(package)) as.character(utils::packageDescription(package)$RemoteSha) else ""
+    if (!is.na(installed_ref) && identical(installed_ref, ref)) next
+    if (is_installed(package)) remove.packages(package)
+    install_error <- NULL
+    for (attempt in seq_len(retries)) {
+      install_error <- tryCatch({
+        remotes::install_github(repo = repo, ref = ref, upgrade = "never", dependencies = FALSE)
+        NULL
+      }, error = function(error) conditionMessage(error))
+      installed_ref <- if (is_installed(package)) as.character(utils::packageDescription(package)$RemoteSha) else ""
+      if (!is.na(installed_ref) && identical(installed_ref, ref)) break
+      if (attempt < retries) Sys.sleep(min(2^(attempt - 1L), 8L))
+    }
+    if (is.na(installed_ref) || !identical(installed_ref, ref)) {
+      stop("Pinned monocle3 prerequisite installation failed: package=", package,
+           "; repo=", repo, "; ref=", ref, "; retries=", retries,
+           "; install_error=", ifelse(is.null(install_error), "<none>", install_error))
+    }
+    cat("Pinned monocle3 prerequisite installed: ", package, " repo=", repo, " ref=", ref, "\n", sep = "")
+  }
+}
+install_pinned_github_prerequisites(lock$GitHubMonocle3GitHubPrerequisites)
 
 bpcells_prereqs <- c("progress", "tzdb", "hms", "vroom", "hexbin", "readr")
 missing_bpcells_prereqs <- bpcells_prereqs[!vapply(bpcells_prereqs, requireNamespace, logical(1), quietly = TRUE)]
@@ -194,7 +227,30 @@ if (!identical(installed_bpcells_ref, bpcells_r_ref)) {
 # Bioconductor release-managed declared Suggests and their direct genomic
 # support packages. Do not add GitHub-only packages to this list.
 bioc_support_pkgs <- unique(c(lock$BioconductorPackages, lock$GitHubMonocle3BioconductorPrerequisites))
-BiocManager::install(bioc_support_pkgs, ask = FALSE, update = FALSE, force = TRUE, dependencies = NA)
+for (package in bioc_support_pkgs) {
+  if (is_installed(package)) next
+  install_error <- NULL
+  for (attempt in seq_len(3L)) {
+    install_error <- tryCatch({
+      BiocManager::install(package, ask = FALSE, update = FALSE, force = TRUE, dependencies = NA)
+      NULL
+    }, error = function(error) conditionMessage(error))
+    if (is_installed(package)) break
+    if (attempt < 3L) Sys.sleep(min(2^(attempt - 1L), 8L))
+  }
+  if (!is_installed(package)) {
+    stop("Bioconductor prerequisite installation failed: package=", package,
+         "; release=", lock$BioconductorRelease, "; retries=3; install_error=",
+         ifelse(is.null(install_error), "<none>", install_error))
+  }
+}
+
+monocle3_prereqs <- fullstack_monocle3_closure_packages(lock)
+missing_monocle3_prereqs <- monocle3_prereqs[!vapply(monocle3_prereqs, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing_monocle3_prereqs)) {
+  stop("Pinned monocle3 prerequisites missing after locked provisioning: ",
+       paste(missing_monocle3_prereqs, collapse = ", "))
+}
 
 installed_monocle3_ref <- if (is_installed("monocle3")) {
   as.character(utils::packageDescription("monocle3")$RemoteSha)
