@@ -10,7 +10,9 @@ test_promotion_output_contract <- function() {
   stopifnot(identical(peak$space$durability_role, "materialization"), identical(peak$space$materialized_by_terminals, "fit_summary"), isTRUE(peak$fit_summary$promotable_directly))
   run <- wb_new_run("peakvi_project", inputs=list(parents=character()), outputs=list(space=wb_prim_space("staged_only")))
   s <- wb_session_new(); s$runs <- setNames(list(run), run$run_id); s$head_run_id <- run$run_id
-  z <- try(wb_session_promote_current(wb_init_bundle(tempfile("scwb_zero_"),overwrite=TRUE),s),silent=TRUE)
+  zero_root <- tempfile("scwb_zero_"); zero_bundle <- wb_init_bundle(zero_root,overwrite=TRUE)
+  on.exit({try(wb_close_bundle(zero_bundle),silent=TRUE); unlink(zero_root,recursive=TRUE,force=TRUE)},add=TRUE)
+  z <- try(wb_session_promote_current(zero_bundle,s),silent=TRUE)
   stopifnot(inherits(z,"try-error"), grepl("zero promotable terminal",as.character(z)))
   TRUE
 }
