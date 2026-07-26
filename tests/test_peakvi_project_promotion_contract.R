@@ -22,8 +22,11 @@ test_peakvi_project_promotion_contract <- function() {
   wb_close_bundle(b); b <- wb_open_bundle(root)
   stopifnot("projected" %in% wb_spaces(b)$space_id, nrow(p$promoted[p$promoted$output=="fit_summary",])==1L, isTRUE(wb_validate_bundle(root)))
   failed <- wb_session_run_op(wb_session_new(),b,"peakvi_project",inputs=list(matrix="ATAC_counts",model=model,cell_set="all",min_cells=1L,space_id_out="rollback_projected"))
-  before_heads <- nrow(wb_prov_list_heads(b)); options(scworkbench.promotion_workspace_publish_hook=function(...) stop("forced",call.=FALSE))
-  bad <- try(wb_session_promote_current(b,failed$session,outputs="fit_summary"),silent=TRUE); options(scworkbench.promotion_workspace_publish_hook=NULL)
-  stopifnot(inherits(bad,"try-error"), !"rollback_projected" %in% wb_spaces(b)$space_id, nrow(wb_prov_list_heads(b))==before_heads, isTRUE(wb_validate_bundle(root)))
+  before_heads <- nrow(wb_prov_list_heads(b)); before_peak_artifacts <- sum(wb_art_list(b)$source_op=="peakvi_project"); old_hook <- getOption("scworkbench.promotion_workspace_publish_hook"); on.exit(options(scworkbench.promotion_workspace_publish_hook=old_hook),add=TRUE)
+  options(scworkbench.promotion_workspace_publish_hook=function(...) stop("forced",call.=FALSE))
+  bad <- try(wb_session_promote_current(b,failed$session,outputs="fit_summary"),silent=TRUE); options(scworkbench.promotion_workspace_publish_hook=old_hook)
+  bind_n <- DBI::dbGetQuery(b$con,"SELECT COUNT(*) n FROM prov_run_entity_bindings WHERE run_id=?;",params=list(failed$run$run_id))$n[1]
+  mat_n <- DBI::dbGetQuery(b$con,"SELECT COUNT(*) n FROM prov_materializations WHERE run_id=?;",params=list(failed$run$run_id))$n[1]
+  stopifnot(inherits(bad,"try-error"), !"rollback_projected" %in% wb_spaces(b)$space_id, nrow(wb_prov_list_heads(b))==before_heads, bind_n==0L, mat_n==0L, sum(wb_art_list(b)$source_op=="peakvi_project")==before_peak_artifacts, isTRUE(wb_validate_bundle(root)))
   TRUE
 }
