@@ -8,8 +8,8 @@ read_fullstack_r_dependency_lock <- function(path) {
   required <- c(
     "SchemaVersion", "CRANRepository", "BioconductorRelease", "CRANPackages",
     "BioconductorPackages", "BioconductorGenomicFamily", "GitHubBPCellsRepo",
-    "GitHubBPCellsRef", "GitHubBPCellsSubdir", "GitHubMonocle3Repo",
-    "GitHubMonocle3Ref"
+    "GitHubBPCellsRef", "GitHubBPCellsSubdir", "GitHubBPCellsPrerequisites", "GitHubMonocle3Repo",
+    "GitHubMonocle3Ref", "GitHubMonocle3CRANPrerequisites", "GitHubMonocle3BioconductorPrerequisites"
   )
   missing <- setdiff(required, colnames(fields))
   if (length(missing)) {
@@ -19,6 +19,9 @@ read_fullstack_r_dependency_lock <- function(path) {
   lock$CRANPackages <- fullstack_lock_packages(lock$CRANPackages)
   lock$BioconductorPackages <- fullstack_lock_packages(lock$BioconductorPackages)
   lock$BioconductorGenomicFamily <- fullstack_lock_packages(lock$BioconductorGenomicFamily)
+  lock$GitHubBPCellsPrerequisites <- fullstack_lock_packages(lock$GitHubBPCellsPrerequisites)
+  lock$GitHubMonocle3CRANPrerequisites <- fullstack_lock_packages(lock$GitHubMonocle3CRANPrerequisites)
+  lock$GitHubMonocle3BioconductorPrerequisites <- fullstack_lock_packages(lock$GitHubMonocle3BioconductorPrerequisites)
   lock
 }
 

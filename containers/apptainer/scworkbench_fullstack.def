@@ -165,7 +165,7 @@ monocle3_ref <- lock$GitHubMonocle3Ref
 
 # CRAN-managed packages. This includes declared Suggests and runtime support
 # packages needed by the Shiny reference client.
-cran_pkgs <- lock$CRANPackages
+cran_pkgs <- unique(c(lock$CRANPackages, lock$GitHubBPCellsPrerequisites, lock$GitHubMonocle3CRANPrerequisites))
 source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
 provision_cran_namespaces(cran_pkgs, repo = getOption("repos")[["CRAN"]])
 
@@ -193,7 +193,7 @@ if (!identical(installed_bpcells_ref, bpcells_r_ref)) {
 
 # Bioconductor release-managed declared Suggests and their direct genomic
 # support packages. Do not add GitHub-only packages to this list.
-bioc_support_pkgs <- lock$BioconductorPackages
+bioc_support_pkgs <- unique(c(lock$BioconductorPackages, lock$GitHubMonocle3BioconductorPrerequisites))
 BiocManager::install(bioc_support_pkgs, ask = FALSE, update = FALSE, force = TRUE, dependencies = NA)
 
 installed_monocle3_ref <- if (is_installed("monocle3")) {
@@ -207,8 +207,9 @@ if (is.na(installed_monocle3_ref) || !identical(installed_monocle3_ref, monocle3
     repo = lock$GitHubMonocle3Repo,
     ref = monocle3_ref,
     upgrade = "never",
-    dependencies = NA
+    dependencies = FALSE
   )
+  if (!is_installed("monocle3")) stop("Pinned monocle3 installation failed after locked CRAN/Bioconductor prerequisites.")
   installed_monocle3_ref <- as.character(utils::packageDescription("monocle3")$RemoteSha)
 }
 if (is.na(installed_monocle3_ref) || !identical(installed_monocle3_ref, monocle3_ref)) {

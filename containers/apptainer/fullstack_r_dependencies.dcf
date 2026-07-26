@@ -17,5 +17,8 @@ BioconductorGenomicFamily: GenomeInfoDb, GenomicRanges, IRanges, S4Vectors,
 GitHubBPCellsRepo: bnprks/BPCells
 GitHubBPCellsRef: c293a0a34e653c395c8e9bf9ed3133107324d7b7
 GitHubBPCellsSubdir: r
+GitHubBPCellsPrerequisites: progress, tzdb, hms, vroom, hexbin, readr
 GitHubMonocle3Repo: cole-trapnell-lab/monocle3
 GitHubMonocle3Ref: 4f4239a0afb0dd1941a0359ba6bec95eb0ccf628
+GitHubMonocle3CRANPrerequisites: ggrastr, lme4, pheatmap, RhpcBLASctl, viridis
+GitHubMonocle3BioconductorPrerequisites: batchelor, HDF5Array, limma
