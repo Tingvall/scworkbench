@@ -4,7 +4,7 @@ BioconductorRelease: 3.21
 CRANPackages: DBI, RSQLite, jsonlite, Seurat, Matrix, uwot, igraph,
     RANN, ggplot2, viridisLite, shiny, shinyFiles, magrittr, DT, plotly,
     visNetwork, zip, colourpicker, digest, SeuratObject, irlba, rnndescent,
-    FNN
+    FNN, progress, tzdb, hms, vroom, hexbin, readr
 BioconductorPackages: BiocParallel, BSgenome.Hsapiens.UCSC.hg19,
     BSgenome.Mmusculus.UCSC.mm10, chromVAR, GenomeInfoDb, GenomicRanges,
     IRanges, JASPAR2020, motifmatchr, SingleCellExperiment,

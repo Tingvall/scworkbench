@@ -169,6 +169,10 @@ cran_pkgs <- lock$CRANPackages
 source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
 provision_cran_namespaces(cran_pkgs, repo = getOption("repos")[["CRAN"]])
 
+bpcells_prereqs <- c("progress", "tzdb", "hms", "vroom", "hexbin", "readr")
+missing_bpcells_prereqs <- bpcells_prereqs[!vapply(bpcells_prereqs, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing_bpcells_prereqs)) stop("BPCells CRAN prerequisites missing after locked provisioning: ", paste(missing_bpcells_prereqs, collapse=", "))
+
 if (is_installed("BPCells")) {
   remove.packages("BPCells")
 }
@@ -177,8 +181,9 @@ remotes::install_github(
   ref = bpcells_r_ref,
   subdir = lock$GitHubBPCellsSubdir,
   upgrade = "never",
-  dependencies = NA
+  dependencies = FALSE
 )
+if (!is_installed("BPCells")) stop("Pinned BPCells installation failed after verified CRAN prerequisites.")
 installed_bpcells_ref <- as.character(utils::packageDescription("BPCells")$RemoteSha)
 if (is.na(installed_bpcells_ref) || !nzchar(installed_bpcells_ref)) installed_bpcells_ref <- ""
 if (!identical(installed_bpcells_ref, bpcells_r_ref)) {
