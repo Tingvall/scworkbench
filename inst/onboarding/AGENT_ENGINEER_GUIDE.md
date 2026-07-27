@@ -47,6 +47,39 @@ Role: extend and stabilize engine + thin clients.
 6. Update semantic catalogs and docs.
 7. Run `wb_refresh_semantic_catalogs()` and fix any audit failure.
 
+## Long-running operation safety
+
+`wb_session_run_op()` returns a list containing `session`, `run`, and `result`.
+`run` is a structured `wb_run`, not a `data.frame` or `data.table`: do not
+coerce or serialize it wholesale while a result is still staged. For expensive
+work, retain `session <- result$session` immediately and promote the intended
+terminal output(s) before writing reports, JSON, CSV, plots, identity cards,
+or diagnostics. Before promotion, extract only stable scalar IDs if needed and
+inspect staged entities with documented session interfaces such as
+`wb_session_view(session)`.
+
+```r
+session <- wb_session_new()
+result <- wb_session_run_op(
+  session, bundle, "hvg_select",
+  inputs = list(matrix = "RNA_counts", n_features = 2000L)
+)
+session <- result$session
+
+promotion <- wb_session_promote_current(
+  bundle, session, outputs = "selected_features",
+  created_by = "operator"
+)
+
+# Only after promotion: inspect durable artifacts and emit reports/exports.
+artifacts <- wb_art_list(bundle)
+run_details <- wb_prov_run_details(bundle, result$run$run_id)
+```
+
+Use `wb_op_interface()` to select valid terminal `outputs=` values. Promotion
+commits the required provenance closure; staged session state is ephemeral if
+the R process exits.
+
 When the change is not an op, map it to the right surface first:
 
 - new compute -> op

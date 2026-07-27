@@ -17,6 +17,9 @@ test_all <- function(bundle_dir){
   if (exists("test_fullstack_monocle3_dependency_closure_contract", mode = "function")) {
     stopifnot(test_fullstack_monocle3_dependency_closure_contract())
   }
+  if (exists("test_long_running_session_promotion_guidance_contract", mode = "function")) {
+    stopifnot(test_long_running_session_promotion_guidance_contract())
+  }
   if (exists("test_legacy_cell_vector_contract", mode = "function")) {
     stopifnot(test_legacy_cell_vector_contract())
   }

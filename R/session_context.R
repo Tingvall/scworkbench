@@ -314,6 +314,15 @@ wb_session_add_run <- function(session, run) {
 #' @return A list with `session` (the updated `wb_session`), `run` (the
 #'   completed `wb_run`), and `result` (the operation result). Continue a
 #'   session with `rr <- wb_session_run_op(...); session <- rr$session`.
+#'
+#' @section Long-running operation safety:
+#' `run` is a structured `wb_run`, not a `data.frame` or `data.table`; do not
+#' coerce or serialize it wholesale before promotion. For expensive operations,
+#' immediately retain the returned `session`, inspect staged state with
+#' [wb_session_view()], and promote the known terminal outputs with
+#' [wb_session_promote_current()]. Write reports, exports, plots, identity
+#' cards, and diagnostics only after promotion has succeeded. This guidance is
+#' also shipped in `inst/onboarding/AGENT_ENGINEER_GUIDE.md` and `PLAYBOOK.md`.
 #' @export
 wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), notes = NULL) {
   .wb_assert_bundle_writable(bundle, "session operations")
