@@ -31,3 +31,14 @@ This is the programmatic session executor used by clients and integrations.
 Analysts should normally discover operation interfaces with
 \code{\link[=wb_op_interface]{wb_op_interface()}} before constructing explicit inputs.
 }
+\section{Long-running operation safety}{
+
+\code{run} is a structured \code{wb_run}, not a \code{data.frame} or \code{data.table}; do not
+coerce or serialize it wholesale before promotion. For expensive operations,
+immediately retain the returned \code{session}, inspect staged state with
+\code{\link[=wb_session_view]{wb_session_view()}}, and promote the known terminal outputs with
+\code{\link[=wb_session_promote_current]{wb_session_promote_current()}}. Write reports, exports, plots, identity
+cards, and diagnostics only after promotion has succeeded. This guidance is
+also shipped in \code{inst/onboarding/AGENT_ENGINEER_GUIDE.md} and \code{PLAYBOOK.md}.
+}
+

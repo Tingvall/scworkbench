@@ -40,6 +40,31 @@ Current phase note:
   matrices/spaces with `wb_session_view(session)`; do not expect them in the
   portable bundle before promotion.
 
+### Long-running operation safety
+
+`wb_session_run_op()` returns `session`, `run`, and `result`. Its `run` value
+is a structured `wb_run`, not a `data.frame`/`data.table`; never coerce or
+serialize it wholesale between execution and promotion. For expensive runs,
+immediately retain `session <- result$session`, identify terminal outputs with
+`wb_op_interface()`, and promote them. Write reports, JSON, CSVs, plots,
+identity cards, and diagnostics only after successful promotion. Before that,
+extract only stable scalar IDs and use `wb_session_view(session)` to inspect
+staged state.
+
+```r
+session <- wb_session_new()
+result <- wb_session_run_op(
+  session, bundle, "hvg_select",
+  inputs = list(matrix = "RNA_counts", n_features = 2000L)
+)
+session <- result$session
+promotion <- wb_session_promote_current(bundle, session, outputs = "selected_features")
+
+# Post-promotion inspection and reporting use durable bundle state.
+artifacts <- wb_art_list(bundle)
+run_details <- wb_prov_run_details(bundle, result$run$run_id)
+```
+
 3. Promote selectively
 - Use `wb_session_promote_current(outputs = ...)` for intended terminal
   outputs only. Required ancestors become internal committed provenance, not

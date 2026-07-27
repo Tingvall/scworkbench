@@ -40,3 +40,13 @@ The result of wb_promote_analysis(): list(artifact_pool=..., promoted=...)
 Promotes all saveable outputs reachable from the session head run id, in dependency order.
 This is the UI/agent-friendly "Save analysis" entry point.
 }
+\section{Long-running operation safety}{
+
+Promote expensive staged results immediately after \code{\link[=wb_session_run_op]{wb_session_run_op()}} and
+retaining \code{session <- result$session}. The returned \code{result$run} is a
+structured \code{wb_run}, not a tabular object to coerce or serialize. Select
+terminal \verb{outputs=} using \code{\link[=wb_op_interface]{wb_op_interface()}} and emit reports, exports,
+plots, identity cards, and diagnostics only after this call succeeds. See
+the shipped \code{inst/onboarding/PLAYBOOK.md} for a minimal safe workflow.
+}
+

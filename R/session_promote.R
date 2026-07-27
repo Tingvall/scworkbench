@@ -27,6 +27,14 @@
 #'   selected when it provides that output; otherwise the name must resolve
 #'   uniquely within the session.
 #' @return The result of wb_promote_analysis(): list(artifact_pool=..., promoted=...)
+#'
+#' @section Long-running operation safety:
+#' Promote expensive staged results immediately after [wb_session_run_op()] and
+#' retaining `session <- result$session`. The returned `result$run` is a
+#' structured `wb_run`, not a tabular object to coerce or serialize. Select
+#' terminal `outputs=` using [wb_op_interface()] and emit reports, exports,
+#' plots, identity cards, and diagnostics only after this call succeeds. See
+#' the shipped `inst/onboarding/PLAYBOOK.md` for a minimal safe workflow.
 #' @export
 wb_session_promote_current <- function(bundle,
                                        session,
