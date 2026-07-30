@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-07-24T20:31:30+0200",
-  "op_count": 54,
+  "generated_at": "2026-07-30T15:25:20+0200",
+  "op_count": 56,
   "ops": [
     {
       "op_name": "leiden",
@@ -2520,6 +2520,177 @@
         }
       ],
       "promotable": ["assoc_summary", "group_stats"],
+      "chunking": null
+    },
+    {
+      "op_name": "metadata_cell_vector",
+      "title": "Metadata Cell Vector",
+      "description": "Materialize an imported cell metadata column as a typed, provenance-backed cell vector.",
+      "intent": ["metadata", "cell_vector", "provenance", "technical_diagnostics"],
+      "consumes": [
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "vector",
+          "kind": "cell_vector",
+          "output_name": "vector",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "vector",
+          "description": "Typed per-cell vector materialized from imported bundle metadata."
+        }
+      ],
+      "inputs": {
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "source_column",
+          "type": "string",
+          "required": true,
+          "help": "Imported cell metadata column to materialize."
+        },
+        {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "help": "Named bundle cell set defining the vector universe."
+        },
+        {
+          "name": "value_type",
+          "type": "choice",
+          "default": "auto",
+          "choices": ["categorical", "continuous", "auto"],
+          "help": "Explicit vector value type; auto records a conservative native-type decision."
+        },
+        {
+          "name": "missing_policy",
+          "type": "choice",
+          "default": "error",
+          "choices": ["error", "drop", "as_category"],
+          "help": "How missing values are handled before vector materialization."
+        },
+        {
+          "name": "missing_label",
+          "type": "string",
+          "default": "__MISSING__",
+          "help": "Replacement label when missing_policy='as_category'."
+        },
+        {
+          "name": "vector_name",
+          "type": "string",
+          "required": true,
+          "help": "Stable promoted vector name; collision protection is controlled by overwrite."
+        },
+        {
+          "name": "overwrite",
+          "type": "bool",
+          "default": false,
+          "help": "Allow a new immutable artifact to supersede an existing vector with the same name."
+        }
+      ],
+      "promotable": "vector",
+      "chunking": null
+    },
+    {
+      "op_name": "cell_vector_association",
+      "title": "Cell Vector Association",
+      "description": "Associate two typed cell vectors with categorical and continuous dispatch.",
+      "intent": ["statistics", "association", "confounding"],
+      "consumes": [
+        {
+          "name": "a",
+          "kind": "cell_vector",
+          "required": true,
+          "description": "Categorical or continuous cell vector."
+        },
+        {
+          "name": "b",
+          "kind": "cell_vector",
+          "required": true,
+          "description": "Categorical or continuous cell vector."
+        },
+        {
+          "name": "cell_set",
+          "kind": "select"
+        }
+      ],
+      "produces": [
+        {
+          "name": "summary",
+          "kind": "obs_table",
+          "output_name": "summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "summary",
+          "description": "Typed association summary including method, effect size, and diagnostics."
+        },
+        {
+          "name": "detail",
+          "kind": "obs_table",
+          "output_name": "detail",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "detail",
+          "description": "Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test."
+        }
+      ],
+      "inputs": {
+        "a": {
+          "required": true,
+          "kind": "cell_vector",
+          "label": "First vector",
+          "help": "Categorical or continuous cell vector."
+        },
+        "b": {
+          "required": true,
+          "kind": "cell_vector",
+          "label": "Second vector",
+          "help": "Categorical or continuous cell vector."
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "core"
+        }
+      },
+      "params": [
+        {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "help": "Named bundle cell set defining the association universe."
+        },
+        {
+          "name": "min_n_per_group",
+          "type": "int",
+          "default": 3,
+          "min": 1,
+          "max": 100000,
+          "help": "Minimum cells per retained categorical group."
+        },
+        {
+          "name": "method",
+          "type": "choice",
+          "default": "auto",
+          "choices": ["auto", "chisq", "fisher", "kruskal_anova", "correlation"],
+          "help": "Association method or typed automatic dispatch."
+        }
+      ],
+      "promotable": ["summary", "detail"],
       "chunking": null
     },
     {

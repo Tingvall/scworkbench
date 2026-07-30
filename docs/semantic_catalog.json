@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-07-24T20:31:32+0200",
-  "record_count": 304,
+  "generated_at": "2026-07-30T15:25:21+0200",
+  "record_count": 309,
   "record_type_counts": {
-    "artifact_type": 71,
+    "artifact_type": 74,
     "getter": 72,
-    "op": 54,
+    "op": 56,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -2745,6 +2745,195 @@
           }
         ],
         "promotable": ["assoc_summary", "group_stats"],
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:metadata_cell_vector",
+      "record_type": "op",
+      "name": "metadata_cell_vector",
+      "title": "Metadata Cell Vector",
+      "description": "Materialize an imported cell metadata column as a typed, provenance-backed cell vector.",
+      "search_text": "Metadata Cell Vector\nMaterialize an imported cell metadata column as a typed, provenance-backed cell vector.\nmetadata\ncell_vector\nprovenance\ntechnical_diagnostics\ncell_set\nselect\nvector\nterminal_artifact\nTRUE\nTyped per-cell vector materialized from imported bundle metadata.\nsource_column\nstring\nImported cell metadata column to materialize.\nall\nNamed bundle cell set defining the vector universe.\nvalue_type\nchoice\nauto\ncategorical\ncontinuous\nExplicit vector value type; auto records a conservative native-type decision.\nmissing_policy\nerror\ndrop\nas_category\nHow missing values are handled before vector materialization.\nmissing_label\n__MISSING__\nReplacement label when missing_policy='as_category'.\nvector_name\nStable promoted vector name; collision protection is controlled by overwrite.\noverwrite\nbool\nFALSE\nAllow a new immutable artifact to supersede an existing vector with the same name.",
+      "tags": ["op", "metadata", "cell_vector", "provenance", "technical_diagnostics"],
+      "payload": {
+        "op_name": "metadata_cell_vector",
+        "title": "Metadata Cell Vector",
+        "description": "Materialize an imported cell metadata column as a typed, provenance-backed cell vector.",
+        "intent": ["metadata", "cell_vector", "provenance", "technical_diagnostics"],
+        "consumes": [
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "vector",
+            "kind": "cell_vector",
+            "output_name": "vector",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "vector",
+            "description": "Typed per-cell vector materialized from imported bundle metadata."
+          }
+        ],
+        "inputs": {
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "source_column",
+            "type": "string",
+            "required": true,
+            "help": "Imported cell metadata column to materialize."
+          },
+          {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "help": "Named bundle cell set defining the vector universe."
+          },
+          {
+            "name": "value_type",
+            "type": "choice",
+            "default": "auto",
+            "choices": ["categorical", "continuous", "auto"],
+            "help": "Explicit vector value type; auto records a conservative native-type decision."
+          },
+          {
+            "name": "missing_policy",
+            "type": "choice",
+            "default": "error",
+            "choices": ["error", "drop", "as_category"],
+            "help": "How missing values are handled before vector materialization."
+          },
+          {
+            "name": "missing_label",
+            "type": "string",
+            "default": "__MISSING__",
+            "help": "Replacement label when missing_policy='as_category'."
+          },
+          {
+            "name": "vector_name",
+            "type": "string",
+            "required": true,
+            "help": "Stable promoted vector name; collision protection is controlled by overwrite."
+          },
+          {
+            "name": "overwrite",
+            "type": "bool",
+            "default": false,
+            "help": "Allow a new immutable artifact to supersede an existing vector with the same name."
+          }
+        ],
+        "promotable": "vector",
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:cell_vector_association",
+      "record_type": "op",
+      "name": "cell_vector_association",
+      "title": "Cell Vector Association",
+      "description": "Associate two typed cell vectors with categorical and continuous dispatch.",
+      "search_text": "Cell Vector Association\nAssociate two typed cell vectors with categorical and continuous dispatch.\nstatistics\nassociation\nconfounding\na\ncell_vector\nTRUE\nCategorical or continuous cell vector.\nb\ncell_set\nselect\nsummary\nobs_table\nterminal_artifact\nTyped association summary including method, effect size, and diagnostics.\ndetail\nContingency, group-statistic, or per-cell association detail appropriate to the dispatched test.\nall\nNamed bundle cell set defining the association universe.\nmin_n_per_group\nint\n3\n1\n1e+05\nMinimum cells per retained categorical group.\nmethod\nchoice\nauto\nchisq\nfisher\nkruskal_anova\ncorrelation\nAssociation method or typed automatic dispatch.",
+      "tags": ["op", "statistics", "association", "confounding"],
+      "payload": {
+        "op_name": "cell_vector_association",
+        "title": "Cell Vector Association",
+        "description": "Associate two typed cell vectors with categorical and continuous dispatch.",
+        "intent": ["statistics", "association", "confounding"],
+        "consumes": [
+          {
+            "name": "a",
+            "kind": "cell_vector",
+            "required": true,
+            "description": "Categorical or continuous cell vector."
+          },
+          {
+            "name": "b",
+            "kind": "cell_vector",
+            "required": true,
+            "description": "Categorical or continuous cell vector."
+          },
+          {
+            "name": "cell_set",
+            "kind": "select"
+          }
+        ],
+        "produces": [
+          {
+            "name": "summary",
+            "kind": "obs_table",
+            "output_name": "summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "summary",
+            "description": "Typed association summary including method, effect size, and diagnostics."
+          },
+          {
+            "name": "detail",
+            "kind": "obs_table",
+            "output_name": "detail",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "detail",
+            "description": "Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test."
+          }
+        ],
+        "inputs": {
+          "a": {
+            "required": true,
+            "kind": "cell_vector",
+            "label": "First vector",
+            "help": "Categorical or continuous cell vector."
+          },
+          "b": {
+            "required": true,
+            "kind": "cell_vector",
+            "label": "Second vector",
+            "help": "Categorical or continuous cell vector."
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "core"
+          }
+        },
+        "params": [
+          {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "help": "Named bundle cell set defining the association universe."
+          },
+          {
+            "name": "min_n_per_group",
+            "type": "int",
+            "default": 3,
+            "min": 1,
+            "max": 100000,
+            "help": "Minimum cells per retained categorical group."
+          },
+          {
+            "name": "method",
+            "type": "choice",
+            "default": "auto",
+            "choices": ["auto", "chisq", "fisher", "kruskal_anova", "correlation"],
+            "help": "Association method or typed automatic dispatch."
+          }
+        ],
+        "promotable": ["summary", "detail"],
         "chunking": null
       }
     },
@@ -10161,6 +10350,60 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:cell_vector_association_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_association_summary",
+      "title": "Cell Vector Association Summary",
+      "description": "Typed association result with dispatched method, effect size, and validity diagnostics.",
+      "search_text": "Cell Vector Association Summary\nTyped association result with dispatched method, effect size, and validity diagnostics.\nobs_table\ncell_vector_association_summary\nvector_pair\nassess technical confounding\nsummarize metadata-vector association",
+      "tags": ["artifact_type", "obs_table", "cell_vector_association_summary"],
+      "payload": {
+        "artifact_type": "obs_table:cell_vector_association_summary",
+        "primitive_kind": "obs_table",
+        "title": "Cell Vector Association Summary",
+        "description": "Typed association result with dispatched method, effect size, and validity diagnostics.",
+        "table_type": "cell_vector_association_summary",
+        "entity_kind": "vector_pair",
+        "use_when": ["assess technical confounding", "summarize metadata-vector association"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_association_contingency",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_association_contingency",
+      "title": "Cell Vector Association Contingency",
+      "description": "Observed and expected counts for categorical-by-categorical cell-vector association.",
+      "search_text": "Cell Vector Association Contingency\nObserved and expected counts for categorical-by-categorical cell-vector association.\nobs_table\ncell_vector_association_contingency\ncontingency_cell\ninspect category balance\ndiagnose sparse expected counts",
+      "tags": ["artifact_type", "obs_table", "cell_vector_association_contingency"],
+      "payload": {
+        "artifact_type": "obs_table:cell_vector_association_contingency",
+        "primitive_kind": "obs_table",
+        "title": "Cell Vector Association Contingency",
+        "description": "Observed and expected counts for categorical-by-categorical cell-vector association.",
+        "table_type": "cell_vector_association_contingency",
+        "entity_kind": "contingency_cell",
+        "use_when": ["inspect category balance", "diagnose sparse expected counts"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_association_cells",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_association_cells",
+      "title": "Cell Vector Association Cells",
+      "description": "Per-cell values used in a continuous-by-continuous association.",
+      "search_text": "Cell Vector Association Cells\nPer-cell values used in a continuous-by-continuous association.\nobs_table\ncell_vector_association_cells\ncell\ninspect correlation inputs\nplot paired continuous metadata",
+      "tags": ["artifact_type", "obs_table", "cell_vector_association_cells"],
+      "payload": {
+        "artifact_type": "obs_table:cell_vector_association_cells",
+        "primitive_kind": "obs_table",
+        "title": "Cell Vector Association Cells",
+        "description": "Per-cell values used in a continuous-by-continuous association.",
+        "table_type": "cell_vector_association_cells",
+        "entity_kind": "cell",
+        "use_when": ["inspect correlation inputs", "plot paired continuous metadata"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
       "record_type": "artifact_type",
       "name": "obs_table:winner_cell_set_manifest",
@@ -12091,9 +12334,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-07-24T20:31:32+0200",
-    "node_count": 304,
-    "edge_count": 880,
+    "generated_at": "2026-07-30T15:25:21+0200",
+    "node_count": 309,
+    "edge_count": 894,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -12237,6 +12480,18 @@
         "record_id": "op:cell_vector_assoc",
         "record_type": "op",
         "name": "cell_vector_assoc",
+        "title": "Cell Vector Association"
+      },
+      {
+        "record_id": "op:metadata_cell_vector",
+        "record_type": "op",
+        "name": "metadata_cell_vector",
+        "title": "Metadata Cell Vector"
+      },
+      {
+        "record_id": "op:cell_vector_association",
+        "record_type": "op",
+        "name": "cell_vector_association",
         "title": "Cell Vector Association"
       },
       {
@@ -13306,6 +13561,24 @@
         "record_type": "artifact_type",
         "name": "obs_table:cell_vector_family_graph_smooth_summary",
         "title": "Cell Vector Family Graph Smoothing Summary"
+      },
+      {
+        "record_id": "artifact_type:obs_table:cell_vector_association_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:cell_vector_association_summary",
+        "title": "Cell Vector Association Summary"
+      },
+      {
+        "record_id": "artifact_type:obs_table:cell_vector_association_contingency",
+        "record_type": "artifact_type",
+        "name": "obs_table:cell_vector_association_contingency",
+        "title": "Cell Vector Association Contingency"
+      },
+      {
+        "record_id": "artifact_type:obs_table:cell_vector_association_cells",
+        "record_type": "artifact_type",
+        "name": "obs_table:cell_vector_association_cells",
+        "title": "Cell Vector Association Cells"
       },
       {
         "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
@@ -14982,6 +15255,72 @@
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:group_stats"
+      },
+      {
+        "from": "op:metadata_cell_vector",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:metadata_cell_vector",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:cell_set"
+      },
+      {
+        "from": "op:metadata_cell_vector",
+        "to": "parameter:overwrite",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:overwrite"
+      },
+      {
+        "from": "op:metadata_cell_vector",
+        "to": "primitive:cell_vector",
+        "edge_type": "produces",
+        "label": "output:vector"
+      },
+      {
+        "from": "op:metadata_cell_vector",
+        "to": "artifact_type:cell_vector",
+        "edge_type": "promotes_as",
+        "label": "promotable:vector"
+      },
+      {
+        "from": "primitive:cell_vector",
+        "to": "op:cell_vector_association",
+        "edge_type": "consumed_by",
+        "label": "input:a"
+      },
+      {
+        "from": "primitive:cell_vector",
+        "to": "op:cell_vector_association",
+        "edge_type": "consumed_by",
+        "label": "input:b"
+      },
+      {
+        "from": "op:cell_vector_association",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:cell_vector_association",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:cell_set"
+      },
+      {
+        "from": "op:cell_vector_association",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:summary"
+      },
+      {
+        "from": "op:cell_vector_association",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:detail"
       },
       {
         "from": "primitive:cell_vector",
@@ -17157,6 +17496,24 @@
       },
       {
         "from": "artifact_type:obs_table:cell_vector_family_graph_smooth_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:cell_vector_association_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:cell_vector_association_contingency",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:cell_vector_association_cells",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"

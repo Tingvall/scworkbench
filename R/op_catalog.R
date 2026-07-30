@@ -932,6 +932,38 @@
   raw
 }
 
+.wb_runner_metadata_cell_vector <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  vector_name <- as.character(inputs$vector_name %||% inputs$source_column %||% "")[1]
+  .wb_assert(nzchar(vector_name), "metadata_cell_vector runner: vector_name is required.")
+  if (!isTRUE(inputs$overwrite %||% FALSE)) {
+    arts <- wb_art_list(bundle)
+    collision <- nrow(arts) && any(
+      as.character(arts$type %||% "") == "cell_vector" &
+        as.character(arts$name %||% "") == vector_name
+    )
+    .wb_assert(!collision, paste0("A promoted cell_vector named '", vector_name,
+                                  "' already exists. Set overwrite=TRUE to create a superseding immutable artifact."))
+  }
+  raw <- wb_op_metadata_cell_vector(
+    bundle = bundle, source_column = inputs$source_column, cells = as.character(effective_cells),
+    value_type = inputs$value_type %||% "auto", missing_policy = inputs$missing_policy %||% "error",
+    missing_label = inputs$missing_label %||% "__MISSING__", vector_name = vector_name,
+    overwrite = inputs$overwrite %||% FALSE
+  )
+  raw$params$cell_set <- as.character(inputs$cell_set %||% "all")[1]
+  raw
+}
+
+.wb_runner_cell_vector_association <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  raw <- wb_op_cell_vector_association(
+    a = resolved$a, b = resolved$b, cells = as.character(effective_cells),
+    min_n_per_group = inputs$min_n_per_group %||% 3L, method = inputs$method %||% "auto"
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "cell_vector_association must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_cell_vector_compare <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$a), "cell_vector_compare runner: missing resolved$a.")
   .wb_assert(!is.null(resolved$b), "cell_vector_compare runner: missing resolved$b.")
@@ -2664,6 +2696,46 @@
           kind = "obs_table",
           description = "Per-group descriptive statistics."
         )
+      )
+    ),
+    metadata_cell_vector = list(
+      op_name = "metadata_cell_vector",
+      title = "Metadata Cell Vector",
+      description = "Materialize an imported cell metadata column as a typed, provenance-backed cell vector.",
+      intent = c("metadata", "cell_vector", "provenance", "technical_diagnostics"),
+      requires = list(), produces = list(vector = "cell_vector"), promotable = c("vector"),
+      runner = .wb_runner_metadata_cell_vector,
+      inputs = list(),
+      params = list(
+        list(name = "source_column", type = "string", required = TRUE, help = "Imported cell metadata column to materialize."),
+        list(name = "cell_set", type = "cell_set", default = "all", help = "Named bundle cell set defining the vector universe."),
+        list(name = "value_type", type = "choice", default = "auto", choices = c("categorical", "continuous", "auto"), help = "Explicit vector value type; auto records a conservative native-type decision."),
+        list(name = "missing_policy", type = "choice", default = "error", choices = c("error", "drop", "as_category"), help = "How missing values are handled before vector materialization."),
+        list(name = "missing_label", type = "string", default = "__MISSING__", help = "Replacement label when missing_policy='as_category'."),
+        list(name = "vector_name", type = "string", required = TRUE, help = "Stable promoted vector name; collision protection is controlled by overwrite."),
+        list(name = "overwrite", type = "bool", default = FALSE, help = "Allow a new immutable artifact to supersede an existing vector with the same name.")
+      ),
+      interface_produces = list(vector = list(kind = "cell_vector", description = "Typed per-cell vector materialized from imported bundle metadata."))
+    ),
+    cell_vector_association = list(
+      op_name = "cell_vector_association",
+      title = "Cell Vector Association",
+      description = "Associate two typed cell vectors with categorical and continuous dispatch.",
+      intent = c("statistics", "association", "confounding"),
+      requires = list(a = "cell_vector", b = "cell_vector"), produces = list(summary = "obs_table", detail = "obs_table"),
+      promotable = c("summary", "detail"), runner = .wb_runner_cell_vector_association,
+      inputs = list(
+        a = list(required = TRUE, kind = "cell_vector", label = "First vector", help = "Categorical or continuous cell vector."),
+        b = list(required = TRUE, kind = "cell_vector", label = "Second vector", help = "Categorical or continuous cell vector.")
+      ),
+      params = list(
+        list(name = "cell_set", type = "cell_set", default = "all", help = "Named bundle cell set defining the association universe."),
+        list(name = "min_n_per_group", type = "int", default = 3, min = 1, max = 100000, help = "Minimum cells per retained categorical group."),
+        list(name = "method", type = "choice", default = "auto", choices = c("auto", "chisq", "fisher", "kruskal_anova", "correlation"), help = "Association method or typed automatic dispatch.")
+      ),
+      interface_produces = list(
+        summary = list(kind = "obs_table", description = "Typed association summary including method, effect size, and diagnostics."),
+        detail = list(kind = "obs_table", description = "Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.")
       )
     ),
     cell_vector_compare = list(

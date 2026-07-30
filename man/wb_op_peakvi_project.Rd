@@ -40,5 +40,5 @@ latent space without refitting.
 Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$space} (\code{space}): Projected PeakVI latent space written into the bundle spaces registry.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$space} (\code{space}): Projected PeakVI latent space written into the bundle spaces registry.; \code{outputs$fit_summary} (\code{obs_table}): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
 }

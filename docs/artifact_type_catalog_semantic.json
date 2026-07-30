@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
-  "generated_at": "2026-07-24T20:31:31+0200",
-  "artifact_type_count": 71,
+  "generated_at": "2026-07-30T15:25:20+0200",
+  "artifact_type_count": 74,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -353,6 +353,33 @@
       "table_type": "cell_vector_family_graph_smooth_summary",
       "entity_kind": "signal_key",
       "use_when": ["audit graph-smoothed signal families", "check smoothing parameters and score shifts"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_association_summary",
+      "primitive_kind": "obs_table",
+      "title": "Cell Vector Association Summary",
+      "description": "Typed association result with dispatched method, effect size, and validity diagnostics.",
+      "table_type": "cell_vector_association_summary",
+      "entity_kind": "vector_pair",
+      "use_when": ["assess technical confounding", "summarize metadata-vector association"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_association_contingency",
+      "primitive_kind": "obs_table",
+      "title": "Cell Vector Association Contingency",
+      "description": "Observed and expected counts for categorical-by-categorical cell-vector association.",
+      "table_type": "cell_vector_association_contingency",
+      "entity_kind": "contingency_cell",
+      "use_when": ["inspect category balance", "diagnose sparse expected counts"]
+    },
+    {
+      "artifact_type": "obs_table:cell_vector_association_cells",
+      "primitive_kind": "obs_table",
+      "title": "Cell Vector Association Cells",
+      "description": "Per-cell values used in a continuous-by-continuous association.",
+      "table_type": "cell_vector_association_cells",
+      "entity_kind": "cell",
+      "use_when": ["inspect correlation inputs", "plot paired continuous metadata"]
     },
     {
       "artifact_type": "obs_table:winner_cell_set_manifest",

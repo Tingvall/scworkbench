@@ -611,6 +611,7 @@ wb_promote_analysis <- function(bundle,
                                  if (!is.null(space_id)) paste0("from ", space_id) else NULL),
     umap_transform = .wb_title_compose("UMAP Projection",
                                        if (!is.null(space_id)) paste0("from ", space_id) else NULL),
+    metadata_cell_vector = .wb_name_nonempty(params$vector_name) %||% .wb_title_compose("Metadata Vector:", params$source_column),
     .wb_title_compose(
       gsub("_", " ", tools::toTitleCase(op_name)),
       if (nzchar(out_name)) paste0("(", out_name, ")") else NULL

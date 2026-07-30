@@ -37,6 +37,17 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$assoc_summary` (`feature_table`): Omnibus association test summary (Kruskal/ANOVA).; `outputs$group_stats` (`obs_table`): Per-group descriptive statistics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
+#' @name wb_op_cell_vector_association
+#' @aliases wb_op_cell_vector_association
+#' @description Associate two typed cell vectors with categorical and continuous dispatch.
+#' @param a Required `a` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
+#' @param b Required `b` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
+#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
+#' @param min_n_per_group Minimum cells per retained categorical group.
+#' @param method Association method or typed automatic dispatch.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$summary` (`obs_table`): Typed association summary including method, effect size, and diagnostics.; `outputs$detail` (`obs_table`): Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.. Promotion eligibility is declared by the operation catalog.
+NULL
+
 #' @name wb_op_cell_vector_compare
 #' @aliases wb_op_cell_vector_compare
 #' @description Compare two cell-level signals on their shared cell universe in raw or rank space.
@@ -305,6 +316,20 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$matrix` (`matrix`): Reference to the newly registered log-normalized matrix.; `outputs$summary` (`obs_table`): Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.. Promotion eligibility is declared by the operation catalog.
 NULL
 
+#' @name wb_op_metadata_cell_vector
+#' @aliases wb_op_metadata_cell_vector
+#' @description Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
+#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
+#' @param source_column Imported cell metadata column to materialize.
+#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
+#' @param value_type Explicit vector value type; auto records a conservative native-type decision.
+#' @param missing_policy How missing values are handled before vector materialization.
+#' @param missing_label Replacement label when missing_policy='as_category'.
+#' @param vector_name Stable promoted vector name; collision protection is controlled by overwrite.
+#' @param overwrite Allow a new immutable artifact to supersede an existing vector with the same name.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$vector` (`cell_vector`): Typed per-cell vector materialized from imported bundle metadata.. Promotion eligibility is declared by the operation catalog.
+NULL
+
 #' @name wb_op_monocle3_fit
 #' @aliases wb_op_monocle3_fit
 #' @description Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
@@ -425,7 +450,7 @@ NULL
 #' @param use_gpu If TRUE, request GPU-backed model loading/projection in scvi-tools.
 #' @param space_id_out Space id to write for the projected PeakVI latent embedding.
 #' @param python_bin Python executable used for an optional pybench-backed runtime.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.; `outputs$fit_summary` (`obs_table`): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot

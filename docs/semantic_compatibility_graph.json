@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-07-24T20:31:32+0200",
-  "node_count": 304,
-  "edge_count": 880,
+  "generated_at": "2026-07-30T15:25:21+0200",
+  "node_count": 309,
+  "edge_count": 894,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -146,6 +146,18 @@
       "record_id": "op:cell_vector_assoc",
       "record_type": "op",
       "name": "cell_vector_assoc",
+      "title": "Cell Vector Association"
+    },
+    {
+      "record_id": "op:metadata_cell_vector",
+      "record_type": "op",
+      "name": "metadata_cell_vector",
+      "title": "Metadata Cell Vector"
+    },
+    {
+      "record_id": "op:cell_vector_association",
+      "record_type": "op",
+      "name": "cell_vector_association",
       "title": "Cell Vector Association"
     },
     {
@@ -1215,6 +1227,24 @@
       "record_type": "artifact_type",
       "name": "obs_table:cell_vector_family_graph_smooth_summary",
       "title": "Cell Vector Family Graph Smoothing Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_association_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_association_summary",
+      "title": "Cell Vector Association Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_association_contingency",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_association_contingency",
+      "title": "Cell Vector Association Contingency"
+    },
+    {
+      "record_id": "artifact_type:obs_table:cell_vector_association_cells",
+      "record_type": "artifact_type",
+      "name": "obs_table:cell_vector_association_cells",
+      "title": "Cell Vector Association Cells"
     },
     {
       "record_id": "artifact_type:obs_table:winner_cell_set_manifest",
@@ -2891,6 +2921,72 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:group_stats"
+    },
+    {
+      "from": "op:metadata_cell_vector",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:metadata_cell_vector",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:cell_set"
+    },
+    {
+      "from": "op:metadata_cell_vector",
+      "to": "parameter:overwrite",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:overwrite"
+    },
+    {
+      "from": "op:metadata_cell_vector",
+      "to": "primitive:cell_vector",
+      "edge_type": "produces",
+      "label": "output:vector"
+    },
+    {
+      "from": "op:metadata_cell_vector",
+      "to": "artifact_type:cell_vector",
+      "edge_type": "promotes_as",
+      "label": "promotable:vector"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:cell_vector_association",
+      "edge_type": "consumed_by",
+      "label": "input:a"
+    },
+    {
+      "from": "primitive:cell_vector",
+      "to": "op:cell_vector_association",
+      "edge_type": "consumed_by",
+      "label": "input:b"
+    },
+    {
+      "from": "op:cell_vector_association",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:cell_vector_association",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:cell_set"
+    },
+    {
+      "from": "op:cell_vector_association",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:summary"
+    },
+    {
+      "from": "op:cell_vector_association",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:detail"
     },
     {
       "from": "primitive:cell_vector",
@@ -5066,6 +5162,24 @@
     },
     {
       "from": "artifact_type:obs_table:cell_vector_family_graph_smooth_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_association_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_association_contingency",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:cell_vector_association_cells",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"

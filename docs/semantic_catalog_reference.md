@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-07-24T20:31:32+0200
+Generated at: 2026-07-30T15:25:21+0200
 
-Record count: 304
+Record count: 309
 
-Graph edges: 880
+Graph edges: 894
 
 ## artifact_type
 
@@ -243,6 +243,24 @@ Description: Per-cell winner, runner-up, confidence, and pruning metrics from a 
 Title: Cell Vector Family Graph Smoothing Summary
 
 Description: Per-key diagnostics for nearest-neighbor smoothing of a cell_vector_family over a bundle space.
+
+### `artifact_type:obs_table:cell_vector_association_summary`
+
+Title: Cell Vector Association Summary
+
+Description: Typed association result with dispatched method, effect size, and validity diagnostics.
+
+### `artifact_type:obs_table:cell_vector_association_contingency`
+
+Title: Cell Vector Association Contingency
+
+Description: Observed and expected counts for categorical-by-categorical cell-vector association.
+
+### `artifact_type:obs_table:cell_vector_association_cells`
+
+Title: Cell Vector Association Cells
+
+Description: Per-cell values used in a continuous-by-continuous association.
 
 ### `artifact_type:obs_table:winner_cell_set_manifest`
 
@@ -1015,6 +1033,18 @@ Description: Materialize a selector-derived or explicitly declared cell universe
 Title: Cell Vector Association
 
 Description: Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
+
+### `op:metadata_cell_vector`
+
+Title: Metadata Cell Vector
+
+Description: Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
+
+### `op:cell_vector_association`
+
+Title: Cell Vector Association
+
+Description: Associate two typed cell vectors with categorical and continuous dispatch.
 
 ### `op:cell_vector_compare`
 

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 71
+Artifact type count: 74
 
 ## cell_vector
 
@@ -528,6 +528,48 @@ Entity kind: signal_key
 Use when:
 - audit graph-smoothed signal families
 - check smoothing parameters and score shifts
+
+### `obs_table:cell_vector_association_summary`
+
+Title: Cell Vector Association Summary
+
+Description: Typed association result with dispatched method, effect size, and validity diagnostics.
+
+Table type: cell_vector_association_summary
+
+Entity kind: vector_pair
+
+Use when:
+- assess technical confounding
+- summarize metadata-vector association
+
+### `obs_table:cell_vector_association_contingency`
+
+Title: Cell Vector Association Contingency
+
+Description: Observed and expected counts for categorical-by-categorical cell-vector association.
+
+Table type: cell_vector_association_contingency
+
+Entity kind: contingency_cell
+
+Use when:
+- inspect category balance
+- diagnose sparse expected counts
+
+### `obs_table:cell_vector_association_cells`
+
+Title: Cell Vector Association Cells
+
+Description: Per-cell values used in a continuous-by-continuous association.
+
+Table type: cell_vector_association_cells
+
+Entity kind: cell
+
+Use when:
+- inspect correlation inputs
+- plot paired continuous metadata
 
 ### `obs_table:winner_cell_set_manifest`
 

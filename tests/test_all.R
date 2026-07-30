@@ -155,6 +155,9 @@ test_all <- function(bundle_dir){
   if (exists("test_op_cell_vector_compare_contract", mode = "function")) {
     stopifnot(test_op_cell_vector_compare_contract())
   }
+  if (exists("test_op_metadata_cell_vector_diagnostics_contract", mode = "function")) {
+    stopifnot(test_op_metadata_cell_vector_diagnostics_contract())
+  }
   if (exists("test_op_ucell_contract", mode = "function")) {
     stopifnot(test_op_ucell_contract())
   }

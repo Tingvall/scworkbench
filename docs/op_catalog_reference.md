@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-07-24T20:31:30+0200
+Generated at: 2026-07-30T15:25:20+0200
 
-Operation count: 54
+Operation count: 56
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -663,6 +663,55 @@ Promotable outputs: assoc_summary, group_stats
 
 Key parameters:
 - `min_n_per_group` (int, default=3): Minimum cells per group.
+
+## `metadata_cell_vector`
+
+Title: Metadata Cell Vector
+
+Intent: metadata, cell_vector, provenance, technical_diagnostics
+
+Description: Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
+
+Consumes:
+- `cell_set`: select
+
+Produces:
+- `vector`: cell_vector [terminal artifact] - Typed per-cell vector materialized from imported bundle metadata.
+
+Promotable outputs: vector
+
+Key parameters:
+- `source_column` (string, default=NULL): Imported cell metadata column to materialize.
+- `cell_set` (cell_set, default=all): Named bundle cell set defining the vector universe.
+- `value_type` (choice, default=auto): Explicit vector value type; auto records a conservative native-type decision.
+- `missing_policy` (choice, default=error): How missing values are handled before vector materialization.
+- `missing_label` (string, default=__MISSING__): Replacement label when missing_policy='as_category'.
+- `vector_name` (string, default=NULL): Stable promoted vector name; collision protection is controlled by overwrite.
+- `overwrite` (bool, default=FALSE): Allow a new immutable artifact to supersede an existing vector with the same name.
+
+## `cell_vector_association`
+
+Title: Cell Vector Association
+
+Intent: statistics, association, confounding
+
+Description: Associate two typed cell vectors with categorical and continuous dispatch.
+
+Consumes:
+- `a`: cell_vector - Categorical or continuous cell vector.
+- `b`: cell_vector - Categorical or continuous cell vector.
+- `cell_set`: select
+
+Produces:
+- `summary`: obs_table [terminal artifact] - Typed association summary including method, effect size, and diagnostics.
+- `detail`: obs_table [terminal artifact] - Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.
+
+Promotable outputs: summary, detail
+
+Key parameters:
+- `cell_set` (cell_set, default=all): Named bundle cell set defining the association universe.
+- `min_n_per_group` (int, default=3): Minimum cells per retained categorical group.
+- `method` (choice, default=auto): Association method or typed automatic dispatch.
 
 ## `cell_vector_compare`
 
