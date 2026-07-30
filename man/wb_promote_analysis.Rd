@@ -14,6 +14,7 @@ wb_promote_analysis(
   fail_fast = TRUE,
   allow_detached = FALSE,
   outputs = NULL,
+  selected_by_run = NULL,
   staging_bundle = NULL
 )
 }
@@ -38,6 +39,9 @@ is not fully present in \code{runs}.}
 
 \item{outputs}{Optional terminal output names to expose as public artifacts.
 Ancestor outputs are committed as internal provenance materializations.}
+
+\item{selected_by_run}{Internal run-to-terminal selection map used by
+\code{\link[=wb_session_promote_current]{wb_session_promote_current()}} for run-qualified selectors.}
 
 \item{staging_bundle}{Optional session-local bundle overlay containing staged
 matrix/space payloads produced by \code{runs}.}

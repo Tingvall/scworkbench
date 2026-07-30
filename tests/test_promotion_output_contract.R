@@ -14,5 +14,12 @@ test_promotion_output_contract <- function() {
   on.exit({try(wb_close_bundle(zero_bundle),silent=TRUE); unlink(zero_root,recursive=TRUE,force=TRUE)},add=TRUE)
   z <- try(wb_session_promote_current(zero_bundle,s),silent=TRUE)
   stopifnot(inherits(z,"try-error"), grepl("zero promotable terminal",as.character(z)))
+  first <- wb_new_run("hvg_select", inputs=list(parents=character()), outputs=list(fit_summary=wb_prim_obs_table(data.frame(x=1), table_type="hvg_select_summary")))
+  second <- wb_new_run("pca_fit", inputs=list(parents=character()), outputs=list(fit_summary=wb_prim_obs_table(data.frame(x=1), table_type="pca_fit_summary")))
+  s2 <- wb_session_new(); s2$runs <- setNames(list(first, second), c(first$run_id, second$run_id)); s2$head_run_id <- second$run_id
+  bad_ref <- try(wb_session_promote_current(zero_bundle, s2, outputs=list(wb_ref_run("missing", "fit_summary"))), silent=TRUE)
+  stopifnot(inherits(bad_ref, "try-error"), grepl("absent session run", as.character(bad_ref)))
+  bad_terminal <- try(wb_session_promote_current(zero_bundle, s2, outputs=list(wb_ref_run(first$run_id, "selected_features"))), silent=TRUE)
+  stopifnot(inherits(bad_terminal, "try-error"), grepl("absent from run", as.character(bad_terminal)))
   TRUE
 }

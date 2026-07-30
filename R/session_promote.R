@@ -21,7 +21,10 @@
 #' @param description Optional description stored with promoted artifacts
 #' @param created_by Optional actor string (user/agent)
 #' @param fail_fast If TRUE, stop on first promotion failure
-#' @param outputs Optional terminal output names to expose as public artifacts.
+#' @param outputs Optional terminal output names or [wb_ref_run()] selectors to
+#'   expose as public artifacts. A run-qualified selector chooses that exact
+#'   terminal on that exact session run, which is required when runs share an
+#'   output name such as `fit_summary`.
 #'   Required ancestors are committed as internal provenance materializations.
 #'   When an output name occurs in multiple session runs, the active head run is
 #'   selected when it provides that output; otherwise the name must resolve
@@ -70,15 +73,32 @@ wb_session_promote_current <- function(bundle,
     }
   }
 
+  selectors <- if (is.character(outputs)) as.list(outputs) else outputs
+  .wb_assert(is.list(selectors), "outputs must be character output names or a list of wb_ref_run() selectors.")
   output_heads <- character(0)
+  selected_by_run <- list()
   head <- session$runs[[session$head_run_id]]
-  for (out_name in as.character(outputs)) {
+  for (selector in selectors) {
+    if (.wb_is_ref_run(selector)) {
+      rid <- as.character(selector$run_id)[1]
+      out_name <- as.character(selector$output)[1]
+      .wb_assert(rid %in% names(session$runs), paste0("Run-qualified selector references absent session run: ", rid, "."))
+      run <- session$runs[[rid]]
+      .wb_assert(out_name %in% names(run$outputs %||% list()), paste0("Run-qualified selector output '", out_name, "' is absent from run ", rid, "."))
+      .wb_assert(out_name %in% as.character(.wb_get_op(run$op_name)$promotable %||% character(0)), paste0("Run-qualified selector output '", out_name, "' on run ", rid, " is not promotable."))
+      output_heads <- c(output_heads, rid)
+      selected_by_run[[rid]] <- unique(c(selected_by_run[[rid]] %||% character(0), out_name))
+      next
+    }
+    .wb_assert(is.character(selector) && length(selector) == 1L, "Each outputs selector must be a plain output name or wb_ref_run().")
+    out_name <- as.character(selector)[1]
     # Prefer the active head when it produces the requested output. Output
     # names are op-level names, so earlier independent fits can legitimately
     # have another `pseudotime` or `model` output in the same session.
     if (out_name %in% names(head$outputs %||% list()) &&
         out_name %in% as.character(.wb_get_op(head$op_name)$promotable %||% character(0))) {
       output_heads <- c(output_heads, session$head_run_id)
+      selected_by_run[[session$head_run_id]] <- unique(c(selected_by_run[[session$head_run_id]] %||% character(0), out_name))
       next
     }
     candidates <- vapply(session$runs, function(run) {
@@ -98,6 +118,7 @@ wb_session_promote_current <- function(bundle,
     .wb_assert(length(ids) == 1L,
                paste0("Output '", out_name, "' must resolve to exactly one promotable session run; found ", length(ids), "."))
     output_heads <- c(output_heads, ids)
+    selected_by_run[[ids]] <- unique(c(selected_by_run[[ids]] %||% character(0), out_name))
   }
   output_heads <- unique(output_heads)
 
@@ -109,7 +130,8 @@ wb_session_promote_current <- function(bundle,
     description = description,
     created_by = created_by,
     fail_fast = fail_fast,
-    outputs = outputs,
+    outputs = unique(unlist(selected_by_run, use.names = FALSE)),
+    selected_by_run = selected_by_run,
     staging_bundle = session$staging_bundle %||% NULL
   )
 }

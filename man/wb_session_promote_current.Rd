@@ -27,7 +27,10 @@ wb_session_promote_current(
 
 \item{fail_fast}{If TRUE, stop on first promotion failure}
 
-\item{outputs}{Optional terminal output names to expose as public artifacts.
+\item{outputs}{Optional terminal output names or \code{\link[=wb_ref_run]{wb_ref_run()}} selectors to
+expose as public artifacts. A run-qualified selector chooses that exact
+terminal on that exact session run, which is required when runs share an
+output name such as \code{fit_summary}.
 Required ancestors are committed as internal provenance materializations.
 When an output name occurs in multiple session runs, the active head run is
 selected when it provides that output; otherwise the name must resolve
