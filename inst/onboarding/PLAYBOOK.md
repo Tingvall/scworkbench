@@ -73,6 +73,11 @@ run_details <- wb_prov_run_details(bundle, result$run$run_id)
   with `promotable_directly=TRUE` are valid `outputs=` terminals. Outputs with
   `durability_role="materialization"` are committed transitively by the listed
   `materialized_by_terminals`.
+- When two staged runs share a terminal name, qualify it with the existing
+  typed reference: `wb_session_promote_current(bundle, session, outputs =
+  list(wb_ref_run(hvg_run_id, "fit_summary"), wb_ref_run(pca_run_id,
+  "fit_summary"), "model"))`. Plain names remain intentionally ambiguous
+  unless the active head produces the requested terminal.
 - If promotion fails, discard the private session workspace with
   `wb_session_discard(session)` before retrying. Never delete an existing
   bundle target to clear a collision: use a new output ID unless ownership of

@@ -213,6 +213,8 @@
 #'   is not fully present in `runs`.
 #' @param outputs Optional terminal output names to expose as public artifacts.
 #'   Ancestor outputs are committed as internal provenance materializations.
+#' @param selected_by_run Internal run-to-terminal selection map used by
+#'   [wb_session_promote_current()] for run-qualified selectors.
 #' @param staging_bundle Optional session-local bundle overlay containing staged
 #'   matrix/space payloads produced by `runs`.
 #'
@@ -228,6 +230,7 @@ wb_promote_analysis <- function(bundle,
                                 fail_fast = TRUE,
                                 allow_detached = FALSE,
                                 outputs = NULL,
+                                selected_by_run = NULL,
                                 staging_bundle = NULL) {
   .wb_assert_bundle_writable(bundle, "promotion")
   wb_migrate_artifacts(bundle)
@@ -339,7 +342,8 @@ wb_promote_analysis <- function(bundle,
     op <- .wb_get_op(run$op_name)
 
     # Only explicitly selected terminal outputs become public artifacts.
-    promotable <- if (rid %in% heads) intersect(op$promotable %||% character(0), selected_outputs) else character(0)
+    desired <- if (!is.null(selected_by_run)) selected_by_run[[rid]] %||% character(0) else selected_outputs
+    promotable <- if (rid %in% heads) intersect(op$promotable %||% character(0), desired) else character(0)
 
     # promote each promotable output that exists on the run
     promoted_ids <- list()
