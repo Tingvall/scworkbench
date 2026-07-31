@@ -20,6 +20,9 @@ test_all <- function(bundle_dir){
   if (exists("test_long_running_session_promotion_guidance_contract", mode = "function")) {
     stopifnot(test_long_running_session_promotion_guidance_contract())
   }
+  if (exists("test_auditable_transformation_onboarding_law_contract", mode = "function")) {
+    stopifnot(test_auditable_transformation_onboarding_law_contract())
+  }
   if (exists("test_legacy_cell_vector_contract", mode = "function")) {
     stopifnot(test_legacy_cell_vector_contract())
   }

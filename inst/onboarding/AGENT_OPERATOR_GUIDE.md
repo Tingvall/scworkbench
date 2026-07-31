@@ -50,24 +50,43 @@ user interface is gone.
 
 ## Non-Negotiable Rules
 
-1. **Use documented engine interfaces.** Do not read SQLite tables, matrix
+1. **Preserve an auditable scientific trail.** Every scientifically meaningful
+   transformation, selection, statistical test, model fit, or derived
+   diagnostic must be performed through a registered operation or
+   provenance-aware wrangler and leave an auditable trail in the bundle.
+   Reports may summarize recorded evidence; they may not create unrecorded
+   scientific results.
+2. **Use documented engine interfaces.** Do not read SQLite tables, matrix
    files, or artifact payload files directly when a getter or artifact API
    exists.
-2. **Discover before executing.** Inspect bundle state and operation interfaces
+3. **Discover before executing.** Inspect bundle state and operation interfaces
    before choosing an analysis method or constructing inputs.
-3. **Do not overwrite scientific alternatives.** A changed upstream choice is
+4. **Do not overwrite scientific alternatives.** A changed upstream choice is
    a sibling branch, not a replacement for an earlier map, model, or result.
-4. **Use named, durable selections.** When a scientific group matters to a
+5. **Use named, durable selections.** When a scientific group matters to a
    result, materialize or record its selector/cell-set definition rather than
    passing an unexplained literal vector.
-5. **Promote intentionally.** Do not promote every exploratory object. Promote
+6. **Promote intentionally.** Do not promote every exploratory object. Promote
    results that support a conclusion, a reusable workflow, or a meaningful
    branch point.
-6. **Keep claims proportional to evidence.** Distinguish an observed pattern,
+7. **Keep claims proportional to evidence.** Distinguish an observed pattern,
    an interpretation, and a causal hypothesis.
-7. **Report gaps honestly.** If the documented substrate cannot express a
+8. **Report gaps honestly.** If the documented substrate cannot express a
    required step, stop at the boundary and describe the missing capability.
    Do not hide an external workaround inside the bundle.
+
+### What the auditable-transformation law covers
+
+This rule covers source ingestion, normalization, filtering, cell-set
+derivation, feature selection, embeddings, model fitting, differential
+expression, enrichment, scoring, and metadata diagnostics. It also covers
+table and plot views that support a conclusion: use provenance-aware plot or
+wrangler contracts and retain their input artifacts and specifications.
+
+Reports and narrative consume recorded evidence; they are not a place to run
+hidden analysis. Cosmetic report formatting is exempt, but any computation
+that changes a scientific value, membership, test, or
+interpretation-relevant summary must be an auditable engine transformation.
 
 ## First Contact With a Bundle
 
@@ -283,6 +302,9 @@ expressed through the supported substrate:
    prompt as a hidden substitute;
 5. hand the evidence to an engine maintainer for a contract-first decision.
 
+An unsupported generic capability is a stop-and-report condition, never a
+justification for an external unrecorded script.
+
 New capability should normally enter the engine as one of:
 
 - a getter for a new supported state-access path;
@@ -311,6 +333,8 @@ Before declaring an analysis complete, confirm:
 - [ ] Source and imported state are identified.
 - [ ] Matrix, cell universe, and feature universe are explicit.
 - [ ] Every computation used a documented operation.
+- [ ] Every interpretation-relevant table or plot uses retained,
+  provenance-aware inputs and specifications.
 - [ ] Current operation interfaces were consulted before execution.
 - [ ] Durable results are promoted and loadable as typed artifacts.
 - [ ] Provenance can explain the reported result from its inputs.
