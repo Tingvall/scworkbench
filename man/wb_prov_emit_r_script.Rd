@@ -34,6 +34,9 @@ used.}
 Length-1 character string containing the replay script text.
 }
 \description{
-The generated script replays the persisted run order using \code{wb_session_run_op()}
-with stored params/inputs from the selected provenance snapshot.
+The generated script replays the persisted run order using the sole public
+\code{wb_session_run_op(inputs = ...)} surface. Stored symbolic/literal inputs
+and run parameters are merged into one execution list. A duplicate name is
+accepted only when its values are exactly identical; otherwise generation
+and validation fail rather than silently choosing a scientific setting.
 }
