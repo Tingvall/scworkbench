@@ -269,6 +269,9 @@ test_all <- function(bundle_dir){
   if (exists("test_provenance_snapshot_contract", mode = "function")) {
     stopifnot(test_provenance_snapshot_contract(bundle_dir))
   }
+  if (exists("test_payload_content_identity_contract", mode = "function")) {
+    stopifnot(test_payload_content_identity_contract())
+  }
   if (exists("test_strict_replay_inputs_contract", mode = "function")) {
     stopifnot(test_strict_replay_inputs_contract())
   }

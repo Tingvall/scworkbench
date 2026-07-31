@@ -29,5 +29,7 @@ A named list with \code{summary}, \code{per_run}, \code{per_output}, and
 \code{replay_session}.
 }
 \description{
-Replays persisted runs and compares output kind/hash against stored \code{prov_run_outputs}.
+Replays persisted runs and compares output kind plus content SHA-256 where
+the snapshot recorded content-verifiable payload identity. Legacy snapshots
+are reported as structural-only evidence.
 }

@@ -226,7 +226,7 @@
       !.wb_table_exists(bundle$con, "prov_commits")) return(data.frame())
   DBI::dbGetQuery(
     bundle$con,
-    "SELECT pm.path, pm.primitive_kind, pm.output_hash
+    "SELECT pm.path, pm.primitive_kind, pm.output_hash, pm.content_sha256
      FROM prov_materializations pm
      INNER JOIN prov_commits pc ON pc.commit_id = pm.commit_id
      WHERE pm.run_id = ? AND pm.output_name = ? AND pc.state = 'complete'
@@ -266,11 +266,13 @@
         primitive_kind <- as.character(prim$kind)
         output_hash <- .wb_hash_text(serialize(prim, NULL, version = 3))
       }
+      content_sha256 <- .wb_prov_sha256_file(.wb_promotion_workspace_path(workspace, rel))
       i <- i + 1L
       rows[[i]] <- data.frame(
         commit_id = commit_id, run_id = rid, output_name = nm,
         primitive_kind = primitive_kind, path = rel,
         output_hash = output_hash,
+        content_sha256 = content_sha256,
         stringsAsFactors = FALSE
       )
     }

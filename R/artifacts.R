@@ -1571,7 +1571,7 @@ wb_art_birth_certificate <- function(bundle,
     run_id = character(0),
     output_name = character(0),
     primitive_kind = character(0),
-    output_hash = character(0),
+    output_hash = character(0), structural_fingerprint = character(0), content_sha256 = character(0), verification_level = character(0), verification_status = character(0),
     op_name = character(0),
     created_at = character(0),
     stringsAsFactors = FALSE
@@ -1587,13 +1587,8 @@ wb_art_birth_certificate <- function(bundle,
     if (isTRUE(has_runs)) {
       prov_link_rows <- DBI::dbGetQuery(
         con,
-        "SELECT o.snapshot_id, o.run_id, o.output_name, o.primitive_kind, o.output_hash,
-                r.op_name, r.created_at
-         FROM prov_run_outputs o
-         LEFT JOIN prov_runs r
-           ON r.snapshot_id = o.snapshot_id AND r.run_id = o.run_id
-         WHERE o.artifact_id = ?
-         ORDER BY r.created_at DESC, o.snapshot_id DESC, o.run_id DESC, o.output_name ASC;",
+        paste0("SELECT o.snapshot_id, o.run_id, o.output_name, o.primitive_kind, o.output_hash, ",
+               .wb_prov_output_identity_select(con, "o"), ", r.op_name, r.created_at FROM prov_run_outputs o LEFT JOIN prov_runs r ON r.snapshot_id = o.snapshot_id AND r.run_id = o.run_id WHERE o.artifact_id = ? ORDER BY r.created_at DESC, o.snapshot_id DESC, o.run_id DESC, o.output_name ASC;"),
         params = list(aid)
       )
     }

@@ -461,8 +461,8 @@ wb_prov_bundle_dag <- function(bundle,
 
   outputs <- DBI::dbGetQuery(
     con,
-    "SELECT snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id
-     FROM prov_run_outputs ORDER BY snapshot_id, run_id, output_name;"
+    paste0("SELECT snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, ",
+           .wb_prov_output_identity_select(con), " FROM prov_run_outputs ORDER BY snapshot_id, run_id, output_name;")
   )
   if (has_sid_filter && nrow(outputs)) {
     outputs <- outputs[as.character(outputs$snapshot_id) %in% sid_filter, , drop = FALSE]

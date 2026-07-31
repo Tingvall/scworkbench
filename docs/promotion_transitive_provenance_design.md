@@ -289,6 +289,27 @@ before this check: their `params$method` can be a dispatched result label
 (rather than the requested public method), so the recorded symbolic request is
 the execution value and the result label remains output metadata.
 
+### Payload content identity
+
+`prov_run_outputs.output_hash` is a legacy structural fingerprint and is not
+integrity evidence. New snapshots persist it separately from
+`structural_fingerprint`, a SHA-256 `content_sha256`, and explicit
+`verification_level`/`verification_status`. Table and cell-vector identities
+SHA-256 a canonical serialized payload that includes values, names, declared
+types, missing values, metadata, and supplied row order. Result-table row order
+is therefore significant by default; an operation that is semantically
+unordered must declare a stable-key ordering before it can use a sorted
+identity.
+
+Matrix identities SHA-256 the ordered fragment registry plus each durable
+fragment file digest, so verification does not read a dense matrix. Space
+identities hash their ordered durable coordinates; model references hash their
+canonical reference plus durable model payload file/tree digest. Promoted
+materializations also retain a SHA-256 of their persisted RDS payload. Replay
+requires equal content SHA-256 for `verification_level = content`; structural
+comparison is retained only for legacy/unsupported records and is labeled
+`legacy_structural_only` or `structural_only`, never content-verified.
+
 Every committed closure must record at minimum:
 
 - installed `scworkbench` package version and source revision when available;

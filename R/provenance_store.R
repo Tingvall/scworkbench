@@ -57,7 +57,95 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.5"
+.wb_prov_schema_version <- function() "1.6"
+
+# Content identity is deliberately separate from .wb_hash_text(): the latter is
+# a short convenience identifier used by legacy graph/run records, never an
+# integrity digest.  Tables preserve their supplied row order; callers must
+# declare and implement a stable-key ordering before an output is semantically
+# unordered.
+.wb_prov_sha256_object <- function(x) {
+  .wb_require_pkg("digest", "SHA-256 provenance content identity")
+  digest::digest(serialize(x, NULL, version = 3), algo = "sha256", serialize = FALSE)
+}
+
+.wb_prov_sha256_file <- function(path) {
+  .wb_require_pkg("digest", "SHA-256 provenance payload identity")
+  .wb_assert(file.exists(path) && !dir.exists(path), paste0("Missing payload file for SHA-256: ", path))
+  digest::digest(file = path, algo = "sha256")
+}
+
+.wb_prov_structural_fingerprint <- function(prim) {
+  kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
+  summary <- if (.wb_is_primitive(prim)) .wb_prim_summary(prim) else list(class = class(prim))
+  .wb_hash_text(c(kind, jsonlite::toJSON(.wb_json_sanitize(summary), auto_unbox = TRUE, null = "null")))
+}
+
+.wb_prov_output_identity_select <- function(con, prefix = "") {
+  p <- if (nzchar(prefix)) paste0(prefix, ".") else ""
+  structural <- if (.wb_db_has_column(con, "prov_run_outputs", "structural_fingerprint")) paste0("COALESCE(", p, "structural_fingerprint, ", p, "output_hash) AS structural_fingerprint") else paste0(p, "output_hash AS structural_fingerprint")
+  content <- if (.wb_db_has_column(con, "prov_run_outputs", "content_sha256")) paste0(p, "content_sha256") else "NULL AS content_sha256"
+  level <- if (.wb_db_has_column(con, "prov_run_outputs", "verification_level")) paste0("COALESCE(", p, "verification_level, 'structural') AS verification_level") else "'structural' AS verification_level"
+  status <- if (.wb_db_has_column(con, "prov_run_outputs", "verification_status")) paste0("COALESCE(", p, "verification_status, 'legacy_structural_only') AS verification_status") else "'legacy_structural_only' AS verification_status"
+  paste(structural, content, level, status, sep = ", ")
+}
+
+.wb_prov_table_payload <- function(prim) {
+  list(
+    identity_version = "scworkbench.payload.table.v1",
+    kind = as.character(prim$kind),
+    table_type = as.character(prim$table_type %||% "generic")[1],
+    entity_kind = if (identical(prim$kind, "obs_table")) as.character(prim$entity_kind %||% "generic")[1] else NULL,
+    # A data.frame serialization carries names, declared column classes,
+    # factors/levels, NA/NaN values, and row order exactly.
+    table = prim$table,
+    meta = prim$meta %||% list()
+  )
+}
+
+.wb_prov_file_tree_sha256 <- function(root) {
+  .wb_assert(file.exists(root), paste0("Missing payload path for SHA-256: ", root))
+  if (!dir.exists(root)) return(.wb_prov_sha256_file(root))
+  files <- sort(list.files(root, recursive = TRUE, full.names = TRUE, all.files = FALSE, no.. = TRUE))
+  .wb_prov_sha256_object(lapply(files, function(f) list(
+    path = substring(f, nchar(root) + 2L), sha256 = .wb_prov_sha256_file(f)
+  )))
+}
+
+.wb_prov_payload_identity <- function(bundle, prim) {
+  structural <- .wb_prov_structural_fingerprint(prim)
+  if (!.wb_is_primitive(prim)) return(list(structural_fingerprint = structural, content_sha256 = NA_character_, verification_level = "structural", verification_status = "unavailable"))
+  kind <- as.character(prim$kind)[1]
+  if (kind %in% c("feature_table", "obs_table")) {
+    return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(.wb_prov_table_payload(prim)), verification_level = "content", verification_status = "content_verified"))
+  }
+  if (kind %in% c("cell_vector", "cell_vector_family", "relation_family", "path_2d_family", "space_path_family")) {
+    return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(unclass(prim)), verification_level = "content", verification_status = "content_verified"))
+  }
+  if (kind == "matrix" && !is.null(bundle)) {
+    frags <- tryCatch(wb_matrix_fragments(bundle, prim$matrix_id), error = function(e) data.frame())
+    if (nrow(frags) && "path" %in% names(frags)) {
+      rows <- lapply(seq_len(nrow(frags)), function(i) {
+        rel <- as.character(frags$path[i]); abs <- if (.wb_path_is_absolute(rel)) rel else file.path(bundle$dir, rel)
+        list(fragment = as.list(frags[i, , drop = FALSE]), payload_sha256 = .wb_prov_file_tree_sha256(abs))
+      })
+      return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(kind = kind, matrix_id = prim$matrix_id, fragments = rows)), verification_level = "content", verification_status = "content_verified"))
+    }
+  }
+  if (kind %in% c("space", "space_2d") && !is.null(bundle)) {
+    tab <- if (kind == "space_2d" || .wb_table_exists(bundle$con, "space_2d")) {
+      tryCatch(DBI::dbGetQuery(bundle$con, "SELECT * FROM space_2d WHERE space_id = ? ORDER BY cell_id;", params = list(prim$space_id)), error = function(e) data.frame())
+    } else data.frame()
+    if (!nrow(tab) && .wb_table_exists(bundle$con, "space_coords")) tab <- DBI::dbGetQuery(bundle$con, "SELECT * FROM space_coords WHERE space_id = ? ORDER BY cell_id, dim;", params = list(prim$space_id))
+    if (nrow(tab)) return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(kind = kind, space_id = prim$space_id, coordinates = tab)), verification_level = "content", verification_status = "content_verified"))
+  }
+  if (kind == "model_ref" && !is.null(bundle)) {
+    rel <- as.character(prim$model_path %||% "")[1]
+    abs <- if (nzchar(rel)) if (.wb_path_is_absolute(rel)) rel else file.path(bundle$dir, rel) else ""
+    if (nzchar(abs) && file.exists(abs)) return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(reference = unclass(prim), payload_sha256 = .wb_prov_file_tree_sha256(abs))), verification_level = "content", verification_status = "content_verified"))
+  }
+  list(structural_fingerprint = structural, content_sha256 = NA_character_, verification_level = "structural", verification_status = "structural_only")
+}
 
 .wb_prov_source_identity_validate <- function(x) {
   if (is.null(x)) return(NULL)
@@ -321,6 +409,19 @@
   if (!.wb_db_has_column(con, "prov_run_outputs", "materialization_path")) {
     DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN materialization_path TEXT;")
   }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "structural_fingerprint")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN structural_fingerprint TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "content_sha256")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN content_sha256 TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "verification_level")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN verification_level TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "verification_status")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN verification_status TEXT;")
+  }
+  DBI::dbExecute(con, "UPDATE prov_run_outputs SET verification_level = 'structural', verification_status = 'legacy_structural_only' WHERE verification_level IS NULL OR verification_level = '';")
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_materializations (
       commit_id TEXT NOT NULL,
@@ -332,6 +433,7 @@
       PRIMARY KEY(commit_id, run_id, output_name)
     );
   ")
+  if (!.wb_db_has_column(con, "prov_materializations", "content_sha256")) DBI::dbExecute(con, "ALTER TABLE prov_materializations ADD COLUMN content_sha256 TEXT;")
 
   invisible(TRUE)
 }
@@ -469,12 +571,8 @@
         for (nm in names(outs)) {
           prim <- outs[[nm]]
           kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
-          sum_txt <- if (.wb_is_primitive(prim)) {
-            jsonlite::toJSON(.wb_json_sanitize(.wb_prim_summary(prim)), auto_unbox = TRUE, null = "null")
-          } else {
-            paste(class(prim), collapse = ",")
-          }
-          out_hash <- .wb_hash_text(c(kind, sum_txt))
+          identity <- .wb_prov_payload_identity(bundle, prim)
+          out_hash <- identity$structural_fingerprint
           art_id <- artifact_map[[paste0(rid, "::", nm)]] %||% NA_character_
           mat_row <- if (is.data.frame(materializations) && nrow(materializations)) {
             materializations[as.character(materializations$run_id) == as.character(rid) &
@@ -485,15 +583,17 @@
 
           DBI::dbExecute(
             con,
-            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, materialization_class, materialization_path)
-             VALUES(?, ?, ?, ?, ?, ?, ?, ?);",
+            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, materialization_class, materialization_path, structural_fingerprint, content_sha256, verification_level, verification_status)
+             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
             params = list(
-              sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id), mat_class, mat_path
+              sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id), mat_class, mat_path,
+              identity$structural_fingerprint, identity$content_sha256, identity$verification_level, identity$verification_status
             )
           )
           primitive_binding <- .wb_prov_primitive_entity_binding(prim)
-          if (!is.null(primitive_binding)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, primitive_binding$entity_kind, primitive_binding$entity_id, "MATERIALIZES", mat_path, out_hash, "promotion_materialization")
-          if (!is.na(art_id) && nzchar(art_id)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, "artifact", as.character(art_id), "PRODUCES", mat_path, out_hash, "promotion_artifact")
+          identity_hash <- identity$content_sha256 %||% out_hash
+          if (!is.null(primitive_binding)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, primitive_binding$entity_kind, primitive_binding$entity_id, "MATERIALIZES", mat_path, identity_hash, "promotion_materialization")
+          if (!is.na(art_id) && nzchar(art_id)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, "artifact", as.character(art_id), "PRODUCES", mat_path, identity_hash, "promotion_artifact")
         }
       }
     }
@@ -710,10 +810,8 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
 
   outs <- DBI::dbGetQuery(
     con,
-    "SELECT output_name, primitive_kind, output_hash, artifact_id
-     FROM prov_run_outputs
-     WHERE snapshot_id = ? AND run_id = ?
-     ORDER BY output_name;",
+    paste0("SELECT output_name, primitive_kind, output_hash, artifact_id, ", .wb_prov_output_identity_select(con),
+           " FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? ORDER BY output_name;"),
     params = list(sid, rid)
   )
   if (!nrow(outs)) {
@@ -1302,19 +1400,13 @@ wb_art_emit_r_script <- function(bundle,
   )
 }
 
-.wb_prov_output_hash <- function(prim) {
-  kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
-  sum_txt <- if (.wb_is_primitive(prim)) {
-    jsonlite::toJSON(.wb_json_sanitize(.wb_prim_summary(prim)), auto_unbox = TRUE, null = "null")
-  } else {
-    paste(class(prim), collapse = ",")
-  }
-  .wb_hash_text(c(kind, sum_txt))
-}
+.wb_prov_output_hash <- function(prim, bundle = NULL) .wb_prov_payload_identity(bundle, prim)
 
 #' Validate Replay Of A Persisted Snapshot
 #'
-#' Replays persisted runs and compares output kind/hash against stored `prov_run_outputs`.
+#' Replays persisted runs and compares output kind plus content SHA-256 where
+#' the snapshot recorded content-verifiable payload identity. Legacy snapshots
+#' are reported as structural-only evidence.
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot is
@@ -1347,10 +1439,8 @@ wb_prov_validate_replay <- function(bundle,
 
   expected <- DBI::dbGetQuery(
     con,
-    "SELECT run_id, output_name, primitive_kind, output_hash
-     FROM prov_run_outputs
-     WHERE snapshot_id = ?
-     ORDER BY run_id, output_name;",
+    paste0("SELECT run_id, output_name, primitive_kind, output_hash, ", .wb_prov_output_identity_select(con),
+           " FROM prov_run_outputs WHERE snapshot_id = ? ORDER BY run_id, output_name;"),
     params = list(sid)
   )
   exp_map <- list()
@@ -1358,7 +1448,10 @@ wb_prov_validate_replay <- function(bundle,
     for (i in seq_len(nrow(expected))) {
       exp_map[[paste0(expected$run_id[i], "::", expected$output_name[i])]] <- list(
         kind = as.character(expected$primitive_kind[i]),
-        hash = as.character(expected$output_hash[i])
+        structural_fingerprint = as.character(expected$structural_fingerprint[i] %||% expected$output_hash[i]),
+        content_sha256 = as.character(expected$content_sha256[i] %||% NA_character_),
+        verification_level = as.character(expected$verification_level[i] %||% "structural")[1],
+        verification_status = as.character(expected$verification_status[i] %||% "legacy_structural_only")[1]
       )
     }
   }
@@ -1435,10 +1528,11 @@ wb_prov_validate_replay <- function(bundle,
     for (nm in names(outs)) {
       prim <- outs[[nm]]
       actual_kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
-      actual_hash <- .wb_prov_output_hash(prim)
-      ex <- exp_map[[paste0(rid, "::", nm)]] %||% list(kind = NA_character_, hash = NA_character_)
+      actual_identity <- .wb_prov_output_hash(prim, bundle = bundle)
+      ex <- exp_map[[paste0(rid, "::", nm)]] %||% list(kind = NA_character_, structural_fingerprint = NA_character_, content_sha256 = NA_character_, verification_level = "structural", verification_status = "missing")
       kind_match <- identical(as.character(ex$kind), as.character(actual_kind))
-      hash_match <- identical(as.character(ex$hash), as.character(actual_hash))
+      content_expected <- identical(as.character(ex$verification_level), "content") && !is.na(ex$content_sha256) && nzchar(ex$content_sha256)
+      hash_match <- if (content_expected) identical(as.character(ex$content_sha256), as.character(actual_identity$content_sha256)) else identical(as.character(ex$structural_fingerprint), as.character(actual_identity$structural_fingerprint))
 
       oi <- oi + 1L
       per_out[[oi]] <- data.frame(
@@ -1447,8 +1541,10 @@ wb_prov_validate_replay <- function(bundle,
         output_name = as.character(nm),
         expected_kind = as.character(ex$kind),
         actual_kind = as.character(actual_kind),
-        expected_hash = as.character(ex$hash),
-        actual_hash = as.character(actual_hash),
+        expected_hash = if (content_expected) as.character(ex$content_sha256) else as.character(ex$structural_fingerprint),
+        actual_hash = if (content_expected) as.character(actual_identity$content_sha256) else as.character(actual_identity$structural_fingerprint),
+        verification_level = if (content_expected) "content" else "structural",
+        verification_status = if (content_expected) "content_verified" else as.character(ex$verification_status),
         kind_match = isTRUE(kind_match),
         hash_match = isTRUE(hash_match),
         output_match = FALSE,
@@ -1473,7 +1569,7 @@ wb_prov_validate_replay <- function(bundle,
   out_df <- if (length(per_out)) do.call(rbind, per_out) else data.frame(
     run_id = character(0), replay_run_id = character(0), output_name = character(0),
     expected_kind = character(0), actual_kind = character(0), expected_hash = character(0),
-    actual_hash = character(0), kind_match = logical(0), hash_match = logical(0), output_match = logical(0),
+    actual_hash = character(0), verification_level = character(0), verification_status = character(0), kind_match = logical(0), hash_match = logical(0), output_match = logical(0),
     stringsAsFactors = FALSE
   )
 
