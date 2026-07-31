@@ -1,0 +1,58 @@
+test_payload_content_identity_contract <- function() {
+  left <- wb_prim_feature_table(data.frame(feature_id = c("g1", "g2"), score = c(1, 2), stringsAsFactors = FALSE), table_type = "de")
+  changed <- wb_prim_feature_table(data.frame(feature_id = c("g1", "g2"), score = c(9, 2), stringsAsFactors = FALSE), table_type = "de")
+  reordered <- wb_prim_feature_table(data.frame(feature_id = c("g2", "g1"), score = c(2, 1), stringsAsFactors = FALSE), table_type = "de")
+  left_id <- scworkbench:::.wb_prov_payload_identity(NULL, left)
+  changed_id <- scworkbench:::.wb_prov_payload_identity(NULL, changed)
+  reordered_id <- scworkbench:::.wb_prov_payload_identity(NULL, reordered)
+  stopifnot(identical(left_id$verification_level, "content"),
+            identical(left_id$structural_fingerprint, changed_id$structural_fingerprint),
+            left_id$content_sha256 != changed_id$content_sha256,
+            left_id$content_sha256 != reordered_id$content_sha256)
+
+  root <- tempfile("scwb_payload_identity_")
+  b <- wb_init_bundle(root, overwrite = TRUE)
+  on.exit({ try(wb_close_bundle(b), silent = TRUE); unlink(root, recursive = TRUE, force = TRUE) }, add = TRUE)
+  ids <- paste0("c", seq_len(8L))
+  wb_define_cells(b, ids, metadata = data.frame(cell_id = ids, perturbation = rep(c("ctrl", "drug"), each = 4L), lane = rep(c("L1", "L2"), times = 4L), stringsAsFactors = FALSE), set_name = "core")
+  wb_attach_space(b, "identity_umap", data.frame(cell_id = ids, x = seq_along(ids), y = rev(seq_along(ids))))
+
+  # Matrix identity consumes fragment file digests, never a dense matrix read.
+  dir.create(file.path(root, "matrix_payload"))
+  saveRDS(matrix(c(1, 0, 0, 1), nrow = 2L), file.path(root, "matrix_payload", "payload.rds"))
+  wb_register_matrix_fragment(b$con, "identity_matrix", "matrix_payload", c("g1", "g2"), ids)
+  matrix_id <- scworkbench:::.wb_prov_payload_identity(b, wb_prim_matrix("identity_matrix"))
+  space_id <- scworkbench:::.wb_prov_payload_identity(b, wb_prim_space_2d("identity_umap"))
+  dir.create(file.path(root, "models"))
+  saveRDS(list(coefficients = c(1, 2)), file.path(root, "models", "identity_model.rds"))
+  model <- wb_prim_model_ref("identity_umap", "identity_matrix", engine = "test")
+  model$model_path <- file.path("models", "identity_model.rds")
+  model_id <- scworkbench:::.wb_prov_payload_identity(b, model)
+  stopifnot(identical(matrix_id$verification_level, "content"), identical(space_id$verification_level, "content"), identical(model_id$verification_level, "content"))
+
+  s <- wb_session_new()
+  p <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "perturbation", vector_name = "identity_perturbation", value_type = "categorical", missing_policy = "error", overwrite = TRUE, cell_set = "all", min_cells = 1L)); s <- p$session
+  l <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "lane", vector_name = "identity_lane", value_type = "categorical", missing_policy = "error", overwrite = TRUE, cell_set = "all", min_cells = 1L)); s <- l$session
+  a <- wb_session_run_op(s, b, "cell_vector_association", inputs = list(a = wb_ref_run(p$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L, min_n_per_group = 1L, method = "auto")); s <- a$session
+  promoted <- wb_session_promote_current(b, s, created_by = "payload-identity", outputs = list(wb_ref_run(a$run$run_id, "summary"), wb_ref_run(a$run$run_id, "detail")))
+  sid <- as.character(promoted$provenance_snapshot_id)[1]
+  stored <- DBI::dbGetQuery(b$con, "SELECT output_name, output_hash, structural_fingerprint, content_sha256, verification_level, verification_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? ORDER BY output_name;", params = list(sid, a$run$run_id))
+  stopifnot(nrow(stored) == 2L, all(stored$verification_level == "content"), all(stored$verification_status == "content_verified"), all(grepl("^[0-9a-f]{64}$", stored$content_sha256)))
+  verified <- wb_prov_validate_replay(b, snapshot_id = sid, profile = "strict", strict = TRUE)
+  stopifnot(isTRUE(verified$summary$valid), all(verified$per_output$verification_level == "content"))
+  summary_artifact <- as.character(promoted$promoted$artifact_id[promoted$promoted$output == "summary"])[1]
+  recipient <- wb_art_birth_certificate(b, summary_artifact)$persisted_provenance$links
+  stopifnot(identical(as.character(recipient$verification_status[recipient$output_name == "summary"]), "content_verified"))
+
+  # Same-kind/same-shape output with a changed SHA must fail strict content validation.
+  DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET content_sha256 = ? WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(strrep("0", 64L), sid, a$run$run_id, "summary"))
+  altered <- wb_prov_validate_replay(b, snapshot_id = sid, profile = "strict", strict = FALSE)
+  altered_row <- altered$per_output[altered$per_output$run_id == a$run$run_id & altered$per_output$output_name == "summary", , drop = FALSE]
+  stopifnot(nrow(altered_row) == 1L, isTRUE(altered_row$kind_match[1]), !isTRUE(altered_row$hash_match[1]), !isTRUE(altered_row$output_match[1]))
+
+  # Existing records with no content digest remain visible as legacy structural-only.
+  DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET content_sha256 = NULL, verification_level = 'structural', verification_status = 'legacy_structural_only' WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
+  detail <- wb_prov_run_details(b, run_id = a$run$run_id, snapshot_id = sid)$outputs
+  stopifnot(identical(as.character(detail$verification_status[detail$output_name == "detail"]), "legacy_structural_only"))
+  TRUE
+}
