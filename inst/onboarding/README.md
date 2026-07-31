@@ -39,6 +39,10 @@ file.path(
 7. **Reusable task, evidence, handoff, and capability templates:**
    `templates/`
 
+All roles begin with the auditable-transformation law in the operator guide,
+biologist guide, and playbook: scientific results must be recorded through
+engine contracts, while reports consume rather than create evidence.
+
 ## Canonicality
 
 Do not create project-specific copies of these guides. Project task packets may

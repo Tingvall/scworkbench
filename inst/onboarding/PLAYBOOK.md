@@ -2,6 +2,26 @@
 
 Operational workflow for reliable analysis and code changes.
 
+## Auditable-Transformation Law
+
+Every scientifically meaningful transformation, selection, statistical test,
+model fit, or derived diagnostic must be performed through a registered
+operation or provenance-aware wrangler and leave an auditable trail in the
+bundle. Reports may summarize recorded evidence; they may not create
+unrecorded scientific results.
+
+Apply this to ingestion, normalization, filtering, cell-set derivation,
+feature selection, embeddings, model fitting, DE, enrichment, scoring, and
+metadata diagnostics. When a table or plot supports a conclusion, create it
+through a provenance-aware plot or wrangler contract and retain its input
+artifacts and specification. Cosmetic report formatting does not need an
+engine operation, but any computation that changes a scientific value,
+membership, test, or interpretation-relevant summary does.
+
+An unsupported generic capability is a stop-and-report condition: report the
+gap with the attempted interface and needed contract. Do not use an external
+unrecorded script as a substitute.
+
 ## Recipient read-only audit
 
 Mount a bundle read-only and open it explicitly with
