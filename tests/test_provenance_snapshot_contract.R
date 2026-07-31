@@ -110,7 +110,7 @@ test_provenance_snapshot_contract <- function(bundle_dir) {
   stopifnot(grepl(r1$run_id, replay, fixed = TRUE))
   stopifnot(grepl(r2$run_id, replay, fixed = TRUE))
   stopifnot(!grepl("cell_ids", replay, fixed = TRUE))
-  stopifnot(grepl("inputs <- list\\(", replay))
+  stopifnot(grepl("recorded_inputs <- list\\(", replay))
   stopifnot(!grepl("params_json_txt", replay, fixed = TRUE))
   replay_lines <- strsplit(replay, "\n", fixed = TRUE)[[1]]
   stopifnot(max(nchar(replay_lines, type = "chars")) < 3500)

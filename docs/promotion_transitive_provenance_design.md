@@ -273,6 +273,22 @@ resolve. The provenance validator should report reproducibility grades such as
 `replayable`, `inspectable_only`, or `missing_materialization`; it must not
 overstate replayability.
 
+### Replay input assembly
+
+`wb_session_run_op()` has one execution boundary: its named `inputs` list.
+Replay emitters and `wb_prov_validate_replay()` therefore combine persisted
+symbolic/literal inputs and persisted run parameters before calling that API;
+they never pass a separate `params =` argument. Typed references are rewritten
+after that merge, so references nested in either source keep their type and
+follow replayed run ids. If both sources contain a name, replay de-duplicates
+only byte-for-byte identical R values. Any non-identical collision is an
+explicit replay error, rather than a precedence rule that could silently alter
+the analysis. This rule applies equally to pretty R, raw-JSON, and literal-RDS
+replay payloads. Legacy `cell_vector_association` snapshots are normalized
+before this check: their `params$method` can be a dispatched result label
+(rather than the requested public method), so the recorded symbolic request is
+the execution value and the result label remains output metadata.
+
 Every committed closure must record at minimum:
 
 - installed `scworkbench` package version and source revision when available;

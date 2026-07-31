@@ -846,10 +846,59 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   c(paste0(var_name, " <- ", txt[[1]]), txt[-1])
 }
 
+# Merge persisted user/symbolic inputs with the recorded run parameters into
+# the sole public execution surface accepted by wb_session_run_op().  A run can
+# legitimately record a parameter both in inputs and in params (for example an
+# input echo added by a runner); only exactly identical values are safe to
+# de-duplicate.  A narrowly identified legacy association result label is
+# removed before the merge because it is output annotation, not an execution
+# setting.  Never let replay silently choose one version of a conflicting
+# scientific setting.
+.wb_prov_replay_execution_inputs <- function(inputs, params, run_id = NULL, op_name = NULL) {
+  inputs <- inputs %||% list()
+  params <- params %||% list()
+  .wb_assert(is.list(inputs), "Persisted replay inputs must be a list.")
+  .wb_assert(is.list(params), "Persisted replay params must be a list.")
+  if (length(inputs)) .wb_assert(!is.null(names(inputs)) && all(nzchar(names(inputs))),
+                                 "Persisted replay inputs must be named.")
+  if (length(params)) .wb_assert(!is.null(names(params)) && all(nzchar(names(params))),
+                                 "Persisted replay params must be named.")
+
+  # The association operation historically stored the *dispatched result*
+  # (for example fisher_exact or kruskal_anova) in params$method, while its
+  # public input is the requested method (often auto).  That result label is
+  # an output diagnostic, not an execution parameter.  Preserve the recorded
+  # request and do not mistake this legacy output annotation for a conflict.
+  if (identical(as.character(op_name %||% "")[1], "cell_vector_association") &&
+      !is.null(inputs$method) && !is.null(params$method) &&
+      !identical(inputs$method, params$method)) {
+    params$method <- NULL
+  }
+
+  merged <- inputs
+  for (nm in names(params)) {
+    if (nm %in% names(merged)) {
+      .wb_assert(
+        identical(merged[[nm]], params[[nm]]),
+        paste0(
+          "Replay input/parameter collision for run ", as.character(run_id %||% "<unknown>"),
+          ", name '", nm, "': persisted values differ."
+        )
+      )
+      next
+    }
+    merged[[nm]] <- params[[nm]]
+  }
+  merged
+}
+
 #' Emit an R replay script from persisted provenance
 #'
-#' The generated script replays the persisted run order using `wb_session_run_op()`
-#' with stored params/inputs from the selected provenance snapshot.
+#' The generated script replays the persisted run order using the sole public
+#' `wb_session_run_op(inputs = ...)` surface. Stored symbolic/literal inputs
+#' and run parameters are merged into one execution list. A duplicate name is
+#' accepted only when its values are exactly identical; otherwise generation
+#' and validation fail rather than silently choosing a scientific setting.
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot is
@@ -977,11 +1026,12 @@ wb_prov_emit_r_script <- function(bundle,
         lines,
         paste0("# run_id: ", rid, " op: ", op_name),
         paste0("entry <- replay_payload[['", .wb_r_single_quote_escape(rid), "']]"),
-        "params <- entry$params %||% list()",
-        "inputs <- rewrite_run_refs(entry$inputs %||% list(), replay_map = replay_map)",
-        paste0("res <- do.call(wb_session_run_op, c(list(",
-               "session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
-               "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
+        "recorded_params <- entry$params %||% list()",
+        "recorded_inputs <- entry$inputs %||% list()",
+        paste0("execution_inputs <- scworkbench:::.wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
+        "execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)",
+        paste0("res <- wb_session_run_op(session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
+               "inputs = execution_inputs, notes = '", .wb_r_single_quote_escape(notes), "')"),
         "sess <- res$session",
         paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
         if (nzchar(tgt_run_id) && identical(rid, tgt_run_id)) "target_res <- res" else NULL,
@@ -991,12 +1041,12 @@ wb_prov_emit_r_script <- function(bundle,
       lines <- c(
         lines,
         paste0("# run_id: ", rid, " op: ", op_name),
-        .wb_emit_r_object_assign("params", payload[[rid]]$params %||% list()),
-        .wb_emit_r_object_assign("inputs", payload[[rid]]$inputs %||% list()),
-        "inputs <- rewrite_run_refs(inputs, replay_map = replay_map)",
-        paste0("res <- do.call(wb_session_run_op, c(list(",
-               "session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
-               "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
+        .wb_emit_r_object_assign("recorded_params", payload[[rid]]$params %||% list()),
+        .wb_emit_r_object_assign("recorded_inputs", payload[[rid]]$inputs %||% list()),
+        paste0("execution_inputs <- scworkbench:::.wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
+        "execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)",
+        paste0("res <- wb_session_run_op(session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
+               "inputs = execution_inputs, notes = '", .wb_r_single_quote_escape(notes), "')"),
         "sess <- res$session",
         paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
         if (nzchar(tgt_run_id) && identical(rid, tgt_run_id)) "target_res <- res" else NULL,
@@ -1010,12 +1060,12 @@ wb_prov_emit_r_script <- function(bundle,
         paste0("# run_id: ", rid, " op: ", op_name),
         .wb_emit_r_paste0_chunks("params_json_txt", params_json),
         .wb_emit_r_paste0_chunks("inputs_json_txt", inputs_json),
-        "params <- jsonlite::fromJSON(params_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
-        "inputs <- jsonlite::fromJSON(inputs_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
-        "inputs <- rewrite_run_refs(inputs, replay_map = replay_map)",
-        paste0("res <- do.call(wb_session_run_op, c(list(",
-               "session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
-               "inputs = inputs, notes = '", .wb_r_single_quote_escape(notes), "'), params))"),
+        "recorded_params <- jsonlite::fromJSON(params_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
+        "recorded_inputs <- jsonlite::fromJSON(inputs_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
+        paste0("execution_inputs <- scworkbench:::.wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
+        "execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)",
+        paste0("res <- wb_session_run_op(session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
+               "inputs = execution_inputs, notes = '", .wb_r_single_quote_escape(notes), "')"),
         "sess <- res$session",
         paste0("replay_map[['", .wb_r_single_quote_escape(rid), "']] <- res$run$run_id"),
         if (nzchar(tgt_run_id) && identical(rid, tgt_run_id)) "target_res <- res" else NULL,
@@ -1070,6 +1120,10 @@ wb_prov_emit_r_script <- function(bundle,
      WHERE snapshot_id = ? AND edge_type IN ('depends_on_run','input_run_ref');",
     params = list(sid)
   )
+  # A parent can be recorded both as a general dependency and as an explicit
+  # run reference.  They are one ordering relationship; duplicate rows must
+  # not leave a child with permanent residual indegree.
+  if (nrow(edges)) edges <- unique(edges[, c("parent_run_id", "child_run_id"), drop = FALSE])
 
   run_ids <- as.character(runs$run_id)
   if (!nrow(edges)) return(list(runs = runs, run_order = run_ids))
@@ -1333,16 +1387,18 @@ wb_prov_validate_replay <- function(bundle,
     op_name <- as.character(runs$op_name[idx])
     notes <- as.character(runs$notes[idx] %||% "")[1]
     params <- payload[[rid]]$params %||% list()
-    inputs <- rewrite_run_refs(payload[[rid]]$inputs %||% list(), replay_map = replay_map)
+    inputs <- payload[[rid]]$inputs %||% list()
+    execution_inputs <- .wb_prov_replay_execution_inputs(inputs, params, run_id = rid, op_name = op_name)
+    execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)
 
     err <- NULL
     out <- try(
-      do.call(
-        wb_session_run_op,
-        c(
-          list(session = sess, bundle = bundle, op_name = op_name, inputs = inputs, notes = notes),
-          params
-        )
+      wb_session_run_op(
+        session = sess,
+        bundle = bundle,
+        op_name = op_name,
+        inputs = execution_inputs,
+        notes = notes
       ),
       silent = TRUE
     )
