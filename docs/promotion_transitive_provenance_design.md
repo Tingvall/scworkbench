@@ -310,6 +310,16 @@ requires equal content SHA-256 for `verification_level = content`; structural
 comparison is retained only for legacy/unsupported records and is labeled
 `legacy_structural_only` or `structural_only`, never content-verified.
 
+During transitive promotion, identity resolution is lifecycle-aware: a
+prepared workspace mapping is authoritative over both the session overlay and
+the final bundle-relative path. Matrix fragment and model payload SHA-256
+values are calculated from that pending tree before SQLite provenance rows are
+written; after publication the same bundle-relative mapping resolves to the
+durable tree. Space coordinates are copied transactionally before their
+identity is recorded. A genuinely missing path is a hard error naming the
+primitive, lifecycle context, and attempted paths—there is no structural
+fallback for a staged scientific payload.
+
 Every committed closure must record at minimum:
 
 - installed `scworkbench` package version and source revision when available;

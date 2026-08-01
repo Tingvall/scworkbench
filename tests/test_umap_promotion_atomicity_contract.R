@@ -81,6 +81,15 @@ test_umap_promotion_atomicity_contract <- function() {
   )
   stopifnot(any(as.character(retried_promotion$promoted$status) == "ok"),
             file.exists(file.path(root, durable_rel)))
+  umap_identity <- DBI::dbGetQuery(
+    b$con,
+    "SELECT output_name, content_sha256, verification_level, verification_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? ORDER BY output_name;",
+    params = list(retried_promotion$provenance_snapshot_id, retried$run$run_id)
+  )
+  stopifnot(all(c("model", "space_2d") %in% as.character(umap_identity$output_name)),
+            all(as.character(umap_identity$verification_level) == "content"),
+            all(as.character(umap_identity$verification_status) == "content_verified"),
+            all(grepl("^[0-9a-f]{64}$", as.character(umap_identity$content_sha256))))
   retried$session <- wb_session_discard(retried$session)
 
   # An owned final target is rejected before the runner can write through the

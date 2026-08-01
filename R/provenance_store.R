@@ -103,6 +103,40 @@
   )
 }
 
+.wb_prov_resolve_payload_location <- function(bundle, path, workspace = NULL,
+                                              staging_bundle = NULL, kind = "payload", id = "") {
+  raw <- as.character(path %||% "")[1]
+  .wb_assert(nzchar(raw), paste0("Missing ", kind, " payload path", if (nzchar(id)) paste0(" for ", id) else ""))
+  if (inherits(workspace, "wb_promotion_workspace")) {
+    raw_norm <- normalizePath(raw, winslash = "/", mustWork = FALSE)
+    for (rel in names(workspace$mappings)) {
+      mapping <- workspace$mappings[[rel]]
+      source <- normalizePath(as.character(mapping$source %||% "")[1], winslash = "/", mustWork = FALSE)
+      final <- normalizePath(as.character(mapping$final %||% "")[1], winslash = "/", mustWork = FALSE)
+      if (identical(raw, rel) || identical(raw_norm, source) || identical(raw_norm, final)) {
+        pending <- as.character(mapping$pending %||% "")[1]
+        .wb_assert(file.exists(pending) || dir.exists(pending), paste0(
+          "Missing pending promotion payload for ", kind, if (nzchar(id)) paste0(" ", id) else "",
+          ": attempted pending path ", pending
+        ))
+        return(pending)
+      }
+    }
+  }
+  candidates <- character(0)
+  if (.wb_path_is_absolute(raw)) candidates <- c(candidates, raw)
+  if (!is.null(staging_bundle) && inherits(staging_bundle, "scworkbench_bundle") && !.wb_path_is_absolute(raw)) candidates <- c(candidates, file.path(staging_bundle$dir, raw))
+  if (inherits(bundle, "scworkbench_bundle") && !.wb_path_is_absolute(raw)) candidates <- c(candidates, file.path(bundle$dir, raw))
+  candidates <- unique(candidates[nzchar(candidates)])
+  hit <- candidates[file.exists(candidates) | dir.exists(candidates)]
+  if (length(hit)) return(hit[1])
+  stop(paste0(
+    "Missing ", kind, " payload for ", if (nzchar(id)) id else "<unknown>",
+    "; lifecycle context=", if (inherits(workspace, "wb_promotion_workspace")) "promotion_workspace" else if (!is.null(staging_bundle)) "session_staging" else "durable_bundle",
+    "; attempted path(s): ", paste(candidates, collapse = ", ")
+  ), call. = FALSE)
+}
+
 .wb_prov_file_tree_sha256 <- function(root) {
   .wb_assert(file.exists(root), paste0("Missing payload path for SHA-256: ", root))
   if (!dir.exists(root)) return(.wb_prov_sha256_file(root))
@@ -112,7 +146,7 @@
   )))
 }
 
-.wb_prov_payload_identity <- function(bundle, prim) {
+.wb_prov_payload_identity <- function(bundle, prim, workspace = NULL, staging_bundle = NULL) {
   structural <- .wb_prov_structural_fingerprint(prim)
   if (!.wb_is_primitive(prim)) return(list(structural_fingerprint = structural, content_sha256 = NA_character_, verification_level = "structural", verification_status = "unavailable"))
   kind <- as.character(prim$kind)[1]
@@ -126,7 +160,7 @@
     frags <- tryCatch(wb_matrix_fragments(bundle, prim$matrix_id), error = function(e) data.frame())
     if (nrow(frags) && "path" %in% names(frags)) {
       rows <- lapply(seq_len(nrow(frags)), function(i) {
-        rel <- as.character(frags$path[i]); abs <- if (.wb_path_is_absolute(rel)) rel else file.path(bundle$dir, rel)
+        rel <- as.character(frags$path[i]); abs <- .wb_prov_resolve_payload_location(bundle, rel, workspace = workspace, staging_bundle = staging_bundle, kind = "matrix fragment", id = as.character(prim$matrix_id)[1])
         list(fragment = as.list(frags[i, , drop = FALSE]), payload_sha256 = .wb_prov_file_tree_sha256(abs))
       })
       return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(kind = kind, matrix_id = prim$matrix_id, fragments = rows)), verification_level = "content", verification_status = "content_verified"))
@@ -141,8 +175,14 @@
   }
   if (kind == "model_ref" && !is.null(bundle)) {
     rel <- as.character(prim$model_path %||% "")[1]
-    abs <- if (nzchar(rel)) if (.wb_path_is_absolute(rel)) rel else file.path(bundle$dir, rel) else ""
-    if (nzchar(abs) && file.exists(abs)) return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(reference = unclass(prim), payload_sha256 = .wb_prov_file_tree_sha256(abs))), verification_level = "content", verification_status = "content_verified"))
+    if (!nzchar(rel) && .wb_table_exists(bundle$con, "space_models")) {
+      row <- tryCatch(DBI::dbGetQuery(bundle$con, "SELECT model_path FROM space_models WHERE space_id = ? ORDER BY rowid DESC LIMIT 1;", params = list(as.character(prim$model_space_id %||% "")[1])), error = function(e) data.frame())
+      if (nrow(row)) rel <- as.character(row$model_path[1] %||% "")[1]
+    }
+    if (nzchar(rel)) {
+      abs <- .wb_prov_resolve_payload_location(bundle, rel, workspace = workspace, staging_bundle = staging_bundle, kind = "model reference", id = as.character(prim$model_space_id %||% "")[1])
+      return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(reference = unclass(prim), payload_sha256 = .wb_prov_file_tree_sha256(abs))), verification_level = "content", verification_status = "content_verified"))
+    }
   }
   list(structural_fingerprint = structural, content_sha256 = NA_character_, verification_level = "structural", verification_status = "structural_only")
 }
@@ -449,6 +489,8 @@
                                     commit_id = NULL,
                                     materializations = NULL,
                                     runtime_fingerprint = NULL,
+                                    workspace = NULL,
+                                    staging_bundle = NULL,
                                     transaction_open = FALSE) {
   .wb_require_pkg("jsonlite", "provenance snapshot write")
   con <- bundle$con
@@ -571,7 +613,7 @@
         for (nm in names(outs)) {
           prim <- outs[[nm]]
           kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
-          identity <- .wb_prov_payload_identity(bundle, prim)
+          identity <- .wb_prov_payload_identity(bundle, prim, workspace = workspace, staging_bundle = staging_bundle)
           out_hash <- identity$structural_fingerprint
           art_id <- artifact_map[[paste0(rid, "::", nm)]] %||% NA_character_
           mat_row <- if (is.data.frame(materializations) && nrow(materializations)) {

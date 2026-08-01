@@ -24,6 +24,15 @@ test_promotion_workspace_matrix_atomicity_contract <- function() {
     inputs = list(matrix = "RNA_counts", output_matrix_id = "RNA_log", scale_factor = 1000)
   )
   s <- staged$session
+  missing_payload <- try(
+    scworkbench:::.wb_prov_resolve_payload_location(
+      b, "mat/definitely_missing_fragment", staging_bundle = wb_session_view(s),
+      kind = "matrix fragment", id = "RNA_log"
+    ),
+    silent = TRUE
+  )
+  stopifnot(inherits(missing_payload, "try-error"),
+            grepl("matrix fragment.*RNA_log.*session_staging", as.character(missing_payload)))
   hook_calls <- 0L
   options(scworkbench.promotion_workspace_publish_hook = function(workspace, final_rel) {
     hook_calls <<- hook_calls + 1L
