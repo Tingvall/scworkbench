@@ -103,19 +103,26 @@ wb_target_reproduction_plan <- function(bundle, target) {
   terminal <- out[as.character(out$run_id) == target_run, , drop=FALSE]
   # A fitted UMAP is a map plus its model reference: include both outputs.
   terminal <- terminal[!duplicated(paste(terminal$run_id, terminal$output_name)),,drop=FALSE]
-  roots <- topo$order[!topo$order %in% as.character(edges$child_run_id)]
   prereq <- unique(boundary)
   graph <- wb_prov_bundle_dag(bundle, include_snapshots=FALSE, include_registry_mutations=FALSE)
   focus_runs <- paste0("run:", closure)
-  focus_ids <- unique(c(focus_runs, as.character(graph$edges$from[graph$edges$to %in% focus_runs]), as.character(graph$edges$to[graph$edges$from %in% focus_runs])))
-  focus_ids <- unique(c(focus_ids, as.character(graph$edges$from[graph$edges$to %in% focus_ids]), as.character(graph$edges$to[graph$edges$from %in% focus_ids])))
+  from_run <- as.character(graph$edges$from) %in% focus_runs
+  to_run <- as.character(graph$edges$to) %in% focus_runs
+  from_other_run <- grepl("^run:", as.character(graph$edges$from))
+  to_other_run <- grepl("^run:", as.character(graph$edges$to))
+  # Keep only closure run-to-run edges and entities directly consumed or
+  # materialized by a closure run.  In particular, do not pull a sibling child
+  # merely because it has the same parent.
+  keep_edge <- (from_run & (to_run | !to_other_run)) | (to_run & (from_run | !from_other_run))
+  focus_ids <- unique(c(focus_runs, as.character(graph$edges$from[keep_edge]), as.character(graph$edges$to[keep_edge])))
   run_nodes <- graph$nodes[as.character(graph$nodes$id) %in% focus_ids,,drop=FALSE]
-  sg_edges <- graph$edges[as.character(graph$edges$from) %in% focus_ids & as.character(graph$edges$to) %in% focus_ids,,drop=FALSE]
+  sg_edges <- graph$edges[keep_edge & as.character(graph$edges$from) %in% focus_ids & as.character(graph$edges$to) %in% focus_ids,,drop=FALSE]
   sib <- edges[edges$parent_run_id %in% closure & !(edges$child_run_id %in% closure),,drop=FALSE]
   promotable <- as.character(.wb_get_op(as.character(rr$op_name[match(target_run, rr$run_id)]))$promotable %||% character())
   promotion_outputs <- terminal[as.character(terminal$output_name) %in% promotable, , drop=FALSE]
   durable_outputs <- bind_all[as.character(bind_all$direction) == "output" & as.character(bind_all$run_id) %in% closure & as.character(bind_all$entity_kind) %in% c("matrix","space","model_ref"),,drop=FALSE]
-  structure(list(status=if(length(topo$cyclic)) "cyclic" else "ok", reproducible=!length(topo$cyclic), target=c(x,list(producing_run_id=target_run,output_name=target_out)), run_order=topo$order, runs=rr, subgraph=list(nodes=run_nodes,edges=sg_edges), boundary_prerequisites=prereq, terminal_outputs=terminal, promotion_outputs=promotion_outputs, durable_outputs=durable_outputs, source_bundle_dir=normalizePath(bundle$dir,winslash="/",mustWork=FALSE), excluded_siblings=sib, diagnostics=c(if(!nrow(promotion_outputs)) list(list(code="no_promotable_terminal",message="The producing run has no promotable terminal output.")) else list(), if(length(topo$cyclic)) list(list(code="cyclic",message="Run closure contains a cycle.")) else list(), if(any(terminal$verification_level != "content")) list(list(code="structural_only",message="One or more terminal outputs are legacy structural-only.")) else list())), class="wb_target_reproduction_plan")
+  artifact_sources <- out[as.character(out$run_id) %in% closure & !is.na(out$artifact_id) & nzchar(as.character(out$artifact_id)), c("artifact_id","run_id","output_name"), drop=FALSE]
+  structure(list(status=if(length(topo$cyclic)) "cyclic" else "ok", reproducible=!length(topo$cyclic), target=c(x,list(producing_run_id=target_run,output_name=target_out)), run_order=topo$order, runs=rr, subgraph=list(nodes=run_nodes,edges=sg_edges), boundary_prerequisites=prereq, terminal_outputs=terminal, promotion_outputs=promotion_outputs, durable_outputs=durable_outputs, artifact_sources=artifact_sources, source_bundle_dir=normalizePath(bundle$dir,winslash="/",mustWork=FALSE), excluded_siblings=sib, diagnostics=c(if(!nrow(promotion_outputs)) list(list(code="no_promotable_terminal",message="The producing run has no promotable terminal output.")) else list(), if(length(topo$cyclic)) list(list(code="cyclic",message="Run closure contains a cycle.")) else list(), if(any(terminal$verification_level != "content")) list(list(code="structural_only",message="One or more terminal outputs are legacy structural-only.")) else list())), class="wb_target_reproduction_plan")
 }
 
 #' Emit an executable target-reproduction script
@@ -149,7 +156,11 @@ wb_target_emit_r_script <- function(plan, execution_bundle_dir = "<WRITABLE_INGE
     exists <- if (k == "matrix") paste0("'",id,"' %in% wb_matrices(bundle)$matrix_id") else if (k == "space") paste0("'",id,"' %in% wb_spaces(bundle)$space_id") else "FALSE"
     collision_checks <- c(collision_checks, paste0("if (",exists,") stop('Durable output collision: ",k,":",id,"')"))
   }
-  core <- sub("sess <- wb_session_new()", paste(c(boundary_checks, collision_checks, "sess <- wb_session_new()"), collapse="\\n"), core, fixed=TRUE)
+  artifact_lines <- character(0)
+  if (nrow(plan$artifact_sources %||% data.frame())) for (i in seq_len(nrow(plan$artifact_sources))) artifact_lines <- c(artifact_lines, paste0("artifact_replay_map[['",.wb_r_single_quote_escape(as.character(plan$artifact_sources$artifact_id[i])),"']] <- list(run_id='",.wb_r_single_quote_escape(as.character(plan$artifact_sources$run_id[i])),"', output='",.wb_r_single_quote_escape(as.character(plan$artifact_sources$output_name[i])),"')"))
+  rewrite <- c("artifact_replay_map <- list()", artifact_lines, "rewrite_artifact_refs <- function(x) { if (!is.list(x)) return(x); if (identical(as.character(x$ref_type %||% '')[1], 'artifact')) { a <- artifact_replay_map[[as.character(x$artifact_id %||% '')[1]]]; if (!is.null(a) && !is.null(replay_map[[a$run_id]])) return(wb_ref_run(replay_map[[a$run_id]], a$output)); return(x) }; y <- lapply(x, rewrite_artifact_refs); if (!is.null(names(x))) names(y) <- names(x); y }")
+  core <- sub("sess <- wb_session_new()", paste(c(boundary_checks, collision_checks, "sess <- wb_session_new()", rewrite), collapse="\\n"), core, fixed=TRUE)
+  core <- sub("execution_inputs <- rewrite_run_refs(execution_inputs)", "execution_inputs <- rewrite_artifact_refs(rewrite_run_refs(execution_inputs))", core, fixed=TRUE)
   .wb_assert(nrow(plan$promotion_outputs %||% data.frame()) > 0L, "plan has no promotable terminal outputs")
   sels <- paste(vapply(seq_len(nrow(plan$promotion_outputs)), function(i) paste0("wb_ref_run(replay_map[['", .wb_r_single_quote_escape(as.character(plan$promotion_outputs$run_id[i])), "']], '", .wb_r_single_quote_escape(as.character(plan$promotion_outputs$output_name[i])), "')"), character(1)), collapse=", ")
   verifies <- vapply(seq_len(nrow(plan$terminal_outputs)), function(i) { z <- plan$terminal_outputs[i,,drop=FALSE]; if (identical(as.character(z$verification_level[1]),"content") && nzchar(as.character(z$content_sha256[1] %||% ""))) paste0("stopifnot(identical(scworkbench:::.wb_prov_payload_identity(bundle, target_res$run$outputs[['",.wb_r_single_quote_escape(as.character(z$output_name[1])),"']])$content_sha256, '",.wb_r_single_quote_escape(as.character(z$content_sha256[1])),"'))") else paste0("message('structural/legacy verification limitation: ",.wb_r_single_quote_escape(as.character(z$output_name[1])),"')") }, character(1))
