@@ -16,9 +16,7 @@ test_targeted_reproduction_plan_contract <- function() {
   stopifnot(identical(wb_target_reproduction_plan(b, paste0("model:",model_id))$status,"ok"))
   script <- wb_target_emit_r_script(plan)
   stopifnot(length(script)==1L, grepl("wb_session_promote_current",script,fixed=TRUE), grepl("writable ingestion-ready",script,fixed=TRUE))
-  bad <- try(wb_target_reproduction_branch_template(plan, "change seed", c("space:space_2d"="x")), silent=TRUE)
-  stopifnot(inherits(bad,"try-error"))
-  good <- wb_target_reproduction_branch_template(plan, "change seed", c("space:space_2d"="sibling_umap", "model:model"="sibling_model"))
-  stopifnot(identical(good$mode,"branch_template"), nrow(promoted$promoted) >= 2L)
+  stopifnot(nrow(promoted$promoted) >= 2L,
+            !"wb_target_reproduction_branch_template" %in% getNamespaceExports("scworkbench"))
   TRUE
 }
