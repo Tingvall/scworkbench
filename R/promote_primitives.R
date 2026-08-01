@@ -438,6 +438,8 @@ wb_promote_analysis <- function(bundle,
     commit_id = commit_id,
     materializations = materializations,
     runtime_fingerprint = runtime_fingerprint,
+    workspace = workspace,
+    staging_bundle = staging_bundle,
     transaction_open = TRUE
   )
   DBI::dbExecute(bundle$con, "UPDATE prov_commits SET state = ? WHERE commit_id = ?;", params = list("complete", commit_id))

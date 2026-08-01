@@ -77,6 +77,14 @@ test_op_hvg_pca_contract <- function() {
   )
   hvg_art <- as.character(prom$promoted$artifact_id[as.character(prom$promoted$output) == "selected_features"][1])
   stopifnot(nzchar(hvg_art))
+  norm_identity <- DBI::dbGetQuery(
+    b$con,
+    "SELECT content_sha256, verification_level, verification_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? AND output_name = 'matrix';",
+    params = list(prom$provenance_snapshot_id, rr_norm$run$run_id)
+  )
+  stopifnot(nrow(norm_identity) == 1L, identical(as.character(norm_identity$verification_level[1]), "content"),
+            identical(as.character(norm_identity$verification_status[1]), "content_verified"),
+            grepl("^[0-9a-f]{64}$", as.character(norm_identity$content_sha256[1])))
 
   rr_pca <- wb_session_run_op(
     rr_hvg$session,
@@ -125,6 +133,14 @@ test_op_hvg_pca_contract <- function() {
   )
   pca_ok <- pca_prom$promoted[pca_prom$promoted$status == "ok", , drop = FALSE]
   stopifnot(setequal(as.character(pca_ok$output), c("loadings", "variance", "fit_summary")))
+  pca_space_identity <- DBI::dbGetQuery(
+    b$con,
+    "SELECT content_sha256, verification_level, verification_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? AND output_name = 'space';",
+    params = list(pca_prom$provenance_snapshot_id, rr_pca$run$run_id)
+  )
+  stopifnot(nrow(pca_space_identity) == 1L, identical(as.character(pca_space_identity$verification_level[1]), "content"),
+            identical(as.character(pca_space_identity$verification_status[1]), "content_verified"),
+            grepl("^[0-9a-f]{64}$", as.character(pca_space_identity$content_sha256[1])))
   wb_close_bundle(b); b <- wb_open_bundle(tmp)
   stopifnot("rna.pca" %in% as.character(wb_spaces(b)$space_id))
   stopifnot(nrow(wb_space(b, "rna.pca")) == length(cells))
