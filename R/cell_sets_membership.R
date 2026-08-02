@@ -1,21 +1,4 @@
 # R/cell_sets_membership.R
-
-.wb_ensure_cell_set_membership_table <- function(con) {
-  DBI::dbExecute(con, "
-    CREATE TABLE IF NOT EXISTS cell_set_membership (
-      cell_set    TEXT NOT NULL,
-      cell_id     TEXT NOT NULL,
-      source      TEXT,
-      created_at  TEXT NOT NULL,
-      created_by  TEXT,
-      description TEXT,
-      PRIMARY KEY(cell_set, cell_id)
-    );
-  ")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_csm_set  ON cell_set_membership(cell_set);")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_csm_cell ON cell_set_membership(cell_id);")
-  invisible(TRUE)
-}
 #' Create A Membership-Based Cell Set
 #'
 #' Create or overwrite a simple membership-backed cell set from explicit cell

@@ -11,12 +11,6 @@
 #
 # These ops never touch SQLite directly; they use wb_* getters and cell ops.
 
-.wb_require_cols <- function(df, cols, where = "data.frame") {
-  missing <- setdiff(cols, colnames(df))
-  .wb_assert(length(missing) == 0,
-             paste0(where, " missing required columns: ", paste(missing, collapse = ", ")))
-}
-
 .wb_is_nonneg <- function(x) all(is.finite(x) & x >= 0)
 
 #' Slice an expression matrix (thin wrapper over wb_slice)
@@ -172,6 +166,5 @@ wb_op_expr_pseudobulk_by <- function(bundle, matrix_id, by, features = NULL, cel
 
   data.frame(feature_id = rownames(mat), mat, row.names = NULL, check.names = FALSE, stringsAsFactors = FALSE)
 }
-
 
 

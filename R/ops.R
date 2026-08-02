@@ -18,12 +18,6 @@
 # - wb_op_cells_counts_by
 # - wb_op_cells_top_n_by
 
-.wb_require_cols <- function(df, cols, where = "data.frame") {
-  missing <- setdiff(cols, colnames(df))
-  .wb_assert(length(missing) == 0,
-             paste0(where, " missing required columns: ", paste(missing, collapse = ", ")))
-}
-
 .wb_cells_canonical <- function(bundle) {
   # Canonical cell order is defined by wb_cells(bundle)
   wb_cells(bundle)
@@ -225,6 +219,5 @@ wb_op_cells_top_n_by <- function(bundle, by, n = 10, cells = NULL, drop_na = TRU
   tab <- tab[order(tab$n_cells, decreasing = TRUE), , drop = FALSE]
   head(tab$group, n)
 }
-
 
 

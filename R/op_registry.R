@@ -249,5 +249,3 @@ wb_write_op_catalog_reference <- function(path_md = "docs/op_catalog_reference.m
 
   invisible(TRUE)
 }
-
-`%||%` <- function(x, y) if (is.null(x)) y else x

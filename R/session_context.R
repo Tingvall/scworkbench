@@ -7,8 +7,6 @@
 # - Active context stores refs to primitives, keyed by output name (e.g. "clusters", "space_2d")
 # - Dependencies ("parents") are inferred ONLY when a required input is satisfied by a run ref.
 
-`%||%` <- function(x, y) if (is.null(x)) y else x
-
 .wb_ops <- function() {
   cat <- .wb_op_catalog()
   lapply(cat, function(x) {
