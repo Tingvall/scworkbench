@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-08-02T17:32:45+0200
+Generated at: 2026-08-02T20:49:24+0200
 
 Operation count: 56
 
@@ -30,10 +30,12 @@ Replay equivalence:
 - `clusters`: `exact_canonical_value`
 
 Key parameters:
-- `dims` (int_range, default=1:30): Which dimensions of the space to use (1-indexed).
+- `dims` (int_range, default=NULL): Optional dimensions of the space to use (1-indexed); defaults to all available dimensions.
 - `k` (int, default=30): Number of neighbors for kNN graph.
 - `resolution` (dbl, default=1): Leiden resolution parameter.
+- `n_iterations` (int, default=2): Number of Leiden optimization iterations.
 - `seed` (int, default=1): Random seed.
+- `weight` (bool, default=TRUE): Whether to weight graph edges during clustering.
 
 ## `matrix_log_normalize`
 
@@ -603,6 +605,7 @@ Key parameters:
 - `collection` (string, default=NULL): Optional collection label recorded in import manifests.
 - `subcollection` (string, default=NULL): Optional subcollection label; used for namespace splitting when requested.
 - `species` (string, default=NULL): Species/organism label recorded in feature-set metadata.
+- `organism` (string, default=NULL): Optional organism label; when omitted, species is used.
 - `gene_id_type` (string, default=NULL): Identifier type expected in source genes, for example gene_symbol.
 - `set_id_col` (string, default=feature_set): For table sources, column containing set identifiers.
 - `set_name_col` (string, default=NULL): For table sources, optional human-readable set-name column.
@@ -611,8 +614,11 @@ Key parameters:
 - `split_by_collection` (bool, default=FALSE): If TRUE, append detected/declared subcollection to the namespace base.
 - `overwrite` (bool, default=TRUE): If FALSE, existing feature sets are skipped instead of replaced.
 - `strict` (bool, default=FALSE): If TRUE, error on genes absent from the matrix; otherwise drop absent genes.
+- `created_by` (string, default=NULL): Optional creator label stored in feature-set provenance.
 - `source_id` (string, default=NULL): Optional source/library identifier stored in feature-set metadata.
 - `source_version` (string, default=NULL): Optional source/library version stored in feature-set metadata.
+- `origin` (string, default=imported): Origin label stored in feature-set metadata.
+- `is_readonly` (bool, default=TRUE): Whether imported feature sets are registered read-only.
 
 ## `feature_set_overlap_qc`
 
@@ -735,6 +741,7 @@ Key parameters:
 - `source` (string, default=selector_recipe): Source/provenance label stored on membership rows.
 - `created_by` (string, default=NULL): Optional creator label.
 - `description` (string, default=NULL): Human-readable derivation rationale.
+- `recipe` (list, default=NULL): Optional selector recipe stored with the derived cell set.
 - `overwrite` (bool, default=TRUE): If TRUE, replace existing membership for the target set; if FALSE, add cells to it.
 
 ## `cell_vector_assoc`
@@ -1275,7 +1282,7 @@ Replay equivalence:
 Key parameters:
 - `start.clus` (string, default=NULL): Starting cluster id.
 - `end.clus` (string_vec, default=NULL): Ending cluster id(s).
-- `exclude_clusters` (string_vec, default=): Cluster id(s) to exclude before fitting.
+- `exclude_clusters` (string_vec, default=NULL): Cluster id(s) to exclude before fitting.
 - `stretch` (dbl, default=2): Slingshot curve stretching.
 - `reweight` (bool, default=TRUE): Whether to reweight assignments during fitting.
 
@@ -1308,7 +1315,7 @@ Key parameters:
 - `start.clus` (string, default=NULL): Starting cluster id.
 - `end.clus` (string_vec, default=NULL): Ending cluster id(s).
 - `include_clusters` (string_vec, default=NULL): Restrict fitting to these cluster id(s).
-- `exclude_clusters` (string_vec, default=): Cluster id(s) to exclude before fitting.
+- `exclude_clusters` (string_vec, default=NULL): Cluster id(s) to exclude before fitting.
 - `exclude_cells` (cell_ids, default=NULL): Optional cell IDs to exclude before fitting.
 - `stretch` (dbl, default=2): Slingshot curve stretching.
 - `reweight` (bool, default=TRUE): Whether to reweight assignments during fitting.
@@ -1372,6 +1379,7 @@ Key parameters:
 - `join_policy` (string, default=exact_boundary_collapse): Overlap policy. The current implementation supports exact_boundary_collapse.
 - `min_weight` (dbl, default=NULL): Optional minimum lineage weight required for segment-local membership when weights are supplied.
 - `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.
+- `runs` (list, default=NULL): Optional run registry used to resolve symbolic segment references.
 
 ## `trajectory_segment_from_artifacts`
 
@@ -1412,6 +1420,8 @@ Key parameters:
 - `source_engine` (string, default=NULL): Fitted trajectory engine, usually slingshot, monocle3, or palantir.
 - `start_label` (string, default=NULL): Biological start label.
 - `end_label` (string, default=NULL): Biological end label.
+- `composite_id` (string, default=NULL): Optional parent composite identifier recorded in the segment manifest.
+- `runs` (list, default=NULL): Optional run registry used to resolve symbolic references.
 - `allow_legacy` (bool, default=FALSE): Allow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.
 
 ## `trajectory_space_path_segment`
@@ -1424,6 +1434,7 @@ Description: Convert space_path_score output into a generic trajectory segment u
 
 Consumes:
 - `path_scores`: cell_vector_family
+- `path`: path_2d_family
 - `display_path`: path_2d_family
 - `cell_set`: select
 
@@ -1463,6 +1474,8 @@ Key parameters:
 - `endpoint_qc_action` (choice, default=fail): Action when display-path endpoint QC detects a large mismatch.
 - `pseudotime_key` (string, default=NULL): Key for emitted bridge pseudotime. Defaults to segment_id.
 - `confidence_key` (string, default=NULL): Key for emitted bridge confidence. Defaults to segment_id.
+- `composite_id` (string, default=NULL): Optional parent composite identifier recorded in the segment manifest.
+- `runs` (list, default=NULL): Optional run registry used to resolve symbolic references.
 
 ## `trajectory_segment_path_join`
 
@@ -1658,6 +1671,7 @@ Key parameters:
 - `seed` (int, default=1): Random seed for scVI training.
 - `use_gpu` (bool, default=FALSE): If TRUE, request GPU-backed training in scvi-tools.
 - `output_space_id` (string, default=rna.scvi): Space id to write for the learned scVI latent embedding.
+- `space_id_out` (string, default=NULL): Deprecated compatibility alias for output_space_id.
 - `model_artifact_id` (string, default=NULL): Optional preregistered model artifact id. NULL lets scworkbench assign one.
 - `overwrite` (bool, default=FALSE): If TRUE, allow replacing an existing output_space_id.
 - `allow_non_counts` (bool, default=FALSE): If TRUE, bypass raw/count-like matrix checks. Use only for intentional expert overrides.

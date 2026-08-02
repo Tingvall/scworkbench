@@ -64,6 +64,7 @@
 "primitive:model_ref","op:umap_transform","consumed_by","input:model"
 "primitive:obs_table","op:winner_cell_sets","consumed_by","input:winners"
 "primitive:path_2d_family","op:trajectory_segment_from_artifacts","consumed_by","input:path"
+"primitive:path_2d_family","op:trajectory_space_path_segment","consumed_by","input:path"
 "primitive:path_2d_family","op:trajectory_space_path_segment","consumed_by","input:display_path"
 "primitive:relation_family","op:trajectory_branch_compare","consumed_by","input:branch_membership"
 "primitive:relation_family","op:trajectory_route_smooth","consumed_by","input:branch_membership"

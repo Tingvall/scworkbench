@@ -138,6 +138,7 @@ digraph scworkbench_semantic_graph {
   n62 -> n56 [label="consumed_by", color="#2f6f8f"];
   n63 -> n45 [label="consumed_by", color="#2f6f8f"];
   n63 -> n51 [label="consumed_by", color="#2f6f8f"];
+  n63 -> n51 [label="consumed_by", color="#2f6f8f"];
   n64 -> n41 [label="consumed_by", color="#2f6f8f"];
   n64 -> n44 [label="consumed_by", color="#2f6f8f"];
   n65 -> n8 [label="consumed_by", color="#2f6f8f"];

@@ -347,7 +347,8 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   )
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   op <- .wb_op(op_name)
-  .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs)
+  validated <- .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs, session = session)
+  inputs <- validated$inputs
 
   staged <- .wb_session_stage_bundle(bundle, session)
   session <- staged$session
@@ -390,6 +391,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
       prov_refs <- c(prov_refs, rr$prov_refs)
     }
   }
+  .wb_validate_resolved_op_inputs(op_name, resolved)
 
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
@@ -410,11 +412,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   # Validate produced outputs
   out <- res$outputs
   prod <- op$produces %||% list()
-  for (nm in names(prod)) {
-    .wb_assert(nm %in% names(out),
-               paste0("Op '", op_name, "' did not produce required output '", nm, "'."))
-    .wb_assert_kind(out[[nm]], prod[[nm]], where = paste0(" for output '", nm, "'"))
-  }
+  .wb_validate_op_outputs(op_name, out)
 
   run_inputs <- list(
     cell_set = cell_set,
@@ -432,7 +430,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   run <- wb_new_run(
     op_name = op_name,
     inputs  = run_inputs,
-    params  = res$params %||% list(),
+    params  = .wb_merge_validated_run_params(res$params, validated$params),
     outputs = out,
     notes   = notes,
     run_id = planned_run_id
@@ -587,69 +585,4 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     effective_n = as.integer(length(effective_cells %||% character(0))),
     resolved = res_compact
   )
-}
-
-.wb_validate_cell_ids_or_set <- function(val, nm) {
-  if (.wb_is_ref_run(val) || .wb_is_ref_artifact(val)) return(invisible(TRUE))
-  .wb_assert(is.character(val), paste0("inputs$", nm, " must be character, wb_ref_run(), or wb_ref_artifact()."))
-  .wb_assert(length(val) > 0, paste0("inputs$", nm, " must be non-empty."))
-  vv <- unique(as.character(val))
-  vv <- vv[nzchar(vv)]
-  .wb_assert(length(vv) > 0, paste0("inputs$", nm, " is empty after cleaning."))
-  set_flags <- startsWith(vv, "set:")
-  .wb_assert(all(set_flags | !set_flags), paste0("inputs$", nm, " invalid value."))
-  invisible(TRUE)
-}
-
-.wb_validate_op_inputs_contract <- function(op_name, inputs) {
-  inputs <- inputs %||% list()
-  .wb_assert(is.list(inputs), "inputs must be a list.")
-  cat <- .wb_op_catalog()
-  op <- cat[[op_name]] %||% list()
-  params <- op$params %||% list()
-  if (!length(params)) return(invisible(TRUE))
-
-  for (p in params) {
-    nm <- as.character(p$name %||% "")[1]
-    tp <- as.character(p$type %||% "")[1]
-    if (!nzchar(nm) || !nzchar(tp)) next
-    if (is.null(inputs[[nm]])) next
-    val <- inputs[[nm]]
-
-    if (identical(tp, "cell_ids_or_set")) {
-      .wb_validate_cell_ids_or_set(val, nm)
-      next
-    }
-    if (identical(tp, "int")) {
-      .wb_assert(length(val) == 1 && !is.na(suppressWarnings(as.integer(val))),
-                 paste0("inputs$", nm, " must be scalar int-like."))
-      next
-    }
-    if (identical(tp, "dbl")) {
-      .wb_assert(length(val) == 1 && !is.na(suppressWarnings(as.numeric(val))),
-                 paste0("inputs$", nm, " must be scalar numeric-like."))
-      next
-    }
-    if (identical(tp, "bool")) {
-      b <- suppressWarnings(as.logical(val))
-      .wb_assert(length(b) == 1 && !is.na(b),
-                 paste0("inputs$", nm, " must be scalar logical-like."))
-      next
-    }
-    if (identical(tp, "string")) {
-      .wb_assert(length(val) == 1 && is.character(val),
-                 paste0("inputs$", nm, " must be scalar character."))
-      next
-    }
-    if (identical(tp, "string_vec")) {
-      .wb_assert(is.character(val), paste0("inputs$", nm, " must be character vector."))
-      next
-    }
-    if (identical(tp, "string_vec_or_list")) {
-      ok <- is.character(val) || (is.list(val) && all(vapply(val, is.character, logical(1))))
-      .wb_assert(ok, paste0("inputs$", nm, " must be character vector or list of character vectors."))
-      next
-    }
-  }
-  invisible(TRUE)
 }

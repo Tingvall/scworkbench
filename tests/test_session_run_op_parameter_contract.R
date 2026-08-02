@@ -42,12 +42,14 @@ test_session_run_op_parameter_contract <- function() {
       cell_set = "all",
       min_cells = 1L,
       features = features[1:2],
-      top_n = 1L
+      top_n = 1
     )
   )
   elapsed <- as.numeric(difftime(Sys.time(), started, units = "secs"))
   markers <- rr$run$outputs$markers$table
-  stopifnot(identical(as.integer(rr$run$params$top_n), 1L))
+  stopifnot(identical(rr$run$params$top_n, 1L))
+  stopifnot(identical(rr$run$inputs$user_inputs$top_n, 1L))
+  stopifnot(identical(rr$run$inputs$user_inputs$min_cells, 1L))
   stopifnot(identical(as.integer(rr$run$params$n_features_requested), 2L))
   stopifnot(isTRUE(rr$run$params$feature_subset_supplied))
   stopifnot(identical(as.integer(rr$run$params$n_markers), nrow(markers)))

@@ -383,6 +383,7 @@ digraph scworkbench_semantic_graph {
   n282 -> n205 [label="consumed_by", color="#2f6f8f"];
   n283 -> n194 [label="consumed_by", color="#2f6f8f"];
   n283 -> n200 [label="consumed_by", color="#2f6f8f"];
+  n283 -> n200 [label="consumed_by", color="#2f6f8f"];
   n284 -> n190 [label="consumed_by", color="#2f6f8f"];
   n284 -> n193 [label="consumed_by", color="#2f6f8f"];
   n285 -> n157 [label="consumed_by", color="#2f6f8f"];

@@ -258,8 +258,8 @@
     distance_quantile = inputs$distance_quantile %||% NULL,
     start_label = inputs$start_label %||% NULL,
     end_label = inputs$end_label %||% NULL,
-    path = inputs$path %||% NULL,
-    display_path = resolved$display_path %||% inputs$display_path %||% NULL,
+    path = resolved$path %||% NULL,
+    display_path = resolved$display_path %||% NULL,
     display_lineage = inputs$display_lineage %||% NULL,
     display_space_id = inputs$display_space_id %||% NULL,
     start_endpoint = inputs$start_endpoint %||% NULL,
@@ -536,7 +536,7 @@
     fit_in_space_id <- as.character(sm$source_space_id[1] %||% "")
   }
 
-  in_space_id <- inputs$in_space_id %||% inputs$in_space %||% fit_in_space_id
+  in_space_id <- resolved$in_space %||% fit_in_space_id
   if (is.list(in_space_id) && !is.null(in_space_id$space_id)) {
     in_space_id <- in_space_id$space_id
   }
@@ -1625,14 +1625,18 @@
         space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
       ),
       params = list(
-        list(name = "dims", type = "int_range", default = "1:30",
-             help = "Which dimensions of the space to use (1-indexed)."),
+        list(name = "dims", type = "int_range", default = NULL,
+             help = "Optional dimensions of the space to use (1-indexed); defaults to all available dimensions."),
         list(name = "k", type = "int", default = 30, min = 5, max = 200,
              help = "Number of neighbors for kNN graph."),
         list(name = "resolution", type = "dbl", default = 1.0, min = 0.01, max = 10,
              help = "Leiden resolution parameter."),
+        list(name = "n_iterations", type = "int", default = 2L, min = 1,
+             help = "Number of Leiden optimization iterations."),
         list(name = "seed", type = "int", default = 1,
-             help = "Random seed.")
+             help = "Random seed."),
+        list(name = "weight", type = "bool", default = TRUE,
+             help = "Whether to weight graph edges during clustering.")
       ),
       interface_produces = list(
         clusters = list(
@@ -1851,6 +1855,7 @@
       description = "Project cells into an existing UMAP using a stored model.",
       intent = c("projection", "umap"),
       requires = list(model = "model_ref"),
+      optional_requires = list(in_space = "space"),
       produces = list(space_2d = "space_2d"),
       promotable = c("space_2d"),
       runner = .wb_runner_umap_transform,
@@ -1881,7 +1886,7 @@
         matrix = list(required = TRUE, kind = "matrix")
       ),
       params = list(
-        list(name = "features", type = "string_vec_or_list", default = NULL,
+        list(name = "features", type = "string_vec_or_list", required = TRUE,
              help = "Module feature IDs: character vector or list of vectors."),
         list(name = "pool", type = "string_vec", default = NULL,
              help = "Optional control feature pool; defaults to all matrix features."),
@@ -1930,7 +1935,7 @@
         matrix = list(required = TRUE, kind = "matrix")
       ),
       params = list(
-        list(name = "features", type = "string_vec_or_list", default = NULL,
+        list(name = "features", type = "string_vec_or_list", required = TRUE,
              help = "Signature feature IDs: character vector or list of vectors."),
         list(name = "name", type = "string", default = "Signature",
              help = "Prefix for signature names when features are unnamed."),
@@ -1941,7 +1946,7 @@
         list(name = "parallel_backend", type = "choice", default = "auto",
              choices = c("auto", "serial"),
              help = "Execution backend for UCell. Use 'serial' to avoid socket-based parallel backends on constrained systems."),
-        list(name = "chunk_size", type = "int", default = 2000L, min = 8, max = 1000000,
+        list(name = "chunk_size", type = "int", default = 2000L, min = 1, max = 1000000,
              help = "Cell-axis chunk size for engine-owned UCell execution. Use NULL to disable chunking."),
         list(name = "missing_features_policy", type = "choice", default = "drop",
              choices = c("drop", "error"),
@@ -2438,12 +2443,12 @@
         matrix = list(required = TRUE, kind = "matrix")
       ),
       params = list(
-        list(name = "source_path", type = "path", default = NULL,
+        list(name = "source_path", type = "path", required = TRUE,
              help = "Path to GMT, RDS list/data.frame, or CSV-like table source."),
         list(name = "source_format", type = "choice", default = "auto",
              choices = c("auto", "gmt", "rds", "table"),
              help = "Input parser. auto infers from file extension."),
-        list(name = "namespace", type = "string", default = NULL,
+        list(name = "namespace", type = "string", required = TRUE,
              help = "Target feature-set namespace base label."),
         list(name = "collection", type = "string", default = NULL,
              help = "Optional collection label recorded in import manifests."),
@@ -2451,6 +2456,8 @@
              help = "Optional subcollection label; used for namespace splitting when requested."),
         list(name = "species", type = "string", default = NULL,
              help = "Species/organism label recorded in feature-set metadata."),
+        list(name = "organism", type = "string", default = NULL,
+             help = "Optional organism label; when omitted, species is used."),
         list(name = "gene_id_type", type = "string", default = NULL,
              help = "Identifier type expected in source genes, for example gene_symbol."),
         list(name = "set_id_col", type = "string", default = "feature_set",
@@ -2467,10 +2474,16 @@
              help = "If FALSE, existing feature sets are skipped instead of replaced."),
         list(name = "strict", type = "bool", default = FALSE,
              help = "If TRUE, error on genes absent from the matrix; otherwise drop absent genes."),
+        list(name = "created_by", type = "string", default = NULL,
+             help = "Optional creator label stored in feature-set provenance."),
         list(name = "source_id", type = "string", default = NULL,
              help = "Optional source/library identifier stored in feature-set metadata."),
         list(name = "source_version", type = "string", default = NULL,
-             help = "Optional source/library version stored in feature-set metadata.")
+             help = "Optional source/library version stored in feature-set metadata."),
+        list(name = "origin", type = "string", default = "imported",
+             help = "Origin label stored in feature-set metadata."),
+        list(name = "is_readonly", type = "bool", default = TRUE,
+             help = "Whether imported feature sets are registered read-only.")
       ),
       interface_produces = list(
         import_summary = list(
@@ -2514,7 +2527,7 @@
              help = "Optional feature-set subset within selected namespaces."),
         list(name = "min_set_size", type = "int", default = 1, min = 0,
              help = "Minimum mapped/detected genes required to include a set."),
-        list(name = "max_set_size", type = "dbl", default = Inf, min = 1,
+        list(name = "max_set_size", type = "dbl", default = Inf, min = 1, allow_non_finite = TRUE,
              help = "Maximum mapped/detected genes allowed to include a set."),
         list(name = "min_detected_fraction", type = "dbl", default = 0, min = 0, max = 1,
              help = "Minimum fraction of source genes detected in the matrix."),
@@ -2632,7 +2645,7 @@
       runner = .wb_runner_cell_set_derive,
       inputs = list(),
       params = list(
-        list(name = "target_cell_set", type = "string", default = NULL,
+        list(name = "target_cell_set", type = "string", required = TRUE,
              help = "Name of the derived cell set to create, for example set:universe_b_l1_weight090."),
         list(name = "role", type = "choice", default = "analysis_universe",
              choices = c("core", "annotation", "analysis_universe", "exclusion_set", "endpoint_set", "diagnostic", "temporary"),
@@ -2646,6 +2659,8 @@
              help = "Optional creator label."),
         list(name = "description", type = "string", default = NULL,
              help = "Human-readable derivation rationale."),
+        list(name = "recipe", type = "list", default = NULL,
+             help = "Optional selector recipe stored with the derived cell set."),
         list(name = "overwrite", type = "bool", default = TRUE,
              help = "If TRUE, replace existing membership for the target set; if FALSE, add cells to it.")
       ),
@@ -2820,7 +2835,7 @@
              help = "Minimum per-feature standard deviation filter."),
         list(name = "p_adjust_method", type = "string", default = "BH",
              help = "Method passed to p.adjust."),
-        list(name = "chunk_size", type = "int", default = 128, min = 8, max = 4096,
+        list(name = "chunk_size", type = "int", default = 128, min = 1, max = 4096,
              help = "Chunk size for matrix slicing.")
       ),
       interface_produces = list(
@@ -2873,7 +2888,7 @@
              help = "Minimum per-feature standard deviation filter."),
         list(name = "p_adjust_method", type = "string", default = "BH",
              help = "Method passed to p.adjust."),
-        list(name = "chunk_size", type = "int", default = 128, min = 8, max = 4096,
+        list(name = "chunk_size", type = "int", default = 128, min = 1, max = 4096,
              help = "Chunk size for matrix slicing.")
       ),
       interface_produces = list(
@@ -2928,7 +2943,7 @@
              help = "Summary statistic across cells within each bin."),
         list(name = "min_cells_per_bin", type = "int", default = 5, min = 1, max = 100000,
              help = "Minimum cells required for an output bin."),
-        list(name = "chunk_size", type = "int", default = 128, min = 8, max = 4096,
+        list(name = "chunk_size", type = "int", default = 128, min = 1, max = 4096,
              help = "Chunk size for matrix slicing.")
       ),
       interface_produces = list(
@@ -3440,7 +3455,7 @@
              help = "Starting cluster id."),
         list(name = "end.clus", type = "string_vec", default = NULL,
              help = "Ending cluster id(s)."),
-        list(name = "exclude_clusters", type = "string_vec", default = character(0),
+        list(name = "exclude_clusters", type = "string_vec", default = NULL,
              help = "Cluster id(s) to exclude before fitting."),
         list(name = "stretch", type = "dbl", default = 2, min = 0, max = 10,
              help = "Slingshot curve stretching."),
@@ -3485,7 +3500,7 @@
              help = "Ending cluster id(s)."),
         list(name = "include_clusters", type = "string_vec", default = NULL,
              help = "Restrict fitting to these cluster id(s)."),
-        list(name = "exclude_clusters", type = "string_vec", default = character(0),
+        list(name = "exclude_clusters", type = "string_vec", default = NULL,
              help = "Cluster id(s) to exclude before fitting."),
         list(name = "exclude_cells", type = "cell_ids", default = NULL,
              help = "Optional cell IDs to exclude before fitting."),
@@ -3562,7 +3577,7 @@
       runner = .wb_runner_trajectory_segment_join,
       inputs = list(),
       params = list(
-        list(name = "segments", type = "list", default = NULL,
+        list(name = "segments", type = "list", required = TRUE,
              help = "Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order."),
         list(name = "composite_id", type = "string", default = NULL,
              help = "Optional stable trajectory_composite_id. Generated when omitted."),
@@ -3573,7 +3588,9 @@
         list(name = "min_weight", type = "dbl", default = NULL,
              help = "Optional minimum lineage weight required for segment-local membership when weights are supplied."),
         list(name = "allow_legacy", type = "bool", default = FALSE,
-             help = "Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.")
+             help = "Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity."),
+        list(name = "runs", type = "list", default = NULL,
+             help = "Optional run registry used to resolve symbolic segment references.")
       ),
       interface_produces = list(
         composite_pseudotime_unit_segment = list(
@@ -3635,11 +3652,11 @@
         path = list(required = FALSE, kind = "path_2d_family")
       ),
       params = list(
-        list(name = "segment_id", type = "string", default = NULL,
+        list(name = "segment_id", type = "string", required = TRUE,
              help = "Stable segment identifier."),
         list(name = "segment_order", type = "dbl", default = 1,
              help = "Order of this fitted segment in a future composite."),
-        list(name = "lineage", type = "string", default = NULL,
+        list(name = "lineage", type = "string", required = TRUE,
              help = "Lineage/key to extract from fitted pseudotime and optional weights."),
         list(name = "membership", type = "cell_ids_or_set", default = NULL,
              help = "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells."),
@@ -3651,6 +3668,10 @@
              help = "Biological start label."),
         list(name = "end_label", type = "string", default = NULL,
              help = "Biological end label."),
+        list(name = "composite_id", type = "string", default = NULL,
+             help = "Optional parent composite identifier recorded in the segment manifest."),
+        list(name = "runs", type = "list", default = NULL,
+             help = "Optional run registry used to resolve symbolic references."),
         list(name = "allow_legacy", type = "bool", default = FALSE,
              help = "Allow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.")
       ),
@@ -3684,7 +3705,7 @@
       description = "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
       intent = c("trajectory", "bridge", "composition", "geometry"),
       requires = list(path_scores = "cell_vector_family"),
-      optional_requires = list(display_path = "path_2d_family"),
+      optional_requires = list(path = "path_2d_family", display_path = "path_2d_family"),
       produces = list(
         pseudotime = "cell_vector_family",
         membership = "cell_vector",
@@ -3696,10 +3717,11 @@
       runner = .wb_runner_trajectory_space_path_segment,
       inputs = list(
         path_scores = list(required = TRUE, kind = "cell_vector_family"),
+        path = list(required = FALSE, kind = "path_2d_family"),
         display_path = list(required = FALSE, kind = "path_2d_family")
       ),
       params = list(
-        list(name = "segment_id", type = "string", default = NULL,
+        list(name = "segment_id", type = "string", required = TRUE,
              help = "Stable segment identifier."),
         list(name = "segment_order", type = "dbl", default = 1,
              help = "Order of this bridge segment in a future composite."),
@@ -3738,7 +3760,11 @@
         list(name = "pseudotime_key", type = "string", default = NULL,
              help = "Key for emitted bridge pseudotime. Defaults to segment_id."),
         list(name = "confidence_key", type = "string", default = NULL,
-             help = "Key for emitted bridge confidence. Defaults to segment_id.")
+             help = "Key for emitted bridge confidence. Defaults to segment_id."),
+        list(name = "composite_id", type = "string", default = NULL,
+             help = "Optional parent composite identifier recorded in the segment manifest."),
+        list(name = "runs", type = "list", default = NULL,
+             help = "Optional run registry used to resolve symbolic references.")
       ),
       interface_produces = list(
         pseudotime = list(
@@ -3785,7 +3811,7 @@
       runner = .wb_runner_trajectory_segment_path_join,
       inputs = list(),
       params = list(
-        list(name = "paths", type = "list", default = NULL,
+        list(name = "paths", type = "list", required = TRUE,
              help = "Ordered path segment specs with path ref, lineage key, segment ID, labels, and order."),
         list(name = "composite_id", type = "string", default = NULL,
              help = "Optional trajectory_composite_id shared with a segmented pseudotime join."),
@@ -4030,6 +4056,8 @@
              help = "If TRUE, request GPU-backed training in scvi-tools."),
         list(name = "output_space_id", type = "string", default = "rna.scvi",
              help = "Space id to write for the learned scVI latent embedding."),
+        list(name = "space_id_out", type = "string", default = NULL,
+             help = "Deprecated compatibility alias for output_space_id."),
         list(name = "model_artifact_id", type = "string", default = NULL,
              help = "Optional preregistered model artifact id. NULL lets scworkbench assign one."),
         list(name = "overwrite", type = "bool", default = FALSE,

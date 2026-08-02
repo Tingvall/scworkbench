@@ -61,6 +61,7 @@
 <line x1="1690" y1="391" x2="960" y2="3055" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:umap_transform</title></line>
 <line x1="1690" y1="535" x2="960" y2="2407" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:path_2d_family consumed_by op:trajectory_segment_from_artifacts</title></line>
 <line x1="1690" y1="535" x2="960" y2="2839" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:path_2d_family consumed_by op:trajectory_space_path_segment</title></line>
+<line x1="1690" y1="535" x2="960" y2="2839" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:path_2d_family consumed_by op:trajectory_space_path_segment</title></line>
 <line x1="1690" y1="607" x2="960" y2="2119" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:relation_family consumed_by op:trajectory_branch_compare</title></line>
 <line x1="1690" y1="607" x2="960" y2="2335" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:relation_family consumed_by op:trajectory_route_smooth</title></line>
 <line x1="1690" y1="679" x2="960" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:cell_vector_family_graph_smooth</title></line>
