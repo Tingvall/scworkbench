@@ -1,7 +1,6 @@
 test_feature_set_namespace_transfer_contract <- function() {
   if (!requireNamespace("BPCells", quietly = TRUE)) {
-    message("Skipping feature_set_namespace_transfer contract test: BPCells not installed.")
-    return(TRUE)
+    return(contract_test_skip("BPCells is not installed."))
   }
 
   tmp <- tempfile("scwb_feature_set_transfer_")

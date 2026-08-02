@@ -1,5 +1,5 @@
 test_recipient_audit_external_source_contract <- function() {
-  if (!requireNamespace("BPCells", quietly = TRUE)) return(TRUE)
+  if (!requireNamespace("BPCells", quietly = TRUE)) return(contract_test_skip("BPCells is not installed."))
   root <- tempfile("scwb_recipient_audit_"); b <- wb_init_bundle(root, overwrite=TRUE)
   on.exit({ try(wb_close_bundle(b), silent=TRUE); unlink(root, recursive=TRUE, force=TRUE) }, add=TRUE)
   ids <- paste0("c", 1:4); feats <- paste0("g", 1:3); counts <- matrix(seq_len(12), 3, dimnames=list(feats, ids))

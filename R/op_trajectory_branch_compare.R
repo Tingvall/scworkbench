@@ -69,8 +69,8 @@
   merged$assignment[both & merged$weight_a > merged$weight_b] <- "a"
   merged$assignment[both & merged$weight_b > merged$weight_a] <- "b"
 
-  cells_a <- as.character(merged$cell_id[merged$assignment == "a"])
-  cells_b <- as.character(merged$cell_id[merged$assignment == "b"])
+  cells_a <- as.character(merged$cell_id[!is.na(merged$assignment) & merged$assignment == "a"])
+  cells_b <- as.character(merged$cell_id[!is.na(merged$assignment) & merged$assignment == "b"])
   overlap_dropped <- as.character(merged$cell_id[both & is.na(merged$assignment)])
 
   list(

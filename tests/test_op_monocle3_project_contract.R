@@ -1,7 +1,6 @@
 test_op_monocle3_project_contract <- function(bundle_dir) {
   if (!requireNamespace("monocle3", quietly = TRUE)) {
-    message("Skipping monocle3 project contract test: monocle3 not installed.")
-    return(TRUE)
+    return(contract_test_skip("monocle3 is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -61,12 +60,15 @@ test_op_monocle3_project_contract <- function(bundle_dir) {
   stopifnot(identical(as.character(cv_space), "umap.peakvi_space"))
 
   # Promotion/load roundtrip for projected curves and promoted monocle3 model.
-  prom <- wb_promote_analysis(
+  prom <- wb_session_promote_current(
     bundle = b,
-    runs = r_proj$session$runs,
-    head_run_id = r_proj$session$head_run_id,
+    session = r_proj$session,
     name_prefix = "monocle3_project_contract",
     created_by = "test",
+    outputs = list(
+      wb_ref_run(r_proj$run$run_id, "curves"),
+      wb_ref_run(r_fit$run$run_id, "model")
+    ),
     fail_fast = TRUE
   )
   ok_curves <- prom$promoted[
@@ -110,4 +112,3 @@ test_op_monocle3_project_contract <- function(bundle_dir) {
 
   TRUE
 }
-

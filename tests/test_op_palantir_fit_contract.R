@@ -1,8 +1,7 @@
 test_op_palantir_fit_contract <- function(bundle_dir,
                                           pybench_python = .wb_pybench_default_python()) {
   if (!file.exists(pybench_python)) {
-    message("Skipping palantir_fit contract test: pybench interpreter not found at ", pybench_python)
-    return(TRUE)
+    return(contract_test_skip(paste("Pybench interpreter not found at", pybench_python)))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -85,12 +84,12 @@ test_op_palantir_fit_contract <- function(bundle_dir,
   stopifnot(identical(as.character(run$params$branch_membership_key_prefix), "branch:"))
   stopifnot(is.list(run$params$pybench_runtime))
 
-  prom <- wb_promote_analysis(
+  prom <- wb_session_promote_current(
     bundle = b,
-    runs = rr$session$runs,
-    head_run_id = rr$session$head_run_id,
+    session = rr$session,
     name_prefix = "palantir_fit_contract",
     created_by = "test",
+    outputs = c("pseudotime", "branch_membership", "branch_summary", "entropy", "model"),
     fail_fast = TRUE
   )
   promoted_ok <- prom$promoted[as.character(prom$promoted$status %||% "") == "ok", , drop = FALSE]

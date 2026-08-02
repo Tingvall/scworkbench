@@ -1,7 +1,6 @@
 test_op_matrix_log_normalize_contract <- function() {
   if (!requireNamespace("BPCells", quietly = TRUE)) {
-    message("Skipping matrix_log_normalize contract test: BPCells not installed.")
-    return(TRUE)
+    return(contract_test_skip("BPCells is not installed."))
   }
 
   tmp <- tempfile("scwb_matrix_log_normalize_")
@@ -112,8 +111,7 @@ test_op_matrix_log_normalize_contract <- function() {
 
 test_op_matrix_log_normalize_multifragment_contract <- function() {
   if (!requireNamespace("BPCells", quietly = TRUE)) {
-    message("Skipping matrix_log_normalize multi-fragment contract test: BPCells not installed.")
-    return(TRUE)
+    return(contract_test_skip("BPCells is not installed."))
   }
 
   tmp <- tempfile("scwb_matrix_log_normalize_multifrag_")

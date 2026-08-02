@@ -283,7 +283,8 @@ names or local heuristics.
 Foundation behavior is verified by:
 
 - `tests/test_foundation_data_getters_selectors.R`
-- `tests/test_all.R` integration execution
+- exhaustive discovery and isolated execution through
+  `inst/tests/run_contract_tests.R`
 
 When contracts change, update:
 

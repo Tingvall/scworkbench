@@ -1,9 +1,5 @@
 #!/usr/bin/env Rscript
 
-# Canonical package-level contract runner. It deliberately sources every
-# top-level contract test before invoking test_all(), which keeps newly added
-# test files from being silently omitted by a one-file test command.
-
 args <- commandArgs(trailingOnly = TRUE)
 bundle_arg <- grep("^--bundle=", args, value = TRUE)
 if (length(bundle_arg) > 1L) {
@@ -37,8 +33,6 @@ load_engine <- function(repo_dir) {
 bundle_dir <- if (length(bundle_arg)) {
   normalizePath(sub("^--bundle=", "", bundle_arg[[1L]]), winslash = "/", mustWork = TRUE)
 } else {
-  # The golden generator runs in a child R process. Keep its output outside an
-  # R-session-specific tempdir so child cleanup cannot remove the fixture.
   path <- tempfile("scworkbench_golden_", tmpdir = "/tmp")
   status <- system2(
     file.path(R.home("bin"), "Rscript"),
@@ -52,6 +46,7 @@ bundle_dir <- if (length(bundle_arg)) {
 }
 
 load_engine(repo)
+sys.source(file.path(repo, "inst", "tests", "contract_test_runner.R"), envir = globalenv())
 
 if (identical(Sys.getenv("SCWORKBENCH_CONTRACT_TRACEBACK"), "1")) {
   options(error = function() {
@@ -60,47 +55,16 @@ if (identical(Sys.getenv("SCWORKBENCH_CONTRACT_TRACEBACK"), "1")) {
   })
 }
 
-test_dir <- file.path(repo, "tests")
-test_files <- sort(list.files(test_dir, pattern = "^test_.*\\.R$", full.names = TRUE))
-test_all_file <- file.path(test_dir, "test_all.R")
-for (path in setdiff(test_files, test_all_file)) {
-  sys.source(path, envir = globalenv())
-}
-sys.source(test_all_file, envir = globalenv())
-
-# Isolation model: the generated/provided bundle is a read-only baseline. Each
-# contract test that declares a bundle_dir argument receives its own recursive
-# copy, so mutation-heavy ingestion and promotion tests cannot affect later
-# validation tests. Tests without bundle_dir remain ordinary self-contained
-# unit contracts.
-baseline_bundle_dir <- bundle_dir
-bundle_test_root <- tempfile("scworkbench_contract_bundles_", tmpdir = "/tmp")
-dir.create(bundle_test_root, recursive = TRUE, showWarnings = FALSE)
-on.exit(unlink(bundle_test_root, recursive = TRUE, force = TRUE), add = TRUE)
-
-copy_bundle_for_test <- function(label) {
-  target_parent <- file.path(bundle_test_root, paste0(gsub("[^A-Za-z0-9_.-]+", "_", label), "_", as.integer(Sys.time()), "_", sample.int(1e6, 1L)))
-  dir.create(target_parent, recursive = TRUE, showWarnings = FALSE)
-  ok <- file.copy(baseline_bundle_dir, target_parent, recursive = TRUE)
-  if (!isTRUE(ok)) stop("Failed to copy baseline bundle for test: ", label, call. = FALSE)
-  normalizePath(file.path(target_parent, basename(baseline_bundle_dir)), winslash = "/", mustWork = TRUE)
-}
-
-test_names <- setdiff(ls(globalenv(), pattern = "^test_"), "test_all")
-for (test_name in test_names) {
-  test_fn <- get(test_name, envir = globalenv())
-  if (!is.function(test_fn) || !"bundle_dir" %in% names(formals(test_fn))) next
-  assign(test_name, local({
-    fn <- test_fn
-    label <- test_name
-    function(bundle_dir, ...) {
-      isolated_bundle <- copy_bundle_for_test(label)
-      on.exit(unlink(dirname(isolated_bundle), recursive = TRUE, force = TRUE), add = TRUE)
-      do.call(fn, c(list(bundle_dir = isolated_bundle), list(...)))
-    }
-  }), envir = globalenv())
-}
-
-stopifnot(exists("test_all", mode = "function"))
-stopifnot(isTRUE(test_all(baseline_bundle_dir)))
-cat("scworkbench contract suite passed for ", baseline_bundle_dir, "\n", sep = "")
+# Intentionally empty. Any future exclusion must name a discovered test and
+# provide a non-empty reason; stale entries make discovery fail.
+intentional_exclusions <- character()
+inventory <- contract_test_discover(
+  file.path(repo, "tests"),
+  exclusions = intentional_exclusions,
+  parent_env = globalenv()
+)
+cat("Discovered ", length(inventory$tests), " contract tests in ",
+    length(inventory$files), " files.\n", sep = "")
+run <- contract_test_execute(inventory, baseline_bundle_dir = bundle_dir, reporter = TRUE)
+contract_test_assert_success(run)
+cat("scworkbench contract suite passed for ", bundle_dir, "\n", sep = "")

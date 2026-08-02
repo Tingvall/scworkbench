@@ -1,7 +1,6 @@
 test_pybench_payload_parity <- function(pybench_python = .wb_pybench_default_python()) {
   if (!file.exists(pybench_python)) {
-    message("Skipping pybench payload -> wb_art_load parity test: pybench interpreter not found at ", pybench_python)
-    return(TRUE)
+    return(contract_test_skip(paste("Pybench interpreter not found at", pybench_python)))
   }
 
   bundle_dir <- tempfile("scwb_pybench_payload_parity_")

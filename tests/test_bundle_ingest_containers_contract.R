@@ -1,9 +1,9 @@
 test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
-  if (!requireNamespace("BPCells", quietly = TRUE)) return(TRUE)
-  if (!requireNamespace("SingleCellExperiment", quietly = TRUE)) return(TRUE)
-  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) return(TRUE)
-  if (!requireNamespace("S4Vectors", quietly = TRUE)) return(TRUE)
-  if (!requireNamespace("Matrix", quietly = TRUE)) return(TRUE)
+  required <- c("BPCells", "SingleCellExperiment", "SummarizedExperiment", "S4Vectors", "Matrix")
+  missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing)) {
+    return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
+  }
 
   write_10x_triplet <- function(dir, sample_prefix, mat, feature_ids = rownames(mat), feature_names = feature_ids, feature_type = "Gene Expression") {
     dir.create(dir, recursive = TRUE, showWarnings = FALSE)

@@ -35,8 +35,7 @@ test_op_peakvi_fit_contract <- function(bundle_dir) {
 
   available_cells <- as.character(wb_cells(b, cell_set = "all"))
   if (length(available_cells) < 25L) {
-    message("Skipping PeakVI bridge invocation: fixture has fewer than 25 cells.")
-    return(TRUE)
+    return(contract_test_skip("Fixture has fewer than 25 cells required by PeakVI."))
   }
 
   s <- wb_session_new()

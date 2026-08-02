@@ -1,7 +1,6 @@
 test_chunked_provenance_replay_contract <- function() {
   if (!requireNamespace("UCell", quietly = TRUE)) {
-    message("Skipping chunked provenance replay contract: UCell not installed.")
-    return(TRUE)
+    return(contract_test_skip("UCell is not installed."))
   }
 
   tmp <- tempfile("scwb_chunked_prov_")

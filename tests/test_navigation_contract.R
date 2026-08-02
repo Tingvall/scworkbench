@@ -2,8 +2,70 @@ test_navigation_contract <- function(bundle_dir) {
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
 
+  # Navigation must be independently executable under per-test bundle
+  # isolation; seed the paired trajectory artifacts it consumes instead of
+  # relying on artifacts left by another contract test.
+  matrix_id <- as.character(wb_matrices(b)$matrix_id[[1L]])
+  feature_ids <- as.character(head(wb_feature_ids(b, matrix_id), 4L))
+  stopifnot(length(feature_ids) >= 2L)
+  lineage_id <- "nav_lineage"
+  de_tbl <- data.frame(
+    feature_id = feature_ids,
+    lineage_id = lineage_id,
+    rho = seq(0.8, -0.8, length.out = length(feature_ids)),
+    abs_rho = abs(seq(0.8, -0.8, length.out = length(feature_ids))),
+    p_val = seq(0.001, 0.01, length.out = length(feature_ids)),
+    p_val_adj = seq(0.004, 0.04, length.out = length(feature_ids)),
+    direction = ifelse(seq_along(feature_ids) <= length(feature_ids) / 2, "up", "down"),
+    stringsAsFactors = FALSE
+  )
+  smooth_tbl <- expand.grid(
+    feature_id = feature_ids,
+    bin = seq_len(4L),
+    stringsAsFactors = FALSE
+  )
+  smooth_tbl$lineage_id <- lineage_id
+  smooth_tbl$pseudotime <- rep(seq(0, 1, length.out = 4L), each = length(feature_ids))
+  smooth_tbl$expr <- seq_len(nrow(smooth_tbl)) / nrow(smooth_tbl)
+  smooth_tbl$n_cells <- 10L
+  shared_inputs <- list(
+    cell_set = "all",
+    effective_n = length(wb_cells(b)),
+    user_inputs = list(model = list(engine = "slingshot", model_space_id = "umap_golden"))
+  )
+  de_run <- wb_new_run(
+    op_name = "trajectory_de",
+    inputs = shared_inputs,
+    params = list(matrix_id = matrix_id, model_engine = "slingshot"),
+    outputs = list(de_table = wb_prim_feature_table(de_tbl, table_type = "trajectory_de")),
+    notes = "synthetic isolated navigation trajectory DE"
+  )
+  smooth_run <- wb_new_run(
+    op_name = "trajectory_smooth",
+    inputs = shared_inputs,
+    params = list(matrix_id = matrix_id, model_engine = "slingshot"),
+    outputs = list(
+      trend_table = wb_prim_obs_table(
+        smooth_tbl,
+        table_type = "trajectory_smooth",
+        entity_kind = "trajectory_bin"
+      )
+    ),
+    notes = "synthetic isolated navigation trajectory smooth"
+  )
+  seeded_runs <- setNames(list(de_run, smooth_run), c(de_run$run_id, smooth_run$run_id))
+  seeded <- wb_promote_analysis(
+    bundle = b,
+    runs = seeded_runs,
+    head_run_id = c(de_run$run_id, smooth_run$run_id),
+    name_prefix = "navigation_contract",
+    created_by = "test",
+    fail_fast = TRUE
+  )
+  stopifnot(is.data.frame(seeded$promoted), nrow(seeded$promoted) == 2L)
+
   arts <- wb_art_list(b)
-  if (!is.data.frame(arts) || !nrow(arts)) return(TRUE)
+  stopifnot(is.data.frame(arts), nrow(arts) >= 2L)
 
   tinfo <- try(DBI::dbGetQuery(
     b$con,
@@ -11,7 +73,7 @@ test_navigation_contract <- function(bundle_dir) {
      FROM artifact_tables
      WHERE artifact_id IN (SELECT artifact_id FROM artifacts WHERE type IN ('obs_table', 'feature_table'));"
   ), silent = TRUE)
-  if (inherits(tinfo, "try-error") || !is.data.frame(tinfo) || !nrow(tinfo)) return(TRUE)
+  stopifnot(!inherits(tinfo, "try-error"), is.data.frame(tinfo), nrow(tinfo) >= 2L)
 
   arts2 <- merge(arts, tinfo, by = "artifact_id", all.x = TRUE, sort = FALSE)
   de <- arts2[
@@ -35,7 +97,7 @@ test_navigation_contract <- function(bundle_dir) {
     ,
     drop = FALSE
   ]
-  if (!nrow(de) || !nrow(sm)) return(TRUE)
+  stopifnot(nrow(de) >= 1L, nrow(sm) >= 1L)
 
   de_id <- as.character(de$artifact_id[1])
   sm_id <- as.character(sm$artifact_id[1])

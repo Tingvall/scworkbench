@@ -14,17 +14,17 @@ test_op_knn_neighbors_contract <- function(bundle_dir) {
   stopifnot("neighbor_distance" %in% names(prods))
 
   sp <- wb_spaces(b)
-  if (!is.data.frame(sp) || nrow(sp) < 1) return(TRUE)
+  if (!is.data.frame(sp) || nrow(sp) < 1) return(contract_test_skip("Fixture has no spaces."))
 
   cells <- wb_cells(b, cell_set = "all")
-  if (length(cells) < 3) return(TRUE)
+  if (length(cells) < 3) return(contract_test_skip("Fixture has fewer than three cells."))
 
   # Earlier contract tests can add partial spaces to the shared fixture. Pick
   # a space that covers this test's requested cell universe.
   covers_cells <- vapply(as.character(sp$space_id), function(space_id) {
     !inherits(try(wb_space(b, space_id, cells = cells), silent = TRUE), "try-error")
   }, logical(1))
-  if (!any(covers_cells)) return(TRUE)
+  if (!any(covers_cells)) return(contract_test_skip("No fixture space covers the complete cell universe."))
   sid <- as.character(sp$space_id[which(covers_cells)[1L]])
 
   q <- cells[1]

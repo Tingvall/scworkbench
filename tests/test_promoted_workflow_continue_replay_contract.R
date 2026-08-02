@@ -9,8 +9,7 @@ test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
   cells <- wb_cells(b)
   feats <- wb_feature_ids(b, matrix_id = mid)
   if (length(cells) < 20L || length(feats) < 60L) {
-    message("Skipping promoted workflow replay contract: fixture requires at least 20 cells and 60 features.")
-    return(TRUE)
+    return(contract_test_skip("Fixture has fewer than 20 cells or 60 features."))
   }
 
   # Small synthetic namespace for fast pathway_enrich on top of a small DE table.
@@ -45,11 +44,11 @@ test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
     inputs = list(
       matrix = mid,
       group_a = as.character(cells[1:8]),
-      group_b = as.character(cells[9:16])
+      group_b = as.character(cells[9:16]),
+      features = as.character(feats[1:40]),
+      min_pct = 0,
+      p_adjust_method = "BH"
     ),
-    features = as.character(feats[1:40]),
-    min_pct = 0,
-    p_adjust_method = "BH",
     notes = "test continue-promote stage1 de"
   )
   s1 <- rr1$session

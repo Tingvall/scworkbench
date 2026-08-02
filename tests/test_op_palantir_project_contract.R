@@ -1,18 +1,17 @@
-test_op_palantir_project_contract <- function(bundle_dir,
-                                              root_cell = "AAGCTTGGTCTTTATG-1",
-                                              terminal_cd3 = "GGGTTACGTAGGTTAT-6",
-                                              terminal_cd19 = "CGCAATTAGCTTCTCA-4") {
+test_op_palantir_project_contract <- function(bundle_dir) {
   pybench_python <- .wb_pybench_default_python()
   if (!file.exists(pybench_python)) {
-    message("Skipping palantir_project contract test: pybench interpreter not found at ", pybench_python)
-    return(TRUE)
+    return(contract_test_skip(paste("Pybench interpreter not found at", pybench_python)))
   }
 
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
 
   core <- wb_cells(b, "core")
-  stopifnot(root_cell %in% core, terminal_cd3 %in% core, terminal_cd19 %in% core)
+  stopifnot(length(core) >= 3L)
+  root_cell <- as.character(core[[1L]])
+  terminal_cd3 <- as.character(core[[2L]])
+  terminal_cd19 <- as.character(core[[3L]])
   cells <- unique(c(root_cell, terminal_cd3, terminal_cd19,
                     as.character(head(setdiff(core, c(root_cell, terminal_cd3, terminal_cd19)), 900))))
 
@@ -70,12 +69,12 @@ test_op_palantir_project_contract <- function(bundle_dir,
   cv_space <- wb_path_2d_family_space_id(b, cv_ref, runs = r_proj$session$runs)
   stopifnot(identical(as.character(cv_space), "umap.peakvi_space"))
 
-  prom <- wb_promote_analysis(
+  prom <- wb_session_promote_current(
     bundle = b,
-    runs = r_proj$session$runs,
-    head_run_id = r_proj$session$head_run_id,
+    session = r_proj$session,
     name_prefix = "palantir_project_contract",
     created_by = "test",
+    outputs = "curves",
     fail_fast = TRUE
   )
   ok_curves <- prom$promoted[

@@ -1,7 +1,6 @@
 test_promotion_workspace_matrix_atomicity_contract <- function() {
   if (!requireNamespace("BPCells", quietly = TRUE)) {
-    message("Skipping promotion workspace matrix atomicity contract: BPCells unavailable.")
-    return(TRUE)
+    return(contract_test_skip("BPCells is not installed."))
   }
 
   root <- tempfile("scwb_promotion_workspace_matrix_")
@@ -58,8 +57,8 @@ test_promotion_workspace_matrix_atomicity_contract <- function() {
 test_promotion_workspace_mixed_matrix_space_atomicity_contract <- function() {
   required <- c("BPCells", "Matrix", "irlba", "uwot")
   if (!all(vapply(required, requireNamespace, logical(1), quietly = TRUE))) {
-    message("Skipping mixed matrix/space workspace atomicity contract: runtime dependencies unavailable.")
-    return(TRUE)
+    missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+    return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
   }
 
   root <- tempfile("scwb_promotion_workspace_mixed_")

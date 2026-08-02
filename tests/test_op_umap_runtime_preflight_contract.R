@@ -19,8 +19,7 @@ test_op_umap_runtime_preflight_contract <- function() {
   stopifnot(grepl("unsupported nn_method", as.character(err_bad)))
 
   if (!requireNamespace("uwot", quietly = TRUE)) {
-    message("Skipping executable umap_fit preflight contract test: uwot not installed.")
-    return(TRUE)
+    return(contract_test_skip("uwot is not installed."))
   }
 
   tmp <- tempfile("scwb_umap_preflight_")
@@ -115,8 +114,7 @@ test_op_umap_runtime_preflight_contract <- function() {
 
 test_op_umap_same_session_transform_promotion_contract <- function() {
   if (!requireNamespace("uwot", quietly = TRUE)) {
-    message("Skipping same-session UMAP transform promotion contract: uwot not installed.")
-    return(TRUE)
+    return(contract_test_skip("uwot is not installed."))
   }
 
   tmp <- tempfile("scwb_umap_same_session_")

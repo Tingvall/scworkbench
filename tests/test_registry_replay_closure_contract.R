@@ -1,5 +1,5 @@
 test_registry_replay_closure_contract <- function() {
-  if (!requireNamespace("BPCells", quietly = TRUE)) return(TRUE)
+  if (!requireNamespace("BPCells", quietly = TRUE)) return(contract_test_skip("BPCells is not installed."))
   root <- tempfile("scwb_registry_replay_closure_")
   b <- wb_init_bundle(root, overwrite = TRUE)
   on.exit({ options(scworkbench.registry_replay_hook = NULL); try(wb_close_bundle(b), silent = TRUE); unlink(root, recursive = TRUE, force = TRUE) }, add = TRUE)

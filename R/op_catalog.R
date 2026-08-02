@@ -1404,17 +1404,17 @@
 
 .wb_runner_trajectory_geneset_dynamics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "trajectory_geneset_dynamics runner: missing resolved$matrix.")
-  explicit_pt <- !is.null(inputs$pseudotime) || !is.null(inputs$pseudotime_ref)
-  explicit_model <- !is.null(inputs$model) || !is.null(inputs$model_ref)
+  explicit_pt <- !is.null(inputs[["pseudotime"]]) || !is.null(inputs[["pseudotime_ref"]])
+  explicit_model <- !is.null(inputs[["model"]]) || !is.null(inputs[["model_ref"]])
 
   raw <- wb_op_trajectory_geneset_dynamics(
     bundle = bundle,
     matrix_id = resolved$matrix$matrix_id,
-    model = if (isTRUE(explicit_pt) && !isTRUE(explicit_model)) NULL else resolved$model %||% NULL,
-    pseudotime = resolved$pseudotime %||% NULL,
+    model = if (isTRUE(explicit_pt) && !isTRUE(explicit_model)) NULL else resolved[["model"]] %||% NULL,
+    pseudotime = if (isTRUE(explicit_model) && !isTRUE(explicit_pt)) NULL else resolved[["pseudotime"]] %||% NULL,
     pseudotime_key = inputs$pseudotime_key %||% NULL,
     membership = .wb_runner_resolve_optional_membership(bundle, inputs$membership %||% NULL),
-    pseudotime_artifact_id = .wb_trajectory_input_artifact_id(inputs$pseudotime %||% inputs$pseudotime_ref %||% NULL),
+    pseudotime_artifact_id = .wb_trajectory_input_artifact_id(inputs[["pseudotime"]] %||% inputs[["pseudotime_ref"]] %||% NULL),
     membership_artifact_id = .wb_trajectory_input_artifact_id(inputs$membership %||% NULL),
     namespace = inputs$namespace,
     cells = as.character(effective_cells),
@@ -1507,17 +1507,17 @@
 
 .wb_runner_trajectory_signal_dynamics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$signal), "trajectory_signal_dynamics runner: missing resolved$signal.")
-  explicit_pt <- !is.null(inputs$pseudotime) || !is.null(inputs$pseudotime_ref)
-  explicit_model <- !is.null(inputs$model) || !is.null(inputs$model_ref)
+  explicit_pt <- !is.null(inputs[["pseudotime"]]) || !is.null(inputs[["pseudotime_ref"]])
+  explicit_model <- !is.null(inputs[["model"]]) || !is.null(inputs[["model_ref"]])
 
   raw <- wb_op_trajectory_signal_dynamics(
     bundle = bundle,
     signal = resolved$signal,
-    model = if (isTRUE(explicit_pt) && !isTRUE(explicit_model)) NULL else resolved$model %||% NULL,
-    pseudotime = resolved$pseudotime %||% NULL,
+    model = if (isTRUE(explicit_pt) && !isTRUE(explicit_model)) NULL else resolved[["model"]] %||% NULL,
+    pseudotime = if (isTRUE(explicit_model) && !isTRUE(explicit_pt)) NULL else resolved[["pseudotime"]] %||% NULL,
     pseudotime_key = inputs$pseudotime_key %||% NULL,
     membership = .wb_runner_resolve_optional_membership(bundle, inputs$membership %||% NULL),
-    pseudotime_artifact_id = .wb_trajectory_input_artifact_id(inputs$pseudotime %||% inputs$pseudotime_ref %||% NULL),
+    pseudotime_artifact_id = .wb_trajectory_input_artifact_id(inputs[["pseudotime"]] %||% inputs[["pseudotime_ref"]] %||% NULL),
     membership_artifact_id = .wb_trajectory_input_artifact_id(inputs$membership %||% NULL),
     cells = as.character(effective_cells),
     lineage = inputs$lineage %||% NULL,

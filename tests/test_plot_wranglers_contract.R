@@ -2,8 +2,7 @@ test_plot_wranglers_contract <- function(bundle_dir) {
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
   if (length(wb_cells(b, cell_set = "all")) < 300L) {
-    message("Skipping plot-wrangler integration contract: fixture requires at least 300 cells.")
-    return(TRUE)
+    return(contract_test_skip("Fixture has fewer than 300 cells."))
   }
   mats <- wb_matrices(b)
   stopifnot(nrow(mats) >= 1L)

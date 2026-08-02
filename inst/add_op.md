@@ -140,7 +140,8 @@ Minimum:
 Typical places:
 
 - `tests/test_op_<name>_contract.R`
-- `tests/test_all.R`
+- `inst/tests/run_contract_tests.R` auto-discovers every top-level `test_*`
+  function in `tests/test_*.R`; no manual registry entry is permitted
 
 Test:
 

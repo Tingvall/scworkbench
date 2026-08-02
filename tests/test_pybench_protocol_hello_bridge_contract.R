@@ -1,8 +1,7 @@
 test_pybench_protocol_hello_bridge_contract <- function(bundle_dir,
                                                         pybench_python = .wb_pybench_default_python()) {
   if (!file.exists(pybench_python)) {
-    message("Skipping pybench hello bridge test: pybench interpreter not found at ", pybench_python)
-    return(TRUE)
+    return(contract_test_skip(paste("Pybench interpreter not found at", pybench_python)))
   }
 
   b <- wb_open_bundle(bundle_dir)

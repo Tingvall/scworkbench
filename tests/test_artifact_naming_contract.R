@@ -39,6 +39,7 @@ test_artifact_naming_contract <- function(bundle_dir) {
       cell_set = "all",
       effective_n = 100L,
       parents = c(r1$run_id),
+      provenance_refs = list(feature_table = wb_ref_run(r1$run_id, "de_table")),
       user_inputs = list(
         feature_table = wb_ref_run(r1$run_id, "de_table"),
         namespace = "bcell_gsea",
@@ -71,7 +72,7 @@ test_artifact_naming_contract <- function(bundle_dir) {
   prom <- wb_promote_analysis(
     bundle = b,
     runs = runs,
-    head_run_id = r2$run_id,
+    head_run_id = c(r1$run_id, r2$run_id),
     name_prefix = "Usecase 1",
     fail_fast = TRUE
   )

@@ -1,8 +1,8 @@
 test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
   required <- c("BPCells", "Matrix", "irlba", "uwot", "igraph")
   if (!all(vapply(required, requireNamespace, logical(1), quietly = TRUE))) {
-    message("Skipping transitive promotion PBMC slice: missing runtime dependency.")
-    return(TRUE)
+    missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+    return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
   }
 
   set.seed(11)

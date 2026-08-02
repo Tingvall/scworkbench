@@ -1,8 +1,7 @@
 test_pybench_palantir_bridge_contract <- function(bundle_dir,
                                                   pybench_python = .wb_pybench_default_python()) {
   if (!file.exists(pybench_python)) {
-    message("Skipping pybench palantir bridge test: pybench interpreter not found at ", pybench_python)
-    return(TRUE)
+    return(contract_test_skip(paste("Pybench interpreter not found at", pybench_python)))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -11,7 +10,7 @@ test_pybench_palantir_bridge_contract <- function(bundle_dir,
 
   core <- wb_cells(b, "core")
   stopifnot(length(core) >= 300L)
-  cell_ids <- as.character(core[1:800])
+  cell_ids <- as.character(head(core, 800L))
   root_cell <- as.character(cell_ids[1])
   terminal_cells <- as.character(cell_ids[c(2, 3)])
 
@@ -89,7 +88,19 @@ test_pybench_palantir_bridge_contract <- function(bundle_dir,
   )
 
   rec <- bridge$receipt
-  stopifnot(identical(as.character(rec$status), "ok"))
+  if (!identical(as.character(rec$status), "ok")) {
+    stop(
+      "pybench palantir receipt failed: ",
+      paste(
+        c(
+          as.character(rec[["error_class"]] %||% "PybenchError"),
+          as.character(rec[["message"]] %||% bridge[["output"]] %||% "unknown error")
+        ),
+        collapse = ": "
+      ),
+      call. = FALSE
+    )
+  }
   stopifnot(identical(as.character(rec$op_name), "palantir_fit"))
   stopifnot(identical(as.character(rec$run_id), as.character(run$run_id)))
   stopifnot(is.list(rec$outputs))
