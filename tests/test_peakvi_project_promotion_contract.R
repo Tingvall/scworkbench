@@ -20,7 +20,12 @@ test_peakvi_project_promotion_contract <- function() {
   stopifnot(all(c("space","fit_summary") %in% names(rr$run$outputs)), "projected" %in% wb_spaces(wb_session_view(rr$session))$space_id)
   p <- wb_session_promote_current(b,rr$session,outputs="fit_summary")
   wb_close_bundle(b); b <- wb_open_bundle(root)
-  stopifnot("projected" %in% wb_spaces(b)$space_id, nrow(p$promoted[p$promoted$output=="fit_summary",])==1L, isTRUE(wb_validate_bundle(root)))
+  projected <- wb_space(b, "projected", cells = ids)
+  stopifnot("projected" %in% wb_spaces(b)$space_id,
+            identical(as.character(projected$cell_id), ids),
+            identical(rownames(projected), ids),
+            nrow(p$promoted[p$promoted$output=="fit_summary",])==1L,
+            isTRUE(wb_validate_bundle(root)))
   failed <- wb_session_run_op(wb_session_new(),b,"peakvi_project",inputs=list(matrix="ATAC_counts",model=model,cell_set="all",min_cells=1L,space_id_out="rollback_projected"))
   before_heads <- nrow(wb_prov_list_heads(b)); before_peak_artifacts <- sum(wb_art_list(b)$source_op=="peakvi_project"); old_hook <- getOption("scworkbench.promotion_workspace_publish_hook"); on.exit(options(scworkbench.promotion_workspace_publish_hook=old_hook),add=TRUE)
   options(scworkbench.promotion_workspace_publish_hook=function(...) stop("forced",call.=FALSE))

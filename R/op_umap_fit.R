@@ -95,11 +95,9 @@ wb_op_umap_fit <- function(bundle,
   S <- wb_space(bundle, space_id = source_space_id, cells = cells)
 
   X <- S
-  if (is.data.frame(S) && all(c("cell_id","dim","value") %in% colnames(S))) {
-    X <- .wb_as_coord_matrix(S)
-  } else if (is.data.frame(S)) {
-    X <- as.matrix(S)
-  }
+  # The wide 2D getter deliberately returns a plotting-friendly table. Convert
+  # it at the getter boundary so every operation receives canonical cell IDs.
+  if (is.data.frame(S)) X <- .wb_as_coord_matrix(S)
 
   .wb_assert(is.matrix(X), "High-D space must yield a matrix after wb_space/.wb_as_coord_matrix().")
   .wb_assert(!is.null(rownames(X)), "High-D coords must have rownames = cell_id.")

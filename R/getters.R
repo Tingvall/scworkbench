@@ -419,6 +419,12 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
       df <- df[ii, , drop = FALSE]
     }
 
+    # A 2D space is returned as a table for plotting compatibility, but it
+    # remains a cell-indexed coordinate object.  Preserve the canonical IDs
+    # as row names so operation consumers cannot silently fall back to
+    # positional `1:n` identities after reopen.
+    rownames(df) <- as.character(df$cell_id)
+
     return(df)
   }
 
