@@ -94,6 +94,7 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
       consumes = consumes,
       produces = produces,
       inputs = iface$inputs %||% list(),
+      controls = iface$controls %||% list(),
       params = iface$params %||% list(),
       promotable = as.character(exec$promotable %||% character(0)),
       replay_equivalence = exec$replay_equivalence %||% list(),

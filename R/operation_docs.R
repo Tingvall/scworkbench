@@ -283,7 +283,7 @@ NULL
 #' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
 #' @param cell_set Named bundle cell set used to resolve the analysis universe.
 #' @param k Number of neighbors for kNN graph.
-#' @param dims Which dimensions of the space to use (1-indexed).
+#' @param dims Optional dimensions of the space to use (1-indexed); defaults to all available dimensions.
 #' @param resolution Leiden resolution parameter.
 #' @param n_iterations Number of optimization or clustering iterations.
 #' @param seed Integer random seed used to make stochastic computation reproducible.

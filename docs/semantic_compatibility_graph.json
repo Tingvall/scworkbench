@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-08-02T17:32:46+0200",
+  "generated_at": "2026-08-02T20:49:26+0200",
   "node_count": 312,
-  "edge_count": 894,
+  "edge_count": 895,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -4331,6 +4331,12 @@
       "to": "op:trajectory_space_path_segment",
       "edge_type": "consumed_by",
       "label": "input:path_scores"
+    },
+    {
+      "from": "primitive:path_2d_family",
+      "to": "op:trajectory_space_path_segment",
+      "edge_type": "consumed_by",
+      "label": "input:path"
     },
     {
       "from": "primitive:path_2d_family",

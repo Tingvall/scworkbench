@@ -18,13 +18,25 @@
       item$replay_equivalence <- as.character(replay_equivalence[[nm]] %||% "not_comparable")[1]
       produces[[nm]] <- item
     }
+    params <- lapply(x$params %||% list(), function(p) {
+      p$required <- isTRUE(p$required)
+      p$nullable <- isTRUE(p$nullable) || ("default" %in% names(p) && is.null(p$default) && !isTRUE(p$required))
+      p$allow_non_finite <- isTRUE(p$allow_non_finite)
+      p$strict_integer <- as.character(p$type %||% "")[1] %in% c("int", "int_range", "int_vec")
+      p$non_empty <- as.character(p$type %||% "")[1] %in% c(
+        "string", "path", "cell_set", "choice", "string_vec", "string_array",
+        "cell_ids", "string_vec_or_list", "cell_ids_or_set", "list_or_cell_set", "list"
+      )
+      p
+    })
     list(
       op_name = as.character(x$op_name),
       title = as.character(x$title %||% ""),
       description = as.character(x$description %||% ""),
       intent = as.character(x$intent %||% character(0)),
       inputs = x$inputs %||% list(),
-      params = x$params %||% list(),
+      controls = .wb_op_engine_input_specs(),
+      params = params,
       produces = produces,
       replay_equivalence = replay_equivalence,
       chunking = x$chunking %||% NULL
@@ -98,14 +110,13 @@ wb_op_interface <- function(op_name, bundle = NULL) {
   spec$inputs$cell_set$label    <- "Cell set"
   spec$inputs$cell_set$choices  <- sets
 
-  # default varies by op (sensible semantics)
+  # The executor default is part of the public contract.
   if (is.null(spec$inputs$cell_set$default)) {
-    spec$inputs$cell_set$default <- switch(
-      op_name,
-      umap_transform = "set:",
-      "core"
-    )
+    spec$inputs$cell_set$default <- .wb_op_engine_input_specs()$cell_set$default
   }
+  spec$inputs$cell_set$value_type <- "cell_set"
+  spec$inputs$cell_set$required <- FALSE
+  spec$inputs$cell_set$non_empty <- TRUE
 
   # ---- op-specific dynamic inputs (bundle-aware) ----
   if (!is.null(bundle) && identical(op_name, "umap_transform")) {
@@ -143,8 +154,18 @@ wb_op_interface <- function(op_name, bundle = NULL) {
 .wb_validate_op_interface <- function(spec) {
   .wb_assert(!is.null(spec$op_name) && nzchar(spec$op_name), "spec missing op_name")
   .wb_assert(is.list(spec$inputs), "spec$inputs must be a list")
+  .wb_assert(is.list(spec$controls), "spec$controls must be a list")
   .wb_assert(is.list(spec$params), "spec$params must be a list")
   .wb_assert(is.list(spec$produces), "spec$produces must be a list")
+  if (length(spec$params)) {
+    param_names <- vapply(spec$params, function(p) as.character(p$name %||% "")[1], character(1))
+    .wb_assert(all(nzchar(param_names)) && !anyDuplicated(param_names), "spec$params must have unique non-empty names")
+    for (p in spec$params) {
+      .wb_assert(nzchar(as.character(p$type %||% "")[1]), paste0("parameter '", p$name, "' missing type"))
+      if (!is.null(p$choices)) .wb_assert(length(p$choices) > 0L && !anyNA(p$choices), paste0("parameter '", p$name, "' choices invalid"))
+      if (!is.null(p$min) && !is.null(p$max)) .wb_assert(p$min <= p$max, paste0("parameter '", p$name, "' has min > max"))
+    }
+  }
   if (!is.null(spec$chunking)) {
     .wb_assert(is.list(spec$chunking), "spec$chunking must be NULL or a list")
     axis <- spec$chunking$axis %||% NULL
