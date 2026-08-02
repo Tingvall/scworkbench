@@ -15,6 +15,31 @@ test_typed_effective_cell_coverage_contract <- function() {
   wb_attach_matrix(b, "partial_matrix", counts, feature_type = "gene")
   stopifnot(identical(wb_cells_with_matrix(b, "partial_matrix"), cells[c(1, 2, 4, 5, 7, 8, 10, 11)]))
 
+  duplicate_counts <- counts[, seq_len(4L), drop = FALSE]
+  wb_attach_matrix(b, "duplicate_matrix", duplicate_counts, feature_type = "gene")
+  duplicate_registration <- try(wb_register_matrix_fragment(
+    b$con, "duplicate_matrix", "mat/duplicate_fragment",
+    feature_ids = rownames(counts), cell_ids = c(matrix_cells[4], cells[12]), source = "test"
+  ), silent = TRUE)
+  stopifnot(inherits(duplicate_registration, "try-error"))
+  DBI::dbExecute(
+    b$con,
+    paste(
+      "INSERT INTO matrix_fragments(fragment_id, matrix_id, storage, path, n_features, n_cells,",
+      "feature_ids_json, cell_ids_json, source, created_at, description)",
+      "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+    ),
+    params = list(
+      "corrupt_duplicate_fragment", "duplicate_matrix", "bpcells", "mat/corrupt_duplicate_fragment",
+      4L, 2L, as.character(jsonlite::toJSON(as.list(rownames(counts)), auto_unbox = TRUE)),
+      as.character(jsonlite::toJSON(as.list(c(matrix_cells[4], cells[12])), auto_unbox = TRUE)),
+      "test-corruption", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "duplicate identity regression"
+    )
+  )
+  duplicate_coverage <- try(wb_cells_with_matrix(b, "duplicate_matrix"), silent = TRUE)
+  stopifnot(inherits(duplicate_coverage, "try-error"),
+            grepl("multiple fragments", as.character(duplicate_coverage), fixed = TRUE))
+
   space_cells <- cells[c(10, 1, 7, 4, 11, 2, 8)]
   coords <- matrix(seq_len(length(space_cells) * 3L), ncol = 3L,
                    dimnames = list(space_cells, paste0("d", 1:3)))
@@ -27,6 +52,21 @@ test_typed_effective_cell_coverage_contract <- function() {
     identical(wb_cells_with_space(b, "partial_space", 1:3), cells[c(1, 2, 4, 8, 10, 11)]),
     inherits(try(wb_cells_with_space(b, "partial_space", c(1, 1)), silent = TRUE), "try-error"),
     inherits(try(wb_cells_with_space(b, "partial_space", c(1, 4)), silent = TRUE), "try-error")
+  )
+
+  wide_coords <- matrix(
+    seq_len(8L), nrow = 4L, ncol = 2L,
+    dimnames = list(cells[1:4], c("x", "y"))
+  )
+  wb_add_space(b, "partial_wide", wide_coords)
+  DBI::dbExecute(b$con, "UPDATE space_2d SET y = NULL WHERE space_id = ? AND cell_id = ?;",
+                 params = list("partial_wide", cells[2]))
+  DBI::dbExecute(b$con, "UPDATE space_2d SET x = NULL WHERE space_id = ? AND cell_id = ?;",
+                 params = list("partial_wide", cells[3]))
+  stopifnot(
+    identical(wb_cells_with_space(b, "partial_wide", 1L), cells[c(1, 2, 4)]),
+    identical(wb_cells_with_space(b, "partial_wide", 2L), cells[c(1, 3, 4)]),
+    identical(wb_cells_with_space(b, "partial_wide", 1:2), cells[c(1, 4)])
   )
 
   a_ids <- cells[c(11, 2, 8, 4, 1, 10)]
@@ -134,9 +174,11 @@ test_typed_effective_cell_coverage_contract <- function() {
 
   iface <- wb_op_interface("cell_vector_association")
   peak_iface <- wb_op_interface("peakvi_project")
+  umap_iface <- wb_op_interface("umap_transform")
   stopifnot(
     identical(iface$inputs$a$effective_cell_coverage, "cell_indexed"),
-    identical(peak_iface$inputs$model$effective_cell_coverage, "reference_only")
+    identical(peak_iface$inputs$model$effective_cell_coverage, "reference_only"),
+    identical(umap_iface$inputs$model$effective_cell_coverage, "model_associated_unless_query_space")
   )
   TRUE
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-08-02T22:14:13+0200",
+  "generated_at": "2026-08-02T23:47:09+0200",
   "op_count": 56,
   "ops": [
     {
@@ -913,7 +913,8 @@
         {
           "name": "model",
           "kind": "model_ref",
-          "required": true
+          "required": true,
+          "description": "Constrains cells to the fitted source space unless an explicit query in_space is supplied."
         },
         {
           "name": "in_space",
@@ -942,7 +943,8 @@
         "model": {
           "required": true,
           "kind": "model_ref",
-          "effective_cell_coverage": "cell_indexed"
+          "description": "Constrains cells to the fitted source space unless an explicit query in_space is supplied.",
+          "effective_cell_coverage": "model_associated_unless_query_space"
         },
         "in_space": {
           "required": false,

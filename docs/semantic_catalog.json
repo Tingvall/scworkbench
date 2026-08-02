@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-08-02T22:14:16+0200",
+  "generated_at": "2026-08-02T23:47:11+0200",
   "record_count": 312,
   "record_type_counts": {
     "artifact_type": 74,
@@ -965,7 +965,7 @@
       "name": "umap_transform",
       "title": "UMAP transform (project cells)",
       "description": "Project cells into an existing UMAP using a stored model.",
-      "search_text": "UMAP transform (project cells)\nProject cells into an existing UMAP using a stored model.\nprojection\numap\nmodel\nmodel_ref\nTRUE\nin_space\nspace\nFALSE\ncell_set\nselect\nspace_2d\nterminal_artifact\nProjected x/y in the target UMAP space.\ndims\nint_range\nDims to use from the input space (e.g. 2:30).\noverwrite\nbool\nOverwrite existing projected coordinates for those cells.",
+      "search_text": "UMAP transform (project cells)\nProject cells into an existing UMAP using a stored model.\nprojection\numap\nmodel\nmodel_ref\nTRUE\nConstrains cells to the fitted source space unless an explicit query in_space is supplied.\nin_space\nspace\nFALSE\ncell_set\nselect\nspace_2d\nterminal_artifact\nProjected x/y in the target UMAP space.\ndims\nint_range\nDims to use from the input space (e.g. 2:30).\noverwrite\nbool\nOverwrite existing projected coordinates for those cells.",
       "tags": ["op", "projection", "umap"],
       "payload": {
         "op_name": "umap_transform",
@@ -976,7 +976,8 @@
           {
             "name": "model",
             "kind": "model_ref",
-            "required": true
+            "required": true,
+            "description": "Constrains cells to the fitted source space unless an explicit query in_space is supplied."
           },
           {
             "name": "in_space",
@@ -1005,7 +1006,8 @@
           "model": {
             "required": true,
             "kind": "model_ref",
-            "effective_cell_coverage": "cell_indexed"
+            "description": "Constrains cells to the fitted source space unless an explicit query in_space is supplied.",
+            "effective_cell_coverage": "model_associated_unless_query_space"
           },
           "in_space": {
             "required": false,
@@ -16555,7 +16557,7 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-08-02T22:14:16+0200",
+    "generated_at": "2026-08-02T23:47:11+0200",
     "node_count": 312,
     "edge_count": 900,
     "nodes": [

@@ -18,5 +18,6 @@ Character vector of \code{cell_id} in canonical order, or empty if
 \description{
 Resolves exact matrix coverage from fragment cell identities. Legacy matrix
 rows without fragments are accepted only when their registered cell count is
-equal to the complete bundle universe.
+equal to the complete bundle universe. Fragment cell identities must be
+disjoint within one logical matrix.
 }

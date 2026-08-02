@@ -2,6 +2,8 @@
 #'
 #' Returns canonical cell IDs with non-missing coordinates for every requested
 #' dimension. When `dims` is omitted, all registered dimensions are required.
+#' For wide 2D spaces, dimension 1 tests `x`, dimension 2 tests `y`, and
+#' requesting both requires both coordinates.
 #'
 #' @param bundle scworkbench bundle handle.
 #' @param space_id Space identifier.
@@ -34,9 +36,16 @@ wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
 
   if (identical(as.character(row$storage[[1]]), "wide:space_2d")) {
     .wb_assert(all(dims %in% 1:2), paste0("Wide 2D space '", space_id, "' only provides dimensions 1 and 2."))
+    complete_clause <- if (identical(dims, 1L)) {
+      "x IS NOT NULL"
+    } else if (identical(dims, 2L)) {
+      "y IS NOT NULL"
+    } else {
+      "x IS NOT NULL AND y IS NOT NULL"
+    }
     have <- DBI::dbGetQuery(
       con,
-      "SELECT cell_id FROM space_2d WHERE space_id = ? AND x IS NOT NULL AND y IS NOT NULL;",
+      paste0("SELECT cell_id FROM space_2d WHERE space_id = ? AND ", complete_clause, ";"),
       params = list(space_id)
     )$cell_id
   } else {
@@ -59,7 +68,8 @@ wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
 #'
 #' Resolves exact matrix coverage from fragment cell identities. Legacy matrix
 #' rows without fragments are accepted only when their registered cell count is
-#' equal to the complete bundle universe.
+#' equal to the complete bundle universe. Fragment cell identities must be
+#' disjoint within one logical matrix.
 #'
 #' @param bundle scworkbench bundle handle.
 #' @param matrix_id Matrix identifier.
@@ -102,7 +112,11 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
     .wb_assert(!anyDuplicated(ids), paste0("Matrix fragment '", frags$fragment_id[[i]], "' has duplicate cell identities."))
     unknown <- setdiff(ids, canonical)
     .wb_assert(!length(unknown), paste0("Matrix fragment '", frags$fragment_id[[i]], "' contains unknown cell IDs: ", paste(head(unknown, 10L), collapse = ", ")))
-    have <- unique(c(have, ids))
+    repeated <- intersect(have, ids)
+    .wb_assert(!length(repeated),
+               paste0("Matrix '", matrix_id, "' contains cell IDs in multiple fragments: ",
+                      paste(head(repeated, 10L), collapse = ", ")))
+    have <- c(have, ids)
   }
   canonical[canonical %in% have]
 }
@@ -152,7 +166,9 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
 
 .wb_primitive_cell_coverage <- function(bundle, name, kind, primitive, inputs, mode = "cell_indexed") {
   canonical <- wb_cells(bundle, cell_set = "all")
-  if (identical(mode, "reference_only")) return(list(cells = NULL, source_id = NULL, dims = NULL))
+  if (mode %in% c("reference_only", "reference_only_explicit_query_space")) {
+    return(list(cells = NULL, source_id = NULL, dims = NULL))
+  }
 
   cells <- NULL
   source_id <- NULL
@@ -213,6 +229,13 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
   for (name in names(resolved)) {
     kind <- as.character(requirements[[name]])[1]
     mode <- as.character(coverage_modes[[name]] %||% "cell_indexed")[1]
+    if (identical(mode, "model_associated_unless_query_space")) {
+      mode <- if ("in_space" %in% names(resolved)) {
+        "reference_only_explicit_query_space"
+      } else {
+        "cell_indexed"
+      }
+    }
     cov <- .wb_primitive_cell_coverage(bundle, name, kind, resolved[[name]], inputs, mode = mode)
     before <- length(current)
     if (!is.null(cov$cells)) current <- .wb_coverage_ordered_intersect(current, cov$cells)
@@ -220,7 +243,7 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
     per_input[[name]] <- list(
       kind = kind,
       required = name %in% names(.wb_op(op_name)$requires %||% list()),
-      coverage_mode = if (is.null(cov$cells)) "reference_only" else "cell_indexed",
+      coverage_mode = if (is.null(cov$cells) && identical(mode, "cell_indexed")) "not_cell_indexed" else mode,
       source_id = cov$source_id,
       dims = if (is.null(cov$dims)) NULL else as.integer(cov$dims),
       available_n = if (is.null(cov$cells)) NA_integer_ else length(cov$cells),

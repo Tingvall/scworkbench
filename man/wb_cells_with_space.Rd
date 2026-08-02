@@ -20,4 +20,6 @@ coordinates, in bundle order.
 \description{
 Returns canonical cell IDs with non-missing coordinates for every requested
 dimension. When \code{dims} is omitted, all registered dimensions are required.
+For wide 2D spaces, dimension 1 tests \code{x}, dimension 2 tests \code{y}, and
+requesting both requires both coordinates.
 }

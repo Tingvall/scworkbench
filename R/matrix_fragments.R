@@ -36,6 +36,26 @@ wb_register_matrix_fragment <- function(
   .wb_assert(!anyDuplicated(feature_ids), "feature_ids must be unique within a fragment")
   .wb_assert(!anyDuplicated(cell_ids), "cell_ids must be unique within a fragment")
 
+  cell_blocks <- split(cell_ids, ceiling(seq_along(cell_ids) / 500L))
+  existing_cells <- unique(unlist(lapply(cell_blocks, function(block) {
+    cells_clause <- .wb_sql_in_clause(block)
+    DBI::dbGetQuery(
+      con,
+      paste0(
+        "SELECT DISTINCT membership.cell_id ",
+        "FROM matrix_fragment_cells AS membership ",
+        "JOIN matrix_fragments AS fragment ON fragment.fragment_id = membership.fragment_id ",
+        "WHERE fragment.matrix_id = ? AND membership.cell_id ", cells_clause$sql, ";"
+      ),
+      params = c(list(matrix_id), cells_clause$params)
+    )$cell_id
+  }), use.names = FALSE))
+  .wb_assert(
+    !length(existing_cells),
+    paste0("matrix fragments for '", matrix_id, "' must have disjoint cell identities; repeated IDs: ",
+           paste(head(existing_cells, 10L), collapse = ", "))
+  )
+
   created_at <- as.character(created_at)[1]
   .wb_assert(!is.na(created_at) && nzchar(created_at), "created_at invalid")
   source <- if (is.null(source) || !length(source)) NA_character_ else as.character(source)[1]

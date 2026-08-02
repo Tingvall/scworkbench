@@ -13,6 +13,8 @@
       mode <- as.character(coverage_modes[[nm]] %||% "cell_indexed")[1]
       item$effective_cell_coverage <- if (identical(mode, "reference_only")) {
         "reference_only"
+      } else if (identical(mode, "model_associated_unless_query_space")) {
+        "model_associated_unless_query_space"
       } else if (kind %in% c("path_2d_family")) {
         "none"
       } else if (kind %in% c("feature_table", "obs_table")) {

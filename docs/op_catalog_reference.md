@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-08-02T22:14:13+0200
+Generated at: 2026-08-02T23:47:09+0200
 
 Operation count: 56
 
@@ -178,7 +178,7 @@ Intent: projection, umap
 Description: Project cells into an existing UMAP using a stored model.
 
 Consumes:
-- `model`: model_ref
+- `model`: model_ref - Constrains cells to the fitted source space unless an explicit query in_space is supplied.
 - `in_space`: space
 - `cell_set`: select
 

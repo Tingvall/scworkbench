@@ -1867,11 +1867,16 @@
       intent = c("projection", "umap"),
       requires = list(model = "model_ref"),
       optional_requires = list(in_space = "space"),
+      coverage = list(model = "model_associated_unless_query_space"),
       produces = list(space_2d = "space_2d"),
       promotable = c("space_2d"),
       runner = .wb_runner_umap_transform,
       inputs = list(
-        model = list(required = TRUE, kind = "model_ref"),
+        model = list(
+          required = TRUE,
+          kind = "model_ref",
+          description = "Constrains cells to the fitted source space unless an explicit query in_space is supplied."
+        ),
         in_space = list(required = FALSE, must_be_2d = FALSE, dims_min = 2)
       ),
       params = list(
