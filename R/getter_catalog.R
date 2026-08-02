@@ -613,6 +613,16 @@
       use_when = c("hand off a target-specific reproducible analysis path")
     ),
     list(
+      function_name = "wb_prov_replay_equivalence_results",
+      title = "Replay Equivalence Results",
+      category = "provenance",
+      description = "List target-reproduction equivalence results with separate original and replayed payload SHA-256 identities.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "replay_snapshot_id"),
+      use_when = c("audit scientific replay equality separately from stored-payload integrity")
+    ),
+    list(
       function_name = "wb_prov_artifact_lineage",
       title = "Composed Artifact Lineage",
       category = "provenance",

@@ -2,10 +2,12 @@
 
 .wb_op_interface_registry <- function() {
   cat <- .wb_op_catalog()
+  execution_ops <- .wb_ops()
   lapply(cat, function(x) {
     produces <- x$interface_produces %||% list()
     declared <- x$produces %||% list()
     terminals <- as.character(x$promotable %||% character(0))
+    replay_equivalence <- execution_ops[[as.character(x$op_name)]]$replay_equivalence %||% list()
     for (nm in names(declared)) {
       item <- produces[[nm]] %||% list()
       item$output_name <- nm
@@ -13,6 +15,7 @@
       item$durability_role <- if (nm %in% terminals) "terminal_artifact" else "materialization"
       item$promotable_directly <- nm %in% terminals
       item$materialized_by_terminals <- if (nm %in% terminals) nm else terminals
+      item$replay_equivalence <- as.character(replay_equivalence[[nm]] %||% "not_comparable")[1]
       produces[[nm]] <- item
     }
     list(
@@ -23,6 +26,7 @@
       inputs = x$inputs %||% list(),
       params = x$params %||% list(),
       produces = produces,
+      replay_equivalence = replay_equivalence,
       chunking = x$chunking %||% NULL
     )
   })

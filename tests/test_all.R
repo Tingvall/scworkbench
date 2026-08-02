@@ -3,6 +3,12 @@ test_all <- function(bundle_dir){
   if (exists("test_targeted_reproduction_plan_contract", mode = "function")) {
     stopifnot(test_targeted_reproduction_plan_contract())
   }
+  if (exists("test_targeted_reproduction_execute_contract", mode = "function")) {
+    stopifnot(test_targeted_reproduction_execute_contract())
+  }
+  if (exists("test_space_cell_identity_contract", mode = "function")) {
+    stopifnot(test_space_cell_identity_contract())
+  }
 
   fixture_n_cells <- tryCatch({
     fixture_bundle <- wb_open_bundle(bundle_dir)

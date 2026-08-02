@@ -12,12 +12,24 @@
 .wb_ops <- function() {
   cat <- .wb_op_catalog()
   lapply(cat, function(x) {
+    produces <- x$produces %||% list()
+    replay_equivalence <- x$replay_equivalence %||% list()
+    for (nm in names(produces)) {
+      if (is.null(replay_equivalence[[nm]])) {
+        replay_equivalence[[nm]] <- if (identical(as.character(produces[[nm]])[1], "model_ref")) {
+          "loadable_reference"
+        } else {
+          "exact_canonical_value"
+        }
+      }
+    }
     list(
       requires = x$requires %||% list(),
       optional_requires = x$optional_requires %||% list(),
-      produces = x$produces %||% list(),
+      produces = produces,
       runner = x$runner,
       promotable = x$promotable %||% character(0),
+      replay_equivalence = replay_equivalence,
       chunking = x$chunking %||% NULL
     )
   })
@@ -537,6 +549,16 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     }
 
     out[[nm]] <- .wb_symbolic_ref_compact(val)
+  }
+
+  # Required primitives can be supplied as durable identifiers (for example
+  # matrix = "RNA_log_norm" or space = "rna_pca"), not only as run/artifact
+  # refs.  Preserve them in symbolic provenance so a cross-snapshot replay
+  # does not have to infer a source input from runner diagnostics.
+  op <- .wb_op(op_name)
+  required_names <- unique(c(names(op$requires %||% list()), names(op$optional_requires %||% list())))
+  for (nm in required_names) {
+    if (is.null(out[[nm]]) && !is.null(x[[nm]])) out[[nm]] <- .wb_symbolic_ref_compact(x[[nm]])
   }
 
   # keep explicit symbolic run/artifact refs even if they are not op params

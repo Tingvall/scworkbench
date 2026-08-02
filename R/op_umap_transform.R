@@ -55,9 +55,7 @@ wb_op_umap_transform <- function(bundle,
   S <- wb_space(bundle, space_id = in_space_id, cells = cells, dims = dims_use)
 
   X <- S
-  if (is.data.frame(S) && all(c("cell_id","dim","value") %in% colnames(S))) {
-    X <- .wb_as_coord_matrix(S)
-  }
+  if (is.data.frame(S)) X <- .wb_as_coord_matrix(S)
 
   .wb_assert(is.matrix(X), "High-D space must yield a matrix after wb_space/.wb_as_coord_matrix().")
   .wb_assert(!is.null(rownames(X)), "High-D space coords must have rownames = cell_id.")

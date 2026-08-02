@@ -15,7 +15,7 @@ test_op_hvg_pca_contract <- function() {
     unlink(tmp, recursive = TRUE, force = TRUE)
   }, add = TRUE)
 
-  cells <- paste0("c", seq_len(8))
+  cells <- paste0("cell_", letters[seq_len(8)])
   wb_define_cells(b, cells)
 
   mat <- Matrix::Matrix(
@@ -112,7 +112,9 @@ test_op_hvg_pca_contract <- function() {
   coords <- wb_space(wb_session_view(rr_pca$session), "rna.pca")
   stopifnot(is.data.frame(coords), nrow(coords) == 8L)
   stopifnot(all(c("cell_id", "x", "y") %in% names(coords)))
-  stopifnot(all(is.finite(coords$x)), all(is.finite(coords$y)))
+  stopifnot(all(is.finite(coords$x)), all(is.finite(coords$y)),
+            identical(as.character(coords$cell_id), cells),
+            identical(rownames(coords), cells))
 
   loadings <- rr_pca$run$outputs$loadings
   variance <- rr_pca$run$outputs$variance
@@ -143,8 +145,13 @@ test_op_hvg_pca_contract <- function() {
             grepl("^[0-9a-f]{64}$", as.character(pca_space_identity$content_sha256[1])))
   wb_close_bundle(b); b <- wb_open_bundle(tmp)
   stopifnot("rna.pca" %in% as.character(wb_spaces(b)$space_id))
-  durable_pca <- wb_space(b, "rna.pca", cells = cells)
+  persisted_pca_ids <- DBI::dbGetQuery(
+    b$con, "SELECT cell_id FROM space_2d WHERE space_id = ? ORDER BY rowid;",
+    params = list("rna.pca")
+  )$cell_id
+  durable_pca <- wb_space(b, "rna.pca")
   stopifnot(nrow(durable_pca) == length(cells),
+            identical(as.character(persisted_pca_ids), cells),
             identical(as.character(durable_pca$cell_id), cells),
             identical(rownames(durable_pca), cells))
   for (output in c("loadings", "variance", "fit_summary")) {

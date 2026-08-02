@@ -58,10 +58,11 @@ wb_target_reproduction_plan <- function(bundle, target) {
   .wb_migrate_provenance_tables(bundle$con)
   x <- .wb_target_parse(target); con <- bundle$con
   out <- DBI::dbGetQuery(con, paste0("SELECT snapshot_id, run_id, output_name, primitive_kind, artifact_id, ",
-    .wb_prov_output_identity_select(con), " FROM prov_run_outputs ORDER BY snapshot_id, run_id, output_name;"))
+    .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con),
+    " FROM prov_run_outputs ORDER BY snapshot_id, run_id, output_name;"))
   bind <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, direction, binding_name, entity_kind, entity_id FROM prov_run_entity_bindings WHERE direction = 'output' ORDER BY snapshot_id, run_id, binding_name;")
   candidates <- data.frame(snapshot_id=character(), run_id=character(), output_name=character(), stringsAsFactors=FALSE)
-  if (x$type == "artifact") candidates <- out[as.character(out$artifact_id) == x$entity_id, c("snapshot_id","run_id","output_name"), drop=FALSE]
+  if (x$type == "artifact") candidates <- out[!is.na(out$artifact_id) & as.character(out$artifact_id) == x$entity_id, c("snapshot_id","run_id","output_name"), drop=FALSE]
   if (x$type == "run") candidates <- unique(out[as.character(out$run_id) == x$entity_id, c("snapshot_id","run_id","output_name"), drop=FALSE])
   if (x$type %in% c("matrix", "space", "model")) {
     ek <- if (x$type == "model") "model_ref" else x$type
@@ -79,6 +80,7 @@ wb_target_reproduction_plan <- function(bundle, target) {
   # their typed entity bindings to the unique producer; record absent durable
   # producers as explicit immutable/source boundaries and fail on ambiguity.
   parents <- split(as.character(edges$parent_run_id), as.character(edges$child_run_id)); closure <- character(0); stack <- target_run
+  typed_edges <- data.frame(parent_run_id=character(), child_run_id=character(), edge_type=character(), edge_label=character(), stringsAsFactors=FALSE)
   bind_all <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, direction, binding_name, entity_kind, entity_id, content_hash FROM prov_run_entity_bindings ORDER BY snapshot_id, run_id, direction, binding_name;")
   boundary <- data.frame(run_id=character(), entity_kind=character(), entity_id=character(), binding_name=character(), content_hash=character(), reason=character(), stringsAsFactors=FALSE)
   ambiguous <- list()
@@ -90,13 +92,23 @@ wb_target_reproduction_plan <- function(bundle, target) {
       pp <- bind_all[as.character(bind_all$direction) == "output" & as.character(bind_all$entity_kind) == as.character(ins$entity_kind[j]) & as.character(bind_all$entity_id) == as.character(ins$entity_id[j]) & as.character(bind_all$run_id) != cur,,drop=FALSE]
       pp <- pp[!duplicated(as.character(pp$run_id)),,drop=FALSE]
       if (nrow(pp) > 1L) ambiguous[[length(ambiguous)+1L]] <- list(code="ambiguous_dependency", message=paste0("Multiple producers for ",ins$entity_kind[j],":",ins$entity_id[j]))
-      else if (nrow(pp) == 1L) typed <- c(typed, as.character(pp$run_id[1]))
+      else if (nrow(pp) == 1L) {
+        producer <- as.character(pp$run_id[1])
+        typed <- c(typed, producer)
+        typed_edges <- rbind(typed_edges, data.frame(
+          parent_run_id=producer, child_run_id=cur,
+          edge_type="typed_entity_dependency",
+          edge_label=paste0(ins$entity_kind[j], ":", ins$entity_id[j]),
+          stringsAsFactors=FALSE
+        ))
+      }
       else boundary <- rbind(boundary, data.frame(run_id=cur, entity_kind=as.character(ins$entity_kind[j]), entity_id=as.character(ins$entity_id[j]), binding_name=as.character(ins$binding_name[j]), content_hash=as.character(ins$content_hash[j] %||% ""), reason="immutable_or_external_source", stringsAsFactors=FALSE))
     }
     stack <- c(stack, setdiff(unique(c(parents[[cur]] %||% character(), typed)),closure))
   }
   if (length(ambiguous)) return(structure(list(status="ambiguous", reproducible=FALSE, target=x, candidates=candidates, run_order=character(0), runs=data.frame(), subgraph=list(nodes=data.frame(),edges=data.frame()), boundary_prerequisites=unique(boundary), terminal_outputs=data.frame(), excluded_siblings=data.frame(), diagnostics=ambiguous), class="wb_target_reproduction_plan"))
-  topo <- .wb_target_toposort(closure, edges)
+  closure_edges <- unique(rbind(edges, typed_edges))
+  topo <- .wb_target_toposort(closure, closure_edges)
   rr <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json FROM prov_runs ORDER BY created_at, snapshot_id, run_id;")
   rr <- rr[as.character(rr$run_id) %in% closure, , drop=FALSE]; rr <- rr[!duplicated(as.character(rr$run_id)),,drop=FALSE]
   rr <- rr[match(topo$order, rr$run_id),,drop=FALSE]
@@ -122,7 +134,7 @@ wb_target_reproduction_plan <- function(bundle, target) {
   promotion_outputs <- terminal[as.character(terminal$output_name) %in% promotable, , drop=FALSE]
   durable_outputs <- bind_all[as.character(bind_all$direction) == "output" & as.character(bind_all$run_id) %in% closure & as.character(bind_all$entity_kind) %in% c("matrix","space","model_ref"),,drop=FALSE]
   artifact_sources <- out[as.character(out$run_id) %in% closure & !is.na(out$artifact_id) & nzchar(as.character(out$artifact_id)), c("artifact_id","run_id","output_name"), drop=FALSE]
-  structure(list(status=if(length(topo$cyclic)) "cyclic" else "ok", reproducible=!length(topo$cyclic), target=c(x,list(producing_run_id=target_run,output_name=target_out)), run_order=topo$order, runs=rr, subgraph=list(nodes=run_nodes,edges=sg_edges), boundary_prerequisites=prereq, terminal_outputs=terminal, promotion_outputs=promotion_outputs, durable_outputs=durable_outputs, artifact_sources=artifact_sources, source_bundle_dir=normalizePath(bundle$dir,winslash="/",mustWork=FALSE), excluded_siblings=sib, diagnostics=c(if(!nrow(promotion_outputs)) list(list(code="no_promotable_terminal",message="The producing run has no promotable terminal output.")) else list(), if(length(topo$cyclic)) list(list(code="cyclic",message="Run closure contains a cycle.")) else list(), if(any(terminal$verification_level != "content")) list(list(code="structural_only",message="One or more terminal outputs are legacy structural-only.")) else list())), class="wb_target_reproduction_plan")
+  structure(list(status=if(length(topo$cyclic)) "cyclic" else "ok", reproducible=!length(topo$cyclic), target=c(x,list(producing_run_id=target_run,output_name=target_out)), run_order=topo$order, runs=rr, subgraph=list(nodes=run_nodes,edges=sg_edges), boundary_prerequisites=prereq, terminal_outputs=terminal, promotion_outputs=promotion_outputs, durable_outputs=durable_outputs, artifact_sources=artifact_sources, source_bundle_dir=normalizePath(bundle$dir,winslash="/",mustWork=FALSE), excluded_siblings=sib, diagnostics=c(if(!nrow(promotion_outputs)) list(list(code="no_promotable_terminal",message="The producing run has no promotable terminal output.")) else list(), if(length(topo$cyclic)) list(list(code="cyclic",message="Run closure contains a cycle.")) else list(), if(any(terminal$replay_equivalence_policy == "not_comparable")) list(list(code="legacy_not_comparable",message="One or more terminal outputs predate replay-equivalence declarations and will be reported as unsupported.")) else list())), class="wb_target_reproduction_plan")
 }
 
 #' Emit an executable target-reproduction script
@@ -159,10 +171,26 @@ wb_target_emit_r_script <- function(plan, execution_bundle_dir = "<WRITABLE_INGE
   artifact_lines <- character(0)
   if (nrow(plan$artifact_sources %||% data.frame())) for (i in seq_len(nrow(plan$artifact_sources))) artifact_lines <- c(artifact_lines, paste0("artifact_replay_map[['",.wb_r_single_quote_escape(as.character(plan$artifact_sources$artifact_id[i])),"']] <- list(run_id='",.wb_r_single_quote_escape(as.character(plan$artifact_sources$run_id[i])),"', output='",.wb_r_single_quote_escape(as.character(plan$artifact_sources$output_name[i])),"')"))
   rewrite <- c("artifact_replay_map <- list()", artifact_lines, "rewrite_artifact_refs <- function(x) { if (!is.list(x)) return(x); if (identical(as.character(x$ref_type %||% '')[1], 'artifact')) { a <- artifact_replay_map[[as.character(x$artifact_id %||% '')[1]]]; if (!is.null(a) && !is.null(replay_map[[a$run_id]])) return(wb_ref_run(replay_map[[a$run_id]], a$output)); return(x) }; y <- lapply(x, rewrite_artifact_refs); if (!is.null(names(x))) names(y) <- names(x); y }")
-  core <- sub("sess <- wb_session_new()", paste(c(boundary_checks, collision_checks, "sess <- wb_session_new()", rewrite), collapse="\\n"), core, fixed=TRUE)
-  core <- sub("execution_inputs <- rewrite_run_refs(execution_inputs)", "execution_inputs <- rewrite_artifact_refs(rewrite_run_refs(execution_inputs))", core, fixed=TRUE)
+  core <- sub("sess <- wb_session_new()", paste(c(boundary_checks, collision_checks, "sess <- wb_session_new()", rewrite), collapse="\n"), core, fixed=TRUE)
+  core <- gsub("execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)", "execution_inputs <- rewrite_artifact_refs(rewrite_run_refs(execution_inputs, replay_map = replay_map))", core, fixed=TRUE)
   .wb_assert(nrow(plan$promotion_outputs %||% data.frame()) > 0L, "plan has no promotable terminal outputs")
   sels <- paste(vapply(seq_len(nrow(plan$promotion_outputs)), function(i) paste0("wb_ref_run(replay_map[['", .wb_r_single_quote_escape(as.character(plan$promotion_outputs$run_id[i])), "']], '", .wb_r_single_quote_escape(as.character(plan$promotion_outputs$output_name[i])), "')"), character(1)), collapse=", ")
-  verifies <- vapply(seq_len(nrow(plan$terminal_outputs)), function(i) { z <- plan$terminal_outputs[i,,drop=FALSE]; if (identical(as.character(z$verification_level[1]),"content") && nzchar(as.character(z$content_sha256[1] %||% ""))) paste0("stopifnot(identical(scworkbench:::.wb_prov_payload_identity(bundle, target_res$run$outputs[['",.wb_r_single_quote_escape(as.character(z$output_name[1])),"']])$content_sha256, '",.wb_r_single_quote_escape(as.character(z$content_sha256[1])),"'))") else paste0("message('structural/legacy verification limitation: ",.wb_r_single_quote_escape(as.character(z$output_name[1])),"')") }, character(1))
-  paste(c("# IMPORTANT: this is a writable ingestion-ready execution clone, never the inspected source bundle.", preflight, core, "if (is.null(target_res)) stop('Target run was not replayed.')", paste0("promotion <- wb_session_promote_current(bundle, sess, outputs = list(",sels,"))"), verifies, "cat('target reproduction promoted and verified\\n')"), collapse="\n")
+  verifies <- vapply(seq_len(nrow(plan$terminal_outputs)), function(i) {
+    z <- plan$terminal_outputs[i,,drop=FALSE]
+    nm <- .wb_r_single_quote_escape(as.character(z$output_name[1]))
+    paste0(
+      "replayed_artifact_id <- promotion$promoted$artifact_id[promotion$promoted$run_id == replay_map[['",
+      .wb_r_single_quote_escape(as.character(z$run_id[1])), "']] & promotion$promoted$output == '", nm,
+      "'][1]; if (length(replayed_artifact_id) == 0L) replayed_artifact_id <- NA_character_; ",
+      "verification <- scworkbench:::.wb_prov_verify_replay_output(bundle = bundle, original_run_id = '",
+      .wb_r_single_quote_escape(as.character(z$run_id[1])), "', original_output_name = '", nm,
+      "', expected_kind = '", .wb_r_single_quote_escape(as.character(z$primitive_kind[1])),
+      "', expected_content_sha256 = '", .wb_r_single_quote_escape(as.character(z$content_sha256[1] %||% "")),
+      "', replay_equivalence_policy = '", .wb_r_single_quote_escape(as.character(z$replay_equivalence_policy[1] %||% "not_comparable")),
+      "', expected_reference = '", .wb_r_single_quote_escape(as.character(z$replay_equivalence_reference[1] %||% "")),
+      "', replayed_prim = target_res$run$outputs[['", nm, "']], replay_run_id = replay_map[['",
+      .wb_r_single_quote_escape(as.character(z$run_id[1])), "']], replay_snapshot_id = promotion$provenance_snapshot_id, replay_artifact_id = replayed_artifact_id); print(verification)"
+    )
+  }, character(1))
+  paste(c("# IMPORTANT: this is a writable ingestion-ready execution clone, never the inspected source bundle.", preflight, core, "if (is.null(target_res)) stop('Target run was not replayed.')", paste0("promotion <- wb_session_promote_current(bundle, sess, outputs = list(",sels,"))"), verifies, "cat('target reproduction promoted and verified\\n')", "wb_close_bundle(bundle)"), collapse="\n")
 }

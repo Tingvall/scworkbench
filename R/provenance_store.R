@@ -57,7 +57,52 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.6"
+.wb_prov_schema_version <- function() "1.7"
+
+.wb_replay_equivalence_policies <- function() {
+  c("exact_content", "exact_canonical_value", "loadable_reference", "not_comparable")
+}
+
+.wb_replay_model_reference <- function(prim) {
+  .wb_assert(.wb_is_primitive(prim) && identical(as.character(prim$kind), "model_ref"),
+             "Replay model reference requires a model_ref primitive.")
+  .wb_prov_sha256_object(list(
+    identity_version = "scworkbench.replay.model_reference.v1",
+    engine = as.character(prim$engine %||% "unknown")[1],
+    model_space_id = as.character(prim$model_space_id %||% prim$space_id %||% "")[1],
+    in_space_id = as.character(prim$in_space_id %||% "")[1],
+    model_type = as.character(prim$model_type %||% prim$engine %||% "unknown")[1]
+  ))
+}
+
+.wb_replay_equivalence_declaration <- function(op_name, output_name, prim, identity) {
+  # Ingestion/provenance-only runs are valid engine records even when they do
+  # not dispatch through the analytical op catalog.
+  op <- tryCatch(.wb_get_op(as.character(op_name)[1]), error = function(e) list(replay_equivalence = list()))
+  kind <- if (.wb_is_primitive(prim)) as.character(prim$kind)[1] else "unknown"
+  declared <- as.character(op$replay_equivalence[[as.character(output_name)[1]]] %||% "")[1]
+  policy <- if (nzchar(declared)) {
+    declared
+  } else if (identical(kind, "model_ref")) {
+    "loadable_reference"
+  } else if (identical(as.character(identity$verification_level), "content") &&
+             !is.na(identity$content_sha256) && nzchar(as.character(identity$content_sha256))) {
+    "exact_canonical_value"
+  } else {
+    "not_comparable"
+  }
+  .wb_assert(policy %in% .wb_replay_equivalence_policies(), paste0(
+    "Unknown replay-equivalence policy for ", op_name, "::", output_name, ": ", policy
+  ))
+  reference <- if (identical(policy, "loadable_reference") && identical(kind, "model_ref")) {
+    .wb_replay_model_reference(prim)
+  } else if (policy %in% c("exact_content", "exact_canonical_value")) {
+    as.character(identity$content_sha256 %||% NA_character_)[1]
+  } else {
+    NA_character_
+  }
+  list(policy = policy, reference = reference, status = "declared")
+}
 
 # Content identity is deliberately separate from .wb_hash_text(): the latter is
 # a short convenience identifier used by legacy graph/run records, never an
@@ -88,6 +133,20 @@
   level <- if (.wb_db_has_column(con, "prov_run_outputs", "verification_level")) paste0("COALESCE(", p, "verification_level, 'structural') AS verification_level") else "'structural' AS verification_level"
   status <- if (.wb_db_has_column(con, "prov_run_outputs", "verification_status")) paste0("COALESCE(", p, "verification_status, 'legacy_structural_only') AS verification_status") else "'legacy_structural_only' AS verification_status"
   paste(structural, content, level, status, sep = ", ")
+}
+
+.wb_prov_output_replay_select <- function(con, prefix = "") {
+  p <- if (nzchar(prefix)) paste0(prefix, ".") else ""
+  policy <- if (.wb_db_has_column(con, "prov_run_outputs", "replay_equivalence_policy")) {
+    paste0("COALESCE(", p, "replay_equivalence_policy, 'not_comparable') AS replay_equivalence_policy")
+  } else "'not_comparable' AS replay_equivalence_policy"
+  reference <- if (.wb_db_has_column(con, "prov_run_outputs", "replay_equivalence_reference")) {
+    paste0(p, "replay_equivalence_reference")
+  } else "NULL AS replay_equivalence_reference"
+  status <- if (.wb_db_has_column(con, "prov_run_outputs", "replay_equivalence_status")) {
+    paste0("COALESCE(", p, "replay_equivalence_status, 'legacy_not_comparable') AS replay_equivalence_status")
+  } else "'legacy_not_comparable' AS replay_equivalence_status"
+  paste(policy, reference, status, sep = ", ")
 }
 
 .wb_prov_table_payload <- function(prim) {
@@ -181,10 +240,134 @@
     }
     if (nzchar(rel)) {
       abs <- .wb_prov_resolve_payload_location(bundle, rel, workspace = workspace, staging_bundle = staging_bundle, kind = "model reference", id = as.character(prim$model_space_id %||% "")[1])
-      return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(reference = unclass(prim), payload_sha256 = .wb_prov_file_tree_sha256(abs))), verification_level = "content", verification_status = "content_verified"))
+      # Model payload integrity is the raw file/tree byte identity. Replay
+      # equivalence is deliberately recorded and evaluated separately.
+      return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_file_tree_sha256(abs), verification_level = "content", verification_status = "content_verified"))
     }
   }
   list(structural_fingerprint = structural, content_sha256 = NA_character_, verification_level = "structural", verification_status = "structural_only")
+}
+
+.wb_replay_model_loadable <- function(bundle, prim) {
+  if (!.wb_is_primitive(prim) || !identical(as.character(prim$kind), "model_ref")) {
+    return(list(ok = FALSE, message = "Output is not a model_ref."))
+  }
+  engine <- as.character(prim$engine %||% "unknown")[1]
+  path <- as.character(prim$model_path %||% "")[1]
+  if (!nzchar(path) && identical(engine, "uwot")) {
+    path <- tryCatch(wb_space_model_path(bundle, as.character(prim$model_space_id %||% prim$space_id %||% "")[1]), error = function(e) "")
+  }
+  if (nzchar(path) && !.wb_path_is_absolute(path)) path <- file.path(bundle$dir, path)
+  if (!nzchar(path) || !file.exists(path)) return(list(ok = FALSE, message = "Model payload is missing."))
+  loaded <- tryCatch({
+    if (identical(engine, "uwot")) {
+      .wb_require_pkg("uwot", "UMAP replay-equivalence validation")
+      uwot::load_uwot(path)
+    } else {
+      readRDS(path)
+    }
+  }, error = function(e) e)
+  if (inherits(loaded, "error")) return(list(ok = FALSE, message = conditionMessage(loaded)))
+  list(ok = TRUE, message = paste0("Loaded ", engine, " model reference successfully."))
+}
+
+.wb_prov_verify_replay_output <- function(bundle,
+                                          original_run_id,
+                                          original_output_name,
+                                          expected_kind,
+                                          expected_content_sha256,
+                                          replay_equivalence_policy,
+                                          expected_reference,
+                                          replayed_prim,
+                                          replay_run_id,
+                                          replay_snapshot_id,
+                                          replay_artifact_id = NA_character_) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_migrate_provenance_tables(bundle$con)
+  policy <- as.character(replay_equivalence_policy %||% "not_comparable")[1]
+  .wb_assert(policy %in% .wb_replay_equivalence_policies(), paste0("Unknown replay-equivalence policy: ", policy))
+  actual_kind <- if (.wb_is_primitive(replayed_prim)) as.character(replayed_prim$kind)[1] else "unknown"
+  kind_ok <- identical(actual_kind, as.character(expected_kind)[1])
+  actual_identity <- .wb_prov_payload_identity(bundle, replayed_prim)
+  original_sha <- as.character(expected_content_sha256 %||% NA_character_)[1]
+  replayed_sha <- as.character(actual_identity$content_sha256 %||% NA_character_)[1]
+  expected_ref <- as.character(expected_reference %||% NA_character_)[1]
+  replayed_ref <- if (identical(policy, "loadable_reference") && identical(actual_kind, "model_ref")) {
+    .wb_replay_model_reference(replayed_prim)
+  } else if (policy %in% c("exact_content", "exact_canonical_value")) {
+    replayed_sha
+  } else NA_character_
+  payload_identical <- !is.na(original_sha) && nzchar(original_sha) && identical(original_sha, replayed_sha)
+
+  load_result <- list(ok = TRUE, message = "")
+  verified <- FALSE
+  status <- "failed"
+  message <- "Replay output did not satisfy its declared equivalence policy."
+  if (identical(policy, "not_comparable")) {
+    status <- "unsupported"
+    message <- "Legacy or explicitly unsupported output has no replay-equivalence comparison."
+  } else if (policy %in% c("exact_content", "exact_canonical_value")) {
+    verified <- isTRUE(kind_ok) && isTRUE(payload_identical)
+    status <- if (verified) "verified" else "failed"
+    message <- if (verified) paste0(policy, " matched.") else paste0(policy, " mismatch.")
+  } else if (identical(policy, "loadable_reference")) {
+    load_result <- .wb_replay_model_loadable(bundle, replayed_prim)
+    ref_ok <- !is.na(expected_ref) && nzchar(expected_ref) && identical(expected_ref, replayed_ref)
+    verified <- isTRUE(kind_ok) && isTRUE(ref_ok) && isTRUE(load_result$ok)
+    status <- if (verified) "verified" else "failed"
+    message <- if (verified) load_result$message else paste(
+      c(if (!kind_ok) "Primitive kind mismatch." else NULL,
+        if (!ref_ok) "Canonical model reference mismatch." else NULL,
+        if (!isTRUE(load_result$ok)) load_result$message else NULL),
+      collapse = " "
+    )
+  }
+
+  row <- data.frame(
+    result_id = paste0("replayeq_", format(Sys.time(), "%Y%m%d%H%M%OS6"), "_", paste(sample(c(letters, 0:9), 8L, TRUE), collapse = "")),
+    original_run_id = as.character(original_run_id)[1],
+    original_output_name = as.character(original_output_name)[1],
+    replay_run_id = as.character(replay_run_id)[1],
+    replay_snapshot_id = as.character(replay_snapshot_id)[1],
+    replay_artifact_id = as.character(replay_artifact_id %||% NA_character_)[1],
+    primitive_kind = actual_kind,
+    replay_equivalence_policy = policy,
+    original_content_sha256 = original_sha,
+    replayed_content_sha256 = replayed_sha,
+    expected_reference = expected_ref,
+    replayed_reference = replayed_ref,
+    payload_identical = as.integer(isTRUE(payload_identical)),
+    equivalence_verified = as.integer(isTRUE(verified)),
+    verification_status = status,
+    verification_message = message,
+    created_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    stringsAsFactors = FALSE
+  )
+  .wb_db_append_chunked(bundle$con, "prov_replay_equivalence_results", row, chunk_size = 1L)
+  if (identical(status, "failed")) stop(message, call. = FALSE)
+  row
+}
+
+#' List Replay-Equivalence Verification Results
+#'
+#' Returns target-reproduction comparisons. Raw payload SHA-256 identities are
+#' retained alongside the independently declared scientific equivalence policy.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param replay_snapshot_id Optional replay snapshot filter.
+#' @return A data frame with one row per verified replay output.
+#' @export
+wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_migrate_provenance_tables(bundle$con)
+  if (is.null(replay_snapshot_id)) {
+    return(DBI::dbGetQuery(bundle$con, "SELECT * FROM prov_replay_equivalence_results ORDER BY created_at, result_id;"))
+  }
+  DBI::dbGetQuery(
+    bundle$con,
+    "SELECT * FROM prov_replay_equivalence_results WHERE replay_snapshot_id = ? ORDER BY created_at, result_id;",
+    params = list(as.character(replay_snapshot_id)[1])
+  )
 }
 
 .wb_prov_source_identity_validate <- function(x) {
@@ -462,6 +645,38 @@
     DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN verification_status TEXT;")
   }
   DBI::dbExecute(con, "UPDATE prov_run_outputs SET verification_level = 'structural', verification_status = 'legacy_structural_only' WHERE verification_level IS NULL OR verification_level = '';")
+  if (!.wb_db_has_column(con, "prov_run_outputs", "replay_equivalence_policy")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN replay_equivalence_policy TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "replay_equivalence_reference")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN replay_equivalence_reference TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "replay_equivalence_status")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN replay_equivalence_status TEXT;")
+  }
+  DBI::dbExecute(con, "UPDATE prov_run_outputs SET replay_equivalence_policy = 'not_comparable', replay_equivalence_status = 'legacy_not_comparable' WHERE replay_equivalence_policy IS NULL OR replay_equivalence_policy = '';")
+  DBI::dbExecute(con, "
+    CREATE TABLE IF NOT EXISTS prov_replay_equivalence_results (
+      result_id TEXT PRIMARY KEY,
+      original_run_id TEXT NOT NULL,
+      original_output_name TEXT NOT NULL,
+      replay_run_id TEXT NOT NULL,
+      replay_snapshot_id TEXT NOT NULL,
+      replay_artifact_id TEXT,
+      primitive_kind TEXT NOT NULL,
+      replay_equivalence_policy TEXT NOT NULL,
+      original_content_sha256 TEXT,
+      replayed_content_sha256 TEXT,
+      expected_reference TEXT,
+      replayed_reference TEXT,
+      payload_identical INTEGER NOT NULL,
+      equivalence_verified INTEGER NOT NULL,
+      verification_status TEXT NOT NULL,
+      verification_message TEXT,
+      created_at TEXT NOT NULL
+    );
+  ")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_prov_replay_results_snapshot ON prov_replay_equivalence_results(replay_snapshot_id);")
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_materializations (
       commit_id TEXT NOT NULL,
@@ -614,6 +829,7 @@
           prim <- outs[[nm]]
           kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
           identity <- .wb_prov_payload_identity(bundle, prim, workspace = workspace, staging_bundle = staging_bundle)
+          replay_decl <- .wb_replay_equivalence_declaration(run$op_name, nm, prim, identity)
           out_hash <- identity$structural_fingerprint
           art_id <- artifact_map[[paste0(rid, "::", nm)]] %||% NA_character_
           mat_row <- if (is.data.frame(materializations) && nrow(materializations)) {
@@ -625,11 +841,12 @@
 
           DBI::dbExecute(
             con,
-            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, materialization_class, materialization_path, structural_fingerprint, content_sha256, verification_level, verification_status)
-             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, materialization_class, materialization_path, structural_fingerprint, content_sha256, verification_level, verification_status, replay_equivalence_policy, replay_equivalence_reference, replay_equivalence_status)
+             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
             params = list(
               sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id), mat_class, mat_path,
-              identity$structural_fingerprint, identity$content_sha256, identity$verification_level, identity$verification_status
+              identity$structural_fingerprint, identity$content_sha256, identity$verification_level, identity$verification_status,
+              replay_decl$policy, replay_decl$reference, replay_decl$status
             )
           )
           primitive_binding <- .wb_prov_primitive_entity_binding(prim)
@@ -1004,6 +1221,26 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   if (length(params)) .wb_assert(!is.null(names(params)) && all(nzchar(names(params))),
                                  "Persisted replay params must be named.")
 
+  # JSON/R deparsing of optional NULL parameters in older snapshots can leave
+  # the literal string "NA" in runner diagnostics.  It is not an executable
+  # value for a catalog parameter whose public default is NULL.
+  op_spec <- .wb_op_catalog()[[as.character(op_name %||% "")[1]]]
+  if (!is.null(op_spec)) {
+    op_params <- op_spec$params %||% list()
+    # Runner parameter records include output diagnostics (for example PCA's
+    # realised `space_id`). Only declared public parameters are executable.
+    param_names <- vapply(op_params, function(p) as.character(p$name %||% "")[1], character(1))
+    params <- params[intersect(names(params), param_names)]
+    null_optional <- vapply(op_params, function(p) {
+      identical(p$default %||% NULL, NULL)
+    }, logical(1))
+    names(null_optional) <- vapply(op_params, function(p) as.character(p$name %||% "")[1], character(1))
+    for (nm in intersect(names(params), names(null_optional)[null_optional])) {
+      val <- params[[nm]]
+      if (is.null(val) || (length(val) == 1L && (is.na(val) || identical(as.character(val), "NA")))) params[[nm]] <- NULL
+    }
+  }
+
   # The association operation historically stored the *dispatched result*
   # (for example fisher_exact or kruskal_anova) in params$method, while its
   # public input is the requested method (often auto).  That result label is
@@ -1130,7 +1367,9 @@ wb_prov_emit_r_script <- function(bundle,
       "",
       paste0("bundle_dir <- '", .wb_r_single_quote_escape(bundle_dir_literal), "'"),
       "bundle <- wb_open_bundle(bundle_dir)",
-      "on.exit(wb_close_bundle(bundle), add = TRUE)",
+      # `source()` evaluates top-level expressions one at a time, so an
+      # `on.exit()` here can close this connection before the next emitted
+      # expression.  The caller/process owns this short-lived handle.
       "sess <- wb_session_new()",
       "replay_map <- list()",
       "target_res <- NULL",
@@ -1481,7 +1720,7 @@ wb_prov_validate_replay <- function(bundle,
 
   expected <- DBI::dbGetQuery(
     con,
-    paste0("SELECT run_id, output_name, primitive_kind, output_hash, ", .wb_prov_output_identity_select(con),
+    paste0("SELECT run_id, output_name, primitive_kind, output_hash, ", .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con),
            " FROM prov_run_outputs WHERE snapshot_id = ? ORDER BY run_id, output_name;"),
     params = list(sid)
   )
@@ -1493,7 +1732,9 @@ wb_prov_validate_replay <- function(bundle,
         structural_fingerprint = as.character(expected$structural_fingerprint[i] %||% expected$output_hash[i]),
         content_sha256 = as.character(expected$content_sha256[i] %||% NA_character_),
         verification_level = as.character(expected$verification_level[i] %||% "structural")[1],
-        verification_status = as.character(expected$verification_status[i] %||% "legacy_structural_only")[1]
+        verification_status = as.character(expected$verification_status[i] %||% "legacy_structural_only")[1],
+        replay_equivalence_policy = as.character(expected$replay_equivalence_policy[i] %||% "not_comparable")[1],
+        replay_equivalence_reference = as.character(expected$replay_equivalence_reference[i] %||% NA_character_)[1]
       )
     }
   }
@@ -1570,11 +1811,29 @@ wb_prov_validate_replay <- function(bundle,
     for (nm in names(outs)) {
       prim <- outs[[nm]]
       actual_kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
-      actual_identity <- .wb_prov_output_hash(prim, bundle = bundle)
+      replay_bundle <- wb_session_view(sess)
+      actual_identity <- .wb_prov_output_hash(prim, bundle = replay_bundle)
       ex <- exp_map[[paste0(rid, "::", nm)]] %||% list(kind = NA_character_, structural_fingerprint = NA_character_, content_sha256 = NA_character_, verification_level = "structural", verification_status = "missing")
       kind_match <- identical(as.character(ex$kind), as.character(actual_kind))
       content_expected <- identical(as.character(ex$verification_level), "content") && !is.na(ex$content_sha256) && nzchar(ex$content_sha256)
       hash_match <- if (content_expected) identical(as.character(ex$content_sha256), as.character(actual_identity$content_sha256)) else identical(as.character(ex$structural_fingerprint), as.character(actual_identity$structural_fingerprint))
+      policy <- as.character(ex$replay_equivalence_policy %||% "not_comparable")[1]
+      expected_reference <- as.character(ex$replay_equivalence_reference %||% NA_character_)[1]
+      replayed_reference <- if (identical(policy, "loadable_reference") && identical(actual_kind, "model_ref")) {
+        .wb_replay_model_reference(prim)
+      } else if (policy %in% c("exact_content", "exact_canonical_value")) {
+        as.character(actual_identity$content_sha256)
+      } else NA_character_
+      equivalence_verified <- if (policy %in% c("exact_content", "exact_canonical_value")) {
+        isTRUE(kind_match) && isTRUE(hash_match)
+      } else if (identical(policy, "loadable_reference")) {
+        loadable <- .wb_replay_model_loadable(replay_bundle, prim)
+        isTRUE(kind_match) && !is.na(expected_reference) && identical(expected_reference, replayed_reference) && isTRUE(loadable$ok)
+      } else {
+        # Legacy records retain their former structural/content comparison;
+        # they are not silently upgraded to a declared scientific policy.
+        isTRUE(kind_match) && isTRUE(hash_match)
+      }
 
       oi <- oi + 1L
       per_out[[oi]] <- data.frame(
@@ -1587,6 +1846,10 @@ wb_prov_validate_replay <- function(bundle,
         actual_hash = if (content_expected) as.character(actual_identity$content_sha256) else as.character(actual_identity$structural_fingerprint),
         verification_level = if (content_expected) "content" else "structural",
         verification_status = if (content_expected) "content_verified" else as.character(ex$verification_status),
+        replay_equivalence_policy = policy,
+        expected_replay_reference = expected_reference,
+        actual_replay_reference = replayed_reference,
+        equivalence_verified = isTRUE(equivalence_verified),
         kind_match = isTRUE(kind_match),
         hash_match = isTRUE(hash_match),
         output_match = FALSE,
@@ -1597,7 +1860,7 @@ wb_prov_validate_replay <- function(bundle,
       per_out[[oi]]$output_match <- if (!kind_required) {
         TRUE
       } else if (hash_required) {
-        isTRUE(kind_match) && isTRUE(hash_match)
+        isTRUE(equivalence_verified)
       } else {
         isTRUE(kind_match)
       }
@@ -1611,7 +1874,7 @@ wb_prov_validate_replay <- function(bundle,
   out_df <- if (length(per_out)) do.call(rbind, per_out) else data.frame(
     run_id = character(0), replay_run_id = character(0), output_name = character(0),
     expected_kind = character(0), actual_kind = character(0), expected_hash = character(0),
-    actual_hash = character(0), verification_level = character(0), verification_status = character(0), kind_match = logical(0), hash_match = logical(0), output_match = logical(0),
+    actual_hash = character(0), verification_level = character(0), verification_status = character(0), replay_equivalence_policy = character(0), expected_replay_reference = character(0), actual_replay_reference = character(0), equivalence_verified = logical(0), kind_match = logical(0), hash_match = logical(0), output_match = logical(0),
     stringsAsFactors = FALSE
   )
 

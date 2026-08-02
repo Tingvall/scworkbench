@@ -30,7 +30,7 @@ Conventions:
 | `wb_resolve_cell_set()` | `pybench.getters.resolve_cell_set()` | getter | implemented | `"all"` support + stable ordering |
 | `wb_spaces()` | `pybench.getters.spaces()` | getter | implemented | hide phantom/empty `space_id` rows |
 | `wb_space_info()` | `pybench.getters.space_info()` | getter | implemented | registry rows from `spaces` |
-| `wb_space()` | `pybench.getters.space()` | getter | implemented | unified `space_2d`/`space_coords`; align to requested cell order |
+| `wb_space()` | `pybench.getters.space()` | getter | implemented | unified `space_2d`/`space_coords`; requested order is exact; omitted order is canonical all-bundle order restricted to cells present in the space |
 | `wb_matrices()` | `pybench.getters.matrices()` | getter | implemented | ordered by `matrix_id` |
 | `wb_matrix_info()` | `pybench.getters.matrix_info()` | getter | implemented | registry rows from `matrices` |
 | `wb_features()` | `pybench.getters.features()` | getter | implemented | canonical feature order uses `features.rowid` |

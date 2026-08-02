@@ -155,6 +155,9 @@ wb_op_umap_fit <- function(bundle,
     metric = metric,
     nn_method = nn_method,
     spread = spread,
+    # Keep fixed-seed coordinate replay stable. Serialized uwot model bytes are
+    # still compared through loadable_reference, never promised byte-equal.
+    n_threads = 1L,
     ret_model = TRUE,
     verbose = isTRUE(verbose)
   )

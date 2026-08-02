@@ -1814,6 +1814,10 @@
       requires = list(space = "space"),
       produces = list(model = "model_ref", space_2d = "space_2d"),
       promotable = c("space_2d", "model"),
+      replay_equivalence = list(
+        model = "loadable_reference",
+        space_2d = "exact_canonical_value"
+      ),
       runner = .wb_runner_umap_fit,
       inputs = list(
         space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)

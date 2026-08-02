@@ -96,6 +96,7 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
       inputs = iface$inputs %||% list(),
       params = iface$params %||% list(),
       promotable = as.character(exec$promotable %||% character(0)),
+      replay_equivalence = exec$replay_equivalence %||% list(),
       chunking = iface$chunking %||% NULL
     )
   })
@@ -129,6 +130,7 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
     produces <- op$produces %||% list()
     params <- op$params %||% list()
     promotable <- paste(as.character(op$promotable %||% character(0)), collapse = ", ")
+    replay_equivalence <- op$replay_equivalence %||% list()
     lines <- c(
       lines,
       paste0("## `", as.character(op$op_name %||% "")[1], "`"),
@@ -161,7 +163,13 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
     } else {
       lines <- c(lines, "- (none)")
     }
-    lines <- c(lines, "", paste0("Promotable outputs: ", if (nzchar(promotable)) promotable else "(none)"), "", "Key parameters:")
+    lines <- c(lines, "", paste0("Promotable outputs: ", if (nzchar(promotable)) promotable else "(none)"), "", "Replay equivalence:")
+    if (length(replay_equivalence)) {
+      for (nm in names(replay_equivalence)) lines <- c(lines, paste0("- `", nm, "`: `", as.character(replay_equivalence[[nm]])[1], "`"))
+    } else {
+      lines <- c(lines, "- Default policy is derived from the output primitive contract.")
+    }
+    lines <- c(lines, "", "Key parameters:")
     if (length(params)) {
       for (p in params) {
         nm <- as.character(p$name %||% "")[1]

@@ -4,7 +4,7 @@ test_peakvi_project_promotion_contract <- function() {
   if (!requireNamespace("BPCells", quietly=TRUE)) return(TRUE)
   root <- tempfile("scwb_peakvi_project_"); b <- wb_init_bundle(root, overwrite=TRUE)
   on.exit({try(wb_close_bundle(b),silent=TRUE);unlink(root,recursive=TRUE,force=TRUE)},add=TRUE)
-  ids <- paste0("c",1:4); wb_define_cells(b,ids)
+  ids <- paste0("cell_",letters[1:4]); wb_define_cells(b,ids)
   wb_attach_matrix(b,"ATAC_counts",matrix(seq_len(12),3,dimnames=list(paste0("p",1:3),ids)),feature_type="peak")
   op_env <- environment(wb_op_peakvi_project); old <- .wb_palantir_bridge_run_or_stop
   unlockBinding(".wb_palantir_bridge_run_or_stop", op_env)

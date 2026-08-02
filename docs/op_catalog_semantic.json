@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-07-30T15:25:20+0200",
+  "generated_at": "2026-08-02T14:13:54+0200",
   "op_count": 56,
   "ops": [
     {
@@ -75,6 +75,9 @@
         }
       ],
       "promotable": "clusters",
+      "replay_equivalence": {
+        "clusters": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -156,6 +159,10 @@
         }
       ],
       "promotable": "summary",
+      "replay_equivalence": {
+        "matrix": "exact_canonical_value",
+        "summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -279,6 +286,10 @@
         }
       ],
       "promotable": ["selected_features", "fit_summary"],
+      "replay_equivalence": {
+        "selected_features": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": {
         "chunkable": true,
         "axis": "features",
@@ -427,6 +438,12 @@
         }
       ],
       "promotable": ["loadings", "variance", "fit_summary"],
+      "replay_equivalence": {
+        "space": "exact_canonical_value",
+        "loadings": "exact_canonical_value",
+        "variance": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -537,6 +554,10 @@
         }
       ],
       "promotable": ["space_2d", "model"],
+      "replay_equivalence": {
+        "model": "loadable_reference",
+        "space_2d": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -604,6 +625,9 @@
         }
       ],
       "promotable": "space_2d",
+      "replay_equivalence": {
+        "space_2d": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -689,6 +713,9 @@
         }
       ],
       "promotable": "module_scores",
+      "replay_equivalence": {
+        "module_scores": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -794,6 +821,10 @@
         }
       ],
       "promotable": ["signature_scores", "signature_summary"],
+      "replay_equivalence": {
+        "signature_scores": "exact_canonical_value",
+        "signature_summary": "exact_canonical_value"
+      },
       "chunking": {
         "chunkable": true,
         "axis": "cells",
@@ -959,6 +990,15 @@
         }
       ],
       "promotable": ["label", "top_score", "runner_up_score", "score_margin", "abstain_reason", "decision_table", "label_summary"],
+      "replay_equivalence": {
+        "label": "exact_canonical_value",
+        "top_score": "exact_canonical_value",
+        "runner_up_score": "exact_canonical_value",
+        "score_margin": "exact_canonical_value",
+        "abstain_reason": "exact_canonical_value",
+        "decision_table": "exact_canonical_value",
+        "label_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1052,6 +1092,10 @@
         }
       ],
       "promotable": ["calibrated_signal", "calibration_summary"],
+      "replay_equivalence": {
+        "calibrated_signal": "exact_canonical_value",
+        "calibration_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1146,6 +1190,11 @@
         }
       ],
       "promotable": ["key_summary", "pairwise_summary", "group_summary"],
+      "replay_equivalence": {
+        "key_summary": "exact_canonical_value",
+        "pairwise_summary": "exact_canonical_value",
+        "group_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1284,6 +1333,10 @@
         }
       ],
       "promotable": ["smoothed_signal", "smoothing_summary"],
+      "replay_equivalence": {
+        "smoothed_signal": "exact_canonical_value",
+        "smoothing_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1368,6 +1421,9 @@
         }
       ],
       "promotable": "winners",
+      "replay_equivalence": {
+        "winners": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1455,6 +1511,9 @@
         }
       ],
       "promotable": "manifest",
+      "replay_equivalence": {
+        "manifest": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1613,6 +1672,11 @@
         }
       ],
       "promotable": ["deviation_z", "deviation_raw", "motif_summary"],
+      "replay_equivalence": {
+        "deviation_z": "exact_canonical_value",
+        "deviation_raw": "exact_canonical_value",
+        "motif_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1690,6 +1754,9 @@
         }
       ],
       "promotable": "de_table",
+      "replay_equivalence": {
+        "de_table": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1772,6 +1839,9 @@
         }
       ],
       "promotable": "markers",
+      "replay_equivalence": {
+        "markers": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -1899,6 +1969,9 @@
         }
       ],
       "promotable": "pathways",
+      "replay_equivalence": {
+        "pathways": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2061,6 +2134,11 @@
         }
       ],
       "promotable": ["import_summary", "import_manifest", "rejected_sets"],
+      "replay_equivalence": {
+        "import_summary": "exact_canonical_value",
+        "import_manifest": "exact_canonical_value",
+        "rejected_sets": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2162,6 +2240,10 @@
         }
       ],
       "promotable": ["overlap_qc", "namespace_summary"],
+      "replay_equivalence": {
+        "overlap_qc": "exact_canonical_value",
+        "namespace_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2288,6 +2370,11 @@
         }
       ],
       "promotable": ["transfer_summary", "transfer_manifest", "transfer_rejected"],
+      "replay_equivalence": {
+        "transfer_summary": "exact_canonical_value",
+        "transfer_manifest": "exact_canonical_value",
+        "transfer_rejected": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2352,6 +2439,10 @@
         }
       ],
       "promotable": ["labels", "label_table"],
+      "replay_equivalence": {
+        "labels": "exact_canonical_value",
+        "label_table": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2442,6 +2533,10 @@
         }
       ],
       "promotable": ["manifest", "rule_table"],
+      "replay_equivalence": {
+        "manifest": "exact_canonical_value",
+        "rule_table": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2520,6 +2615,10 @@
         }
       ],
       "promotable": ["assoc_summary", "group_stats"],
+      "replay_equivalence": {
+        "assoc_summary": "exact_canonical_value",
+        "group_stats": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2600,6 +2699,9 @@
         }
       ],
       "promotable": "vector",
+      "replay_equivalence": {
+        "vector": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2691,6 +2793,10 @@
         }
       ],
       "promotable": ["summary", "detail"],
+      "replay_equivalence": {
+        "summary": "exact_canonical_value",
+        "detail": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2787,6 +2893,10 @@
         }
       ],
       "promotable": ["summary", "comparison"],
+      "replay_equivalence": {
+        "summary": "exact_canonical_value",
+        "comparison": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -2877,6 +2987,9 @@
         }
       ],
       "promotable": "trend_table",
+      "replay_equivalence": {
+        "trend_table": "exact_canonical_value"
+      },
       "chunking": {
         "chunkable": true,
         "axis": "features",
@@ -3005,6 +3118,10 @@
         }
       ],
       "promotable": ["de_table", "fit_summary"],
+      "replay_equivalence": {
+        "de_table": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": {
         "chunkable": true,
         "axis": "features",
@@ -3128,6 +3245,10 @@
         }
       ],
       "promotable": ["trend_table", "fit_summary"],
+      "replay_equivalence": {
+        "trend_table": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": {
         "chunkable": true,
         "axis": "features",
@@ -3249,6 +3370,10 @@
         }
       ],
       "promotable": ["branch_de_table", "branch_summary"],
+      "replay_equivalence": {
+        "branch_de_table": "exact_canonical_value",
+        "branch_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -3355,6 +3480,10 @@
         }
       ],
       "promotable": ["signature_table", "fit_summary"],
+      "replay_equivalence": {
+        "signature_table": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -3720,6 +3849,14 @@
         }
       ],
       "promotable": ["signature_table", "dynamics_table", "top_sets", "driver_table", "driver_curve_table", "fit_summary"],
+      "replay_equivalence": {
+        "signature_table": "exact_canonical_value",
+        "dynamics_table": "exact_canonical_value",
+        "top_sets": "exact_canonical_value",
+        "driver_table": "exact_canonical_value",
+        "driver_curve_table": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -3857,6 +3994,10 @@
         }
       ],
       "promotable": ["trend_table", "fit_summary"],
+      "replay_equivalence": {
+        "trend_table": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -3956,6 +4097,10 @@
         }
       ],
       "promotable": ["signal_table", "fit_summary"],
+      "replay_equivalence": {
+        "signal_table": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -4198,6 +4343,12 @@
         }
       ],
       "promotable": ["signal_table", "dynamics_table", "top_signals", "fit_summary"],
+      "replay_equivalence": {
+        "signal_table": "exact_canonical_value",
+        "dynamics_table": "exact_canonical_value",
+        "top_signals": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -4300,6 +4451,10 @@
         }
       ],
       "promotable": ["pseudobulk_table", "neighbor_distance"],
+      "replay_equivalence": {
+        "pseudobulk_table": "exact_canonical_value",
+        "neighbor_distance": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -4381,6 +4536,10 @@
         }
       ],
       "promotable": ["neighbors", "neighbor_distance"],
+      "replay_equivalence": {
+        "neighbors": "exact_canonical_value",
+        "neighbor_distance": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -4489,6 +4648,10 @@
         }
       ],
       "promotable": ["pseudotime", "curves"],
+      "replay_equivalence": {
+        "pseudotime": "exact_canonical_value",
+        "curves": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -4624,6 +4787,11 @@
         }
       ],
       "promotable": ["pseudotime", "lineage_weights", "model"],
+      "replay_equivalence": {
+        "pseudotime": "exact_canonical_value",
+        "lineage_weights": "exact_canonical_value",
+        "model": "loadable_reference"
+      },
       "chunking": null
     },
     {
@@ -4668,6 +4836,9 @@
       },
       "params": [],
       "promotable": "lineage_weights",
+      "replay_equivalence": {
+        "lineage_weights": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -4780,6 +4951,13 @@
         }
       ],
       "promotable": ["composite_pseudotime_unit_segment", "composite_pseudotime_cell_weighted_0_1", "segment_local_table", "composite_manifest", "composite_membership"],
+      "replay_equivalence": {
+        "composite_pseudotime_unit_segment": "exact_canonical_value",
+        "composite_pseudotime_cell_weighted_0_1": "exact_canonical_value",
+        "segment_local_table": "exact_canonical_value",
+        "composite_manifest": "exact_canonical_value",
+        "composite_membership": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -4945,6 +5123,12 @@
         }
       ],
       "promotable": ["pseudotime", "membership", "confidence", "segment_manifest"],
+      "replay_equivalence": {
+        "pseudotime": "exact_canonical_value",
+        "membership": "exact_canonical_value",
+        "confidence": "exact_canonical_value",
+        "segment_manifest": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -5155,6 +5339,13 @@
         }
       ],
       "promotable": ["pseudotime", "membership", "confidence", "segment_manifest", "display_endpoint_qc"],
+      "replay_equivalence": {
+        "pseudotime": "exact_canonical_value",
+        "membership": "exact_canonical_value",
+        "confidence": "exact_canonical_value",
+        "segment_manifest": "exact_canonical_value",
+        "display_endpoint_qc": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -5261,6 +5452,11 @@
         }
       ],
       "promotable": ["curves", "path_manifest", "endpoint_qc"],
+      "replay_equivalence": {
+        "curves": "exact_canonical_value",
+        "path_manifest": "exact_canonical_value",
+        "endpoint_qc": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -5341,6 +5537,9 @@
         }
       ],
       "promotable": "curves",
+      "replay_equivalence": {
+        "curves": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -5496,6 +5695,11 @@
         }
       ],
       "promotable": ["pseudotime", "branch_membership", "model"],
+      "replay_equivalence": {
+        "pseudotime": "exact_canonical_value",
+        "branch_membership": "exact_canonical_value",
+        "model": "loadable_reference"
+      },
       "chunking": null
     },
     {
@@ -5560,6 +5764,9 @@
         }
       ],
       "promotable": "curves",
+      "replay_equivalence": {
+        "curves": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -5694,6 +5901,10 @@
         }
       ],
       "promotable": "model",
+      "replay_equivalence": {
+        "space": "exact_canonical_value",
+        "model": "loadable_reference"
+      },
       "chunking": null
     },
     {
@@ -5861,6 +6072,11 @@
         }
       ],
       "promotable": ["model", "fit_summary"],
+      "replay_equivalence": {
+        "space": "exact_canonical_value",
+        "model": "loadable_reference",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -5943,6 +6159,10 @@
         }
       ],
       "promotable": "fit_summary",
+      "replay_equivalence": {
+        "space": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -6045,6 +6265,9 @@
         }
       ],
       "promotable": "path",
+      "replay_equivalence": {
+        "path": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -6129,6 +6352,10 @@
         }
       ],
       "promotable": ["path_scores", "fit_summary"],
+      "replay_equivalence": {
+        "path_scores": "exact_canonical_value",
+        "fit_summary": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -6198,6 +6425,9 @@
         }
       ],
       "promotable": "curves",
+      "replay_equivalence": {
+        "curves": "exact_canonical_value"
+      },
       "chunking": null
     },
     {
@@ -6340,6 +6570,13 @@
         }
       ],
       "promotable": ["pseudotime", "branch_membership", "branch_summary", "entropy", "model"],
+      "replay_equivalence": {
+        "pseudotime": "exact_canonical_value",
+        "branch_membership": "exact_canonical_value",
+        "branch_summary": "exact_canonical_value",
+        "entropy": "exact_canonical_value",
+        "model": "loadable_reference"
+      },
       "chunking": null
     },
     {
@@ -6428,6 +6665,9 @@
         }
       ],
       "promotable": "curves",
+      "replay_equivalence": {
+        "curves": "exact_canonical_value"
+      },
       "chunking": null
     }
   ]

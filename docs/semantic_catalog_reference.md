@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-07-30T15:25:21+0200
+Generated at: 2026-08-02T14:13:55+0200
 
-Record count: 309
+Record count: 312
 
 Graph edges: 894
 
@@ -809,6 +809,24 @@ Description: Read one snapshot-local persisted provenance DAG.
 Title: Bundle-Level Composed Provenance DAG
 
 Description: Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.
+
+### `getter:wb_target_reproduction_plan`
+
+Title: Target Reproduction Plan
+
+Description: Resolve an artifact, matrix, space, model, or run DAG node into its minimal cross-snapshot replay closure.
+
+### `getter:wb_target_emit_r_script`
+
+Title: Target Reproduction Script
+
+Description: Emit a replay-and-promotion script for a target reproduction plan and writable execution clone.
+
+### `getter:wb_prov_replay_equivalence_results`
+
+Title: Replay Equivalence Results
+
+Description: List target-reproduction equivalence results with separate original and replayed payload SHA-256 identities.
 
 ### `getter:wb_prov_artifact_lineage`
 

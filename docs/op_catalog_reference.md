@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-07-30T15:25:20+0200
+Generated at: 2026-08-02T14:13:54+0200
 
 Operation count: 56
 
@@ -25,6 +25,9 @@ Produces:
 - `clusters`: cell_vector [terminal artifact] - Cluster label per cell (categorical cell vector).
 
 Promotable outputs: clusters
+
+Replay equivalence:
+- `clusters`: `exact_canonical_value`
 
 Key parameters:
 - `dims` (int_range, default=1:30): Which dimensions of the space to use (1-indexed).
@@ -50,6 +53,10 @@ Produces:
 
 Promotable outputs: summary
 
+Replay equivalence:
+- `matrix`: `exact_canonical_value`
+- `summary`: `exact_canonical_value`
+
 Key parameters:
 - `output_matrix_id` (string, default=NULL): Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.
 - `scale_factor` (dbl, default=10000): Per-cell target count scale before log1p; 10000 is the common CP10K convention.
@@ -73,6 +80,10 @@ Produces:
 - `fit_summary`: obs_table [terminal artifact] - Input matrix, method, filters, dimensions, and selection counts.
 
 Promotable outputs: selected_features, fit_summary
+
+Replay equivalence:
+- `selected_features`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
 
 Key parameters:
 - `n_features` (int, default=2000): Number of highly variable features to mark selected.
@@ -107,6 +118,12 @@ Produces:
 
 Promotable outputs: loadings, variance, fit_summary
 
+Replay equivalence:
+- `space`: `exact_canonical_value`
+- `loadings`: `exact_canonical_value`
+- `variance`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
+
 Key parameters:
 - `feature_ids` (string_vec, default=NULL): Optional explicit feature IDs when not passing features as a feature_table reference.
 - `n_components` (int, default=50): Number of principal components to compute.
@@ -136,6 +153,10 @@ Produces:
 
 Promotable outputs: space_2d, model
 
+Replay equivalence:
+- `model`: `loadable_reference`
+- `space_2d`: `exact_canonical_value`
+
 Key parameters:
 - `dims` (int_range, default=NULL): Dims to use (e.g. 2:30).
 - `space_id_out` (string, default=NULL): Output 2D space id. Defaults to umap.<source_space>.
@@ -164,6 +185,9 @@ Produces:
 
 Promotable outputs: space_2d
 
+Replay equivalence:
+- `space_2d`: `exact_canonical_value`
+
 Key parameters:
 - `dims` (int_range, default=NULL): Dims to use from the input space (e.g. 2:30).
 - `overwrite` (bool, default=TRUE): Overwrite existing projected coordinates for those cells.
@@ -184,6 +208,9 @@ Produces:
 - `module_scores`: cell_vector_family [terminal artifact] - Per-cell module scores for one or more signatures.
 
 Promotable outputs: module_scores
+
+Replay equivalence:
+- `module_scores`: `exact_canonical_value`
 
 Key parameters:
 - `features` (string_vec_or_list, default=NULL): Module feature IDs: character vector or list of vectors.
@@ -210,6 +237,10 @@ Produces:
 - `signature_summary`: obs_table [terminal artifact] - Per-signature scoring summary and feature-match diagnostics.
 
 Promotable outputs: signature_scores, signature_summary
+
+Replay equivalence:
+- `signature_scores`: `exact_canonical_value`
+- `signature_summary`: `exact_canonical_value`
 
 Key parameters:
 - `features` (string_vec_or_list, default=NULL): Signature feature IDs: character vector or list of vectors.
@@ -243,6 +274,15 @@ Produces:
 
 Promotable outputs: label, top_score, runner_up_score, score_margin, abstain_reason, decision_table, label_summary
 
+Replay equivalence:
+- `label`: `exact_canonical_value`
+- `top_score`: `exact_canonical_value`
+- `runner_up_score`: `exact_canonical_value`
+- `score_margin`: `exact_canonical_value`
+- `abstain_reason`: `exact_canonical_value`
+- `decision_table`: `exact_canonical_value`
+- `label_summary`: `exact_canonical_value`
+
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
 - `rule` (choice, default=argmax): Reduction rule used to choose one label per cell.
@@ -269,6 +309,10 @@ Produces:
 - `calibration_summary`: obs_table [terminal artifact] - Per-key calibration statistics for raw and calibrated values.
 
 Promotable outputs: calibrated_signal, calibration_summary
+
+Replay equivalence:
+- `calibrated_signal`: `exact_canonical_value`
+- `calibration_summary`: `exact_canonical_value`
 
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
@@ -298,6 +342,11 @@ Produces:
 
 Promotable outputs: key_summary, pairwise_summary, group_summary
 
+Replay equivalence:
+- `key_summary`: `exact_canonical_value`
+- `pairwise_summary`: `exact_canonical_value`
+- `group_summary`: `exact_canonical_value`
+
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
 - `correlation_methods` (string_vec, default=pearson|spearman): Pairwise correlation methods to compute between keys.
@@ -321,6 +370,10 @@ Produces:
 - `smoothing_summary`: obs_table [terminal artifact] - Per-key smoothing diagnostics and parameter echo.
 
 Promotable outputs: smoothed_signal, smoothing_summary
+
+Replay equivalence:
+- `smoothed_signal`: `exact_canonical_value`
+- `smoothing_summary`: `exact_canonical_value`
 
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional key subset within the cell_vector_family.
@@ -352,6 +405,9 @@ Produces:
 
 Promotable outputs: winners
 
+Replay equivalence:
+- `winners`: `exact_canonical_value`
+
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional key subset within the cell_vector_family.
 - `min_winners` (int, default=10): Minimum raw winner count required for a winner label to pass pruning.
@@ -376,6 +432,9 @@ Produces:
 - `manifest`: obs_table [terminal artifact] - One row per registered winner cell set.
 
 Promotable outputs: manifest
+
+Replay equivalence:
+- `manifest`: `exact_canonical_value`
 
 Key parameters:
 - `source_winner_artifact_id` (string, default=NULL): Optional source winner obs_table artifact ID copied into manifest metadata.
@@ -404,6 +463,11 @@ Produces:
 - `motif_summary`: obs_table [terminal artifact] - Per-motif chromVAR summary statistics.
 
 Promotable outputs: deviation_z, deviation_raw, motif_summary
+
+Replay equivalence:
+- `deviation_z`: `exact_canonical_value`
+- `deviation_raw`: `exact_canonical_value`
+- `motif_summary`: `exact_canonical_value`
 
 Key parameters:
 - `motif_library` (string, default=NULL): Canonical motif-library key from the motif registry.
@@ -437,6 +501,9 @@ Produces:
 
 Promotable outputs: de_table
 
+Replay equivalence:
+- `de_table`: `exact_canonical_value`
+
 Key parameters:
 - `group_a` (cell_ids_or_set, default=NULL): Group A cells: vector of cell IDs or 'set:<name>'.
 - `group_b` (cell_ids_or_set, default=NULL): Group B cells: vector of cell IDs or 'set:<name>'.
@@ -462,6 +529,9 @@ Produces:
 
 Promotable outputs: markers
 
+Replay equivalence:
+- `markers`: `exact_canonical_value`
+
 Key parameters:
 - `features` (string_vec, default=NULL): Optional feature subset.
 - `top_n` (int, default=20): Top markers retained per cluster.
@@ -485,6 +555,9 @@ Produces:
 - `pathways`: obs_table [terminal artifact] - Pathway enrichment statistics for one namespace.
 
 Promotable outputs: pathways
+
+Replay equivalence:
+- `pathways`: `exact_canonical_value`
 
 Key parameters:
 - `namespace` (string, default=NULL): Feature-set namespace from wb_feature_sets() (e.g. bcell_gsea).
@@ -517,6 +590,11 @@ Produces:
 - `rejected_sets`: obs_table [terminal artifact] - Feature sets rejected during import, typically because no genes mapped to the matrix.
 
 Promotable outputs: import_summary, import_manifest, rejected_sets
+
+Replay equivalence:
+- `import_summary`: `exact_canonical_value`
+- `import_manifest`: `exact_canonical_value`
+- `rejected_sets`: `exact_canonical_value`
 
 Key parameters:
 - `source_path` (path, default=NULL): Path to GMT, RDS list/data.frame, or CSV-like table source.
@@ -554,6 +632,10 @@ Produces:
 
 Promotable outputs: overlap_qc, namespace_summary
 
+Replay equivalence:
+- `overlap_qc`: `exact_canonical_value`
+- `namespace_summary`: `exact_canonical_value`
+
 Key parameters:
 - `namespace` (string, default=NULL): Single feature-set namespace to QC.
 - `namespaces` (string_vec, default=NULL): Optional multiple feature-set namespaces to QC.
@@ -580,6 +662,11 @@ Produces:
 - `transfer_rejected`: obs_table [terminal artifact] - Feature sets rejected during intersect transfer because retained members failed thresholds.
 
 Promotable outputs: transfer_summary, transfer_manifest, transfer_rejected
+
+Replay equivalence:
+- `transfer_summary`: `exact_canonical_value`
+- `transfer_manifest`: `exact_canonical_value`
+- `transfer_rejected`: `exact_canonical_value`
 
 Key parameters:
 - `namespace` (string, default=NULL): Single source namespace to transfer.
@@ -611,6 +698,10 @@ Produces:
 
 Promotable outputs: labels, label_table
 
+Replay equivalence:
+- `labels`: `exact_canonical_value`
+- `label_table`: `exact_canonical_value`
+
 Key parameters:
 - `sep` (string, default=-): Separator used in cell IDs before suffix token.
 - `mapping` (string_vec, default=NULL): Optional named mapping suffix->label.
@@ -632,6 +723,10 @@ Produces:
 - `rule_table`: obs_table [terminal artifact] - Ordered per-rule derivation audit table with input/output/removal counts and source fields.
 
 Promotable outputs: manifest, rule_table
+
+Replay equivalence:
+- `manifest`: `exact_canonical_value`
+- `rule_table`: `exact_canonical_value`
 
 Key parameters:
 - `target_cell_set` (string, default=NULL): Name of the derived cell set to create, for example set:universe_b_l1_weight090.
@@ -661,6 +756,10 @@ Produces:
 
 Promotable outputs: assoc_summary, group_stats
 
+Replay equivalence:
+- `assoc_summary`: `exact_canonical_value`
+- `group_stats`: `exact_canonical_value`
+
 Key parameters:
 - `min_n_per_group` (int, default=3): Minimum cells per group.
 
@@ -679,6 +778,9 @@ Produces:
 - `vector`: cell_vector [terminal artifact] - Typed per-cell vector materialized from imported bundle metadata.
 
 Promotable outputs: vector
+
+Replay equivalence:
+- `vector`: `exact_canonical_value`
 
 Key parameters:
 - `source_column` (string, default=NULL): Imported cell metadata column to materialize.
@@ -708,6 +810,10 @@ Produces:
 
 Promotable outputs: summary, detail
 
+Replay equivalence:
+- `summary`: `exact_canonical_value`
+- `detail`: `exact_canonical_value`
+
 Key parameters:
 - `cell_set` (cell_set, default=all): Named bundle cell set defining the association universe.
 - `min_n_per_group` (int, default=3): Minimum cells per retained categorical group.
@@ -732,6 +838,10 @@ Produces:
 
 Promotable outputs: summary, comparison
 
+Replay equivalence:
+- `summary`: `exact_canonical_value`
+- `comparison`: `exact_canonical_value`
+
 Key parameters:
 - `compare_space` (choice, default=rank): Whether to compare original numeric values or cell ranks.
 - `ties_method` (choice, default=average): Tie handling rule used when compare_space='rank'.
@@ -755,6 +865,9 @@ Produces:
 - `trend_table`: feature_table [terminal artifact] - Per-feature trend statistics (rho, p, adjusted p).
 
 Promotable outputs: trend_table
+
+Replay equivalence:
+- `trend_table`: `exact_canonical_value`
 
 Key parameters:
 - `features` (string_vec, default=NULL): Optional feature subset.
@@ -781,6 +894,10 @@ Produces:
 - `fit_summary`: obs_table [terminal artifact] - Per-lineage input and filtering diagnostics.
 
 Promotable outputs: de_table, fit_summary
+
+Replay equivalence:
+- `de_table`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
 
 Key parameters:
 - `lineage` (string_vec, default=NULL): Optional lineage key subset.
@@ -811,6 +928,10 @@ Produces:
 
 Promotable outputs: trend_table, fit_summary
 
+Replay equivalence:
+- `trend_table`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
+
 Key parameters:
 - `lineage` (string_vec, default=NULL): Optional lineage key subset.
 - `feature_set` (string, default=NULL): Optional feature set name from wb_feature_sets() for matrix.
@@ -840,6 +961,10 @@ Produces:
 
 Promotable outputs: branch_de_table, branch_summary
 
+Replay equivalence:
+- `branch_de_table`: `exact_canonical_value`
+- `branch_summary`: `exact_canonical_value`
+
 Key parameters:
 - `branch_a` (string, default=NULL): Branch/lineage key A.
 - `branch_b` (string, default=NULL): Branch/lineage key B.
@@ -866,6 +991,10 @@ Produces:
 - `fit_summary`: obs_table [terminal artifact] - Per-lineage signature smoothing diagnostics.
 
 Promotable outputs: signature_table, fit_summary
+
+Replay equivalence:
+- `signature_table`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
 
 Key parameters:
 - `feature_set` (string, default=NULL): Required feature set name from wb_feature_sets() for matrix.
@@ -898,6 +1027,14 @@ Produces:
 - `fit_summary`: obs_table [terminal artifact] - Per-lineage screening diagnostics.
 
 Promotable outputs: signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, fit_summary
+
+Replay equivalence:
+- `signature_table`: `exact_canonical_value`
+- `dynamics_table`: `exact_canonical_value`
+- `top_sets`: `exact_canonical_value`
+- `driver_table`: `exact_canonical_value`
+- `driver_curve_table`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
 
 Key parameters:
 - `namespace` (string, default=NULL): Feature-set namespace from wb_feature_sets() to screen.
@@ -956,6 +1093,10 @@ Produces:
 
 Promotable outputs: trend_table, fit_summary
 
+Replay equivalence:
+- `trend_table`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
+
 Key parameters:
 - `route_key` (string, default=NULL): Required route/branch key within branch_membership.
 - `feature_set` (string, default=NULL): Optional feature set name from wb_feature_sets() for matrix.
@@ -986,6 +1127,10 @@ Produces:
 
 Promotable outputs: signal_table, fit_summary
 
+Replay equivalence:
+- `signal_table`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
+
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
 - `lineage` (string_vec, default=NULL): Optional lineage key subset.
@@ -1014,6 +1159,12 @@ Produces:
 - `fit_summary`: obs_table [terminal artifact] - Per-lineage signal dynamics diagnostics.
 
 Promotable outputs: signal_table, dynamics_table, top_signals, fit_summary
+
+Replay equivalence:
+- `signal_table`: `exact_canonical_value`
+- `dynamics_table`: `exact_canonical_value`
+- `top_signals`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
 
 Key parameters:
 - `signal_keys` (string_vec, default=NULL): Optional signal-key subset within the cell_vector_family.
@@ -1057,6 +1208,10 @@ Produces:
 
 Promotable outputs: pseudobulk_table, neighbor_distance
 
+Replay equivalence:
+- `pseudobulk_table`: `exact_canonical_value`
+- `neighbor_distance`: `exact_canonical_value`
+
 Key parameters:
 - `query_cells` (cell_ids_or_set, default=NULL): Query cells: explicit IDs or 'set:<name>'
 - `candidate_cells` (cell_ids_or_set, default=NULL): Optional candidate neighbor pool; defaults to all cells.
@@ -1082,6 +1237,10 @@ Produces:
 - `neighbor_distance`: cell_vector_family [terminal artifact] - Neighbor distances per query cell.
 
 Promotable outputs: neighbors, neighbor_distance
+
+Replay equivalence:
+- `neighbors`: `exact_canonical_value`
+- `neighbor_distance`: `exact_canonical_value`
 
 Key parameters:
 - `query_cells` (cell_ids_or_set, default=NULL): Query cells: explicit IDs or 'set:<name>'
@@ -1109,6 +1268,10 @@ Produces:
 
 Promotable outputs: pseudotime, curves
 
+Replay equivalence:
+- `pseudotime`: `exact_canonical_value`
+- `curves`: `exact_canonical_value`
+
 Key parameters:
 - `start.clus` (string, default=NULL): Starting cluster id.
 - `end.clus` (string_vec, default=NULL): Ending cluster id(s).
@@ -1135,6 +1298,11 @@ Produces:
 - `model`: model_ref [terminal artifact] - Session-chainable Slingshot fit model (engine='slingshot').
 
 Promotable outputs: pseudotime, lineage_weights, model
+
+Replay equivalence:
+- `pseudotime`: `exact_canonical_value`
+- `lineage_weights`: `exact_canonical_value`
+- `model`: `loadable_reference`
 
 Key parameters:
 - `start.clus` (string, default=NULL): Starting cluster id.
@@ -1164,6 +1332,9 @@ Produces:
 
 Promotable outputs: lineage_weights
 
+Replay equivalence:
+- `lineage_weights`: `exact_canonical_value`
+
 Key parameters:
 - (none)
 
@@ -1186,6 +1357,13 @@ Produces:
 - `composite_membership`: cell_vector [terminal artifact] - One-cell assignment to a unique segment or waypoint overlap.
 
 Promotable outputs: composite_pseudotime_unit_segment, composite_pseudotime_cell_weighted_0_1, segment_local_table, composite_manifest, composite_membership
+
+Replay equivalence:
+- `composite_pseudotime_unit_segment`: `exact_canonical_value`
+- `composite_pseudotime_cell_weighted_0_1`: `exact_canonical_value`
+- `segment_local_table`: `exact_canonical_value`
+- `composite_manifest`: `exact_canonical_value`
+- `composite_membership`: `exact_canonical_value`
 
 Key parameters:
 - `segments` (list, default=NULL): Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.
@@ -1219,6 +1397,12 @@ Produces:
 
 Promotable outputs: pseudotime, membership, confidence, segment_manifest
 
+Replay equivalence:
+- `pseudotime`: `exact_canonical_value`
+- `membership`: `exact_canonical_value`
+- `confidence`: `exact_canonical_value`
+- `segment_manifest`: `exact_canonical_value`
+
 Key parameters:
 - `segment_id` (string, default=NULL): Stable segment identifier.
 - `segment_order` (dbl, default=1): Order of this fitted segment in a future composite.
@@ -1251,6 +1435,13 @@ Produces:
 - `display_endpoint_qc`: obs_table [terminal artifact] - Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.
 
 Promotable outputs: pseudotime, membership, confidence, segment_manifest, display_endpoint_qc
+
+Replay equivalence:
+- `pseudotime`: `exact_canonical_value`
+- `membership`: `exact_canonical_value`
+- `confidence`: `exact_canonical_value`
+- `segment_manifest`: `exact_canonical_value`
+- `display_endpoint_qc`: `exact_canonical_value`
 
 Key parameters:
 - `segment_id` (string, default=NULL): Stable segment identifier.
@@ -1291,6 +1482,11 @@ Produces:
 
 Promotable outputs: curves, path_manifest, endpoint_qc
 
+Replay equivalence:
+- `curves`: `exact_canonical_value`
+- `path_manifest`: `exact_canonical_value`
+- `endpoint_qc`: `exact_canonical_value`
+
 Key parameters:
 - `paths` (list, default=NULL): Ordered path segment specs with path ref, lineage key, segment ID, labels, and order.
 - `composite_id` (string, default=NULL): Optional trajectory_composite_id shared with a segmented pseudotime join.
@@ -1319,6 +1515,9 @@ Produces:
 
 Promotable outputs: curves
 
+Replay equivalence:
+- `curves`: `exact_canonical_value`
+
 Key parameters:
 - `stretch` (dbl, default=NULL): Optional override of stretch during embedding.
 - `shrink` (dbl, default=NULL): Optional override of shrink during embedding.
@@ -1342,6 +1541,11 @@ Produces:
 - `model`: model_ref [terminal artifact] - Session-chainable monocle3 CDS model (engine='monocle3').
 
 Promotable outputs: pseudotime, branch_membership, model
+
+Replay equivalence:
+- `pseudotime`: `exact_canonical_value`
+- `branch_membership`: `exact_canonical_value`
+- `model`: `loadable_reference`
 
 Key parameters:
 - `dims` (string_vec, default=NULL): Optional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).
@@ -1376,6 +1580,9 @@ Produces:
 
 Promotable outputs: curves
 
+Replay equivalence:
+- `curves`: `exact_canonical_value`
+
 Key parameters:
 - `approx_points` (int, default=200): Target max curve points per lineage for display (0/NULL = no compaction).
 
@@ -1396,6 +1603,10 @@ Produces:
 - `model`: model_ref [terminal artifact] - Serialized PeakVI Python model payload (engine='peakvi').
 
 Promotable outputs: model
+
+Replay equivalence:
+- `space`: `exact_canonical_value`
+- `model`: `loadable_reference`
 
 Key parameters:
 - `n_latent` (int, default=20): Target latent dimensionality for the emitted PeakVI space.
@@ -1428,6 +1639,11 @@ Produces:
 - `fit_summary`: obs_table [terminal artifact] - Training summary, parameter, runtime, and metric table emitted by pybench.
 
 Promotable outputs: model, fit_summary
+
+Replay equivalence:
+- `space`: `exact_canonical_value`
+- `model`: `loadable_reference`
+- `fit_summary`: `exact_canonical_value`
 
 Key parameters:
 - `n_latent` (int, default=30): Target latent dimensionality for the emitted scVI space.
@@ -1465,6 +1681,10 @@ Produces:
 
 Promotable outputs: fit_summary
 
+Replay equivalence:
+- `space`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
+
 Key parameters:
 - `batch_key` (string, default=NULL): Optional observation field used as the PeakVI batch covariate during projection.
 - `use_gpu` (bool, default=FALSE): If TRUE, request GPU-backed model loading/projection in scvi-tools.
@@ -1486,6 +1706,9 @@ Produces:
 - `path`: space_path_family [terminal artifact] - Analytical path in the original latent space.
 
 Promotable outputs: path
+
+Replay equivalence:
+- `path`: `exact_canonical_value`
 
 Key parameters:
 - `checkpoint_sets` (string_vec, default=NULL): Ordered checkpoint cell-set refs that anchor the path definition.
@@ -1516,6 +1739,10 @@ Produces:
 
 Promotable outputs: path_scores, fit_summary
 
+Replay equivalence:
+- `path_scores`: `exact_canonical_value`
+- `fit_summary`: `exact_canonical_value`
+
 Key parameters:
 - `score_mode` (choice, default=orthogonal_projection): Scoring mode. The current implementation standardizes on orthogonal projection semantics.
 - `distance_metric` (choice, default=euclidean): Distance metric used for path-relative scoring.
@@ -1538,6 +1765,9 @@ Produces:
 - `curves`: path_2d_family [terminal artifact] - Approximate 2D rendering of the analytical path.
 
 Promotable outputs: curves
+
+Replay equivalence:
+- `curves`: `exact_canonical_value`
 
 Key parameters:
 - `project_mode` (choice, default=local_interpolation): Projection mode used to approximate the analytical path in a 2D plot space.
@@ -1563,6 +1793,13 @@ Produces:
 - `model`: model_ref [terminal artifact] - Palantir Python model payload (engine='palantir').
 
 Promotable outputs: pseudotime, branch_membership, branch_summary, entropy, model
+
+Replay equivalence:
+- `pseudotime`: `exact_canonical_value`
+- `branch_membership`: `exact_canonical_value`
+- `branch_summary`: `exact_canonical_value`
+- `entropy`: `exact_canonical_value`
+- `model`: `loadable_reference`
 
 Key parameters:
 - `root_cell` (string, default=NULL): Single Palantir early/root cell ID (Palantir-native single-root semantics).
@@ -1591,6 +1828,9 @@ Produces:
 - `curves`: path_2d_family [terminal artifact] - Palantir-style smoothed branch trajectories projected into the chosen 2D display space.
 
 Promotable outputs: curves
+
+Replay equivalence:
+- `curves`: `exact_canonical_value`
 
 Key parameters:
 - `prob_min` (dbl, default=0.05): Minimum branch probability mask threshold for branch trajectory interpolation.

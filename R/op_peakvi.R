@@ -173,13 +173,7 @@ wb_op_peakvi_fit <- function(bundle,
   rec <- bridge$receipt
 
   sp <- wb_space(bundle, space_id = space_id_out, cells = cells)
-  X <- if (is.data.frame(sp) && all(c("cell_id", "dim", "value") %in% colnames(sp))) {
-    .wb_as_coord_matrix(sp)
-  } else if (is.data.frame(sp)) {
-    as.matrix(sp)
-  } else {
-    sp
-  }
+  X <- if (is.data.frame(sp)) .wb_as_coord_matrix(sp) else sp
   .wb_assert(is.matrix(X), "peakvi_fit: emitted space could not be resolved as a matrix.")
   .wb_assert(nrow(X) == length(cells), "peakvi_fit: latent space cell count mismatch.")
   .wb_assert(ncol(X) == n_latent, "peakvi_fit: latent space dimensionality mismatch.")
@@ -284,13 +278,7 @@ wb_op_peakvi_project <- function(bundle,
   rec <- bridge$receipt
 
   sp <- wb_space(bundle, space_id = space_id_out, cells = cells)
-  X <- if (is.data.frame(sp) && all(c("cell_id", "dim", "value") %in% colnames(sp))) {
-    .wb_as_coord_matrix(sp)
-  } else if (is.data.frame(sp)) {
-    as.matrix(sp)
-  } else {
-    sp
-  }
+  X <- if (is.data.frame(sp)) .wb_as_coord_matrix(sp) else sp
   .wb_assert(is.matrix(X), "peakvi_project: emitted space could not be resolved as a matrix.")
   .wb_assert(nrow(X) == length(cells), "peakvi_project: latent space cell count mismatch.")
 
