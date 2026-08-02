@@ -36,7 +36,15 @@
     keep <- !is.na(ii)
     df <- df[ii[keep], , drop = FALSE]   # preserves requested order
     # Note: missing cells are silently dropped (projection-friendly)
+  } else {
+    canonical <- .wb_order_like_bundle(bundle, as.character(df$cell_id))
+    df <- df[match(canonical, as.character(df$cell_id)), , drop = FALSE]
   }
+
+  # Keep the plotting-oriented table in the same canonical cell order/identity
+  # convention as wb_space(); callers that convert it to a matrix must not
+  # inherit positional data-frame row names.
+  rownames(df) <- as.character(df$cell_id)
 
   df
 }
@@ -74,4 +82,3 @@
 
   ord
 }
-

@@ -303,12 +303,33 @@ identity.
 
 Matrix identities SHA-256 the ordered fragment registry plus each durable
 fragment file digest, so verification does not read a dense matrix. Space
-identities hash their ordered durable coordinates; model references hash their
-canonical reference plus durable model payload file/tree digest. Promoted
+identities hash their ordered durable coordinates. Model `content_sha256` is
+the raw durable model file/tree byte identity; its canonical engine/input/output
+reference is recorded separately for replay equivalence. Promoted
 materializations also retain a SHA-256 of their persisted RDS payload. Replay
-requires equal content SHA-256 for `verification_level = content`; structural
-comparison is retained only for legacy/unsupported records and is labeled
-`legacy_structural_only` or `structural_only`, never content-verified.
+never changes those payload-integrity identities.
+
+### Replay equivalence
+
+Every registered operation output declares a replay-equivalence policy. The
+generic vocabulary is `exact_content`, `exact_canonical_value`,
+`loadable_reference`, and `not_comparable`. Deterministic matrices, tables,
+cell vectors, and spaces default to `exact_canonical_value`; model references
+default to `loadable_reference` unless an operation declares another policy.
+`umap_fit` explicitly declares `space_2d = exact_canonical_value` and
+`model = loadable_reference`.
+
+For a UMAP model, replay validates the canonical engine/model-space/input-space
+reference and loads the replayed uwot payload. It records both original and
+replayed raw SHA-256 values without treating byte-distinct serialized models as
+scientifically equal. The UMAP coordinates must still match their exact
+canonical value. Results are durable in `prov_replay_equivalence_results` and
+available through `wb_prov_replay_equivalence_results()`.
+
+Rows from provenance schemas that predate the policy fields migrate to
+`not_comparable`/`legacy_not_comparable`; they remain inspectable and retain
+their old structural/content evidence, but are never silently upgraded to a
+scientific replay claim.
 
 During transitive promotion, identity resolution is lifecycle-aware: a
 prepared workspace mapping is authoritative over both the session overlay and
@@ -319,6 +340,20 @@ durable tree. Space coordinates are copied transactionally before their
 identity is recorded. A genuinely missing path is a hard error naming the
 primitive, lifecycle context, and attempted paths—there is no structural
 fallback for a staged scientific payload.
+
+### Targeted reproduction
+
+`wb_target_reproduction_plan()` resolves `artifact:`, `matrix:`, `space:`,
+`model:`, or `run:` targets to an ancestor-induced cross-snapshot closure. Its
+typed subgraph includes immutable source boundaries, durable entities, the
+selected runs, and co-produced terminal outputs. `wb_target_emit_r_script()`
+requires a distinct existing writable ingestion-ready clone, rejects missing
+boundaries and durable-output collisions, replays only that closure, promotes
+the target terminals, and records verification under each output's declared
+replay-equivalence policy.
+
+Branch-generation APIs are not currently exposed. Targeted reproduction emits
+an executable replay script; it does not create a source-control branch.
 
 Every committed closure must record at minimum:
 

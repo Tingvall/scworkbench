@@ -28,7 +28,8 @@ test_payload_content_identity_contract <- function() {
   model <- wb_prim_model_ref("identity_umap", "identity_matrix", engine = "test")
   model$model_path <- file.path("models", "identity_model.rds")
   model_id <- scworkbench:::.wb_prov_payload_identity(b, model)
-  stopifnot(identical(matrix_id$verification_level, "content"), identical(space_id$verification_level, "content"), identical(model_id$verification_level, "content"))
+  stopifnot(identical(matrix_id$verification_level, "content"), identical(space_id$verification_level, "content"), identical(model_id$verification_level, "content"),
+            identical(model_id$content_sha256, scworkbench:::.wb_prov_file_tree_sha256(file.path(root, "models", "identity_model.rds"))))
 
   s <- wb_session_new()
   p <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "perturbation", vector_name = "identity_perturbation", value_type = "categorical", missing_policy = "error", overwrite = TRUE, cell_set = "all", min_cells = 1L)); s <- p$session
@@ -54,5 +55,10 @@ test_payload_content_identity_contract <- function() {
   DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET content_sha256 = NULL, verification_level = 'structural', verification_status = 'legacy_structural_only' WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
   detail <- wb_prov_run_details(b, run_id = a$run$run_id, snapshot_id = sid)$outputs
   stopifnot(identical(as.character(detail$verification_status[detail$output_name == "detail"]), "legacy_structural_only"))
+  DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET replay_equivalence_policy = NULL, replay_equivalence_status = NULL WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
+  scworkbench:::.wb_migrate_provenance_tables(b$con)
+  legacy_replay <- DBI::dbGetQuery(b$con, "SELECT replay_equivalence_policy, replay_equivalence_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
+  stopifnot(identical(as.character(legacy_replay$replay_equivalence_policy[1]), "not_comparable"),
+            identical(as.character(legacy_replay$replay_equivalence_status[1]), "legacy_not_comparable"))
   TRUE
 }

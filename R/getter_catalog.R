@@ -593,6 +593,36 @@
       use_when = c("render a connected artifact/run lineage across promotions", "show bundle-level provenance in Shiny or agents", "trace analysis chains that continue from promoted artifacts")
     ),
     list(
+      function_name = "wb_target_reproduction_plan",
+      title = "Target Reproduction Plan",
+      category = "provenance",
+      description = "Resolve an artifact, matrix, space, model, or run DAG node into its minimal cross-snapshot replay closure.",
+      returns = "wb_target_reproduction_plan",
+      payload_level = "metadata",
+      arguments = c("bundle", "target"),
+      use_when = c("export the minimum reproducible path to a durable result", "distinguish imported source state from engine-reproducible output")
+    ),
+    list(
+      function_name = "wb_target_emit_r_script",
+      title = "Target Reproduction Script",
+      category = "provenance",
+      description = "Emit a replay-and-promotion script for a target reproduction plan and writable execution clone.",
+      returns = "character",
+      payload_level = "metadata",
+      arguments = c("plan", "execution_bundle_dir"),
+      use_when = c("hand off a target-specific reproducible analysis path")
+    ),
+    list(
+      function_name = "wb_prov_replay_equivalence_results",
+      title = "Replay Equivalence Results",
+      category = "provenance",
+      description = "List target-reproduction equivalence results with separate original and replayed payload SHA-256 identities.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "replay_snapshot_id"),
+      use_when = c("audit scientific replay equality separately from stored-payload integrity")
+    ),
+    list(
       function_name = "wb_prov_artifact_lineage",
       title = "Composed Artifact Lineage",
       category = "provenance",

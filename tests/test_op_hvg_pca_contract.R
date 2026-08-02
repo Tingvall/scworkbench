@@ -15,7 +15,7 @@ test_op_hvg_pca_contract <- function() {
     unlink(tmp, recursive = TRUE, force = TRUE)
   }, add = TRUE)
 
-  cells <- paste0("c", seq_len(8))
+  cells <- paste0("cell_", letters[seq_len(8)])
   wb_define_cells(b, cells)
 
   mat <- Matrix::Matrix(
@@ -112,7 +112,9 @@ test_op_hvg_pca_contract <- function() {
   coords <- wb_space(wb_session_view(rr_pca$session), "rna.pca")
   stopifnot(is.data.frame(coords), nrow(coords) == 8L)
   stopifnot(all(c("cell_id", "x", "y") %in% names(coords)))
-  stopifnot(all(is.finite(coords$x)), all(is.finite(coords$y)))
+  stopifnot(all(is.finite(coords$x)), all(is.finite(coords$y)),
+            identical(as.character(coords$cell_id), cells),
+            identical(rownames(coords), cells))
 
   loadings <- rr_pca$run$outputs$loadings
   variance <- rr_pca$run$outputs$variance
@@ -143,13 +145,39 @@ test_op_hvg_pca_contract <- function() {
             grepl("^[0-9a-f]{64}$", as.character(pca_space_identity$content_sha256[1])))
   wb_close_bundle(b); b <- wb_open_bundle(tmp)
   stopifnot("rna.pca" %in% as.character(wb_spaces(b)$space_id))
-  stopifnot(nrow(wb_space(b, "rna.pca")) == length(cells))
+  persisted_pca_ids <- DBI::dbGetQuery(
+    b$con, "SELECT cell_id FROM space_2d WHERE space_id = ? ORDER BY rowid;",
+    params = list("rna.pca")
+  )$cell_id
+  durable_pca <- wb_space(b, "rna.pca")
+  stopifnot(nrow(durable_pca) == length(cells),
+            identical(as.character(persisted_pca_ids), cells),
+            identical(as.character(durable_pca$cell_id), cells),
+            identical(rownames(durable_pca), cells))
   for (output in c("loadings", "variance", "fit_summary")) {
     aid <- as.character(pca_ok$artifact_id[as.character(pca_ok$output) == output][1])
     stopifnot(nzchar(aid), inherits(wb_art_load(b, aid), "wb_primitive"))
   }
   stopifnot(all(as.character(pca_ok$lineage_status) == "complete"))
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
+
+  # PCA with two components uses the generic wb_add_space() wide writer.  A
+  # separate promoted UMAP session must consume its exact canonical IDs and
+  # retain them through the direct UMAP space_2d writer after reopen.
+  if (requireNamespace("uwot", quietly = TRUE)) {
+    rr_umap <- wb_session_run_op(
+      wb_session_new(), b, "umap_fit",
+      inputs = list(space = "rna.pca", cell_set = "all", min_cells = 1L,
+                    dims = 1:2, space_id_out = "rna.umap", n_neighbors = 3L,
+                    min_dist = 0.1, metric = "euclidean", nn_method = "annoy", seed = 1L)
+    )
+    wb_session_promote_current(b, rr_umap$session, outputs = c("model", "space_2d"))
+    wb_close_bundle(b); b <- wb_open_bundle(tmp)
+    durable_umap <- wb_space(b, "rna.umap", cells = cells)
+    stopifnot(identical(as.character(durable_umap$cell_id), cells),
+              identical(rownames(durable_umap), cells),
+              isTRUE(wb_validate_bundle(tmp)))
+  }
 
   # A durable ancestor may be reused, but a different run must not replace its
   # committed matrix merely because the session overlay permits overwrite.

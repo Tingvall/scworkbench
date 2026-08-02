@@ -140,6 +140,10 @@ Contract intent:
 - `wb_cells()` returns ordered `cell_id` vectors.
 - `wb_meta(bundle, cells=...)` aligns rows to requested `cells` order.
 - `wb_space(bundle, cells=...)` aligns outputs to requested `cells` order.
+- `wb_space(bundle)` uses canonical all-bundle cell order restricted to cells
+  present in that space. A 2D result remains a `cell_id,x,y` table and also has
+  `rownames == cell_id`; numerical consumers use the canonical coordinate
+  converter rather than `as.matrix()` on that table.
 
 ### Coverage Helpers
 

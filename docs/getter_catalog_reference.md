@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-07-30T15:25:20+0200
+Generated at: 2026-08-02T14:13:54+0200
 
-Getter count: 72
+Getter count: 75
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -865,6 +865,52 @@ Use when:
 - render a connected artifact/run lineage across promotions
 - show bundle-level provenance in Shiny or agents
 - trace analysis chains that continue from promoted artifacts
+
+### `wb_target_reproduction_plan`
+
+Title: Target Reproduction Plan
+
+Description: Resolve an artifact, matrix, space, model, or run DAG node into its minimal cross-snapshot replay closure.
+
+Returns: wb_target_reproduction_plan
+
+Payload level: metadata
+
+Arguments: bundle, target
+
+Use when:
+- export the minimum reproducible path to a durable result
+- distinguish imported source state from engine-reproducible output
+
+### `wb_target_emit_r_script`
+
+Title: Target Reproduction Script
+
+Description: Emit a replay-and-promotion script for a target reproduction plan and writable execution clone.
+
+Returns: character
+
+Payload level: metadata
+
+Arguments: plan, execution_bundle_dir
+
+Use when:
+- hand off a target-specific reproducible analysis path
+
+### `wb_prov_replay_equivalence_results`
+
+Title: Replay Equivalence Results
+
+Description: List target-reproduction equivalence results with separate original and replayed payload SHA-256 identities.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, replay_snapshot_id
+
+Use when:
+- audit scientific replay equality separately from stored-payload integrity
 
 ### `wb_prov_artifact_lineage`
 

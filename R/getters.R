@@ -408,9 +408,14 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
   dims_total <- as.integer(.wb_nonempty_or(info$dims, NA_integer_))
 
   if (grepl("^wide:space_2d", storage) || (!is.na(dims_total) && dims_total == 2 && .wb_table_exists(con, "space_2d"))) {
-    df <- DBI::dbGetQuery(con,
-                          "SELECT cell_id, x, y FROM space_2d WHERE space_id = ?;",
-                          params = list(space_id)
+    df <- DBI::dbGetQuery(
+      con,
+      "SELECT s.cell_id, s.x, s.y
+       FROM space_2d s
+       INNER JOIN cells c ON c.cell_id = s.cell_id
+       WHERE s.space_id = ?
+       ORDER BY c.rowid;",
+      params = list(space_id)
     )
 
     if (!is.null(cells)) {
@@ -418,6 +423,12 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
       .wb_assert(!anyNA(ii), "Some requested cells not found in space_2d for this space_id.")
       df <- df[ii, , drop = FALSE]
     }
+
+    # A 2D space is returned as a table for plotting compatibility, but it
+    # remains a cell-indexed coordinate object.  Preserve the canonical IDs
+    # as row names so operation consumers cannot silently fall back to
+    # positional `1:n` identities after reopen.
+    rownames(df) <- as.character(df$cell_id)
 
     return(df)
   }
@@ -450,8 +461,10 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
   .wb_assert(nrow(df) > 0, paste0("No coords found for space_id: ", space_id))
 
   if (is.null(cells)) {
-    # Use canonical cell order if available: bundle cells order
-    cells <- wb_cells(bundle)
+    # Omitted order means canonical bundle order, restricted to cells that
+    # actually occur in this space.  Do not manufacture all-bundle NA rows.
+    canonical <- wb_cells(bundle, cell_set = "all")
+    cells <- canonical[canonical %in% unique(as.character(df$cell_id))]
     df <- df[df$cell_id %in% cells, , drop = FALSE]
   } else {
     df <- df[df$cell_id %in% cells, , drop = FALSE]

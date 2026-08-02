@@ -99,6 +99,25 @@
   )
 }
 
+.wb_ucell_align_score_rows <- function(score_df, cells) {
+  .wb_assert(is.data.frame(score_df), "UCell scoring must return a data.frame-like object.")
+  cells <- as.character(cells)
+  returned <- rownames(score_df)
+  .wb_assert(!is.null(returned) && length(returned) == nrow(score_df),
+             "UCell returned scores without explicit cell row names.")
+  returned <- as.character(returned)
+  .wb_assert(all(nzchar(returned)), "UCell returned one or more empty cell row names.")
+  .wb_assert(!anyDuplicated(returned), "UCell returned duplicate cell row names.")
+  .wb_assert(!anyDuplicated(cells), "Requested UCell cells contain duplicate identities.")
+  unexpected <- setdiff(returned, cells)
+  .wb_assert(!length(unexpected), "UCell returned one or more unexpected cell identities.")
+  ii <- match(cells, returned)
+  .wb_assert(!anyNA(ii), "UCell returned scores missing one or more requested cells.")
+  score_df <- score_df[ii, , drop = FALSE]
+  rownames(score_df) <- cells
+  score_df
+}
+
 wb_op_ucell <- function(bundle,
                         matrix_id,
                         features,
@@ -217,17 +236,13 @@ wb_op_ucell <- function(bundle,
   )
 
   if (is.matrix(score_df)) score_df <- as.data.frame(score_df, stringsAsFactors = FALSE)
-  .wb_assert(is.data.frame(score_df), "UCell scoring must return a data.frame-like object.")
+  score_df <- .wb_ucell_align_score_rows(score_df, cells)
 
   score_cols <- intersect(signature_names, colnames(score_df))
   .wb_assert(length(score_cols) == length(signature_names),
              "UCell scoring did not return one column per requested signature.")
 
   score_df <- score_df[, signature_names, drop = FALSE]
-  if (is.null(rownames(score_df)) || !length(rownames(score_df))) {
-    rownames(score_df) <- cells
-  }
-
   score_key <- character(0)
   score_cell <- character(0)
   score_value <- numeric(0)

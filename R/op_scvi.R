@@ -136,13 +136,7 @@
 
 .wb_scvi_space_matrix <- function(bundle, space_id, cells) {
   sp <- wb_space(bundle, space_id = space_id, cells = cells)
-  if (is.data.frame(sp) && all(c("cell_id", "dim", "value") %in% colnames(sp))) {
-    .wb_as_coord_matrix(sp)
-  } else if (is.data.frame(sp)) {
-    as.matrix(sp)
-  } else {
-    sp
-  }
+  if (is.data.frame(sp)) .wb_as_coord_matrix(sp) else sp
 }
 
 wb_op_scvi_train <- function(bundle,

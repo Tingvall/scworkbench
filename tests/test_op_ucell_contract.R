@@ -36,6 +36,16 @@ test_op_ucell_contract <- function() {
   stopifnot("parallel_backend" %in% vapply(iface$params, `[[`, character(1), "name"))
   stopifnot("ucell" %in% wb_list_ops())
 
+  permuted <- data.frame(sig_a = c(3, 1, 4, 2), row.names = c("c3", "c1", "c4", "c2"))
+  aligned <- .wb_ucell_align_score_rows(permuted, cells)
+  stopifnot(identical(rownames(aligned), cells), identical(as.numeric(aligned$sig_a), c(1, 2, 3, 4)))
+  stopifnot(inherits(try(.wb_ucell_align_score_rows(permuted[c(1, 2, 4), , drop = FALSE], cells), silent = TRUE), "try-error"))
+  unexpected <- rbind(permuted, data.frame(sig_a = 5, row.names = "not_requested"))
+  stopifnot(inherits(try(.wb_ucell_align_score_rows(unexpected, cells), silent = TRUE), "try-error"))
+  duplicated <- permuted
+  attr(duplicated, "row.names") <- c("c3", "c1", "c4", "c4")
+  stopifnot(inherits(try(.wb_ucell_align_score_rows(duplicated, cells), silent = TRUE), "try-error"))
+
   raw <- wb_op_ucell(
     bundle = b,
     matrix_id = "RNA_counts",
