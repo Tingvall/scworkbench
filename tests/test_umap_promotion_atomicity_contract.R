@@ -1,7 +1,6 @@
 test_umap_promotion_atomicity_contract <- function() {
   if (!requireNamespace("uwot", quietly = TRUE)) {
-    message("Skipping UMAP promotion atomicity contract: uwot unavailable.")
-    return(TRUE)
+    return(contract_test_skip("uwot is not installed."))
   }
 
   root <- tempfile("scwb_umap_promotion_atomicity_")

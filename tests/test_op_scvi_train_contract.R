@@ -17,8 +17,11 @@ test_op_scvi_train_contract <- function(bundle_dir = NULL) {
   stopifnot(identical(as.integer(params$n_hidden$default), 128L))
   stopifnot(identical(as.integer(params$n_layers$default), 2L))
 
-  if (!requireNamespace("BPCells", quietly = TRUE)) return(TRUE)
-  if (!requireNamespace("Matrix", quietly = TRUE)) return(TRUE)
+  required <- c("BPCells", "Matrix")
+  missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing)) {
+    return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
+  }
 
   tmp <- tempfile("scwb_scvi_contract_")
   b <- wb_init_bundle(tmp, overwrite = TRUE)

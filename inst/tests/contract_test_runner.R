@@ -1,0 +1,226 @@
+contract_test_skip <- function(reason) {
+  if (is.null(reason)) reason <- ""
+  reason <- as.character(reason)
+  if (length(reason) != 1L || is.na(reason) || !nzchar(trimws(reason))) {
+    stop("A contract-test skip requires one non-empty reason.", call. = FALSE)
+  }
+  structure(list(reason = trimws(reason)), class = "scworkbench_contract_skip")
+}
+
+contract_test_signature <- function(fn, test_name) {
+  if (!is.function(fn)) {
+    stop("Declared contract test is not a function: ", test_name, call. = FALSE)
+  }
+
+  fml <- formals(fn)
+  formal_names <- names(fml)
+  if (is.null(formal_names)) formal_names <- character()
+  if ("..." %in% formal_names) {
+    stop("Unknown contract-test signature for ", test_name,
+         ": variadic arguments are not supported.", call. = FALSE)
+  }
+  if ("bundle_dir" %in% formal_names && !identical(formal_names[[1L]], "bundle_dir")) {
+    stop("Unknown contract-test signature for ", test_name,
+         ": bundle_dir must be the first argument.", call. = FALSE)
+  }
+
+  has_default <- vapply(fml, function(value) nzchar(paste(deparse(value), collapse = "")), logical(1))
+  required <- formal_names[!has_default]
+  uses_bundle <- length(formal_names) > 0L && identical(formal_names[[1L]], "bundle_dir")
+  allowed_required <- if (uses_bundle) "bundle_dir" else character()
+  unknown_required <- setdiff(required, allowed_required)
+  if (length(unknown_required)) {
+    stop("Unknown contract-test signature for ", test_name,
+         ": unsupported required argument(s): ",
+         paste(unknown_required, collapse = ", "), ".", call. = FALSE)
+  }
+
+  list(
+    kind = if (uses_bundle) "isolated_bundle" else "self_contained",
+    uses_bundle = uses_bundle,
+    formals = formal_names
+  )
+}
+
+contract_test_discover <- function(test_dir, exclusions = character(), parent_env = globalenv()) {
+  test_dir <- normalizePath(test_dir, winslash = "/", mustWork = TRUE)
+  files <- sort(list.files(test_dir, pattern = "^test_.*\\.R$", full.names = TRUE))
+  if (!length(files)) stop("No contract test files discovered in ", test_dir, call. = FALSE)
+
+  if (is.null(names(exclusions))) names(exclusions) <- rep("", length(exclusions))
+  if (length(exclusions) && (any(!nzchar(names(exclusions))) || any(!nzchar(trimws(exclusions))))) {
+    stop("Every intentional exclusion must be named and have a non-empty reason.", call. = FALSE)
+  }
+  if (anyDuplicated(names(exclusions))) {
+    stop("Duplicate intentional exclusion names: ",
+         paste(unique(names(exclusions)[duplicated(names(exclusions))]), collapse = ", "),
+         call. = FALSE)
+  }
+
+  records <- list()
+  files_without_tests <- character()
+  for (path in files) {
+    file_env <- new.env(parent = parent_env)
+    sys.source(path, envir = file_env, keep.source = TRUE)
+    declared <- sort(ls(file_env, pattern = "^test_", all.names = TRUE))
+    if (!length(declared)) {
+      files_without_tests <- c(files_without_tests, basename(path))
+      next
+    }
+    for (test_name in declared) {
+      fn <- get(test_name, envir = file_env, inherits = FALSE)
+      signature <- contract_test_signature(fn, test_name)
+      records[[length(records) + 1L]] <- list(
+        name = test_name,
+        file = normalizePath(path, winslash = "/", mustWork = TRUE),
+        fn = fn,
+        signature = signature,
+        excluded_reason = if (test_name %in% names(exclusions)) unname(exclusions[[test_name]]) else NA_character_
+      )
+    }
+  }
+
+  if (length(files_without_tests)) {
+    stop("Contract test file(s) declare no top-level test_* function: ",
+         paste(files_without_tests, collapse = ", "), call. = FALSE)
+  }
+
+  discovered_names <- vapply(records, `[[`, character(1), "name")
+  duplicates <- unique(discovered_names[duplicated(discovered_names)])
+  if (length(duplicates)) {
+    locations <- vapply(duplicates, function(test_name) {
+      paths <- vapply(records[discovered_names == test_name], `[[`, character(1), "file")
+      paste0(test_name, " [", paste(basename(paths), collapse = ", "), "]")
+    }, character(1))
+    stop("Duplicate contract test name(s): ", paste(locations, collapse = "; "), call. = FALSE)
+  }
+
+  stale_exclusions <- setdiff(names(exclusions), discovered_names)
+  if (length(stale_exclusions)) {
+    stop("Stale intentional exclusion(s): ", paste(stale_exclusions, collapse = ", "), call. = FALSE)
+  }
+
+  order_index <- order(vapply(records, `[[`, character(1), "file"), discovered_names)
+  records <- records[order_index]
+  structure(
+    list(test_dir = test_dir, files = files, tests = records, exclusions = exclusions),
+    class = "scworkbench_contract_inventory"
+  )
+}
+
+contract_test_copy_bundle <- function(baseline_bundle_dir, root, test_name, index) {
+  parent <- file.path(root, sprintf("%03d_%s", index, gsub("[^A-Za-z0-9_.-]+", "_", test_name)))
+  dir.create(parent, recursive = TRUE, showWarnings = FALSE)
+  ok <- file.copy(baseline_bundle_dir, parent, recursive = TRUE)
+  if (!isTRUE(ok)) stop("Failed to copy baseline bundle for test: ", test_name, call. = FALSE)
+  normalizePath(file.path(parent, basename(baseline_bundle_dir)), winslash = "/", mustWork = TRUE)
+}
+
+contract_test_execute <- function(inventory, baseline_bundle_dir = NULL, reporter = TRUE) {
+  if (!inherits(inventory, "scworkbench_contract_inventory")) {
+    stop("inventory must come from contract_test_discover().", call. = FALSE)
+  }
+  bundle_tests <- vapply(inventory$tests, function(record) record$signature$uses_bundle, logical(1))
+  if (any(bundle_tests)) {
+    if (is.null(baseline_bundle_dir)) {
+      stop("A baseline bundle is required by discovered bundle_dir tests.", call. = FALSE)
+    }
+    baseline_bundle_dir <- normalizePath(baseline_bundle_dir, winslash = "/", mustWork = TRUE)
+  }
+
+  bundle_root <- tempfile("scworkbench_contract_bundles_", tmpdir = "/tmp")
+  dir.create(bundle_root, recursive = TRUE, showWarnings = FALSE)
+  on.exit(unlink(bundle_root, recursive = TRUE, force = TRUE), add = TRUE)
+
+  results <- vector("list", length(inventory$tests))
+  for (index in seq_along(inventory$tests)) {
+    record <- inventory$tests[[index]]
+    if (!is.na(record$excluded_reason)) {
+      results[[index]] <- data.frame(
+        name = record$name, file = basename(record$file), signature = record$signature$kind,
+        status = "excluded", reason = record$excluded_reason, elapsed_seconds = 0,
+        stringsAsFactors = FALSE
+      )
+      if (reporter) cat("EXCLUDED ", record$name, " -- ", record$excluded_reason, "\n", sep = "")
+      next
+    }
+
+    isolated_parent <- NULL
+    args <- list()
+    if (record$signature$uses_bundle) {
+      isolated_bundle <- contract_test_copy_bundle(baseline_bundle_dir, bundle_root, record$name, index)
+      isolated_parent <- dirname(isolated_bundle)
+      args$bundle_dir <- isolated_bundle
+    }
+    if (reporter) {
+      cat("RUN ", record$name, " [", basename(record$file), "; ", record$signature$kind, "]\n", sep = "")
+    }
+
+    started <- proc.time()[["elapsed"]]
+    value <- tryCatch(
+      do.call(record$fn, args),
+      error = function(error) structure(list(message = conditionMessage(error)), class = "scworkbench_contract_failure")
+    )
+    elapsed <- proc.time()[["elapsed"]] - started
+    if (!is.null(isolated_parent)) unlink(isolated_parent, recursive = TRUE, force = TRUE)
+
+    if (inherits(value, "scworkbench_contract_skip")) {
+      status <- "skipped"
+      reason <- value$reason
+      if (reporter) cat("SKIP ", record$name, " -- ", reason, "\n", sep = "")
+    } else if (inherits(value, "scworkbench_contract_failure")) {
+      status <- "failed"
+      reason <- value$message
+      if (reporter) cat("FAIL ", record$name, " -- ", reason, "\n", sep = "")
+    } else if (!isTRUE(value)) {
+      status <- "failed"
+      reason <- "contract did not return TRUE"
+      if (reporter) cat("FAIL ", record$name, " -- ", reason, "\n", sep = "")
+    } else {
+      status <- "passed"
+      reason <- ""
+      if (reporter) cat("PASS ", record$name, sprintf(" (%.3fs)\n", elapsed), sep = "")
+    }
+    results[[index]] <- data.frame(
+      name = record$name, file = basename(record$file), signature = record$signature$kind,
+      status = status, reason = reason, elapsed_seconds = elapsed,
+      stringsAsFactors = FALSE
+    )
+  }
+
+  result <- do.call(rbind, results)
+  rownames(result) <- NULL
+  discovered <- length(inventory$tests)
+  excluded <- sum(result$status == "excluded")
+  executed <- discovered - excluded
+  passed <- sum(result$status == "passed")
+  skipped <- sum(result$status == "skipped")
+  failed <- sum(result$status == "failed")
+  accounted <- passed + skipped + failed + excluded
+  if (!identical(accounted, discovered) || !identical(executed, passed + skipped + failed)) {
+    stop("Internal contract-runner accounting mismatch.", call. = FALSE)
+  }
+  if (anyDuplicated(result$name) || !setequal(result$name, vapply(inventory$tests, `[[`, character(1), "name"))) {
+    stop("Internal contract-runner execution inventory mismatch.", call. = FALSE)
+  }
+
+  summary <- c(
+    files = length(inventory$files), discovered = discovered, executed = executed,
+    passed = passed, skipped = skipped, failed = failed, excluded = excluded,
+    accounted = accounted
+  )
+  if (reporter) {
+    cat("CONTRACT TEST SUMMARY ",
+        paste(names(summary), summary, sep = "=", collapse = " "), "\n", sep = "")
+  }
+  structure(list(results = result, summary = summary), class = "scworkbench_contract_run")
+}
+
+contract_test_assert_success <- function(run) {
+  failed <- run$results[run$results$status == "failed", , drop = FALSE]
+  if (nrow(failed)) {
+    details <- paste0(failed$name, " [", failed$file, "]: ", failed$reason)
+    stop("Contract suite failed:\n- ", paste(details, collapse = "\n- "), call. = FALSE)
+  }
+  invisible(TRUE)
+}

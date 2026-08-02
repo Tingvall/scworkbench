@@ -2,8 +2,7 @@ test_op_chromvar_contract <- function(bundle_dir) {
   if (!requireNamespace("chromVAR", quietly = TRUE) ||
       !requireNamespace("motifmatchr", quietly = TRUE) ||
       !requireNamespace("BSgenome.Hsapiens.UCSC.hg19", quietly = TRUE)) {
-    message("Skipping chromvar contract test: chromVAR motif dependencies not installed.")
-    return(TRUE)
+    return(contract_test_skip("One or more chromVAR motif dependencies are not installed."))
   }
 
   tmp <- tempfile("scwb_chromvar_contract_")

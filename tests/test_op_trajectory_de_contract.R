@@ -1,7 +1,6 @@
 test_op_trajectory_de_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_de contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -41,6 +40,20 @@ test_op_trajectory_de_contract <- function(bundle_dir) {
   }
   stopifnot(is.character(fit_space_id), length(fit_space_id) == 1L, nzchar(fit_space_id))
 
+  # Durable registry inputs must exist before the session overlay is created.
+  fs_name <- ".__test_trajectory_de_feature_set__."
+  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
+  fs_feats <- unique(as.character(feats[1:8]))
+  wb_feature_set_replace(
+    bundle = b,
+    feature_set = fs_name,
+    matrix_id = matrix_id,
+    feature_ids = fs_feats,
+    created_by = "test",
+    description = "trajectory_de contract test feature set",
+    strict = TRUE
+  )
+
   s <- wb_session_new()
   x1 <- wb_session_run_op(
     session = s,
@@ -75,20 +88,6 @@ test_op_trajectory_de_contract <- function(bundle_dir) {
   stopifnot(inherits(pt, "wb_primitive"), identical(as.character(pt$kind), "cell_vector_family"))
   lineage <- as.character(unique(pt$key))[1]
   stopifnot(nzchar(lineage))
-
-  # Build a temporary feature set for trajectory_de input contract checks.
-  fs_name <- ".__test_trajectory_de_feature_set__."
-  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
-  fs_feats <- unique(as.character(feats[1:8]))
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_name,
-    matrix_id = matrix_id,
-    feature_ids = fs_feats,
-    created_by = "test",
-    description = "trajectory_de contract test feature set",
-    strict = TRUE
-  )
 
   x3 <- wb_session_run_op(
     session = s,

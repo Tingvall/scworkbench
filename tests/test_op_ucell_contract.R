@@ -1,7 +1,6 @@
 test_op_ucell_contract <- function() {
   if (!requireNamespace("UCell", quietly = TRUE)) {
-    message("Skipping ucell contract test: UCell not installed.")
-    return(TRUE)
+    return(contract_test_skip("UCell is not installed."))
   }
 
   tmp <- tempfile("scwb_ucell_contract_")

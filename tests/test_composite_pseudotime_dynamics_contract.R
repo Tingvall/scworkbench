@@ -75,8 +75,7 @@
 
 test_composite_pseudotime_dynamics_contract <- function() {
   if (!requireNamespace("BPCells", quietly = TRUE)) {
-    message("Skipping composite pseudotime dynamics contract test: BPCells not installed.")
-    return(TRUE)
+    return(contract_test_skip("BPCells is not installed."))
   }
 
   tmp <- tempfile("scwb_composite_dynamics_")

@@ -1,7 +1,6 @@
 test_op_trajectory_branch_compare_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_branch_compare contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -40,52 +39,7 @@ test_op_trajectory_branch_compare_contract <- function(bundle_dir) {
   }
   stopifnot(nzchar(fit_space_id))
 
-  s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test trajectory_branch_compare: leiden"
-  )
-  r2 <- wb_session_run_op(
-    session = r1$session,
-    bundle = b,
-    op_name = "slingshot_fit",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
-    ),
-    notes = "test trajectory_branch_compare: slingshot fit"
-  )
-
-  pt <- r2$run$outputs$pseudotime
-  stopifnot(inherits(pt, "wb_primitive"), identical(as.character(pt$kind), "cell_vector_family"))
-
-  lineages <- unique(as.character(pt$key))
-  lineages <- lineages[nzchar(lineages)]
-  if (length(lineages) < 2L) {
-    message("Skipping trajectory_branch_compare contract test: fewer than 2 lineages in fitted model.")
-    return(TRUE)
-  }
-
-  pt_tbl <- wb_primitive_to_table(pt, include_context = FALSE)
-  pt_tbl <- pt_tbl[is.finite(suppressWarnings(as.numeric(pt_tbl$value))), , drop = FALSE]
-  bm <- wb_prim_relation_family(
-    relation_key = as.character(pt_tbl$key),
-    cell_id = as.character(pt_tbl$cell_id),
-    weight = rep(1, nrow(pt_tbl))
-  )
-  stopifnot(inherits(bm, "wb_primitive"), identical(as.character(bm$kind), "relation_family"))
-
+  # Durable registry inputs must exist before the session overlay is created.
   fs_name <- ".__test_trajectory_branch_compare_feature_set__."
   wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
   fs_feats <- unique(as.character(feats[1:10]))
@@ -98,6 +52,44 @@ test_op_trajectory_branch_compare_contract <- function(bundle_dir) {
     description = "trajectory_branch_compare contract test feature set",
     strict = TRUE
   )
+
+  s <- wb_session_new()
+  cluster_values <- ifelse(
+    seq_along(cells) <= 200L,
+    "root",
+    ifelse(seq_along(cells) %% 2L == 0L, "branch_a", "branch_b")
+  )
+  names(cluster_values) <- cells
+  r2 <- wb_session_run_op(
+    session = s,
+    bundle = b,
+    op_name = "slingshot_fit",
+    inputs = list(
+      cell_set = "all",
+      cell_ids = cells,
+      fit_space = wb_prim_space(fit_space_id),
+      clusters = wb_prim_cell_vector(cluster_values, value_type = "categorical"),
+      start.clus = "root",
+      end.clus = c("branch_a", "branch_b")
+    ),
+    notes = "test trajectory_branch_compare: slingshot fit"
+  )
+
+  pt <- r2$run$outputs$pseudotime
+  stopifnot(inherits(pt, "wb_primitive"), identical(as.character(pt$kind), "cell_vector_family"))
+
+  lineages <- unique(as.character(pt$key))
+  lineages <- lineages[nzchar(lineages)]
+  stopifnot(length(lineages) >= 2L)
+
+  pt_tbl <- wb_primitive_to_table(pt, include_context = FALSE)
+  pt_tbl <- pt_tbl[is.finite(suppressWarnings(as.numeric(pt_tbl$value))), , drop = FALSE]
+  bm <- wb_prim_relation_family(
+    key = as.character(pt_tbl$key),
+    cell_id = as.character(pt_tbl$cell_id),
+    weight = rep(1, nrow(pt_tbl))
+  )
+  stopifnot(inherits(bm, "wb_primitive"), identical(as.character(bm$kind), "relation_family"))
 
   r3 <- wb_session_run_op(
     session = r2$session,

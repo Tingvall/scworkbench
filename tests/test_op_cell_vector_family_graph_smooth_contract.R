@@ -1,7 +1,6 @@
 test_op_cell_vector_family_graph_smooth_contract <- function() {
   if (!requireNamespace("RANN", quietly = TRUE)) {
-    message("Skipping cell_vector_family_graph_smooth contract test: RANN not installed.")
-    return(TRUE)
+    return(contract_test_skip("RANN is not installed."))
   }
 
   iface <- wb_op_interface("cell_vector_family_graph_smooth")

@@ -1,7 +1,6 @@
 test_chromvar_seqlevels_contract <- function(bundle_dir) {
   if (!requireNamespace("BSgenome.Mmusculus.UCSC.mm10", quietly = TRUE)) {
-    message("Skipping chromvar seqlevels contract test: mm10 genome dependency not installed.")
-    return(TRUE)
+    return(contract_test_skip("BSgenome.Mmusculus.UCSC.mm10 is not installed."))
   }
   genome_obj <- getExportedValue("BSgenome.Mmusculus.UCSC.mm10", "BSgenome.Mmusculus.UCSC.mm10")
 

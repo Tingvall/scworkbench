@@ -1,7 +1,6 @@
 test_op_trajectory_smooth_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_smooth contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -111,8 +110,7 @@ test_op_trajectory_smooth_contract <- function(bundle_dir) {
 
 test_op_trajectory_signature_smooth_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_signature_smooth contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -230,8 +228,7 @@ test_op_trajectory_signature_smooth_contract <- function(bundle_dir) {
 
 test_op_trajectory_vector_smooth_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_vector_smooth contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -356,8 +353,7 @@ test_op_trajectory_vector_smooth_contract <- function(bundle_dir) {
 
 test_op_trajectory_signal_dynamics_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_signal_dynamics contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -543,8 +539,7 @@ test_trajectory_geneset_dynamic_metrics_contract <- function() {
 
 test_op_trajectory_signal_dynamics_promoted_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_signal_dynamics promoted contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -708,8 +703,7 @@ test_op_trajectory_signal_dynamics_promoted_contract <- function(bundle_dir) {
 
 test_op_trajectory_geneset_dynamics_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_geneset_dynamics contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)
@@ -902,8 +896,7 @@ test_op_trajectory_geneset_dynamics_contract <- function(bundle_dir) {
 
 test_op_trajectory_geneset_dynamics_promoted_contract <- function(bundle_dir) {
   if (!requireNamespace("slingshot", quietly = TRUE)) {
-    message("Skipping trajectory_geneset_dynamics promoted contract test: slingshot not installed.")
-    return(TRUE)
+    return(contract_test_skip("slingshot is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)

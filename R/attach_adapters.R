@@ -323,9 +323,16 @@ wb_attach_normalize <- function(bundle,
       } else if (identical(shp, "wide_hd_df")) {
         m <- suppressWarnings(apply(df[, -1, drop = FALSE], 2, as.numeric))
         m <- as.matrix(m)
-        rownames(m) <- as.character(df$cell_id)
-        spaces_norm[[sid]] <- m
-        space_notes[[sid]] <- c(space_notes[[sid]] %||% character(0), "wide high-D data.frame converted to numeric matrix.")
+        spaces_norm[[sid]] <- data.frame(
+          cell_id = rep(as.character(df$cell_id), each = ncol(m)),
+          dim = rep(seq_len(ncol(m)), times = nrow(m)),
+          value = as.vector(t(m)),
+          stringsAsFactors = FALSE
+        )
+        space_notes[[sid]] <- c(
+          space_notes[[sid]] %||% character(0),
+          "wide high-D data.frame converted to canonical long coordinates."
+        )
       } else {
         spaces_norm[[sid]] <- obj
       }

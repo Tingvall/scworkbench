@@ -183,7 +183,12 @@ Start here:
 
 Run the canonical package contract suite. It generates a disposable golden
 bundle unless `--bundle=/path/to/bundle` is supplied, sources every top-level
-`tests/test_*.R` contract definition, and then runs the canonical suite:
+`tests/test_*.R` contract definition, discovers every top-level `test_*`
+function, and executes each exactly once. Tests with a first `bundle_dir`
+argument receive an isolated copy of the baseline bundle. The runner rejects
+duplicate names, unsupported required arguments, empty test files, and stale
+intentional exclusions, then prints discovered/executed/passed/skipped/failed/
+excluded accounting:
 
 ```sh
 Rscript inst/tests/run_contract_tests.R
@@ -192,7 +197,7 @@ Rscript inst/tests/run_contract_tests.R
 Run a specific contract test:
 
 ```sh
-Rscript -e 'devtools::load_all(".", quiet = TRUE); source("tests/test_knowledge_graph_contract.R"); stopifnot(test_knowledge_graph_contract())'
+Rscript -e 'devtools::load_all(".", quiet = TRUE); source("tests/test_public_api_boundary_contract.R"); stopifnot(test_public_api_boundary_contract())'
 ```
 
 Refresh semantic catalogs after changing ops, getters, wranglers, primitive

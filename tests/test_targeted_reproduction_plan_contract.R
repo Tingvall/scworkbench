@@ -1,5 +1,5 @@
 test_targeted_reproduction_plan_contract <- function() {
-  if (!requireNamespace("uwot", quietly = TRUE)) return(TRUE)
+  if (!requireNamespace("uwot", quietly = TRUE)) return(contract_test_skip("uwot is not installed."))
   root <- tempfile("scwb_target_plan_")
   b <- wb_init_bundle(root, overwrite = TRUE)
   on.exit({ try(wb_close_bundle(b), silent = TRUE); unlink(root, recursive = TRUE, force = TRUE) }, add = TRUE)
@@ -25,7 +25,11 @@ test_targeted_reproduction_plan_contract <- function() {
 # Executable cross-snapshot closure: durable string/entity inputs must pull
 # their producing runs into the plan, then replay into a source-only clone.
 test_targeted_reproduction_execute_contract <- function() {
-  if (!requireNamespace("BPCells", quietly=TRUE) || !requireNamespace("irlba", quietly=TRUE) || !requireNamespace("uwot", quietly=TRUE)) return(TRUE)
+  required <- c("BPCells", "irlba", "uwot")
+  missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing)) {
+    return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
+  }
   root <- tempfile("scwb_target_execute_")
   cleanup <- character(0)
   b <- wb_init_bundle(root, overwrite=TRUE)

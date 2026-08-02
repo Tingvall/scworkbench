@@ -1,7 +1,6 @@
 test_op_monocle3_fit_contract <- function(bundle_dir) {
   if (!requireNamespace("monocle3", quietly = TRUE)) {
-    message("Skipping monocle3 contract test: monocle3 not installed.")
-    return(TRUE)
+    return(contract_test_skip("monocle3 is not installed."))
   }
 
   b <- wb_open_bundle(bundle_dir)

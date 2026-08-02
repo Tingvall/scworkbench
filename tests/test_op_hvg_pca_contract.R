@@ -1,11 +1,9 @@
 test_op_hvg_pca_contract <- function() {
   if (!requireNamespace("BPCells", quietly = TRUE)) {
-    message("Skipping hvg/pca contract test: BPCells not installed.")
-    return(TRUE)
+    return(contract_test_skip("BPCells is not installed."))
   }
   if (!requireNamespace("irlba", quietly = TRUE)) {
-    message("Skipping hvg/pca contract test: irlba not installed.")
-    return(TRUE)
+    return(contract_test_skip("irlba is not installed."))
   }
 
   tmp <- tempfile("scwb_hvg_pca_")

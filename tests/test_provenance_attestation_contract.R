@@ -1,5 +1,9 @@
 test_provenance_attestation_contract <- function() {
-  if (!requireNamespace("BPCells", quietly = TRUE) || !requireNamespace("Matrix", quietly = TRUE)) return(TRUE)
+  required <- c("BPCells", "Matrix")
+  missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing)) {
+    return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
+  }
   old_sha <- Sys.getenv("SCWORKBENCH_RUNTIME_IMAGE_SHA256", unset = NA_character_)
   on.exit(if (is.na(old_sha)) Sys.unsetenv("SCWORKBENCH_RUNTIME_IMAGE_SHA256") else Sys.setenv(SCWORKBENCH_RUNTIME_IMAGE_SHA256 = old_sha), add = TRUE)
   Sys.setenv(SCWORKBENCH_RUNTIME_IMAGE_SHA256 = "abc123recipientdigest")

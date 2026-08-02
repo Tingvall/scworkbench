@@ -1,7 +1,7 @@
 test_peakvi_project_promotion_contract <- function() {
   # Bounded mock: pybench execution is replaced, while the registered runner,
   # session, staging overlay, and promotion machinery remain real.
-  if (!requireNamespace("BPCells", quietly=TRUE)) return(TRUE)
+  if (!requireNamespace("BPCells", quietly = TRUE)) return(contract_test_skip("BPCells is not installed."))
   root <- tempfile("scwb_peakvi_project_"); b <- wb_init_bundle(root, overwrite=TRUE)
   on.exit({try(wb_close_bundle(b),silent=TRUE);unlink(root,recursive=TRUE,force=TRUE)},add=TRUE)
   ids <- paste0("cell_",letters[1:4]); wb_define_cells(b,ids)
