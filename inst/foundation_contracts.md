@@ -47,6 +47,13 @@ implementation function. Do not add parallel op lists in other files.
 
 ## Data Layer Contracts
 
+### Source Ownership
+
+Core, fragment, artifact, and provenance schema ownership is defined in
+`docs/source_ownership.md`. Fresh initialization and migration call the same
+canonical constructors; callers must not duplicate table DDL or runtime helper
+definitions.
+
 ### Canonical Cell Order
 
 - Canonical order is defined by `cells` table row order (`rowid`).

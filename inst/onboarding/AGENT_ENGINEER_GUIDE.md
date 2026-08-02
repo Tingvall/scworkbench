@@ -22,6 +22,9 @@ Role: extend and stabilize engine + thin clients.
 - Avoid parallel implementations of same behavior.
 - New extensibility surfaces should follow registry/contract patterns, not one-off
   special cases.
+- Follow `docs/source_ownership.md`: every runtime function and SQLite table
+  constructor has one canonical source owner, and generated references never
+  contain manual runtime implementations.
 
 3. Thin-client compliance
 - Client collects inputs and renders outputs.
