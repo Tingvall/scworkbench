@@ -19,5 +19,5 @@ Computes per-group summaries and omnibus association tests.
 Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$assoc_summary} (\code{feature_table}): Omnibus association test summary (Kruskal/ANOVA).; \code{outputs$group_stats} (\code{obs_table}): Per-group descriptive statistics.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$assoc_summary} (\code{feature_table}): Omnibus association test summary (Kruskal/ANOVA).; \code{outputs$group_stats} (\code{obs_table}): Per-group descriptive statistics.. Promotion eligibility is declared by the operation catalog.
 }

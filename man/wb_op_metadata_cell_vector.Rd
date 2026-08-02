@@ -36,5 +36,5 @@ wb_op_metadata_cell_vector(
 Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$vector} (\code{cell_vector}): Typed per-cell vector materialized from imported bundle metadata.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$vector} (\code{cell_vector}): Typed per-cell vector materialized from imported bundle metadata.. Promotion eligibility is declared by the operation catalog.
 }

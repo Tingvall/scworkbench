@@ -39,5 +39,5 @@ Wilcoxon rank-sum DE between two cell groups (A vs B).
 Returns one row per feature with effect and significance metrics.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$de_table} (\code{feature_table}): Feature-level DE statistics table.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$de_table} (\code{feature_table}): Feature-level DE statistics table.. Promotion eligibility is declared by the operation catalog.
 }

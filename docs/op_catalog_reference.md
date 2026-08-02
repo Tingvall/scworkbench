@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-08-02T20:49:24+0200
+Generated at: 2026-08-02T22:14:13+0200
 
 Operation count: 56
 
@@ -660,6 +660,8 @@ Intent: feature_set, transfer, namespace, matrix, provenance
 Description: Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.
 
 Consumes:
+- `source_matrix`: matrix
+- `target_matrix`: matrix
 - `cell_set`: select
 
 Produces:
@@ -1267,6 +1269,7 @@ Consumes:
 - `space`: space
 - `plot_space`: space
 - `clusters`: cell_vector
+- `space_2d`: space_2d
 - `cell_set`: select
 
 Produces:

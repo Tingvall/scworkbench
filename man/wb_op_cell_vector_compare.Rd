@@ -33,5 +33,5 @@ wb_op_cell_vector_compare(
 Compare two cell-level signals on their shared cell universe in raw or rank space.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$summary} (\code{obs_table}): One-row comparison summary with concordance and delta metrics.; \code{outputs$comparison} (\code{obs_table}): Per-cell comparison table with original values, compared values, and deltas.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$summary} (\code{obs_table}): One-row comparison summary with concordance and delta metrics.; \code{outputs$comparison} (\code{obs_table}): Per-cell comparison table with original values, compared values, and deltas.. Promotion eligibility is declared by the operation catalog.
 }

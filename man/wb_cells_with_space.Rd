@@ -2,7 +2,7 @@
 % Please edit documentation in R/getters_coverage.R
 \name{wb_cells_with_space}
 \alias{wb_cells_with_space}
-\title{Cells with available coordinates for a space}
+\title{Cells with complete coordinates for a space}
 \usage{
 wb_cells_with_space(bundle, space_id, dims = NULL)
 }
@@ -11,14 +11,13 @@ wb_cells_with_space(bundle, space_id, dims = NULL)
 
 \item{space_id}{Space identifier.}
 
-\item{dims}{Optional integer vector of required dimensions for long-form spaces.}
+\item{dims}{Optional unique positive integer vector of required dimensions.}
 }
 \value{
-Character vector of canonical \code{cell_id} values with available
-coordinates.
+Character vector of canonical \code{cell_id} values with complete
+coordinates, in bundle order.
 }
 \description{
-Returns the cell IDs that have coordinates available for \code{space_id}.
-For \code{wide:space_2d}, this is any cell present in \code{space_2d}.
-For \code{long:space_coords}, this is any cell with all requested dimensions.
+Returns canonical cell IDs with non-missing coordinates for every requested
+dimension. When \code{dims} is omitted, all registered dimensions are required.
 }

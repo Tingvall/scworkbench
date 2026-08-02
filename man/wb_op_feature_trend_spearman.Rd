@@ -41,5 +41,5 @@ Computes per-feature correlation against a continuous cell vector.
 Feature-level Spearman trend testing against continuous pseudotime-like vectors.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$trend_table} (\code{feature_table}): Per-feature trend statistics (rho, p, adjusted p).. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$trend_table} (\code{feature_table}): Per-feature trend statistics (rho, p, adjusted p).. Promotion eligibility is declared by the operation catalog.
 }

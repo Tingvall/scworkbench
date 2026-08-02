@@ -17,7 +17,10 @@ test_peakvi_project_promotion_contract <- function() {
   on.exit({assign(".wb_palantir_bridge_run_or_stop",old,envir=op_env); lockBinding(".wb_palantir_bridge_run_or_stop",op_env)},add=TRUE)
   model <- wb_prim_model_ref("peakvi_model","peakvi_model",engine="peakvi"); model$model_path <- tempfile(); dir.create(model$model_path)
   rr <- wb_session_run_op(wb_session_new(),b,"peakvi_project",inputs=list(matrix="ATAC_counts",model=model,cell_set="all",min_cells=1L,batch_key="batch",space_id_out="projected"))
-  stopifnot(all(c("space","fit_summary") %in% names(rr$run$outputs)), "projected" %in% wb_spaces(wb_session_view(rr$session))$space_id)
+  stopifnot(all(c("space","fit_summary") %in% names(rr$run$outputs)), "projected" %in% wb_spaces(wb_session_view(rr$session))$space_id,
+            identical(rr$run$inputs$coverage$per_input$matrix$available_n, length(ids)),
+            identical(rr$run$inputs$coverage$per_input$model$coverage_mode, "reference_only"),
+            identical(rr$run$inputs$coverage$effective_n, length(ids)))
   p <- wb_session_promote_current(b,rr$session,outputs="fit_summary")
   wb_close_bundle(b); b <- wb_open_bundle(root)
   projected <- wb_space(b, "projected", cells = ids)

@@ -16,6 +16,7 @@ Character vector of \code{cell_id} in canonical order, or empty if
 \code{matrix_id} is unknown.
 }
 \description{
-Returns cell IDs that are available for \code{matrix_id}.
-In current bundles, matrices are assumed aligned to canonical bundle cell order.
+Resolves exact matrix coverage from fragment cell identities. Legacy matrix
+rows without fragments are accepted only when their registered cell count is
+equal to the complete bundle universe.
 }

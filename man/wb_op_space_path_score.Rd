@@ -33,5 +33,5 @@ wb_op_space_path_score(
 Contract scaffold for path-relative scoring in a named analytical space.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$path_scores} (\code{cell_vector_family}): Per-cell path-relative scores such as progress and distance.; \code{outputs$fit_summary} (\code{obs_table}): Compact path-level scoring diagnostics.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$path_scores} (\code{cell_vector_family}): Per-cell path-relative scores such as progress and distance.; \code{outputs$fit_summary} (\code{obs_table}): Compact path-level scoring diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

@@ -51,5 +51,5 @@ Computes per-feature expression summaries along lineage pseudotime from a trajec
 Summarize per-feature expression along trajectory pseudotime into reusable trend tables.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$trend_table} (\code{obs_table}): Per-feature binned expression summaries along trajectory pseudotime.; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$trend_table} (\code{obs_table}): Per-feature binned expression summaries along trajectory pseudotime.; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

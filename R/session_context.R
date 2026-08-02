@@ -28,6 +28,7 @@
       runner = x$runner,
       promotable = x$promotable %||% character(0),
       replay_equivalence = replay_equivalence,
+      coverage = x$coverage %||% list(),
       chunking = x$chunking %||% NULL
     )
   })
@@ -319,7 +320,10 @@ wb_session_add_run <- function(session, run) {
 #' @param ... Must be empty. Supply all operation inputs and parameters through
 #'   the named `inputs` list.
 #' @param inputs Named typed primitives, references, or supported symbolic
-#'   inputs for the operation.
+#'   inputs for the operation. After resolving all required and present optional
+#'   typed inputs, the engine intersects their cell coverage once in canonical
+#'   requested order. Structured input-by-input coverage is stored in
+#'   `run$inputs$coverage`.
 #' @param notes Optional run notes.
 #' @return A list with `session` (the updated `wb_session`), `run` (the
 #'   completed `wb_run`), and `result` (the operation result). Continue a
@@ -354,17 +358,8 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   session <- staged$session
   work_bundle <- staged$bundle
 
-  # Resolve effective_cells once, here. Nothing else is allowed to compute cells.
   cell_set <- inputs$cell_set %||% "all"
-  effective_cells <- .wb_effective_cells(
-    bundle = work_bundle,
-    cell_set = cell_set,
-    inputs = inputs,     # your coverage function can inspect space_id/matrix_id etc if you want
-    op_name = op_name,
-    min_cells = inputs$min_cells %||% 10
-  )
-
-  # Resolve required inputs (primitives)
+  # Resolve the complete typed input contract before deriving cell coverage.
   resolved <- list()
   parents <- character(0)
   prov_refs <- list()
@@ -393,6 +388,21 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   }
   .wb_validate_resolved_op_inputs(op_name, resolved)
 
+  # This is the sole operation-runner ownership point for effective cells.
+  # Every cell-bearing required or present optional primitive participates.
+  requirements <- c(req, opt_req[names(opt_req) %in% names(resolved)])
+  coverage <- .wb_typed_effective_cells(
+    bundle = work_bundle,
+    cell_set = cell_set,
+    inputs = inputs,
+    resolved = resolved,
+    requirements = requirements,
+    op_name = op_name,
+    min_cells = inputs$min_cells %||% 10L,
+    coverage_modes = op$coverage %||% list()
+  )
+  effective_cells <- coverage$cells
+
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
   planned_run_id <- paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = ""))
@@ -419,6 +429,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     effective_n = length(effective_cells),
     parents = parents,
     provenance_refs = prov_refs,
+    coverage = coverage$diagnostics,
     user_inputs = inputs,
     symbolic_inputs = .wb_symbolic_inputs_snapshot(op_name = op_name, inputs = inputs),
     execution_inputs = .wb_execution_inputs_snapshot(

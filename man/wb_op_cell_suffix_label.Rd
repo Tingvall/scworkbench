@@ -30,5 +30,5 @@ Useful for source/dataset covariates when explicit metadata is absent.
 Build a categorical cell vector by parsing cell_id suffix tokens.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$labels} (\code{cell_vector}): Categorical label per cell from suffix parsing.; \code{outputs$label_table} (\code{obs_table}): Per-cell suffix/label table.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$labels} (\code{cell_vector}): Categorical label per cell from suffix parsing.; \code{outputs$label_table} (\code{obs_table}): Per-cell suffix/label table.. Promotion eligibility is declared by the operation catalog.
 }

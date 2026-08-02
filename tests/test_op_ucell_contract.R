@@ -130,5 +130,30 @@ test_op_ucell_contract <- function() {
   )
   stopifnot(inherits(raw_err, "try-error"))
 
+  # Registered execution owns matrix coverage and preserves canonical score-row
+  # identity through promotion and reopen.
+  rr <- wb_session_run_op(
+    wb_session_new(), b, "ucell",
+    inputs = list(
+      matrix = "RNA_counts", cell_set = "all", min_cells = 1L,
+      features = list(sig_a = c("g1", "g2"), sig_b = c("g3", "g4")),
+      max_rank = 100L, ncores = 1L, parallel_backend = "serial", chunk_size = 2L
+    )
+  )
+  stopifnot(
+    identical(rr$run$inputs$coverage$per_input$matrix$available_n, length(cells)),
+    identical(rr$run$inputs$coverage$effective_n, length(cells)),
+    identical(unique(as.character(rr$run$outputs$signature_scores$cell_id)), cells)
+  )
+  promoted <- wb_session_promote_current(
+    b, rr$session, outputs = c("signature_scores", "signature_summary"),
+    name_prefix = "ucell_coverage", created_by = "test"
+  )
+  score_artifact <- as.character(promoted$promoted$artifact_id[promoted$promoted$output == "signature_scores"][[1]])
+  wb_close_bundle(b)
+  b <- wb_open_bundle(tmp)
+  durable_scores <- wb_art_load(b, score_artifact, expected_kind = "cell_vector_family")
+  stopifnot(identical(unique(as.character(durable_scores$cell_id)), cells))
+
   TRUE
 }

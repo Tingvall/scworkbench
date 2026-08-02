@@ -105,6 +105,8 @@ test_op_hvg_pca_contract <- function() {
   )
 
   stopifnot(identical(as.character(rr_pca$run$outputs$space$kind), "space"))
+  stopifnot(identical(rr_pca$run$inputs$coverage$per_input$matrix$available_n, length(cells)),
+            identical(rr_pca$run$inputs$coverage$effective_n, length(cells)))
   stopifnot(identical(as.character(rr_pca$run$outputs$space$space_id), "rna.pca"))
   stopifnot(!"rna.pca" %in% as.character(wb_spaces(b)$space_id))
   coords <- wb_space(wb_session_view(rr_pca$session), "rna.pca")
@@ -169,6 +171,8 @@ test_op_hvg_pca_contract <- function() {
                     dims = 1:2, space_id_out = "rna.umap", n_neighbors = 3L,
                     min_dist = 0.1, metric = "euclidean", nn_method = "annoy", seed = 1L)
     )
+    stopifnot(identical(rr_umap$run$inputs$coverage$per_input$space$source_id, "rna.pca"),
+              identical(rr_umap$run$inputs$coverage$effective_n, length(cells)))
     wb_session_promote_current(b, rr_umap$session, outputs = c("model", "space_2d"))
     wb_close_bundle(b); b <- wb_open_bundle(tmp)
     durable_umap <- wb_space(b, "rna.umap", cells = cells)

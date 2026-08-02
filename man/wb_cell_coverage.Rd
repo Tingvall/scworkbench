@@ -2,24 +2,35 @@
 % Please edit documentation in R/getters_coverage.R
 \name{wb_cell_coverage}
 \alias{wb_cell_coverage}
-\title{Report coverage of required inputs for a cell set}
+\title{Report coverage of operation inputs for a cell set}
 \usage{
-wb_cell_coverage(bundle, cell_set, inputs = list())
+wb_cell_coverage(
+  bundle,
+  cell_set,
+  inputs = list(),
+  resolved = NULL,
+  requirements = NULL,
+  op_name = NULL
+)
 }
 \arguments{
 \item{bundle}{scworkbench bundle handle.}
 
-\item{cell_set}{Cell set selector (e.g. \code{"core"}, \code{"all"}, \code{"set:<name>"}).}
+\item{cell_set}{Cell set selector.}
 
-\item{inputs}{Named list of required inputs. Recognized keys include
-\code{space_id}, \code{matrix_id}, optional \code{dims} for space coverage, and optional
-\code{cell_ids} to override the requested cell universe.}
+\item{inputs}{Named input list, optionally including explicit \code{cell_ids}.}
+
+\item{resolved}{Optional named list of resolved typed primitives.}
+
+\item{requirements}{Optional named primitive-kind declarations.}
+
+\item{op_name}{Optional registered operation name for typed diagnostics.}
 }
 \value{
-List with fields:
-\code{requested}, \code{per_input}, \code{effective}, \code{percent}.
+List with \code{requested}, \code{per_input}, \code{effective}, and \code{percent}.
 }
 \description{
-Computes how many cells in \code{cell_set} are covered by required inputs
-(currently \code{space_id} and/or \code{matrix_id}) and returns a compact summary.
+The preferred typed form supplies \code{resolved}, \code{requirements}, and \code{op_name}.
+The legacy \code{space_id}/\code{matrix_id} input form remains available for getter
+diagnostics.
 }

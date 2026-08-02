@@ -38,5 +38,5 @@ This op does not require a matrix and is useful for geometry-only workflows
 Find nearest neighbors in a latent space without requiring matrix aggregation.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$neighbors} (\code{obs_table}): Per-query neighbor table (cell_id, rank, distance).; \code{outputs$neighbor_distance} (\code{cell_vector_family}): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$neighbors} (\code{obs_table}): Per-query neighbor table (cell_id, rank, distance).; \code{outputs$neighbor_distance} (\code{cell_vector_family}): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
 }

@@ -917,7 +917,9 @@
   g <- as.character(vg$value)
   names(g) <- as.character(vg$cell_id)
 
-  keep <- intersect(as.character(effective_cells), intersect(names(x), names(g)))
+  keep <- as.character(effective_cells)
+  .wb_assert(all(keep %in% names(x)) && all(keep %in% names(g)),
+             "cell_vector_assoc runner received effective cells absent from a required vector.")
   x <- x[keep]
   g <- g[keep]
 
@@ -987,7 +989,9 @@
   .wb_assert(!is.null(resolved$signal), "cell_vector_family_reduce runner: missing resolved$signal.")
 
   sig <- resolved$signal
-  keep <- intersect(as.character(sig$cell_id), as.character(effective_cells))
+  keep <- as.character(effective_cells)
+  .wb_assert(all(keep %in% as.character(sig$cell_id)),
+             "cell_vector_family_reduce runner received effective cells absent from signal.")
   ii <- as.character(sig$cell_id) %in% keep
   sig_use <- wb_prim_cell_vector_family(
     key = as.character(sig$key[ii]),
@@ -1016,7 +1020,9 @@
   .wb_assert(!is.null(resolved$signal), "cell_vector_family_calibrate runner: missing resolved$signal.")
 
   sig <- resolved$signal
-  keep <- intersect(as.character(sig$cell_id), as.character(effective_cells))
+  keep <- as.character(effective_cells)
+  .wb_assert(all(keep %in% as.character(sig$cell_id)),
+             "cell_vector_family_calibrate runner received effective cells absent from signal.")
   ii <- as.character(sig$cell_id) %in% keep
   sig_use <- wb_prim_cell_vector_family(
     key = as.character(sig$key[ii]),
@@ -1044,7 +1050,9 @@
   .wb_assert(!is.null(resolved$signal), "cell_vector_family_qc runner: missing resolved$signal.")
 
   sig <- resolved$signal
-  keep <- intersect(as.character(sig$cell_id), as.character(effective_cells))
+  keep <- as.character(effective_cells)
+  .wb_assert(all(keep %in% as.character(sig$cell_id)),
+             "cell_vector_family_qc runner received effective cells absent from signal.")
   ii <- as.character(sig$cell_id) %in% keep
   sig_use <- wb_prim_cell_vector_family(
     key = as.character(sig$key[ii]),
@@ -1056,8 +1064,9 @@
   grouping_use <- NULL
   if (!is.null(resolved$grouping)) {
     grp <- resolved$grouping
-    keep_grp <- intersect(as.character(grp$cell_id), keep)
-    gi <- as.character(grp$cell_id) %in% keep_grp
+    .wb_assert(all(keep %in% as.character(grp$cell_id)),
+               "cell_vector_family_qc runner received effective cells absent from grouping.")
+    gi <- as.character(grp$cell_id) %in% keep
     gx <- grp$value[gi]
     names(gx) <- as.character(grp$cell_id[gi])
     grouping_use <- wb_prim_cell_vector(
@@ -1131,7 +1140,9 @@
   .wb_assert(!is.null(resolved$signal), "cell_vector_winners runner: missing resolved$signal.")
 
   sig <- resolved$signal
-  keep <- intersect(as.character(sig$cell_id), as.character(effective_cells))
+  keep <- as.character(effective_cells)
+  .wb_assert(all(keep %in% as.character(sig$cell_id)),
+             "cell_vector_winners runner received effective cells absent from signal.")
   ii <- as.character(sig$cell_id) %in% keep
   sig_use <- wb_prim_cell_vector_family(
     key = as.character(sig$key[ii]),
@@ -4086,6 +4097,7 @@
       description = "Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.",
       intent = c("projection", "latent", "python"),
       requires = list(matrix = "matrix", model = "model_ref"),
+      coverage = list(model = "reference_only"),
       produces = list(
         space = "space", fit_summary = "obs_table"
       ),

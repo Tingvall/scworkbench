@@ -95,6 +95,9 @@ test_op_slingshot_fit_project_contract <- function(bundle_dir) {
   stopifnot(identical(as.character(x2$run$outputs$lineage_weights$meta$family_kind), "trajectory_membership_weight"))
   stopifnot(identical(as.character(x2$run$outputs$lineage_weights$meta$engine), "slingshot"))
   stopifnot(identical(as.character(x2$run$outputs$model$engine), "slingshot"))
+  stopifnot(identical(x2$run$inputs$coverage$per_input$fit_space$kind, "space"),
+            identical(x2$run$inputs$coverage$per_input$clusters$kind, "cell_vector"),
+            identical(x2$run$inputs$coverage$effective_n, length(as.character(x2$run$outputs$model$cells))))
   stopifnot(!is.null(x2$run$outputs$model$model_obj))
   model_cells <- x2$run$outputs$model$cells
   if (is.null(model_cells)) model_cells <- character(0)

@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-08-02T20:49:26+0200",
+  "generated_at": "2026-08-02T22:14:16+0200",
   "node_count": 312,
-  "edge_count": 895,
+  "edge_count": 900,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -2785,6 +2785,30 @@
       "label": "output:namespace_summary"
     },
     {
+      "from": "primitive:matrix",
+      "to": "op:feature_set_namespace_transfer",
+      "edge_type": "consumed_by",
+      "label": "input:source_matrix"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:source_matrix_id",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:source_matrix"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:feature_set_namespace_transfer",
+      "edge_type": "consumed_by",
+      "label": "input:target_matrix"
+    },
+    {
+      "from": "op:feature_set_namespace_transfer",
+      "to": "parameter:target_matrix_id",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:target_matrix"
+    },
+    {
       "from": "op:feature_set_namespace_transfer",
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
@@ -4025,6 +4049,12 @@
       "to": "op:slingshot",
       "edge_type": "consumed_by",
       "label": "input:clusters"
+    },
+    {
+      "from": "primitive:space_2d",
+      "to": "op:slingshot",
+      "edge_type": "consumed_by",
+      "label": "input:space_2d"
     },
     {
       "from": "op:slingshot",
