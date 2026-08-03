@@ -19,6 +19,12 @@ wb_init_bundle <- function(out_dir,
   .wb_assert(is.character(out_dir) && length(out_dir) == 1L && nzchar(out_dir),
              "out_dir must be a non-empty string")
 
+  writer_lock <- .wb_bundle_writer_lock_acquire(out_dir, operation = "bundle initialization")
+  assembly_registered <- FALSE
+  on.exit({
+    if (!isTRUE(assembly_registered)) .wb_bundle_writer_lock_release(writer_lock)
+  }, add = TRUE)
+
   if (dir.exists(out_dir)) {
     if (!isTRUE(overwrite)) {
       stop("out_dir exists: ", out_dir, " (set overwrite=TRUE)", call. = FALSE)
@@ -55,7 +61,8 @@ wb_init_bundle <- function(out_dir,
   try(DBI::dbDisconnect(con), silent = TRUE)
   con <- NULL
   bundle <- wb_open_bundle(out_dir)
-  .wb_register_assembly_bundle(bundle)
+  .wb_register_assembly_bundle(bundle, writer_lock = writer_lock)
+  assembly_registered <- TRUE
   bundle
 }
 
@@ -324,6 +331,8 @@ wb_attach_metadata <- function(bundle,
 #' @export
 wb_refresh_manifest <- function(bundle) {
   .wb_assert_bundle_writable(bundle, "manifest refresh")
+  writer_lock <- .wb_bundle_writer_lock_acquire(bundle, operation = "manifest refresh")
+  on.exit(.wb_bundle_writer_lock_release(writer_lock), add = TRUE)
   .wb_assert_mutation_context(
     bundle = bundle, action = "Bundle manifest mutation",
     allowed = c("assembly", "session_execution", "promotion", "ingestion"),
@@ -395,13 +404,35 @@ wb_refresh_manifest <- function(bundle) {
 }
 
 .wb_bundle_write_manifest <- function(bundle_dir, manifest) {
+  final <- file.path(bundle_dir, "manifest.json")
+  token <- paste0(Sys.getpid(), "-", paste(sample(c(letters, 0:9), 16L, TRUE), collapse = ""))
+  staged <- file.path(bundle_dir, paste0(".manifest.json.staging-", token))
+  backup <- file.path(bundle_dir, paste0(".manifest.json.backup-", token))
+  published <- FALSE
+  on.exit({
+    if (file.exists(staged)) unlink(staged, force = TRUE)
+    if (file.exists(backup)) {
+      if (!isTRUE(published) && !file.exists(final)) file.rename(backup, final)
+      if (file.exists(backup)) unlink(backup, force = TRUE)
+    }
+  }, add = TRUE)
   jsonlite::write_json(
     manifest,
-    file.path(bundle_dir, "manifest.json"),
+    staged,
     pretty = TRUE,
     auto_unbox = TRUE,
     null = "null"
   )
+  # POSIX rename replaces atomically. Platforms that refuse replacement use a
+  # guarded backup/restore sequence; recipient opens are excluded by the same
+  # writer lock for that short fallback window.
+  if (!isTRUE(file.rename(staged, final))) {
+    .wb_assert(file.exists(final) && file.rename(final, backup),
+               "Could not stage the previous manifest for replacement.")
+    .wb_assert(file.rename(staged, final),
+               "Could not publish the refreshed manifest.")
+  }
+  published <- TRUE
   invisible(TRUE)
 }
 

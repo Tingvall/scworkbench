@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
-  "generated_at": "2026-08-03T15:12:55+0200",
-  "record_count": 144,
-  "meaningful_public_transformation_count": 57,
+  "generated_at": "2026-08-03T16:21:32+0200",
+  "record_count": 146,
+  "meaningful_public_transformation_count": 59,
   "exported_guarded_function_count": 26,
   "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_matrix_log_normalize", "wb_op_palantir_fit", "wb_op_palantir_project", "wb_op_pca_fit", "wb_op_peakvi_project", "wb_op_umap_fit", "wb_op_umap_transform", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
   "invariant": {
@@ -1545,6 +1545,30 @@
       "supported_route": "confirmed_unreferenced_ephemeral_purge",
       "supported_route_count": 1,
       "boundary": "unsafe_public_transaction",
+      "direct_committed_write": false
+    },
+    {
+      "interface_id": "bundle_state_coordination:wb_migrate_artifacts",
+      "function_name": "wb_migrate_artifacts",
+      "category": "bundle_state_coordination",
+      "exported": true,
+      "implemented": true,
+      "durable_mutation": true,
+      "supported_route": "exclusive_guarded_schema_migration",
+      "supported_route_count": 1,
+      "boundary": "public_transaction",
+      "direct_committed_write": false
+    },
+    {
+      "interface_id": "bundle_state_coordination:wb_finalize_recipient_bundle",
+      "function_name": "wb_finalize_recipient_bundle",
+      "category": "bundle_state_coordination",
+      "exported": true,
+      "implemented": true,
+      "durable_mutation": true,
+      "supported_route": "exclusive_recipient_finalization",
+      "supported_route_count": 1,
+      "boundary": "public_transaction",
       "direct_committed_write": false
     },
     {

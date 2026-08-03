@@ -2059,6 +2059,22 @@ wb_art_delete <- function(bundle,
                           force = FALSE,
                           remove_model_file = FALSE,
                           model_file_only_if_unique = TRUE) {
+  .wb_assert_bundle_writable(bundle, "artifact retraction")
+  .wb_with_bundle_writer_lock(bundle, operation = "artifact retraction", code = {
+    .wb_art_delete_locked(
+      bundle, artifact_id, recursive = recursive, force = force,
+      remove_model_file = remove_model_file,
+      model_file_only_if_unique = model_file_only_if_unique
+    )
+  })
+}
+
+.wb_art_delete_locked <- function(bundle,
+                                  artifact_id,
+                                  recursive = FALSE,
+                                  force = FALSE,
+                                  remove_model_file = FALSE,
+                                  model_file_only_if_unique = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   artifact_id <- as.character(artifact_id)[1]
   .wb_assert(nzchar(artifact_id), "artifact_id must be a non-empty string")

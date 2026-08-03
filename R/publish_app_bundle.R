@@ -80,6 +80,10 @@ wb_publish_app_bundle <- function(
   final_bundle <- NULL
   backup_dir <- NULL
   promotion_started <- FALSE
+  destination_lock <- NULL
+  on.exit({
+    if (!is.null(destination_lock)) .wb_bundle_writer_lock_release(destination_lock)
+  }, add = TRUE)
 
   source_identity <- list(
     source_type = "Seurat",
@@ -107,6 +111,13 @@ wb_publish_app_bundle <- function(
     wb_close_bundle(stage_bundle)
     stage_bundle <- NULL
 
+    destination_lock <- .wb_bundle_writer_lock_acquire(
+      final_dir, operation = "application bundle publication"
+    )
+    if (dir.exists(final_dir) && !isTRUE(overwrite)) {
+      stop("out_dir exists: ", out_dir, " (set overwrite=TRUE)", call. = FALSE)
+    }
+
     # Keep an existing destination intact until staged construction succeeds.
     # Moving it aside in the same parent also gives failure recovery a precise,
     # validated target instead of deleting caller state pre-emptively.
@@ -121,7 +132,7 @@ wb_publish_app_bundle <- function(
 
     promotion_started <- TRUE
     final_bundle <- .wb_ingest_promote_staged_bundle(
-      stage_dir, final_dir, source_type = "Seurat"
+      stage_dir, final_dir, source_type = "Seurat", overwrite = FALSE
     )
     final_bundle$manifest$bundle_id <- bundle_id
     final_bundle$manifest$bundle_name <- bundle_name

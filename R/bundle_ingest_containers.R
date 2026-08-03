@@ -19,10 +19,19 @@
   if (!nzchar(x)) fallback else x
 }
 
-.wb_ingest_promote_staged_bundle <- function(stage_dir, final_dir, source_type) {
+.wb_ingest_promote_staged_bundle <- function(stage_dir, final_dir, source_type, overwrite = FALSE) {
+  .wb_with_bundle_writer_lock(final_dir, operation = paste0(source_type, " staged ingestion publication"), code = {
+    .wb_ingest_promote_staged_bundle_locked(stage_dir, final_dir, source_type, overwrite = overwrite)
+  })
+}
+
+.wb_ingest_promote_staged_bundle_locked <- function(stage_dir, final_dir, source_type, overwrite = FALSE) {
   stage_manifest_path <- file.path(stage_dir, "manifest.json")
   stage_manifest <- jsonlite::read_json(stage_manifest_path, simplifyVector = TRUE)
-  if (dir.exists(final_dir)) unlink(final_dir, recursive = TRUE, force = TRUE)
+  if (dir.exists(final_dir)) {
+    .wb_assert(isTRUE(overwrite), paste0("bundle_dir exists: ", final_dir, " (set overwrite=TRUE)"))
+    unlink(final_dir, recursive = TRUE, force = TRUE)
+  }
   if (!isTRUE(file.rename(stage_dir, final_dir))) {
     stop("Failed to promote staged ", source_type, " bundle to final bundle_dir: ", final_dir, call. = FALSE)
   }
@@ -305,6 +314,17 @@
                                       phase = NULL,
                                       error = NULL,
                                       details = list()) {
+  .wb_with_bundle_writer_lock(bundle_dir, operation = paste0(source_type, " ingestion failure publication"), code = {
+    .wb_ingest_failure_marker_locked(bundle_dir, source_type, source_path, phase, error, details)
+  })
+}
+
+.wb_ingest_failure_marker_locked <- function(bundle_dir,
+                                             source_type,
+                                             source_path = NULL,
+                                             phase = NULL,
+                                             error = NULL,
+                                             details = list()) {
   .wb_require_pkg("jsonlite", "container ingestion failure marker")
   if (dir.exists(bundle_dir)) unlink(bundle_dir, recursive = TRUE, force = TRUE)
   dir.create(bundle_dir, recursive = TRUE, showWarnings = FALSE)
@@ -856,7 +876,7 @@ wb_bundle_from_10x_mtx <- function(input,
     wb_refresh_manifest(bundle)
     wb_close_bundle(bundle)
     bundle <- NULL
-    .wb_ingest_promote_staged_bundle(stage_dir, final_dir, source_type = "10x_mtx")
+    .wb_ingest_promote_staged_bundle(stage_dir, final_dir, source_type = "10x_mtx", overwrite = overwrite)
   }, error = function(e) {
     if (!is.null(bundle)) try(wb_close_bundle(bundle), silent = TRUE)
     if (dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)
@@ -950,7 +970,14 @@ wb_bundle_from_seurat <- function(input,
   }
 
   bundle <- wb_init_bundle(bundle_dir, overwrite = overwrite)
-  on.exit(try(wb_refresh_manifest(bundle), silent = TRUE), add = TRUE)
+  completed <- FALSE
+  on.exit({
+    if (isTRUE(completed)) {
+      try(wb_refresh_manifest(bundle), silent = TRUE)
+    } else {
+      try(wb_close_bundle(bundle), silent = TRUE)
+    }
+  }, add = TRUE)
 
   md <- as.data.frame(seurat@meta.data, stringsAsFactors = FALSE, check.names = FALSE)
   md <- .wb_ingest_as_metadata_df(md, row_ids = colnames(seurat), id_col = "cell_id")
@@ -1015,6 +1042,7 @@ wb_bundle_from_seurat <- function(input,
       source_identity = source_identity
     )
   }
+  completed <- TRUE
   bundle
 }
 
@@ -1086,7 +1114,14 @@ wb_bundle_from_sce <- function(input,
   rownames(sce) <- feature_ids
 
   bundle <- wb_init_bundle(bundle_dir, overwrite = overwrite)
-  on.exit(try(wb_refresh_manifest(bundle), silent = TRUE), add = TRUE)
+  completed <- FALSE
+  on.exit({
+    if (isTRUE(completed)) {
+      try(wb_refresh_manifest(bundle), silent = TRUE)
+    } else {
+      try(wb_close_bundle(bundle), silent = TRUE)
+    }
+  }, add = TRUE)
 
   md <- .wb_ingest_as_metadata_df(SummarizedExperiment::colData(sce), row_ids = cell_ids, id_col = "cell_id")
   original_cell_id_col <- as.character(original_cell_id_col %||% "original_cell_id")[1]
@@ -1184,6 +1219,7 @@ wb_bundle_from_sce <- function(input,
       matrix_ids = imported
     )
   }
+  completed <- TRUE
   bundle
 }
 
@@ -1305,7 +1341,7 @@ wb_bundle_from_h5ad <- function(input,
     wb_refresh_manifest(bundle)
     wb_close_bundle(bundle)
     bundle <- NULL
-    .wb_ingest_promote_staged_bundle(stage_dir, final_dir, source_type = "h5ad")
+    .wb_ingest_promote_staged_bundle(stage_dir, final_dir, source_type = "h5ad", overwrite = overwrite)
   }, error = function(e) {
     if (!is.null(bundle)) try(wb_close_bundle(bundle), silent = TRUE)
     if (dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)

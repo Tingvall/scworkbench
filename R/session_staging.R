@@ -42,31 +42,40 @@
     tmpdir = .wb_session_stage_root()
   )
   dir.create(stage_dir, recursive = TRUE, showWarnings = FALSE)
-
-  # Flush the source DB before copying it. Payload directories are linked read-only
-  # by convention; newly created matrix/model payloads are written into stage dirs.
-  try(DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(FULL);"), silent = TRUE)
-  db_rel <- as.character(bundle$manifest$storage$sqlite$path)[1]
-  dir.create(dirname(file.path(stage_dir, db_rel)), recursive = TRUE, showWarnings = FALSE)
-  ok_db <- file.copy(file.path(bundle$dir, db_rel), file.path(stage_dir, db_rel), overwrite = FALSE)
-  .wb_assert(isTRUE(ok_db), "Failed to copy bundle SQLite metadata into session staging.")
-  ok_manifest <- file.copy(file.path(bundle$dir, "manifest.json"), file.path(stage_dir, "manifest.json"), overwrite = FALSE)
-  .wb_assert(isTRUE(ok_manifest), "Failed to copy bundle manifest into session staging.")
-
-  roots <- list.files(bundle$dir, all.files = TRUE, no.. = TRUE)
-  roots <- setdiff(roots, c("manifest.json", dirname(db_rel), ".git"))
-  mutable <- c("mat", "models", "artifact_models")
-  for (nm in roots) {
-    src <- file.path(bundle$dir, nm)
-    dst <- file.path(stage_dir, nm)
-    if (nm %in% mutable && dir.exists(src)) {
-      .wb_session_stage_link_children(src, dst)
-    } else {
-      ok <- file.symlink(src, dst)
-      .wb_assert(isTRUE(ok), paste0("Failed to link bundle payload root into session staging: ", src))
+  stage_ready <- FALSE
+  on.exit({
+    if (!isTRUE(stage_ready) && dir.exists(stage_dir)) {
+      unlink(stage_dir, recursive = TRUE, force = TRUE)
     }
-  }
-  for (nm in mutable) dir.create(file.path(stage_dir, nm), recursive = TRUE, showWarnings = FALSE)
+  }, add = TRUE)
+
+  # Capture a coherent source snapshot under the committed bundle's lock. The
+  # lock is released before the operation runs; later computation touches only
+  # this private overlay and remains concurrent with committed writers.
+  .wb_with_bundle_writer_lock(bundle, operation = "session staging snapshot", code = {
+    try(DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(FULL);"), silent = TRUE)
+    db_rel <- as.character(bundle$manifest$storage$sqlite$path)[1]
+    dir.create(dirname(file.path(stage_dir, db_rel)), recursive = TRUE, showWarnings = FALSE)
+    ok_db <- file.copy(file.path(bundle$dir, db_rel), file.path(stage_dir, db_rel), overwrite = FALSE)
+    .wb_assert(isTRUE(ok_db), "Failed to copy bundle SQLite metadata into session staging.")
+    ok_manifest <- file.copy(file.path(bundle$dir, "manifest.json"), file.path(stage_dir, "manifest.json"), overwrite = FALSE)
+    .wb_assert(isTRUE(ok_manifest), "Failed to copy bundle manifest into session staging.")
+
+    roots <- list.files(bundle$dir, all.files = TRUE, no.. = TRUE)
+    roots <- setdiff(roots, c("manifest.json", dirname(db_rel), ".git"))
+    mutable <- c("mat", "models", "artifact_models")
+    for (nm in roots) {
+      src <- file.path(bundle$dir, nm)
+      dst <- file.path(stage_dir, nm)
+      if (nm %in% mutable && dir.exists(src)) {
+        .wb_session_stage_link_children(src, dst)
+      } else {
+        ok <- file.symlink(src, dst)
+        .wb_assert(isTRUE(ok), paste0("Failed to link bundle payload root into session staging: ", src))
+      }
+    }
+    for (nm in mutable) dir.create(file.path(stage_dir, nm), recursive = TRUE, showWarnings = FALSE)
+  })
 
   stage_bundle <- wb_open_bundle(stage_dir, validate = FALSE)
   # Runners receive this overlay bundle directly. Retain the known source
@@ -76,6 +85,7 @@
   session$staging_dir <- stage_dir
   session$staging_bundle <- stage_bundle
   session$staging_source_dir <- stage_bundle$staging_source_dir
+  stage_ready <- TRUE
   list(session = session, bundle = stage_bundle)
 }
 

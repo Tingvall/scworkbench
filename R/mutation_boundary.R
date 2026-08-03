@@ -17,13 +17,16 @@
   isTRUE(identical(x, y))
 }
 
-.wb_register_assembly_bundle <- function(bundle) {
+.wb_register_assembly_bundle <- function(bundle, writer_lock) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert(inherits(writer_lock, "scworkbench_writer_lock"),
+             "active bundle assembly requires an exclusive writer lock")
   .wb_mutation_boundary_state$assembly_connections <- c(
     .wb_mutation_boundary_state$assembly_connections,
     list(list(
       con = bundle$con,
       dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE),
+      writer_lock = writer_lock,
       capability = .wb_mutation_boundary_state$capability
     ))
   )
@@ -33,8 +36,12 @@
 .wb_unregister_assembly_connection <- function(con) {
   entries <- .wb_mutation_boundary_state$assembly_connections
   if (length(entries)) {
+    removed <- entries[vapply(entries, function(x) .wb_connection_matches(x$con, con), logical(1))]
     keep <- !vapply(entries, function(x) .wb_connection_matches(x$con, con), logical(1))
     .wb_mutation_boundary_state$assembly_connections <- entries[keep]
+    if (length(removed)) {
+      for (entry in removed) .wb_bundle_writer_lock_release(entry$writer_lock)
+    }
   }
   invisible(TRUE)
 }
@@ -45,6 +52,13 @@
     identical(x$capability, .wb_mutation_boundary_state$capability) &&
       .wb_connection_matches(x$con, con)
   }, logical(1)))
+}
+
+.wb_assembly_connection_dir <- function(con) {
+  entries <- .wb_mutation_boundary_state$assembly_connections
+  if (!length(entries)) return(NULL)
+  hit <- Filter(function(x) .wb_connection_matches(x$con, con), entries)
+  if (!length(hit)) NULL else as.character(hit[[length(hit)]]$dir)[1]
 }
 
 .wb_with_mutation_context <- function(bundle = NULL,
@@ -75,19 +89,31 @@
       "promotion mutation authority requires an engine-created staging bundle bound to the destination bundle."
     )
   }
-  old <- .wb_mutation_boundary_state$contexts
-  .wb_mutation_boundary_state$contexts <- c(old, list(list(
-    capability = .wb_mutation_boundary_state$capability,
-    con = con,
-    dir = if (!is.null(bundle) && inherits(bundle, "scworkbench_bundle")) {
-      normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
-    } else NA_character_,
-    route = route,
-    run_id = as.character(run_id %||% "")[1],
-    op_name = as.character(op_name %||% "")[1]
-  )))
-  on.exit({ .wb_mutation_boundary_state$contexts <- old }, add = TRUE)
-  force(code)
+  lock_target <- if (!is.null(bundle) && inherits(bundle, "scworkbench_bundle")) {
+    bundle$dir
+  } else {
+    .wb_writer_lock_target_from_connection(con)
+  }
+  run_in_context <- function() {
+    old <- .wb_mutation_boundary_state$contexts
+    .wb_mutation_boundary_state$contexts <- c(old, list(list(
+      capability = .wb_mutation_boundary_state$capability,
+      con = con,
+      dir = if (!is.null(bundle) && inherits(bundle, "scworkbench_bundle")) {
+        normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
+      } else normalizePath(lock_target, winslash = "/", mustWork = TRUE),
+      route = route,
+      run_id = as.character(run_id %||% "")[1],
+      op_name = as.character(op_name %||% "")[1]
+    )))
+    on.exit({ .wb_mutation_boundary_state$contexts <- old }, add = TRUE)
+    force(code)
+  }
+  .wb_with_bundle_writer_lock(
+    lock_target,
+    operation = paste0("mutation route: ", route),
+    code = run_in_context()
+  )
 }
 
 .wb_current_mutation_context <- function(con, bundle_dir = NULL) {
@@ -116,8 +142,19 @@
   ctx <- .wb_current_mutation_context(
     con, bundle_dir = if (!is.null(bundle)) bundle$dir else NULL
   )
-  if (!is.null(ctx) && ctx$route %in% allowed) return(invisible(ctx$route))
-  if ("assembly" %in% allowed && .wb_is_assembly_connection(con)) return(invisible("assembly"))
+  if (!is.null(ctx) && ctx$route %in% allowed) {
+    .wb_assert(
+      nzchar(as.character(ctx$dir %||% "")[1]) && .wb_writer_lock_held(ctx$dir),
+      paste0(action, " requires the exclusive bundle-writer lock before any SQLite transaction.")
+    )
+    return(invisible(ctx$route))
+  }
+  if ("assembly" %in% allowed && .wb_is_assembly_connection(con)) {
+    assembly_dir <- .wb_assembly_connection_dir(con)
+    .wb_assert(!is.null(assembly_dir) && .wb_writer_lock_held(assembly_dir),
+               paste0(action, " requires the active assembly writer lock."))
+    return(invisible("assembly"))
+  }
 
   stop(
     action, " cannot write directly to a committed bundle. Use ", replacement,
