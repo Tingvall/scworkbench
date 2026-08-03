@@ -71,5 +71,5 @@ Session contract:
 control the UMAP neighborhood graph and layout. Their current validated
 defaults are exposed by \code{\link[=wb_op_interface]{wb_op_interface()}}.
 
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$model} (\code{model_ref}): Reference to the fitted UMAP model.; \code{outputs$space_2d} (\code{space_2d}): The fitted 2D embedding space id.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$model} (\code{model_ref}): Reference to the fitted UMAP model.; \code{outputs$space_2d} (\code{space_2d}): The fitted 2D embedding space id.. Promotion eligibility is declared by the operation catalog.
 }

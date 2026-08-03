@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-08-02T20:49:26+0200
+Generated at: 2026-08-02T23:47:11+0200
 
 Record count: 312
 
-Graph edges: 895
+Graph edges: 900
 
 ## artifact_type
 

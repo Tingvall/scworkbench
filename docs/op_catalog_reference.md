@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-08-02T20:49:24+0200
+Generated at: 2026-08-02T23:47:09+0200
 
 Operation count: 56
 
@@ -178,7 +178,7 @@ Intent: projection, umap
 Description: Project cells into an existing UMAP using a stored model.
 
 Consumes:
-- `model`: model_ref
+- `model`: model_ref - Constrains cells to the fitted source space unless an explicit query in_space is supplied.
 - `in_space`: space
 - `cell_set`: select
 
@@ -660,6 +660,8 @@ Intent: feature_set, transfer, namespace, matrix, provenance
 Description: Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.
 
 Consumes:
+- `source_matrix`: matrix
+- `target_matrix`: matrix
 - `cell_set`: select
 
 Produces:
@@ -1267,6 +1269,7 @@ Consumes:
 - `space`: space
 - `plot_space`: space
 - `clusters`: cell_vector
+- `space_2d`: space_2d
 - `cell_set`: select
 
 Produces:

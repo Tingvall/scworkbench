@@ -34,5 +34,5 @@ registers it under \code{output_matrix_id}.
 Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$matrix} (\code{matrix}): Reference to the newly registered log-normalized matrix.; \code{outputs$summary} (\code{obs_table}): Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$matrix} (\code{matrix}): Reference to the newly registered log-normalized matrix.; \code{outputs$summary} (\code{obs_table}): Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.. Promotion eligibility is declared by the operation catalog.
 }

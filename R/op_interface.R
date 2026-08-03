@@ -4,6 +4,28 @@
   cat <- .wb_op_catalog()
   execution_ops <- .wb_ops()
   lapply(cat, function(x) {
+    inputs <- x$inputs %||% list()
+    declared_inputs <- c(x$requires %||% list(), x$optional_requires %||% list())
+    coverage_modes <- x$coverage %||% list()
+    for (nm in names(declared_inputs)) {
+      item <- inputs[[nm]] %||% list()
+      kind <- as.character(item$kind %||% declared_inputs[[nm]])[1]
+      mode <- as.character(coverage_modes[[nm]] %||% "cell_indexed")[1]
+      item$effective_cell_coverage <- if (identical(mode, "reference_only")) {
+        "reference_only"
+      } else if (identical(mode, "model_associated_unless_query_space")) {
+        "model_associated_unless_query_space"
+      } else if (kind %in% c("path_2d_family")) {
+        "none"
+      } else if (kind %in% c("feature_table", "obs_table")) {
+        "cell_id_column_when_present"
+      } else if (kind == "space_path_family") {
+        "associated_space"
+      } else {
+        "cell_indexed"
+      }
+      inputs[[nm]] <- item
+    }
     produces <- x$interface_produces %||% list()
     declared <- x$produces %||% list()
     terminals <- as.character(x$promotable %||% character(0))
@@ -34,7 +56,7 @@
       title = as.character(x$title %||% ""),
       description = as.character(x$description %||% ""),
       intent = as.character(x$intent %||% character(0)),
-      inputs = x$inputs %||% list(),
+      inputs = inputs,
       controls = .wb_op_engine_input_specs(),
       params = params,
       produces = produces,

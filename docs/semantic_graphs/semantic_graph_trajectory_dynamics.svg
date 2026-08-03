@@ -79,6 +79,7 @@
 <line x1="1690" y1="679" x2="960" y2="3055" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:umap_transform</title></line>
 <line x1="1690" y1="751" x2="960" y2="1255" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:monocle3_project</title></line>
 <line x1="1690" y1="751" x2="960" y2="1399" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:palantir_project</title></line>
+<line x1="1690" y1="751" x2="960" y2="1615" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:slingshot</title></line>
 <line x1="1690" y1="751" x2="960" y2="1831" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:slingshot_project</title></line>
 <line x1="1690" y1="751" x2="960" y2="1975" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:space_path_project_2d</title></line>
 <line x1="1690" y1="823" x2="960" y2="1975" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_path_family consumed_by op:space_path_project_2d</title></line>

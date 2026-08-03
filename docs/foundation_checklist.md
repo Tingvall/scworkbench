@@ -15,7 +15,10 @@ This checklist is for stabilizing the `data + getters + selectors` foundation be
 - [ ] Getter output shapes/classes are documented in roxygen for public `wb_*` getters.
 - [ ] Getter ordering guarantees are tested (especially `wb_cells`, `wb_meta(cells=...)`, `wb_space(cells=...)`).
 - [ ] Error behavior for unknown IDs / invalid args is tested.
-- [ ] Coverage helpers (`wb_cells_with_space`, `wb_cells_with_matrix`, `wb_cell_coverage`) are tested.
+- [x] Typed coverage helpers (`wb_cells_with_space`, `wb_cells_with_matrix`,
+  `wb_cell_coverage`) derive exact matrix/space/primitive availability and are
+  tested across direct IDs, session refs, artifact refs, partial dimensions,
+  explicit cell order, and insufficient intersections.
 - [ ] Any non-guaranteed ordering paths are documented as such.
 
 ## 3. Selector Layer
@@ -44,4 +47,3 @@ This checklist is for stabilizing the `data + getters + selectors` foundation be
 2. Run foundation tests.
 3. Run notebook smoke sequence.
 4. Update docs if behavior changed.
-

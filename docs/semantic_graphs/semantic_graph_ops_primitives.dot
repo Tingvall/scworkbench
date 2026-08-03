@@ -104,6 +104,8 @@ digraph scworkbench_semantic_graph {
   n60 -> n12 [label="consumed_by", color="#2f6f8f"];
   n60 -> n13 [label="consumed_by", color="#2f6f8f"];
   n60 -> n14 [label="consumed_by", color="#2f6f8f"];
+  n60 -> n15 [label="consumed_by", color="#2f6f8f"];
+  n60 -> n15 [label="consumed_by", color="#2f6f8f"];
   n60 -> n16 [label="consumed_by", color="#2f6f8f"];
   n60 -> n17 [label="consumed_by", color="#2f6f8f"];
   n60 -> n18 [label="consumed_by", color="#2f6f8f"];
@@ -156,6 +158,7 @@ digraph scworkbench_semantic_graph {
   n65 -> n55 [label="consumed_by", color="#2f6f8f"];
   n66 -> n26 [label="consumed_by", color="#2f6f8f"];
   n66 -> n28 [label="consumed_by", color="#2f6f8f"];
+  n66 -> n34 [label="consumed_by", color="#2f6f8f"];
   n66 -> n37 [label="consumed_by", color="#2f6f8f"];
   n66 -> n39 [label="consumed_by", color="#2f6f8f"];
   n67 -> n39 [label="consumed_by", color="#2f6f8f"];

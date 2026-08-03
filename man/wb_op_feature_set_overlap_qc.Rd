@@ -42,5 +42,5 @@ trajectory/pathway screening.
 Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$overlap_qc} (\code{obs_table}): One row per feature set with raw, mapped, detected counts and include/exclude status.; \code{outputs$namespace_summary} (\code{obs_table}): Namespace-level count and overlap summaries.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$overlap_qc} (\code{obs_table}): One row per feature set with raw, mapped, detected counts and include/exclude status.; \code{outputs$namespace_summary} (\code{obs_table}): Namespace-level count and overlap summaries.. Promotion eligibility is declared by the operation catalog.
 }

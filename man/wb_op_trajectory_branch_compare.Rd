@@ -55,5 +55,5 @@ summary table.
 Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$branch_de_table} (\code{feature_table}): Per-feature branch comparison statistics and effect sizes.; \code{outputs$branch_summary} (\code{obs_table}): Branch-pair cell counts and pseudotime summary diagnostics.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$branch_de_table} (\code{feature_table}): Per-feature branch comparison statistics and effect sizes.; \code{outputs$branch_summary} (\code{obs_table}): Branch-pair cell counts and pseudotime summary diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

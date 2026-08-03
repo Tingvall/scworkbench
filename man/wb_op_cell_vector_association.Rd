@@ -28,5 +28,5 @@ wb_op_cell_vector_association(
 Associate two typed cell vectors with categorical and continuous dispatch.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$summary} (\code{obs_table}): Typed association summary including method, effect size, and diagnostics.; \code{outputs$detail} (\code{obs_table}): Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$summary} (\code{obs_table}): Typed association summary including method, effect size, and diagnostics.; \code{outputs$detail} (\code{obs_table}): Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.. Promotion eligibility is declared by the operation catalog.
 }

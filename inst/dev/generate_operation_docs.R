@@ -92,6 +92,7 @@
   }, character(1))
   paste0(
     "For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. ",
+    "Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. ",
     "The runtime catalog declares: ", paste(bits, collapse = "; "),
     ". Promotion eligibility is declared by the operation catalog."
   )

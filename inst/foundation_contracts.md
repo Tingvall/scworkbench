@@ -156,7 +156,16 @@ Contract intent:
 
 - `wb_cells_with_space()` returns cells with available coordinates for a space.
 - `wb_cells_with_matrix()` returns available cells for a matrix.
-- `wb_cell_coverage()` reports requested/effective coverage for input requirements.
+- `wb_cell_coverage()` resolves typed primitive coverage from operation
+  `requires`/`optional_requires` contracts. Session execution computes one
+  canonical ordered effective-cell universe after reference resolution and
+  records structured per-input coverage diagnostics in run provenance.
+- Matrix fragment cell memberships are disjoint within a logical matrix, and
+  wide 2D coverage evaluates requested dimensions independently (`x`, `y`, or
+  both).
+- `umap_transform` uses model-associated source-space coverage when no query
+  space is supplied. An explicit `in_space` owns query coverage instead, so a
+  fitted model can project a genuinely disjoint new-cell universe.
 - Effective-cell resolution (`.wb_effective_cells`) treats `inputs$cell_ids` as explicit
   requested universe override and then applies required-input intersections.
 - Ops should rely on session-level effective-cell resolution instead of ad-hoc filtering.

@@ -40,5 +40,5 @@ and pruning status.
 Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$winners} (\code{obs_table}): Per-cell winner, runner-up, confidence, and pruning table.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$winners} (\code{obs_table}): Per-cell winner, runner-up, confidence, and pruning table.. Promotion eligibility is declared by the operation catalog.
 }

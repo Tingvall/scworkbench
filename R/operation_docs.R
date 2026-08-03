@@ -14,7 +14,7 @@
 #' @param ctrl Control features sampled per module feature.
 #' @param name Prefix for module names when features are unnamed.
 #' @param seed Integer random seed used to make stochastic computation reproducible.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$module_scores` (`cell_vector_family`): Per-cell module scores for one or more signatures.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$module_scores` (`cell_vector_family`): Per-cell module scores for one or more signatures.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_suffix_label
@@ -25,7 +25,7 @@ NULL
 #' @param sep Separator used in cell IDs before suffix token.
 #' @param mapping Optional named mapping suffix->label.
 #' @param default_label Fallback label for unmapped suffixes.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$labels` (`cell_vector`): Categorical label per cell from suffix parsing.; `outputs$label_table` (`obs_table`): Per-cell suffix/label table.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$labels` (`cell_vector`): Categorical label per cell from suffix parsing.; `outputs$label_table` (`obs_table`): Per-cell suffix/label table.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_assoc
@@ -34,7 +34,7 @@ NULL
 #' @param vector_cont Required `vector_cont` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
 #' @param vector_group Required `vector_group` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
 #' @param min_n_per_group Minimum cells per group.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$assoc_summary` (`feature_table`): Omnibus association test summary (Kruskal/ANOVA).; `outputs$group_stats` (`obs_table`): Per-group descriptive statistics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$assoc_summary` (`feature_table`): Omnibus association test summary (Kruskal/ANOVA).; `outputs$group_stats` (`obs_table`): Per-group descriptive statistics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_association
@@ -45,7 +45,7 @@ NULL
 #' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
 #' @param min_n_per_group Minimum cells per retained categorical group.
 #' @param method Association method or typed automatic dispatch.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$summary` (`obs_table`): Typed association summary including method, effect size, and diagnostics.; `outputs$detail` (`obs_table`): Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$summary` (`obs_table`): Typed association summary including method, effect size, and diagnostics.; `outputs$detail` (`obs_table`): Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_compare
@@ -58,7 +58,7 @@ NULL
 #' @param ties_method Tie handling rule used when compare_space='rank'.
 #' @param signal_a Optional label recorded in the summary table for signal A.
 #' @param signal_b Optional label recorded in the summary table for signal B.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$summary` (`obs_table`): One-row comparison summary with concordance and delta metrics.; `outputs$comparison` (`obs_table`): Per-cell comparison table with original values, compared values, and deltas.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$summary` (`obs_table`): One-row comparison summary with concordance and delta metrics.; `outputs$comparison` (`obs_table`): Per-cell comparison table with original values, compared values, and deltas.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_family_calibrate
@@ -71,7 +71,7 @@ NULL
 #' @param scale For z-score calibration, divide by the fitted scale.
 #' @param ties_method Rank tie handling for percentile calibration.
 #' @param na_rm Ignore non-finite values when fitting calibration.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$calibrated_signal` (`cell_vector_family`): Calibrated per-cell values for each key in the signal family.; `outputs$calibration_summary` (`obs_table`): Per-key calibration statistics for raw and calibrated values.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$calibrated_signal` (`cell_vector_family`): Calibrated per-cell values for each key in the signal family.; `outputs$calibration_summary` (`obs_table`): Per-key calibration statistics for raw and calibrated values.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_family_graph_smooth
@@ -93,7 +93,7 @@ NULL
 #' @param source_signal_artifact_id Optional source cell_vector_family artifact ID copied into metadata.
 #' @param source_run_id Optional source run ID copied into metadata.
 #' @param source_snapshot_id Optional source provenance snapshot ID copied into metadata.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$smoothed_signal` (`cell_vector_family`): Geometry-smoothed per-cell values for each selected key.; `outputs$smoothing_summary` (`obs_table`): Per-key smoothing diagnostics and parameter echo.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$smoothed_signal` (`cell_vector_family`): Geometry-smoothed per-cell values for each selected key.; `outputs$smoothing_summary` (`obs_table`): Per-key smoothing diagnostics and parameter echo.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_family_qc
@@ -104,7 +104,7 @@ NULL
 #' @param grouping Optional `grouping` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
 #' @param correlation_methods Pairwise correlation methods to compute between keys.
 #' @param tie_tol Tolerance used when counting tied top-key winners.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$key_summary` (`obs_table`): Per-key QC summaries including score distribution, finite coverage, and winner frequencies.; `outputs$pairwise_summary` (`obs_table`): Pairwise key relationships including overlap counts and correlations.; `outputs$group_summary` (`obs_table`): Per-group per-key QC summaries when an optional grouping vector is supplied.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$key_summary` (`obs_table`): Per-key QC summaries including score distribution, finite coverage, and winner frequencies.; `outputs$pairwise_summary` (`obs_table`): Pairwise key relationships including overlap counts and correlations.; `outputs$group_summary` (`obs_table`): Per-group per-key QC summaries when an optional grouping vector is supplied.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_family_reduce
@@ -118,7 +118,7 @@ NULL
 #' @param unknown_label Fallback label emitted when thresholds or ties abstain.
 #' @param ties How to handle tied top scores.
 #' @param tie_tol Tolerance used when detecting ties.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$label` (`cell_vector`): Per-cell categorical labels after reducing the signal family.; `outputs$top_score` (`cell_vector`): Winning score for each cell.; `outputs$runner_up_score` (`cell_vector`): Second-best score for each cell.; `outputs$score_margin` (`cell_vector`): Winning minus runner-up score for each cell.; `outputs$abstain_reason` (`cell_vector`): Per-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`).; `outputs$decision_table` (`obs_table`): Per-cell reduction diagnostics including label, scores, margin, and abstention reason.; `outputs$label_summary` (`obs_table`): Per-label counts and score summaries after reduction.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$label` (`cell_vector`): Per-cell categorical labels after reducing the signal family.; `outputs$top_score` (`cell_vector`): Winning score for each cell.; `outputs$runner_up_score` (`cell_vector`): Second-best score for each cell.; `outputs$score_margin` (`cell_vector`): Winning minus runner-up score for each cell.; `outputs$abstain_reason` (`cell_vector`): Per-cell abstention reason (`none`, `tie`, `min_score`, `min_margin`).; `outputs$decision_table` (`obs_table`): Per-cell reduction diagnostics including label, scores, margin, and abstention reason.; `outputs$label_summary` (`obs_table`): Per-label counts and score summaries after reduction.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_cell_vector_winners
@@ -131,7 +131,7 @@ NULL
 #' @param source_score_artifact_id Optional source cell_vector_family artifact ID copied into winner table metadata.
 #' @param source_run_id Optional source run ID copied into winner table metadata.
 #' @param source_snapshot_id Optional source provenance snapshot ID copied into winner table metadata.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$winners` (`obs_table`): Per-cell winner, runner-up, confidence, and pruning table.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$winners` (`obs_table`): Per-cell winner, runner-up, confidence, and pruning table.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_chromvar
@@ -153,7 +153,7 @@ NULL
 #' @param background_iterations Number of chromVAR background iterations.
 #' @param background_w Background peak matching window width.
 #' @param background_bs Background peak matching bin count.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$deviation_z` (`cell_vector_family`): Per-cell chromVAR z-scores keyed by motif.; `outputs$deviation_raw` (`cell_vector_family`): Per-cell raw chromVAR deviations keyed by motif.; `outputs$motif_summary` (`obs_table`): Per-motif chromVAR summary statistics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$deviation_z` (`cell_vector_family`): Per-cell chromVAR z-scores keyed by motif.; `outputs$deviation_raw` (`cell_vector_family`): Per-cell raw chromVAR deviations keyed by motif.; `outputs$motif_summary` (`obs_table`): Per-motif chromVAR summary statistics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_de_wilcox
@@ -166,7 +166,7 @@ NULL
 #' @param features Optional feature subset.
 #' @param min_pct Minimum detection fraction in either group.
 #' @param p_adjust_method Method passed to p.adjust.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$de_table` (`feature_table`): Feature-level DE statistics table.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$de_table` (`feature_table`): Feature-level DE statistics table.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_feature_set_import
@@ -196,7 +196,7 @@ NULL
 #' @param source_version Optional source/library version stored in feature-set metadata.
 #' @param origin Human-readable origin label recorded for imported source material.
 #' @param is_readonly Whether imported feature sets are marked read-only after registration.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$import_summary` (`obs_table`): One-row summary of parsed/imported/skipped/rejected set counts.; `outputs$import_manifest` (`obs_table`): One row per parsed feature set with target namespace, overlap counts, and import status.; `outputs$rejected_sets` (`obs_table`): Feature sets rejected during import, typically because no genes mapped to the matrix.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$import_summary` (`obs_table`): One-row summary of parsed/imported/skipped/rejected set counts.; `outputs$import_manifest` (`obs_table`): One row per parsed feature set with target namespace, overlap counts, and import status.; `outputs$rejected_sets` (`obs_table`): Feature sets rejected during import, typically because no genes mapped to the matrix.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_feature_set_overlap_qc
@@ -211,7 +211,7 @@ NULL
 #' @param max_set_size Maximum mapped/detected genes allowed to include a set.
 #' @param min_detected_fraction Minimum fraction of source genes detected in the matrix.
 #' @param deduplicate_sets If TRUE, duplicate mapped-gene signatures after the first are excluded.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$overlap_qc` (`obs_table`): One row per feature set with raw, mapped, detected counts and include/exclude status.; `outputs$namespace_summary` (`obs_table`): Namespace-level count and overlap summaries.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$overlap_qc` (`obs_table`): One row per feature set with raw, mapped, detected counts and include/exclude status.; `outputs$namespace_summary` (`obs_table`): Namespace-level count and overlap summaries.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_feature_trend_spearman
@@ -226,7 +226,7 @@ NULL
 #' @param min_sd Minimum per-feature standard deviation filter.
 #' @param p_adjust_method Method passed to p.adjust.
 #' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$trend_table` (`feature_table`): Per-feature trend statistics (rho, p, adjusted p).. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$trend_table` (`feature_table`): Per-feature trend statistics (rho, p, adjusted p).. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_hvg_select
@@ -245,7 +245,7 @@ NULL
 #' @param feature_type Optional feature_type filter from the bundle feature registry.
 #' @param seed Integer random seed used to make stochastic computation reproducible.
 #' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$selected_features` (`feature_table`): Feature-wise mean, variance, dispersion, score, rank, and selected flag.; `outputs$fit_summary` (`obs_table`): Input matrix, method, filters, dimensions, and selection counts.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$selected_features` (`feature_table`): Feature-wise mean, variance, dispersion, score, rank, and selected flag.; `outputs$fit_summary` (`obs_table`): Input matrix, method, filters, dimensions, and selection counts.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_knn_neighbors
@@ -257,7 +257,7 @@ NULL
 #' @param candidate_cells Optional candidate neighbor pool; defaults to all cells.
 #' @param k Nearest neighbors per query cell.
 #' @param include_query Include query cells themselves when they are in candidate pool.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$neighbors` (`obs_table`): Per-query neighbor table (cell_id, rank, distance).; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$neighbors` (`obs_table`): Per-query neighbor table (cell_id, rank, distance).; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_knn_pseudobulk
@@ -272,7 +272,7 @@ NULL
 #' @param k Nearest neighbors per query cell.
 #' @param include_query Include query cells themselves when they are in candidate pool.
 #' @param aggregate Aggregation mode: sum or mean.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pseudobulk_table` (`feature_table`): Feature-level pseudobulk values keyed by query cell.; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudobulk_table` (`feature_table`): Feature-level pseudobulk values keyed by query cell.; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_leiden
@@ -288,7 +288,7 @@ NULL
 #' @param n_iterations Number of optimization or clustering iterations.
 #' @param seed Integer random seed used to make stochastic computation reproducible.
 #' @param weight Whether weighted nearest-neighbor relationships are used by the engine.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$clusters` (`cell_vector`): Cluster label per cell (categorical cell vector).. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$clusters` (`cell_vector`): Cluster label per cell (categorical cell vector).. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_markers_topn
@@ -302,7 +302,7 @@ NULL
 #' @param top_n Top markers retained per cluster.
 #' @param min_pct Minimum detection fraction in either group.
 #' @param p_adjust_method Method passed to p.adjust.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$markers` (`feature_table`): Cluster-marker table with per-feature statistics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$markers` (`feature_table`): Cluster-marker table with per-feature statistics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_matrix_log_normalize
@@ -313,7 +313,7 @@ NULL
 #' @param output_matrix_id Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.
 #' @param scale_factor Per-cell target count scale before log1p; 10000 is the common CP10K convention.
 #' @param overwrite If TRUE, replace an existing output matrix with the same id.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$matrix` (`matrix`): Reference to the newly registered log-normalized matrix.; `outputs$summary` (`obs_table`): Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$matrix` (`matrix`): Reference to the newly registered log-normalized matrix.; `outputs$summary` (`obs_table`): Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_metadata_cell_vector
@@ -327,7 +327,7 @@ NULL
 #' @param missing_label Replacement label when missing_policy='as_category'.
 #' @param vector_name Stable promoted vector name; collision protection is controlled by overwrite.
 #' @param overwrite Allow a new immutable artifact to supersede an existing vector with the same name.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$vector` (`cell_vector`): Typed per-cell vector materialized from imported bundle metadata.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$vector` (`cell_vector`): Typed per-cell vector materialized from imported bundle metadata.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_monocle3_fit
@@ -352,7 +352,7 @@ NULL
 #' @param nn_control Optional nearest-neighbor control list passed to the underlying engine.
 #' @param learn_graph_control Optional principal-graph learning control list passed to the underlying engine.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pseudotime` (`cell_vector`): Rooted global pseudotime per cell from monocle3.; `outputs$branch_membership` (`relation_family`): Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).; `outputs$model` (`model_ref`): Session-chainable monocle3 CDS model (engine='monocle3').. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector`): Rooted global pseudotime per cell from monocle3.; `outputs$branch_membership` (`relation_family`): Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).; `outputs$model` (`model_ref`): Session-chainable monocle3 CDS model (engine='monocle3').. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_monocle3_project
@@ -363,7 +363,7 @@ NULL
 #' @param plot_space_id Registered two-dimensional display space used for projection.
 #' @param approx_points Target max curve points per lineage for display (0/NULL = no compaction).
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Projected monocle3 root-qualified lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Projected monocle3 root-qualified lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_palantir_fit
@@ -382,7 +382,7 @@ NULL
 #' @param seed Integer random seed used to make stochastic computation reproducible.
 #' @param cell_set Named bundle cell set used to resolve the analysis universe.
 #' @param python_bin Python executable used for an optional pybench-backed runtime.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pseudotime` (`cell_vector`): Palantir pseudotime (single-root, global).; `outputs$branch_membership` (`relation_family`): Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).; `outputs$branch_summary` (`obs_table`): Palantir branch probability summary table.; `outputs$entropy` (`cell_vector`): Palantir entropy per cell.; `outputs$model` (`model_ref`): Palantir Python model payload (engine='palantir').. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector`): Palantir pseudotime (single-root, global).; `outputs$branch_membership` (`relation_family`): Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).; `outputs$branch_summary` (`obs_table`): Palantir branch probability summary table.; `outputs$entropy` (`cell_vector`): Palantir entropy per cell.; `outputs$model` (`model_ref`): Palantir Python model payload (engine='palantir').. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_palantir_project
@@ -397,7 +397,7 @@ NULL
 #' @param approx_points Number of trajectory sample points per branch (curve resolution).
 #' @param python_bin Python executable used for an optional pybench-backed runtime.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Palantir-style smoothed branch trajectories projected into the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Palantir-style smoothed branch trajectories projected into the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_pathway_enrich
@@ -417,7 +417,7 @@ NULL
 #' @param min_set_size Minimum pathway size to test.
 #' @param max_set_size Maximum pathway size to test.
 #' @param p_adjust_method Method passed to p.adjust.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pathways` (`obs_table`): Pathway enrichment statistics for one namespace.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pathways` (`obs_table`): Pathway enrichment statistics for one namespace.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_pca_fit
@@ -436,7 +436,7 @@ NULL
 #' @param space_id_out Bundle space id to create.
 #' @param overwrite Replace an existing space_id_out if present.
 #' @param max_dense_gb Approximate dense selected-block size guard for dense backends.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$space` (`space`): Reference to the persisted PCA space.; `outputs$loadings` (`feature_table`): Feature loadings per principal component.; `outputs$variance` (`obs_table`): Per-PC standard deviation and variance explained.; `outputs$fit_summary` (`obs_table`): Input matrix, feature count, backend, component count, and output space id.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Reference to the persisted PCA space.; `outputs$loadings` (`feature_table`): Feature loadings per principal component.; `outputs$variance` (`obs_table`): Per-PC standard deviation and variance explained.; `outputs$fit_summary` (`obs_table`): Input matrix, feature count, backend, component count, and output space id.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_peakvi_project
@@ -450,7 +450,7 @@ NULL
 #' @param use_gpu If TRUE, request GPU-backed model loading/projection in scvi-tools.
 #' @param space_id_out Space id to write for the projected PeakVI latent embedding.
 #' @param python_bin Python executable used for an optional pybench-backed runtime.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.; `outputs$fit_summary` (`obs_table`): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.; `outputs$fit_summary` (`obs_table`): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot
@@ -470,7 +470,7 @@ NULL
 #' @param shrink Engine shrinkage control for fitted trajectory curves.
 #' @param maxit Maximum engine fitting iterations.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Lineage-specific pseudotime values per cell.; `outputs$curves` (`path_2d_family`): Lineage curve paths in 2D.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Lineage-specific pseudotime values per cell.; `outputs$curves` (`path_2d_family`): Lineage curve paths in 2D.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot_fit
@@ -490,14 +490,14 @@ NULL
 #' @param shrink Engine shrinkage control for fitted trajectory curves.
 #' @param maxit Maximum engine fitting iterations.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Lineage-specific pseudotime values per cell (fit space inference).; `outputs$lineage_weights` (`cell_vector_family`): Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.; `outputs$model` (`model_ref`): Session-chainable Slingshot fit model (engine='slingshot').. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Lineage-specific pseudotime values per cell (fit space inference).; `outputs$lineage_weights` (`cell_vector_family`): Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.; `outputs$model` (`model_ref`): Session-chainable Slingshot fit model (engine='slingshot').. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot_lineage_weights
 #' @aliases wb_op_slingshot_lineage_weights
 #' @description Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
 #' @param model_ref Typed `model_ref` primitive required by this engine-specific helper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$lineage_weights` (`cell_vector_family`): Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$lineage_weights` (`cell_vector_family`): Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot_project
@@ -510,7 +510,7 @@ NULL
 #' @param shrink Engine shrinkage control for fitted trajectory curves.
 #' @param approx_points Target max curve points per lineage for display (0/NULL = no compaction).
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Projected Slingshot lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Projected Slingshot lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_space_path_define
@@ -527,7 +527,7 @@ NULL
 #' @param smooth_n_iter For fit_mode='manifold_smooth', number of refinement passes.
 #' @param smooth_weight For fit_mode='manifold_smooth', distance-weighting rule for local cell pull.
 #' @param path_id_out Path id to record for the emitted analytical path.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$path` (`space_path_family`): Analytical path in the original latent space.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$path` (`space_path_family`): Analytical path in the original latent space.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_space_path_project_2d
@@ -538,7 +538,7 @@ NULL
 #' @param plot_space_id Registered two-dimensional display space used for projection.
 #' @param project_mode Projection mode used to approximate the analytical path in a 2D plot space.
 #' @param approx_points Optional target point count for display compaction.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Approximate 2D rendering of the analytical path.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Approximate 2D rendering of the analytical path.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_space_path_score
@@ -551,7 +551,7 @@ NULL
 #' @param score_mode Scoring mode. The current implementation standardizes on orthogonal projection semantics.
 #' @param distance_metric Distance metric used for path-relative scoring.
 #' @param score_prefix Optional prefix for emitted score-family keys.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$path_scores` (`cell_vector_family`): Per-cell path-relative scores such as progress and distance.; `outputs$fit_summary` (`obs_table`): Compact path-level scoring diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$path_scores` (`cell_vector_family`): Per-cell path-relative scores such as progress and distance.; `outputs$fit_summary` (`obs_table`): Compact path-level scoring diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_branch_compare
@@ -568,7 +568,7 @@ NULL
 #' @param features Optional explicit feature subset (intersected with feature_set when both provided).
 #' @param min_pct Minimum detection fraction in either branch.
 #' @param p_adjust_method Method passed to p.adjust.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$branch_de_table` (`feature_table`): Per-feature branch comparison statistics and effect sizes.; `outputs$branch_summary` (`obs_table`): Branch-pair cell counts and pseudotime summary diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$branch_de_table` (`feature_table`): Per-feature branch comparison statistics and effect sizes.; `outputs$branch_summary` (`obs_table`): Branch-pair cell counts and pseudotime summary diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_de
@@ -586,7 +586,7 @@ NULL
 #' @param min_sd Minimum per-feature standard deviation filter.
 #' @param p_adjust_method Method passed to p.adjust.
 #' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$de_table` (`feature_table`): Per-lineage feature trend statistics (rho, p, adjusted p).; `outputs$fit_summary` (`obs_table`): Per-lineage input and filtering diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$de_table` (`feature_table`): Per-lineage feature trend statistics (rho, p, adjusted p).; `outputs$fit_summary` (`obs_table`): Per-lineage input and filtering diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_geneset_dynamics
@@ -634,7 +634,7 @@ NULL
 #' @param n_permutations Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing.
 #' @param permutation_seed Random seed for empirical dynamic-score permutations.
 #' @param p_adjust_method Multiple-testing correction method for q_dynamic.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$signature_table` (`obs_table`): Binned feature-set score curves along trajectory pseudotime.; `outputs$dynamics_table` (`obs_table`): Per-feature-set dynamic metrics and rank.; `outputs$top_sets` (`obs_table`): Top-ranked dynamic feature sets for report-first discovery.; `outputs$driver_table` (`obs_table`): Top dynamic member genes within each screened feature set.; `outputs$driver_curve_table` (`obs_table`): Binned curves for top driver genes within each screened feature set.; `outputs$fit_summary` (`obs_table`): Per-lineage screening diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$signature_table` (`obs_table`): Binned feature-set score curves along trajectory pseudotime.; `outputs$dynamics_table` (`obs_table`): Per-feature-set dynamic metrics and rank.; `outputs$top_sets` (`obs_table`): Top-ranked dynamic feature sets for report-first discovery.; `outputs$driver_table` (`obs_table`): Top dynamic member genes within each screened feature set.; `outputs$driver_curve_table` (`obs_table`): Binned curves for top driver genes within each screened feature set.; `outputs$fit_summary` (`obs_table`): Per-lineage screening diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_route_smooth
@@ -654,7 +654,7 @@ NULL
 #' @param weight_mode Use route probabilities directly or threshold to a binary route membership.
 #' @param prob_min Minimum route probability required to include a cell.
 #' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$trend_table` (`obs_table`): Per-feature binned summaries along a selected route.; `outputs$fit_summary` (`obs_table`): Route smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$trend_table` (`obs_table`): Per-feature binned summaries along a selected route.; `outputs$fit_summary` (`obs_table`): Route smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_segment_from_artifacts
@@ -677,7 +677,7 @@ NULL
 #' @param composite_id Stable identifier for a derived composite trajectory.
 #' @param runs Optional session run registry used to resolve symbolic input references.
 #' @param allow_legacy Allow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Fitted-model segment pseudotime for the selected lineage/key.; `outputs$membership` (`cell_vector`): Cells included in the fitted-model segment.; `outputs$confidence` (`cell_vector_family`): Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1.; `outputs$segment_manifest` (`obs_table`): Audit manifest for the fitted-model segment.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Fitted-model segment pseudotime for the selected lineage/key.; `outputs$membership` (`cell_vector`): Cells included in the fitted-model segment.; `outputs$confidence` (`cell_vector_family`): Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1.; `outputs$segment_manifest` (`obs_table`): Audit manifest for the fitted-model segment.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_segment_join
@@ -691,7 +691,7 @@ NULL
 #' @param min_weight Optional minimum lineage weight required for segment-local membership when weights are supplied.
 #' @param allow_legacy Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.
 #' @param runs Optional session run registry used to resolve symbolic input references.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$composite_pseudotime_unit_segment` (`cell_vector_family`): Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.; `outputs$composite_pseudotime_cell_weighted_0_1` (`cell_vector_family`): One-row-per-cell composite pseudotime normalized to \\[0,1\\] with segment lengths weighted by segment-local cell counts.; `outputs$segment_local_table` (`obs_table`): One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.; `outputs$composite_manifest` (`obs_table`): Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.; `outputs$composite_membership` (`cell_vector`): One-cell assignment to a unique segment or waypoint overlap.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$composite_pseudotime_unit_segment` (`cell_vector_family`): Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.; `outputs$composite_pseudotime_cell_weighted_0_1` (`cell_vector_family`): One-row-per-cell composite pseudotime normalized to \\[0,1\\] with segment lengths weighted by segment-local cell counts.; `outputs$segment_local_table` (`obs_table`): One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.; `outputs$composite_manifest` (`obs_table`): Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.; `outputs$composite_membership` (`cell_vector`): One-cell assignment to a unique segment or waypoint overlap.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_segment_path_join
@@ -706,7 +706,7 @@ NULL
 #' @param endpoint_max_distance Optional absolute maximum endpoint distance before QC fails.
 #' @param endpoint_qc_action Action when display-path endpoint QC detects a large mismatch.
 #' @param allow_legacy Allow missing trajectory_fit_id on parent paths with warning.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.; `outputs$path_manifest` (`obs_table`): Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.; `outputs$endpoint_qc` (`obs_table`): Endpoint-distance QC for joined display paths with declared endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.; `outputs$path_manifest` (`obs_table`): Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.; `outputs$endpoint_qc` (`obs_table`): Endpoint-distance QC for joined display paths with declared endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_signal_dynamics
@@ -740,7 +740,7 @@ NULL
 #' @param bootstrap_seed Random seed for bootstrap confidence bands.
 #' @param ci_level Confidence level for bootstrap bands.
 #' @param class_min_amplitude Minimum amplitude required before assigning non-flat curve classes.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$signal_table` (`obs_table`): Binned signal-score curves along trajectory pseudotime.; `outputs$dynamics_table` (`obs_table`): Per-signal dynamic metrics and rank.; `outputs$top_signals` (`obs_table`): Top-ranked dynamic signals for report-first discovery.; `outputs$fit_summary` (`obs_table`): Per-lineage signal dynamics diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$signal_table` (`obs_table`): Binned signal-score curves along trajectory pseudotime.; `outputs$dynamics_table` (`obs_table`): Per-signal dynamic metrics and rank.; `outputs$top_signals` (`obs_table`): Top-ranked dynamic signals for report-first discovery.; `outputs$fit_summary` (`obs_table`): Per-lineage signal dynamics diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_signature_smooth
@@ -756,7 +756,7 @@ NULL
 #' @param n_bins Number of pseudotime bins.
 #' @param summary_fun Summary statistic across cells within each bin.
 #' @param min_cells_per_bin Minimum cells required for an output bin.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$signature_table` (`obs_table`): Per-signature binned summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage signature smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$signature_table` (`obs_table`): Per-signature binned summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage signature smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_smooth
@@ -773,7 +773,7 @@ NULL
 #' @param summary_fun Summary statistic across cells within each bin.
 #' @param min_cells_per_bin Minimum cells required for an output bin.
 #' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$trend_table` (`obs_table`): Per-feature binned expression summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$trend_table` (`obs_table`): Per-feature binned expression summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_space_path_segment
@@ -804,7 +804,7 @@ NULL
 #' @param pseudotime_key Key for emitted bridge pseudotime. Defaults to segment_id.
 #' @param confidence_key Key for emitted bridge confidence. Defaults to segment_id.
 #' @param runs Optional session run registry used to resolve symbolic input references.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Bridge pseudotime from path arclength progress in \\[0,1\\].; `outputs$membership` (`cell_vector`): Cells passing the transparent distance-to-path bridge membership rule.; `outputs$confidence` (`cell_vector_family`): Distance-derived confidence for included bridge cells.; `outputs$segment_manifest` (`obs_table`): Audit manifest for the space-path bridge segment.; `outputs$display_endpoint_qc` (`obs_table`): Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Bridge pseudotime from path arclength progress in \\[0,1\\].; `outputs$membership` (`cell_vector`): Cells passing the transparent distance-to-path bridge membership rule.; `outputs$confidence` (`cell_vector_family`): Distance-derived confidence for included bridge cells.; `outputs$segment_manifest` (`obs_table`): Audit manifest for the space-path bridge segment.; `outputs$display_endpoint_qc` (`obs_table`): Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_vector_smooth
@@ -819,7 +819,7 @@ NULL
 #' @param n_bins Number of pseudotime bins.
 #' @param summary_fun Summary statistic across cells within each bin.
 #' @param min_cells_per_bin Minimum cells required for an output bin.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$signal_table` (`obs_table`): Per-signal binned summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage signal smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$signal_table` (`obs_table`): Per-signal binned summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage signal smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_umap_fit
@@ -838,7 +838,7 @@ NULL
 #' @param spread UMAP spread parameter.
 #' @param seed Integer random seed used to make stochastic computation reproducible.
 #' @param verbose Whether the underlying engine emits progress output.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$model` (`model_ref`): Reference to the fitted UMAP model.; `outputs$space_2d` (`space_2d`): The fitted 2D embedding space id.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$model` (`model_ref`): Reference to the fitted UMAP model.; `outputs$space_2d` (`space_2d`): The fitted 2D embedding space id.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_umap_transform
@@ -852,6 +852,6 @@ NULL
 #' @param dims Dims to use from the input space (e.g. 2:30).
 #' @param overwrite Overwrite existing projected coordinates for those cells.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. The runtime catalog declares: `outputs$space_2d` (`space_2d`): Projected x/y in the target UMAP space.. Promotion eligibility is declared by the operation catalog.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space_2d` (`space_2d`): Projected x/y in the target UMAP space.. Promotion eligibility is declared by the operation catalog.
 NULL
 

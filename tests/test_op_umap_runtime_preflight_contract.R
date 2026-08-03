@@ -162,3 +162,78 @@ test_op_umap_same_session_transform_promotion_contract <- function() {
 
   TRUE
 }
+
+test_op_umap_disjoint_query_space_contract <- function() {
+  if (!requireNamespace("uwot", quietly = TRUE)) {
+    return(contract_test_skip("uwot is not installed."))
+  }
+
+  tmp <- tempfile("scwb_umap_disjoint_query_")
+  b <- wb_init_bundle(tmp, overwrite = TRUE)
+  on.exit({
+    try(wb_close_bundle(b), silent = TRUE)
+    unlink(tmp, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+
+  cells <- paste0("c", seq_len(12L))
+  fitted_cells <- cells[1:6]
+  query_cells <- cells[7:12]
+  wb_define_cells(b, cells)
+  wb_cell_set_replace(b, "set:fitted", fitted_cells, source = "test")
+  wb_cell_set_replace(b, "set:query", query_cells, source = "test")
+  wb_add_space(
+    b, "fit.pca",
+    matrix(seq_len(24L) / 10, nrow = 6L,
+           dimnames = list(fitted_cells, paste0("PC", 1:4))),
+    source = "test"
+  )
+  wb_add_space(
+    b, "query.pca",
+    matrix(seq_len(24L) / 7, nrow = 6L,
+           dimnames = list(query_cells, paste0("PC", 1:4))),
+    source = "test"
+  )
+
+  fit <- wb_session_run_op(
+    wb_session_new(), b, "umap_fit",
+    inputs = list(
+      space = "fit.pca", cell_set = "set:fitted", min_cells = 1L,
+      dims = 1:4, space_id_out = "disjoint.umap", n_neighbors = 3L,
+      min_dist = 0.1, metric = "euclidean", nn_method = "annoy", seed = 7L
+    )
+  )
+
+  omitted_query_space <- try(wb_session_run_op(
+    fit$session, b, "umap_transform",
+    inputs = list(
+      model = wb_ref_run(fit$run$run_id, "model"),
+      cell_set = "set:query", min_cells = 1L
+    )
+  ), silent = TRUE)
+  stopifnot(inherits(omitted_query_space, "try-error"),
+            grepl("effective cells: 0", as.character(omitted_query_space), fixed = TRUE))
+
+  projected <- wb_session_run_op(
+    fit$session, b, "umap_transform",
+    inputs = list(
+      model = wb_ref_run(fit$run$run_id, "model"),
+      in_space = "query.pca", cell_set = "set:query", min_cells = 1L,
+      dims = 1:4, overwrite = TRUE
+    )
+  )
+  stopifnot(
+    identical(projected$run$inputs$coverage$per_input$model$coverage_mode,
+              "reference_only_explicit_query_space"),
+    identical(projected$run$inputs$coverage$per_input$in_space$source_id, "query.pca"),
+    identical(projected$run$inputs$coverage$effective_n, length(query_cells))
+  )
+  staged_umap <- wb_space(wb_session_view(projected$session), "disjoint.umap")
+  stopifnot(identical(as.character(staged_umap$cell_id), cells))
+
+  wb_session_promote_current(b, projected$session, outputs = "space_2d", created_by = "test")
+  wb_close_bundle(b)
+  b <- wb_open_bundle(tmp)
+  durable_umap <- wb_space(b, "disjoint.umap")
+  stopifnot(identical(as.character(durable_umap$cell_id), cells), isTRUE(wb_validate_bundle(tmp)))
+  TRUE
+}

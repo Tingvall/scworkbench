@@ -17,7 +17,10 @@ wb_session_run_op(session, bundle, op_name, ..., inputs = list(), notes = NULL)
 the named \code{inputs} list.}
 
 \item{inputs}{Named typed primitives, references, or supported symbolic
-inputs for the operation.}
+inputs for the operation. After resolving all required and present optional
+typed inputs, the engine intersects their cell coverage once in canonical
+requested order. Structured input-by-input coverage is stored in
+\code{run$inputs$coverage}.}
 
 \item{notes}{Optional run notes.}
 }

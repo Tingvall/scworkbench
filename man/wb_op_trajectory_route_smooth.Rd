@@ -63,5 +63,5 @@ probabilities rather than lineage-specific pseudotime families.
 Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$trend_table} (\code{obs_table}): Per-feature binned summaries along a selected route.; \code{outputs$fit_summary} (\code{obs_table}): Route smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$trend_table} (\code{obs_table}): Per-feature binned summaries along a selected route.; \code{outputs$fit_summary} (\code{obs_table}): Route smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

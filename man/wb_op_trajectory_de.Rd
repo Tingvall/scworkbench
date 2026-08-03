@@ -55,5 +55,5 @@ feature-level trends against lineage pseudotime.
 Lineage-aware feature trend testing against trajectory pseudotime from model_ref.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$de_table} (\code{feature_table}): Per-lineage feature trend statistics (rho, p, adjusted p).; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage input and filtering diagnostics.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$de_table} (\code{feature_table}): Per-lineage feature trend statistics (rho, p, adjusted p).; \code{outputs$fit_summary} (\code{obs_table}): Per-lineage input and filtering diagnostics.. Promotion eligibility is declared by the operation catalog.
 }

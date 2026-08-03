@@ -56,5 +56,5 @@ from a matrix without materializing the whole matrix at once. The current
 Select highly variable features from a matrix using chunked feature-wise summaries.
 }
 \details{
-For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. The runtime catalog declares: \code{outputs$selected_features} (\code{feature_table}): Feature-wise mean, variance, dispersion, score, rank, and selected flag.; \code{outputs$fit_summary} (\code{obs_table}): Input matrix, method, filters, dimensions, and selection counts.. Promotion eligibility is declared by the operation catalog.
+For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$selected_features} (\code{feature_table}): Feature-wise mean, variance, dispersion, score, rank, and selected flag.; \code{outputs$fit_summary} (\code{obs_table}): Input matrix, method, filters, dimensions, and selection counts.. Promotion eligibility is declared by the operation catalog.
 }

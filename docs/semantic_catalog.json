@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-08-02T20:49:26+0200",
+  "generated_at": "2026-08-02T23:47:11+0200",
   "record_count": 312,
   "record_type_counts": {
     "artifact_type": 74,
@@ -54,7 +54,8 @@
           "space": {
             "required": true,
             "must_be_2d": false,
-            "dims_min": 2
+            "dims_min": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -220,7 +221,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -362,7 +364,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -607,11 +610,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "features": {
             "required": false,
-            "kind": "feature_table"
+            "kind": "feature_table",
+            "effective_cell_coverage": "cell_id_column_when_present"
           },
           "cell_set": {
             "type": "select",
@@ -813,7 +818,8 @@
           "space": {
             "required": true,
             "must_be_2d": false,
-            "dims_min": 2
+            "dims_min": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -959,7 +965,7 @@
       "name": "umap_transform",
       "title": "UMAP transform (project cells)",
       "description": "Project cells into an existing UMAP using a stored model.",
-      "search_text": "UMAP transform (project cells)\nProject cells into an existing UMAP using a stored model.\nprojection\numap\nmodel\nmodel_ref\nTRUE\nin_space\nspace\nFALSE\ncell_set\nselect\nspace_2d\nterminal_artifact\nProjected x/y in the target UMAP space.\ndims\nint_range\nDims to use from the input space (e.g. 2:30).\noverwrite\nbool\nOverwrite existing projected coordinates for those cells.",
+      "search_text": "UMAP transform (project cells)\nProject cells into an existing UMAP using a stored model.\nprojection\numap\nmodel\nmodel_ref\nTRUE\nConstrains cells to the fitted source space unless an explicit query in_space is supplied.\nin_space\nspace\nFALSE\ncell_set\nselect\nspace_2d\nterminal_artifact\nProjected x/y in the target UMAP space.\ndims\nint_range\nDims to use from the input space (e.g. 2:30).\noverwrite\nbool\nOverwrite existing projected coordinates for those cells.",
       "tags": ["op", "projection", "umap"],
       "payload": {
         "op_name": "umap_transform",
@@ -970,7 +976,8 @@
           {
             "name": "model",
             "kind": "model_ref",
-            "required": true
+            "required": true,
+            "description": "Constrains cells to the fitted source space unless an explicit query in_space is supplied."
           },
           {
             "name": "in_space",
@@ -998,12 +1005,15 @@
         "inputs": {
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "description": "Constrains cells to the fitted source space unless an explicit query in_space is supplied.",
+            "effective_cell_coverage": "model_associated_unless_query_space"
           },
           "in_space": {
             "required": false,
             "must_be_2d": false,
-            "dims_min": 2
+            "dims_min": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -1110,7 +1120,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -1274,7 +1285,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -1514,7 +1526,8 @@
         "inputs": {
           "signal": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -1700,7 +1713,8 @@
         "inputs": {
           "signal": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -1879,11 +1893,13 @@
         "inputs": {
           "signal": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "grouping": {
             "required": false,
-            "kind": "cell_vector"
+            "kind": "cell_vector",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -2020,11 +2036,13 @@
         "inputs": {
           "signal": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "space": {
             "required": true,
-            "kind": "space"
+            "kind": "space",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -2239,7 +2257,8 @@
         "inputs": {
           "signal": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -2393,7 +2412,8 @@
         "inputs": {
           "winners": {
             "required": true,
-            "kind": "obs_table"
+            "kind": "obs_table",
+            "effective_cell_coverage": "cell_id_column_when_present"
           },
           "cell_set": {
             "type": "select",
@@ -2575,7 +2595,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -2820,7 +2841,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -2967,11 +2989,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "clusters": {
             "required": true,
-            "kind": "cell_vector"
+            "kind": "cell_vector",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -3109,12 +3133,14 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "feature_table": {
             "required": true,
             "kind": "feature_table",
-            "label": "Input feature table (e.g. DE/marker results)"
+            "label": "Input feature table (e.g. DE/marker results)",
+            "effective_cell_coverage": "cell_id_column_when_present"
           },
           "cell_set": {
             "type": "select",
@@ -3346,7 +3372,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -3662,7 +3689,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -3795,7 +3823,7 @@
       "name": "feature_set_namespace_transfer",
       "title": "Feature-Set Namespace Transfer",
       "description": "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
-      "search_text": "Feature-Set Namespace Transfer\nTransfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.\nfeature_set\ntransfer\nnamespace\nmatrix\nprovenance\ncell_set\nselect\nFALSE\ntransfer_summary\nobs_table\nterminal_artifact\nTRUE\nNamespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.\ntransfer_manifest\nOne row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.\ntransfer_rejected\nFeature sets rejected during intersect transfer because retained members failed thresholds.\nstring\nSingle source namespace to transfer.\nnamespaces\nstring_vec\nOptional multiple source namespaces to transfer.\nfeature_sets\nOptional feature-set subset within selected source namespaces.\nmode\nchoice\nmirror\nintersect\nmirror requires identical feature universes; intersect retains only target-valid members and records loss.\ntarget_namespace\nOptional target namespace override. Defaults to the source namespace.\noverwrite\nbool\nIf FALSE, existing target feature sets are skipped instead of replaced.\nstrict\nIf TRUE, fail when intersect mode rejects any selected set by retention thresholds.\nmin_retained_features\nint\n1\n0\nMinimum target-retained members required to transfer a set.\nmin_retained_fraction\ndbl\nMinimum fraction of source members retained on the target matrix.\ncreated_by\nOptional created_by metadata for transferred registry rows.\nnotes\nOptional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.",
+      "search_text": "Feature-Set Namespace Transfer\nTransfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.\nfeature_set\ntransfer\nnamespace\nmatrix\nprovenance\nsource_matrix\ntarget_matrix\ncell_set\nselect\nFALSE\ntransfer_summary\nobs_table\nterminal_artifact\nTRUE\nNamespace-level summary of transfer mode, matrix compatibility, and transferred/skipped/rejected set counts.\ntransfer_manifest\nOne row per source feature set with source/target matrices, namespaces, retained members, status, and set IDs.\ntransfer_rejected\nFeature sets rejected during intersect transfer because retained members failed thresholds.\nstring\nSingle source namespace to transfer.\nnamespaces\nstring_vec\nOptional multiple source namespaces to transfer.\nfeature_sets\nOptional feature-set subset within selected source namespaces.\nmode\nchoice\nmirror\nintersect\nmirror requires identical feature universes; intersect retains only target-valid members and records loss.\ntarget_namespace\nOptional target namespace override. Defaults to the source namespace.\noverwrite\nbool\nIf FALSE, existing target feature sets are skipped instead of replaced.\nstrict\nIf TRUE, fail when intersect mode rejects any selected set by retention thresholds.\nmin_retained_features\nint\n1\n0\nMinimum target-retained members required to transfer a set.\nmin_retained_fraction\ndbl\nMinimum fraction of source members retained on the target matrix.\ncreated_by\nOptional created_by metadata for transferred registry rows.\nnotes\nOptional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.",
       "tags": ["op", "feature_set", "transfer", "namespace", "matrix", "provenance"],
       "payload": {
         "op_name": "feature_set_namespace_transfer",
@@ -3803,6 +3831,14 @@
         "description": "Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.",
         "intent": ["feature_set", "transfer", "namespace", "matrix", "provenance"],
         "consumes": [
+          {
+            "name": "source_matrix",
+            "kind": "matrix"
+          },
+          {
+            "name": "target_matrix",
+            "kind": "matrix"
+          },
           {
             "name": "cell_set",
             "kind": "select",
@@ -3842,6 +3878,12 @@
           }
         ],
         "inputs": {
+          "source_matrix": {
+            "effective_cell_coverage": "cell_indexed"
+          },
+          "target_matrix": {
+            "effective_cell_coverage": "cell_indexed"
+          },
           "cell_set": {
             "type": "select",
             "label": "Cell set",
@@ -4367,13 +4409,15 @@
             "required": true,
             "kind": "cell_vector",
             "label": "Continuous vector (numeric per cell)",
-            "help": "Examples: pseudotime, module score, gene-program score."
+            "help": "Examples: pseudotime, module score, gene-program score.",
+            "effective_cell_coverage": "cell_indexed"
           },
           "vector_group": {
             "required": true,
             "kind": "cell_vector",
             "label": "Grouping vector (categorical per cell)",
-            "help": "Examples: cluster labels, cell type labels, condition labels."
+            "help": "Examples: cluster labels, cell type labels, condition labels.",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -4644,13 +4688,15 @@
             "required": true,
             "kind": "cell_vector",
             "label": "First vector",
-            "help": "Categorical or continuous cell vector."
+            "help": "Categorical or continuous cell vector.",
+            "effective_cell_coverage": "cell_indexed"
           },
           "b": {
             "required": true,
             "kind": "cell_vector",
             "label": "Second vector",
-            "help": "Categorical or continuous cell vector."
+            "help": "Categorical or continuous cell vector.",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -4791,13 +4837,15 @@
             "required": true,
             "kind": "cell_vector",
             "label": "Signal A",
-            "help": "Continuous or rankable numeric signal per cell."
+            "help": "Continuous or rankable numeric signal per cell.",
+            "effective_cell_coverage": "cell_indexed"
           },
           "b": {
             "required": true,
             "kind": "cell_vector",
             "label": "Signal B",
-            "help": "Continuous or rankable numeric signal per cell."
+            "help": "Continuous or rankable numeric signal per cell.",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -4934,11 +4982,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "pseudotime": {
             "required": true,
-            "kind": "cell_vector"
+            "kind": "cell_vector",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -5108,11 +5158,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -5318,11 +5370,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -5522,15 +5576,18 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "pseudotime": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "branch_membership": {
             "required": true,
-            "kind": "relation_family"
+            "kind": "relation_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -5699,11 +5756,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -5921,15 +5980,18 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": false,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "pseudotime": {
             "required": false,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -6466,15 +6528,18 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "pseudotime": {
             "required": true,
-            "kind": "cell_vector"
+            "kind": "cell_vector",
+            "effective_cell_coverage": "cell_indexed"
           },
           "branch_membership": {
             "required": true,
-            "kind": "relation_family"
+            "kind": "relation_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -6684,11 +6749,13 @@
         "inputs": {
           "signal": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -6874,15 +6941,18 @@
         "inputs": {
           "signal": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": false,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "pseudotime": {
             "required": false,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -7239,11 +7309,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "space": {
             "required": true,
-            "kind": "space"
+            "kind": "space",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -7407,7 +7479,8 @@
         "inputs": {
           "space": {
             "required": true,
-            "kind": "space"
+            "kind": "space",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -7505,7 +7578,7 @@
       "name": "slingshot",
       "title": "Slingshot trajectory",
       "description": "Infer lineage curves and pseudotime from clusters in a 2D space.",
-      "search_text": "Slingshot trajectory\nInfer lineage curves and pseudotime from clusters in a 2D space.\ntrajectory\nspace\nTRUE\nplot_space\nFALSE\nclusters\ncell_vector\ncell_set\nselect\npseudotime\ncell_vector_family\nterminal_artifact\nLineage-specific pseudotime values per cell.\ncurves\npath_2d_family\nLineage curve paths in 2D.\nstart.clus\nstring\nStarting cluster id.\nend.clus\nstring_vec\nEnding cluster id(s).\nexclude_clusters\nCluster id(s) to exclude before fitting.\nstretch\ndbl\n2\n0\n10\nSlingshot curve stretching.\nreweight\nbool\nWhether to reweight assignments during fitting.",
+      "search_text": "Slingshot trajectory\nInfer lineage curves and pseudotime from clusters in a 2D space.\ntrajectory\nspace\nTRUE\nplot_space\nFALSE\nclusters\ncell_vector\nspace_2d\ncell_set\nselect\npseudotime\ncell_vector_family\nterminal_artifact\nLineage-specific pseudotime values per cell.\ncurves\npath_2d_family\nLineage curve paths in 2D.\nstart.clus\nstring\nStarting cluster id.\nend.clus\nstring_vec\nEnding cluster id(s).\nexclude_clusters\nCluster id(s) to exclude before fitting.\nstretch\ndbl\n2\n0\n10\nSlingshot curve stretching.\nreweight\nbool\nWhether to reweight assignments during fitting.",
       "tags": ["op", "trajectory"],
       "payload": {
         "op_name": "slingshot",
@@ -7527,6 +7600,10 @@
             "name": "clusters",
             "kind": "cell_vector",
             "required": true
+          },
+          {
+            "name": "space_2d",
+            "kind": "space_2d"
           },
           {
             "name": "cell_set",
@@ -7570,7 +7647,11 @@
           },
           "clusters": {
             "required": true,
-            "kind": "cell_vector"
+            "kind": "cell_vector",
+            "effective_cell_coverage": "cell_indexed"
+          },
+          "space_2d": {
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -7739,11 +7820,13 @@
           "fit_space": {
             "required": true,
             "must_be_2d": false,
-            "dims_min": 2
+            "dims_min": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "clusters": {
             "required": true,
-            "kind": "cell_vector"
+            "kind": "cell_vector",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -7935,7 +8018,8 @@
         "inputs": {
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -8265,23 +8349,28 @@
         "inputs": {
           "pseudotime": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": false,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "lineage_weights": {
             "required": false,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "confidence": {
             "required": false,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "path": {
             "required": false,
-            "kind": "path_2d_family"
+            "kind": "path_2d_family",
+            "effective_cell_coverage": "none"
           },
           "cell_set": {
             "type": "select",
@@ -8538,15 +8627,18 @@
         "inputs": {
           "path_scores": {
             "required": true,
-            "kind": "cell_vector_family"
+            "kind": "cell_vector_family",
+            "effective_cell_coverage": "cell_indexed"
           },
           "path": {
             "required": false,
-            "kind": "path_2d_family"
+            "kind": "path_2d_family",
+            "effective_cell_coverage": "none"
           },
           "display_path": {
             "required": false,
-            "kind": "path_2d_family"
+            "kind": "path_2d_family",
+            "effective_cell_coverage": "none"
           },
           "cell_set": {
             "type": "select",
@@ -9059,13 +9151,15 @@
         "inputs": {
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "plot_space": {
             "required": true,
             "must_be_2d": true,
             "dims_min": 2,
-            "dims_max": 2
+            "dims_max": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -9210,7 +9304,8 @@
           "fit_space": {
             "required": true,
             "must_be_2d": false,
-            "dims_min": 2
+            "dims_min": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -9456,13 +9551,15 @@
         "inputs": {
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "plot_space": {
             "required": true,
             "must_be_2d": true,
             "dims_min": 2,
-            "dims_max": 2
+            "dims_max": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -9570,7 +9667,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -9810,7 +9908,8 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -10100,11 +10199,13 @@
         "inputs": {
           "matrix": {
             "required": true,
-            "kind": "matrix"
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
           },
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "reference_only"
           },
           "cell_set": {
             "type": "select",
@@ -10223,7 +10324,8 @@
         "inputs": {
           "space": {
             "required": true,
-            "kind": "space"
+            "kind": "space",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -10420,11 +10522,13 @@
         "inputs": {
           "space": {
             "required": true,
-            "kind": "space"
+            "kind": "space",
+            "effective_cell_coverage": "cell_indexed"
           },
           "path": {
             "required": true,
-            "kind": "space_path_family"
+            "kind": "space_path_family",
+            "effective_cell_coverage": "associated_space"
           },
           "cell_set": {
             "type": "select",
@@ -10550,11 +10654,13 @@
         "inputs": {
           "path": {
             "required": true,
-            "kind": "space_path_family"
+            "kind": "space_path_family",
+            "effective_cell_coverage": "associated_space"
           },
           "plot_space": {
             "required": true,
-            "kind": "space_2d"
+            "kind": "space_2d",
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -10705,7 +10811,8 @@
           "fit_space": {
             "required": true,
             "must_be_2d": false,
-            "dims_min": 2
+            "dims_min": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -10895,13 +11002,15 @@
         "inputs": {
           "model": {
             "required": true,
-            "kind": "model_ref"
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
           },
           "plot_space": {
             "required": true,
             "must_be_2d": true,
             "dims_min": 2,
-            "dims_max": 2
+            "dims_max": 2,
+            "effective_cell_coverage": "cell_indexed"
           },
           "cell_set": {
             "type": "select",
@@ -16448,9 +16557,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-08-02T20:49:26+0200",
+    "generated_at": "2026-08-02T23:47:11+0200",
     "node_count": 312,
-    "edge_count": 895,
+    "edge_count": 900,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -19233,6 +19342,30 @@
         "label": "output:namespace_summary"
       },
       {
+        "from": "primitive:matrix",
+        "to": "op:feature_set_namespace_transfer",
+        "edge_type": "consumed_by",
+        "label": "input:source_matrix"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:source_matrix_id",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:source_matrix"
+      },
+      {
+        "from": "primitive:matrix",
+        "to": "op:feature_set_namespace_transfer",
+        "edge_type": "consumed_by",
+        "label": "input:target_matrix"
+      },
+      {
+        "from": "op:feature_set_namespace_transfer",
+        "to": "parameter:target_matrix_id",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:target_matrix"
+      },
+      {
         "from": "op:feature_set_namespace_transfer",
         "to": "parameter:cell_set",
         "edge_type": "has_parameter_semantics",
@@ -20473,6 +20606,12 @@
         "to": "op:slingshot",
         "edge_type": "consumed_by",
         "label": "input:clusters"
+      },
+      {
+        "from": "primitive:space_2d",
+        "to": "op:slingshot",
+        "edge_type": "consumed_by",
+        "label": "input:space_2d"
       },
       {
         "from": "op:slingshot",
