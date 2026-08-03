@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
-  "generated_at": "2026-08-03T11:22:51+0200",
+  "generated_at": "2026-08-03T13:17:34+0200",
   "record_count": 137,
   "meaningful_public_transformation_count": 51,
   "exported_guarded_function_count": 26,

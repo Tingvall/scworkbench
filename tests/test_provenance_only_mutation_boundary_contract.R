@@ -207,6 +207,7 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
   generated_lines <- readLines(generated_md, warn = FALSE)
   stopifnot(
     length(generated_lines) > 0L,
+    nzchar(tail(generated_lines, 1L)),
     !any(grepl("[ \\t]+$", generated_lines)),
     is.list(jsonlite::read_json(generated_json, simplifyVector = FALSE))
   )

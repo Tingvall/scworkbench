@@ -193,6 +193,9 @@ wb_mutation_catalog_semantic <- function() {
       paste0("Supported route: `", rec$supported_route, "`"), ""
     )
   }
+  while (length(lines) && !nzchar(lines[[length(lines)]])) {
+    lines <- head(lines, -1L)
+  }
   lines
 }
 

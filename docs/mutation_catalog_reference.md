@@ -1927,4 +1927,3 @@ Durable mutation: true
 Boundary: `internal`
 
 Supported route: `registered_session_execution_and_promotion`
-
