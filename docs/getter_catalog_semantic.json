@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "2026-08-03T11:22:50+0200",
-  "getter_count": 75,
+  "generated_at": "2026-08-03T13:53:15+0200",
+  "getter_count": 77,
   "getters": [
     {
       "function_name": "wb_status",
@@ -76,7 +76,7 @@
       "description": "List available cell sets in a bundle.",
       "returns": "character vector",
       "payload_level": "metadata",
-      "arguments": "bundle",
+      "arguments": ["bundle", "include_history"],
       "use_when": ["find available subsets", "choose cell_set input for an op"],
       "mutates": false
     },
@@ -153,7 +153,7 @@
       "description": "List matrices available in the bundle.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": "bundle",
+      "arguments": ["bundle", "include_history"],
       "use_when": "choose matrix input for an op",
       "mutates": false
     },
@@ -285,7 +285,7 @@
       "description": "List feature sets and namespaces in the bundle.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": ["bundle", "matrix_id", "namespace"],
+      "arguments": ["bundle", "matrix_id", "namespace", "organism", "origin", "include_history"],
       "use_when": ["find gene-set libraries", "choose namespace for enrichment or dynamics"],
       "mutates": false
     },
@@ -318,7 +318,7 @@
       "description": "List spaces in the bundle.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": "bundle",
+      "arguments": ["bundle", "include_history"],
       "use_when": "choose embedding or latent space for an op",
       "mutates": false
     },
@@ -384,8 +384,30 @@
       "description": "List promoted artifacts, optionally filtered by type.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": ["bundle", "type"],
+      "arguments": ["bundle", "type", "include_history"],
       "use_when": ["find promoted outputs", "choose artifact for plotting or loading"],
+      "mutates": false
+    },
+    {
+      "function_name": "wb_entity_lifecycle",
+      "title": "Durable Entity Lifecycle",
+      "category": "provenance",
+      "description": "List current, superseded, rejected, retracted, and ephemeral durable entity identities without reading physical storage tables.",
+      "returns": "data.frame",
+      "payload_level": "metadata",
+      "arguments": ["bundle", "entity_kind", "entity_id", "lifecycle_state", "include_history"],
+      "use_when": ["distinguish current claims from historical evidence", "audit immutable identity state"],
+      "mutates": false
+    },
+    {
+      "function_name": "wb_entity_supersessions",
+      "title": "Entity Supersessions",
+      "category": "provenance",
+      "description": "List explicit SUPERSEDES relationships between immutable durable identities.",
+      "returns": "data.frame",
+      "payload_level": "metadata",
+      "arguments": "bundle",
+      "use_when": ["trace claim replacement", "render historical lifecycle relationships"],
       "mutates": false
     },
     {

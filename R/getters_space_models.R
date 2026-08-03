@@ -26,6 +26,10 @@ wb_space_model <- function(bundle, space_id) {
     paste0("No model registered for space_id: ", space_id)
   )
 
+  lifecycle <- wb_entity_lifecycle(bundle, entity_kind = "model", entity_id = space_id)
+  df$lifecycle_state <- as.character(lifecycle$lifecycle_state[1] %||% "current")
+  df$provenance_bound <- as.integer(lifecycle$provenance_bound[1] %||% 0L)
+
   df
 }
 
@@ -94,4 +98,3 @@ wb_spaces_with_model <- function(bundle, model_type = NULL) {
 
   as.character(out)
 }
-

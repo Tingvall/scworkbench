@@ -88,6 +88,7 @@
 #' @param namespace Optional namespace filter.
 #' @param organism Optional organism filter.
 #' @param origin Optional origin filter.
+#' @param include_history Include superseded/rejected/retracted identities.
 #'
 #' @return A data frame with feature-set metadata and member counts.
 #'
@@ -99,7 +100,8 @@ wb_feature_sets <- function(bundle,
                             matrix_id = NULL,
                             namespace = NULL,
                             organism = NULL,
-                            origin = NULL) {
+                            origin = NULL,
+                            include_history = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
   .wb_ensure_feature_set_tables(con)
@@ -144,6 +146,9 @@ wb_feature_sets <- function(bundle,
   if (!is.null(origin)) {
     where <- c(where, "fs.origin = ?")
     params <- c(params, list(as.character(origin)[1]))
+  }
+  if (!isTRUE(include_history) && .wb_table_exists(con, "entity_lifecycle")) {
+    where <- c(where, "NOT EXISTS (SELECT 1 FROM entity_lifecycle el WHERE el.entity_kind = 'feature_set' AND el.entity_id = (fs.matrix_id || '::' || fs.feature_set) AND el.lifecycle_state IN ('superseded','rejected','retracted'))")
   }
   if (length(where)) {
     q <- paste0(q, " WHERE ", paste(where, collapse = " AND "))
@@ -305,6 +310,14 @@ wb_feature_set_replace <- function(bundle,
     "SELECT * FROM feature_sets WHERE feature_set = ? AND matrix_id = ?;",
     params = list(as.character(feature_set), as.character(matrix_id))
   )
+  feature_entity_id <- .wb_feature_set_entity_id(feature_set, matrix_id)
+  if (nrow(old) && .wb_entity_is_provenance_bound(bundle, "feature_set", feature_entity_id)) {
+    old_members <- DBI::dbGetQuery(con,
+      "SELECT feature_id FROM feature_set_membership WHERE feature_set = ? AND matrix_id = ? ORDER BY rank, feature_id;",
+      params = list(feature_set, matrix_id))$feature_id
+    replay_noop <- isTRUE(getOption("scworkbench.provenance_registry_replay")) && identical(as.character(old_members), as.character(feature_ids))
+    if (!replay_noop) .wb_entity_assert_replaceable(bundle, "feature_set", feature_entity_id, action = "replace")
+  }
   one_or <- function(new_val, old_col, default = NULL) {
     if (!is.null(new_val)) return(as.character(new_val)[1])
     if (nrow(old) == 1 && old_col %in% names(old) && !is.na(old[[old_col]][1]) && nzchar(as.character(old[[old_col]][1]))) {
@@ -405,6 +418,9 @@ wb_feature_set_replace <- function(bundle,
     key = list(feature_set = feature_set, matrix_id = matrix_id),
     payload = list(metadata = row[1, , drop = FALSE], feature_ids = members)
   )
+
+  .wb_entity_lifecycle_upsert(con, "feature_set", feature_entity_id, state = "current",
+    bound = .wb_entity_is_provenance_bound(bundle, "feature_set", feature_entity_id))
 
   invisible(list(
     feature_set = as.character(feature_set),
@@ -611,10 +627,10 @@ wb_feature_set_import_list <- function(bundle,
   })
 }
 
-#' Delete A Feature Set
+#' Retract A Feature Set
 #'
-#' Remove one feature set from one matrix, or from all matrices when
-#' `matrix_id = NULL`.
+#' Tombstone one feature set on one matrix, or on all matrices when
+#' `matrix_id = NULL`. Membership and provenance remain available as history.
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param feature_set Feature-set name.
@@ -634,28 +650,23 @@ wb_feature_set_delete <- function(bundle, feature_set, matrix_id = NULL) {
   con <- bundle$con
   .wb_ensure_feature_set_tables(con)
 
-  write_delete <- function() {
-    if (is.null(matrix_id)) {
-      DBI::dbExecute(con, "DELETE FROM feature_set_membership WHERE feature_set = ?;", params = list(as.character(feature_set)))
-      DBI::dbExecute(con, "DELETE FROM feature_sets WHERE feature_set = ?;", params = list(as.character(feature_set)))
-      return(invisible(NULL))
-    }
-    DBI::dbExecute(
-      con,
-      "DELETE FROM feature_set_membership WHERE feature_set = ? AND matrix_id = ?;",
-      params = list(as.character(feature_set), as.character(matrix_id))
-    )
-    DBI::dbExecute(
-      con,
-      "DELETE FROM feature_sets WHERE feature_set = ? AND matrix_id = ?;",
-      params = list(as.character(feature_set), as.character(matrix_id))
-    )
-  }
   if (!is.null(matrix_id)) .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
-  if (isTRUE(getOption("scworkbench.registry_replay_transaction_open"))) write_delete() else DBI::dbWithTransaction(con, write_delete())
+  .wb_entity_lifecycle_migrate(bundle)
+  targets <- if (is.null(matrix_id)) {
+    DBI::dbGetQuery(con, "SELECT feature_set, matrix_id FROM feature_sets WHERE feature_set = ?;", params = list(feature_set))
+  } else {
+    DBI::dbGetQuery(con, "SELECT feature_set, matrix_id FROM feature_sets WHERE feature_set = ? AND matrix_id = ?;", params = list(feature_set, matrix_id))
+  }
+  for (i in seq_len(nrow(targets))) {
+    eid <- .wb_feature_set_entity_id(targets$feature_set[i], targets$matrix_id[i])
+    state <- wb_entity_lifecycle(bundle, "feature_set", eid)$lifecycle_state[1] %||% "current"
+    if (state %in% c("current", "ephemeral")) {
+      wb_entity_retract(bundle, "feature_set", eid, reason = "Retracted through wb_feature_set_delete().")
+    }
+  }
   .wb_journal_registry_mutation(
     bundle, "feature_set", "delete",
     key = list(feature_set = feature_set, matrix_id = matrix_id)
   )
-  invisible(list(feature_set = as.character(feature_set), matrix_id = as.character(matrix_id)))
+  invisible(list(feature_set = as.character(feature_set), matrix_id = as.character(matrix_id), action = "retracted", n = nrow(targets)))
 }

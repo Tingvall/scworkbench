@@ -459,6 +459,23 @@ wb_kg_bundle_graph <- function(bundle) {
     }
   }
 
+  lifecycle <- wb_entity_lifecycle(bundle, include_history = TRUE)
+  if (nrow(lifecycle)) for (i in seq_len(nrow(lifecycle))) {
+    kind <- as.character(lifecycle$entity_kind[i]); entity_id <- as.character(lifecycle$entity_id[i])
+    nid <- paste0("entity:", .wb_kg_slug(paste(kind, entity_id, sep = ":")))
+    nodes[[length(nodes) + 1L]] <- .wb_kg_node(
+      nid, entity_id, paste0("Durable", tools::toTitleCase(gsub("_", " ", kind))),
+      "entity_lifecycle", text = .wb_kg_text(kind, entity_id, lifecycle$lifecycle_state[i]),
+      payload = as.list(lifecycle[i, , drop = FALSE])
+    )
+  }
+  supersessions <- wb_entity_supersessions(bundle)
+  if (is.data.frame(supersessions) && nrow(supersessions)) for (i in seq_len(nrow(supersessions))) {
+    from <- paste0("entity:", .wb_kg_slug(paste(supersessions$successor_kind[i], supersessions$successor_id[i], sep = ":")))
+    to <- paste0("entity:", .wb_kg_slug(paste(supersessions$predecessor_kind[i], supersessions$predecessor_id[i], sep = ":")))
+    edges[[length(edges) + 1L]] <- .wb_kg_edge(from, to, "SUPERSEDES", "entity_lifecycle", payload = as.list(supersessions[i, , drop = FALSE]))
+  }
+
   list(nodes = .wb_kg_bind(nodes, .wb_kg_node_df()), edges = .wb_kg_bind(edges, .wb_kg_edge_df()))
 }
 

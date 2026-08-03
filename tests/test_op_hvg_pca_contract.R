@@ -183,21 +183,13 @@ test_op_hvg_pca_contract <- function() {
 
   # A durable ancestor may be reused, but a different run must not replace its
   # committed matrix merely because the session overlay permits overwrite.
-  rr_norm_collision <- wb_session_run_op(
+  rr_norm_collision <- try(wb_session_run_op(
     wb_session_new(), b, "matrix_log_normalize",
     inputs = list(matrix = "RNA_counts", cell_set = "all", min_cells = 1L,
                   output_matrix_id = "RNA_log_norm", overwrite = TRUE)
-  )
-  collision <- try(wb_session_promote_current(
-    b, rr_norm_collision$session, name_prefix = "matrix_collision", created_by = "test",
-    outputs = "summary"
   ), silent = TRUE)
-  stopifnot(inherits(collision, "try-error"))
-  stopifnot(grepl("Cannot promote staged matrix over committed matrix_id='RNA_log_norm'", as.character(collision), fixed = TRUE))
-  stopifnot(!any(DBI::dbGetQuery(
-    b$con, "SELECT run_id FROM prov_runs WHERE run_id = ?;",
-    params = list(rr_norm_collision$run$run_id)
-  )$run_id == rr_norm_collision$run$run_id))
+  stopifnot(inherits(rr_norm_collision, "try-error"))
+  stopifnot(grepl("provenance-bound matrix 'RNA_log_norm'", as.character(rr_norm_collision), fixed = TRUE))
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 
   # Publication failure must leave the staged PCA closure entirely invisible.

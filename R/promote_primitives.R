@@ -1196,6 +1196,7 @@ wb_migrate_artifacts <- function(bundle) {
   con <- bundle$con
   .wb_create_artifacts_schema(con)
   .wb_migrate_provenance_tables(con)
+  .wb_entity_lifecycle_migrate(bundle)
 
   invisible(TRUE)
 }

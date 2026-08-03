@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-08-03T11:22:53+0200
+Generated at: 2026-08-03T13:53:17+0200
 
-Record count: 312
+Record count: 314
 
 Graph edges: 900
 
@@ -665,6 +665,18 @@ Description: Get absolute path to a stored model file for a space.
 Title: Artifacts
 
 Description: List promoted artifacts, optionally filtered by type.
+
+### `getter:wb_entity_lifecycle`
+
+Title: Durable Entity Lifecycle
+
+Description: List current, superseded, rejected, retracted, and ephemeral durable entity identities without reading physical storage tables.
+
+### `getter:wb_entity_supersessions`
+
+Title: Entity Supersessions
+
+Description: List explicit SUPERSEDES relationships between immutable durable identities.
 
 ### `getter:wb_list_trajectory_models`
 

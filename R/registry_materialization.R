@@ -43,8 +43,13 @@
   )
   if (!nrow(events)) return(invisible(events))
   old <- getOption("scworkbench.registry_replay_transaction_open")
+  old_replay <- getOption("scworkbench.provenance_registry_replay")
   options(scworkbench.registry_replay_transaction_open = TRUE)
-  on.exit(options(scworkbench.registry_replay_transaction_open = old), add = TRUE)
+  options(scworkbench.provenance_registry_replay = TRUE)
+  on.exit({
+    options(scworkbench.registry_replay_transaction_open = old)
+    options(scworkbench.provenance_registry_replay = old_replay)
+  }, add = TRUE)
   .wb_with_mutation_context(
     bundle = bundle, route = "promotion", staging_bundle = staging_bundle, code = {
   for (i in seq_len(nrow(events))) {

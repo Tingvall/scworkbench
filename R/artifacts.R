@@ -6,6 +6,8 @@
 #' @param bundle Open `scworkbench_bundle`.
 #' @param type Optional artifact type filter such as `"feature_table"` or
 #'   `"obs_table"`.
+#' @param include_history If `FALSE`, omit superseded, rejected, and retracted
+#'   artifacts. Historical evidence remains loadable by id.
 #'
 #' @return A data frame of artifact registry rows ordered by `created_at`
 #'   descending.
@@ -14,13 +16,18 @@
 # pybench-counterpart: pybench.getters.art_list
 # contract-note: artifact registry rows ordered by created_at DESC
 #' @export
-wb_art_list <- function(bundle, type = NULL) {
+wb_art_list <- function(bundle, type = NULL, include_history = TRUE) {
   con <- bundle$con
-  if (is.null(type)) {
-    DBI::dbGetQuery(con, "SELECT * FROM artifacts ORDER BY created_at DESC;")
-  } else {
-    DBI::dbGetQuery(con, "SELECT * FROM artifacts WHERE type = ? ORDER BY created_at DESC;", params = list(type))
-  }
+  if (!isTRUE(bundle$read_only)) .wb_entity_lifecycle_migrate(bundle)
+  has_lifecycle <- .wb_table_exists(con, "entity_lifecycle")
+  select <- if (has_lifecycle) {
+    "SELECT a.*, COALESCE(el.lifecycle_state, 'current') AS lifecycle_state, COALESCE(el.provenance_bound, 0) AS provenance_bound FROM artifacts a LEFT JOIN entity_lifecycle el ON el.entity_kind = 'artifact' AND el.entity_id = a.artifact_id"
+  } else "SELECT a.*, 'current' AS lifecycle_state, 0 AS provenance_bound FROM artifacts a"
+  where <- character(0); params <- list()
+  if (!is.null(type)) { where <- c(where, "a.type = ?"); params <- c(params, list(type)) }
+  if (!isTRUE(include_history) && has_lifecycle) where <- c(where, "COALESCE(el.lifecycle_state, 'current') = 'current'")
+  sql <- paste0(select, if (length(where)) paste0(" WHERE ", paste(where, collapse = " AND ")) else "", " ORDER BY a.created_at DESC;")
+  if (length(params)) DBI::dbGetQuery(con, sql, params = params) else DBI::dbGetQuery(con, sql)
 }
 
 .wb_art_table_json_path <- function(column) {
@@ -1625,6 +1632,16 @@ wb_art_birth_certificate <- function(bundle,
     }
   }
 
+  lifecycle <- wb_entity_lifecycle(bundle, entity_kind = "artifact", entity_id = aid)
+  supersessions <- wb_entity_supersessions(bundle)
+  if (is.data.frame(supersessions) && nrow(supersessions)) {
+    supersessions <- supersessions[
+      (supersessions$successor_kind == "artifact" & supersessions$successor_id == aid) |
+        (supersessions$predecessor_kind == "artifact" & supersessions$predecessor_id == aid),
+      , drop = FALSE
+    ]
+  }
+
   list(
     schema = "artifact_birth_certificate_v1",
     artifact = art[1, , drop = FALSE],
@@ -1640,6 +1657,12 @@ wb_art_birth_certificate <- function(bundle,
       cell_set = as.character(art$cell_set[1] %||% ""),
       provenance_snapshot_id = as.character(art$provenance_snapshot_id[1] %||% ""),
       lineage_status = as.character(art$lineage_status[1] %||% "")
+    ),
+    lifecycle = list(
+      state = as.character(lifecycle$lifecycle_state[1] %||% "current"),
+      provenance_bound = as.integer(lifecycle$provenance_bound[1] %||% 0L),
+      record = lifecycle,
+      supersessions = supersessions
     ),
     inline_provenance = list(
       parsed = prov_obj,
@@ -1849,14 +1872,15 @@ wb_art_dependencies <- function(bundle,
   do.call(rbind, out)
 }
 
-#' Build artifact delete plan
+#' Build artifact retraction plan
 #'
-#' Computes what `wb_art_delete()` would remove without deleting anything.
+#' Computes what `wb_art_delete()` will tombstone without deleting evidence.
 #'
 #' @param bundle scworkbench bundle handle
 #' @param artifact_id root artifact id
 #' @param recursive if TRUE, includes dependent artifacts in delete order
-#' @return list with fields: `plan` (data.frame), `blocked_by` (data.frame), `can_delete` (logical)
+#' @return list with fields: `plan` (data.frame), `blocked_by` (data.frame), and
+#'   compatibility field `can_delete` (always `TRUE`; no physical deletion occurs).
 #' @export
 wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
@@ -1876,7 +1900,7 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
   )
 
   blocked <- if (nrow(direct_children)) direct_children else direct_children[0, , drop = FALSE]
-  can_delete <- isTRUE(recursive) || nrow(blocked) == 0L
+  can_delete <- TRUE
 
   edges <- .wb_art_dependency_edges(bundle)
   children_of <- function(aid) .wb_art_neighbors(edges, aid, direction = "children")
@@ -1911,6 +1935,7 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
     depth = depth,
     delete_order = seq_along(order),
     requested = order == artifact_id,
+    action = "retract",
     stringsAsFactors = FALSE
   )
 
@@ -2013,19 +2038,20 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
   list(model_path = model_path, model_file_removed = isTRUE(model_removed))
 }
 
-#' Delete promoted artifact(s)
+#' Retract promoted artifact(s)
 #'
-#' Deletes one artifact and its payload rows. By default this refuses to delete
-#' artifacts referenced by other artifacts in provenance. Set `recursive=TRUE`
-#' to delete dependents first.
+#' Compatibility wrapper for the former destructive deletion API. It now writes
+#' lifecycle tombstones and retains every payload, birth certificate, and
+#' provenance link. `recursive=TRUE` retracts dependent artifacts too.
 #'
 #' @param bundle scworkbench bundle handle
 #' @param artifact_id artifact id to delete
 #' @param recursive if TRUE, also delete artifacts that depend on this one
-#' @param force if TRUE, ignore dependency checks when `recursive=FALSE`
-#' @param remove_model_file if TRUE, also attempts to remove model file for model artifacts (`umap_model`, `model_ref`)
-#' @param model_file_only_if_unique if TRUE, remove model file only when no remaining artifact points to it
-#' @return data.frame summary of deleted artifacts in deletion order
+#' @param force Deprecated destructive-delete flag. `TRUE` is rejected.
+#' @param remove_model_file Deprecated destructive-delete flag. `TRUE` is rejected.
+#' @param model_file_only_if_unique Retained for signature compatibility; no
+#'   model file is removed.
+#' @return data.frame summary of retracted artifacts in dependency order
 #' @export
 wb_art_delete <- function(bundle,
                           artifact_id,
@@ -2036,66 +2062,35 @@ wb_art_delete <- function(bundle,
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   artifact_id <- as.character(artifact_id)[1]
   .wb_assert(nzchar(artifact_id), "artifact_id must be a non-empty string")
+  .wb_assert(!isTRUE(force), "force=TRUE physical artifact deletion was removed. Retract normally, or use the verified unsafe ephemeral purge API.")
+  .wb_assert(!isTRUE(remove_model_file), "remove_model_file=TRUE was removed because promoted model evidence is immutable.")
 
   wb_migrate_artifacts(bundle)
-  con <- bundle$con
-  arts <- wb_art_list(bundle)
   plan <- wb_art_delete_plan(bundle, artifact_id = artifact_id, recursive = isTRUE(recursive))
-  if (!isTRUE(plan$can_delete) && !isTRUE(force)) {
-    direct_dependents <- as.character(plan$blocked_by$artifact_id %||% character(0))
-    stop(
-      "Artifact is referenced by other artifacts: ",
-      paste(head(direct_dependents, 10), collapse = ", "),
-      if (length(direct_dependents) > 10) " ..." else "",
-      ". Use recursive=TRUE to delete dependents first, or force=TRUE to ignore.",
-      call. = FALSE
-    )
-  }
 
   order <- as.character(plan$plan$artifact_id %||% character(0))
   if (!isTRUE(recursive)) order <- order[seq_len(min(length(order), 1L))]
-
-  rows <- vector("list", length(order))
-  i <- 0L
-
-  DBI::dbWithTransaction(con, {
-    for (aid in order) {
-      row <- DBI::dbGetQuery(
-        con,
-        "SELECT artifact_id, type FROM artifacts WHERE artifact_id = ?;",
-        params = list(aid)
-      )
-      if (!nrow(row)) next
-      type <- as.character(row$type[1])
-      res <- .wb_art_delete_payload(
-        con = con,
-        artifact_id = aid,
-        type = type,
-        remove_model_file = remove_model_file,
-        model_file_only_if_unique = model_file_only_if_unique,
-        bundle = bundle
-      )
-      i <- i + 1L
-      rows[[i]] <- data.frame(
-        artifact_id = as.character(aid),
-        type = type,
-        model_path = as.character(res$model_path %||% NA_character_),
-        model_file_removed = isTRUE(res$model_file_removed),
-        stringsAsFactors = FALSE
-      )
-    }
+  arts <- wb_art_list(bundle)
+  rows <- list()
+  old_transaction <- getOption("scworkbench.registry_replay_transaction_open")
+  options(scworkbench.registry_replay_transaction_open = TRUE)
+  on.exit(options(scworkbench.registry_replay_transaction_open = old_transaction), add = TRUE)
+  DBI::dbWithTransaction(bundle$con, {
+    rows <- lapply(order, function(aid) {
+      row <- arts[arts$artifact_id == aid, , drop = FALSE]
+      if (!nrow(row)) return(NULL)
+      state <- as.character(row$lifecycle_state[1] %||% "current")
+      if (state %in% c("superseded", "retracted", "rejected")) {
+        return(data.frame(artifact_id = aid, type = as.character(row$type[1]), action = paste0("already_", state),
+          model_path = NA_character_, model_file_removed = FALSE, stringsAsFactors = FALSE))
+      }
+      wb_entity_retract(bundle, "artifact", aid, reason = "Retracted through wb_art_delete() compatibility API.")
+      data.frame(artifact_id = aid, type = as.character(row$type[1]), action = "retracted",
+        model_path = NA_character_, model_file_removed = FALSE, stringsAsFactors = FALSE)
+    })
   })
-
-  if (i == 0L) {
-    return(data.frame(
-      artifact_id = character(0),
-      type = character(0),
-      model_path = character(0),
-      model_file_removed = logical(0),
-      stringsAsFactors = FALSE
-    ))
-  }
-  out <- do.call(rbind, rows[seq_len(i)])
-  rownames(out) <- NULL
-  out
+  rows <- Filter(Negate(is.null), rows)
+  if (!length(rows)) return(data.frame(artifact_id = character(), type = character(), action = character(),
+    model_path = character(), model_file_removed = logical(), stringsAsFactors = FALSE))
+  out <- do.call(rbind, rows); rownames(out) <- NULL; out
 }

@@ -8,7 +8,10 @@
 #' @param cells optional explicit cell IDs to project
 #' @param cell_set if cells is NULL, resolve cells via wb_cells(bundle, cell_set=cell_set)
 #' @param dims optional dims for in_space_id (e.g. 2:30); defaults to model dims_json
-#' @param overwrite whether to overwrite existing rows for these cells in model_space_id
+#' @param space_id_out Output space identifier. Defaults to `model_space_id` for
+#'   compatibility, but projection into a provenance-bound fitted space requires
+#'   a new identifier.
+#' @param overwrite whether to overwrite existing rows for these cells in the output space
 #' @param ... passed to uwot::umap_transform
 #' @return list(n_projected=int, params=list(...))
 #' @export
@@ -18,6 +21,7 @@ wb_op_umap_transform <- function(bundle,
                                  cells = NULL,
                                  cell_set = "all",
                                  dims = NULL,
+                                 space_id_out = NULL,
                                  overwrite = TRUE,
                                  ...) {
 
@@ -28,6 +32,8 @@ wb_op_umap_transform <- function(bundle,
              "model_space_id must be a non-empty string.")
   .wb_assert(is.character(in_space_id) && nzchar(in_space_id),
              "in_space_id must be a non-empty string.")
+  space_id_out <- as.character(space_id_out %||% model_space_id)[1]
+  .wb_assert(nzchar(space_id_out), "space_id_out must be a non-empty string.")
 
   # Resolve cells (bench owns this logic)
   if (is.null(cells)) {
@@ -81,15 +87,24 @@ wb_op_umap_transform <- function(bundle,
     stringsAsFactors = FALSE
   )
 
-  # 6) Write to space_2d for model_space_id (ONLY these cells)
+  # 6) Write to a distinct output identity when the fitted space is already
+  # provenance-bound. Historical fitted/projected coordinates are immutable.
   con <- bundle$con
+  existing_output <- DBI::dbGetQuery(con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id_out))
+  if (nrow(existing_output)) {
+    .wb_entity_assert_replaceable(bundle, "space", space_id_out, action = "project into")
+  }
 
   DBI::dbWithTransaction(con, {
+    if (!nrow(existing_output)) {
+      DBI::dbExecute(con, "INSERT INTO spaces(space_id, source, dims, storage, description) VALUES(?, ?, 2, 'wide:space_2d', ?);",
+        params = list(space_id_out, paste0("uwot_transform:", model_space_id), paste0("UMAP projection using model ", model_space_id)))
+    }
     if (isTRUE(overwrite)) {
       DBI::dbExecute(
         con,
         "DELETE FROM space_2d WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
-        params = list(model_space_id, jsonlite::toJSON(as.list(cells), auto_unbox = TRUE))
+        params = list(space_id_out, jsonlite::toJSON(as.list(cells), auto_unbox = TRUE))
       )
     }
 
@@ -106,7 +121,7 @@ wb_op_umap_transform <- function(bundle,
 
           for (k in seq_len(nrow(sub))) {
             DBI::dbBind(stmt, list(
-              model_space_id,
+              space_id_out,
               sub$cell_id[k],
               sub$x[k],
               sub$y[k]
@@ -119,20 +134,21 @@ wb_op_umap_transform <- function(bundle,
   })
 
   out_space_2d <- list(
-    space_id = model_space_id,
+    space_id = space_id_out,
     cell_ids = cells,
     n = nrow(df2)
   )
   out_params <- list(
     model_space_id = model_space_id,
+    space_id_out = space_id_out,
     in_space_id = in_space_id,
     dims = dims_use,
     cell_set = cell_set,
     overwrite = overwrite
   )
 
-  space_prim <- wb_prim_space_2d(model_space_id)
-  space_prim$promotion_mode <- "merge_space_2d"
+  space_prim <- wb_prim_space_2d(space_id_out)
+  if (nrow(existing_output)) space_prim$promotion_mode <- "merge_space_2d"
   space_prim$cell_ids <- cells
   space_prim$overwrite <- isTRUE(overwrite)
 

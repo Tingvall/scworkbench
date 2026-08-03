@@ -850,7 +850,8 @@ NULL
 #' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
 #' @param cell_set Named bundle cell set used to resolve the analysis universe.
 #' @param dims Dims to use from the input space (e.g. 2:30).
-#' @param overwrite Overwrite existing projected coordinates for those cells.
+#' @param space_id_out New output space ID. Required when the fitted space already participates in promoted provenance.
+#' @param overwrite Overwrite existing projected coordinates only in unbound staging/development space.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space_2d` (`space_2d`): Projected x/y in the target UMAP space.. Promotion eligibility is declared by the operation catalog.
 NULL

@@ -95,6 +95,8 @@
 "getter:wb_client_inspect","getter","wb_client_inspect","Client Inspect","Client facade for inspecting session and bundle runtime state."
 "getter:wb_client_load","getter","wb_client_load","Client Load","Client facade for loading primitives by reference."
 "getter:wb_client_load_table","getter","wb_client_load_table","Client Load Table","Client facade for loading and wrangling references into normalized tables."
+"getter:wb_entity_lifecycle","getter","wb_entity_lifecycle","Durable Entity Lifecycle","List current, superseded, rejected, retracted, and ephemeral durable entity identities without reading physical storage tables."
+"getter:wb_entity_supersessions","getter","wb_entity_supersessions","Entity Supersessions","List explicit SUPERSEDES relationships between immutable durable identities."
 "getter:wb_feature_ids","getter","wb_feature_ids","Feature IDs","Get feature IDs in canonical order for a matrix."
 "getter:wb_feature_set_get","getter","wb_feature_set_get","Feature Set Members","Get feature IDs from one feature set."
 "getter:wb_feature_set_info","getter","wb_feature_set_info","Feature Set Info","Read metadata for one feature set."

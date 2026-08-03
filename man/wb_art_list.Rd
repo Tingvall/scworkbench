@@ -4,13 +4,16 @@
 \alias{wb_art_list}
 \title{List Promoted Artifacts}
 \usage{
-wb_art_list(bundle, type = NULL)
+wb_art_list(bundle, type = NULL, include_history = TRUE)
 }
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
 
 \item{type}{Optional artifact type filter such as \code{"feature_table"} or
 \code{"obs_table"}.}
+
+\item{include_history}{If \code{FALSE}, omit superseded, rejected, and retracted
+artifacts. Historical evidence remains loadable by id.}
 }
 \value{
 A data frame of artifact registry rows ordered by \code{created_at}

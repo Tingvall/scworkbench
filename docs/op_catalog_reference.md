@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-08-03T11:22:50+0200
+Generated at: 2026-08-03T13:53:15+0200
 
 Operation count: 56
 
@@ -192,7 +192,8 @@ Replay equivalence:
 
 Key parameters:
 - `dims` (int_range, default=NULL): Dims to use from the input space (e.g. 2:30).
-- `overwrite` (bool, default=TRUE): Overwrite existing projected coordinates for those cells.
+- `space_id_out` (string, default=NULL): New output space ID. Required when the fitted space already participates in promoted provenance.
+- `overwrite` (bool, default=TRUE): Overwrite existing projected coordinates only in unbound staging/development space.
 
 ## `addmodulescore`
 

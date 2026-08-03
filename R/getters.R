@@ -485,21 +485,28 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
 #' List spaces in the bundle
 #'
 #' @param bundle Open `scworkbench_bundle`.
+#' @param include_history Include superseded/rejected/retracted identities.
 #'
 #' @return A data frame of registered spaces, excluding empty registry rows.
 # pybench-parity: yes
 # pybench-counterpart: pybench.getters.spaces
 # contract-note: filter phantom/empty space_id rows
 #' @export
-wb_spaces <- function(bundle) {
+wb_spaces <- function(bundle, include_history = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
 
-  df <- DBI::dbGetQuery(con, "
+  history_filter <- if (.wb_table_exists(con, "entity_lifecycle")) "
+    WHERE ? OR NOT EXISTS (
+      SELECT 1 FROM entity_lifecycle el
+      WHERE el.entity_kind = 'space' AND el.entity_id = spaces.space_id
+        AND el.lifecycle_state IN ('superseded','rejected','retracted')
+    )" else ""
+  df <- DBI::dbGetQuery(con, paste0("
     SELECT space_id, source, dims, storage, description
-    FROM spaces
+    FROM spaces", history_filter, "
     ORDER BY space_id;
-  ")
+  "), params = if (nzchar(history_filter)) list(as.integer(isTRUE(include_history))) else NULL)
 
   # hard guard: never allow phantom rows
   df <- df[!is.na(df$space_id) & nzchar(df$space_id), , drop = FALSE]

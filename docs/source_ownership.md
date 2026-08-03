@@ -30,6 +30,9 @@ owner.
 - `R/provenance_store.R` owns the core `prov_*` schema and provenance schema
   version. The narrowly scoped `prov_registry_mutations` extension is owned by
   `R/registry_materialization.R` together with its replay behavior.
+- `R/entity_lifecycle.R` owns durable identity state, tombstones, explicit
+  supersession relationships, lifecycle migration, and verified ephemeral
+  purge rules.
 - Specialized registries such as feature sets, cell vectors, motifs, and
   cell-set recipes own only their named tables in their corresponding source
   files.

@@ -200,6 +200,10 @@ wb_op_scvi_train <- function(bundle,
   if (!isTRUE(overwrite) && output_space_id %in% as.character(existing_spaces)) {
     stop("scvi_train output_space_id already exists: ", output_space_id, " (set overwrite=TRUE)", call. = FALSE)
   }
+  if (isTRUE(overwrite) && output_space_id %in% as.character(existing_spaces)) {
+    .wb_entity_assert_replaceable(bundle, "space", output_space_id, action = "overwrite")
+    .wb_entity_assert_replaceable(bundle, "model", output_space_id, action = "overwrite")
+  }
 
   feats <- as.character(wb_feature_ids(bundle, matrix_id = matrix_id))
   .wb_assert(length(feats) > 0L, paste0("scvi_train: no features found for matrix_id='", matrix_id, "'."))

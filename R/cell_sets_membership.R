@@ -86,6 +86,16 @@ wb_cell_set_add <- function(bundle,
   con <- bundle$con
   .wb_ensure_cell_set_membership_table(con)
 
+  already_present <- DBI::dbGetQuery(con,
+    "SELECT 1 AS present FROM cell_set_membership WHERE cell_set = ? LIMIT 1;",
+    params = list(cell_set)
+  )
+  if (nrow(already_present) && .wb_entity_is_provenance_bound(bundle, "cell_set", cell_set)) {
+    current_members <- DBI::dbGetQuery(con, "SELECT cell_id FROM cell_set_membership WHERE cell_set = ?;", params = list(cell_set))$cell_id
+    replay_noop <- isTRUE(getOption("scworkbench.provenance_registry_replay")) && all(cell_ids %in% current_members)
+    if (!replay_noop) .wb_entity_assert_replaceable(bundle, "cell_set", cell_set, action = "change membership of")
+  }
+
   # validate existence
   cl <- .wb_sql_in_json(cell_ids)
   existing <- DBI::dbGetQuery(
@@ -145,6 +155,9 @@ wb_cell_set_add <- function(bundle,
     )
   )
 
+  .wb_entity_lifecycle_upsert(con, "cell_set", cell_set, state = "current",
+    bound = .wb_entity_is_provenance_bound(bundle, "cell_set", cell_set))
+
   invisible(list(cell_set = cell_set, n_added = length(existing)))
 }
 
@@ -175,19 +188,31 @@ wb_cell_set_remove <- function(bundle, cell_set, cell_ids = NULL) {
   con <- bundle$con
   .wb_ensure_cell_set_membership_table(con)
 
+  existing_aliases <- DBI::dbGetQuery(
+    con,
+    paste0("SELECT DISTINCT cell_set FROM cell_set_membership WHERE cell_set IN ", .wb_sql_in_json(aliases)$sql, ";"),
+    params = .wb_sql_in_json(aliases)$params
+  )$cell_set
+  bound_aliases <- existing_aliases[vapply(existing_aliases, function(id) .wb_entity_is_provenance_bound(bundle, "cell_set", id), logical(1))]
+
   if (is.null(cell_ids)) {
-    q <- .wb_sql_in_json(aliases)
-    DBI::dbExecute(
-      con,
-      paste0("DELETE FROM cell_set_membership WHERE cell_set IN ", q$sql, ";"),
-      params = q$params
-    )
+    .wb_entity_lifecycle_migrate(bundle)
+    for (id in existing_aliases) {
+      state <- wb_entity_lifecycle(bundle, "cell_set", id)$lifecycle_state[1] %||% "current"
+      if (state %in% c("current", "ephemeral")) wb_entity_retract(
+        bundle, "cell_set", id, reason = "Retracted through wb_cell_set_remove()."
+      )
+    }
     .wb_journal_registry_mutation(
       bundle, "cell_set", "remove",
       key = list(cell_set = cell_set),
       payload = list(cell_ids = NULL)
     )
-    return(invisible(list(cell_set = cell_set, aliases = aliases, n_removed = NA_integer_)))
+    return(invisible(list(cell_set = cell_set, aliases = aliases, n_removed = 0L, action = "retracted")))
+  }
+
+  if (length(bound_aliases)) {
+    .wb_entity_assert_replaceable(bundle, "cell_set", bound_aliases[1], action = "change membership of")
   }
 
   cell_ids <- unique(as.character(cell_ids))
@@ -290,6 +315,16 @@ wb_cell_set_replace <- function(bundle,
   con <- bundle$con
   .wb_ensure_cell_set_membership_table(con)
 
+  already_present <- DBI::dbGetQuery(con,
+    "SELECT 1 AS present FROM cell_set_membership WHERE cell_set = ? LIMIT 1;",
+    params = list(cell_set)
+  )
+  if (nrow(already_present) && .wb_entity_is_provenance_bound(bundle, "cell_set", cell_set)) {
+    current_members <- DBI::dbGetQuery(con, "SELECT cell_id FROM cell_set_membership WHERE cell_set = ?;", params = list(cell_set))$cell_id
+    replay_noop <- isTRUE(getOption("scworkbench.provenance_registry_replay")) && setequal(current_members, cell_ids)
+    if (!replay_noop) .wb_entity_assert_replaceable(bundle, "cell_set", cell_set, action = "change membership of")
+  }
+
   # Validate existence (but allow empty)
   existing <- character(0)
   missing <- character(0)
@@ -349,6 +384,9 @@ wb_cell_set_replace <- function(bundle,
       metadata = list(source = source, created_by = created_by, description = description)
     )
   )
+
+  .wb_entity_lifecycle_upsert(con, "cell_set", cell_set, state = "current",
+    bound = .wb_entity_is_provenance_bound(bundle, "cell_set", cell_set))
 
   invisible(list(
     cell_set = cell_set,

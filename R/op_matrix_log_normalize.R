@@ -387,6 +387,7 @@ wb_op_matrix_log_normalize <- function(bundle,
   existing <- wb_matrix_info(bundle, matrix_id = output_matrix_id)
   if (nrow(existing) > 0L) {
     .wb_assert(isTRUE(overwrite), paste0("Output matrix exists: ", output_matrix_id, " (set overwrite=TRUE)"))
+    .wb_entity_assert_replaceable(bundle, "matrix", output_matrix_id, action = "overwrite")
     .wb_matrix_remove_existing(bundle, output_matrix_id)
   }
 

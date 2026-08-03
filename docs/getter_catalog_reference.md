@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-08-03T11:22:50+0200
+Generated at: 2026-08-03T13:53:15+0200
 
-Getter count: 75
+Getter count: 77
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -21,7 +21,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle, type
+Arguments: bundle, type, include_history
 
 Use when:
 - find promoted outputs
@@ -323,7 +323,7 @@ Returns: character vector
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, include_history
 
 Use when:
 - find available subsets
@@ -466,7 +466,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle, matrix_id, namespace
+Arguments: bundle, matrix_id, namespace, organism, origin, include_history
 
 Use when:
 - find gene-set libraries
@@ -579,7 +579,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, include_history
 
 Use when:
 - choose matrix input for an op
@@ -818,6 +818,38 @@ Use when:
 
 ## provenance
 
+### `wb_entity_lifecycle`
+
+Title: Durable Entity Lifecycle
+
+Description: List current, superseded, rejected, retracted, and ephemeral durable entity identities without reading physical storage tables.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, entity_kind, entity_id, lifecycle_state, include_history
+
+Use when:
+- distinguish current claims from historical evidence
+- audit immutable identity state
+
+### `wb_entity_supersessions`
+
+Title: Entity Supersessions
+
+Description: List explicit SUPERSEDES relationships between immutable durable identities.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle
+
+Use when:
+- trace claim replacement
+- render historical lifecycle relationships
+
 ### `wb_prov_list_heads`
 
 Title: Provenance Heads
@@ -1034,7 +1066,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, include_history
 
 Use when:
 - choose embedding or latent space for an op

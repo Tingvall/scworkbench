@@ -9,7 +9,8 @@ wb_feature_sets(
   matrix_id = NULL,
   namespace = NULL,
   organism = NULL,
-  origin = NULL
+  origin = NULL,
+  include_history = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ wb_feature_sets(
 \item{organism}{Optional organism filter.}
 
 \item{origin}{Optional origin filter.}
+
+\item{include_history}{Include superseded/rejected/retracted identities.}
 }
 \value{
 A data frame with feature-set metadata and member counts.

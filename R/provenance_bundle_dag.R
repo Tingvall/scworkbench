@@ -416,7 +416,8 @@
 #' @param include_snapshots Include provenance snapshot nodes/edges.
 #' @param include_registry_mutations Include cell-set registry mutation nodes
 #'   and edges where supported.
-#' @param include_superseded Reserved for future engine-owned supersession
+#' @param include_superseded If `FALSE`, omit superseded, rejected, and
+#'   retracted entity identities from the returned current-claim view.
 #'   state. Current node fields `canonical` and `superseded` are `NA`.
 #'
 #' @return A list with stable `nodes` and `edges` data.frames.
@@ -733,6 +734,43 @@ wb_prov_bundle_dag <- function(bundle,
     )
     if (nrow(reg$nodes)) nodes_df <- unique(rbind(nodes_df, reg$nodes))
     if (nrow(reg$edges)) edges_df <- unique(rbind(edges_df, reg$edges))
+  }
+
+  lifecycle <- wb_entity_lifecycle(bundle, include_history = TRUE)
+  if (nrow(lifecycle)) for (i in seq_len(nrow(lifecycle))) {
+    kind <- as.character(lifecycle$entity_kind[i]); entity_id <- as.character(lifecycle$entity_id[i])
+    node_id <- paste0(kind, ":", entity_id)
+    state <- as.character(lifecycle$lifecycle_state[i])
+    idx <- which(as.character(nodes_df$id) == node_id)
+    if (length(idx)) {
+      nodes_df$status[idx] <- state
+      nodes_df$canonical[idx] <- identical(state, "current")
+      nodes_df$superseded[idx] <- identical(state, "superseded")
+    } else {
+      nodes_df <- rbind(nodes_df, .wb_prov_bundle_node(
+        id = node_id, node_type = kind, label = entity_id,
+        title = paste(kind, entity_id), created_at = lifecycle$created_at[i],
+        status = state, canonical = identical(state, "current"),
+        superseded = identical(state, "superseded")
+      ))
+    }
+  }
+  supersessions <- wb_entity_supersessions(bundle)
+  if (is.data.frame(supersessions) && nrow(supersessions)) for (i in seq_len(nrow(supersessions))) {
+    edges_df <- rbind(edges_df, .wb_prov_bundle_edge(
+      from = paste0(supersessions$successor_kind[i], ":", supersessions$successor_id[i]),
+      to = paste0(supersessions$predecessor_kind[i], ":", supersessions$predecessor_id[i]),
+      edge_type = "SUPERSEDES", label = as.character(supersessions$reason[i] %||% "supersedes")[1]
+    ))
+  }
+
+  if (!isTRUE(include_superseded) && nrow(nodes_df)) {
+    historical <- as.character(nodes_df$status) %in% c("superseded", "rejected", "retracted")
+    removed_ids <- as.character(nodes_df$id[historical])
+    nodes_df <- nodes_df[!historical, , drop = FALSE]
+    if (length(removed_ids) && nrow(edges_df)) {
+      edges_df <- edges_df[!(edges_df$from %in% removed_ids | edges_df$to %in% removed_ids), , drop = FALSE]
+    }
   }
 
   if (nrow(edges_df)) {

@@ -98,6 +98,8 @@ wb_add_space <- function(bundle,
     if (nrow(exists_space) > 0) {
       if (!isTRUE(overwrite)) stop("space_id already exists: ", space_id, " (set overwrite=TRUE to replace)", call. = FALSE)
 
+      .wb_entity_assert_replaceable(bundle, "space", space_id, action = "overwrite")
+
       DBI::dbExecute(con, "DELETE FROM space_2d WHERE space_id = ?;", params = list(space_id))
       DBI::dbExecute(con, "DELETE FROM space_coords WHERE space_id = ?;", params = list(space_id))
       DBI::dbExecute(con, "DELETE FROM spaces WHERE space_id = ?;", params = list(space_id))
@@ -157,6 +159,9 @@ wb_add_space <- function(bundle,
       }
     }
   })
+
+  .wb_entity_lifecycle_upsert(con, "space", space_id, state = "current",
+    bound = .wb_entity_is_provenance_bound(bundle, "space", space_id))
 
   # ---- indexes ----
   # If these already exist, SQLite will error. So wrap in try.

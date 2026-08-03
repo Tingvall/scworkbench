@@ -549,6 +549,7 @@
     in_space_id = in_space_id,
     cells = as.character(effective_cells),
     dims = inputs$dims %||% NULL,
+    space_id_out = inputs$space_id_out %||% NULL,
     overwrite = inputs$overwrite %||% TRUE
   )
 
@@ -1882,8 +1883,10 @@
       params = list(
         list(name = "dims", type = "int_range", default = NULL,
              help = "Dims to use from the input space (e.g. 2:30)."),
+        list(name = "space_id_out", type = "string", default = NULL,
+             help = "New output space ID. Required when the fitted space already participates in promoted provenance."),
         list(name = "overwrite", type = "bool", default = TRUE,
-             help = "Overwrite existing projected coordinates for those cells.")
+             help = "Overwrite existing projected coordinates only in unbound staging/development space.")
       ),
       interface_produces = list(
         space_2d = list(kind = "space_2d", description = "Projected x/y in the target UMAP space.")

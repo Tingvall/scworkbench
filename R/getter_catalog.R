@@ -69,7 +69,7 @@
       description = "List available cell sets in a bundle.",
       returns = "character vector",
       payload_level = "metadata",
-      arguments = c("bundle"),
+      arguments = c("bundle", "include_history"),
       use_when = c("find available subsets", "choose cell_set input for an op")
     ),
     list(
@@ -139,7 +139,7 @@
       description = "List matrices available in the bundle.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle"),
+      arguments = c("bundle", "include_history"),
       use_when = c("choose matrix input for an op")
     ),
     list(
@@ -259,7 +259,7 @@
       description = "List feature sets and namespaces in the bundle.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle", "matrix_id", "namespace"),
+      arguments = c("bundle", "matrix_id", "namespace", "organism", "origin", "include_history"),
       use_when = c("find gene-set libraries", "choose namespace for enrichment or dynamics")
     ),
     list(
@@ -289,7 +289,7 @@
       description = "List spaces in the bundle.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle"),
+      arguments = c("bundle", "include_history"),
       use_when = c("choose embedding or latent space for an op")
     ),
     list(
@@ -349,8 +349,28 @@
       description = "List promoted artifacts, optionally filtered by type.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle", "type"),
+      arguments = c("bundle", "type", "include_history"),
       use_when = c("find promoted outputs", "choose artifact for plotting or loading")
+    ),
+    list(
+      function_name = "wb_entity_lifecycle",
+      title = "Durable Entity Lifecycle",
+      category = "provenance",
+      description = "List current, superseded, rejected, retracted, and ephemeral durable entity identities without reading physical storage tables.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "entity_kind", "entity_id", "lifecycle_state", "include_history"),
+      use_when = c("distinguish current claims from historical evidence", "audit immutable identity state")
+    ),
+    list(
+      function_name = "wb_entity_supersessions",
+      title = "Entity Supersessions",
+      category = "provenance",
+      description = "List explicit SUPERSEDES relationships between immutable durable identities.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle"),
+      use_when = c("trace claim replacement", "render historical lifecycle relationships")
     ),
     list(
       function_name = "wb_list_trajectory_models",
