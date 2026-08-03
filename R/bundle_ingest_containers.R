@@ -39,7 +39,10 @@
   bundle$manifest$bundle_id <- final_id
   bundle$manifest$bundle_name <- final_id
   bundle$manifest$id_policy <- id_policy
-  wb_refresh_manifest(bundle)
+  .wb_with_mutation_context(
+    bundle = bundle, route = "ingestion",
+    code = wb_refresh_manifest(bundle)
+  )
   bundle
 }
 

@@ -61,13 +61,20 @@ wb_target_reproduction_plan <- function(bundle, target) {
     .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con),
     " FROM prov_run_outputs ORDER BY snapshot_id, run_id, output_name;"))
   bind <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, direction, binding_name, entity_kind, entity_id FROM prov_run_entity_bindings WHERE direction = 'output' ORDER BY snapshot_id, run_id, binding_name;")
+  ingestion_runs <- DBI::dbGetQuery(
+    con,
+    "SELECT DISTINCT r.run_id FROM prov_runs r JOIN prov_heads h ON h.snapshot_id = r.snapshot_id WHERE h.name_prefix = 'ingestion';"
+  )$run_id
+  ingestion_runs <- unique(as.character(ingestion_runs %||% character(0)))
+  replay_out <- out[!(as.character(out$run_id) %in% ingestion_runs), , drop = FALSE]
+  replay_bind <- bind[!(as.character(bind$run_id) %in% ingestion_runs), , drop = FALSE]
   candidates <- data.frame(snapshot_id=character(), run_id=character(), output_name=character(), stringsAsFactors=FALSE)
-  if (x$type == "artifact") candidates <- out[!is.na(out$artifact_id) & as.character(out$artifact_id) == x$entity_id, c("snapshot_id","run_id","output_name"), drop=FALSE]
-  if (x$type == "run") candidates <- unique(out[as.character(out$run_id) == x$entity_id, c("snapshot_id","run_id","output_name"), drop=FALSE])
+  if (x$type == "artifact") candidates <- replay_out[!is.na(replay_out$artifact_id) & as.character(replay_out$artifact_id) == x$entity_id, c("snapshot_id","run_id","output_name"), drop=FALSE]
+  if (x$type == "run") candidates <- unique(replay_out[as.character(replay_out$run_id) == x$entity_id, c("snapshot_id","run_id","output_name"), drop=FALSE])
   if (x$type %in% c("matrix", "space", "model")) {
     ek <- if (x$type == "model") "model_ref" else x$type
-    bb <- bind[as.character(bind$entity_kind) == ek & as.character(bind$entity_id) == x$entity_id, , drop=FALSE]
-    if (nrow(bb)) candidates <- merge(bb[,c("snapshot_id","run_id","binding_name")], out, by=c("snapshot_id","run_id"), all.x=TRUE)
+    bb <- replay_bind[as.character(replay_bind$entity_kind) == ek & as.character(replay_bind$entity_id) == x$entity_id, , drop=FALSE]
+    if (nrow(bb)) candidates <- merge(bb[,c("snapshot_id","run_id","binding_name")], replay_out, by=c("snapshot_id","run_id"), all.x=TRUE)
     if (nrow(candidates)) candidates$output_name <- as.character(candidates$binding_name)
     candidates <- candidates[, intersect(c("snapshot_id","run_id","output_name"), names(candidates)), drop=FALSE]
   }
@@ -89,7 +96,7 @@ wb_target_reproduction_plan <- function(bundle, target) {
     typed <- character(0)
     ins <- bind_all[as.character(bind_all$direction) == "input" & as.character(bind_all$run_id) == cur & as.character(bind_all$entity_kind) %in% c("matrix","space","model_ref","artifact"),,drop=FALSE]
     if (nrow(ins)) for (j in seq_len(nrow(ins))) {
-      pp <- bind_all[as.character(bind_all$direction) == "output" & as.character(bind_all$entity_kind) == as.character(ins$entity_kind[j]) & as.character(bind_all$entity_id) == as.character(ins$entity_id[j]) & as.character(bind_all$run_id) != cur,,drop=FALSE]
+      pp <- bind_all[as.character(bind_all$direction) == "output" & as.character(bind_all$entity_kind) == as.character(ins$entity_kind[j]) & as.character(bind_all$entity_id) == as.character(ins$entity_id[j]) & as.character(bind_all$run_id) != cur & !(as.character(bind_all$run_id) %in% ingestion_runs),,drop=FALSE]
       pp <- pp[!duplicated(as.character(pp$run_id)),,drop=FALSE]
       if (nrow(pp) > 1L) ambiguous[[length(ambiguous)+1L]] <- list(code="ambiguous_dependency", message=paste0("Multiple producers for ",ins$entity_kind[j],":",ins$entity_id[j]))
       else if (nrow(pp) == 1L) {

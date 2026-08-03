@@ -32,6 +32,11 @@ wb_ingest_cells <- function(
     created_by = NULL
 ) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
+  .wb_assert_mutation_context(
+    bundle = bundle, action = "Low-level cell ingestion writer wb_ingest_cells()",
+    allowed = c("assembly", "ingestion"),
+    replacement = "wb_ingest_apply() or a wb_bundle_from_*() declared ingestion transaction"
+  )
   .wb_assert(is.character(set_name) && length(set_name) == 1 && nzchar(set_name),
              "set_name must be a non-empty string")
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0,

@@ -8,6 +8,8 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
   }, add = TRUE)
   cells <- paste0("c", seq_len(3L))
   wb_define_cells(b, cells)
+  before_heads <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1]
+  before_commits <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1]
 
   make_model_run <- function(tag) {
     model <- wb_prim_model_ref(model_space_id = "synthetic", in_space_id = "synthetic", engine = "monocle3")
@@ -40,8 +42,8 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
   stopifnot(inherits(failed, "try-error"), calls >= 5L)
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM artifacts;")$n[1] == 0L)
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM artifact_model_ref;")$n[1] == 0L)
-  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == 0L)
-  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == 0L)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == before_heads)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == before_commits)
   artifact_dir <- file.path(root, "artifact_models")
   stopifnot(!dir.exists(artifact_dir) || !length(list.files(artifact_dir, all.files = FALSE, no.. = TRUE)))
   pending_root <- file.path(root, "provenance", ".pending")

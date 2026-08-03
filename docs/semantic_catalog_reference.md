@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-08-02T23:47:11+0200
+Generated at: 2026-08-03T09:25:11+0200
 
 Record count: 312
 

@@ -875,6 +875,7 @@ wb_refresh_semantic_catalogs <- function(bundle = NULL,
       "wrangler_catalog_semantic.json",
       "primitive_catalog_semantic.json",
       "artifact_type_catalog_semantic.json",
+      "mutation_catalog_semantic.json",
       "parameter_semantics_catalog.json",
       "recipe_semantics_catalog.json",
       "semantic_catalog.json",
@@ -907,6 +908,10 @@ wb_refresh_semantic_catalogs <- function(bundle = NULL,
   wb_write_artifact_type_catalog_reference(
     path_md = file.path(docs_dir, "artifact_type_catalog_reference.md"),
     path_json = file.path(docs_dir, "artifact_type_catalog_semantic.json")
+  )
+  wb_write_mutation_catalog_reference(
+    path_md = file.path(docs_dir, "mutation_catalog_reference.md"),
+    path_json = file.path(docs_dir, "mutation_catalog_semantic.json")
   )
   wb_write_parameter_semantics_reference(
     path_md = file.path(docs_dir, "parameter_semantics_reference.md"),

@@ -406,10 +406,13 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
   planned_run_id <- paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = ""))
-  previous_context <- getOption("scworkbench.registry_mutation_context")
-  options(scworkbench.registry_mutation_context = list(run_id = planned_run_id, op_name = op_name))
-  on.exit(options(scworkbench.registry_mutation_context = previous_context), add = TRUE)
-  res <- runner(bundle = work_bundle, resolved = resolved, effective_cells = effective_cells, inputs = inputs)
+  res <- .wb_with_mutation_context(
+    bundle = work_bundle,
+    route = "session_execution",
+    run_id = planned_run_id,
+    op_name = op_name,
+    code = runner(bundle = work_bundle, resolved = resolved, effective_cells = effective_cells, inputs = inputs)
+  )
   res <- .wb_assert_op_result(op_name, res)
 
 

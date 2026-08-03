@@ -41,16 +41,11 @@ test_op_trajectory_branch_compare_contract <- function(bundle_dir) {
 
   # Durable registry inputs must exist before the session overlay is created.
   fs_name <- ".__test_trajectory_branch_compare_feature_set__."
-  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
   fs_feats <- unique(as.character(feats[1:10]))
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_name,
-    matrix_id = matrix_id,
-    feature_ids = fs_feats,
-    created_by = "test",
-    description = "trajectory_branch_compare contract test feature set",
-    strict = TRUE
+  wb_feature_set_import_list(
+    b, matrix_id = matrix_id, sets = stats::setNames(list(fs_feats), fs_name),
+    namespace = "contract", created_by = "test", strict = TRUE,
+    origin = "imported", is_readonly = FALSE
   )
 
   s <- wb_session_new()
@@ -129,8 +124,6 @@ test_op_trajectory_branch_compare_contract <- function(bundle_dir) {
   stopifnot(all(c("branch_a", "branch_b", "n_cells_a", "n_cells_b", "n_overlap_dropped", "n_features_tested", "mean_pt_a", "mean_pt_b") %in% colnames(sm_tbl)))
   stopifnot(identical(as.character(sm_tbl$branch_a[1]), lineages[1]))
   stopifnot(identical(as.character(sm_tbl$branch_b[1]), lineages[2]))
-
-  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
 
   TRUE
 }

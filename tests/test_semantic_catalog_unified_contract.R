@@ -50,7 +50,7 @@ test_semantic_catalog_unified_contract <- function() {
   tmp_refresh <- tempfile("semantic_refresh_")
   audit2 <- wb_refresh_semantic_catalogs(docs_dir = tmp_refresh)
   stopifnot(isTRUE(audit2$ok))
-  stopifnot(length(audit2$json_validated) == 11)
+  stopifnot(length(audit2$json_validated) == 12)
   stopifnot(all(file.exists(audit2$json_validated)))
   stopifnot(is.data.frame(audit2$graph_views))
   stopifnot(any(grepl("semantic_graph_full[.]dot$", audit2$graph_views$file)))

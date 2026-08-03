@@ -23,6 +23,9 @@ wb_set_create <- function(bundle,
                           created_by = NULL,
                           description = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Cell-set registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "the registered cell_set_derive or winner_cell_sets operation through wb_session_run_op() and promotion")
   .wb_assert(is.character(set_name) && nzchar(set_name), "set_name invalid")
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids invalid")
 
@@ -71,6 +74,9 @@ wb_cell_set_add <- function(bundle,
                             description = NULL) {
 
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Cell-set registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "the registered cell_set_derive or winner_cell_sets operation through wb_session_run_op() and promotion")
   .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set), "cell_set invalid")
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids must be non-empty")
 
@@ -155,6 +161,9 @@ wb_cell_set_add <- function(bundle,
 #' @export
 wb_cell_set_remove <- function(bundle, cell_set, cell_ids = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Cell-set registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "a registered cell-set operation through wb_session_run_op() and promotion")
   .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set), "cell_set invalid")
   cell_set <- as.character(cell_set)[1]
   aliases <- unique(c(
@@ -226,6 +235,9 @@ wb_cell_set_set <- function(bundle,
                             created_by = NULL,
                             description = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Cell-set registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "the registered cell_set_derive or winner_cell_sets operation through wb_session_run_op() and promotion")
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0, "cell_ids must be non-empty")
   if (!startsWith(cell_set, "set:")) cell_set <- paste0("set:", cell_set)
 
@@ -266,6 +278,9 @@ wb_cell_set_replace <- function(bundle,
                                 description = NULL,
                                 strict = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Cell-set registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "the registered cell_set_derive or winner_cell_sets operation through wb_session_run_op() and promotion")
   .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set), "cell_set invalid")
   if (!startsWith(cell_set, "set:")) cell_set <- paste0("set:", cell_set)
 

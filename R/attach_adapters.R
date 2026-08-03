@@ -399,6 +399,7 @@ wb_attach_apply <- function(bundle,
     return(invisible(list(validated = TRUE, validation = chk, normalized = norm)))
   }
 
+  .wb_with_mutation_context(bundle = bundle, route = "ingestion", code = {
   run_attach <- function() {
     wb_attach_to_cells(
       bundle = bundle,
@@ -426,6 +427,12 @@ wb_attach_apply <- function(bundle,
         source = source
       )
     }
+    .wb_record_declared_ingestion(
+      bundle = bundle, transaction_name = "attach_apply",
+      matrix_ids = names(norm$matrices %||% list()),
+      space_ids = names(norm$spaces %||% list()),
+      source = source, created_by = created_by
+    )
   } else {
     con <- bundle$con
     mat_root <- file.path(bundle$dir, "mat")
@@ -445,6 +452,13 @@ wb_attach_apply <- function(bundle,
             source = source
           )
         }
+        .wb_record_declared_ingestion(
+          bundle = bundle, transaction_name = "attach_apply",
+          matrix_ids = names(norm$matrices %||% list()),
+          space_ids = names(norm$spaces %||% list()),
+          source = source, created_by = created_by,
+          transaction_open = TRUE
+        )
         list(result = r0, artifact_id = a0)
       }),
       silent = TRUE
@@ -468,5 +482,7 @@ wb_attach_apply <- function(bundle,
     artifact_id = as.character(artifact_id %||% NA_character_)[1]
   )
   attr(res, "attach_report_artifact_id") <- as.character(artifact_id %||% NA_character_)[1]
+  wb_refresh_manifest(bundle)
   res
+  })
 }

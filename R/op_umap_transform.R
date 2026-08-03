@@ -21,6 +21,7 @@ wb_op_umap_transform <- function(bundle,
                                  overwrite = TRUE,
                                  ...) {
 
+  .wb_assert_operation_execution(bundle, "umap_transform")
   .wb_require_pkg("uwot", "UMAP transform")
 
   .wb_assert(is.character(model_space_id) && nzchar(model_space_id),

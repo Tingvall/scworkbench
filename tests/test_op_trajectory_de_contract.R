@@ -42,16 +42,11 @@ test_op_trajectory_de_contract <- function(bundle_dir) {
 
   # Durable registry inputs must exist before the session overlay is created.
   fs_name <- ".__test_trajectory_de_feature_set__."
-  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
   fs_feats <- unique(as.character(feats[1:8]))
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_name,
-    matrix_id = matrix_id,
-    feature_ids = fs_feats,
-    created_by = "test",
-    description = "trajectory_de contract test feature set",
-    strict = TRUE
+  wb_feature_set_import_list(
+    b, matrix_id = matrix_id, sets = stats::setNames(list(fs_feats), fs_name),
+    namespace = "contract", created_by = "test", strict = TRUE,
+    origin = "imported", is_readonly = FALSE
   )
 
   s <- wb_session_new()
@@ -144,8 +139,6 @@ test_op_trajectory_de_contract <- function(bundle_dir) {
   )
   stopifnot(inherits(err, "try-error"))
   stopifnot(grepl("supports model_ref engines 'slingshot' and 'monocle3'", as.character(err)))
-
-  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
 
   TRUE
 }

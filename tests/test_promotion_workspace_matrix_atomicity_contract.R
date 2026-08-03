@@ -16,6 +16,9 @@ test_promotion_workspace_matrix_atomicity_contract <- function() {
                    dimnames = list(paste0("g", seq_len(4L)), cells))
   wb_define_cells(b, cells)
   wb_attach_matrix(b, matrix_id = "RNA_counts", mat = counts, feature_type = "gene")
+  before_heads <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1]
+  before_commits <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1]
+  before_artifacts <- nrow(wb_art_list(b))
 
   s <- wb_session_new()
   staged <- wb_session_run_op(
@@ -47,9 +50,9 @@ test_promotion_workspace_matrix_atomicity_contract <- function() {
   stopifnot(!dir.exists(file.path(root, "mat", "RNA_log")))
   pending_root <- file.path(root, "provenance", ".pending")
   stopifnot(!dir.exists(pending_root) || !length(list.files(pending_root, all.files = FALSE, no.. = TRUE)))
-  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == 0L)
-  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == 0L)
-  stopifnot(nrow(wb_art_list(b)) == 0L)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == before_commits)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == before_heads)
+  stopifnot(nrow(wb_art_list(b)) == before_artifacts)
 
   TRUE
 }
@@ -74,6 +77,9 @@ test_promotion_workspace_mixed_matrix_space_atomicity_contract <- function() {
                    dimnames = list(paste0("g", seq_len(12L)), cells))
   wb_define_cells(b, cells)
   wb_attach_matrix(b, matrix_id = "RNA_counts", mat = counts, feature_type = "gene")
+  before_heads <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1]
+  before_commits <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1]
+  before_artifacts <- nrow(wb_art_list(b))
 
   s <- wb_session_new()
   r_norm <- wb_session_run_op(s, b, "matrix_log_normalize",
@@ -100,9 +106,9 @@ test_promotion_workspace_mixed_matrix_space_atomicity_contract <- function() {
   stopifnot(!file.exists(file.path(root, model_rel)))
   pending_root <- file.path(root, "provenance", ".pending")
   stopifnot(!dir.exists(pending_root) || !length(list.files(pending_root, all.files = FALSE, no.. = TRUE)))
-  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == 0L)
-  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == 0L)
-  stopifnot(nrow(wb_art_list(b)) == 0L)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1] == before_commits)
+  stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1] == before_heads)
+  stopifnot(nrow(wb_art_list(b)) == before_artifacts)
   stopifnot(!.wb_table_exists(b$con, "space_models") || DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM space_models;")$n[1] == 0L)
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM artifact_model_ref;")$n[1] == 0L)
   TRUE

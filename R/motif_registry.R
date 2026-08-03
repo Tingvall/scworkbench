@@ -106,6 +106,9 @@ wb_matrix_set_genome <- function(bundle,
                                  genome_build,
                                  genome_provider = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Matrix genome-contract mutation",
+    allowed = c("assembly", "ingestion"),
+    replacement = "a wb_bundle_from_*() or wb_ingest_apply() declared ingestion transaction")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
   .wb_assert(is.character(organism) && length(organism) == 1 && nzchar(organism), "organism invalid")
   .wb_assert(is.character(genome_build) && length(genome_build) == 1 && nzchar(genome_build), "genome_build invalid")
@@ -215,6 +218,9 @@ wb_motif_library_register <- function(bundle,
                                       description = NULL,
                                       created_by = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Motif registry mutation",
+    allowed = c("assembly", "ingestion"),
+    replacement = "a declared motif ingestion transaction during bundle assembly")
   .wb_assert(is.character(motif_library) && length(motif_library) == 1 && nzchar(motif_library), "motif_library invalid")
   .wb_assert(is.character(source_type) && length(source_type) == 1 && nzchar(source_type), "source_type invalid")
 
@@ -328,6 +334,9 @@ wb_motif_register <- function(bundle,
                               metadata = NULL,
                               created_by = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Motif registry mutation",
+    allowed = c("assembly", "ingestion"),
+    replacement = "a declared motif ingestion transaction during bundle assembly")
   .wb_assert(is.character(motif_library) && length(motif_library) == 1 && nzchar(motif_library), "motif_library invalid")
   .wb_assert(is.character(motif_key) && length(motif_key) == 1 && nzchar(motif_key), "motif_key invalid")
 
@@ -414,6 +423,7 @@ wb_motif_library_import_jaspar <- function(bundle,
   .wb_assert(is.character(motif_library) && length(motif_library) == 1 && nzchar(motif_library), "motif_library invalid")
   .wb_assert(is.character(jaspar_pkg) && length(jaspar_pkg) == 1 && nzchar(jaspar_pkg), "jaspar_pkg invalid")
   .wb_assert(!missing(species) && length(species) >= 1 && nzchar(as.character(species)[1]), "species is required")
+  .wb_with_mutation_context(bundle = bundle, route = "ingestion", code = {
   .wb_require_pkg("TFBSTools", "JASPAR motif import")
   .wb_require_pkg(as.character(jaspar_pkg)[1], "JASPAR motif import")
 
@@ -431,6 +441,7 @@ wb_motif_library_import_jaspar <- function(bundle,
   motifs <- motifs[keep]
   .wb_assert(length(motifs) > 0L, "No motifs remained after motif_ids/motif_names filtering.")
 
+  DBI::dbWithTransaction(bundle$con, {
   wb_motif_library_register(
     bundle = bundle,
     motif_library = motif_library,
@@ -461,12 +472,24 @@ wb_motif_library_import_jaspar <- function(bundle,
     )
   }
 
-  invisible(list(
+  result <- list(
     motif_library = as.character(motif_library)[1],
     n_motifs = length(motifs),
     jaspar_pkg = as.character(jaspar_pkg)[1],
     collection = as.character(collection)[1]
-  ))
+  )
+  .wb_record_declared_ingestion(
+    bundle = bundle, transaction_name = "motif_library_import_jaspar",
+    source = jaspar_pkg, created_by = created_by,
+    additional_outputs = list(registry_manifest = wb_prim_obs_table(
+      data.frame(motif_library = result$motif_library, n_motifs = result$n_motifs,
+        stringsAsFactors = FALSE),
+      table_type = "motif_library_import_manifest", entity_kind = "motif_library"
+    )), transaction_open = TRUE
+  )
+  invisible(result)
+  })
+  })
 }
 
 .wb_motif_payload_to_json <- function(motif) {
@@ -603,6 +626,9 @@ wb_motif_match_replace <- function(bundle,
                                    description = NULL,
                                    created_by = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Motif-match registry mutation",
+    allowed = c("assembly", "ingestion"),
+    replacement = "a declared motif ingestion transaction during bundle assembly")
   .wb_assert(is.character(motif_match_set) && length(motif_match_set) == 1 && nzchar(motif_match_set), "motif_match_set invalid")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
   .wb_assert(is.character(motif_library) && length(motif_library) == 1 && nzchar(motif_library), "motif_library invalid")

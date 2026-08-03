@@ -14,25 +14,11 @@ test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
 
   # Small synthetic namespace for fast pathway_enrich on top of a small DE table.
   ns <- paste0("test_continue_promote_", paste0(sample(c(letters, 0:9), 8, TRUE), collapse = ""))
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = "set_alpha",
-    matrix_id = mid,
-    feature_ids = as.character(feats[1:20]),
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
-  )
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = "set_beta",
-    matrix_id = mid,
-    feature_ids = as.character(feats[21:40]),
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
+  wb_feature_set_import_list(
+    b, matrix_id = mid,
+    sets = list(set_alpha = as.character(feats[1:20]), set_beta = as.character(feats[21:40])),
+    namespace = ns, created_by = "test", origin = "imported",
+    strict = TRUE, is_readonly = FALSE
   )
 
   # Stage 1: run + promote DE on a tiny feature/cell subset for speed.

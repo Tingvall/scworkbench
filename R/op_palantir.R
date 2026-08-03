@@ -80,6 +80,7 @@ wb_op_palantir_project <- function(bundle,
                                    python_bin = .wb_pybench_default_python(),
                                    ...) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "palantir_project")
   .wb_assert_kind(model, "model_ref")
   .wb_assert(identical(as.character(model$engine %||% "")[1], "palantir"),
              "palantir_project requires model_ref(engine='palantir').")
@@ -174,6 +175,7 @@ wb_op_palantir_fit <- function(bundle,
                                cell_set = "all",
                                python_bin = .wb_pybench_default_python()) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "palantir_fit")
   .wb_assert(is.character(fit_space_id) && length(fit_space_id) == 1L && nzchar(fit_space_id),
              "palantir_fit requires fit_space_id.")
 
