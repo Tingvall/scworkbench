@@ -35,8 +35,7 @@
   destination_con <- DBI::dbConnect(RSQLite::SQLite(), destination_path)
   on.exit(try(DBI::dbDisconnect(destination_con), silent = TRUE), add = TRUE)
 
-  copy_database <- get("connection_copy_database", envir = asNamespace("RSQLite"))
-  copy_database(source_con@ptr, destination_con@ptr)
+  RSQLite::sqliteCopyDatabase(source_con, destination_con)
 
   test_hook <- getOption("scworkbench.session_backup_test_hook")
   if (is.function(test_hook)) test_hook(source_con, destination_con, destination_path)
