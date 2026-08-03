@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-08-03T13:53:15+0200
+Generated at: 2026-08-03T15:12:55+0200
 
 Getter count: 77
 
@@ -15,7 +15,7 @@ The machine-readable companion is `docs/getter_catalog_semantic.json`.
 
 Title: Artifacts
 
-Description: List promoted artifacts, optionally filtered by type.
+Description: List current promoted artifacts by default, optionally filtered by type or expanded to retained history.
 
 Returns: data.frame
 
@@ -1112,7 +1112,7 @@ Returns: character vector
 
 Payload level: metadata
 
-Arguments: bundle, model_type
+Arguments: bundle, model_type, include_history
 
 Use when:
 - choose UMAP model for projection

@@ -5,7 +5,7 @@
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #'
-#' @param include_history Include superseded/rejected/retracted set names.
+#' @param include_history Include ephemeral, superseded, rejected, and retracted set names.
 #' @return Character vector of membership-backed set names with `"core"`
 #'   first when present.
 # pybench-parity: yes
@@ -24,7 +24,7 @@ wb_cell_sets <- function(bundle, include_history = FALSE) {
          SELECT 1 FROM entity_lifecycle el
          WHERE el.entity_kind = 'cell_set'
            AND el.entity_id = cell_set_membership.cell_set
-           AND el.lifecycle_state IN ('superseded','rejected','retracted')
+           AND el.lifecycle_state <> 'current'
        ))" else ""
   sets <- DBI::dbGetQuery(
     con, paste0("SELECT DISTINCT cell_set

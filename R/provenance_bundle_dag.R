@@ -416,9 +416,9 @@
 #' @param include_snapshots Include provenance snapshot nodes/edges.
 #' @param include_registry_mutations Include cell-set registry mutation nodes
 #'   and edges where supported.
-#' @param include_superseded If `FALSE`, omit superseded, rejected, and
-#'   retracted entity identities from the returned current-claim view.
-#'   state. Current node fields `canonical` and `superseded` are `NA`.
+#' @param include_superseded If `FALSE`, omit ephemeral, superseded, rejected,
+#'   and retracted durable-entity identities from the returned current-claim
+#'   view. Ordinary run and snapshot nodes remain present.
 #'
 #' @return A list with stable `nodes` and `edges` data.frames.
 #' @export
@@ -478,7 +478,7 @@ wb_prov_bundle_dag <- function(bundle,
     run_edges_src <- run_edges_src[as.character(run_edges_src$snapshot_id) %in% sid_filter, , drop = FALSE]
   }
 
-  arts <- wb_art_list(bundle)
+  arts <- wb_art_list(bundle, include_history = TRUE)
   if (!is.data.frame(arts)) arts <- data.frame(stringsAsFactors = FALSE)
   if (has_sid_filter && nrow(arts) && "provenance_snapshot_id" %in% names(arts)) {
     keep_sid <- is.na(arts$provenance_snapshot_id) | !nzchar(as.character(arts$provenance_snapshot_id)) |
@@ -764,10 +764,13 @@ wb_prov_bundle_dag <- function(bundle,
     ))
   }
 
-  if (!isTRUE(include_superseded) && nrow(nodes_df)) {
-    historical <- as.character(nodes_df$status) %in% c("superseded", "rejected", "retracted")
-    removed_ids <- as.character(nodes_df$id[historical])
-    nodes_df <- nodes_df[!historical, , drop = FALSE]
+  if (!isTRUE(include_superseded) && nrow(nodes_df) && nrow(lifecycle)) {
+    removed_ids <- paste0(
+      as.character(lifecycle$entity_kind[lifecycle$lifecycle_state != "current"]),
+      ":",
+      as.character(lifecycle$entity_id[lifecycle$lifecycle_state != "current"])
+    )
+    nodes_df <- nodes_df[!(as.character(nodes_df$id) %in% removed_ids), , drop = FALSE]
     if (length(removed_ids) && nrow(edges_df)) {
       edges_df <- edges_df[!(edges_df$from %in% removed_ids | edges_df$to %in% removed_ids), , drop = FALSE]
     }

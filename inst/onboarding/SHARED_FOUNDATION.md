@@ -55,6 +55,8 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
 - Provenance-bound scientific identities are immutable. Revisions use a new
   identifier plus `wb_entity_supersede()`; retraction keeps evidence. Inspect
   states with `wb_entity_lifecycle()` and see `docs/entity_lifecycle.md`.
+  Promotion atomically converts selected ephemeral work to a current,
+  content-identified durable claim; terminal history is never revived.
 
 10. Contract-Owned Friendships
 - If two objects have a stable analytical relationship, encode it as an engine

@@ -4,7 +4,7 @@
 \alias{wb_art_list}
 \title{List Promoted Artifacts}
 \usage{
-wb_art_list(bundle, type = NULL, include_history = TRUE)
+wb_art_list(bundle, type = NULL, include_history = FALSE)
 }
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
@@ -12,7 +12,7 @@ wb_art_list(bundle, type = NULL, include_history = TRUE)
 \item{type}{Optional artifact type filter such as \code{"feature_table"} or
 \code{"obs_table"}.}
 
-\item{include_history}{If \code{FALSE}, omit superseded, rejected, and retracted
+\item{include_history}{If \code{FALSE}, omit ephemeral, superseded, rejected, and retracted
 artifacts. Historical evidence remains loadable by id.}
 }
 \value{

@@ -34,9 +34,9 @@ wb_prov_bundle_dag(
 \item{include_registry_mutations}{Include cell-set registry mutation nodes
 and edges where supported.}
 
-\item{include_superseded}{If \code{FALSE}, omit superseded, rejected, and
-retracted entity identities from the returned current-claim view.
-state. Current node fields \code{canonical} and \code{superseded} are \code{NA}.}
+\item{include_superseded}{If \code{FALSE}, omit ephemeral, superseded, rejected,
+and retracted durable-entity identities from the returned current-claim
+view. Ordinary run and snapshot nodes remain present.}
 }
 \value{
 A list with stable \code{nodes} and \code{edges} data.frames.

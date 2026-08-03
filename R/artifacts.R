@@ -6,7 +6,7 @@
 #' @param bundle Open `scworkbench_bundle`.
 #' @param type Optional artifact type filter such as `"feature_table"` or
 #'   `"obs_table"`.
-#' @param include_history If `FALSE`, omit superseded, rejected, and retracted
+#' @param include_history If `FALSE`, omit ephemeral, superseded, rejected, and retracted
 #'   artifacts. Historical evidence remains loadable by id.
 #'
 #' @return A data frame of artifact registry rows ordered by `created_at`
@@ -16,7 +16,7 @@
 # pybench-counterpart: pybench.getters.art_list
 # contract-note: artifact registry rows ordered by created_at DESC
 #' @export
-wb_art_list <- function(bundle, type = NULL, include_history = TRUE) {
+wb_art_list <- function(bundle, type = NULL, include_history = FALSE) {
   con <- bundle$con
   if (!isTRUE(bundle$read_only)) .wb_entity_lifecycle_migrate(bundle)
   has_lifecycle <- .wb_table_exists(con, "entity_lifecycle")
@@ -1506,7 +1506,7 @@ wb_art_identity_card <- function(bundle,
 }
 
 .wb_art_row_one <- function(bundle, artifact_id) {
-  arts <- wb_art_list(bundle)
+  arts <- wb_art_list(bundle, include_history = TRUE)
   if (!is.data.frame(arts) || !nrow(arts)) return(arts[0, , drop = FALSE])
   hit <- arts[as.character(arts$artifact_id) == as.character(artifact_id)[1], , drop = FALSE]
   if (nrow(hit) > 1L) hit <- hit[1, , drop = FALSE]
@@ -1551,7 +1551,7 @@ wb_art_birth_certificate <- function(bundle,
 
   parents_df <- data.frame(stringsAsFactors = FALSE)
   if (isTRUE(include_parents) && length(parent_ids)) {
-    arts <- wb_art_list(bundle)
+    arts <- wb_art_list(bundle, include_history = TRUE)
     parents_df <- arts[match(parent_ids, as.character(arts$artifact_id)), , drop = FALSE]
     parents_df <- parents_df[!is.na(parents_df$artifact_id), , drop = FALSE]
     rownames(parents_df) <- NULL
@@ -1563,7 +1563,7 @@ wb_art_birth_certificate <- function(bundle,
   if (isTRUE(include_children)) {
     kids <- wb_art_dependencies(bundle, artifact_id = aid, direction = "children", recursive = FALSE)
     if (is.data.frame(kids) && nrow(kids)) {
-      arts <- wb_art_list(bundle)
+      arts <- wb_art_list(bundle, include_history = TRUE)
       children_df <- arts[match(as.character(kids$artifact_id), as.character(arts$artifact_id)), , drop = FALSE]
       children_df <- children_df[!is.na(children_df$artifact_id), , drop = FALSE]
       rownames(children_df) <- NULL
@@ -1717,7 +1717,7 @@ wb_art_birth_certificate <- function(bundle,
 }
 
 .wb_art_dependency_edges <- function(bundle) {
-  arts <- wb_art_list(bundle)
+  arts <- wb_art_list(bundle, include_history = TRUE)
   if (!is.data.frame(arts) || nrow(arts) == 0) {
     return(data.frame(
       parent_artifact_id = character(0),
@@ -1784,7 +1784,7 @@ wb_art_dependencies <- function(bundle,
   direction <- match.arg(direction)
   wb_migrate_artifacts(bundle)
 
-  arts <- wb_art_list(bundle)
+  arts <- wb_art_list(bundle, include_history = TRUE)
   hit <- arts[arts$artifact_id == artifact_id, , drop = FALSE]
   .wb_assert(nrow(hit) == 1, paste0("Artifact not found: ", artifact_id))
 
@@ -1888,7 +1888,7 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
   .wb_assert(nzchar(artifact_id), "artifact_id must be a non-empty string")
 
   wb_migrate_artifacts(bundle)
-  arts <- wb_art_list(bundle)
+  arts <- wb_art_list(bundle, include_history = TRUE)
   hit <- arts[arts$artifact_id == artifact_id, , drop = FALSE]
   .wb_assert(nrow(hit) == 1, paste0("Artifact not found: ", artifact_id))
 
@@ -2070,7 +2070,7 @@ wb_art_delete <- function(bundle,
 
   order <- as.character(plan$plan$artifact_id %||% character(0))
   if (!isTRUE(recursive)) order <- order[seq_len(min(length(order), 1L))]
-  arts <- wb_art_list(bundle)
+  arts <- wb_art_list(bundle, include_history = TRUE)
   rows <- list()
   old_transaction <- getOption("scworkbench.registry_replay_transaction_open")
   options(scworkbench.registry_replay_transaction_open = TRUE)

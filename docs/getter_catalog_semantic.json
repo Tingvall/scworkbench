@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "2026-08-03T13:53:15+0200",
+  "generated_at": "2026-08-03T15:12:55+0200",
   "getter_count": 77,
   "getters": [
     {
@@ -351,7 +351,7 @@
       "description": "List space IDs that have a stored projection model.",
       "returns": "character vector",
       "payload_level": "metadata",
-      "arguments": ["bundle", "model_type"],
+      "arguments": ["bundle", "model_type", "include_history"],
       "use_when": "choose UMAP model for projection",
       "mutates": false
     },
@@ -381,7 +381,7 @@
       "function_name": "wb_art_list",
       "title": "Artifacts",
       "category": "artifacts",
-      "description": "List promoted artifacts, optionally filtered by type.",
+      "description": "List current promoted artifacts by default, optionally filtered by type or expanded to retained history.",
       "returns": "data.frame",
       "payload_level": "metadata",
       "arguments": ["bundle", "type", "include_history"],

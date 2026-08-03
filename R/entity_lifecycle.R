@@ -9,11 +9,11 @@
 .wb_entity_normalize <- function(entity_kind, entity_id) {
   kind <- as.character(entity_kind %||% "")[1]
   id <- as.character(entity_id %||% "")[1]
-  .wb_assert(kind %in% .wb_entity_kinds(), paste0(
+  .wb_assert(!is.na(kind) && kind %in% .wb_entity_kinds(), paste0(
     "entity_kind must be one of: ", paste(.wb_entity_kinds(), collapse = ", ")
   ))
-  .wb_assert(nzchar(id), "entity_id must be a non-empty string")
-  if (identical(kind, "cell_set") && !startsWith(id, "set:")) id <- paste0("set:", id)
+  .wb_assert(!is.na(id) && nzchar(id), "entity_id must be a non-empty string")
+  if (identical(kind, "cell_set") && !identical(id, "core") && !startsWith(id, "set:")) id <- paste0("set:", id)
   list(kind = kind, id = id)
 }
 
@@ -82,6 +82,121 @@
       updated_at = CASE WHEN excluded.provenance_bound > entity_lifecycle.provenance_bound
                         THEN excluded.updated_at ELSE entity_lifecycle.updated_at END;
   ", params = list(kind, id, state, identity_hash, as.integer(isTRUE(bound)), now, now, reason, actor))
+  invisible(TRUE)
+}
+
+.wb_entity_binding_targets <- function(entity_kind, entity_id, con = NULL) {
+  z <- .wb_entity_normalize(entity_kind, entity_id)
+  out <- list(z)
+  if (identical(z$kind, "model_ref")) {
+    bits <- strsplit(z$id, "|", fixed = TRUE)[[1]]
+    has_registered_model <- !is.null(con) && .wb_table_exists(con, "space_models") &&
+      length(bits) >= 2L && nzchar(bits[[2]]) &&
+      nrow(DBI::dbGetQuery(
+        con, "SELECT 1 FROM space_models WHERE space_id = ? LIMIT 1;",
+        params = list(bits[[2]])
+      )) == 1L
+    if (isTRUE(has_registered_model)) {
+      out[[length(out) + 1L]] <- list(kind = "model", id = bits[[2]])
+    }
+  }
+  out
+}
+
+.wb_entity_nonmissing_hash <- function(identity_hash) {
+  value <- as.character(identity_hash %||% NA_character_)[1]
+  if (is.na(value) || !nzchar(value)) NA_character_ else value
+}
+
+.wb_entity_bind_one <- function(con, kind, id, identity_hash = NA_character_,
+                                actor = NA_character_) {
+  .wb_entity_lifecycle_tables(con)
+  hash <- .wb_entity_nonmissing_hash(identity_hash)
+  row <- DBI::dbGetQuery(
+    con,
+    "SELECT * FROM entity_lifecycle WHERE entity_kind = ? AND entity_id = ?;",
+    params = list(kind, id)
+  )
+  now <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
+  if (!nrow(row)) {
+    DBI::dbExecute(
+      con,
+      "INSERT INTO entity_lifecycle(entity_kind, entity_id, lifecycle_state, identity_hash, provenance_bound, created_at, updated_at, reason, actor) VALUES(?, ?, 'current', ?, 1, ?, ?, NULL, ?);",
+      params = list(kind, id, hash, now, now, actor)
+    )
+    return(invisible(TRUE))
+  }
+
+  state <- as.character(row$lifecycle_state[1])
+  if (state %in% c("superseded", "rejected", "retracted")) {
+    stop(
+      "Cannot bind historical ", kind, " '", id, "' in state '", state,
+      "'. Historical identifiers cannot be revived; create and promote a new identity.",
+      call. = FALSE
+    )
+  }
+  old_hash <- .wb_entity_nonmissing_hash(row$identity_hash[1])
+  if (!is.na(old_hash) && !is.na(hash) && !identical(old_hash, hash)) {
+    stop(
+      "Conflicting immutable identity hash for ", kind, " '", id,
+      "': existing=", old_hash, ", binding=", hash, ".",
+      call. = FALSE
+    )
+  }
+  DBI::dbExecute(
+    con,
+    "UPDATE entity_lifecycle SET lifecycle_state = 'current', identity_hash = COALESCE(identity_hash, ?), provenance_bound = 1, updated_at = ?, reason = CASE WHEN lifecycle_state = 'ephemeral' THEN 'Selected ephemeral identity promoted to a durable current claim.' ELSE reason END, actor = COALESCE(?, actor) WHERE entity_kind = ? AND entity_id = ?;",
+    params = list(hash, now, actor, kind, id)
+  )
+  invisible(TRUE)
+}
+
+# The canonical provenance-binding transition. Callers must invoke this inside
+# the transaction that persists the corresponding provenance binding.
+.wb_entity_bind_provenance <- function(con, entity_kind, entity_id,
+                                       identity_hash = NA_character_,
+                                       actor = NA_character_) {
+  targets <- .wb_entity_binding_targets(entity_kind, entity_id, con = con)
+  for (target in targets) {
+    .wb_entity_bind_one(
+      con, target$kind, target$id,
+      identity_hash = identity_hash, actor = actor
+    )
+  }
+  invisible(TRUE)
+}
+
+.wb_entity_backfill_binding <- function(con, entity_kind, entity_id,
+                                        identity_hash = NA_character_) {
+  hash <- .wb_entity_nonmissing_hash(identity_hash)
+  targets <- .wb_entity_binding_targets(entity_kind, entity_id, con = con)
+  for (target in targets) {
+    row <- DBI::dbGetQuery(
+      con,
+      "SELECT identity_hash FROM entity_lifecycle WHERE entity_kind = ? AND entity_id = ?;",
+      params = list(target$kind, target$id)
+    )
+    if (!nrow(row)) {
+      .wb_entity_lifecycle_upsert(
+        con, target$kind, target$id, state = "current",
+        identity_hash = hash, bound = TRUE
+      )
+      next
+    }
+    old_hash <- .wb_entity_nonmissing_hash(row$identity_hash[1])
+    if (!is.na(old_hash) && !is.na(hash) && !identical(old_hash, hash)) {
+      stop(
+        "Conflicting immutable identity hashes in persisted provenance for ",
+        target$kind, " '", target$id, "'.",
+        call. = FALSE
+      )
+    }
+    DBI::dbExecute(
+      con,
+      "UPDATE entity_lifecycle SET identity_hash = COALESCE(identity_hash, ?), provenance_bound = 1 WHERE entity_kind = ? AND entity_id = ?;",
+      params = list(hash, target$kind, target$id)
+    )
+  }
   invisible(TRUE)
 }
 
@@ -186,13 +301,76 @@
       any(bindings$entity_kind == kind & bindings$entity_id == id)
     .wb_entity_lifecycle_upsert(con, kind, id, bound = bound)
   }
+  if (.wb_table_exists(con, "prov_run_entity_bindings")) {
+    persisted <- DBI::dbGetQuery(
+      con,
+      "SELECT entity_kind, entity_id, content_hash FROM prov_run_entity_bindings ORDER BY entity_kind, entity_id;"
+    )
+    if (nrow(persisted)) for (i in seq_len(nrow(persisted))) {
+      .wb_entity_backfill_binding(
+        con,
+        as.character(persisted$entity_kind[i]),
+        as.character(persisted$entity_id[i]),
+        persisted$content_hash[i]
+      )
+    }
+  }
+  if (.wb_table_exists(con, "prov_registry_mutations") &&
+      .wb_db_has_column(con, "prov_registry_mutations", "content_hash")) {
+    persisted_registry <- DBI::dbGetQuery(
+      con,
+      "SELECT registry_type, registry_key_json, content_hash FROM prov_registry_mutations ORDER BY registry_type, registry_key_json;"
+    )
+    if (nrow(persisted_registry)) for (i in seq_len(nrow(persisted_registry))) {
+      key <- tryCatch(
+        jsonlite::fromJSON(as.character(persisted_registry$registry_key_json[i]), simplifyVector = FALSE),
+        error = function(e) NULL
+      )
+      entity <- if (is.null(key)) NULL else .wb_registry_event_entity(
+        as.character(persisted_registry$registry_type[i]), key
+      )
+      if (!is.null(entity)) {
+        .wb_entity_backfill_binding(
+          con, entity$kind, entity$id, persisted_registry$content_hash[i]
+        )
+      }
+    }
+  }
   # A legacy provenance claim whose payload registry row has disappeared is
   # migrated as retracted, not silently recreated as current.
   physical <- .wb_entity_physical_inventory(bundle)
   binding_physically_present <- function(kind, id) {
     if (kind == "model_ref") {
       bits <- strsplit(as.character(id), "|", fixed = TRUE)[[1]]
-      return(length(bits) >= 2L && any(physical$entity_kind == "model" & physical$entity_id == bits[[2]]))
+      registered <- length(bits) >= 2L && any(
+        physical$entity_kind == "model" & physical$entity_id == bits[[2]]
+      )
+      if (isTRUE(registered)) return(TRUE)
+      refs <- DBI::dbGetQuery(
+        con,
+        "SELECT path, commit_id FROM prov_run_entity_bindings WHERE entity_kind = 'model_ref' AND entity_id = ?;",
+        params = list(id)
+      )
+      if (nrow(refs)) {
+        commit_ids <- as.character(refs$commit_id)
+        commit_ids <- commit_ids[!is.na(commit_ids) & nzchar(commit_ids)]
+        if (length(commit_ids) && .wb_table_exists(con, "prov_commits")) {
+          q <- .wb_sql_in_clause(commit_ids)
+          pending <- DBI::dbGetQuery(
+            con,
+            paste0("SELECT 1 FROM prov_commits WHERE state = 'pending' AND commit_id ", q$sql, " LIMIT 1;"),
+            params = q$params
+          )
+          if (nrow(pending)) return(TRUE)
+        }
+        paths <- as.character(refs$path)
+        paths <- paths[!is.na(paths) & nzchar(paths)]
+        if (length(paths) && any(
+          file.exists(file.path(bundle$dir, paths)) |
+            dir.exists(file.path(bundle$dir, paths))
+        )) return(TRUE)
+      }
+      return(FALSE)
     }
     any(physical$entity_kind == kind & physical$entity_id == id)
   }
@@ -332,7 +510,35 @@ wb_entity_supersede <- function(bundle, entity_kind, entity_id, supersedes_id,
   old <- x[x$entity_id == predecessor$id, , drop = FALSE]
   new <- x[x$entity_id == successor$id, , drop = FALSE]
   .wb_assert(old$lifecycle_state[1] == "current", "Predecessor must be current.")
-  .wb_assert(new$lifecycle_state[1] %in% c("current", "ephemeral"), "Successor must not already be historical.")
+  .wb_assert(
+    identical(as.character(new$lifecycle_state[1]), "current") &&
+      identical(as.integer(new$provenance_bound[1]), 1L),
+    "Successor must be a current, provenance-bound identity. Promote an unbound or ephemeral candidate first."
+  )
+  if (.wb_table_exists(bundle$con, "entity_supersessions")) {
+    edges <- DBI::dbGetQuery(
+      bundle$con,
+      "SELECT successor_kind, successor_id, predecessor_kind, predecessor_id FROM entity_supersessions WHERE successor_kind = ? AND predecessor_kind = ?;",
+      params = list(successor$kind, successor$kind)
+    )
+    reaches <- function(from, target) {
+      seen <- character(0)
+      queue <- as.character(from)
+      while (length(queue)) {
+        current <- queue[[1]]
+        queue <- queue[-1]
+        if (identical(current, target)) return(TRUE)
+        if (current %in% seen) next
+        seen <- c(seen, current)
+        queue <- c(queue, as.character(edges$predecessor_id[edges$successor_id == current]))
+      }
+      FALSE
+    }
+    .wb_assert(
+      !reaches(predecessor$id, successor$id),
+      "Supersession would create a cycle."
+    )
+  }
   now <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
   DBI::dbWithTransaction(bundle$con, {
     DBI::dbExecute(bundle$con, "UPDATE entity_lifecycle SET lifecycle_state = 'superseded', updated_at = ?, reason = ?, actor = ? WHERE entity_kind = ? AND entity_id = ?;",

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 143
+Record count: 144
 
 Meaningful public transformations: 57
 
@@ -1801,6 +1801,20 @@ Durable mutation: true
 Boundary: `unsafe_public_transaction`
 
 Supported route: `confirmed_unreferenced_ephemeral_purge`
+
+## `.wb_entity_bind_provenance`
+
+Category: provenance_binding_writer
+
+Exported: false
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `internal`
+
+Supported route: `transaction_coupled_provenance_binding`
 
 ## `wb_promote_analysis`
 

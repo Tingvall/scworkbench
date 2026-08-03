@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-08-03T13:53:17+0200
+Generated at: 2026-08-03T15:12:58+0200
 
 Record count: 314
 
@@ -664,7 +664,7 @@ Description: Get absolute path to a stored model file for a space.
 
 Title: Artifacts
 
-Description: List promoted artifacts, optionally filtered by type.
+Description: List current promoted artifacts by default, optionally filtered by type or expanded to retained history.
 
 ### `getter:wb_entity_lifecycle`
 

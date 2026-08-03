@@ -9,7 +9,7 @@ wb_cell_sets(bundle, include_history = FALSE)
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
 
-\item{include_history}{Include superseded/rejected/retracted set names.}
+\item{include_history}{Include ephemeral, superseded, rejected, and retracted set names.}
 }
 \value{
 Character vector of membership-backed set names with \code{"core"}

@@ -417,7 +417,7 @@ wb_kg_bundle_graph <- function(bundle) {
   if (.wb_table_exists(con, "prov_run_outputs")) {
     outs <- DBI::dbGetQuery(con, paste0("SELECT snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, ", .wb_prov_output_identity_select(con), " FROM prov_run_outputs ORDER BY snapshot_id, run_id, output_name;"))
     if (nrow(outs)) {
-      arts <- .wb_kg_safe_df(wb_art_list(bundle))
+      arts <- .wb_kg_safe_df(wb_art_list(bundle, include_history = TRUE))
       art_ids <- unique(as.character(outs$artifact_id %||% character(0)))
       art_ids <- art_ids[!is.na(art_ids) & nzchar(art_ids)]
       for (aid_raw in art_ids) {

@@ -24,7 +24,7 @@ wb_feature_sets(
 
 \item{origin}{Optional origin filter.}
 
-\item{include_history}{Include superseded/rejected/retracted identities.}
+\item{include_history}{Include ephemeral, superseded, rejected, and retracted identities.}
 }
 \value{
 A data frame with feature-set metadata and member counts.

@@ -10,7 +10,23 @@ written.
 ## Lifecycle state machine
 
 New durable identities start as `current`. An unbound development identity may
-be marked `ephemeral`. A current identity may become:
+be marked `ephemeral`. Provenance binding is an explicit transaction-coupled
+transition:
+
+| Before binding | Binding result |
+|---|---|
+| absent | `current`, provenance-bound |
+| `current` | remains `current`, becomes provenance-bound |
+| `ephemeral` | becomes `current` and provenance-bound |
+| `superseded`, `rejected`, or `retracted` | rejected; transaction rolls back |
+
+When a binding supplies a content SHA-256, the lifecycle row stores it as the
+immutable identity hash. A later conflicting hash rejects the entire binding
+transaction. Promotion therefore converts selected ephemeral work into a
+current durable claim; a getter-triggered migration is not responsible for
+completing that transition.
+
+A current identity may become:
 
 - `superseded`, through `wb_entity_supersede()` after a distinct successor ID
   has been created;
@@ -18,16 +34,22 @@ be marked `ephemeral`. A current identity may become:
   wrapper such as `wb_art_delete()`;
 - `rejected`, through `wb_entity_reject()` when a candidate is not accepted.
 
-These historical states are terminal. Their registry and payload evidence stays
+These historical states are terminal and can never be rebound or revived.
+Their registry and payload evidence stays
 present. A successor-to-predecessor `SUPERSEDES` relationship records claim
 replacement explicitly; creating a new identifier alone does not imply that
-relationship.
+relationship. The successor must already be current and provenance-bound;
+unbound and ephemeral candidates must be promoted first. Supersession is
+same-kind, cycle-checked, and supports reconstructable chains.
 
 `wb_entity_lifecycle()` returns all states and supports kind, ID, and state
 filters. `wb_entity_supersessions()` returns explicit relationships. Registry
 list getters default to current claims and accept `include_history = TRUE` where
-applicable. Direct identity getters continue to resolve historical evidence by
-ID. Artifact birth certificates include lifecycle state and supersessions.
+applicable, including artifact and model discovery. In these views, current
+means exactly lifecycle state `current`, or a legacy physical row without a
+lifecycle record. Ephemeral and terminal-history identities are excluded.
+Direct identity getters continue to resolve historical evidence by ID. Artifact
+birth certificates include lifecycle state and supersessions.
 
 ## Schema
 
@@ -38,11 +60,14 @@ Writable bundle migration creates three SQLite tables:
 - `entity_supersessions`: explicit successor/predecessor `SUPERSEDES` edges;
 - `entity_tombstones`: retained retraction or rejection records and reasons.
 
-The schema contract is `scworkbench.entity_lifecycle.v1`. The composed
+The schema contract is `scworkbench.entity_lifecycle.v1`. Lifecycle preparation
+and provenance binding are committed or rolled back in the same promotion or
+ingestion transaction. The composed
 provenance DAG sets entity-node `status`, `canonical`, and `superseded`, emits
 `SUPERSEDES` edges, and honors `include_superseded = FALSE` as a current-claim
-view. Bundle/provenance knowledge graphs carry lifecycle payloads and the same
-relationships.
+view that also excludes ephemeral durable entities without suppressing ordinary
+run or snapshot nodes. Bundle/provenance knowledge graphs carry lifecycle
+payloads and the same relationships.
 
 ## Existing overwrite and deletion APIs
 
@@ -79,7 +104,7 @@ the historical claim instead of silently presenting it as current. Read-only
 legacy bundles are not modified; reopen writable once to persist the migration.
 
 Clients should render current claims by default, offer an explicit history
-view, label rejected/retracted evidence, and never translate an overwrite
+view, label ephemeral/superseded/rejected/retracted evidence, and never translate an overwrite
 failure into an automatic new name. The caller must choose the successor ID and
 declare the supersession reason. Recipient reconstruction and audit tools should
 retain historical nodes because those nodes remain valid evidence even when

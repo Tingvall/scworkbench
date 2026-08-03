@@ -76,7 +76,7 @@
 "getter:wb_art_birth_certificate","getter","wb_art_birth_certificate","Artifact Birth Certificate","Read provenance/birth metadata for a promoted artifact."
 "getter:wb_art_dependencies","getter","wb_art_dependencies","Artifact Dependencies","Get dependency relationships for an artifact."
 "getter:wb_art_identity_card","getter","wb_art_identity_card","Artifact Identity Card","Summarize artifact identity, provenance, labels, and display hints."
-"getter:wb_art_list","getter","wb_art_list","Artifacts","List promoted artifacts, optionally filtered by type."
+"getter:wb_art_list","getter","wb_art_list","Artifacts","List current promoted artifacts by default, optionally filtered by type or expanded to retained history."
 "getter:wb_art_load","getter","wb_art_load","Load Artifact","Load a promoted artifact as a primitive."
 "getter:wb_art_table_distinct","getter","wb_art_table_distinct","Table Artifact Distinct Values","List distinct values from one promoted table artifact column."
 "getter:wb_art_table_info","getter","wb_art_table_info","Table Artifact Info","Read metadata for a promoted table artifact."

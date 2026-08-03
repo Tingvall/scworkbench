@@ -485,7 +485,7 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
 #' List spaces in the bundle
 #'
 #' @param bundle Open `scworkbench_bundle`.
-#' @param include_history Include superseded/rejected/retracted identities.
+#' @param include_history Include ephemeral, superseded, rejected, and retracted identities.
 #'
 #' @return A data frame of registered spaces, excluding empty registry rows.
 # pybench-parity: yes
@@ -500,7 +500,7 @@ wb_spaces <- function(bundle, include_history = FALSE) {
     WHERE ? OR NOT EXISTS (
       SELECT 1 FROM entity_lifecycle el
       WHERE el.entity_kind = 'space' AND el.entity_id = spaces.space_id
-        AND el.lifecycle_state IN ('superseded','rejected','retracted')
+        AND el.lifecycle_state <> 'current'
     )" else ""
   df <- DBI::dbGetQuery(con, paste0("
     SELECT space_id, source, dims, storage, description

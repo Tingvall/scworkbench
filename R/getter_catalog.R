@@ -319,7 +319,7 @@
       description = "List space IDs that have a stored projection model.",
       returns = "character vector",
       payload_level = "metadata",
-      arguments = c("bundle", "model_type"),
+      arguments = c("bundle", "model_type", "include_history"),
       use_when = c("choose UMAP model for projection")
     ),
     list(
@@ -346,7 +346,7 @@
       function_name = "wb_art_list",
       title = "Artifacts",
       category = "artifacts",
-      description = "List promoted artifacts, optionally filtered by type.",
+      description = "List current promoted artifacts by default, optionally filtered by type or expanded to retained history.",
       returns = "data.frame",
       payload_level = "metadata",
       arguments = c("bundle", "type", "include_history"),

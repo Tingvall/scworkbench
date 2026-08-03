@@ -88,7 +88,7 @@
 #' @param namespace Optional namespace filter.
 #' @param organism Optional organism filter.
 #' @param origin Optional origin filter.
-#' @param include_history Include superseded/rejected/retracted identities.
+#' @param include_history Include ephemeral, superseded, rejected, and retracted identities.
 #'
 #' @return A data frame with feature-set metadata and member counts.
 #'
@@ -148,7 +148,7 @@ wb_feature_sets <- function(bundle,
     params <- c(params, list(as.character(origin)[1]))
   }
   if (!isTRUE(include_history) && .wb_table_exists(con, "entity_lifecycle")) {
-    where <- c(where, "NOT EXISTS (SELECT 1 FROM entity_lifecycle el WHERE el.entity_kind = 'feature_set' AND el.entity_id = (fs.matrix_id || '::' || fs.feature_set) AND el.lifecycle_state IN ('superseded','rejected','retracted'))")
+    where <- c(where, "NOT EXISTS (SELECT 1 FROM entity_lifecycle el WHERE el.entity_kind = 'feature_set' AND el.entity_id = (fs.matrix_id || '::' || fs.feature_set) AND el.lifecycle_state <> 'current')")
   }
   if (length(where)) {
     q <- paste0(q, " WHERE ", paste(where, collapse = " AND "))

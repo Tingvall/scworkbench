@@ -1103,7 +1103,7 @@
   source_run_id <- inputs$source_run_id %||% NULL
   source_snapshot_id <- inputs$source_snapshot_id %||% NULL
   if (!is.null(source_signal_artifact_id) && nzchar(as.character(source_signal_artifact_id)[1])) {
-    art <- tryCatch(wb_art_list(bundle), error = function(e) NULL)
+    art <- tryCatch(wb_art_list(bundle, include_history = TRUE), error = function(e) NULL)
     if (is.data.frame(art) && nrow(art)) {
       hit <- art[as.character(art$artifact_id) == as.character(source_signal_artifact_id)[1], , drop = FALSE]
       if (nrow(hit)) {

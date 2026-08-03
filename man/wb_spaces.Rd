@@ -9,7 +9,7 @@ wb_spaces(bundle, include_history = FALSE)
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
 
-\item{include_history}{Include superseded/rejected/retracted identities.}
+\item{include_history}{Include ephemeral, superseded, rejected, and retracted identities.}
 }
 \value{
 A data frame of registered spaces, excluding empty registry rows.

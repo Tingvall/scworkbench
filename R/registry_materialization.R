@@ -31,6 +31,60 @@
   invisible(TRUE)
 }
 
+.wb_registry_event_entity <- function(registry_type, key) {
+  if (registry_type %in% c("cell_set", "cell_set_recipe")) {
+    id <- as.character(key$cell_set %||% "")[1]
+    if (nzchar(id)) return(.wb_entity_normalize("cell_set", id))
+  }
+  if (identical(registry_type, "feature_set")) {
+    feature_set <- as.character(key$feature_set %||% "")[1]
+    matrix_id <- as.character(key$matrix_id %||% "")[1]
+    if (nzchar(feature_set) && nzchar(matrix_id)) {
+      return(list(kind = "feature_set", id = .wb_feature_set_entity_id(feature_set, matrix_id)))
+    }
+  }
+  NULL
+}
+
+.wb_registry_entity_content_hash <- function(bundle, entity_kind, entity_id) {
+  con <- bundle$con
+  payload <- if (identical(entity_kind, "cell_set")) {
+    data.frame(
+      cell_id = as.character(DBI::dbGetQuery(
+        con,
+        "SELECT cell_id FROM cell_set_membership WHERE cell_set = ? ORDER BY cell_id;",
+        params = list(entity_id)
+      )$cell_id),
+      stringsAsFactors = FALSE
+    )
+  } else if (identical(entity_kind, "feature_set")) {
+    parts <- strsplit(entity_id, "::", fixed = TRUE)[[1]]
+    .wb_assert(length(parts) >= 2L, "Invalid feature-set lifecycle identifier.")
+    matrix_id <- parts[[1]]
+    feature_set <- paste(parts[-1], collapse = "::")
+    list(
+      metadata = DBI::dbGetQuery(
+        con,
+        "SELECT * FROM feature_sets WHERE matrix_id = ? AND feature_set = ?;",
+        params = list(matrix_id, feature_set)
+      ),
+      members = DBI::dbGetQuery(
+        con,
+        "SELECT feature_id, rank FROM feature_set_membership WHERE matrix_id = ? AND feature_set = ? ORDER BY rank, feature_id;",
+        params = list(matrix_id, feature_set)
+      )
+    )
+  } else {
+    return(NA_character_)
+  }
+  .wb_prov_sha256_object(list(
+    schema = "scworkbench.registry_entity_identity.v1",
+    entity_kind = entity_kind,
+    entity_id = entity_id,
+    payload = payload
+  ))
+}
+
 .wb_replay_registry_mutations <- function(staging_bundle, bundle, topo, commit_id) {
   if (is.null(staging_bundle) || !.wb_table_exists(staging_bundle$con, "registry_mutation_events")) return(invisible(data.frame()))
   ids <- unique(as.character(topo))
@@ -52,14 +106,25 @@
   }, add = TRUE)
   .wb_with_mutation_context(
     bundle = bundle, route = "promotion", staging_bundle = staging_bundle, code = {
+  event_hashes <- rep(NA_character_, nrow(events))
   for (i in seq_len(nrow(events))) {
     hook <- getOption("scworkbench.registry_replay_hook", NULL)
     if (is.function(hook)) hook(events[i, , drop = FALSE])
     key <- jsonlite::fromJSON(as.character(events$registry_key_json[i]), simplifyVector = FALSE)
     action <- as.character(events$action[i])
     registry_type <- as.character(events$registry_type[i])
+    payload_obj <- if (!is.na(events$payload_json[i]) && nzchar(as.character(events$payload_json[i]))) {
+      jsonlite::fromJSON(as.character(events$payload_json[i]), simplifyVector = FALSE)
+    } else NULL
+    entity <- .wb_registry_event_entity(registry_type, key)
+    retracting <- identical(registry_type, "feature_set") && identical(action, "delete") ||
+      identical(registry_type, "cell_set") && identical(action, "remove") && is.null(payload_obj$cell_ids)
+    if (!is.null(entity) && isTRUE(retracting)) {
+      event_hashes[i] <- .wb_registry_entity_content_hash(bundle, entity$kind, entity$id)
+      .wb_entity_bind_provenance(bundle$con, entity$kind, entity$id, event_hashes[i])
+    }
     if (identical(registry_type, "feature_set") && identical(action, "replace")) {
-      payload <- jsonlite::fromJSON(as.character(events$payload_json[i]), simplifyVector = FALSE)
+      payload <- payload_obj
       meta <- as.data.frame(payload$metadata, stringsAsFactors = FALSE)
       .wb_assert(nrow(meta) == 1L, "Feature-set replace event metadata is invalid")
       wb_feature_set_replace(bundle, feature_set = key$feature_set, matrix_id = key$matrix_id,
@@ -72,7 +137,7 @@
     } else if (identical(registry_type, "feature_set") && identical(action, "delete")) {
       wb_feature_set_delete(bundle, feature_set = key$feature_set, matrix_id = key$matrix_id %||% NULL)
     } else if (identical(registry_type, "cell_set")) {
-      payload <- jsonlite::fromJSON(as.character(events$payload_json[i]), simplifyVector = FALSE)
+      payload <- payload_obj
       metadata <- payload$metadata %||% list()
       if (identical(action, "replace")) {
         wb_cell_set_replace(
@@ -104,7 +169,7 @@
         stop("Unsupported cell-set registry mutation action: ", action, call. = FALSE)
       }
     } else if (identical(registry_type, "cell_set_recipe") && identical(action, "upsert")) {
-      payload <- jsonlite::fromJSON(as.character(events$payload_json[i]), simplifyVector = FALSE)
+      payload <- payload_obj
       .wb_cell_set_recipe_row_upsert(
         bundle = bundle,
         cell_set = key$cell_set,
@@ -119,14 +184,22 @@
     } else {
       stop("Unsupported registry mutation event: ", registry_type, "/", action, call. = FALSE)
     }
+    if (!is.null(entity) && !isTRUE(retracting)) {
+      event_hashes[i] <- .wb_registry_entity_content_hash(bundle, entity$kind, entity$id)
+      .wb_entity_bind_provenance(bundle$con, entity$kind, entity$id, event_hashes[i])
+    }
   }
   })
   .wb_ensure_registry_mutation_events_table(bundle$con)
-  DBI::dbExecute(bundle$con, "CREATE TABLE IF NOT EXISTS prov_registry_mutations (commit_id TEXT NOT NULL, event_id TEXT NOT NULL, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, PRIMARY KEY(commit_id, event_id));")
+  DBI::dbExecute(bundle$con, "CREATE TABLE IF NOT EXISTS prov_registry_mutations (commit_id TEXT NOT NULL, event_id TEXT NOT NULL, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, content_hash TEXT, PRIMARY KEY(commit_id, event_id));")
+  if (!.wb_db_has_column(bundle$con, "prov_registry_mutations", "content_hash")) {
+    DBI::dbExecute(bundle$con, "ALTER TABLE prov_registry_mutations ADD COLUMN content_hash TEXT;")
+  }
+  events$content_hash <- event_hashes
   .wb_db_append_chunked(
     bundle$con,
     "prov_registry_mutations",
-    transform(events, commit_id = commit_id)[, c("commit_id", "event_id", "run_id", "registry_type", "action", "registry_key_json", "payload_json")]
+    transform(events, commit_id = commit_id)[, c("commit_id", "event_id", "run_id", "registry_type", "action", "registry_key_json", "payload_json", "content_hash")]
   )
   invisible(events)
 }

@@ -3,7 +3,7 @@
 #' Lists registered matrices from the bundle SQLite (matrices table).
 #'
 #' @param bundle Bundle handle from `wb_bundle_open()`.
-#' @param include_history Include superseded/rejected/retracted identities.
+#' @param include_history Include ephemeral, superseded, rejected, and retracted identities.
 #'
 #' @return A data.frame with columns:
 #'   matrix_id, layer, feature_type, n_features, n_cells, storage, path,
@@ -28,7 +28,7 @@ wb_matrices <- function(bundle, include_history = FALSE) {
     WHERE ? OR NOT EXISTS (
       SELECT 1 FROM entity_lifecycle el
       WHERE el.entity_kind = 'matrix' AND el.entity_id = matrices.matrix_id
-        AND el.lifecycle_state IN ('superseded','rejected','retracted')
+        AND el.lifecycle_state <> 'current'
     )" else ""
   q <- paste0("
     SELECT matrix_id,
