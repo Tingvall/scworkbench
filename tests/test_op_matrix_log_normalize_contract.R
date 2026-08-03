@@ -173,6 +173,7 @@ test_op_matrix_log_normalize_multifragment_contract <- function() {
   )
   wb_register_matrix_fragment(b$con, "RNA_counts", rel1, features, cells[1:2], source = "test")
   wb_register_matrix_fragment(b$con, "RNA_counts", rel2, features, cells[3:4], source = "test")
+  wb_refresh_manifest(b)
 
   err_matrix <- try(wb_matrix(b, "RNA_counts"), silent = TRUE)
   stopifnot(inherits(err_matrix, "try-error"))

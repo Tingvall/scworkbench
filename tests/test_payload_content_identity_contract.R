@@ -1,4 +1,16 @@
 test_payload_content_identity_contract <- function() {
+  # Object identities are portable across supported R runtimes.  This fixed
+  # typed value has the same digest in the host and provisioned container even
+  # though their R minor versions differ.
+  portable_fixture <- list(
+    a = "x", b = 1L, c = NA_character_,
+    d = data.frame(x = 1:2, y = c("a", "b"), stringsAsFactors = FALSE)
+  )
+  stopifnot(identical(
+    scworkbench:::.wb_prov_sha256_object(portable_fixture),
+    "4b41b284b7e8ce919f64a0ed31852f481d868792280af36539261d316a277a56"
+  ))
+
   left <- wb_prim_feature_table(data.frame(feature_id = c("g1", "g2"), score = c(1, 2), stringsAsFactors = FALSE), table_type = "de")
   changed <- wb_prim_feature_table(data.frame(feature_id = c("g1", "g2"), score = c(9, 2), stringsAsFactors = FALSE), table_type = "de")
   reordered <- wb_prim_feature_table(data.frame(feature_id = c("g2", "g1"), score = c(2, 1), stringsAsFactors = FALSE), table_type = "de")

@@ -114,6 +114,7 @@
     matrix_ids = matrix_ids, created_by = created_by,
     transaction_open = transaction_open, source_identity = source_identity
   )
+  if (!isTRUE(transaction_open)) .wb_refresh_manifest_committed(bundle)
   artifact_id
 }
 

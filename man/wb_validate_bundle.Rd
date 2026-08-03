@@ -7,18 +7,16 @@
 wb_validate_bundle(bundle_dir, read_only = FALSE)
 }
 \arguments{
-\item{bundle_dir}{Path to bundle directory}
+\item{bundle_dir}{Path to bundle directory.}
 
-\item{read_only}{Open SQLite explicitly read-only for recipient audit.}
+\item{read_only}{If \code{TRUE}, require recipient-transfer invariants in addition
+to content integrity.}
 }
 \value{
-TRUE if valid, otherwise errors
+\code{TRUE} if valid, otherwise errors with stable diagnostic codes.
 }
 \description{
-Ensures internal consistency between:
-\itemize{
-\item manifest
-\item SQLite tables
-\item BPCells matrices
-}
+Preserves the established TRUE-or-error interface. By default it performs
+content validation; \code{read_only=TRUE} requests the stronger finalized
+recipient level. Use \code{\link[=wb_bundle_validation_report]{wb_bundle_validation_report()}} for structured details.
 }

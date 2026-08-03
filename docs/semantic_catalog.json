@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-08-03T21:38:07+0200",
+  "generated_at": "2026-08-03T23:35:24+0200",
   "record_count": 314,
   "record_type_counts": {
     "artifact_type": 74,
@@ -16608,7 +16608,7 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-08-03T21:38:07+0200",
+    "generated_at": "2026-08-03T23:35:24+0200",
     "node_count": 314,
     "edge_count": 900,
     "nodes": [

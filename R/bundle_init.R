@@ -339,6 +339,12 @@ wb_refresh_manifest <- function(bundle) {
     replacement = "a declared ingestion transaction or registered session promotion"
   )
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_refresh_manifest_committed(bundle)
+}
+
+# Internal tail step for a canonical mutation route that has already committed
+# its SQLite transaction and still owns the bundle-writer lock.
+.wb_refresh_manifest_committed <- function(bundle) {
   con <- bundle$con
   man_old <- try(bundle$manifest, silent = TRUE)
   if (inherits(man_old, "try-error") || !is.list(man_old)) man_old <- list()

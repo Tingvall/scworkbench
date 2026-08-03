@@ -111,7 +111,13 @@
 # unordered.
 .wb_prov_sha256_object <- function(x) {
   .wb_require_pkg("digest", "SHA-256 provenance content identity")
-  digest::digest(serialize(x, NULL, version = 3), algo = "sha256", serialize = FALSE)
+  # R's native serialization header includes the producing R version, so the
+  # same value serialized by two supported runtimes does not have the same
+  # bytes.  A bundle content identity must survive transfer between runtimes.
+  # serializeJSON preserves R types, attributes, names, and ordering while
+  # providing a stable textual representation suitable for a portable digest.
+  canonical <- jsonlite::serializeJSON(x, digits = NA)
+  digest::digest(canonical, algo = "sha256", serialize = FALSE)
 }
 
 .wb_prov_sha256_file <- function(path) {
@@ -150,16 +156,77 @@
 }
 
 .wb_prov_table_payload <- function(prim) {
+  # Artifact tables are durably represented as one sanitized JSON object per
+  # row plus sanitized JSON metadata.  Hash that canonical durable form rather
+  # than transient R attributes (for example jsonlite's `json` class) or typed
+  # NA variants that are intentionally normalized by the storage contract.
+  table <- prim$table
+  canonical_table <- if (!is.data.frame(table) || !nrow(table)) {
+    data.frame(stringsAsFactors = FALSE)
+  } else {
+    row_json <- vapply(seq_len(nrow(table)), function(i) {
+      as.character(jsonlite::toJSON(
+        .wb_json_sanitize(as.list(table[i, , drop = FALSE])),
+        auto_unbox = TRUE, null = "null"
+      ))
+    }, character(1))
+    .wb_art_table_rows_to_df(data.frame(row_json = row_json, stringsAsFactors = FALSE))
+  }
+  meta_json <- as.character(jsonlite::toJSON(
+    .wb_json_sanitize(prim$meta %||% list()), auto_unbox = TRUE, null = "null"
+  ))
+  canonical_meta <- jsonlite::fromJSON(meta_json, simplifyVector = TRUE)
   list(
-    identity_version = "scworkbench.payload.table.v1",
+    identity_version = "scworkbench.payload.table.v2",
     kind = as.character(prim$kind),
     table_type = as.character(prim$table_type %||% "generic")[1],
     entity_kind = if (identical(prim$kind, "obs_table")) as.character(prim$entity_kind %||% "generic")[1] else NULL,
-    # A data.frame serialization carries names, declared column classes,
-    # factors/levels, NA/NaN values, and row order exactly.
-    table = prim$table,
-    meta = prim$meta %||% list()
+    table = canonical_table,
+    meta = canonical_meta
   )
+}
+
+.wb_prov_table_content_sha256 <- function(prim) {
+  header <- list(
+    identity_version = "scworkbench.payload.table.stream.v1",
+    kind = as.character(prim$kind),
+    table_type = as.character(prim$table_type %||% "generic")[1],
+    entity_kind = if (identical(prim$kind, "obs_table")) as.character(prim$entity_kind %||% "generic")[1] else NULL,
+    meta = jsonlite::fromJSON(as.character(jsonlite::toJSON(
+      .wb_json_sanitize(prim$meta %||% list()), auto_unbox = TRUE, null = "null"
+    )), simplifyVector = TRUE)
+  )
+  state <- .wb_prov_sha256_object(header)
+  table <- prim$table
+  if (is.data.frame(table) && nrow(table)) for (i in seq_len(nrow(table))) {
+    row_json <- as.character(jsonlite::toJSON(
+      .wb_json_sanitize(as.list(table[i, , drop = FALSE])), auto_unbox = TRUE, null = "null"
+    ))
+    state <- .wb_prov_sha256_object(list(previous = state, row_sha256 = digest::digest(row_json, algo="sha256", serialize=FALSE)))
+  }
+  state
+}
+
+.wb_prov_stored_table_content_sha256 <- function(con, artifact_id, chunk_size = 1000L) {
+  info <- DBI::dbGetQuery(con, "SELECT a.type, t.table_type, t.entity_kind, t.meta_json FROM artifacts a JOIN artifact_tables t ON t.artifact_id=a.artifact_id WHERE a.artifact_id=?;", params=list(artifact_id))
+  .wb_assert(nrow(info)==1L, paste0("Missing stored table artifact identity header: ",artifact_id))
+  meta_text <- as.character(info$meta_json[1] %||% "{}")[1]
+  meta <- if (!is.na(meta_text) && nzchar(meta_text)) jsonlite::fromJSON(meta_text,simplifyVector=TRUE) else list()
+  header <- list(
+    identity_version = "scworkbench.payload.table.stream.v1",
+    kind = as.character(info$type[1]), table_type = as.character(info$table_type[1]),
+    entity_kind = if (identical(as.character(info$type[1]),"obs_table")) as.character(info$entity_kind[1]) else NULL,
+    meta = meta
+  )
+  state <- .wb_prov_sha256_object(header)
+  last <- -1L
+  repeat {
+    rows <- DBI::dbGetQuery(con,"SELECT row_idx,row_json FROM artifact_table_rows WHERE artifact_id=? AND row_idx>? ORDER BY row_idx LIMIT ?;",params=list(artifact_id,last,as.integer(chunk_size)))
+    if (!nrow(rows)) break
+    for (row_json in as.character(rows$row_json)) state <- .wb_prov_sha256_object(list(previous=state,row_sha256=digest::digest(row_json,algo="sha256",serialize=FALSE)))
+    last <- max(as.integer(rows$row_idx))
+  }
+  state
 }
 
 .wb_prov_resolve_payload_location <- function(bundle, path, workspace = NULL,
@@ -210,7 +277,7 @@
   if (!.wb_is_primitive(prim)) return(list(structural_fingerprint = structural, content_sha256 = NA_character_, verification_level = "structural", verification_status = "unavailable"))
   kind <- as.character(prim$kind)[1]
   if (kind %in% c("feature_table", "obs_table")) {
-    return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(.wb_prov_table_payload(prim)), verification_level = "content", verification_status = "content_verified"))
+    return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_table_content_sha256(prim), verification_level = "content", verification_status = "content_verified"))
   }
   if (kind %in% c("cell_vector", "cell_vector_family", "relation_family", "path_2d_family", "space_path_family")) {
     return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(unclass(prim)), verification_level = "content", verification_status = "content_verified"))
