@@ -289,6 +289,7 @@
       .wb_is_primitive(prim) && identical(as.character(prim$promotion_mode %||% "")[1], "merge_space_2d"),
       paste0("Cannot replace committed space during promotion: ", space_id)
     )
+    .wb_entity_assert_replaceable(bundle, "space", space_id, action = "merge into")
     cell_ids <- unique(as.character(prim$cell_ids %||% character(0)))
     .wb_assert(length(cell_ids) > 0L, "merge_space_2d promotion requires explicit cell_ids")
     cl <- .wb_sql_in_clause(cell_ids)

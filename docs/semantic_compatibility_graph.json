@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-  "generated_at": "2026-08-03T11:22:53+0200",
-  "node_count": 312,
+  "generated_at": "2026-08-03T15:12:58+0200",
+  "node_count": 314,
   "edge_count": 900,
   "nodes": [
     {
@@ -549,6 +549,18 @@
       "record_type": "getter",
       "name": "wb_art_list",
       "title": "Artifacts"
+    },
+    {
+      "record_id": "getter:wb_entity_lifecycle",
+      "record_type": "getter",
+      "name": "wb_entity_lifecycle",
+      "title": "Durable Entity Lifecycle"
+    },
+    {
+      "record_id": "getter:wb_entity_supersessions",
+      "record_type": "getter",
+      "name": "wb_entity_supersessions",
+      "title": "Entity Supersessions"
     },
     {
       "record_id": "getter:wb_list_trajectory_models",

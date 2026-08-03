@@ -166,7 +166,7 @@ wb_target_emit_r_script <- function(plan, execution_bundle_dir = "<WRITABLE_INGE
   boundary_checks <- character(0)
   if (nrow(plan$boundary_prerequisites %||% data.frame())) for (i in seq_len(nrow(plan$boundary_prerequisites))) {
     b <- plan$boundary_prerequisites[i,,drop=FALSE]; id <- .wb_r_single_quote_escape(as.character(b$entity_id[1])); k <- as.character(b$entity_kind[1])
-    present <- if (k == "matrix") paste0("'",id,"' %in% wb_matrices(bundle)$matrix_id") else if (k == "space") paste0("'",id,"' %in% wb_spaces(bundle)$space_id") else if (k == "artifact") paste0("'",id,"' %in% wb_art_list(bundle)$artifact_id") else "TRUE"
+    present <- if (k == "matrix") paste0("'",id,"' %in% wb_matrices(bundle, include_history=TRUE)$matrix_id") else if (k == "space") paste0("'",id,"' %in% wb_spaces(bundle, include_history=TRUE)$space_id") else if (k == "artifact") paste0("'",id,"' %in% wb_art_list(bundle, include_history=TRUE)$artifact_id") else "TRUE"
     boundary_checks <- c(boundary_checks, paste0("if (!(",present,")) stop('Missing immutable boundary ",k,":",id,"')"))
   }
   collision_checks <- character(0)

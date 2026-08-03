@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 137
+Record count: 144
 
-Meaningful public transformations: 51
+Meaningful public transformations: 57
 
 Exported directly guarded functions: 26
 
@@ -1717,6 +1717,104 @@ Durable mutation: true
 Boundary: `guarded_internal`
 
 Supported route: `engine_guarded_internal_refresh`
+
+## `wb_entity_supersede`
+
+Category: lifecycle_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `explicit_entity_lifecycle_transaction`
+
+## `wb_entity_retract`
+
+Category: lifecycle_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `explicit_entity_lifecycle_transaction`
+
+## `wb_entity_reject`
+
+Category: lifecycle_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `explicit_entity_lifecycle_transaction`
+
+## `wb_entity_mark_ephemeral`
+
+Category: lifecycle_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `explicit_entity_lifecycle_transaction`
+
+## `wb_art_delete`
+
+Category: lifecycle_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `explicit_entity_lifecycle_transaction`
+
+## `wb_unsafe_purge_ephemeral_entity`
+
+Category: lifecycle_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `unsafe_public_transaction`
+
+Supported route: `confirmed_unreferenced_ephemeral_purge`
+
+## `.wb_entity_bind_provenance`
+
+Category: provenance_binding_writer
+
+Exported: false
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `internal`
+
+Supported route: `transaction_coupled_provenance_binding`
 
 ## `wb_promote_analysis`
 

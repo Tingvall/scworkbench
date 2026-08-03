@@ -5,25 +5,33 @@
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #'
+#' @param include_history Include ephemeral, superseded, rejected, and retracted set names.
 #' @return Character vector of membership-backed set names with `"core"`
 #'   first when present.
 # pybench-parity: yes
 # pybench-counterpart: pybench.getters.cell_sets
 # contract-note: canonical display ordering puts 'core' first
 #' @export
-wb_cell_sets <- function(bundle) {
+wb_cell_sets <- function(bundle, include_history = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
 
   .wb_assert(.wb_db_has_table(con, "cell_set_membership"),
              "cell_set_membership table missing. Bundle schema not initialized.")
 
+  history_filter <- if (.wb_table_exists(con, "entity_lifecycle")) "
+       AND (? OR NOT EXISTS (
+         SELECT 1 FROM entity_lifecycle el
+         WHERE el.entity_kind = 'cell_set'
+           AND el.entity_id = cell_set_membership.cell_set
+           AND el.lifecycle_state <> 'current'
+       ))" else ""
   sets <- DBI::dbGetQuery(
-    con,
-    "SELECT DISTINCT cell_set
+    con, paste0("SELECT DISTINCT cell_set
      FROM cell_set_membership
      WHERE cell_set IS NOT NULL AND cell_set <> ''
-     ORDER BY cell_set;"
+     ", history_filter, " ORDER BY cell_set;"),
+    params = if (nzchar(history_filter)) list(as.integer(isTRUE(include_history))) else NULL
   )$cell_set
   sets <- as.character(sets)
   sets <- sets[nzchar(sets)]

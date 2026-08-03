@@ -43,7 +43,7 @@
       sep = "|"
     )
   } else NULL
-  if (is.null(id) || !nzchar(as.character(id)[1])) return(NULL)
+  if (is.null(id) || is.na(as.character(id)[1]) || !nzchar(as.character(id)[1])) return(NULL)
   list(entity_kind = if (kind %in% c("space", "space_2d")) "space" else kind, entity_id = as.character(id)[1])
 }
 
@@ -478,6 +478,12 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
                                            direction, binding_name, entity_kind,
                                            entity_id, relationship_type, path = NA_character_,
                                            content_hash = NA_character_, source) {
+  .wb_entity_bind_provenance(
+    con = con,
+    entity_kind = entity_kind,
+    entity_id = entity_id,
+    identity_hash = content_hash
+  )
   DBI::dbExecute(
     con,
     "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
@@ -820,7 +826,12 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
       input_bindings <- c(.wb_prov_collect_entity_bindings(run$inputs$execution_inputs %||% list(), "resolved"), .wb_prov_collect_entity_bindings(run$inputs$user_inputs %||% list(), "input"))
       if (length(input_bindings)) for (binding in input_bindings) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "input", binding$binding_name, binding$entity_kind, binding$entity_id, "CONSUMES", source = "resolved_operation_input")
       artifact_refs <- .wb_dag_collect_refs(run$inputs$provenance_refs %||% list(), path = "provenance_refs")
-      artifact_refs <- artifact_refs[artifact_refs$ref_type == "artifact" & nzchar(as.character(artifact_refs$artifact_id)), , drop = FALSE]
+      artifact_refs <- artifact_refs[
+        artifact_refs$ref_type == "artifact" &
+          !is.na(artifact_refs$artifact_id) &
+          nzchar(as.character(artifact_refs$artifact_id)),
+        , drop = FALSE
+      ]
       if (nrow(artifact_refs)) for (j in seq_len(nrow(artifact_refs))) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "input", as.character(artifact_refs$path[j]), "artifact", as.character(artifact_refs$artifact_id[j]), "CONSUMES", source = "resolved_artifact_input")
 
       outs <- run$outputs %||% list()

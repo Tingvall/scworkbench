@@ -4,10 +4,12 @@
 \alias{wb_matrices}
 \title{List matrices available in the bundle}
 \usage{
-wb_matrices(bundle)
+wb_matrices(bundle, include_history = FALSE)
 }
 \arguments{
 \item{bundle}{Bundle handle from \code{wb_bundle_open()}.}
+
+\item{include_history}{Include ephemeral, superseded, rejected, and retracted identities.}
 }
 \value{
 A data.frame with columns:

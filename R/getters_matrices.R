@@ -3,6 +3,7 @@
 #' Lists registered matrices from the bundle SQLite (matrices table).
 #'
 #' @param bundle Bundle handle from `wb_bundle_open()`.
+#' @param include_history Include ephemeral, superseded, rejected, and retracted identities.
 #'
 #' @return A data.frame with columns:
 #'   matrix_id, layer, feature_type, n_features, n_cells, storage, path,
@@ -12,7 +13,7 @@
 # pybench-counterpart: pybench.getters.matrices
 # contract-note: ordered by matrix_id
 #' @export
-wb_matrices <- function(bundle) {
+wb_matrices <- function(bundle, include_history = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"),
              "bundle must be a scworkbench_bundle handle")
 
@@ -23,7 +24,13 @@ wb_matrices <- function(bundle) {
   .wb_ensure_matrix_contract_columns(con)
 
   # Strict schema: no dynamic column negotiation.
-  q <- "
+  history_filter <- if (.wb_table_exists(con, "entity_lifecycle")) "
+    WHERE ? OR NOT EXISTS (
+      SELECT 1 FROM entity_lifecycle el
+      WHERE el.entity_kind = 'matrix' AND el.entity_id = matrices.matrix_id
+        AND el.lifecycle_state <> 'current'
+    )" else ""
+  q <- paste0("
     SELECT matrix_id,
            layer,
            feature_type,
@@ -34,11 +41,11 @@ wb_matrices <- function(bundle) {
            organism,
            genome_build,
            genome_provider
-    FROM matrices
+    FROM matrices", history_filter, "
     ORDER BY matrix_id;
-  "
+  ")
 
-  DBI::dbGetQuery(con, q)
+  DBI::dbGetQuery(con, q, params = if (nzchar(history_filter)) list(as.integer(isTRUE(include_history))) else NULL)
 }
 
 

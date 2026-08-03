@@ -549,6 +549,7 @@
     in_space_id = in_space_id,
     cells = as.character(effective_cells),
     dims = inputs$dims %||% NULL,
+    space_id_out = inputs$space_id_out %||% NULL,
     overwrite = inputs$overwrite %||% TRUE
   )
 
@@ -1102,7 +1103,7 @@
   source_run_id <- inputs$source_run_id %||% NULL
   source_snapshot_id <- inputs$source_snapshot_id %||% NULL
   if (!is.null(source_signal_artifact_id) && nzchar(as.character(source_signal_artifact_id)[1])) {
-    art <- tryCatch(wb_art_list(bundle), error = function(e) NULL)
+    art <- tryCatch(wb_art_list(bundle, include_history = TRUE), error = function(e) NULL)
     if (is.data.frame(art) && nrow(art)) {
       hit <- art[as.character(art$artifact_id) == as.character(source_signal_artifact_id)[1], , drop = FALSE]
       if (nrow(hit)) {
@@ -1882,8 +1883,10 @@
       params = list(
         list(name = "dims", type = "int_range", default = NULL,
              help = "Dims to use from the input space (e.g. 2:30)."),
+        list(name = "space_id_out", type = "string", default = NULL,
+             help = "New output space ID. Required when the fitted space already participates in promoted provenance."),
         list(name = "overwrite", type = "bool", default = TRUE,
-             help = "Overwrite existing projected coordinates for those cells.")
+             help = "Overwrite existing projected coordinates only in unbound staging/development space.")
       ),
       interface_produces = list(
         space_2d = list(kind = "space_2d", description = "Projected x/y in the target UMAP space.")

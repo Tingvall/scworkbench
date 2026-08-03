@@ -2,7 +2,7 @@
 % Please edit documentation in R/feature_sets.R
 \name{wb_feature_set_delete}
 \alias{wb_feature_set_delete}
-\title{Delete A Feature Set}
+\title{Retract A Feature Set}
 \usage{
 wb_feature_set_delete(bundle, feature_set, matrix_id = NULL)
 }
@@ -18,6 +18,6 @@ matrices.}
 Invisibly returns a small summary list describing the deletion.
 }
 \description{
-Remove one feature set from one matrix, or from all matrices when
-\code{matrix_id = NULL}.
+Tombstone one feature set on one matrix, or on all matrices when
+\code{matrix_id = NULL}. Membership and provenance remain available as history.
 }

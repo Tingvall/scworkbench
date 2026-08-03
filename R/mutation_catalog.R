@@ -33,6 +33,12 @@
     "wb_bundle_from_sce", "wb_bundle_from_seurat", "wb_publish_app_bundle"
   ),
   guarded_derived_state_writer = c("wb_refresh_manifest"),
+  lifecycle_writer = c(
+    "wb_entity_supersede", "wb_entity_retract", "wb_entity_reject",
+    "wb_entity_mark_ephemeral", "wb_art_delete",
+    "wb_unsafe_purge_ephemeral_entity"
+  ),
+  provenance_binding_writer = c(".wb_entity_bind_provenance"),
   primitive_payload_writer = c(
     "wb_promote_analysis", "wb_session_promote_current", "wb_client_promote",
     "wb_write_cell_vector", "wb_register_cell_vector",
@@ -61,7 +67,11 @@
   )
   promotion <- c("wb_promote_analysis", "wb_session_promote_current", "wb_client_promote")
   administrative <- c("wb_repair_model_ref_paths")
+  lifecycle <- c("wb_entity_supersede", "wb_entity_retract", "wb_entity_reject",
+    "wb_entity_mark_ephemeral", "wb_art_delete")
+  unsafe_purge <- c("wb_unsafe_purge_ephemeral_entity")
   guarded_derived_state <- c("wb_refresh_manifest")
+  provenance_binding <- c(".wb_entity_bind_provenance")
   assembly_only <- c(
     "wb_add_space", "wb_register_matrix_fragment", "wb_attach_to_cells",
     "wb_ingest_cells", "wb_matrix_set_genome",
@@ -74,12 +84,21 @@
   if (function_name %in% administrative) {
     return(list(durable = FALSE, route = "explicit_administrative_repair", boundary = "administrative_non_scientific"))
   }
+  if (function_name %in% lifecycle) {
+    return(list(durable = TRUE, route = "explicit_entity_lifecycle_transaction", boundary = "public_transaction"))
+  }
+  if (function_name %in% unsafe_purge) {
+    return(list(durable = TRUE, route = "confirmed_unreferenced_ephemeral_purge", boundary = "unsafe_public_transaction"))
+  }
   if (function_name %in% guarded_derived_state) {
     return(list(
       durable = TRUE,
       route = "engine_guarded_internal_refresh",
       boundary = "guarded_internal"
     ))
+  }
+  if (function_name %in% provenance_binding) {
+    return(list(durable = TRUE, route = "transaction_coupled_provenance_binding", boundary = "internal"))
   }
   if (function_name %in% declared_ingestion) {
     return(list(durable = TRUE, route = "declared_ingestion_transaction", boundary = "public_transaction"))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/artifacts.R
 \name{wb_art_delete}
 \alias{wb_art_delete}
-\title{Delete promoted artifact(s)}
+\title{Retract promoted artifact(s)}
 \usage{
 wb_art_delete(
   bundle,
@@ -20,17 +20,18 @@ wb_art_delete(
 
 \item{recursive}{if TRUE, also delete artifacts that depend on this one}
 
-\item{force}{if TRUE, ignore dependency checks when \code{recursive=FALSE}}
+\item{force}{Deprecated destructive-delete flag. \code{TRUE} is rejected.}
 
-\item{remove_model_file}{if TRUE, also attempts to remove model file for model artifacts (\code{umap_model}, \code{model_ref})}
+\item{remove_model_file}{Deprecated destructive-delete flag. \code{TRUE} is rejected.}
 
-\item{model_file_only_if_unique}{if TRUE, remove model file only when no remaining artifact points to it}
+\item{model_file_only_if_unique}{Retained for signature compatibility; no
+model file is removed.}
 }
 \value{
-data.frame summary of deleted artifacts in deletion order
+data.frame summary of retracted artifacts in dependency order
 }
 \description{
-Deletes one artifact and its payload rows. By default this refuses to delete
-artifacts referenced by other artifacts in provenance. Set \code{recursive=TRUE}
-to delete dependents first.
+Compatibility wrapper for the former destructive deletion API. It now writes
+lifecycle tombstones and retains every payload, birth certificate, and
+provenance link. \code{recursive=TRUE} retracts dependent artifacts too.
 }

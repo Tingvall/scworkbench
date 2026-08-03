@@ -26,6 +26,10 @@ wb_space_model <- function(bundle, space_id) {
     paste0("No model registered for space_id: ", space_id)
   )
 
+  lifecycle <- wb_entity_lifecycle(bundle, entity_kind = "model", entity_id = space_id)
+  df$lifecycle_state <- as.character(lifecycle$lifecycle_state[1] %||% "current")
+  df$provenance_bound <- as.integer(lifecycle$provenance_bound[1] %||% 0L)
+
   df
 }
 
@@ -77,21 +81,30 @@ wb_load_space_model <- function(bundle, space_id) {
 #'
 #' @param bundle An open scworkbench bundle.
 #' @param model_type Optional model type filter.
+#' @param include_history Include ephemeral, superseded, rejected, and retracted models.
 #' @return Character vector of space identifiers.
 #' @export
-wb_spaces_with_model <- function(bundle, model_type = NULL) {
+wb_spaces_with_model <- function(bundle, model_type = NULL, include_history = FALSE) {
   con <- bundle$con
   .wb_assert(DBI::dbExistsTable(con, "space_models"),
              "space_models table not found in bundle. Have you run umap_fit?")
 
-  if (is.null(model_type)) {
-    q <- "SELECT space_id FROM space_models ORDER BY created_at DESC;"
-    out <- DBI::dbGetQuery(con, q)$space_id
-  } else {
-    q <- "SELECT space_id FROM space_models WHERE model_type = ? ORDER BY created_at DESC;"
-    out <- DBI::dbGetQuery(con, q, params = list(as.character(model_type)))$space_id
+  if (!isTRUE(bundle$read_only)) .wb_entity_lifecycle_migrate(bundle)
+  where <- character(0)
+  params <- list()
+  if (!is.null(model_type)) {
+    where <- c(where, "sm.model_type = ?")
+    params <- c(params, list(as.character(model_type)[1]))
   }
+  if (!isTRUE(include_history) && .wb_table_exists(con, "entity_lifecycle")) {
+    where <- c(where, "NOT EXISTS (SELECT 1 FROM entity_lifecycle el WHERE el.entity_kind = 'model' AND el.entity_id = sm.space_id AND el.lifecycle_state <> 'current')")
+  }
+  q <- paste0(
+    "SELECT sm.space_id FROM space_models sm",
+    if (length(where)) paste0(" WHERE ", paste(where, collapse = " AND ")) else "",
+    " ORDER BY sm.created_at DESC;"
+  )
+  out <- if (length(params)) DBI::dbGetQuery(con, q, params = params)$space_id else DBI::dbGetQuery(con, q)$space_id
 
   as.character(out)
 }
-

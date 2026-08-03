@@ -4,12 +4,14 @@
 \alias{wb_spaces_with_model}
 \title{List Space IDs That Have a Stored Model}
 \usage{
-wb_spaces_with_model(bundle, model_type = NULL)
+wb_spaces_with_model(bundle, model_type = NULL, include_history = FALSE)
 }
 \arguments{
 \item{bundle}{An open scworkbench bundle.}
 
 \item{model_type}{Optional model type filter.}
+
+\item{include_history}{Include ephemeral, superseded, rejected, and retracted models.}
 }
 \value{
 Character vector of space identifiers.

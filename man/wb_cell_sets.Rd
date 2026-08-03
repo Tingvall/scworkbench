@@ -4,10 +4,12 @@
 \alias{wb_cell_sets}
 \title{List available cell sets in a bundle.}
 \usage{
-wb_cell_sets(bundle)
+wb_cell_sets(bundle, include_history = FALSE)
 }
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
+
+\item{include_history}{Include ephemeral, superseded, rejected, and retracted set names.}
 }
 \value{
 Character vector of membership-backed set names with \code{"core"}

@@ -11,6 +11,7 @@ wb_op_umap_transform(
   cells = NULL,
   cell_set = "all",
   dims = NULL,
+  space_id_out = NULL,
   overwrite = TRUE,
   ...
 )
@@ -28,7 +29,9 @@ wb_op_umap_transform(
 
 \item{dims}{Dims to use from the input space (e.g. 2:30).}
 
-\item{overwrite}{Overwrite existing projected coordinates for those cells.}
+\item{space_id_out}{New output space ID. Required when the fitted space already participates in promoted provenance.}
+
+\item{overwrite}{Overwrite existing projected coordinates only in unbound staging/development space.}
 
 \item{...}{Additional engine-specific arguments accepted by this wrapper.}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/artifacts.R
 \name{wb_art_delete_plan}
 \alias{wb_art_delete_plan}
-\title{Build artifact delete plan}
+\title{Build artifact retraction plan}
 \usage{
 wb_art_delete_plan(bundle, artifact_id, recursive = FALSE)
 }
@@ -14,8 +14,9 @@ wb_art_delete_plan(bundle, artifact_id, recursive = FALSE)
 \item{recursive}{if TRUE, includes dependent artifacts in delete order}
 }
 \value{
-list with fields: \code{plan} (data.frame), \code{blocked_by} (data.frame), \code{can_delete} (logical)
+list with fields: \code{plan} (data.frame), \code{blocked_by} (data.frame), and
+compatibility field \code{can_delete} (always \code{TRUE}; no physical deletion occurs).
 }
 \description{
-Computes what \code{wb_art_delete()} would remove without deleting anything.
+Computes what \code{wb_art_delete()} will tombstone without deleting evidence.
 }

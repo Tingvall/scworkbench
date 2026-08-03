@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-08-03T11:22:50+0200",
+  "generated_at": "2026-08-03T15:12:55+0200",
   "op_count": 56,
   "ops": [
     {
@@ -999,10 +999,21 @@
           "non_empty": false
         },
         {
+          "name": "space_id_out",
+          "type": "string",
+          "default": null,
+          "help": "New output space ID. Required when the fitted space already participates in promoted provenance.",
+          "required": false,
+          "nullable": true,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        },
+        {
           "name": "overwrite",
           "type": "bool",
           "default": true,
-          "help": "Overwrite existing projected coordinates for those cells.",
+          "help": "Overwrite existing projected coordinates only in unbound staging/development space.",
           "required": false,
           "nullable": false,
           "allow_non_finite": false,

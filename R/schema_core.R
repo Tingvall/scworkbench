@@ -44,6 +44,8 @@
   DBI::dbExecute(con, "PRAGMA journal_mode=WAL;")
   DBI::dbExecute(con, "PRAGMA synchronous=NORMAL;")
 
+  .wb_entity_lifecycle_tables(con)
+
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS datasets (
       dataset_id TEXT PRIMARY KEY,
