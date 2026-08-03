@@ -535,6 +535,14 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
 
 .wb_migrate_provenance_tables <- function(con) {
   if (isTRUE(attr(con, "scworkbench_read_only"))) return(invisible(FALSE))
+  bundle_dir <- .wb_bundle_dir_from_connection(con)
+  .wb_with_bundle_writer_lock(bundle_dir, operation = "provenance schema migration", code = {
+    .wb_migrate_provenance_tables_locked(con)
+  })
+}
+
+.wb_migrate_provenance_tables_locked <- function(con) {
+  if (isTRUE(attr(con, "scworkbench_read_only"))) return(invisible(FALSE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS prov_heads (
       snapshot_id TEXT PRIMARY KEY,

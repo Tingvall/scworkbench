@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 144
+Record count: 146
 
-Meaningful public transformations: 57
+Meaningful public transformations: 59
 
 Exported directly guarded functions: 26
 
@@ -1801,6 +1801,34 @@ Durable mutation: true
 Boundary: `unsafe_public_transaction`
 
 Supported route: `confirmed_unreferenced_ephemeral_purge`
+
+## `wb_migrate_artifacts`
+
+Category: bundle_state_coordination
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `exclusive_guarded_schema_migration`
+
+## `wb_finalize_recipient_bundle`
+
+Category: bundle_state_coordination
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `exclusive_recipient_finalization`
 
 ## `.wb_entity_bind_provenance`
 

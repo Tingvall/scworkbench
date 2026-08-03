@@ -290,6 +290,13 @@
 }
 
 .wb_entity_lifecycle_migrate <- function(bundle) {
+  if (isTRUE(bundle$read_only)) return(invisible(FALSE))
+  .wb_with_bundle_writer_lock(bundle, operation = "entity lifecycle migration", code = {
+    .wb_entity_lifecycle_migrate_locked(bundle)
+  })
+}
+
+.wb_entity_lifecycle_migrate_locked <- function(bundle) {
   con <- bundle$con
   .wb_entity_lifecycle_tables(con)
   inv <- .wb_entity_inventory(bundle)
@@ -433,6 +440,12 @@ wb_entity_supersessions <- function(bundle) {
 
 .wb_entity_set_state <- function(bundle, entity_kind, entity_id, state, reason, actor = NULL) {
   .wb_assert_bundle_writable(bundle, "entity lifecycle mutation")
+  .wb_with_bundle_writer_lock(bundle, operation = paste0("entity lifecycle transition: ", state), code = {
+    .wb_entity_set_state_locked(bundle, entity_kind, entity_id, state, reason, actor)
+  })
+}
+
+.wb_entity_set_state_locked <- function(bundle, entity_kind, entity_id, state, reason, actor = NULL) {
   .wb_entity_lifecycle_migrate(bundle)
   z <- .wb_entity_normalize(entity_kind, entity_id)
   .wb_assert(state %in% c("retracted", "rejected", "ephemeral"), "invalid lifecycle transition")
@@ -500,6 +513,13 @@ wb_entity_mark_ephemeral <- function(bundle, entity_kind, entity_id, reason, ret
 wb_entity_supersede <- function(bundle, entity_kind, entity_id, supersedes_id,
                                 reason, created_by = NULL) {
   .wb_assert_bundle_writable(bundle, "entity supersession")
+  .wb_with_bundle_writer_lock(bundle, operation = "entity supersession", code = {
+    .wb_entity_supersede_locked(bundle, entity_kind, entity_id, supersedes_id, reason, created_by)
+  })
+}
+
+.wb_entity_supersede_locked <- function(bundle, entity_kind, entity_id, supersedes_id,
+                                        reason, created_by = NULL) {
   .wb_entity_lifecycle_migrate(bundle)
   successor <- .wb_entity_normalize(entity_kind, entity_id)
   predecessor <- .wb_entity_normalize(entity_kind, supersedes_id)
@@ -578,6 +598,12 @@ wb_entity_supersede <- function(bundle, entity_kind, entity_id, supersedes_id,
 #' @export
 wb_unsafe_purge_ephemeral_entity <- function(bundle, entity_kind, entity_id, confirmation) {
   .wb_assert_bundle_writable(bundle, "unsafe ephemeral purge")
+  .wb_with_bundle_writer_lock(bundle, operation = "unsafe ephemeral entity purge", code = {
+    .wb_unsafe_purge_ephemeral_entity_locked(bundle, entity_kind, entity_id, confirmation)
+  })
+}
+
+.wb_unsafe_purge_ephemeral_entity_locked <- function(bundle, entity_kind, entity_id, confirmation) {
   .wb_assert(identical(as.character(confirmation)[1], "PURGE UNREFERENCED EPHEMERAL ENTITY"),
     "Unsafe purge requires confirmation='PURGE UNREFERENCED EPHEMERAL ENTITY'.")
   .wb_entity_lifecycle_migrate(bundle)

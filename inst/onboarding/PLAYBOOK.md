@@ -43,6 +43,10 @@ Before transferring a writable bundle, run `wb_finalize_recipient_bundle(b)`
 and confirm `wb_recipient_readiness(path)$ready`. The supported container audit
 is `containers/apptainer/recipient_readonly_audit.sh IMAGE BUNDLE_DIR`; it
 uses `singularity --bind BUNDLE_DIR:/bundle:ro` and never clones the bundle.
+Committed writers are serialized by the sibling lock protocol documented in
+`docs/bundle_writer_lock.md`. Recipient read-only open refuses an active writer;
+inspect ownership with `wb_bundle_writer_lock_info()` and recover a verified
+stale lock only through `wb_recover_bundle_writer_lock()`.
 
 Current phase note:
 - Before adding new features, prioritize hardening/bugfixing. See `docs/next_pass_hardening_notes.md`.

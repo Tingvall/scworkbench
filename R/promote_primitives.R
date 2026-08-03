@@ -233,6 +233,28 @@ wb_promote_analysis <- function(bundle,
                                 selected_by_run = NULL,
                                 staging_bundle = NULL) {
   .wb_assert_bundle_writable(bundle, "promotion")
+  .wb_with_bundle_writer_lock(bundle, operation = "analysis promotion", code = {
+    .wb_promote_analysis_locked(
+      bundle = bundle, runs = runs, head_run_id = head_run_id,
+      name_prefix = name_prefix, description = description, created_by = created_by,
+      fail_fast = fail_fast, allow_detached = allow_detached, outputs = outputs,
+      selected_by_run = selected_by_run, staging_bundle = staging_bundle
+    )
+  })
+}
+
+.wb_promote_analysis_locked <- function(bundle,
+                                        runs,
+                                        head_run_id,
+                                        name_prefix = NULL,
+                                        description = NULL,
+                                        created_by = NULL,
+                                        fail_fast = TRUE,
+                                        allow_detached = FALSE,
+                                        outputs = NULL,
+                                        selected_by_run = NULL,
+                                        staging_bundle = NULL) {
+  .wb_assert_bundle_writable(bundle, "promotion")
   wb_migrate_artifacts(bundle)
 
   .wb_assert(is.list(runs) && length(runs) > 0, "runs must be a non-empty list.")
@@ -1193,6 +1215,12 @@ wb_promote_analysis <- function(bundle,
 #' @export
 wb_migrate_artifacts <- function(bundle) {
   if (isTRUE(bundle$read_only)) return(invisible(FALSE))
+  .wb_with_bundle_writer_lock(bundle, operation = "bundle schema migration", code = {
+    .wb_migrate_artifacts_locked(bundle)
+  })
+}
+
+.wb_migrate_artifacts_locked <- function(bundle) {
   con <- bundle$con
   .wb_create_artifacts_schema(con)
   .wb_migrate_provenance_tables(con)

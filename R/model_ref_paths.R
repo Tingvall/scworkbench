@@ -82,6 +82,15 @@
 #' @export
 wb_repair_model_ref_paths <- function(bundle, dry_run = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle.")
+  if (!isTRUE(dry_run)) {
+    return(.wb_with_bundle_writer_lock(bundle, operation = "model reference path repair", code = {
+      .wb_repair_model_ref_paths_locked(bundle, dry_run = FALSE)
+    }))
+  }
+  .wb_repair_model_ref_paths_locked(bundle, dry_run = TRUE)
+}
+
+.wb_repair_model_ref_paths_locked <- function(bundle, dry_run = TRUE) {
   con <- bundle$con
   .wb_assert(!is.null(con), "wb_repair_model_ref_paths(): bundle$con is NULL.")
   wb_migrate_artifacts(bundle)

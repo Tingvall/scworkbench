@@ -17,6 +17,17 @@
 wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
   if (!dir.exists(bundle_dir)) stop("Bundle directory does not exist: ", bundle_dir)
 
+  if (isTRUE(read_only)) {
+    lock_info <- wb_bundle_writer_lock_info(bundle_dir)
+    if (isTRUE(lock_info$locked)) {
+      stop(
+        "Recipient read-only open refused while an exclusive bundle writer is active. ",
+        .wb_writer_lock_diagnostic(lock_info),
+        call. = FALSE
+      )
+    }
+  }
+
   man_path <- file.path(bundle_dir, "manifest.json")
   if (!file.exists(man_path)) stop("Missing manifest.json in bundle: ", bundle_dir)
 
@@ -71,8 +82,9 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
 #' @export
 wb_close_bundle <- function(bundle) {
   if (inherits(bundle, "scworkbench_bundle") && !is.null(bundle$con)) {
-    .wb_unregister_assembly_connection(bundle$con)
-    DBI::dbDisconnect(bundle$con)
+    con <- bundle$con
+    on.exit(.wb_unregister_assembly_connection(con), add = TRUE)
+    DBI::dbDisconnect(con)
   }
   invisible(TRUE)
 }
@@ -87,6 +99,15 @@ wb_close_bundle <- function(bundle) {
 #' @return Named readiness record.
 #' @export
 wb_recipient_readiness <- function(bundle_dir) {
+  lock_info <- wb_bundle_writer_lock_info(bundle_dir)
+  if (isTRUE(lock_info$locked) && !isTRUE(lock_info$held_by_current_process)) {
+    return(list(
+      ready = FALSE, journal_mode = NA_character_,
+      wal_path = NA_character_, shm_path = NA_character_,
+      writer_lock = lock_info,
+      reason = "exclusive bundle writer is active; recipient state is not stable"
+    ))
+  }
   man <- jsonlite::read_json(file.path(bundle_dir, "manifest.json"), simplifyVector=TRUE)
   db <- file.path(bundle_dir, as.character(man$storage$sqlite$path)[1])
   wal <- paste0(db, "-wal"); shm <- paste0(db, "-shm")
@@ -108,10 +129,19 @@ wb_recipient_readiness <- function(bundle_dir) {
 #' @export
 wb_finalize_recipient_bundle <- function(bundle) {
   .wb_assert_bundle_writable(bundle, "recipient finalization")
-  DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")
-  DBI::dbGetQuery(bundle$con, "PRAGMA journal_mode=DELETE;")
-  DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")
-  out <- wb_recipient_readiness(bundle$dir)
-  .wb_assert(isTRUE(out$ready), out$reason)
-  out
+  .wb_with_bundle_writer_lock(bundle, operation = "recipient finalization", code = {
+    DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")
+    DBI::dbGetQuery(bundle$con, "PRAGMA journal_mode=DELETE;")
+    DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")
+    transient_manifests <- list.files(
+      bundle$dir,
+      pattern = "^\\.manifest[.]json[.](staging|backup)-",
+      full.names = TRUE,
+      all.files = TRUE
+    )
+    if (length(transient_manifests)) unlink(transient_manifests, force = TRUE)
+    out <- wb_recipient_readiness(bundle$dir)
+    .wb_assert(isTRUE(out$ready), out$reason)
+    out
+  })
 }
