@@ -7,8 +7,8 @@
 }
 
 .wb_journal_registry_mutation <- function(bundle, registry_type, action, key, payload = NULL) {
-  ctx <- getOption("scworkbench.registry_mutation_context")
-  if (is.null(bundle$staging_source_dir) || !is.list(ctx) || !nzchar(as.character(ctx$run_id %||% "")[1])) {
+  ctx <- .wb_registry_mutation_context(bundle)
+  if (is.null(bundle$staging_source_dir) || is.null(ctx)) {
     return(invisible(FALSE))
   }
   .wb_ensure_registry_mutation_events_table(bundle$con)
@@ -45,6 +45,8 @@
   old <- getOption("scworkbench.registry_replay_transaction_open")
   options(scworkbench.registry_replay_transaction_open = TRUE)
   on.exit(options(scworkbench.registry_replay_transaction_open = old), add = TRUE)
+  .wb_with_mutation_context(
+    bundle = bundle, route = "promotion", staging_bundle = staging_bundle, code = {
   for (i in seq_len(nrow(events))) {
     hook <- getOption("scworkbench.registry_replay_hook", NULL)
     if (is.function(hook)) hook(events[i, , drop = FALSE])
@@ -113,6 +115,7 @@
       stop("Unsupported registry mutation event: ", registry_type, "/", action, call. = FALSE)
     }
   }
+  })
   .wb_ensure_registry_mutation_events_table(bundle$con)
   DBI::dbExecute(bundle$con, "CREATE TABLE IF NOT EXISTS prov_registry_mutations (commit_id TEXT NOT NULL, event_id TEXT NOT NULL, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, PRIMARY KEY(commit_id, event_id));")
   .wb_db_append_chunked(

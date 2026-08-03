@@ -22,6 +22,11 @@ wb_register_matrix_fragment <- function(
     created_at = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
     description = NULL
 ) {
+  .wb_assert_mutation_context(
+    con = con, action = "Low-level matrix-fragment registry writer wb_register_matrix_fragment()",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "wb_attach_matrix()/wb_attach_apply() for declared ingestion, or matrix_log_normalize through wb_session_run_op() and promotion"
+  )
   .wb_ensure_matrix_fragment_tables(con)
 
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && !is.na(matrix_id) && nzchar(matrix_id), "matrix_id invalid")

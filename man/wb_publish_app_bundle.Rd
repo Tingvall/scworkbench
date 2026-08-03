@@ -22,48 +22,43 @@ wb_publish_app_bundle(
 \arguments{
 \item{seurat}{A Seurat object.}
 
-\item{out_dir}{Output directory for the bundle. If NULL, a default is chosen.}
+\item{out_dir}{Output directory for the bundle. If \code{NULL}, a default is chosen.}
 
-\item{dataset_col}{Optional meta.data column to define dataset_id (defaults to orig.ident if present).}
+\item{dataset_col}{Optional meta.data column used as dataset identity.}
 
-\item{bundle_id}{Optional bundle_id used for default out_dir naming.}
+\item{bundle_id}{Optional bundle identifier used for default naming.}
 
-\item{bundle_name}{Optional human-readable name for manifest.}
+\item{bundle_name}{Optional human-readable bundle name.}
 
-\item{overwrite}{If TRUE, overwrite out_dir if it exists.}
+\item{overwrite}{Whether an existing destination may be atomically replaced
+after successful staged assembly.}
 
-\item{export_assays}{Seurat assays to export. If NULL, chooses sane defaults (RNA + one ATAC-like if present).}
+\item{export_assays}{Seurat assays to export. If \code{NULL}, sane defaults are
+selected.}
 
-\item{matrix_layer}{Seurat layer/slot to export (default "counts").}
+\item{matrix_layer}{Default Seurat layer/slot to export.}
 
-\item{matrix_specs}{Optional list of specs; if NULL, derived from export_assays.
-Each spec is a list with fields:
-matrix_id, seurat_assay, layer, feature_type, description}
+\item{matrix_specs}{Optional list produced by \code{\link[=wb_matrix_spec]{wb_matrix_spec()}}.}
 
-\item{feature_type_map}{Optional named character vector mapping seurat_assay -> feature_type ("gene"/"peak").}
+\item{feature_type_map}{Optional named assay-to-feature-type mapping.}
 
-\item{write_spaces}{If TRUE, exports Seurat reductions as spaces (2D to space_2d, else to space_coords).}
+\item{write_spaces}{Whether Seurat reductions are ingested as spaces.}
 
-\item{write_matrices}{If TRUE, exports matrices via BPCells and registers fragments.}
+\item{write_matrices}{Whether matrix payloads are ingested.}
 }
 \value{
-The manifest list (invisibly).
+The reopened published manifest, invisibly.
 }
 \description{
-This is the "Average Joe" entry point:
-wb_publish_app_bundle(seurat)
+Compatibility publisher routed through the canonical Seurat ingestion and
+staged bundle-promotion transaction. The destination is not touched until a
+complete, provenance-bearing bundle has been assembled successfully.
 }
 \details{
 A published bundle is matrix_id-native:
 \itemize{
-\item Seurat assays are only used during export.
-\item The SQLite schema stores features keyed by matrix_id (NOT assay).
+\item Seurat assays are only used during ingestion.
+\item The SQLite schema stores features keyed by matrix_id (not assay).
 \item matrices table has no assay column.
 }
-
-Output bundle layout:
-<out_dir>/
-manifest.json
-db/app.sqlite
-mat/<matrix_id>/   (BPCells matrix dir)
 }

@@ -129,14 +129,11 @@ test_op_trajectory_signature_smooth_contract <- function(bundle_dir) {
   stopifnot(length(feats) >= 6L)
 
   fs_name <- paste0(".__test_trajectory_signature_smooth_feature_set__.", as.integer(Sys.time()))
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_name,
-    matrix_id = matrix_id,
-    feature_ids = feats[1:6],
-    created_by = "test",
-    description = "trajectory_signature_smooth contract test feature set",
-    strict = TRUE
+  wb_feature_set_import_list(
+    b, matrix_id = matrix_id,
+    sets = stats::setNames(list(feats[1:6]), fs_name),
+    namespace = "contract", created_by = "test", strict = TRUE,
+    origin = "imported", is_readonly = FALSE
   )
 
   cells <- tryCatch(wb_cells(b, cell_set = "core"), error = function(e) character(0))
@@ -742,35 +739,11 @@ test_op_trajectory_geneset_dynamics_contract <- function(bundle_dir) {
   fs_c <- paste0(ns, ".c")
   cleanup_feature_sets <- c(fs_a, fs_b, fs_c)
   cleanup_matrix_id <- matrix_id
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_a,
-    matrix_id = matrix_id,
-    feature_ids = feats[1:8],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
-  )
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_b,
-    matrix_id = matrix_id,
-    feature_ids = feats[9:16],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
-  )
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_c,
-    matrix_id = matrix_id,
-    feature_ids = feats[17:24],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
+  wb_feature_set_import_list(
+    b, matrix_id = matrix_id,
+    sets = stats::setNames(list(feats[1:8], feats[9:16], feats[17:24]), c(fs_a, fs_b, fs_c)),
+    namespace = ns, created_by = "test", origin = "imported",
+    strict = TRUE, is_readonly = FALSE
   )
 
   cells <- tryCatch(wb_cells(b, cell_set = "core"), error = function(e) character(0))
@@ -926,35 +899,11 @@ test_op_trajectory_geneset_dynamics_promoted_contract <- function(bundle_dir) {
   fs_c <- paste0(ns, ".c")
   cleanup_feature_sets <- c(fs_a, fs_b, fs_c)
   cleanup_matrix_id <- matrix_id
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_a,
-    matrix_id = matrix_id,
-    feature_ids = feats[1:8],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
-  )
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_b,
-    matrix_id = matrix_id,
-    feature_ids = feats[9:16],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
-  )
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_c,
-    matrix_id = matrix_id,
-    feature_ids = feats[17:24],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
+  wb_feature_set_import_list(
+    b, matrix_id = matrix_id,
+    sets = stats::setNames(list(feats[1:8], feats[9:16], feats[17:24]), c(fs_a, fs_b, fs_c)),
+    namespace = ns, created_by = "test", origin = "imported",
+    strict = TRUE, is_readonly = FALSE
   )
 
   cells <- tryCatch(wb_cells(b, cell_set = "core"), error = function(e) character(0))

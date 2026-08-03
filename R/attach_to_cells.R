@@ -29,6 +29,11 @@ wb_attach_to_cells <- function(
     created_by = NULL
 ) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
+  .wb_assert_mutation_context(
+    bundle = bundle, action = "Low-level attachment writer wb_attach_to_cells()",
+    allowed = c("assembly", "ingestion"),
+    replacement = "wb_attach_apply() as a declared provenance-producing ingestion transaction"
+  )
   con <- bundle$con
   .wb_assert(!is.null(con), "bundle$con is NULL (no DB connection).")
 

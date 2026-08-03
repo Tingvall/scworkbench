@@ -225,16 +225,19 @@ test_source_ownership_contract <- function() {
   DBI::dbExecute(migrated, "CREATE TABLE matrix_fragment_cells (fragment_id TEXT NOT NULL, cell_id TEXT NOT NULL, PRIMARY KEY(fragment_id, cell_id));")
   DBI::dbExecute(migrated, "INSERT INTO matrix_fragment_features(fragment_id, feature_id) VALUES('legacy_fragment', 'legacy_gene');")
   DBI::dbExecute(migrated, "INSERT INTO matrix_fragment_cells(fragment_id, cell_id) VALUES('legacy_fragment', 'legacy_cell');")
-  migrated_registered <- withVisible(wb_register_matrix_fragment(
-    migrated,
-    matrix_id = "RNA_counts",
-    path_rel = "mat/migrated_fragment",
-    feature_ids = c("g1", "g2"),
-    cell_ids = c("c1", "c2"),
-    source = "migration_contract",
-    created_at = "2026-08-02 13:00:00",
-    description = "registered after schema migration"
-  ))
+  migrated_registered <- scworkbench:::.wb_with_mutation_context(
+    con = migrated, route = "ingestion",
+    code = withVisible(wb_register_matrix_fragment(
+      migrated,
+      matrix_id = "RNA_counts",
+      path_rel = "mat/migrated_fragment",
+      feature_ids = c("g1", "g2"),
+      cell_ids = c("c1", "c2"),
+      source = "migration_contract",
+      created_at = "2026-08-02 13:00:00",
+      description = "registered after schema migration"
+    ))
+  )
   stopifnot(!migrated_registered$visible)
   migrated_columns <- DBI::dbListFields(migrated, "matrix_fragments")
   stopifnot(all(c("feature_ids_json", "cell_ids_json") %in% migrated_columns))

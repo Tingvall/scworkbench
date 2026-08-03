@@ -32,6 +32,11 @@ wb_add_space <- function(bundle,
                          overwrite = FALSE,
                          chunk = 20000) {
   .wb_assert_bundle_writable(bundle, "space mutation")
+  mutation_route <- .wb_assert_mutation_context(
+    bundle = bundle, action = "Low-level space writer wb_add_space()",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "wb_attach_space()/wb_attach_apply() for declared ingestion, or a registered fitting operation through wb_session_run_op() and promotion"
+  )
   con <- bundle$con
 
   .wb_assert(is.character(space_id) && length(space_id) == 1 && nzchar(space_id),
@@ -163,6 +168,13 @@ wb_add_space <- function(bundle,
   # ---- update manifest.json from authoritative storage ----
   if (exists("wb_refresh_manifest", mode = "function")) {
     try(wb_refresh_manifest(bundle), silent = TRUE)
+  }
+
+  if (identical(mutation_route, "assembly")) {
+    .wb_record_declared_ingestion(
+      bundle = bundle, transaction_name = "assembly_add_space",
+      space_ids = space_id, source = created_source
+    )
   }
 
 

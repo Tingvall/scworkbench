@@ -160,6 +160,7 @@ wb_op_scvi_train <- function(bundle,
                              cell_set = "all",
                              python_bin = .wb_pybench_default_python()) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "scvi_train")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && nzchar(matrix_id),
              "scvi_train requires matrix_id.")
 

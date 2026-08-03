@@ -60,7 +60,7 @@ on.exit(wb_close_bundle(b), add = TRUE)
 stopifnot(inherits(b, 'scworkbench_bundle'))
 stopifnot(nrow(wb_matrices(b)) >= 1)
 stopifnot(nrow(wb_spaces(b)) >= 1)
-stopifnot(length(wb_cells(b, 'core')) == 12)
+stopifnot(length(wb_cells(b, 'core')) == 600)
 stopifnot(nrow(wb_feature_sets(b, matrix_id = 'RNA_counts')) >= 2)
 stopifnot('de_wilcox' %in% wb_list_ops())
 iface <- wb_op_interface('de_wilcox', bundle = b)
@@ -77,7 +77,7 @@ stopifnot(nrow(golden_art) >= 1)
 aid <- as.character(golden_art\$artifact_id[1])
 prim <- wb_art_load(b, aid, expected_kind = 'cell_vector')
 stopifnot(identical(as.character(prim\$kind), 'cell_vector'))
-stopifnot(length(prim\$cell_id) == 12)
+stopifnot(length(prim\$cell_id) == 600)
 stopifnot(setequal(as.character(prim\$cell_id), wb_cells(b, 'core')))
 stopifnot(all(c('golden_A', 'golden_B', 'golden_C') %in% unique(as.character(prim\$value))))
 id <- wb_art_identity_card(b, aid)
@@ -108,6 +108,7 @@ echo "[fullstack] generated semantic catalog freshness"
     wrangler_catalog_reference.md wrangler_catalog_semantic.json \
     primitive_catalog_reference.md primitive_catalog_semantic.json \
     artifact_type_catalog_reference.md artifact_type_catalog_semantic.json \
+    mutation_catalog_reference.md mutation_catalog_semantic.json \
     parameter_semantics_reference.md parameter_semantics_catalog.json \
     recipe_semantics_reference.md recipe_semantics_catalog.json \
     semantic_catalog_reference.md semantic_catalog.json \

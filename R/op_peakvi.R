@@ -73,6 +73,7 @@ wb_op_peakvi_fit <- function(bundle,
                              cell_set = "all",
                              python_bin = .wb_pybench_default_python()) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "peakvi_fit")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && nzchar(matrix_id),
              "peakvi_fit requires matrix_id.")
 
@@ -225,6 +226,7 @@ wb_op_peakvi_project <- function(bundle,
                                  space_id_out = "peakvi_project_space",
                                  python_bin = .wb_pybench_default_python()) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "peakvi_project")
   .wb_assert_kind(peakvi_model, "model_ref")
   .wb_assert(identical(as.character(peakvi_model$engine %||% "")[1], "peakvi"),
              "peakvi_project requires model_ref(engine='peakvi').")

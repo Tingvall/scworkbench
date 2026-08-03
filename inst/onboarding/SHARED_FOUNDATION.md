@@ -70,3 +70,19 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
 - Plot contracts, identity cards, and navigation are also engine contracts.
 - Claims in reports map to run/artifact IDs.
 - Prefer symbolic references (`set:<name>`, refs) over huge literal payloads.
+
+# Provenance-only mutation boundary
+
+An ordinary `wb_open_bundle()` handle represents committed scientific state.
+Compute through `wb_session_run_op()` and save through
+`wb_session_promote_current()`; thin clients use the equivalent
+`wb_client_run()` and `wb_client_promote()` facade. Direct mutating operation
+implementations and low-level registry, matrix, space, model, and primitive
+payload writers are rejected before a committed write.
+
+Direct writes remain supported only inside a declared ingestion transaction
+(`wb_bundle_from_*()`, `wb_ingest_apply()`, or `wb_attach_apply()`) or on the
+active assembly handle returned by `wb_init_bundle()`. Ingestion records durable
+outputs and declared source inputs. Reopening the bundle ends assembly authority.
+Inspect the machine-readable ownership inventory with
+`wb_mutation_catalog_semantic()`.

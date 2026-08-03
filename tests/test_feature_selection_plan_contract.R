@@ -33,8 +33,11 @@ test_feature_selection_plan_contract <- function(bundle_dir) {
   # feature set include + NOT
   fs_name <- "test_feature_plan_fs"
   fs_ids <- allf[seq_len(min(10L, length(allf)))]
-  wb_feature_set_replace(b, feature_set = fs_name, matrix_id = mid, feature_ids = fs_ids,
-                         created_by = "test", description = "test feature plan")
+  wb_feature_set_import_list(
+    b, matrix_id = mid, sets = stats::setNames(list(fs_ids), fs_name),
+    namespace = "contract", created_by = "test", strict = TRUE,
+    origin = "imported", is_readonly = FALSE
+  )
 
   p_set <- list(universe = mid, rules = list(list(type = "feature_set", sets = fs_name)))
   s_set <- wb_exec_feature_selection_plan(b, p_set)

@@ -227,14 +227,11 @@ test_plot_wranglers_contract <- function(bundle_dir) {
     stopifnot(nzchar(fit_space_id))
 
     fs_name <- paste0(".__test_plot_wranglers_feature_set__.", as.integer(Sys.time()))
-    wb_feature_set_replace(
-      bundle = b,
-      feature_set = fs_name,
-      matrix_id = mid,
-      feature_ids = unique(as.character(m_feats[1:6])),
-      created_by = "test",
-      description = "plot wrangler contract test feature set",
-      strict = TRUE
+    wb_feature_set_import_list(
+      b, matrix_id = mid,
+      sets = stats::setNames(list(unique(as.character(m_feats[1:6]))), fs_name),
+      namespace = "user", created_by = "test", strict = TRUE,
+      origin = "imported", is_readonly = FALSE
     )
 
     s <- wb_session_new()

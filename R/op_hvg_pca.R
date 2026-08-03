@@ -185,6 +185,7 @@ wb_op_pca_fit <- function(bundle,
                           overwrite = FALSE,
                           max_dense_gb = 8) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "pca_fit")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && nzchar(matrix_id), "matrix_id invalid")
   backend <- match.arg(backend)
   seed <- suppressWarnings(as.integer(seed)[1])

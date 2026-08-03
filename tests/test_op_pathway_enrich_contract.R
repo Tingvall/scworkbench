@@ -37,25 +37,11 @@ test_op_pathway_enrich_contract <- function(bundle_dir) {
   ns <- "test_pathway_ns"
   fs1 <- "set_alpha"
   fs2 <- "set_beta"
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs1,
-    matrix_id = mid,
-    feature_ids = feats[1:20],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
-  )
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs2,
-    matrix_id = mid,
-    feature_ids = feats[21:40],
-    created_by = "test",
-    namespace = ns,
-    origin = "test",
-    strict = TRUE
+  wb_feature_set_import_list(
+    bundle = b, matrix_id = mid,
+    sets = stats::setNames(list(feats[1:20], feats[21:40]), c(fs1, fs2)),
+    namespace = ns, created_by = "test", origin = "imported",
+    strict = TRUE, is_readonly = FALSE
   )
 
   # Query overlaps both sets

@@ -18,6 +18,7 @@ wb_attach_cell_vector <- function(bundle, vector_id, values, overwrite = TRUE) {
   .wb_assert(is.character(vector_id) && length(vector_id) == 1L && nzchar(vector_id), "vector_id invalid")
   .wb_assert(is.logical(overwrite) && length(overwrite) == 1L && !is.na(overwrite), "overwrite must be TRUE or FALSE")
 
+  .wb_with_mutation_context(bundle = bundle, route = "ingestion", code = {
   if (is.data.frame(values)) {
     .wb_assert(all(c("cell_id", "value") %in% names(values)), "values data frame must contain cell_id and value")
     input <- values[, c("cell_id", "value"), drop = FALSE]
@@ -31,11 +32,22 @@ wb_attach_cell_vector <- function(bundle, vector_id, values, overwrite = TRUE) {
 
   con <- bundle$con
   .wb_ensure_cell_vectors_tables(con)
+  DBI::dbWithTransaction(con, {
   registered <- DBI::dbGetQuery(con, "SELECT vector_id FROM cell_vectors WHERE vector_id = ?;", params = list(vector_id))
   if (!nrow(registered)) wb_register_cell_vector(bundle, vector_id = vector_id, value_type = "numeric")
 
   n <- wb_write_cell_vector(bundle, vector_id = vector_id, values = input, overwrite = overwrite)
+  vals <- as.numeric(input$value)
+  names(vals) <- as.character(input$cell_id)
+  .wb_record_declared_ingestion(
+    bundle = bundle, transaction_name = "attach_cell_vector",
+    source = "legacy_cell_vector_attachment",
+    additional_outputs = list(cell_vector = wb_prim_cell_vector(vals, value_type = "continuous")),
+    transaction_open = TRUE
+  )
   invisible(list(vector_id = vector_id, n = as.integer(n)))
+  })
+  })
 }
 
 #' Read a cell_vector (scalar per cell) for a set of cells
@@ -296,6 +308,9 @@ wb_register_cell_vector <- function(
     provenance = NULL
 ) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Legacy cell-vector registry mutation",
+    allowed = c("assembly", "ingestion"),
+    replacement = "wb_attach_cell_vector() within declared assembly, or a promoted cell_vector primitive")
   con <- bundle$con
 
   .wb_ensure_cell_vectors_tables(con)
@@ -385,6 +400,9 @@ wb_write_cell_vector <- function(
     overwrite = TRUE
 ) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Legacy cell-vector payload mutation",
+    allowed = c("assembly", "ingestion"),
+    replacement = "wb_attach_cell_vector() within declared assembly, or a promoted cell_vector primitive")
   .wb_assert(is.character(vector_id) && length(vector_id) == 1 && nzchar(vector_id), "vector_id invalid")
   con <- bundle$con
   .wb_ensure_cell_vectors_tables(con)

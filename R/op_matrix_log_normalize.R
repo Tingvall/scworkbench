@@ -369,6 +369,7 @@ wb_op_matrix_log_normalize <- function(bundle,
                                        scale_factor = 10000,
                                        overwrite = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "matrix_log_normalize")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && nzchar(matrix_id), "matrix_id invalid")
   scale_factor <- suppressWarnings(as.numeric(scale_factor)[1])
   .wb_assert(is.finite(scale_factor) && scale_factor > 0, "scale_factor must be positive")

@@ -33,16 +33,11 @@ test_op_trajectory_route_smooth_contract <- function(bundle_dir) {
   stopifnot(inherits(bm, "wb_primitive"), identical(as.character(bm$kind), "relation_family"))
 
   fs_name <- ".__test_trajectory_route_smooth_feature_set__."
-  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
   fs_feats <- unique(as.character(feats[1:8]))
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = fs_name,
-    matrix_id = matrix_id,
-    feature_ids = fs_feats,
-    created_by = "test",
-    description = "trajectory_route_smooth contract test feature set",
-    strict = TRUE
+  wb_feature_set_import_list(
+    b, matrix_id = matrix_id, sets = stats::setNames(list(fs_feats), fs_name),
+    namespace = "contract", created_by = "test", strict = TRUE,
+    origin = "imported", is_readonly = FALSE
   )
 
   s <- wb_session_new()
@@ -113,8 +108,6 @@ test_op_trajectory_route_smooth_contract <- function(bundle_dir) {
   stopifnot(all(as.character(trend2$route_key) == "route:b"))
   stopifnot(all(as.numeric(trend2$route_weight_sum) >= as.numeric(trend2$n_cells)))
   stopifnot(identical(as.character(sm2$weight_mode[1]), "binary_threshold"))
-
-  wb_feature_set_delete(b, feature_set = fs_name, matrix_id = matrix_id)
 
   TRUE
 }

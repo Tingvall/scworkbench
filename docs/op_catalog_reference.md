@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-08-02T23:47:09+0200
+Generated at: 2026-08-03T11:22:50+0200
 
 Operation count: 56
 

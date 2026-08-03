@@ -235,6 +235,7 @@ wb_op_feature_set_import <- function(bundle,
                                      origin = "imported",
                                      is_readonly = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_operation_execution(bundle, "feature_set_import")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
   .wb_assert(is.character(namespace) && length(namespace) == 1 && nzchar(namespace), "namespace invalid")
   organism <- organism %||% species

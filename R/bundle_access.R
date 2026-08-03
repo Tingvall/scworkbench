@@ -71,6 +71,7 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
 #' @export
 wb_close_bundle <- function(bundle) {
   if (inherits(bundle, "scworkbench_bundle") && !is.null(bundle$con)) {
+    .wb_unregister_assembly_connection(bundle$con)
     DBI::dbDisconnect(bundle$con)
   }
   invisible(TRUE)

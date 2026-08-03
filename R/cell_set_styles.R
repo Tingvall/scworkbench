@@ -23,6 +23,9 @@ wb_set_cell_set_style <- function(bundle,
                                   created_by = NULL) {
 
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Cell-set style registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "a registered session operation and promotion, or initial bundle assembly")
   .wb_assert(is.character(cell_set) && length(cell_set) == 1 && nzchar(cell_set), "cell_set invalid")
 
   # ---- scalar coercers (DBI params must be length-1) ----

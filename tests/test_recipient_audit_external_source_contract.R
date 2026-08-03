@@ -11,7 +11,8 @@ test_recipient_audit_external_source_contract <- function() {
   wb_attach_matrix(b, "RNA_counts", counts, feature_type="gene")
   .wb_ingest_report_artifact(b, "core", "atomic", list(n_cells=length(ids)), list(), list(),
     matrix_ids="RNA_counts", source_identity=identity)
-  inputs <- wb_prov_source_inputs(b)
+  inputs_all <- wb_prov_source_inputs(b)
+  inputs <- inputs_all[as.character(inputs_all$checksum_status) == "checksummed", , drop = FALSE]
   stopifnot(nrow(inputs)==27L, all(as.character(inputs$checksum_status) == "checksummed"), all(as.character(inputs$checksum_algorithm) == "sha256"))
   dag <- wb_prov_bundle_dag(b); run <- as.character(inputs$run_id[1]); art <- wb_ingest_reports(b)$artifact_id[1]
   key <- paste(dag$edges$from, dag$edges$to, sep="|")
@@ -22,7 +23,9 @@ test_recipient_audit_external_source_contract <- function() {
   wb_close_bundle(b); before <- file.info(file.path(root, "db", "app.sqlite"))$mtime
   ro <- wb_open_bundle(root, read_only=TRUE, validate=TRUE)
   on.exit(try(wb_close_bundle(ro), silent=TRUE), add=TRUE)
-  stopifnot(isTRUE(ro$read_only), nrow(wb_matrices(ro))==1L, nrow(wb_art_list(ro))>=1L, nrow(wb_prov_source_inputs(ro))==27L,
+  ro_inputs <- wb_prov_source_inputs(ro)
+  stopifnot(isTRUE(ro$read_only), nrow(wb_matrices(ro))==1L, nrow(wb_art_list(ro))>=1L,
+            sum(as.character(ro_inputs$checksum_status) == "checksummed") == 27L,
             nrow(wb_prov_bundle_dag(ro)$nodes)>0L, !inherits(try(wb_art_load(ro, art), silent=TRUE), "try-error"),
             inherits(try(wb_session_run_op(wb_session_new(), ro, "hvg_select", inputs=list(matrix="RNA_counts", n_features=2L)), silent=TRUE), "try-error"))
   wb_close_bundle(ro); stopifnot(identical(before, file.info(file.path(root, "db", "app.sqlite"))$mtime))

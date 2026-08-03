@@ -54,7 +54,9 @@ wb_init_bundle <- function(out_dir,
 
   try(DBI::dbDisconnect(con), silent = TRUE)
   con <- NULL
-  wb_open_bundle(out_dir)
+  bundle <- wb_open_bundle(out_dir)
+  .wb_register_assembly_bundle(bundle)
+  bundle
 }
 
 #' Define the Canonical Bundle Cell Universe
@@ -83,6 +85,11 @@ wb_define_cells <- function(bundle,
                             source = "assembly",
                             created_by = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(
+    bundle = bundle, action = "Canonical cell-universe definition",
+    allowed = c("assembly", "ingestion"),
+    replacement = "wb_init_bundle() and wb_define_cells() on the returned active assembly handle, or a wb_bundle_from_*() ingestion constructor"
+  )
   .wb_assert(is.character(set_name) && length(set_name) == 1L && nzchar(set_name),
              "set_name must be a non-empty string")
 
@@ -177,6 +184,10 @@ wb_define_cells <- function(bundle,
   }
 
   wb_refresh_manifest(bundle)
+  .wb_record_declared_ingestion(
+    bundle = bundle, transaction_name = "assembly_define_cells",
+    source = source, created_by = created_by
+  )
   invisible(list(
     set_name = set_name,
     n_defined = length(ids),
@@ -231,7 +242,6 @@ wb_attach_matrix <- function(bundle,
     created_by = created_by,
     emit_report_artifact = emit_report_artifact
   )
-  wb_refresh_manifest(bundle)
   invisible(res)
 }
 
@@ -269,7 +279,6 @@ wb_attach_space <- function(bundle,
     created_by = created_by,
     emit_report_artifact = emit_report_artifact
   )
-  wb_refresh_manifest(bundle)
   invisible(res)
 }
 
@@ -302,7 +311,6 @@ wb_attach_metadata <- function(bundle,
     created_by = created_by,
     emit_report_artifact = emit_report_artifact
   )
-  wb_refresh_manifest(bundle)
   invisible(res)
 }
 
@@ -316,6 +324,11 @@ wb_attach_metadata <- function(bundle,
 #' @export
 wb_refresh_manifest <- function(bundle) {
   .wb_assert_bundle_writable(bundle, "manifest refresh")
+  .wb_assert_mutation_context(
+    bundle = bundle, action = "Bundle manifest mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "a declared ingestion transaction or registered session promotion"
+  )
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
   man_old <- try(bundle$manifest, silent = TRUE)

@@ -433,6 +433,7 @@ wb_ingest_apply <- function(bundle,
     )))
   }
 
+  .wb_with_mutation_context(bundle = bundle, route = "ingestion", code = {
   run_ingest <- function() {
     wb_ingest_cells(
       bundle = bundle,
@@ -463,6 +464,14 @@ wb_ingest_apply <- function(bundle,
         matrix_ids = names(norm$matrices %||% list()), source_identity = source_identity
       )
     }
+    if (!isTRUE(emit_report_artifact)) {
+      .wb_record_declared_ingestion(
+        bundle = bundle, transaction_name = "ingest_apply",
+        matrix_ids = names(norm$matrices %||% list()),
+        space_ids = names(norm$spaces %||% list()), source = source,
+        created_by = created_by, source_identity = source_identity
+      )
+    }
   } else {
     con <- bundle$con
     mat_root <- file.path(bundle$dir, "mat")
@@ -484,6 +493,15 @@ wb_ingest_apply <- function(bundle,
             source = source,
             matrix_ids = names(norm$matrices %||% list()),
             transaction_open = TRUE, source_identity = source_identity
+          )
+        }
+        if (!isTRUE(emit_report_artifact)) {
+          .wb_record_declared_ingestion(
+            bundle = bundle, transaction_name = "ingest_apply",
+            matrix_ids = names(norm$matrices %||% list()),
+            space_ids = names(norm$spaces %||% list()), source = source,
+            created_by = created_by, source_identity = source_identity,
+            transaction_open = TRUE
           )
         }
         list(result = r0, artifact_id = a0)
@@ -515,4 +533,5 @@ wb_ingest_apply <- function(bundle,
   )
   attr(res, "ingest_report_artifact_id") <- as.character(artifact_id %||% NA_character_)[1]
   res
+  })
 }

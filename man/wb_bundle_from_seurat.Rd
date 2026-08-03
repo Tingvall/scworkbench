@@ -9,6 +9,7 @@ wb_bundle_from_seurat(
   bundle_dir,
   assays = NULL,
   layers = "counts",
+  matrix_specs = NULL,
   reductions = NULL,
   metadata_cols = NULL,
   categorical_cols = NULL,
@@ -16,7 +17,8 @@ wb_bundle_from_seurat(
   dataset_col = NULL,
   overwrite = FALSE,
   created_by = NULL,
-  emit_report_artifact = TRUE
+  emit_report_artifact = TRUE,
+  source_identity = NULL
 )
 }
 \arguments{
@@ -27,6 +29,10 @@ wb_bundle_from_seurat(
 \item{assays}{Assay names to import; defaults to all assays.}
 
 \item{layers}{Layer/slot name, or named assay-to-layer mapping.}
+
+\item{matrix_specs}{Optional compatibility publication specifications from
+\code{\link[=wb_matrix_spec]{wb_matrix_spec()}}. When supplied, their matrix IDs, assays, layers,
+feature types, and descriptions are authoritative.}
 
 \item{reductions}{Reduced-dimension names to import; defaults to all.}
 
@@ -43,6 +49,9 @@ wb_bundle_from_seurat(
 \item{created_by}{Optional provenance actor.}
 
 \item{emit_report_artifact}{Whether to promote an ingest report artifact.}
+
+\item{source_identity}{Optional immutable source declaration. In-memory and
+RDS inputs receive a canonical declaration when omitted.}
 }
 \value{
 An open scworkbench bundle.

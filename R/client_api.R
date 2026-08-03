@@ -24,7 +24,18 @@ wb_client_discover <- function(bundle,
     spaces = wb_spaces(bundle),
     matrices = wb_matrices(bundle),
     cell_sets = wb_cell_sets(bundle),
-    ops = wb_ops()
+    ops = wb_ops(),
+    mutation_capabilities = list(
+      scientific_state_boundary = "provenance_only",
+      operation_execution = "wb_client_run -> wb_session_run_op",
+      durable_commit = "wb_client_promote -> wb_session_promote_current",
+      declared_ingestion = c(
+        "wb_bundle_from_10x_mtx", "wb_bundle_from_h5ad", "wb_bundle_from_sce",
+        "wb_bundle_from_seurat", "wb_ingest_apply", "wb_attach_apply"
+      ),
+      direct_mutating_implementation_calls = FALSE,
+      catalog = "wb_mutation_catalog_semantic"
+    )
   )
 
   if (isTRUE(include_op_interfaces)) {

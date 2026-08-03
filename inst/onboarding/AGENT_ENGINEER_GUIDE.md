@@ -39,6 +39,18 @@ Role: extend and stabilize engine + thin clients.
 5. Mutation safety
 - Provide plan APIs for destructive actions.
 - Require explicit recursive/force semantics where relevant.
+- Treat an opened bundle as committed state. Mutating `wb_op_*` implementations,
+  registry writers, and matrix/space/model payload writers do not accept direct
+  committed calls. Run registered analysis with `wb_session_run_op()` (or
+  `wb_client_run()`) and commit it with `wb_session_promote_current()` (or
+  `wb_client_promote()`).
+- Use `wb_attach_apply()`, `wb_ingest_apply()`, or `wb_bundle_from_*()` only for
+  declared ingestion. The handle returned by `wb_init_bundle()` is the bounded
+  assembly transaction; reopening that path returns a committed handle and does
+  not restore low-level writer authority.
+- Do not emulate engine authority with options or flags. The writer capability
+  is package-private, connection-bound, and dynamically scoped to the registered
+  runner, promotion, or ingestion transaction.
 
 ## Standard Engineer Loop
 
@@ -105,6 +117,7 @@ When adding or changing a surface, update the corresponding semantic contract:
 - promoted table outputs: artifact type catalog / known table-type coverage
 - recurring parameters: parameter semantics catalog
 - reusable workflows: recipe semantics catalog
+- scientific mutation ownership: mutation route catalog
 
 Run this before considering the change complete:
 
@@ -115,6 +128,11 @@ wb_refresh_semantic_catalogs()
 The command regenerates semantic docs/JSON, validates generated JSON, and fails
 if the coverage audit detects a missing op, plot mapper, primitive constructor,
 known table type, required parameter/recipe, or invalid graph edge.
+
+`wb_mutation_catalog_semantic()` separately inventories every exported
+`wb_op_*`, registry writer, matrix/space/model writer, attachment API, and
+primitive payload writer. Its invariant requires exactly one supported
+provenance-producing route for each meaningful public transformation.
 
 ## Done Criteria
 

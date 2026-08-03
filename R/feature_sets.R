@@ -275,6 +275,9 @@ wb_feature_set_replace <- function(bundle,
                                    recipe = NULL,
                                    is_readonly = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Feature-set registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "the registered feature_set_import operation through wb_session_run_op() and promotion")
   .wb_assert(is.character(feature_set) && length(feature_set) == 1 && nzchar(feature_set), "feature_set invalid")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id), "matrix_id invalid")
   .wb_assert(is.character(feature_ids), "feature_ids must be character (can be empty)")
@@ -443,6 +446,11 @@ wb_feature_set_import_table <- function(bundle,
   .wb_assert(is.data.frame(table), "table must be data.frame")
   .wb_assert("feature_set" %in% names(table), "table must include feature_set column")
 
+  .wb_with_mutation_context(bundle = bundle, route = "ingestion", code = {
+  old_transaction_option <- getOption("scworkbench.registry_replay_transaction_open")
+  options(scworkbench.registry_replay_transaction_open = TRUE)
+  on.exit(options(scworkbench.registry_replay_transaction_open = old_transaction_option), add = TRUE)
+  DBI::dbWithTransaction(bundle$con, {
   tab <- table
   tab$feature_set <- as.character(tab$feature_set)
   tab <- tab[nzchar(tab$feature_set), , drop = FALSE]
@@ -506,7 +514,17 @@ wb_feature_set_import_table <- function(bundle,
     out[[i]] <- if (nrow(row)) row[1, , drop = FALSE] else data.frame(feature_set = nm, matrix_id = matrix_id)
   }
 
-  do.call(rbind, out)
+  result <- do.call(rbind, out)
+  .wb_record_declared_ingestion(
+    bundle = bundle, transaction_name = "feature_set_import_table",
+    source = "feature_set_table", created_by = created_by,
+    additional_outputs = list(registry_manifest = wb_prim_obs_table(
+      result, table_type = "feature_set_import_manifest", entity_kind = "feature_set"
+    )), transaction_open = TRUE
+  )
+  result
+  })
+  })
 }
 
 #' Import Feature Sets From A Named List
@@ -549,6 +567,11 @@ wb_feature_set_import_list <- function(bundle,
   .wb_assert(is.character(namespace) && length(namespace) == 1 && nzchar(namespace),
              "namespace must be a single non-empty string")
 
+  .wb_with_mutation_context(bundle = bundle, route = "ingestion", code = {
+  old_transaction_option <- getOption("scworkbench.registry_replay_transaction_open")
+  options(scworkbench.registry_replay_transaction_open = TRUE)
+  on.exit(options(scworkbench.registry_replay_transaction_open = old_transaction_option), add = TRUE)
+  DBI::dbWithTransaction(bundle$con, {
   set_names <- as.character(nms)
   out <- vector("list", length(set_names))
   for (i in seq_along(set_names)) {
@@ -575,7 +598,17 @@ wb_feature_set_import_list <- function(bundle,
     out[[i]] <- if (nrow(row)) row[1, , drop = FALSE] else data.frame(feature_set = nm, matrix_id = matrix_id)
   }
 
-  do.call(rbind, out)
+  result <- do.call(rbind, out)
+  .wb_record_declared_ingestion(
+    bundle = bundle, transaction_name = "feature_set_import_list",
+    source = namespace, created_by = created_by,
+    additional_outputs = list(registry_manifest = wb_prim_obs_table(
+      result, table_type = "feature_set_import_manifest", entity_kind = "feature_set"
+    )), transaction_open = TRUE
+  )
+  result
+  })
+  })
 }
 
 #' Delete A Feature Set
@@ -593,6 +626,9 @@ wb_feature_set_import_list <- function(bundle,
 #' @export
 wb_feature_set_delete <- function(bundle, feature_set, matrix_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_assert_mutation_context(bundle = bundle, action = "Feature-set registry mutation",
+    allowed = c("assembly", "session_execution", "promotion", "ingestion"),
+    replacement = "a registered feature-set operation through wb_session_run_op() and promotion")
   .wb_assert(is.character(feature_set) && length(feature_set) == 1 && nzchar(feature_set), "feature_set invalid")
 
   con <- bundle$con

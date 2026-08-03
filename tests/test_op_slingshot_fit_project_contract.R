@@ -158,19 +158,24 @@ test_op_slingshot_fit_project_contract <- function(bundle_dir) {
       min = l1_min
     )
   stopifnot(length(l1_cells) > 0L)
-  derived <- wb_cell_set_derive(
-    bundle = b,
-    cell_set = "set:test_slingshot_l1_weight_universe",
-    cells = l1_cells,
-    role = "analysis_universe",
-    status = "candidate",
-    created_by = "test",
-    description = "Derived from promoted Slingshot L1 lineage weights"
+  derived_run <- wb_session_run_op(
+    session = wb_session_new(), bundle = b, op_name = "cell_set_derive",
+    inputs = list(
+      target_cell_set = "set:test_slingshot_l1_weight_universe",
+      cell_ids = l1_cells, cell_set = "all", role = "analysis_universe",
+      status = "candidate", created_by = "test",
+      description = "Derived from promoted Slingshot L1 lineage weights",
+      recipe = wb_sel_recipe(l1_cells)
+    )
   )
-  manifest <- derived$outputs$manifest$table
+  manifest <- derived_run$result$outputs$manifest$table
   stopifnot(nrow(manifest) == 1L)
   stopifnot(isTRUE(manifest$recipe_available[1]))
   stopifnot(identical(as.character(manifest$derivation_type[1]), "selector_recipe"))
+  wb_session_promote_current(
+    b, derived_run$session, outputs = "manifest",
+    name_prefix = "test_slingshot_l1_weight_universe", created_by = "test"
+  )
 
   x_weights_from_model <- wb_session_run_op(
     session = s,

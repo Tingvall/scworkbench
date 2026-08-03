@@ -11,19 +11,19 @@ test_feature_sets_contract <- function(bundle_dir) {
   picks <- unique(as.character(feats[1:3]))
 
   nm <- ".__test_feature_set_contract__."
-  wb_feature_set_delete(b, feature_set = nm, matrix_id = mid)
+  direct <- try(wb_feature_set_replace(
+    b, feature_set = nm, matrix_id = mid, feature_ids = picks
+  ), silent = TRUE)
+  stopifnot(inherits(direct, "try-error"))
 
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = nm,
-    matrix_id = mid,
-    feature_ids = picks,
-    created_by = "test",
-    description = "feature set contract test",
-    namespace = "user",
-    organism = "human",
-    origin = "manual",
-    strict = TRUE
+  wb_feature_set_import_table(
+    bundle = b, matrix_id = mid,
+    table = data.frame(
+      feature_set = nm, feature_id = picks, namespace = "user",
+      organism = "human", origin = "imported",
+      description = "feature set contract test", stringsAsFactors = FALSE
+    ),
+    created_by = "test", strict = TRUE, is_readonly = FALSE
   )
 
   got <- wb_feature_set_get(b, feature_set = nm, matrix_id = mid)
@@ -36,28 +36,26 @@ test_feature_sets_contract <- function(bundle_dir) {
   stopifnot(as.integer(row$n_features[1]) == length(picks))
   stopifnot(identical(as.character(row$namespace[1]), "user"))
   stopifnot(identical(as.character(row$organism[1]), "human"))
-  stopifnot(identical(as.character(row$origin[1]), "manual"))
+  stopifnot(identical(as.character(row$origin[1]), "imported"))
 
   info <- wb_feature_set_info(b, feature_set = nm, matrix_id = mid)
   stopifnot(nrow(info) == 1)
   stopifnot(identical(as.character(info$feature_set[1]), nm))
 
   # strict=FALSE should silently drop unknown features
-  wb_feature_set_replace(
-    bundle = b,
-    feature_set = nm,
-    matrix_id = mid,
-    feature_ids = c(picks[1], ".__missing_feature__."),
-    created_by = "test",
-    description = "non-strict drop unknown",
-    strict = FALSE
+  wb_feature_set_import_table(
+    bundle = b, matrix_id = mid,
+    table = data.frame(
+      feature_set = nm, feature_id = c(picks[1], ".__missing_feature__."),
+      description = "non-strict drop unknown", stringsAsFactors = FALSE
+    ),
+    created_by = "test", strict = FALSE, is_readonly = FALSE
   )
   got2 <- wb_feature_set_get(b, feature_set = nm, matrix_id = mid)
   stopifnot(identical(got2, picks[1]))
 
   # import table (long format)
   nm2 <- ".__test_feature_set_import__."
-  wb_feature_set_delete(b, feature_set = nm2, matrix_id = mid)
   imp <- data.frame(
     feature_set = c(nm2, nm2),
     feature_id = picks[1:2],
@@ -86,8 +84,6 @@ test_feature_sets_contract <- function(bundle_dir) {
   # import named list (single namespace for all sets)
   nm3 <- ".__test_feature_set_list_a__."
   nm4 <- ".__test_feature_set_list_b__."
-  wb_feature_set_delete(b, feature_set = nm3, matrix_id = mid)
-  wb_feature_set_delete(b, feature_set = nm4, matrix_id = mid)
   imp_list <- list()
   imp_list[[nm3]] <- picks[1:2]
   imp_list[[nm4]] <- picks[2:3]
@@ -111,23 +107,19 @@ test_feature_sets_contract <- function(bundle_dir) {
   stopifnot(identical(as.integer(info3$is_readonly[1]), 1L))
 
   err <- try(
-    wb_feature_set_replace(
-      bundle = b,
-      feature_set = nm,
-      matrix_id = mid,
-      feature_ids = c(picks[1], ".__missing_feature__."),
-      strict = TRUE
+    wb_feature_set_import_table(
+      bundle = b, matrix_id = mid,
+      table = data.frame(
+        feature_set = nm, feature_id = c(picks[1], ".__missing_feature__."),
+        stringsAsFactors = FALSE
+      ), strict = TRUE, is_readonly = FALSE
     ),
     silent = TRUE
   )
   stopifnot(inherits(err, "try-error"))
 
-  wb_feature_set_delete(b, feature_set = nm, matrix_id = mid)
-  wb_feature_set_delete(b, feature_set = nm2, matrix_id = mid)
-  wb_feature_set_delete(b, feature_set = nm3, matrix_id = mid)
-  wb_feature_set_delete(b, feature_set = nm4, matrix_id = mid)
-  gone <- wb_feature_set_get(b, feature_set = nm, matrix_id = mid)
-  stopifnot(is.character(gone), length(gone) == 0)
+  delete_err <- try(wb_feature_set_delete(b, feature_set = nm, matrix_id = mid), silent = TRUE)
+  stopifnot(inherits(delete_err, "try-error"))
 
   TRUE
 }

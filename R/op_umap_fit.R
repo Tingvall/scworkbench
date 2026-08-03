@@ -77,6 +77,7 @@ wb_op_umap_fit <- function(bundle,
                            seed = 1,
                            verbose = FALSE) {
 
+  .wb_assert_operation_execution(bundle, "umap_fit")
   .wb_require_pkg("uwot", "UMAP fitting")
   nn_method <- .wb_umap_preflight(nn_method)
 
