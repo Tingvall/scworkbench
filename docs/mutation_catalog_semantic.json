@@ -1,8 +1,10 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
-  "generated_at": "2026-08-03T09:25:09+0200",
-  "record_count": 135,
-  "meaningful_public_transformation_count": 49,
+  "generated_at": "2026-08-03T11:22:51+0200",
+  "record_count": 137,
+  "meaningful_public_transformation_count": 51,
+  "exported_guarded_function_count": 26,
+  "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_matrix_log_normalize", "wb_op_palantir_fit", "wb_op_palantir_project", "wb_op_pca_fit", "wb_op_peakvi_project", "wb_op_umap_fit", "wb_op_umap_transform", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
   "invariant": {
     "name": "one_supported_provenance_route_per_public_meaningful_transformation",
     "ok": true,
@@ -1447,6 +1449,30 @@
       "supported_route": "declared_ingestion_transaction",
       "supported_route_count": 1,
       "boundary": "public_transaction",
+      "direct_committed_write": false
+    },
+    {
+      "interface_id": "attachment_ingestion:wb_publish_app_bundle",
+      "function_name": "wb_publish_app_bundle",
+      "category": "attachment_ingestion",
+      "exported": true,
+      "implemented": true,
+      "durable_mutation": true,
+      "supported_route": "declared_ingestion_transaction",
+      "supported_route_count": 1,
+      "boundary": "public_transaction",
+      "direct_committed_write": false
+    },
+    {
+      "interface_id": "guarded_derived_state_writer:wb_refresh_manifest",
+      "function_name": "wb_refresh_manifest",
+      "category": "guarded_derived_state_writer",
+      "exported": true,
+      "implemented": true,
+      "durable_mutation": true,
+      "supported_route": "engine_guarded_internal_refresh",
+      "supported_route_count": 1,
+      "boundary": "guarded_internal",
       "direct_committed_write": false
     },
     {

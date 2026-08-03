@@ -167,6 +167,7 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
     identical(capabilities$direct_mutating_implementation_calls, FALSE)
   )
   records <- catalog$records
+  cataloged_functions <- vapply(records, function(x) x$function_name, character(1))
   cataloged_ops <- vapply(Filter(function(x) identical(x$category, "operation_implementation"), records),
     function(x) x$function_name, character(1))
   stopifnot(setequal(sort(getNamespaceExports("scworkbench")[startsWith(getNamespaceExports("scworkbench"), "wb_op_")]), sort(cataloged_ops)))
@@ -174,8 +175,41 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
     "^wb_(attach_|ingest_|bundle_from_|define_cells)",
     getNamespaceExports("scworkbench"), value = TRUE
   )
-  cataloged_attachment <- vapply(records, function(x) x$function_name, character(1))
-  stopifnot(!length(setdiff(attachment_exports, cataloged_attachment)))
+  stopifnot(!length(setdiff(attachment_exports, cataloged_functions)))
+
+  # Completeness is derived from the exported function bodies themselves: no
+  # directly guarded writer can be omitted while the invariant remains green.
+  exports <- getNamespaceExports("scworkbench")
+  guard_calls <- c(".wb_assert_mutation_context", ".wb_assert_operation_execution")
+  exported_guarded <- sort(exports[vapply(exports, function(fn) {
+    value <- getExportedValue("scworkbench", fn)
+    is.function(value) && any(all.names(body(value), functions = TRUE) %in% guard_calls)
+  }, logical(1))])
+  stopifnot(
+    identical(exported_guarded, sort(catalog$exported_guarded_functions)),
+    identical(length(exported_guarded), catalog$exported_guarded_function_count),
+    !length(setdiff(exported_guarded, cataloged_functions))
+  )
+  refresh_record <- Filter(function(x) identical(x$function_name, "wb_refresh_manifest"), records)
+  publish_record <- Filter(function(x) identical(x$function_name, "wb_publish_app_bundle"), records)
+  stopifnot(
+    length(refresh_record) == 1L,
+    identical(refresh_record[[1]]$supported_route, "engine_guarded_internal_refresh"),
+    identical(refresh_record[[1]]$boundary, "guarded_internal"),
+    length(publish_record) == 1L,
+    identical(publish_record[[1]]$supported_route, "declared_ingestion_transaction"),
+    identical(publish_record[[1]]$boundary, "public_transaction")
+  )
+
+  generated_md <- tempfile(fileext = ".md")
+  generated_json <- tempfile(fileext = ".json")
+  wb_write_mutation_catalog_reference(generated_md, generated_json)
+  generated_lines <- readLines(generated_md, warn = FALSE)
+  stopifnot(
+    length(generated_lines) > 0L,
+    !any(grepl("[ \\t]+$", generated_lines)),
+    is.list(jsonlite::read_json(generated_json, simplifyVector = FALSE))
+  )
 
   client_source <- paste(readLines(file.path("R", "client_api.R"), warn = FALSE), collapse = "\n")
   stopifnot(

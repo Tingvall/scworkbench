@@ -265,6 +265,12 @@
     entity_kind = "ingest",
     meta = list(source_type = source_type, importer_version = .wb_ingest_version())
   )
+  space_outputs <- if (length(spaces_imported)) {
+    stats::setNames(
+      lapply(as.character(spaces_imported), wb_prim_space),
+      paste0("space_", as.character(spaces_imported))
+    )
+  } else list()
   run <- wb_new_run(
     op_name = paste0("bundle_ingest_", tolower(gsub("[^A-Za-z0-9]+", "_", source_type))),
     inputs = list(
@@ -273,7 +279,7 @@
       user_inputs = list(source_path = source_path)
     ),
     params = list(importer_version = .wb_ingest_version(), cell_id_policy = cell_id_policy, feature_id_policy = feature_id_policy, status = status, phase = phase),
-    outputs = list(ingest_report = prim),
+    outputs = c(list(ingest_report = prim), space_outputs),
     notes = "Container ingestion report"
   )
   artifact_id <- .wb_promote_obs_table(
@@ -890,6 +896,9 @@ wb_bundle_from_10x_mtx <- function(input,
 #' @param bundle_dir Destination bundle directory.
 #' @param assays Assay names to import; defaults to all assays.
 #' @param layers Layer/slot name, or named assay-to-layer mapping.
+#' @param matrix_specs Optional compatibility publication specifications from
+#'   [wb_matrix_spec()]. When supplied, their matrix IDs, assays, layers,
+#'   feature types, and descriptions are authoritative.
 #' @param reductions Reduced-dimension names to import; defaults to all.
 #' @param metadata_cols Optional metadata columns to retain.
 #' @param categorical_cols Metadata columns to materialize as cell sets.
@@ -898,12 +907,15 @@ wb_bundle_from_10x_mtx <- function(input,
 #' @param overwrite Whether an existing bundle directory may be replaced.
 #' @param created_by Optional provenance actor.
 #' @param emit_report_artifact Whether to promote an ingest report artifact.
+#' @param source_identity Optional immutable source declaration. In-memory and
+#'   RDS inputs receive a canonical declaration when omitted.
 #' @return An open scworkbench bundle.
 #' @export
 wb_bundle_from_seurat <- function(input,
                                   bundle_dir,
                                   assays = NULL,
                                   layers = "counts",
+                                  matrix_specs = NULL,
                                   reductions = NULL,
                                   metadata_cols = NULL,
                                   categorical_cols = NULL,
@@ -911,12 +923,31 @@ wb_bundle_from_seurat <- function(input,
                                   dataset_col = NULL,
                                   overwrite = FALSE,
                                   created_by = NULL,
-                                  emit_report_artifact = TRUE) {
+                                  emit_report_artifact = TRUE,
+                                  source_identity = NULL) {
   .wb_require_pkg("SeuratObject", "Seurat ingestion")
   .wb_require_pkg("Matrix", "Seurat ingestion")
   src <- .wb_ingest_source_object(input, "Seurat")
   seurat <- src$object
   .wb_assert(inherits(seurat, "Seurat"), "input must be a Seurat object or an .rds containing one")
+  if (is.null(source_identity)) {
+    source_input <- if (!is.null(src$source_path) && nzchar(src$source_path)) {
+      list(
+        path = src$source_path,
+        role = "source_object",
+        format = "rds",
+        checksum = .wb_prov_sha256_file(src$source_path),
+        checksum_algorithm = "sha256"
+      )
+    } else {
+      list(
+        uri = "scworkbench-ingestion://bundle_from_seurat/in-memory-seurat",
+        role = "source_object",
+        format = "Seurat"
+      )
+    }
+    source_identity <- list(source_type = "Seurat", inputs = list(source_input))
+  }
 
   bundle <- wb_init_bundle(bundle_dir, overwrite = overwrite)
   on.exit(try(wb_refresh_manifest(bundle), silent = TRUE), add = TRUE)
@@ -927,19 +958,42 @@ wb_bundle_from_seurat <- function(input,
   ds <- .wb_ingest_dataset_id(md, dataset_col = dataset_col, n = ncol(seurat))
   wb_define_cells(bundle, colnames(seurat), metadata = md, dataset_id = ds, set_name = "core", source = "seurat", created_by = created_by)
 
-  assays <- assays %||% names(seurat@assays)
   imported <- character(0)
-  for (assay in assays) {
-    lyr <- if (length(layers) == 1L) layers else layers[[assay]] %||% layers[[1]]
-    mat <- .get_assay_counts(seurat, assay = assay, layer_or_slot = lyr)
-    mat <- .align_matrix_to_ids(mat, rownames(mat), colnames(seurat))
-    matrix_id <- .wb_ingest_clean_id(if (length(assays) == 1L) assay else paste(assay, lyr, sep = "_"), "matrix")
-    .wb_ingest_matrix(bundle, matrix_id, mat, layer = lyr, source = "seurat", created_by = created_by)
-    imported <- c(imported, matrix_id)
+  if (!is.null(matrix_specs)) {
+    .wb_assert(is.list(matrix_specs), "matrix_specs must be a list")
+    for (spec in matrix_specs) {
+      .wb_assert(is.list(spec), "each matrix_specs entry must be a list")
+      wb_attach_matrix_from_seurat(
+        bundle = bundle,
+        seurat = seurat,
+        matrix_id = as.character(spec$matrix_id %||% "")[1],
+        assay = as.character(spec$seurat_assay %||% "")[1],
+        layer = as.character(spec$layer %||% layers %||% "counts")[1],
+        feature_type = as.character(spec$feature_type %||% "feature")[1],
+        description = spec$description %||% NULL,
+        source = "seurat",
+        created_by = created_by
+      )
+      imported <- c(imported, as.character(spec$matrix_id)[1])
+    }
+  } else {
+    assays <- assays %||% names(seurat@assays)
+    for (assay in assays) {
+      lyr <- if (length(layers) == 1L) layers else layers[[assay]] %||% layers[[1]]
+      mat <- .get_assay_counts(seurat, assay = assay, layer_or_slot = lyr)
+      mat <- .align_matrix_to_ids(mat, rownames(mat), colnames(seurat))
+      matrix_id <- .wb_ingest_clean_id(if (length(assays) == 1L) assay else paste(assay, lyr, sep = "_"), "matrix")
+      .wb_ingest_matrix(bundle, matrix_id, mat, layer = lyr, source = "seurat", created_by = created_by)
+      imported <- c(imported, matrix_id)
+    }
   }
 
   if (is.null(reductions)) reductions <- names(seurat@reductions)
-  spaces <- wb_attach_spaces_from_seurat(bundle, seurat, reductions = reductions, overwrite = FALSE, source = "seurat")
+  spaces <- if (length(reductions)) {
+    wb_attach_spaces_from_seurat(
+      bundle, seurat, reductions = reductions, overwrite = FALSE, source = "seurat"
+    )
+  } else list()
   space_ids <- names(spaces)
 
   if ("seurat_clusters" %in% names(md)) categorical_cols <- unique(c(categorical_cols, "seurat_clusters"))
@@ -957,7 +1011,8 @@ wb_bundle_from_seurat <- function(input,
       categorical_sets = cat_sets,
       unsupported = list(misc = "not imported", graphs = "not imported", commands = "not imported"),
       created_by = created_by,
-      matrix_ids = imported
+      matrix_ids = imported,
+      source_identity = source_identity
     )
   }
   bundle

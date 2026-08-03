@@ -30,8 +30,9 @@
     "wb_attach_spaces_from_seurat", "wb_attach_metadata", "wb_ingest_apply",
     "wb_ingest_validate", "wb_ingest_normalize", "wb_ingest_report",
     "wb_ingest_reports", "wb_ingest_cells", "wb_bundle_from_10x_mtx", "wb_bundle_from_h5ad",
-    "wb_bundle_from_sce", "wb_bundle_from_seurat"
+    "wb_bundle_from_sce", "wb_bundle_from_seurat", "wb_publish_app_bundle"
   ),
+  guarded_derived_state_writer = c("wb_refresh_manifest"),
   primitive_payload_writer = c(
     "wb_promote_analysis", "wb_session_promote_current", "wb_client_promote",
     "wb_write_cell_vector", "wb_register_cell_vector",
@@ -53,13 +54,14 @@
     "wb_attach_apply", "wb_attach_matrix", "wb_attach_matrix_from_seurat",
     "wb_attach_space", "wb_attach_spaces_from_seurat", "wb_attach_metadata",
     "wb_ingest_apply", "wb_bundle_from_10x_mtx", "wb_bundle_from_h5ad",
-    "wb_bundle_from_sce", "wb_bundle_from_seurat",
+    "wb_bundle_from_sce", "wb_bundle_from_seurat", "wb_publish_app_bundle",
     "wb_attach_cell_vector",
     "wb_feature_set_import_table", "wb_feature_set_import_list",
     "wb_motif_library_import_jaspar"
   )
   promotion <- c("wb_promote_analysis", "wb_session_promote_current", "wb_client_promote")
   administrative <- c("wb_repair_model_ref_paths")
+  guarded_derived_state <- c("wb_refresh_manifest")
   assembly_only <- c(
     "wb_add_space", "wb_register_matrix_fragment", "wb_attach_to_cells",
     "wb_ingest_cells", "wb_matrix_set_genome",
@@ -71,6 +73,13 @@
   }
   if (function_name %in% administrative) {
     return(list(durable = FALSE, route = "explicit_administrative_repair", boundary = "administrative_non_scientific"))
+  }
+  if (function_name %in% guarded_derived_state) {
+    return(list(
+      durable = TRUE,
+      route = "engine_guarded_internal_refresh",
+      boundary = "guarded_internal"
+    ))
   }
   if (function_name %in% declared_ingestion) {
     return(list(durable = TRUE, route = "declared_ingestion_transaction", boundary = "public_transaction"))
@@ -104,6 +113,11 @@
 wb_mutation_catalog_semantic <- function() {
   exports <- getNamespaceExports("scworkbench")
   exported_ops <- sort(exports[startsWith(exports, "wb_op_")])
+  guard_calls <- c(".wb_assert_mutation_context", ".wb_assert_operation_execution")
+  exported_guarded <- sort(exports[vapply(exports, function(fn) {
+    value <- getExportedValue("scworkbench", fn)
+    is.function(value) && any(all.names(body(value), functions = TRUE) %in% guard_calls)
+  }, logical(1))])
   groups <- .wb_mutation_inventory_groups()
   records <- list()
 
@@ -133,18 +147,25 @@ wb_mutation_catalog_semantic <- function() {
   meaningful <- Filter(function(x) isTRUE(x$exported) && isTRUE(x$durable_mutation), recs)
   bad <- Filter(function(x) !identical(as.integer(x$supported_route_count), 1L), meaningful)
   missing <- Filter(function(x) !isTRUE(x$implemented), recs)
+  cataloged_functions <- vapply(recs, function(x) x$function_name, character(1))
+  missing_guarded <- setdiff(exported_guarded, cataloged_functions)
   list(
     schema_version = "scworkbench.mutation_catalog.semantic.v1",
     generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
     record_count = length(recs),
     meaningful_public_transformation_count = length(meaningful),
+    exported_guarded_function_count = length(exported_guarded),
+    exported_guarded_functions = exported_guarded,
     invariant = list(
       name = "one_supported_provenance_route_per_public_meaningful_transformation",
-      ok = !length(bad) && !length(missing),
+      ok = !length(bad) && !length(missing) && !length(missing_guarded),
       violation_ids = c(
         vapply(bad, function(x) x$interface_id, character(1)),
         if (length(missing)) {
           paste0("missing_implementation:", vapply(missing, function(x) x$interface_id, character(1)))
+        } else character(0),
+        if (length(missing_guarded)) {
+          paste0("uncataloged_exported_guard:", missing_guarded)
         } else character(0)
       )
     ),
@@ -158,6 +179,7 @@ wb_mutation_catalog_semantic <- function() {
     "<!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->", "",
     paste0("Record count: ", catalog$record_count), "",
     paste0("Meaningful public transformations: ", catalog$meaningful_public_transformation_count), "",
+    paste0("Exported directly guarded functions: ", catalog$exported_guarded_function_count), "",
     paste0("Exactly-one-route invariant: ", if (isTRUE(catalog$invariant$ok)) "PASS" else "FAIL"), ""
   )
   for (rec in catalog$records) {
@@ -188,7 +210,8 @@ wb_write_mutation_catalog_reference <- function(
   .wb_assert(isTRUE(catalog$invariant$ok), "Scientific mutation route catalog invariant failed.")
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_mutation_catalog_reference_lines(catalog), path_md, useBytes = TRUE)
+    markdown_lines <- sub("[[:blank:]]+$", "", .wb_mutation_catalog_reference_lines(catalog))
+    writeLines(markdown_lines, path_md, useBytes = TRUE)
   }
   if (!is.null(path_json)) {
     dir.create(dirname(path_json), recursive = TRUE, showWarnings = FALSE)

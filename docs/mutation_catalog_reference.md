@@ -2,9 +2,11 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 135
+Record count: 137
 
-Meaningful public transformations: 49
+Meaningful public transformations: 51
+
+Exported directly guarded functions: 26
 
 Exactly-one-route invariant: PASS
 
@@ -1687,6 +1689,34 @@ Durable mutation: true
 Boundary: `public_transaction`
 
 Supported route: `declared_ingestion_transaction`
+
+## `wb_publish_app_bundle`
+
+Category: attachment_ingestion
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `declared_ingestion_transaction`
+
+## `wb_refresh_manifest`
+
+Category: guarded_derived_state_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `guarded_internal`
+
+Supported route: `engine_guarded_internal_refresh`
 
 ## `wb_promote_analysis`
 
