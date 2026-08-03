@@ -41,9 +41,10 @@ resources.
 
 An existing reader connection may continue reading committed SQLite state
 during a writer; it sees SQLite's normal pre-commit or post-commit snapshot and
-never gains mutation authority. Session execution reads the committed source
-without taking its lock and serializes only writes to that session's private
-staging bundle.
+never gains mutation authority. Session staging takes the source lock only
+briefly while checkpointing and copying one coherent committed snapshot, then
+releases it before operation execution. Computation and writes after that point
+use only the session's private staging bundle.
 
 A new writable open runs guarded migrations and therefore waits for the writer
 lock. Recipient `read_only = TRUE` open is stricter: it refuses while any
