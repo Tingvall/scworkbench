@@ -233,5 +233,6 @@ invisible(wb_promote_analysis(
 ))
 
 wb_refresh_manifest(b)
+wb_close_bundle(b)
 
 cat("golden_bundle=", out_dir, "\n", sep = "")

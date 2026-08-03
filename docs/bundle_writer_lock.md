@@ -13,7 +13,10 @@ For a bundle `/data/example`, the lock is the sibling directory
 `/data/.example.scworkbench-writer-lock`. Atomic directory creation is the
 portable exclusion operation. `owner.json` inside that directory records the
 schema version, random ownership token, canonical bundle path, PID, host, user,
-operation, acquisition time, R version, platform, command, and package version.
+operation, acquisition time, R version, platform, command, package version, and
+a process-birth fingerprint where the platform exposes one. Linux records the
+boot identity together with the process start time from `/proc/<pid>/stat`, so
+a reused PID is not mistaken for the original owner.
 
 The lock is intentionally outside the bundle. It is not scientific state, is
 not listed by the manifest, does not move with staged bundle publication, and
@@ -22,6 +25,13 @@ re-entrant for one bundle. If a process already holds another bundle lock, a
 second acquisition is try-lock only: it may acquire a free lock but never waits
 while retaining the first. Therefore a cross-bundle wait cycle cannot form.
 This also supports a committed source plus its unshared session-staging lock.
+
+Release never deletes the shared lock name after a separate ownership check.
+It atomically renames that name to a token-specific private release path,
+verifies the moved owner token, and deletes only the verified private path. A
+mismatched directory is restored when safe or retained in private quarantine;
+another owner's directory is never deleted. Acquisition-failure cleanup uses
+the same rule.
 
 The invariant is:
 
@@ -42,9 +52,10 @@ resources.
 An existing reader connection may continue reading committed SQLite state
 during a writer; it sees SQLite's normal pre-commit or post-commit snapshot and
 never gains mutation authority. Session staging takes the source lock only
-briefly while checkpointing and copying one coherent committed snapshot, then
-releases it before operation execution. Computation and writes after that point
-use only the session's private staging bundle.
+briefly while an SQLite online backup captures one WAL-correct committed
+database snapshot and the matching manifest/payload inventory, then releases it
+before operation execution. Computation and writes after that point use only the
+session's private staging bundle.
 
 A new writable open runs guarded migrations and therefore waits for the writer
 lock. Recipient `read_only = TRUE` open is stricter: it refuses while any
@@ -52,6 +63,12 @@ writer lock is present because a transfer/immutable view must be stable.
 `wb_recipient_readiness()` likewise reports `ready = FALSE` for an externally
 owned active writer. After finalization and lock release, immutable recipient
 open proceeds normally.
+
+`read_only = TRUE` is an open-time stability check, not an ongoing shared-reader
+lease. It does not register or revoke an ordinary reader and cannot prevent a
+later writer. Immutable recipient inspection therefore depends on a finalized
+bundle being mounted read-only or protected by filesystem permissions after it
+is opened.
 
 ## Timeout and diagnosis
 
@@ -71,9 +88,15 @@ candidate.
 ## Crash and stale-lock recovery
 
 `wb_bundle_writer_lock_info()` reports a same-host owner as `live` or `dead`.
-Remote/unverifiable owners are `unknown`. A dead same-host owner is immediately
-a stale candidate. An unknown owner becomes a stale candidate only after
-`stale_after_seconds` (default 3600), and still requires an explicit override.
+When present, the process-birth fingerprint must match as well as the PID; a
+mismatch is dead even if that PID is currently live. Permission-denied and
+otherwise ambiguous probes are `unknown`, never dead. Metadata from older
+versions without a fingerprint is conservative: an authoritative extant PID is
+live, an authoritative absence is dead, and ambiguous evidence remains unknown.
+Remote/unverifiable owners are also `unknown`. A dead same-host owner is
+immediately a stale candidate. An unknown owner becomes a stale candidate only
+after `stale_after_seconds` (default 3600), and still requires an explicit
+override.
 
 Recovery is a separate administrative action:
 

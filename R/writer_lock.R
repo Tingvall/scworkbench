@@ -55,6 +55,34 @@
   )
 }
 
+.wb_writer_lock_linux_birth <- function(pid = Sys.getpid()) {
+  if (!identical(Sys.info()[["sysname"]], "Linux")) return(NULL)
+  pid <- suppressWarnings(as.integer(pid)[1])
+  if (is.na(pid) || pid < 1L) return(NULL)
+  boot_path <- "/proc/sys/kernel/random/boot_id"
+  stat_path <- file.path("/proc", as.character(pid), "stat")
+  boot_id <- tryCatch(trimws(suppressWarnings(readLines(boot_path, n = 1L, warn = FALSE))), error = function(e) "")
+  stat <- tryCatch(suppressWarnings(readLines(stat_path, n = 1L, warn = FALSE)), error = function(e) character(0))
+  if (!nzchar(boot_id) || length(stat) != 1L || !grepl("[)] ", stat, fixed = FALSE)) return(NULL)
+  # /proc/<pid>/stat field two is parenthesized and may itself contain spaces.
+  # Removing through the final close-paren leaves fields 3 onward; process
+  # start time is field 22, hence element 20 of this remainder.
+  remainder <- sub("^.*[)] ", "", stat)
+  fields <- strsplit(remainder, "[[:space:]]+")[[1]]
+  if (length(fields) < 20L || !nzchar(fields[[20L]])) return(NULL)
+  list(
+    scheme = "linux_boot_id_proc_start_v1",
+    boot_id = boot_id,
+    start_ticks = fields[[20L]],
+    state = fields[[1L]],
+    fingerprint = paste(boot_id, fields[[20L]], sep = ":")
+  )
+}
+
+.wb_writer_lock_process_birth <- function(pid = Sys.getpid()) {
+  .wb_writer_lock_linux_birth(pid)
+}
+
 .wb_writer_lock_metadata <- function(target, token, operation) {
   info <- Sys.info()
   list(
@@ -70,7 +98,8 @@
     r_version = R.version.string,
     platform = R.version$platform,
     command = paste(commandArgs(), collapse = " "),
-    package_version = tryCatch(as.character(utils::packageVersion("scworkbench")), error = function(e) NA_character_)
+    package_version = tryCatch(as.character(utils::packageVersion("scworkbench")), error = function(e) NA_character_),
+    process_birth = .wb_writer_lock_process_birth(Sys.getpid())
   )
 }
 
@@ -91,7 +120,73 @@
   )
 }
 
-.wb_writer_lock_pid_status <- function(metadata) {
+.wb_writer_lock_unix_kill_probe <- function(pid) {
+  output <- tryCatch(
+    suppressWarnings(system2("kill", c("-0", as.character(pid)), stdout = TRUE, stderr = TRUE)),
+    error = function(e) structure(conditionMessage(e), status = NA_integer_)
+  )
+  status <- attr(output, "status", exact = TRUE)
+  if (is.null(status)) status <- 0L
+  text <- paste(as.character(output), collapse = " ")
+  if (identical(as.integer(status), 0L)) return(list(status = "live", detail = "kill -0 succeeded"))
+  if (grepl("[Nn]o such process|[Nn]o such file", text)) {
+    return(list(status = "dead", detail = text))
+  }
+  # EPERM, translated permission messages, missing probes, and any unfamiliar
+  # failure are deliberately ambiguous. They must never authorize recovery as
+  # a verified-dead owner.
+  list(status = "unknown", detail = text)
+}
+
+.wb_writer_lock_process_probe <- function(pid) {
+  pid <- suppressWarnings(as.integer(pid)[1])
+  if (is.na(pid) || pid < 1L) {
+    return(list(status = "unknown", birth_fingerprint = NA_character_, detail = "invalid pid"))
+  }
+  if (identical(Sys.info()[["sysname"]], "Linux")) {
+    birth <- .wb_writer_lock_linux_birth(pid)
+    if (!is.null(birth)) {
+      status <- if (identical(as.character(birth$state), "Z")) "dead" else "live"
+      return(list(
+        status = status,
+        birth_fingerprint = as.character(birth$fingerprint),
+        detail = if (identical(status, "dead")) "Linux process is a zombie" else "Linux /proc identity is readable"
+      ))
+    }
+    proc_path <- file.path("/proc", as.character(pid))
+    return(list(
+      status = if (dir.exists(proc_path)) "unknown" else "dead",
+      birth_fingerprint = NA_character_,
+      detail = if (dir.exists(proc_path)) "Linux process exists but birth identity is unreadable" else "Linux process directory is absent"
+    ))
+  }
+  if (.Platform$OS.type == "windows") {
+    output <- tryCatch(
+      suppressWarnings(system2("tasklist", c("/FI", shQuote(paste0("PID eq ", pid)), "/NH"), stdout = TRUE, stderr = TRUE)),
+      error = function(e) character(0)
+    )
+    text <- paste(output, collapse = " ")
+    status <- if (any(grepl(paste0("(^|[[:space:]])", pid, "([[:space:]]|$)"), output))) {
+      "live"
+    } else if (grepl("[Nn]o tasks are running", text)) {
+      "dead"
+    } else {
+      "unknown"
+    }
+    return(list(status = status, birth_fingerprint = NA_character_, detail = text))
+  }
+  probe <- .wb_writer_lock_unix_kill_probe(pid)
+  list(status = probe$status, birth_fingerprint = NA_character_, detail = probe$detail)
+}
+
+.wb_writer_lock_birth_fingerprint <- function(metadata) {
+  birth <- metadata$process_birth %||% NULL
+  if (is.null(birth)) return(NA_character_)
+  value <- as.character(birth$fingerprint %||% NA_character_)[1]
+  if (is.na(value) || !nzchar(value)) NA_character_ else value
+}
+
+.wb_writer_lock_pid_status <- function(metadata, probe = .wb_writer_lock_process_probe) {
   if (is.null(metadata)) return("unknown")
   owner_host <- as.character(metadata$host %||% "")[1]
   current_host <- as.character(Sys.info()[["nodename"]] %||% "")[1]
@@ -99,20 +194,23 @@
   if (!nzchar(owner_host) || !identical(owner_host, current_host) || is.na(pid) || pid < 1L) {
     return("unknown")
   }
-  if (identical(pid, as.integer(Sys.getpid()))) return("live")
-  if (.Platform$OS.type == "windows") {
-    output <- tryCatch(
-      suppressWarnings(system2("tasklist", c("/FI", shQuote(paste0("PID eq ", pid)), "/NH"), stdout = TRUE, stderr = TRUE)),
-      error = function(e) character(0)
-    )
-    if (!length(output)) return("unknown")
-    return(if (any(grepl(paste0("(^|[[:space:]])", pid, "([[:space:]]|$)"), output))) "live" else "dead")
+  observed <- tryCatch(probe(pid), error = function(e) {
+    list(status = "unknown", birth_fingerprint = NA_character_, detail = conditionMessage(e))
+  })
+  status <- as.character(observed$status %||% "unknown")[1]
+  if (!status %in% c("live", "dead", "unknown")) status <- "unknown"
+  expected_birth <- .wb_writer_lock_birth_fingerprint(metadata)
+  observed_birth <- as.character(observed$birth_fingerprint %||% NA_character_)[1]
+  observed_birth <- if (is.na(observed_birth) || !nzchar(observed_birth)) NA_character_ else observed_birth
+
+  if (!is.na(expected_birth)) {
+    if (!is.na(observed_birth) && !identical(expected_birth, observed_birth)) return("dead")
+    if (is.na(observed_birth) && !identical(status, "dead")) return("unknown")
   }
-  status <- tryCatch(
-    suppressWarnings(system2("kill", c("-0", as.character(pid)), stdout = FALSE, stderr = FALSE)),
-    error = function(e) NA_integer_
-  )
-  if (is.na(status)) "unknown" else if (identical(as.integer(status), 0L)) "live" else "dead"
+  # Metadata written before process-birth fingerprints existed remains
+  # conservative: an extant PID is live, an authoritative absence is dead,
+  # and permission/probe ambiguity remains unknown.
+  status
 }
 
 .wb_writer_lock_age <- function(lock_path, metadata) {
@@ -188,6 +286,66 @@ wb_bundle_writer_lock_info <- function(bundle_or_dir, stale_after_seconds = 3600
   )
 }
 
+.wb_writer_lock_private_path <- function(lock_path, action, token) {
+  file.path(
+    dirname(lock_path),
+    paste0(basename(lock_path), ".", action, "-", token)
+  )
+}
+
+.wb_writer_lock_moved_token_matches <- function(path, token, allow_pending = FALSE) {
+  metadata <- .wb_writer_lock_read_metadata(path)
+  if (!is.null(metadata) && identical(as.character(metadata$owner_token), as.character(token))) {
+    return(TRUE)
+  }
+  isTRUE(allow_pending) && file.exists(file.path(path, paste0("owner.json.tmp-", token)))
+}
+
+.wb_writer_lock_test_hook <- function(event, ...) {
+  hook <- getOption("scworkbench.writer_lock_test_hook")
+  if (is.function(hook)) hook(event = event, ...)
+  invisible(TRUE)
+}
+
+# Retire only a directory whose ownership token is verified after it has been
+# atomically removed from the shared lock name. A mismatched directory is
+# restored when possible and otherwise preserved at its private quarantine
+# path; it is never deleted.
+.wb_writer_lock_retire_shared <- function(lock_path,
+                                          token,
+                                          action,
+                                          allow_pending = FALSE) {
+  private <- .wb_writer_lock_private_path(lock_path, action, token)
+  if (dir.exists(private)) {
+    return(list(ok = FALSE, moved = FALSE, restored = FALSE, private_path = private,
+                reason = "private quarantine path already exists"))
+  }
+  if (!dir.exists(lock_path) || !isTRUE(file.rename(lock_path, private))) {
+    return(list(ok = FALSE, moved = FALSE, restored = FALSE, private_path = private,
+                reason = "shared lock path was absent or changed before rename"))
+  }
+  .wb_writer_lock_test_hook(
+    paste0(action, "_moved"), shared_path = lock_path,
+    private_path = private, token = token
+  )
+  if (.wb_writer_lock_moved_token_matches(private, token, allow_pending = allow_pending)) {
+    unlink(private, recursive = TRUE, force = TRUE)
+    return(list(ok = !dir.exists(private), moved = TRUE, restored = FALSE,
+                private_path = private,
+                reason = if (dir.exists(private)) "verified private quarantine could not be removed" else "verified owner retired"))
+  }
+
+  restored <- !dir.exists(lock_path) && isTRUE(file.rename(private, lock_path))
+  list(
+    ok = FALSE, moved = TRUE, restored = restored, private_path = private,
+    reason = if (restored) {
+      "moved lock token did not match; directory was restored"
+    } else {
+      "moved lock token did not match; directory was preserved in private quarantine"
+    }
+  )
+}
+
 .wb_bundle_writer_lock_acquire <- function(bundle_or_dir,
                                            operation = "committed mutation",
                                            timeout_seconds = getOption("scworkbench.writer_lock_timeout_seconds", 10),
@@ -243,8 +401,15 @@ wb_bundle_writer_lock_info <- function(bundle_or_dir, stale_after_seconds = 3600
       metadata <- .wb_writer_lock_metadata(target, token, operation)
       ok <- try(.wb_writer_lock_write_metadata(lock_path, metadata), silent = TRUE)
       if (inherits(ok, "try-error")) {
-        unlink(lock_path, recursive = TRUE, force = TRUE)
-        stop("Failed to initialize exclusive bundle-writer lock metadata: ", as.character(ok), call. = FALSE)
+        retired <- .wb_writer_lock_retire_shared(
+          lock_path, token, action = "acquire-failure", allow_pending = TRUE
+        )
+        stop(
+          "Failed to initialize exclusive bundle-writer lock metadata: ", as.character(ok),
+          "; ownership-safe cleanup=", retired$reason,
+          if (!isTRUE(retired$ok) && dir.exists(retired$private_path)) paste0("; preserved_path=", retired$private_path) else "",
+          call. = FALSE
+        )
       }
       entry <- list(
         key = key, target = target, lock_path = lock_path, token = token,
@@ -277,12 +442,18 @@ wb_bundle_writer_lock_info <- function(bundle_or_dir, stale_after_seconds = 3600
     return(invisible(TRUE))
   }
   rm(list = key, envir = .wb_writer_lock_state$held)
-  metadata <- .wb_writer_lock_read_metadata(entry$lock_path)
-  if (dir.exists(entry$lock_path) && !is.null(metadata) &&
-      identical(as.character(metadata$owner_token), as.character(entry$token))) {
-    unlink(entry$lock_path, recursive = TRUE, force = TRUE)
+  retired <- .wb_writer_lock_retire_shared(
+    entry$lock_path, entry$token, action = "release", allow_pending = FALSE
+  )
+  if (!isTRUE(retired$ok) && isTRUE(retired$moved)) {
+    warning(
+      "Bundle-writer lock release did not retire an ownership-matching directory: ",
+      retired$reason,
+      if (dir.exists(retired$private_path)) paste0("; preserved_path=", retired$private_path) else "",
+      call. = FALSE
+    )
   }
-  invisible(!dir.exists(entry$lock_path))
+  invisible(isTRUE(retired$ok))
 }
 
 .wb_with_bundle_writer_lock <- function(bundle_or_dir,
