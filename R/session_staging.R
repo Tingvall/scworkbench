@@ -60,19 +60,25 @@
 }
 
 .wb_session_stage_bundle <- function(bundle, session) {
-  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert(wb_is_session(session), "session must be wb_session")
 
   if (!is.null(session$staging_bundle) && inherits(session$staging_bundle, "scworkbench_bundle")) {
     return(list(session = session, bundle = session$staging_bundle))
   }
+  persisted_stage <- as.character(session$staging_dir %||% "")[1]
+  if (nzchar(persisted_stage) && file.exists(file.path(persisted_stage, "manifest.json"))) {
+    stage_bundle <- wb_open_bundle(persisted_stage, validate = FALSE)
+    stage_bundle$staging_source_dir <- as.character(session$staging_source_dir %||% "")[1]
+    session$staging_bundle <- stage_bundle
+    return(list(session = session, bundle = stage_bundle))
+  }
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
 
   # Session IDs label execution state, but callers may set the R RNG for
   # deterministic analyses. A filesystem staging path must remain unique even
   # if that produces the same generated session ID in a later session.
-  stage_dir <- tempfile(
-    pattern = paste0(as.character(session$session_id), "_"),
-    tmpdir = .wb_session_stage_root()
+  stage_dir <- if (nzchar(persisted_stage)) persisted_stage else tempfile(
+    pattern = paste0(as.character(session$session_id), "_"), tmpdir = .wb_session_stage_root()
   )
   dir.create(stage_dir, recursive = TRUE, showWarnings = FALSE)
   stage_ready <- FALSE
@@ -137,10 +143,15 @@ wb_session_discard <- function(session) {
     try(wb_close_bundle(session$staging_bundle), silent = TRUE)
   }
   stage_dir <- as.character(session$staging_dir %||% "")[1]
-  if (nzchar(stage_dir) && dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)
+  if (!is.null(session$durable)) {
+    workspace <- as.character(session$durable$workspace %||% "")[1]
+    .wb_assert(nzchar(workspace) && basename(workspace) == as.character(session$session_id)[1], "Refusing to discard an unowned durable session workspace.")
+    .wb_session_workspace_lock(session, "discard", unlink(workspace, recursive = TRUE, force = TRUE))
+  } else if (nzchar(stage_dir) && dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)
   session$staging_bundle <- NULL
   session$staging_dir <- NULL
   session$staging_source_dir <- NULL
+  session$durable <- NULL
   session
 }
 

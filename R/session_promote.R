@@ -48,6 +48,10 @@ wb_session_promote_current <- function(bundle,
                                        outputs = NULL) {
   .wb_assert_bundle_writable(bundle, "promotion")
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
+  if (!is.null(session$durable)) {
+    .wb_session_validate_source(session, bundle)
+    .wb_session_validate_payloads(session)
+  }
   .wb_assert(!is.null(session$head_run_id) && nzchar(session$head_run_id),
              "session$head_run_id is NULL/empty. Run at least one op before promoting.")
   .wb_assert(is.list(session$runs) && length(session$runs) > 0,

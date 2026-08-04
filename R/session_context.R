@@ -350,6 +350,14 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     )
   )
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
+  if (!is.null(session$durable)) .wb_session_validate_source(session, bundle)
+  session_lock <- NULL
+  if (!is.null(session$durable)) {
+    session_lock <- .wb_bundle_writer_lock_acquire(
+      session$durable$workspace, operation = "durable session operation"
+    )
+    on.exit(.wb_bundle_writer_lock_release(session_lock), add = TRUE)
+  }
   op <- .wb_op(op_name)
   validated <- .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs, session = session)
   inputs <- validated$inputs
@@ -455,6 +463,12 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   # Update active outputs (by name) for anything produced
   for (nm in names(out)) {
     session <- wb_session_set_active(session, nm, wb_ref_run(run$run_id, nm))
+  }
+
+  if (!is.null(session$durable)) {
+    session$durable$runtime_attestation <- .wb_prov_runtime_fingerprint(op_name)
+    session <- .wb_session_record_payload_identities(session, run)
+    session <- .wb_session_checkpoint(session, "active")
   }
 
   list(session = session, run = run, result = res)
