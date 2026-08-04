@@ -1,8 +1,24 @@
 # Replay selected session registry mutations through canonical registry APIs.
 
 .wb_ensure_registry_mutation_events_table <- function(con) {
+  if (.wb_schema_component_is_current(con, "registry_mutation_events")) return(invisible(TRUE))
   DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS registry_mutation_events (event_id TEXT PRIMARY KEY, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, created_at TEXT NOT NULL);")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_registry_mutation_events_run ON registry_mutation_events(run_id);")
+  invisible(TRUE)
+}
+
+.wb_ensure_prov_registry_mutations_table <- function(con) {
+  if (.wb_schema_component_is_current(
+    con, "prov_registry_mutations",
+    list(prov_registry_mutations = c("content_hash", "content_identity_scheme"))
+  )) return(invisible(TRUE))
+  DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS prov_registry_mutations (commit_id TEXT NOT NULL, event_id TEXT NOT NULL, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, content_hash TEXT, content_identity_scheme TEXT, PRIMARY KEY(commit_id, event_id));")
+  if (!.wb_db_has_column(con, "prov_registry_mutations", "content_hash")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_registry_mutations ADD COLUMN content_hash TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_registry_mutations", "content_identity_scheme")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_registry_mutations ADD COLUMN content_identity_scheme TEXT;")
+  }
   invisible(TRUE)
 }
 
@@ -197,13 +213,7 @@
   }
   })
   .wb_ensure_registry_mutation_events_table(bundle$con)
-  DBI::dbExecute(bundle$con, "CREATE TABLE IF NOT EXISTS prov_registry_mutations (commit_id TEXT NOT NULL, event_id TEXT NOT NULL, run_id TEXT NOT NULL, registry_type TEXT NOT NULL, action TEXT NOT NULL, registry_key_json TEXT NOT NULL, payload_json TEXT, content_hash TEXT, PRIMARY KEY(commit_id, event_id));")
-  if (!.wb_db_has_column(bundle$con, "prov_registry_mutations", "content_hash")) {
-    DBI::dbExecute(bundle$con, "ALTER TABLE prov_registry_mutations ADD COLUMN content_hash TEXT;")
-  }
-  if (!.wb_db_has_column(bundle$con, "prov_registry_mutations", "content_identity_scheme")) {
-    DBI::dbExecute(bundle$con, "ALTER TABLE prov_registry_mutations ADD COLUMN content_identity_scheme TEXT;")
-  }
+  .wb_ensure_prov_registry_mutations_table(bundle$con)
   events$content_hash <- event_hashes
   events$content_identity_scheme <- ifelse(
     is.na(event_hashes), NA_character_,

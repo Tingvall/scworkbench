@@ -42,8 +42,8 @@ wb_init_bundle <- function(out_dir,
   con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
   on.exit(if (!is.null(con)) try(DBI::dbDisconnect(con), silent = TRUE), add = TRUE)
 
-  .wb_ensure_schema_bundle(con)
-  .wb_create_artifacts_schema(con)
+  .wb_sqlite_configure_connection(con, writable = TRUE)
+  .wb_schema_migrate_connection(con, bundle_dir = out_dir, backup = FALSE)
 
   manifest <- .wb_bundle_build_manifest(
     bundle_dir = out_dir,
@@ -376,7 +376,7 @@ wb_refresh_manifest <- function(bundle) {
 
 .wb_manifest_registry_table_names <- function() {
   c(
-    "cells", "datasets", "features", "matrices", "matrix_cells",
+    "bundle_schema_migrations", "cells", "datasets", "features", "matrices", "matrix_cells",
     "matrix_fragments", "matrix_fragment_cells", "matrix_fragment_features",
     "spaces", "space_models", "artifacts", "artifact_tables",
     "cell_set_membership", "cell_set_recipes", "cell_set_styles",
@@ -559,6 +559,7 @@ wb_refresh_manifest <- function(bundle) {
   if (!nzchar(db_rel) || !file.exists(db_path)) return(invisible(FALSE))
   con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
+  .wb_sqlite_configure_connection(con, writable = TRUE)
   creation <- durable$creation %||% list(
     bundle_id = durable$bundle_id, bundle_name = durable$bundle_name,
     created_at = durable$created_at, id_policy = durable$id_policy %||% list()

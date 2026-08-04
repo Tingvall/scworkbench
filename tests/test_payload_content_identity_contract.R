@@ -33,6 +33,10 @@ test_payload_content_identity_contract <- function() {
   # Matrix identity consumes fragment file digests, never a dense matrix read.
   dir.create(file.path(root, "matrix_payload"))
   saveRDS(matrix(c(1, 0, 0, 1), nrow = 2L), file.path(root, "matrix_payload", "payload.rds"))
+  DBI::dbExecute(
+    b$con,
+    "INSERT INTO matrices(matrix_id,n_features,n_cells,storage,path) VALUES('identity_matrix',2,8,'bpcells','matrix_payload');"
+  )
   wb_register_matrix_fragment(b$con, "identity_matrix", "matrix_payload", c("g1", "g2"), ids)
   matrix_id <- scworkbench:::.wb_prov_payload_identity(b, wb_prim_matrix("identity_matrix"))
   space_id <- scworkbench:::.wb_prov_payload_identity(b, wb_prim_space_2d("identity_umap"))
@@ -74,7 +78,8 @@ test_payload_content_identity_contract <- function() {
   detail <- wb_prov_run_details(b, run_id = a$run$run_id, snapshot_id = sid)$outputs
   stopifnot(identical(as.character(detail$verification_status[detail$output_name == "detail"]), "legacy_structural_only"))
   DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET replay_equivalence_policy = NULL, replay_equivalence_status = NULL WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
-  scworkbench:::.wb_migrate_provenance_tables(b$con)
+  DBI::dbExecute(b$con, "DROP TABLE bundle_schema_migrations;")
+  wb_migrate_bundle(b)
   legacy_replay <- DBI::dbGetQuery(b$con, "SELECT replay_equivalence_policy, replay_equivalence_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(sid, a$run$run_id, "detail"))
   stopifnot(identical(as.character(legacy_replay$replay_equivalence_policy[1]), "not_comparable"),
             identical(as.character(legacy_replay$replay_equivalence_status[1]), "legacy_not_comparable"))

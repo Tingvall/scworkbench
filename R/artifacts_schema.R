@@ -1,4 +1,10 @@
 .wb_create_artifacts_schema <- function(con) {
+  if (.wb_schema_component_is_current(con, c(
+    "artifacts", "artifact_labels", "artifact_pseudotime", "artifact_relation_rows",
+    "artifact_curves_2d", "artifact_space_path_meta", "artifact_space_path_rows",
+    "artifact_space_2d", "artifact_umap_model", "artifact_model_ref", "artifact_tables",
+    "artifact_table_rows"
+  ))) return(invisible(TRUE))
   # core artifacts registry
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS artifacts (

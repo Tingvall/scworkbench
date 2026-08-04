@@ -64,6 +64,9 @@
 
 
 .wb_ensure_space_models_table <- function(con) {
+  if (.wb_schema_component_is_current(
+    con, "space_models", list(space_models = "provenance_json")
+  )) return(invisible(TRUE))
   # 1) Create the legacy/current table if it doesn't exist (keeps your schema)
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS space_models (
@@ -148,4 +151,3 @@
   on.exit(NULL, add = FALSE)
   invisible(TRUE)
 }
-

@@ -15,6 +15,10 @@
 }
 
 .wb_ensure_feature_set_tables <- function(con) {
+  if (.wb_schema_component_is_current(
+    con, c("feature_sets", "feature_set_membership"),
+    list(feature_sets = .wb_feature_set_cols())
+  )) return(invisible(TRUE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS feature_sets (
       feature_set  TEXT NOT NULL,

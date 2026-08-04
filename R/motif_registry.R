@@ -3,6 +3,9 @@
 .wb_ensure_matrix_contract_columns <- function(con) {
   .wb_assert(!is.null(con), "con is required")
   .wb_assert(.wb_db_has_table(con, "matrices"), "matrices table not found")
+  if (.wb_schema_component_is_current(
+    con, "matrices", list(matrices = c("organism", "genome_build", "genome_provider"))
+  )) return(invisible(TRUE))
 
   add_col <- function(name, type) {
     if (.wb_db_has_column(con, "matrices", name)) return(invisible(NULL))
@@ -17,6 +20,9 @@
 
 .wb_ensure_motif_registry_tables <- function(con) {
   .wb_assert(!is.null(con), "con is required")
+  if (.wb_schema_component_is_current(
+    con, c("motif_libraries", "motifs", "motif_match_sets", "motif_match_membership")
+  )) return(invisible(TRUE))
 
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS motif_libraries (

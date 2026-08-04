@@ -17,6 +17,7 @@ test_immutable_history_supersession_tombstones_contract <- function(bundle_dir) 
   DBI::dbExecute(b$con, "DROP TABLE entity_tombstones;")
   DBI::dbExecute(b$con, "DROP TABLE entity_supersessions;")
   DBI::dbExecute(b$con, "DROP TABLE entity_lifecycle;")
+  DBI::dbExecute(b$con, "DROP TABLE bundle_schema_migrations;")
   wb_migrate_artifacts(b)
   migrated <- wb_entity_lifecycle(b)
   stopifnot(

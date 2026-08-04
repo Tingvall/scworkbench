@@ -167,6 +167,8 @@ Start here:
   `system.file("onboarding", package = "scworkbench")`.
 - `AGENTS.md`: engine guardrails and coding-agent brief.
 - `docs/contracts.md`: cross-repo contract index.
+- `docs/schema_catalog_reference.md`: generated durable-table ownership,
+  ordered migration, referential-integrity, and recovery policy.
 - `inst/foundation_contracts.md`: bundle/getter/selector foundation contracts.
 - `docs/engine_extension_patterns.md`: how to add ops, wranglers, getters,
   navigation, and semantic records.

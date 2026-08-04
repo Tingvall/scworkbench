@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-08-04T13:13:58+0200
+Generated at: 2026-08-04T14:42:12+0200
 
 Record count: 314
 
@@ -1907,4 +1907,3 @@ Description: Maps trajectory_smooth tables to per-gene pseudotime curve panels.
 Title: Pseudotime Signature Wrangler
 
 Description: Maps signature, gene-set, signal, or driver curves to pseudotime line datasets.
-

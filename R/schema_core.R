@@ -4,6 +4,7 @@
 # they are part of fresh-bundle initialization.
 
 .wb_ensure_cell_set_membership_table <- function(con) {
+  if (.wb_schema_component_is_current(con, "cell_set_membership")) return(invisible(TRUE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS cell_set_membership (
       cell_set    TEXT NOT NULL,
@@ -21,6 +22,7 @@
 }
 
 .wb_ensure_cell_set_styles_table <- function(con) {
+  if (.wb_schema_component_is_current(con, "cell_set_styles")) return(invisible(TRUE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS cell_set_styles (
       cell_set    TEXT PRIMARY KEY,
@@ -40,10 +42,11 @@
 }
 
 .wb_ensure_schema_app_bundle <- function(con) {
-  DBI::dbExecute(con, "PRAGMA foreign_keys=ON;")
-  DBI::dbExecute(con, "PRAGMA journal_mode=WAL;")
-  DBI::dbExecute(con, "PRAGMA synchronous=NORMAL;")
-
+  if (.wb_schema_component_is_current(con, c(
+    "datasets", "cells", "cell_set_membership", "spaces", "space_coords", "space_2d",
+    "features", "matrices", "matrix_cells", "cell_set_styles", "matrix_fragments",
+    "matrix_fragment_cells", "matrix_fragment_features"
+  ))) return(invisible(TRUE))
   .wb_entity_lifecycle_tables(con)
 
   DBI::dbExecute(con, "

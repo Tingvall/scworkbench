@@ -2,6 +2,12 @@ test_space_path_promotion_contract <- function() {
   tmp <- file.path(tempdir(), paste0("scwb_space_path_", as.integer(Sys.time())))
   b <- wb_init_bundle(tmp, overwrite = TRUE)
   on.exit(try(wb_close_bundle(b), silent = TRUE), add = TRUE)
+  cells <- c("cell_1", "cell_2", "cell_3")
+  wb_define_cells(b, cells)
+  wb_attach_space(
+    b, "peakvi_space",
+    data.frame(cell_id = cells, x = c(0, 1, 2), y = c(0, 1, 1.5), stringsAsFactors = FALSE)
+  )
 
   prim <- wb_prim_space_path_family(
     space_id = rep("peakvi_space", 6),

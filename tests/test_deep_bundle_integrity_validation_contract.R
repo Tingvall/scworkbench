@@ -58,6 +58,7 @@ test_deep_bundle_integrity_validation_contract <- function() {
   ), sparse = TRUE)
   wb_attach_matrix(b, "RNA_counts", counts, feature_type = "gene")
   wb_attach_space(b, "pca", data.frame(cell_id = cells, x = seq_along(cells), y = rev(seq_along(cells))))
+  wb_attach_space(b, "fixture_model", data.frame(cell_id = cells, x = seq_along(cells), y = rev(seq_along(cells))))
 
   # A durable model registry payload supplies model/path validation without a
   # heavyweight fitting dependency.
@@ -250,6 +251,7 @@ test_deep_bundle_integrity_validation_closure_contract <- function() {
   ), sparse = TRUE)
   wb_attach_matrix(b, "RNA_counts", counts, feature_type = "gene")
   wb_attach_space(b, "pca", data.frame(cell_id = cells, x = seq_along(cells), y = rev(seq_along(cells))))
+  wb_attach_space(b, "fixture_model", data.frame(cell_id = cells, x = seq_along(cells), y = rev(seq_along(cells))))
 
   dir.create(file.path(base, "models"), recursive = TRUE)
   saveRDS(list(engine = "fixture", coefficients = c(1, 2)), file.path(base, "models", "fixture.rds"))

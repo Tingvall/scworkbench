@@ -95,6 +95,7 @@ test_source_ownership_contract <- function() {
     .wb_ensure_schema_app_bundle = "R/schema_core.R",
     .wb_create_artifacts_schema = "R/artifacts_schema.R",
     wb_migrate_artifacts = "R/promote_primitives.R",
+    wb_migrate_bundle = "R/schema_migrations.R",
     .wb_migrate_provenance_tables = "R/provenance_store.R",
     .wb_prov_schema_version = "R/provenance_store.R"
   )
@@ -129,6 +130,7 @@ test_source_ownership_contract <- function() {
     artifact_model_ref = "R/artifacts_schema.R",
     artifact_tables = "R/artifacts_schema.R",
     artifact_table_rows = "R/artifacts_schema.R"
+    , bundle_schema_migrations = "R/schema_migrations.R"
   )
   for (table_name in names(expected_schema_owners)) {
     owner <- schema_inventory$file[schema_inventory$table == table_name]
@@ -164,6 +166,9 @@ test_source_ownership_contract <- function() {
     try(wb_close_bundle(fresh), silent = TRUE)
     unlink(fresh_dir, recursive = TRUE, force = TRUE)
   }, add = TRUE)
+  DBI::dbExecute(fresh$con, "INSERT INTO datasets(dataset_id,n_cells) VALUES('fixture',2);")
+  DBI::dbExecute(fresh$con, "INSERT INTO cells(cell_id,dataset_id) VALUES('c1','fixture'),('c2','fixture');")
+  DBI::dbExecute(fresh$con, "INSERT INTO matrices(matrix_id,n_features,n_cells) VALUES('RNA_counts',2,2);")
   registered <- withVisible(wb_register_matrix_fragment(
     fresh$con,
     matrix_id = "RNA_counts",

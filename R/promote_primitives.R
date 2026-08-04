@@ -1218,18 +1218,11 @@ wb_promote_analysis <- function(bundle,
 #' @export
 wb_migrate_artifacts <- function(bundle) {
   if (isTRUE(bundle$read_only)) return(invisible(FALSE))
-  .wb_with_bundle_writer_lock(bundle, operation = "bundle schema migration", code = {
-    .wb_migrate_artifacts_locked(bundle)
-  })
+  wb_migrate_bundle(bundle)
 }
 
 .wb_migrate_artifacts_locked <- function(bundle) {
-  con <- bundle$con
-  .wb_create_artifacts_schema(con)
-  .wb_migrate_provenance_tables(con)
-  .wb_entity_lifecycle_migrate(bundle)
-
-  invisible(TRUE)
+  .wb_schema_migrate_connection(bundle$con, bundle_dir = bundle$dir, backup = TRUE)
 }
 
 #' @keywords internal

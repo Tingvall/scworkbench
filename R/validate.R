@@ -272,7 +272,7 @@ wb_bundle_validation_report <- function(bundle_dir,
             path = db_rel, observed = conditionMessage(con), message = "SQLite could not be opened read-only.")
         con <- NULL
       } else {
-        attr(con, "scworkbench_read_only") <- TRUE
+        .wb_sqlite_configure_connection(con, writable = FALSE)
         bundle <- structure(list(dir = root, manifest = manifest, con = con, read_only = TRUE), class = "scworkbench_bundle")
       }
     }
@@ -281,6 +281,28 @@ wb_bundle_validation_report <- function(bundle_dir,
 
   if (!is.null(con)) timed("schema_and_registry", {
     tables <- DBI::dbListTables(con)
+    schema_status <- .wb_schema_status(con)
+    if (!identical(schema_status$status, "current")) {
+      add(
+        "BUNDLE_SCHEMA_UPGRADE_REQUIRED", check_class = "schema",
+        entity_kind = "sqlite", entity_id = "main", table = "bundle_schema_migrations",
+        expected = paste0("version ", schema_status$current),
+        observed = paste0("version ", schema_status$observed),
+        message = schema_status$message
+      )
+    }
+    foreign_key_violations <- DBI::dbGetQuery(con, "PRAGMA foreign_key_check;")
+    if (nrow(foreign_key_violations)) for (index in seq_len(nrow(foreign_key_violations))) {
+      violation <- foreign_key_violations[index, , drop = FALSE]
+      add(
+        "SQLITE_FOREIGN_KEY_VIOLATION", check_class = "schema",
+        entity_kind = "registry_row", entity_id = as.character(violation$rowid[[1L]]),
+        table = as.character(violation$table[[1L]]),
+        expected = paste0("referenced row in ", violation$parent[[1L]]),
+        observed = paste0("foreign-key id ", violation$fkid[[1L]]),
+        message = "Durable registry row violates the centrally declared referential-integrity contract."
+      )
+    }
     required <- c("cells", "datasets", "features", "matrices", "spaces", "space_coords", "space_2d")
     for (table in setdiff(required, tables)) {
       add("REQUIRED_TABLE_MISSING", table = table, observed = "missing", message = paste0("Required table is missing: ", table))
@@ -498,6 +520,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         spaces_ids <- if (.wb_table_exists(con, "spaces")) DBI::dbGetQuery(con, "SELECT space_id FROM spaces;")$space_id else character()
         for (i in seq_len(nrow(models))) {
           id <- as.character(models$space_id[i])
+          if (!id %in% spaces_ids) add("MODEL_DANGLING_OUTPUT_SPACE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, table = "space_models", observed = id, message = "Model output identity is not a registered durable space.")
           if (!as.character(models$source_space_id[i]) %in% spaces_ids) add("MODEL_DANGLING_SOURCE_SPACE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, table = "space_models", observed = models$source_space_id[i], message = "Model references an unregistered source space.")
           checked <- .wb_validation_path(root, models$model_path[i], "either")
           if (isTRUE(checked$ok)) {
@@ -505,6 +528,30 @@ wb_bundle_validation_report <- function(bundle_dir,
             if (inherits(loaded, "error")) add("MODEL_PAYLOAD_UNREADABLE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, path = models$model_path[i], observed = conditionMessage(loaded), message = "Model payload cannot be loaded.")
           }
         }
+      }
+    })
+
+    timed("normalized_memberships", {
+      if (all(c("motif_match_membership", "motif_match_sets", "features") %in% DBI::dbListTables(con))) {
+        dangling <- DBI::dbGetQuery(con, "
+          SELECT membership.motif_match_set, membership.feature_id, match_set.matrix_id
+          FROM motif_match_membership AS membership
+          JOIN motif_match_sets AS match_set
+            ON match_set.motif_match_set = membership.motif_match_set
+          LEFT JOIN features AS feature
+            ON feature.matrix_id = match_set.matrix_id
+           AND feature.feature_id = membership.feature_id
+          WHERE feature.feature_id IS NULL
+          ORDER BY membership.motif_match_set, membership.feature_id;
+        ")
+        if (nrow(dangling)) for (i in seq_len(nrow(dangling))) add(
+          "MOTIF_MATCH_DANGLING_MATRIX_FEATURE", check_class = "normalized_memberships",
+          entity_kind = "motif_match_set", entity_id = dangling$motif_match_set[i],
+          table = "motif_match_membership",
+          expected = paste0(dangling$matrix_id[i], "::", dangling$feature_id[i]),
+          observed = "feature absent from match-set matrix",
+          message = "Motif-match membership references a feature outside its match-set matrix."
+        )
       }
     })
 
@@ -984,6 +1031,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         immutable <- tryCatch({
           icon <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db,winslash="/",mustWork=TRUE), "?immutable=1"), flags=RSQLite::SQLITE_RO)
           on.exit(DBI::dbDisconnect(icon), add=TRUE)
+          .wb_sqlite_configure_connection(icon, writable = FALSE)
           DBI::dbGetQuery(icon,"SELECT COUNT(*) AS n FROM sqlite_schema;")
           TRUE
         }, error=function(e) e)

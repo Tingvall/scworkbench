@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_op_catalog_semantic(); do not edit op entries by hand. -->
 
-Generated at: 2026-08-04T13:13:54+0200
+Generated at: 2026-08-04T14:42:09+0200
 
 Operation count: 56
 
@@ -1855,4 +1855,3 @@ Key parameters:
 - `smoothness` (dbl, default=1): Palantir-style mellon trajectory smoothing multiplier (higher = smoother).
 - `min_cells_per_branch` (int, default=50): Minimum eligible cells required to derive a branch trajectory.
 - `approx_points` (int, default=200): Number of trajectory sample points per branch (curve resolution).
-

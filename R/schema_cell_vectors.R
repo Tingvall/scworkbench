@@ -1,4 +1,5 @@
 .wb_ensure_cell_vectors_tables <- function(con) {
+  if (.wb_schema_component_is_current(con, c("cell_vectors", "cell_vector_values"))) return(invisible(TRUE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS cell_vectors (
       vector_id     TEXT PRIMARY KEY,
