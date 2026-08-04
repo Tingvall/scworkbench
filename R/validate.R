@@ -205,8 +205,8 @@ wb_bundle_validation_report <- function(bundle_dir,
 
   if (!is.null(manifest)) timed("manifest", {
     manifest_version <- as.character(manifest$scworkbench_manifest_version %||% manifest$manifest_version %||% "")[1]
-    if (!manifest_version %in% c("2.0.0", "2.1.0")) {
-      add("SCHEMA_VERSION_UNSUPPORTED", table = "manifest.json", expected = "2.0.0 or 2.1.0",
+    if (!manifest_version %in% c("2.0.0", "2.1.0", "2.2.0")) {
+      add("SCHEMA_VERSION_UNSUPPORTED", table = "manifest.json", expected = "2.0.0, 2.1.0, or 2.2.0",
           observed = manifest_version, message = "Bundle manifest schema version is unsupported; validation never migrates it.")
     }
     for (field in c("bundle_id", "bundle_name", "created_at", "storage")) {
@@ -224,9 +224,25 @@ wb_bundle_validation_report <- function(bundle_dir,
               message = paste0("Immutable creation metadata disagrees with the manifest field: ", field))
         }
       }
-    } else if (identical(manifest_version, "2.1.0")) {
+    } else if (manifest_version %in% c("2.1.0", "2.2.0")) {
       add("MANIFEST_CREATION_METADATA_INVALID", entity_kind = "manifest", entity_id = "creation",
-          table = "manifest.json", observed = "missing", message = "Manifest 2.1.0 requires immutable creation metadata.")
+          table = "manifest.json", observed = "missing", message = "Manifest 2.1.0 and later require immutable creation metadata.")
+    }
+    if (identical(manifest_version, "2.2.0")) {
+      protocol <- as.character(manifest$publication$protocol %||% "")[1]
+      state_source <- as.character(manifest$publication$state_source %||% "")[1]
+      registry_fingerprint <- as.character(manifest$current_state$fingerprint %||% "")[1]
+      if (!identical(protocol, "scworkbench.manifest.atomic.v1") ||
+          !identical(state_source, "durable_manifest") ||
+          !grepl("^[0-9a-f]{64}$", registry_fingerprint)) {
+        add(
+          "MANIFEST_PUBLICATION_METADATA_INVALID", check_class = "manifest",
+          entity_kind = "manifest", entity_id = "publication", table = "manifest.json",
+          expected = "atomic.v1 durable manifest with SHA-256 registry fingerprint",
+          observed = paste(protocol, state_source, registry_fingerprint, sep = ";"),
+          message = "Manifest publication metadata does not identify a valid authoritative durable snapshot."
+        )
+      }
     }
     db_rel <- as.character(manifest$storage$sqlite$path %||% "")[1]
     checked <- .wb_validation_path(root, db_rel, "file")
@@ -308,6 +324,37 @@ wb_bundle_validation_report <- function(bundle_dir,
         cached_ids <- sort(unique(manifest_ids[[kind]][!is.na(manifest_ids[[kind]]) & nzchar(manifest_ids[[kind]])]))
         authoritative_ids <- sort(unique(registry_ids[[kind]]))
         if (!identical(cached_ids,authoritative_ids)) add("MANIFEST_REGISTRY_MISMATCH",check_class="manifest",entity_kind=kind,entity_id="registry_ids",table="manifest.json",expected=.wb_prov_sha256_object(authoritative_ids),observed=.wb_prov_sha256_object(cached_ids),message=paste0("Manifest ",kind," inventory disagrees with the authoritative registry."))
+      }
+      if (identical(manifest_version, "2.2.0")) {
+        authoritative_state <- .wb_manifest_registry_snapshot(con)
+        cached_state <- manifest$current_state %||% list()
+        cached_tables <- cached_state$tables %||% list()
+        for (table in union(names(authoritative_state$tables), names(cached_tables))) {
+          expected <- authoritative_state$tables[[table]] %||% list()
+          observed <- cached_tables[[table]] %||% list()
+          if (!identical(as.integer(expected$row_count %||% NA_integer_),
+                         as.integer(observed$row_count %||% NA_integer_)) ||
+              !identical(as.character(expected$content_sha256 %||% ""),
+                         as.character(observed$content_sha256 %||% ""))) {
+            add(
+              "MANIFEST_REGISTRY_MISMATCH", check_class = "manifest",
+              entity_kind = "registry", entity_id = table, table = "manifest.json",
+              expected = paste(expected$row_count %||% "missing", expected$content_sha256 %||% "missing", sep = ":"),
+              observed = paste(observed$row_count %||% "missing", observed$content_sha256 %||% "missing", sep = ":"),
+              message = paste0("Manifest registry identity disagrees with committed table: ", table)
+            )
+          }
+        }
+        if (!identical(as.character(authoritative_state$fingerprint),
+                       as.character(cached_state$fingerprint %||% ""))) {
+          add(
+            "MANIFEST_REGISTRY_MISMATCH", check_class = "manifest",
+            entity_kind = "registry", entity_id = "current_state", table = "manifest.json",
+            expected = authoritative_state$fingerprint,
+            observed = cached_state$fingerprint %||% "missing",
+            message = "Manifest current-state fingerprint disagrees with committed registry state."
+          )
+        }
       }
       cells <- DBI::dbGetQuery(con, "SELECT cell_id, dataset_id FROM cells ORDER BY rowid;")
       if (anyNA(cells$cell_id) || any(!nzchar(as.character(cells$cell_id))) || anyDuplicated(cells$cell_id)) {

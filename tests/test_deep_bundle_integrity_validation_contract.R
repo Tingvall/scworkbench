@@ -21,6 +21,15 @@
   if (is.null(params)) DBI::dbExecute(con, sql) else DBI::dbExecute(con, sql, params = params)
 }
 
+.deep_validation_refresh_manifest <- function(path) {
+  bundle <- wb_open_bundle(path)
+  on.exit(wb_close_bundle(bundle), add = TRUE)
+  scworkbench:::.wb_with_mutation_context(
+    bundle, route = "ingestion", code = wb_refresh_manifest(bundle)
+  )
+  invisible(TRUE)
+}
+
 .deep_validation_codes <- function(path, level = "content") {
   as.character(wb_bundle_validation_report(path, level = level)$diagnostics$code)
 }
@@ -371,6 +380,7 @@ test_deep_bundle_integrity_validation_closure_contract <- function() {
   .deep_validation_db(legacy_path, "UPDATE prov_run_outputs SET content_identity_scheme=NULL WHERE primitive_kind='matrix';")
   .deep_validation_db(legacy_path, "UPDATE prov_run_entity_bindings SET content_identity_scheme=NULL WHERE entity_kind='matrix';")
   .deep_validation_db(legacy_path, "UPDATE entity_lifecycle SET identity_scheme=NULL WHERE entity_kind='matrix';")
+  .deep_validation_refresh_manifest(legacy_path)
   legacy <- wb_bundle_validation_report(legacy_path, "content")
   stopifnot(isTRUE(legacy$ok), identical(legacy$status, "ok_with_warnings"))
   expect("CONTENT_IDENTITY_SCHEME_LEGACY_UNVERIFIABLE", legacy$diagnostics$code)

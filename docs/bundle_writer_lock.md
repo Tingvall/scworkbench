@@ -39,7 +39,8 @@ The invariant is:
 2. prepare and publish payloads under the mutation transaction's rollback
    rules;
 3. begin and commit the SQLite transaction;
-4. atomically publish derived manifest/finalization state where applicable;
+4. rebuild the authoritative registry snapshot and atomically publish the
+   manifest after every successful outermost writer route;
 5. release the lock.
 
 Any nested writer must find the same already-held lock. First acquisition while
@@ -132,3 +133,20 @@ transaction work. The explicitly covered public routes include:
 
 Low-level guarded writers assert both valid provenance mutation authority and
 ownership of the matching bundle lock.
+
+## Authoritative manifest tail step
+
+The outermost successful writer scope publishes manifest schema 2.2 before it
+releases the lock. Nested writers never publish because their coordinator may
+still own an open SQLite transaction. The temporary manifest is created in the
+bundle root, written and flushed through an explicit binary connection, closed,
+parsed back as JSON, checked for its schema identity, and moved over the durable
+name with a single libuv-backed portable rename. There is no delete/backup
+fallback window: a platform that cannot atomically replace the name fails
+closed with the previous manifest intact.
+
+Forced failure after registry commit therefore leaves a valid but stale old
+manifest, which `wb_manifest(view = "reconstructed")` and bundle validation
+expose as recoverable disagreement. Interruption after the rename leaves the
+complete new manifest. A recipient cannot enter during either state because
+publication remains inside the exclusive writer scope.

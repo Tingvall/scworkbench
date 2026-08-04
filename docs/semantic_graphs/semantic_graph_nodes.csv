@@ -106,7 +106,7 @@
 "getter:wb_list_cell_vectors","getter","wb_list_cell_vectors","Cell Vectors","List available cell vectors from artifacts and optionally session outputs."
 "getter:wb_list_trajectory_models","getter","wb_list_trajectory_models","Trajectory Model Inventory","List promoted model_ref trajectory candidates with engine, provenance, and optional pseudotime coverage."
 "getter:wb_list_vector_sources","getter","wb_list_vector_sources","Vector Sources","List vector-like sources available for UI/agent selection."
-"getter:wb_manifest","getter","wb_manifest","Bundle Manifest","Read the bundle manifest metadata."
+"getter:wb_manifest","getter","wb_manifest","Bundle Manifest","Read the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view."
 "getter:wb_matrices","getter","wb_matrices","Matrices","List matrices available in the bundle."
 "getter:wb_matrix","getter","wb_matrix","Matrix Handle","Open a matrix handle for a matrix ID."
 "getter:wb_matrix_fragments","getter","wb_matrix_fragments","Matrix Fragments","List physical storage fragments backing a logical matrix."

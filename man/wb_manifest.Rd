@@ -4,16 +4,19 @@
 \alias{wb_manifest}
 \title{Get the Current Bundle Manifest}
 \usage{
-wb_manifest(bundle)
+wb_manifest(bundle, view = c("durable", "reconstructed"))
 }
 \arguments{
-\item{bundle}{Bundle handle from \code{wb_open_bundle()}
-\code{wb_manifest()} is a dynamic current-state summary. Its \code{creation} field is
-immutable bundle-creation metadata; current counts and listings are rebuilt
-from authoritative registries on every call.}
+\item{bundle}{Bundle handle from \code{wb_open_bundle()}.}
+
+\item{view}{Manifest view. \code{"durable"} reads the atomically published
+authoritative file. \code{"reconstructed"} builds an explicitly diagnostic
+view from the open SQLite registry without writing or repairing the file.}
 }
 \value{
-Current manifest list with immutable \code{creation} metadata.
+Manifest list. \code{publication$state_source} is
+\code{"durable_manifest"} for the default direct-file view and
+\code{"reconstructed_diagnostic"} for the diagnostic registry view.
 }
 \description{
 Get the Current Bundle Manifest

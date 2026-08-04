@@ -63,6 +63,9 @@ wb_init_bundle <- function(out_dir,
   bundle <- wb_open_bundle(out_dir)
   .wb_register_assembly_bundle(bundle, writer_lock = writer_lock)
   assembly_registered <- TRUE
+  # Writable open may install supported registry schemas. Publish their exact
+  # committed state before returning the active assembly handle.
+  .wb_refresh_manifest_committed(bundle)
   bundle
 }
 
@@ -190,11 +193,11 @@ wb_define_cells <- function(bundle,
     .wb_bundle_ensure_default_cell_set_style(bundle$con, "core", created_by = created_by %||% source)
   }
 
-  wb_refresh_manifest(bundle)
   .wb_record_declared_ingestion(
     bundle = bundle, transaction_name = "assembly_define_cells",
     source = source, created_by = created_by
   )
+  wb_refresh_manifest(bundle)
   invisible(list(
     set_name = set_name,
     n_defined = length(ids),
@@ -349,16 +352,84 @@ wb_refresh_manifest <- function(bundle) {
   man_old <- try(bundle$manifest, silent = TRUE)
   if (inherits(man_old, "try-error") || !is.list(man_old)) man_old <- list()
 
+  # Creation identity is immutable once a bundle is published.  The duplicated
+  # top-level fields remain for compatibility, but refreshes always take their
+  # values from the explicit creation record when it exists.
+  creation <- man_old$creation %||% list(
+    bundle_id = man_old$bundle_id %||% basename(bundle$dir),
+    bundle_name = man_old$bundle_name %||% man_old$bundle_id %||% basename(bundle$dir),
+    created_at = man_old$created_at %||% format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    id_policy = man_old$id_policy %||% list()
+  )
+
   manifest <- .wb_bundle_build_manifest(
     bundle_dir = bundle$dir,
     con = con,
-    bundle_id = as.character(man_old$bundle_id %||% basename(bundle$dir))[1],
-    bundle_name = as.character(man_old$bundle_name %||% man_old$bundle_id %||% basename(bundle$dir))[1],
-    created_at = as.character(man_old$created_at %||% format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"))[1],
-    id_policy = man_old$id_policy %||% list()
+    bundle_id = as.character(creation$bundle_id %||% basename(bundle$dir))[1],
+    bundle_name = as.character(creation$bundle_name %||% creation$bundle_id %||% basename(bundle$dir))[1],
+    created_at = as.character(creation$created_at %||% format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"))[1],
+    id_policy = creation$id_policy %||% list()
   )
   .wb_bundle_write_manifest(bundle$dir, manifest)
   invisible(manifest)
+}
+
+.wb_manifest_registry_table_names <- function() {
+  c(
+    "cells", "datasets", "features", "matrices", "matrix_cells",
+    "matrix_fragments", "matrix_fragment_cells", "matrix_fragment_features",
+    "spaces", "space_models", "artifacts", "artifact_tables",
+    "cell_set_membership", "cell_set_recipes", "cell_set_styles",
+    "feature_sets", "feature_set_membership", "cell_vectors",
+    "motif_libraries", "motifs", "motif_match_sets", "motif_match_membership",
+    "entity_lifecycle", "entity_supersessions", "entity_tombstones",
+    "prov_commits", "prov_heads", "prov_materializations",
+    "prov_registry_mutations", "prov_replay_equivalence_results",
+    "prov_run_edges", "prov_run_entity_bindings", "prov_run_outputs",
+    "prov_runs", "prov_source_identities", "prov_source_inputs"
+  )
+}
+
+.wb_manifest_table_identity <- function(con, table, chunk_size = 5000L) {
+  fields <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", DBI::dbQuoteIdentifier(con, table), ");"))
+  header <- list(
+    schema = "scworkbench.manifest.registry-table.v1",
+    table = table,
+    columns = fields[, intersect(c("name", "type", "notnull", "pk"), names(fields)), drop = FALSE]
+  )
+  state <- .wb_prov_sha256_object(header)
+  query <- DBI::dbSendQuery(
+    con,
+    paste0("SELECT * FROM ", DBI::dbQuoteIdentifier(con, table), " ORDER BY rowid;")
+  )
+  on.exit(DBI::dbClearResult(query), add = TRUE)
+  n <- 0L
+  repeat {
+    rows <- DBI::dbFetch(query, n = as.integer(chunk_size))
+    if (!nrow(rows)) break
+    n <- n + nrow(rows)
+    payload <- as.character(jsonlite::toJSON(
+      .wb_json_sanitize(rows), dataframe = "rows", auto_unbox = TRUE,
+      null = "null", na = "null"
+    ))
+    state <- .wb_prov_sha256_object(list(
+      previous = state,
+      rows_sha256 = digest::digest(payload, algo = "sha256", serialize = FALSE)
+    ))
+  }
+  list(row_count = as.integer(n), content_sha256 = state)
+}
+
+.wb_manifest_registry_snapshot <- function(con) {
+  present <- intersect(.wb_manifest_registry_table_names(), DBI::dbListTables(con))
+  tables <- setNames(lapply(present, function(table) {
+    .wb_manifest_table_identity(con, table)
+  }), present)
+  list(
+    schema = "scworkbench.manifest.registry-state.v1",
+    fingerprint = .wb_prov_sha256_object(tables),
+    tables = tables
+  )
 }
 
 .wb_bundle_build_manifest <- function(bundle_dir,
@@ -377,8 +448,9 @@ wb_refresh_manifest <- function(bundle) {
   sp_tbl <- try(DBI::dbReadTable(con, "spaces"), silent = TRUE)
   if (inherits(sp_tbl, "try-error") || !is.data.frame(sp_tbl)) sp_tbl <- data.frame()
 
+  registry_state <- .wb_manifest_registry_snapshot(con)
   list(
-    scworkbench_manifest_version = "2.1.0",
+    scworkbench_manifest_version = "2.2.0",
     bundle_id = as.character(bundle_id)[1],
     bundle_name = as.character(bundle_name)[1],
     created_at = as.character(created_at)[1],
@@ -401,6 +473,12 @@ wb_refresh_manifest <- function(bundle) {
       matrices = if (nrow(mat_tbl) > 0L) split(mat_tbl, mat_tbl$matrix_id) else list()
     ),
     id_policy = id_policy %||% list(),
+    current_state = registry_state,
+    publication = list(
+      protocol = "scworkbench.manifest.atomic.v1",
+      state_source = "durable_manifest",
+      published_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
+    ),
     spaces = if (nrow(sp_tbl) > 0L) as.list(sp_tbl) else list(),
     artifacts = if (.wb_table_exists(con, "artifacts")) {
       art_tbl <- DBI::dbGetQuery(con, "SELECT artifact_id, type, name, created_at, source_op FROM artifacts ORDER BY created_at, artifact_id;")
@@ -410,35 +488,89 @@ wb_refresh_manifest <- function(bundle) {
 }
 
 .wb_bundle_write_manifest <- function(bundle_dir, manifest) {
+  .wb_assert(.wb_writer_lock_held(bundle_dir),
+             "Manifest publication requires the exclusive bundle-writer lock.")
   final <- file.path(bundle_dir, "manifest.json")
   token <- paste0(Sys.getpid(), "-", paste(sample(c(letters, 0:9), 16L, TRUE), collapse = ""))
   staged <- file.path(bundle_dir, paste0(".manifest.json.staging-", token))
-  backup <- file.path(bundle_dir, paste0(".manifest.json.backup-", token))
-  published <- FALSE
   on.exit({
     if (file.exists(staged)) unlink(staged, force = TRUE)
-    if (file.exists(backup)) {
-      if (!isTRUE(published) && !file.exists(final)) file.rename(backup, final)
-      if (file.exists(backup)) unlink(backup, force = TRUE)
-    }
   }, add = TRUE)
-  jsonlite::write_json(
-    manifest,
-    staged,
-    pretty = TRUE,
-    auto_unbox = TRUE,
-    null = "null"
+
+  payload <- paste0(as.character(jsonlite::toJSON(
+    manifest, pretty = TRUE, auto_unbox = TRUE, null = "null", na = "null"
+  )), "\n")
+  connection <- file(staged, open = "wb")
+  write_error <- NULL
+  tryCatch({
+    writeBin(charToRaw(enc2utf8(payload)), connection)
+    flush(connection)
+  }, error = function(e) write_error <<- e)
+  try(close(connection), silent = TRUE)
+  if (!is.null(write_error)) stop(write_error)
+  .wb_manifest_test_hook("staged", staged = staged, final = final, manifest = manifest)
+
+  parsed <- tryCatch(
+    jsonlite::read_json(staged, simplifyVector = FALSE),
+    error = function(e) e
   )
-  # POSIX rename replaces atomically. Platforms that refuse replacement use a
-  # guarded backup/restore sequence; recipient opens are excluded by the same
-  # writer lock for that short fallback window.
-  if (!isTRUE(file.rename(staged, final))) {
-    .wb_assert(file.exists(final) && file.rename(final, backup),
-               "Could not stage the previous manifest for replacement.")
-    .wb_assert(file.rename(staged, final),
-               "Could not publish the refreshed manifest.")
+  .wb_assert(!inherits(parsed, "error") && is.list(parsed),
+             "Staged bundle manifest failed JSON validation; previous manifest was preserved.")
+  .wb_assert(
+    identical(as.character(parsed$scworkbench_manifest_version %||% ""),
+              as.character(manifest$scworkbench_manifest_version %||% "")),
+    "Staged bundle manifest failed schema validation; previous manifest was preserved."
+  )
+  .wb_manifest_test_hook("validated", staged = staged, final = final, manifest = manifest)
+  .wb_manifest_test_hook("before_publish", staged = staged, final = final, manifest = manifest)
+
+  # A same-directory rename is the publication commit point.  Platforms that
+  # cannot atomically replace an existing name fail closed and retain the old
+  # complete manifest; there is deliberately no remove/backup gap.
+  replaced <- try(fs::file_move(staged, final), silent = TRUE)
+  .wb_assert(!inherits(replaced, "try-error") && file.exists(final) && !file.exists(staged),
+             "Atomic manifest publication failed; previous manifest was preserved and may disagree with committed registries until a guarded refresh succeeds.")
+  .wb_manifest_test_hook("published", staged = staged, final = final, manifest = manifest)
+  invisible(TRUE)
+}
+
+.wb_manifest_test_hook <- function(event, ...) {
+  hook <- getOption("scworkbench.manifest_test_hook")
+  if (is.function(hook)) hook(event = event, ...)
+  invisible(TRUE)
+}
+
+.wb_manifest_publish_current_locked <- function(bundle_or_dir, result = NULL) {
+  target <- .wb_writer_lock_target(bundle_or_dir)
+  manifest_path <- file.path(target, "manifest.json")
+  if (!dir.exists(target) || !file.exists(manifest_path)) return(invisible(FALSE))
+  candidate <- if (inherits(bundle_or_dir, "scworkbench_bundle")) bundle_or_dir else
+    if (inherits(result, "scworkbench_bundle")) result else NULL
+  if (!is.null(candidate) && DBI::dbIsValid(candidate$con)) {
+    .wb_assert(!isTRUE(RSQLite::sqliteIsTransacting(candidate$con)),
+               "Manifest publication cannot precede the committed SQLite transaction.")
+    .wb_refresh_manifest_committed(candidate)
+    return(invisible(TRUE))
   }
-  published <- TRUE
+
+  durable <- jsonlite::read_json(manifest_path, simplifyVector = TRUE)
+  db_rel <- as.character(durable$storage$sqlite$path %||% "")[1]
+  db_path <- file.path(target, db_rel)
+  if (!nzchar(db_rel) || !file.exists(db_path)) return(invisible(FALSE))
+  con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
+  on.exit(DBI::dbDisconnect(con), add = TRUE)
+  creation <- durable$creation %||% list(
+    bundle_id = durable$bundle_id, bundle_name = durable$bundle_name,
+    created_at = durable$created_at, id_policy = durable$id_policy %||% list()
+  )
+  refreshed <- .wb_bundle_build_manifest(
+    target, con,
+    bundle_id = as.character(creation$bundle_id %||% basename(target))[1],
+    bundle_name = as.character(creation$bundle_name %||% creation$bundle_id %||% basename(target))[1],
+    created_at = as.character(creation$created_at %||% NA_character_)[1],
+    id_policy = creation$id_policy %||% list()
+  )
+  .wb_bundle_write_manifest(target, refreshed)
   invisible(TRUE)
 }
 

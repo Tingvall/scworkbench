@@ -84,7 +84,11 @@ wb_close_bundle <- function(bundle) {
   if (inherits(bundle, "scworkbench_bundle") && !is.null(bundle$con)) {
     con <- bundle$con
     on.exit(.wb_unregister_assembly_connection(con), add = TRUE)
+    publication <- if (.wb_is_assembly_connection(con) && DBI::dbIsValid(con)) {
+      try(.wb_refresh_manifest_committed(bundle), silent = TRUE)
+    } else TRUE
     DBI::dbDisconnect(con)
+    if (inherits(publication, "try-error")) stop(as.character(publication), call. = FALSE)
   }
   invisible(TRUE)
 }

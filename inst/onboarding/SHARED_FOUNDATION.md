@@ -94,6 +94,12 @@ Inspect the machine-readable ownership inventory with
 
 # Bundle integrity proof
 
+`manifest.json` is an atomically published authoritative snapshot of committed
+registry state, not a cache hidden by getters. `wb_manifest(bundle)` reads that
+durable snapshot; use `wb_manifest(bundle, view = "reconstructed")` only to
+diagnose a recoverable publication disagreement. Every committed writer route
+publishes while retaining the exclusive bundle-writer lock.
+
 Use `wb_bundle_validation_report()` when a structured integrity result is
 needed. `structural`, `content`, and `recipient` are cumulative proof levels;
 only content/recipient verify tagged payload identities and the complete

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-08-04T03:26:13+0200
+Generated at: 2026-08-04T13:13:58+0200
 
 Record count: 314
 
@@ -466,7 +466,7 @@ Description: Summarize bundle health and high-level registry counts.
 
 Title: Bundle Manifest
 
-Description: Read the bundle manifest metadata.
+Description: Read the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view.
 
 ### `getter:wb_bundle_overview`
 

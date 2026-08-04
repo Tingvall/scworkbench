@@ -136,15 +136,17 @@ wb_publish_app_bundle <- function(
     )
     final_bundle$manifest$bundle_id <- bundle_id
     final_bundle$manifest$bundle_name <- bundle_name
+    final_bundle$manifest$creation$bundle_id <- bundle_id
+    final_bundle$manifest$creation$bundle_name <- bundle_name
     id_policy <- final_bundle$manifest$id_policy %||% list()
     id_policy$compatibility_publisher <- "wb_publish_app_bundle"
     final_bundle$manifest$id_policy <- id_policy
-    .wb_with_mutation_context(
+    final_bundle$manifest$creation$id_policy <- id_policy
+    manifest <- .wb_with_mutation_context(
       bundle = final_bundle,
       route = "ingestion",
       code = wb_refresh_manifest(final_bundle)
     )
-    manifest <- final_bundle$manifest
     wb_close_bundle(final_bundle)
     final_bundle <- NULL
     if (!is.null(backup_dir) && dir.exists(backup_dir)) {

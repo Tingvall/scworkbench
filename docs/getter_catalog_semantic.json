@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "2026-08-04T03:26:11+0200",
+  "generated_at": "2026-08-04T13:13:54+0200",
   "getter_count": 77,
   "getters": [
     {
@@ -18,11 +18,11 @@
       "function_name": "wb_manifest",
       "title": "Bundle Manifest",
       "category": "bundle",
-      "description": "Read the bundle manifest metadata.",
+      "description": "Read the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view.",
       "returns": "list",
       "payload_level": "metadata",
-      "arguments": "bundle",
-      "use_when": ["inspect bundle identity", "read manifest fields"],
+      "arguments": ["bundle", "view"],
+      "use_when": ["inspect durable bundle identity and current state", "diagnose manifest/registry publication disagreement"],
       "mutates": false
     },
     {

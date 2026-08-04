@@ -16,11 +16,11 @@
       function_name = "wb_manifest",
       title = "Bundle Manifest",
       category = "bundle",
-      description = "Read the bundle manifest metadata.",
+      description = "Read the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view.",
       returns = "list",
       payload_level = "metadata",
-      arguments = c("bundle"),
-      use_when = c("inspect bundle identity", "read manifest fields")
+      arguments = c("bundle", "view"),
+      use_when = c("inspect durable bundle identity and current state", "diagnose manifest/registry publication disagreement")
     ),
     list(
       function_name = "wb_bundle_overview",

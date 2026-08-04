@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-08-04T03:26:13+0200",
+  "generated_at": "2026-08-04T13:13:58+0200",
   "record_count": 314,
   "record_type_counts": {
     "artifact_type": 74,
@@ -11143,18 +11143,18 @@
       "record_type": "getter",
       "name": "wb_manifest",
       "title": "Bundle Manifest",
-      "description": "Read the bundle manifest metadata.",
-      "search_text": "Bundle Manifest\nRead the bundle manifest metadata.\nbundle\nlist\ninspect bundle identity\nread manifest fields",
+      "description": "Read the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view.",
+      "search_text": "Bundle Manifest\nRead the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view.\nbundle\nlist\nview\ninspect durable bundle identity and current state\ndiagnose manifest/registry publication disagreement",
       "tags": ["getter", "bundle"],
       "payload": {
         "function_name": "wb_manifest",
         "title": "Bundle Manifest",
         "category": "bundle",
-        "description": "Read the bundle manifest metadata.",
+        "description": "Read the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view.",
         "returns": "list",
         "payload_level": "metadata",
-        "arguments": "bundle",
-        "use_when": ["inspect bundle identity", "read manifest fields"],
+        "arguments": ["bundle", "view"],
+        "use_when": ["inspect durable bundle identity and current state", "diagnose manifest/registry publication disagreement"],
         "mutates": false
       }
     },
@@ -16608,7 +16608,7 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-08-04T03:26:13+0200",
+    "generated_at": "2026-08-04T13:13:58+0200",
     "node_count": 314,
     "edge_count": 900,
     "nodes": [
