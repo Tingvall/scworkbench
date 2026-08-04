@@ -16,7 +16,7 @@ wb_bundle_validation_report(
 }
 \value{
 A deterministic named report containing status, stable diagnostics,
-skipped checks, and elapsed time by check class.
+skipped checks, durable \code{content_coverage}, and elapsed time by check class.
 }
 \description{
 Validation is cumulative. \code{structural} proves that the manifest and supported
@@ -29,9 +29,13 @@ hash payload bytes, or prove provenance content identity.
 \code{content} additionally runs SQLite integrity checking; verifies exact ordered
 matrix cell/feature identities and fragment coverage; checks spaces, models,
 artifact payload rows, source declarations, provenance runs/edges/bindings,
-commits, registry mutations, materializations, lifecycle history, and recorded
-SHA-256 identities. External sources not declared as bundled and unavailable
-locally are reported as unverifiable warnings, not corruption.
+commits, registry mutations, materializations, lifecycle history, and tagged
+content identities. Its \code{content_coverage} result accounts for every
+bundle-owned durable payload. Untagged legacy identities and missing
+baselines remain explicit warnings, never current-scheme proofs. External
+sources not declared as bundled and unavailable locally are reported as
+unverifiable warnings, not corruption. A non-empty active SQLite WAL fails
+closed before any database connection is opened.
 
 \code{recipient} adds finalized-transfer invariants: no active writer, SQLite
 WAL/SHM/journal sidecars, pending publication or commit, and an immutable

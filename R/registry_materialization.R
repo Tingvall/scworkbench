@@ -121,7 +121,10 @@
       identical(registry_type, "cell_set") && identical(action, "remove") && is.null(payload_obj$cell_ids)
     if (!is.null(entity) && isTRUE(retracting)) {
       event_hashes[i] <- .wb_registry_entity_content_hash(bundle, entity$kind, entity$id)
-      .wb_entity_bind_provenance(bundle$con, entity$kind, entity$id, event_hashes[i])
+      .wb_entity_bind_provenance(
+        bundle$con, entity$kind, entity$id, event_hashes[i],
+        unname(.wb_content_identity_schemes()[["registry"]])
+      )
     }
     if (identical(registry_type, "feature_set") && identical(action, "replace")) {
       payload <- payload_obj
@@ -186,7 +189,10 @@
     }
     if (!is.null(entity) && !isTRUE(retracting)) {
       event_hashes[i] <- .wb_registry_entity_content_hash(bundle, entity$kind, entity$id)
-      .wb_entity_bind_provenance(bundle$con, entity$kind, entity$id, event_hashes[i])
+      .wb_entity_bind_provenance(
+        bundle$con, entity$kind, entity$id, event_hashes[i],
+        unname(.wb_content_identity_schemes()[["registry"]])
+      )
     }
   }
   })
@@ -195,11 +201,18 @@
   if (!.wb_db_has_column(bundle$con, "prov_registry_mutations", "content_hash")) {
     DBI::dbExecute(bundle$con, "ALTER TABLE prov_registry_mutations ADD COLUMN content_hash TEXT;")
   }
+  if (!.wb_db_has_column(bundle$con, "prov_registry_mutations", "content_identity_scheme")) {
+    DBI::dbExecute(bundle$con, "ALTER TABLE prov_registry_mutations ADD COLUMN content_identity_scheme TEXT;")
+  }
   events$content_hash <- event_hashes
+  events$content_identity_scheme <- ifelse(
+    is.na(event_hashes), NA_character_,
+    unname(.wb_content_identity_schemes()[["registry"]])
+  )
   .wb_db_append_chunked(
     bundle$con,
     "prov_registry_mutations",
-    transform(events, commit_id = commit_id)[, c("commit_id", "event_id", "run_id", "registry_type", "action", "registry_key_json", "payload_json", "content_hash")]
+    transform(events, commit_id = commit_id)[, c("commit_id", "event_id", "run_id", "registry_type", "action", "registry_key_json", "payload_json", "content_hash", "content_identity_scheme")]
   )
   invisible(events)
 }

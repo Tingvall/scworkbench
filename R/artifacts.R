@@ -1688,10 +1688,10 @@ wb_art_birth_certificate <- function(bundle,
   if (inherits(obj, "try-error")) return(character(0))
 
   refs <- character(0)
-  rec_refs <- function(x) {
+  rec_refs <- function(x, allow_plain = FALSE) {
     if (is.null(x)) return(invisible(NULL))
 
-    if (is.character(x)) {
+    if (is.character(x) && isTRUE(allow_plain)) {
       vals <- as.character(x)
       refs <<- c(refs, vals[nzchar(vals)])
       return(invisible(NULL))
@@ -1702,17 +1702,19 @@ wb_art_birth_certificate <- function(bundle,
     rt <- as.character(x$ref_type %||% "")[1]
     aid <- as.character(x$artifact_id %||% "")[1]
     if ((identical(rt, "artifact") || !nzchar(rt)) && nzchar(aid)) {
-      if (nzchar(aid)) refs <<- c(refs, aid)
+      refs <<- c(refs, aid)
+      return(invisible(NULL))
     }
 
     if (length(x)) {
-      for (i in seq_along(x)) rec_refs(x[[i]])
+      child_plain <- is.null(names(x)) || !any(nzchar(names(x)))
+      for (i in seq_along(x)) rec_refs(x[[i]], allow_plain = child_plain)
     }
     invisible(NULL)
   }
 
-  if (!is.null(obj$parent_artifacts)) rec_refs(obj$parent_artifacts)
-  if (!is.null(obj$inputs$provenance_refs)) rec_refs(obj$inputs$provenance_refs)
+  if (!is.null(obj$parent_artifacts)) rec_refs(obj$parent_artifacts, allow_plain = TRUE)
+  if (!is.null(obj$inputs$provenance_refs)) rec_refs(obj$inputs$provenance_refs, allow_plain = TRUE)
   unique(refs[nzchar(refs)])
 }
 

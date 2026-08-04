@@ -284,7 +284,7 @@
     op_name = paste0("bundle_ingest_", tolower(gsub("[^A-Za-z0-9]+", "_", source_type))),
     inputs = list(
       cell_set = "all", parents = character(0),
-      provenance_refs = if (nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list(),
+      provenance_refs = if (!is.na(as.character(rowdata_artifact_id %||% NA_character_)[1]) && nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list(),
       user_inputs = list(source_path = source_path)
     ),
     params = list(importer_version = .wb_ingest_version(), cell_id_policy = cell_id_policy, feature_id_policy = feature_id_policy, status = status, phase = phase),
@@ -299,7 +299,7 @@
     name = "container_ingest_report",
     description = "Container ingestion metadata and v1 unsupported field summary",
     created_by = created_by,
-    parent_artifacts = if (nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list()
+    parent_artifacts = if (!is.na(as.character(rowdata_artifact_id %||% NA_character_)[1]) && nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list()
   )
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, artifact_id = artifact_id,

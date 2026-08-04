@@ -75,6 +75,7 @@ test_op_umap_runtime_preflight_contract <- function() {
 
   promoted <- wb_session_promote_current(b, rr$session, outputs = c("model", "space_2d"), created_by = "test")
   wb_close_bundle(b); b <- wb_open_bundle(tmp)
+  wb_finalize_recipient_bundle(b)
   stopifnot("rna.umap" %in% as.character(wb_spaces(b)$space_id))
   stopifnot(nrow(wb_space_model(b, "rna.umap")) == 1L)
   stopifnot(file.exists(wb_space_model_path(b, "rna.umap")))

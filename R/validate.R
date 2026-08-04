@@ -88,9 +88,13 @@
 #' `content` additionally runs SQLite integrity checking; verifies exact ordered
 #' matrix cell/feature identities and fragment coverage; checks spaces, models,
 #' artifact payload rows, source declarations, provenance runs/edges/bindings,
-#' commits, registry mutations, materializations, lifecycle history, and recorded
-#' SHA-256 identities. External sources not declared as bundled and unavailable
-#' locally are reported as unverifiable warnings, not corruption.
+#' commits, registry mutations, materializations, lifecycle history, and tagged
+#' content identities. Its `content_coverage` result accounts for every
+#' bundle-owned durable payload. Untagged legacy identities and missing
+#' baselines remain explicit warnings, never current-scheme proofs. External
+#' sources not declared as bundled and unavailable locally are reported as
+#' unverifiable warnings, not corruption. A non-empty active SQLite WAL fails
+#' closed before any database connection is opened.
 #'
 #' `recipient` adds finalized-transfer invariants: no active writer, SQLite
 #' WAL/SHM/journal sidecars, pending publication or commit, and an immutable
@@ -106,7 +110,7 @@
 #' @param bundle_dir Path to the bundle directory (not an open bundle handle).
 #' @param level Cumulative validation level.
 #' @return A deterministic named report containing status, stable diagnostics,
-#'   skipped checks, and elapsed time by check class.
+#'   skipped checks, durable `content_coverage`, and elapsed time by check class.
 #' @export
 wb_bundle_validation_report <- function(bundle_dir,
                                         level = c("content", "structural", "recipient")) {
@@ -119,6 +123,11 @@ wb_bundle_validation_report <- function(bundle_dir,
   diagnostics <- .wb_validation_empty_diagnostics()
   skipped <- .wb_validation_empty_skipped()
   timings <- data.frame(check_class = character(), elapsed_seconds = numeric(), stringsAsFactors = FALSE)
+  content_coverage <- data.frame(
+    entity_kind=character(),entity_id=character(),baseline_source=character(),
+    recorded_scheme=character(),actual_scheme=character(),verification_status=character(),
+    stringsAsFactors=FALSE
+  )
   add <- function(code, severity = "error", check_class = "structural",
                   entity_kind = NA_character_, entity_id = NA_character_, path = NA_character_,
                   table = NA_character_, expected = NA_character_, observed = NA_character_, message = code) {
@@ -129,6 +138,23 @@ wb_bundle_validation_report <- function(bundle_dir,
       as.character(message)[1]
     )
     invisible(FALSE)
+  }
+  identity_scheme_state <- function(recorded_scheme, actual_scheme, entity_kind, entity_id, table, check_class="provenance") {
+    recorded <- as.character(recorded_scheme %||% "")[1]; actual <- as.character(actual_scheme %||% "")[1]
+    if (is.na(recorded) || !nzchar(recorded)) {
+      add("CONTENT_IDENTITY_SCHEME_LEGACY_UNVERIFIABLE",severity="warning",check_class=check_class,entity_kind=entity_kind,entity_id=entity_id,table=table,expected=actual,observed="untagged",message="Legacy content hash has no identity scheme and is not interpreted as a current-scheme proof.")
+      return("legacy")
+    }
+    supported <- unname(.wb_content_identity_schemes())
+    if (!recorded %in% supported) {
+      add("CONTENT_IDENTITY_SCHEME_UNSUPPORTED",check_class=check_class,entity_kind=entity_kind,entity_id=entity_id,table=table,expected=paste(supported,collapse=","),observed=recorded,message="Recorded content identity scheme is unsupported.")
+      return("unsupported")
+    }
+    if (.wb_validation_nonempty(actual) && !identical(recorded,actual)) {
+      add("CONTENT_IDENTITY_SCHEME_MISMATCH",check_class=check_class,entity_kind=entity_kind,entity_id=entity_id,table=table,expected=actual,observed=recorded,message="Recorded content identity scheme does not match the durable payload class.")
+      return("mismatch")
+    }
+    "current"
   }
   skip <- function(check_class, minimum_level, reason) {
     skipped[nrow(skipped) + 1L, ] <<- list(check_class, minimum_level, reason)
@@ -209,17 +235,23 @@ wb_bundle_validation_report <- function(bundle_dir,
           path = db_rel, expected = "contained file", observed = checked$observed,
           message = "The manifest SQLite path is not a contained bundle file.")
     } else {
-      # SQLite's immutable mode is the only read-only open that cannot create a
-      # WAL/SHM sidecar. An actively open assembly already has SHM state, so a
-      # normal SQLITE_RO connection is used there to see its WAL frames without
-      # creating a new sidecar. A lone WAL is never trusted by immutable mode;
-      # content validation emits an unresolved-WAL diagnostic below.
-      shm_present <- file.exists(paste0(checked$absolute,"-shm"))
-      uri_suffix <- if (shm_present) "?mode=ro" else "?immutable=1"
-      con <- tryCatch(DBI::dbConnect(
-        RSQLite::SQLite(), paste0("file:", checked$absolute, uri_suffix), flags = RSQLite::SQLITE_RO
+      # Even a mode=ro SQLite connection takes locks by writing bytes in an
+      # existing SHM file. Path-only validation therefore fails closed when a
+      # non-empty WAL must be consulted. Finalize the writer or validate an
+      # explicitly supported snapshot; never touch supplied runtime sidecars.
+      wal_path <- paste0(checked$absolute, "-wal")
+      wal_nonempty <- file.exists(wal_path) && isTRUE(file.info(wal_path)$size > 0)
+      con <- if (wal_nonempty) {
+        add("SQLITE_ACTIVE_WAL_SNAPSHOT_REQUIRED", check_class = "sqlite", entity_kind = "sqlite", entity_id = "main",
+            path = substring(wal_path, nchar(root) + 2L), observed = paste0(file.info(wal_path)$size, " bytes"),
+            message = "A non-empty WAL cannot be authoritatively validated by path without mutating SHM lock bytes; finalize the bundle or provide a supported immutable snapshot.")
+        NULL
+      } else tryCatch(DBI::dbConnect(
+        RSQLite::SQLite(), paste0("file:", checked$absolute, "?immutable=1"), flags = RSQLite::SQLITE_RO
       ), error = function(e) e)
-      if (inherits(con, "error")) {
+      if (is.null(con)) {
+        bundle <- NULL
+      } else if (inherits(con, "error")) {
         add("SQLITE_OPEN_FAILED", check_class = "sqlite", entity_kind = "sqlite", entity_id = "main",
             path = db_rel, observed = conditionMessage(con), message = "SQLite could not be opened read-only.")
         con <- NULL
@@ -448,14 +480,117 @@ wb_bundle_validation_report <- function(bundle_dir,
           prov <- tryCatch(jsonlite::fromJSON(as.character(arts$provenance_json[i]), simplifyVector = FALSE), error = function(e) NULL)
           if (is.null(prov)) add("ARTIFACT_PROVENANCE_MALFORMED", check_class = "artifacts", entity_kind = "artifact", entity_id = id, table = "artifacts", observed = "invalid JSON", message = "Artifact provenance_json is malformed.")
         }
+        ancestry <- .wb_art_dependency_edges(bundle)
+        if (nrow(ancestry)) for (i in seq_len(nrow(ancestry))) {
+          parent <- as.character(ancestry$parent_artifact_id[i]); child <- as.character(ancestry$child_artifact_id[i])
+          if (!parent %in% known || !child %in% known) add("ARTIFACT_DANGLING_ANCESTRY",check_class="artifacts",entity_kind="artifact",entity_id=child,table="artifacts.provenance_json",expected=parent,observed=if(parent %in% known) "child missing" else "parent missing",message="Persisted artifact ancestry references an artifact that is not durable in the bundle.")
+        }
       }
     })
 
     timed("provenance", {
       tables <- DBI::dbListTables(con)
       has <- function(x) x %in% tables
-      runs <- if (has("prov_runs")) DBI::dbGetQuery(con, "SELECT snapshot_id,run_id FROM prov_runs;") else data.frame(snapshot_id=character(),run_id=character())
+      runs <- if (has("prov_runs")) DBI::dbGetQuery(con, "SELECT * FROM prov_runs ORDER BY snapshot_id,run_id;") else data.frame(snapshot_id=character(),run_id=character())
       run_key <- paste(runs$snapshot_id, runs$run_id, sep = "\r")
+      head_schemas <- if (has("prov_heads")) DBI::dbGetQuery(con,"SELECT snapshot_id,schema_version FROM prov_heads;") else data.frame()
+      edges <- if (has("prov_run_edges")) DBI::dbGetQuery(con, "SELECT * FROM prov_run_edges;") else data.frame()
+      output_index <- if (has("prov_run_outputs")) DBI::dbGetQuery(con, "SELECT snapshot_id,run_id,output_name,artifact_id FROM prov_run_outputs;") else data.frame()
+      binding_index <- if (has("prov_run_entity_bindings")) DBI::dbGetQuery(con, "SELECT snapshot_id,run_id,direction,binding_name,entity_kind,entity_id FROM prov_run_entity_bindings;") else data.frame()
+      artifact_ids <- if (has("artifacts")) as.character(DBI::dbGetQuery(con,"SELECT artifact_id FROM artifacts;")$artifact_id) else character()
+      json_fields <- c(
+        params_json = "RUN_PARAMS_JSON_MALFORMED",
+        inputs_json = "RUN_INPUTS_JSON_MALFORMED",
+        symbolic_inputs_json = "RUN_SYMBOLIC_INPUTS_JSON_MALFORMED",
+        execution_inputs_json = "RUN_EXECUTION_INPUTS_JSON_MALFORMED",
+        runtime_fingerprint_json = "RUN_RUNTIME_FINGERPRINT_JSON_MALFORMED",
+        contract_json = "RUN_CONTRACT_JSON_MALFORMED"
+      )
+      if (nrow(runs)) for (i in seq_len(nrow(runs))) {
+        sid <- as.character(runs$snapshot_id[i]); rid <- as.character(runs$run_id[i]); run_entity <- paste(sid,rid,sep="/")
+        schema_version <- if (nrow(head_schemas) && any(head_schemas$snapshot_id==sid)) as.character(head_schemas$schema_version[match(sid,head_schemas$snapshot_id)]) else NA_character_
+        current_contract <- identical(schema_version,.wb_prov_schema_version())
+        typed_contract <- schema_version %in% c("1.7","1.8")
+        parsed <- list(); malformed <- character()
+        for (field in names(json_fields)) {
+          txt <- if (field %in% names(runs)) as.character(runs[[field]][i] %||% "")[1] else ""
+          required <- field %in% c("params_json","inputs_json") || field %in% names(runs)
+          if (!required || is.na(txt) || !nzchar(txt)) {
+            if (field %in% c("params_json","inputs_json")) {
+              add(json_fields[[field]],check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",observed="missing",message=paste0(field," is required and must contain a JSON object."))
+              malformed <- c(malformed,field)
+            }
+            next
+          }
+          value <- tryCatch(jsonlite::fromJSON(txt,simplifyVector=FALSE),error=function(e)e)
+          if (inherits(value,"error") || is.null(value) || !is.list(value)) {
+            add(json_fields[[field]],check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",observed=if(inherits(value,"error")) conditionMessage(value) else "not a JSON object",message=paste0(field," is not a valid persisted run-contract object."))
+            malformed <- c(malformed,field)
+          } else parsed[[field]] <- value
+        }
+        op_name <- as.character(runs$op_name[i] %||% "")[1]
+        op_version <- as.character(runs$op_version[i] %||% "")[1]
+        if (!nzchar(op_name)) add("RUN_OPERATION_IDENTITY_INVALID",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",observed="empty op_name",message="Persisted run operation identity is empty.")
+        if (!nzchar(op_version)) {
+          if (typed_contract) add("RUN_OPERATION_VERSION_INVALID",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",observed="missing op_version",message="Persisted run operation version is missing.")
+          else add("RUN_OPERATION_VERSION_LEGACY_UNVERIFIABLE",severity="warning",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",observed="legacy schema without op_version",message="Legacy run predates versioned operation identity and cannot be upgraded during read-only validation.")
+        }
+        else if (!identical(op_version,"1")) add("RUN_OPERATION_VERSION_UNSUPPORTED",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected="1",observed=op_version,message="Persisted run operation-contract version is unsupported.")
+        if (all(c("params_json","inputs_json","symbolic_inputs_json","execution_inputs_json") %in% names(runs))) {
+          expected_run_hash <- .wb_prov_run_hash(op_name,runs$params_json[i],runs$inputs_json[i],runs$symbolic_inputs_json[i],runs$execution_inputs_json[i])
+          observed_run_hash <- as.character(runs$run_hash[i] %||% "")[1]
+          if (!identical(observed_run_hash,expected_run_hash)) add("RUN_HASH_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=expected_run_hash,observed=observed_run_hash,message="Persisted run fields no longer match the producer run_hash contract.")
+        }
+        contract_txt <- as.character(runs$contract_json[i] %||% "")[1]
+        contract_hash <- as.character(runs$contract_hash[i] %||% "")[1]
+        if (nzchar(contract_txt) && !is.na(contract_txt)) {
+          expected_contract_hash <- .wb_prov_contract_hash(contract_txt)
+          if (!nzchar(contract_hash) || !identical(contract_hash,expected_contract_hash)) add("RUN_CONTRACT_HASH_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=expected_contract_hash,observed=contract_hash,message="Persisted operation contract no longer matches contract_hash.")
+          contract <- parsed$contract_json
+          contract_op <- as.character(contract$interface$op_name %||% "")[1]
+          contract_version <- as.character(contract$version %||% "")[1]
+          if (!is.null(contract) && (!identical(contract_op,op_name) || !identical(contract_version,op_version))) add("RUN_CONTRACT_IDENTITY_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=paste(op_name,op_version,sep="@"),observed=paste(contract_op,contract_version,sep="@"),message="Recorded contract operation identity/version contradicts the run row.")
+          if (current_contract && !is.null(contract) && !is.null(parsed$params_json) && !identical(.wb_prov_sha256_object(contract$parameters %||% list()),.wb_prov_sha256_object(parsed$params_json))) add("RUN_CONTRACT_PARAMETERS_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",message="Recorded contract parameters contradict params_json.")
+          if (current_contract && !is.null(contract) && !is.null(parsed$execution_inputs_json) && !identical(.wb_prov_sha256_object(contract$resolved_inputs %||% list()),.wb_prov_sha256_object(parsed$execution_inputs_json))) add("RUN_CONTRACT_EXECUTION_INPUTS_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",message="Recorded contract resolved inputs contradict execution_inputs_json.")
+        } else if ("contract_json" %in% names(runs)) add("RUN_CONTRACT_MISSING",severity="warning",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",observed="missing",message="Legacy run has no recorded operation contract.")
+
+        expected_bindings <- c(
+          .wb_prov_collect_entity_bindings(parsed$execution_inputs_json %||% list(),"resolved"),
+          .wb_prov_collect_entity_bindings(parsed$inputs_json$user_inputs %||% list(),"input")
+        )
+        if (length(expected_bindings)) for (binding in expected_bindings) {
+          hit <- nrow(binding_index) && any(binding_index$snapshot_id==sid & binding_index$run_id==rid & binding_index$direction=="input" & binding_index$binding_name==binding$binding_name & binding_index$entity_kind==binding$entity_kind & binding_index$entity_id==binding$entity_id)
+          if (!hit) {
+            if (typed_contract) add("RUN_TYPED_INPUT_BINDING_MISSING",check_class="provenance",entity_kind=binding$entity_kind,entity_id=binding$entity_id,table="prov_run_entity_bindings",expected=binding$binding_name,observed=run_entity,message="Resolved typed run input lacks its exact persisted entity binding.")
+            else add("RUN_TYPED_INPUT_BINDING_LEGACY_UNVERIFIABLE",severity="warning",check_class="provenance",entity_kind=binding$entity_kind,entity_id=binding$entity_id,table="prov_run_entity_bindings",expected=binding$binding_name,observed=run_entity,message="Legacy run predates exact typed input bindings and remains ancestry-unverifiable.")
+          }
+        }
+        parents <- unique(as.character(parsed$inputs_json$parents %||% character()))
+        parents <- parents[!is.na(parents)&nzchar(parents)]
+        if (length(parents)) for (parent in parents) {
+          parent_exists <- paste(sid,parent,sep="\r") %in% run_key
+          edge_exists <- nrow(edges) && any(edges$snapshot_id==sid & edges$parent_run_id==parent & edges$child_run_id==rid & edges$edge_type=="depends_on_run")
+          if (!parent_exists || !edge_exists) add("RUN_INPUT_ANCESTRY_MISSING",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_run_edges",expected=parent,observed=if(parent_exists) "edge missing" else "parent run missing",message="Declared run parent is not represented by complete persisted ancestry.")
+        }
+        refs <- .wb_dag_collect_refs(list(symbolic=parsed$symbolic_inputs_json %||% list(),inputs=parsed$inputs_json %||% list()),path="run_contract")
+        if (nrow(refs)) for (j in seq_len(nrow(refs))) {
+          if (identical(as.character(refs$ref_type[j]),"run")) {
+            parent <- as.character(refs$run_id[j]); output_name <- as.character(refs$output[j] %||% "")[1]
+            if (!.wb_validation_nonempty(parent) || !.wb_validation_nonempty(output_name)) next
+            output_exists <- nrow(output_index) && any(output_index$snapshot_id==sid & output_index$run_id==parent & output_index$output_name==output_name)
+            edge_exists <- nrow(edges) && any(edges$snapshot_id==sid & edges$parent_run_id==parent & edges$child_run_id==rid & edges$edge_type=="input_run_ref")
+            if (!output_exists || !edge_exists) add("RUN_SYMBOLIC_INPUT_ANCESTRY_MISSING",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_run_edges",expected=paste(parent,output_name,sep="::"),observed=if(output_exists) "edge missing" else "run output missing",message="Symbolic run input is not backed by its output and ancestry edge.")
+          } else if (identical(as.character(refs$ref_type[j]),"artifact")) {
+            aid <- as.character(refs$artifact_id[j] %||% "")[1]
+            if (!.wb_validation_nonempty(aid)) next
+            bound <- nrow(binding_index) && any(binding_index$snapshot_id==sid & binding_index$run_id==rid & binding_index$direction=="input" & binding_index$entity_kind=="artifact" & binding_index$entity_id==aid)
+            if (!aid %in% artifact_ids || !bound) {
+              if (typed_contract || !aid %in% artifact_ids) add("RUN_ARTIFACT_INPUT_ANCESTRY_MISSING",check_class="provenance",entity_kind="artifact",entity_id=aid,table="prov_run_entity_bindings",expected=run_entity,observed=if(aid %in% artifact_ids) "binding missing" else "artifact missing",message="Symbolic artifact input is not backed by a durable artifact and typed input binding.")
+              else add("RUN_ARTIFACT_INPUT_ANCESTRY_LEGACY_UNVERIFIABLE",severity="warning",check_class="provenance",entity_kind="artifact",entity_id=aid,table="prov_run_entity_bindings",expected=run_entity,observed="legacy binding missing",message="Legacy run references a durable artifact but predates exact typed artifact-input bindings.")
+            }
+          }
+        }
+      }
       heads <- if (has("prov_heads")) DBI::dbGetQuery(con, "SELECT * FROM prov_heads ORDER BY snapshot_id;") else data.frame()
       head_ids <- as.character(heads$snapshot_id %||% character())
       commits <- if (has("prov_commits")) DBI::dbGetQuery(con, "SELECT * FROM prov_commits ORDER BY commit_id;") else data.frame()
@@ -470,7 +605,6 @@ wb_bundle_validation_report <- function(bundle_dir,
       }
       if (nrow(runs)) for (i in seq_len(nrow(runs))) if (!runs$snapshot_id[i] %in% head_ids) add("PROVENANCE_DANGLING_RUN_SNAPSHOT", check_class = "provenance", entity_kind = "run", entity_id = runs$run_id[i], table = "prov_runs", observed = runs$snapshot_id[i], message = "Run references a missing snapshot.")
       if (has("prov_run_edges")) {
-        edges <- DBI::dbGetQuery(con, "SELECT * FROM prov_run_edges;")
         for (i in seq_len(nrow(edges))) {
           p <- paste(edges$snapshot_id[i], edges$parent_run_id[i], sep = "\r"); c <- paste(edges$snapshot_id[i], edges$child_run_id[i], sep = "\r")
           if (!p %in% run_key || !c %in% run_key) add("PROVENANCE_DANGLING_DAG_EDGE", check_class = "provenance", entity_kind = "dag_edge", entity_id = paste(edges$parent_run_id[i], edges$child_run_id[i], sep = "->"), table = "prov_run_edges", observed = edges$snapshot_id[i], message = "DAG edge endpoint is missing from its snapshot.")
@@ -485,13 +619,18 @@ wb_bundle_validation_report <- function(bundle_dir,
         sha <- if ("content_sha256" %in% names(outputs)) as.character(outputs$content_sha256[i] %||% "")[1] else ""
         if (.wb_validation_nonempty(sha) && !grepl("^[A-Fa-f0-9]{64}$", sha)) add("CONTENT_IDENTITY_MALFORMED", check_class = "provenance", entity_kind = "run_output", entity_id = paste(outputs$run_id[i], outputs$output_name[i], sep = "::"), table = "prov_run_outputs", expected = "64 hexadecimal SHA-256", observed = sha, message = "Recorded output content identity is malformed.")
         if (.wb_validation_nonempty(aid) && .wb_validation_nonempty(sha) && has("artifacts")) {
-          actual <- tryCatch({
+          actual_identity <- tryCatch({
             atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(aid))$type[1]
-            if (as.character(atype) %in% c("feature_table","obs_table")) .wb_prov_stored_table_content_sha256(con,aid) else {
-              prim <- wb_art_load(bundle, aid); .wb_prov_payload_identity(bundle, prim)$content_sha256
+            if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,aid),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else {
+              prim <- wb_art_load(bundle, aid); .wb_prov_payload_identity(bundle, prim)
             }
-          }, error = function(e) NA_character_)
-          if (!is.na(actual) && nzchar(actual) && !identical(tolower(actual), tolower(sha))) add("ARTIFACT_CONTENT_IDENTITY_MISMATCH", check_class = "provenance", entity_kind = "artifact", entity_id = aid, table = "prov_run_outputs", expected = sha, observed = actual, message = "Artifact payload no longer matches its recorded content identity.")
+          }, error = function(e) NULL)
+          if (!is.null(actual_identity)) {
+            scheme <- if ("content_identity_scheme" %in% names(outputs)) outputs$content_identity_scheme[i] else NA_character_
+            scheme_state <- identity_scheme_state(scheme,actual_identity$content_identity_scheme,"artifact",aid,"prov_run_outputs")
+            actual <- as.character(actual_identity$content_sha256 %||% "")[1]
+            if (identical(scheme_state,"current") && nzchar(actual) && !identical(tolower(actual), tolower(sha))) add("ARTIFACT_CONTENT_IDENTITY_MISMATCH", check_class = "provenance", entity_kind = "artifact", entity_id = aid, table = "prov_run_outputs", expected = sha, observed = actual, message = "Artifact payload no longer matches its recorded content identity.")
+          }
         }
       }
       if (has("prov_run_entity_bindings")) {
@@ -508,7 +647,8 @@ wb_bundle_validation_report <- function(bundle_dir,
           # model_ref is a binding identity whose durable path is authoritative.
           bound_path <- as.character(bindings$path[i] %||% "")[1]
           if (kind == "model_ref") {
-            present <- .wb_validation_nonempty(bound_path) && isTRUE(.wb_validation_path(root, bound_path, "either")$ok)
+            external_model_input <- identical(as.character(bindings$direction[i]),"input") && .wb_validation_nonempty(bound_path) && .wb_path_is_absolute(bound_path)
+            present <- if (external_model_input) file.exists(bound_path) || dir.exists(bound_path) else .wb_validation_nonempty(bound_path) && isTRUE(.wb_validation_path(root, bound_path, "either")$ok)
             bits <- strsplit(id, "|", fixed = TRUE)[[1]]
             if (!present && length(bits) >= 2L && has("artifact_model_ref")) {
               refs <- DBI::dbGetQuery(con, "SELECT model_path FROM artifact_model_ref WHERE engine=? AND model_space_id=?;", params=list(bits[1],bits[2]))
@@ -519,19 +659,19 @@ wb_bundle_validation_report <- function(bundle_dir,
               present <- nrow(refs) && any(vapply(refs$model_path, function(p) isTRUE(.wb_validation_path(root,p,"either")$ok), logical(1)))
             }
           }
-          tombstoned <- nrow(tomb) && any(tomb$entity_kind == kind & tomb$entity_id == id)
-          if (!present && !tombstoned && kind != "registry") add("PROVENANCE_DANGLING_ENTITY_BINDING", check_class = "provenance", entity_kind = kind, entity_id = id, table = "prov_run_entity_bindings", observed = "durable entity missing", message = "Provenance binding has neither a durable entity nor a valid tombstone.")
+          if (!present && kind != "registry") add("PROVENANCE_DANGLING_ENTITY_BINDING", check_class = "provenance", entity_kind = kind, entity_id = id, table = "prov_run_entity_bindings", observed = "durable entity missing", message = "Provenance binding has no durable payload; ordinary retraction/rejection tombstones do not authorize deletion.")
           recorded_hash <- as.character(bindings$content_hash[i] %||% "")[1]
           if (present && .wb_validation_nonempty(recorded_hash) && grepl("^[A-Fa-f0-9]{64}$", recorded_hash)) {
-            actual_hash <- tryCatch({
+            actual_identity <- tryCatch({
               if (kind == "matrix") {
-                .wb_prov_payload_identity(bundle, wb_prim_matrix(id))$content_sha256
+                .wb_prov_payload_identity(bundle, wb_prim_matrix(id))
               } else if (kind == "space") {
                 sr <- DBI::dbGetQuery(con, "SELECT dims FROM spaces WHERE space_id=?;", params=list(id))
                 prims <- if (nrow(sr) && identical(as.integer(sr$dims[1]), 2L)) list(wb_prim_space(id), wb_prim_space_2d(id)) else list(wb_prim_space(id))
-                hashes <- vapply(prims, function(prim) .wb_prov_payload_identity(bundle, prim)$content_sha256, character(1))
-                hit <- hashes[tolower(hashes) == tolower(recorded_hash)]
-                if (length(hit)) hit[1] else hashes[1]
+                identities <- lapply(prims, function(prim) .wb_prov_payload_identity(bundle, prim))
+                hashes <- vapply(identities, function(x) as.character(x$content_sha256), character(1))
+                hit <- which(tolower(hashes) == tolower(recorded_hash))
+                identities[[if(length(hit)) hit[1] else 1L]]
               } else if (kind %in% c("model", "model_ref")) {
                 candidate <- ""
                 bits <- strsplit(id,"|",fixed=TRUE)[[1]]
@@ -548,11 +688,23 @@ wb_bundle_validation_report <- function(bundle_dir,
                   if (nrow(mr)) candidate <- as.character(mr$model_path[1])
                 }
                 if (!.wb_validation_nonempty(candidate)) candidate <- bound_path
-                checked <- .wb_validation_path(root, candidate, "either")
-                if (isTRUE(checked$ok)) .wb_prov_file_tree_sha256(checked$absolute) else NA_character_
-              } else NA_character_
-            }, error=function(e) NA_character_)
-            if (.wb_validation_nonempty(actual_hash) && !identical(tolower(actual_hash),tolower(recorded_hash))) {
+                checked <- if (.wb_path_is_absolute(candidate)) list(ok=file.exists(candidate)||dir.exists(candidate),absolute=candidate) else .wb_validation_path(root, candidate, "either")
+                if (isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
+              } else if (kind == "artifact") {
+                atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]
+                if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else .wb_prov_payload_identity(bundle,wb_art_load(bundle,id))
+              } else if (kind %in% c("cell_set","feature_set")) {
+                list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]]))
+              } else if (kind == "external_source") {
+                list(content_sha256=recorded_hash,content_identity_scheme=unname(.wb_content_identity_schemes()[["raw_file"]]))
+              } else NULL
+            }, error=function(e) NULL)
+            if (!is.null(actual_identity)) {
+              recorded_scheme <- if ("content_identity_scheme" %in% names(bindings)) bindings$content_identity_scheme[i] else NA_character_
+              scheme_state <- identity_scheme_state(recorded_scheme,actual_identity$content_identity_scheme,kind,id,"prov_run_entity_bindings")
+              actual_hash <- as.character(actual_identity$content_sha256 %||% "")[1]
+            } else { scheme_state <- "unavailable"; actual_hash <- NA_character_ }
+            if (identical(scheme_state,"current") && .wb_validation_nonempty(actual_hash) && !identical(tolower(actual_hash),tolower(recorded_hash))) {
               code <- switch(kind, matrix="MATRIX_CONTENT_IDENTITY_MISMATCH", space="SPACE_CONTENT_IDENTITY_MISMATCH", model="MODEL_CONTENT_IDENTITY_MISMATCH", model_ref="MODEL_CONTENT_IDENTITY_MISMATCH", "ENTITY_CONTENT_IDENTITY_MISMATCH")
               add(code,check_class="provenance",entity_kind=kind,entity_id=id,table="prov_run_entity_bindings",expected=recorded_hash,observed=actual_hash,message="Durable entity payload no longer matches its provenance-bound content identity.")
             }
@@ -572,8 +724,11 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (isTRUE(checked$ok) && "content_sha256" %in% names(mats)) {
             sha <- as.character(mats$content_sha256[i] %||% "")[1]
             if (.wb_validation_nonempty(sha)) {
-              actual <- .wb_prov_file_tree_sha256(checked$absolute)
-              if (!identical(tolower(actual), tolower(sha))) add("MATERIALIZATION_CONTENT_IDENTITY_MISMATCH", check_class = "provenance", entity_kind = "materialization", entity_id = id, path = mats$path[i], expected = sha, observed = actual, message = "Materialization payload no longer matches its content identity.")
+              actual_identity <- .wb_prov_path_identity(checked$absolute)
+              scheme <- if ("content_identity_scheme" %in% names(mats)) mats$content_identity_scheme[i] else NA_character_
+              scheme_state <- identity_scheme_state(scheme,actual_identity$content_identity_scheme,"materialization",id,"prov_materializations")
+              actual <- actual_identity$content_sha256
+              if (identical(scheme_state,"current") && !identical(tolower(actual), tolower(sha))) add("MATERIALIZATION_CONTENT_IDENTITY_MISMATCH", check_class = "provenance", entity_kind = "materialization", entity_id = id, path = mats$path[i], expected = sha, observed = actual, message = "Materialization payload no longer matches its content identity.")
             }
           }
         }
@@ -588,14 +743,34 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (.wb_validation_nonempty(reg$payload_json[i]) && is.null(.wb_validation_json(reg$payload_json[i]))) add("REGISTRY_MUTATION_MALFORMED",check_class="provenance",entity_kind="registry_mutation",entity_id=reg$event_id[i],table="prov_registry_mutations",observed="invalid payload_json",message="Registry mutation payload is malformed.")
           entities[[i]] <- if (is.null(key)) NULL else .wb_registry_event_entity(as.character(reg$registry_type[i]),key)
           sha <- as.character(reg$content_hash[i] %||% "")[1]; if (.wb_validation_nonempty(sha) && !grepl("^[A-Fa-f0-9]{64}$", sha)) add("REGISTRY_MUTATION_CONTENT_IDENTITY_MALFORMED", check_class = "provenance", entity_kind = "registry_mutation", entity_id = reg$event_id[i], table = "prov_registry_mutations", observed = sha, message = "Registry mutation content identity is malformed.")
+          if (.wb_validation_nonempty(sha)) identity_scheme_state(if("content_identity_scheme" %in% names(reg)) reg$content_identity_scheme[i] else NA_character_,unname(.wb_content_identity_schemes()[["registry"]]),"registry_mutation",reg$event_id[i],"prov_registry_mutations")
         }
         entity_ids <- vapply(entities,function(x) if(is.null(x)) "" else paste(x$kind,x$id,sep="\r"),character(1))
         for (entity_key in unique(entity_ids[nzchar(entity_ids)])) {
           index <- utils::tail(which(entity_ids==entity_key),1L); entity <- entities[[index]]; expected_hash <- as.character(reg$content_hash[index] %||% "")[1]
-          if (.wb_validation_nonempty(expected_hash)) {
+          scheme <- if("content_identity_scheme" %in% names(reg)) reg$content_identity_scheme[index] else NA_character_
+          if (.wb_validation_nonempty(expected_hash) && identical(identity_scheme_state(scheme,unname(.wb_content_identity_schemes()[["registry"]]),entity$kind,entity$id,"prov_registry_mutations"),"current")) {
             actual_hash <- tryCatch(.wb_registry_entity_content_hash(bundle,entity$kind,entity$id),error=function(e) NA_character_)
             if (.wb_validation_nonempty(actual_hash) && !identical(tolower(actual_hash),tolower(expected_hash))) add("REGISTRY_MUTATION_CONTENT_IDENTITY_MISMATCH",check_class="provenance",entity_kind=entity$kind,entity_id=entity$id,table="prov_registry_mutations",expected=expected_hash,observed=actual_hash,message="Current durable registry entity disagrees with the latest recorded mutation identity.")
           }
+        }
+      }
+      if (has("prov_replay_equivalence_results")) {
+        replay_results <- DBI::dbGetQuery(con, "SELECT * FROM prov_replay_equivalence_results ORDER BY result_id;")
+        for (i in seq_len(nrow(replay_results))) {
+          id <- as.character(replay_results$result_id[i])
+          original_hash <- as.character(replay_results$original_content_sha256[i] %||% "")[1]
+          replayed_hash <- as.character(replay_results$replayed_content_sha256[i] %||% "")[1]
+          original_scheme <- if ("original_content_identity_scheme" %in% names(replay_results)) replay_results$original_content_identity_scheme[i] else NA_character_
+          replayed_scheme <- if ("replayed_content_identity_scheme" %in% names(replay_results)) replay_results$replayed_content_identity_scheme[i] else NA_character_
+          if (.wb_validation_nonempty(original_hash)) identity_scheme_state(original_scheme,replayed_scheme,"replay_equivalence",id,"prov_replay_equivalence_results")
+          if (.wb_validation_nonempty(replayed_hash)) identity_scheme_state(replayed_scheme,original_scheme,"replay_equivalence",id,"prov_replay_equivalence_results")
+          claimed_identical <- identical(as.integer(replay_results$payload_identical[i]),1L)
+          actually_identical <- .wb_validation_nonempty(original_hash) && .wb_validation_nonempty(replayed_hash) &&
+            .wb_validation_nonempty(original_scheme) && .wb_validation_nonempty(replayed_scheme) &&
+            identical(as.character(original_scheme),as.character(replayed_scheme)) &&
+            identical(tolower(original_hash),tolower(replayed_hash))
+          if (claimed_identical && !actually_identical) add("REPLAY_CONTENT_IDENTITY_CONTRADICTION",check_class="provenance",entity_kind="replay_equivalence",entity_id=id,table="prov_replay_equivalence_results",expected="equal tagged scheme and hash",observed="payload_identical=1 with unequal or untagged identities",message="Replay result claims payload identity without an equal tagged content-identity contract.")
         }
       }
     })
@@ -604,17 +779,37 @@ wb_bundle_validation_report <- function(bundle_dir,
       if (.wb_table_exists(con, "prov_source_inputs")) {
         src <- DBI::dbGetQuery(con, "SELECT * FROM prov_source_inputs ORDER BY snapshot_id,run_id,source_id;")
         runs <- if (.wb_table_exists(con, "prov_runs")) DBI::dbGetQuery(con, "SELECT snapshot_id,run_id FROM prov_runs;") else data.frame()
+        add_source_coverage <- function(id, recorded_scheme=NA_character_, actual_scheme=NA_character_, status="structurally_checked_only") {
+          content_coverage[nrow(content_coverage)+1L,] <<- list("external_source",id,"prov_source_inputs",recorded_scheme,actual_scheme,status)
+        }
         for (i in seq_len(nrow(src))) {
-          id <- as.character(src$source_id[i]); x <- .wb_validation_json(src$source_json[i])
-          if (is.null(x)) { add("SOURCE_IDENTITY_MALFORMED", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", observed = "invalid JSON", message = "Source input declaration is malformed."); next }
+          source_id <- as.character(src$source_id[i]); id <- paste(src$snapshot_id[i],src$run_id[i],source_id,sep="/"); x <- .wb_validation_json(src$source_json[i])
+          if (is.null(x)) { add("SOURCE_IDENTITY_MALFORMED", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", observed = "invalid JSON", message = "Source input declaration is malformed."); add_source_coverage(id); next }
           if (!paste(src$snapshot_id[i],src$run_id[i],sep="\r") %in% paste(runs$snapshot_id,runs$run_id,sep="\r")) add("SOURCE_INPUT_DANGLING_RUN", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", message = "Source input references a missing run.")
           alg <- tolower(as.character(x$checksum_algorithm %||% if (!is.null(x$sha256)) "sha256" else "")[1]); sha <- as.character(x$sha256 %||% x$checksum %||% "")[1]
-          if (.wb_validation_nonempty(sha) && (!identical(alg,"sha256") || !grepl("^[A-Fa-f0-9]{64}$", sha))) { add("SOURCE_CHECKSUM_MALFORMED", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", expected = "sha256 plus 64 hexadecimal characters", observed = paste(alg,sha), message = "Source checksum syntax is invalid."); next }
+          valid_sha <- .wb_validation_nonempty(sha) && identical(alg,"sha256") && grepl("^[A-Fa-f0-9]{64}$", sha)
+          if (.wb_validation_nonempty(sha) && !valid_sha) { add("SOURCE_CHECKSUM_MALFORMED", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", expected = "sha256 plus 64 hexadecimal characters", observed = paste(alg,sha), message = "Source checksum syntax is invalid."); add_source_coverage(id); next }
           raw <- as.character(x$path %||% "")[1]; bundled <- isTRUE(x$bundled %||% x$bundle_owned %||% FALSE)
           local <- if (!.wb_validation_nonempty(raw)) "" else if (.wb_path_is_absolute(raw)) raw else file.path(root, raw)
+          source_status <- "structurally_checked_only"; actual_scheme <- NA_character_; recorded_scheme <- if(valid_sha) unname(.wb_content_identity_schemes()[["raw_file"]]) else NA_character_
           if (bundled && (!nzchar(local) || !file.exists(local))) add("BUNDLED_SOURCE_MISSING", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = "bundled source file", observed = "missing", message = "A source declared as bundled is unavailable.")
-          else if (nzchar(local) && file.exists(local) && .wb_validation_nonempty(sha)) { actual <- .wb_prov_sha256_file(local); if (!identical(tolower(actual),tolower(sha))) add("SOURCE_CHECKSUM_MISMATCH", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = sha, observed = actual, message = "Locally available immutable source does not match its recorded checksum.") }
-          else if (!bundled && (!nzchar(local) || !file.exists(local))) add("EXTERNAL_SOURCE_UNVERIFIABLE", severity = "warning", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, observed = "not locally available", message = "External source cannot be verified on this recipient; bundle integrity is not failed.")
+          else if (nzchar(local) && file.exists(local) && valid_sha) { actual <- .wb_prov_sha256_file(local); actual_scheme <- unname(.wb_content_identity_schemes()[["raw_file"]]); source_status <- if(identical(tolower(actual),tolower(sha))) "content_verified" else "content_mismatch"; if (!identical(tolower(actual),tolower(sha))) add("SOURCE_CHECKSUM_MISMATCH", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = sha, observed = actual, message = "Locally available immutable source does not match its recorded checksum.") }
+          else if (!bundled && (!nzchar(local) || !file.exists(local))) { source_status <- "externally_unavailable"; add("EXTERNAL_SOURCE_UNVERIFIABLE", severity = "warning", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, observed = "not locally available", message = "External source cannot be verified on this recipient; bundle integrity is not failed.") }
+          add_source_coverage(id,recorded_scheme,actual_scheme,source_status)
+        }
+      }
+      if (.wb_table_exists(con,"prov_source_identities")) {
+        identities <- DBI::dbGetQuery(con,"SELECT * FROM prov_source_identities ORDER BY snapshot_id,run_id,matrix_id;")
+        source_runs <- if (.wb_table_exists(con,"prov_runs")) DBI::dbGetQuery(con,"SELECT snapshot_id,run_id FROM prov_runs;") else data.frame()
+        run_keys <- if (nrow(source_runs)) paste(source_runs$snapshot_id,source_runs$run_id,sep="\r") else character()
+        matrices <- if (.wb_table_exists(con,"matrices")) as.character(DBI::dbGetQuery(con,"SELECT matrix_id FROM matrices;")$matrix_id) else character()
+        for (i in seq_len(nrow(identities))) {
+          sid <- as.character(identities$snapshot_id[i]); rid <- as.character(identities$run_id[i]); mid <- as.character(identities$matrix_id[i]); id <- paste(sid,rid,mid,sep="/")
+          parsed <- tryCatch(jsonlite::fromJSON(as.character(identities$source_identity_json[i]),simplifyVector=FALSE),error=function(e)e)
+          valid <- if (inherits(parsed,"error")) parsed else tryCatch(.wb_prov_source_identity_validate(parsed),error=function(e)e)
+          if (inherits(valid,"error") || is.null(valid)) add("SOURCE_IDENTITY_MALFORMED",check_class="source_inputs",entity_kind="source_identity",entity_id=id,table="prov_source_identities",observed=if(inherits(valid,"error")) conditionMessage(valid) else "invalid declaration",message="Persisted source identity is not syntactically valid.")
+          if (!paste(sid,rid,sep="\r") %in% run_keys) add("SOURCE_IDENTITY_DANGLING_RUN",check_class="source_inputs",entity_kind="source_identity",entity_id=id,table="prov_source_identities",observed=rid,message="Source identity references a missing run.")
+          if (!mid %in% matrices) add("SOURCE_IDENTITY_DANGLING_MATRIX",check_class="source_inputs",entity_kind="source_identity",entity_id=id,table="prov_source_identities",observed=mid,message="Source identity references a missing matrix.")
         }
       }
     })
@@ -624,11 +819,27 @@ wb_bundle_validation_report <- function(bundle_dir,
         life <- DBI::dbGetQuery(con, "SELECT * FROM entity_lifecycle;"); physical <- .wb_entity_physical_inventory(bundle)
         tomb <- if (.wb_table_exists(con,"entity_tombstones")) DBI::dbGetQuery(con,"SELECT * FROM entity_tombstones;") else data.frame()
         for (i in seq_len(nrow(life))) {
-          kind <- as.character(life$entity_kind[i]); id <- as.character(life$entity_id[i]); state <- as.character(life$lifecycle_state[i]); present <- any(physical$entity_kind==kind & physical$entity_id==id)
-          if (kind=="model_ref") present <- TRUE
+          kind <- as.character(life$entity_kind[i]); id <- as.character(life$entity_id[i]); state <- as.character(life$lifecycle_state[i]); present <- any(physical$entity_kind==kind & physical$entity_id==id); bound <- identical(as.integer(life$provenance_bound[i]),1L)
+          if (kind=="model_ref") {
+            bits <- strsplit(id,"|",fixed=TRUE)[[1]]
+            present <- length(bits)>=2L && any(physical$entity_kind=="model" & physical$entity_id==bits[2])
+          }
           is_tomb <- nrow(tomb) && any(tomb$entity_kind==kind & tomb$entity_id==id & tomb$tombstone_state==state)
-          if (!present && state %in% c("current","superseded")) add("ILLEGAL_HISTORICAL_ENTITY_DELETION", check_class="lifecycle",entity_kind=kind,entity_id=id,table="entity_lifecycle",expected="durable historical payload",observed=state,message="A current or superseded immutable entity is physically missing.")
-          if (!present && state %in% c("retracted","rejected") && !is_tomb) add("HISTORICAL_ENTITY_TOMBSTONE_MISSING",check_class="lifecycle",entity_kind=kind,entity_id=id,table="entity_lifecycle",observed=state,message="A missing retracted/rejected entity lacks a matching tombstone.")
+          if (!present && bound && state %in% c("current","superseded","retracted","rejected")) add("ILLEGAL_HISTORICAL_ENTITY_DELETION", check_class="lifecycle",entity_kind=kind,entity_id=id,table="entity_lifecycle",expected="provenance-bound durable historical payload",observed=state,message="A provenance-bound immutable entity payload is physically missing; retraction/rejection tombstones do not authorize deletion.")
+          if (state %in% c("retracted","rejected") && !is_tomb) add("HISTORICAL_ENTITY_TOMBSTONE_MISSING",check_class="lifecycle",entity_kind=kind,entity_id=id,table="entity_lifecycle",observed=state,message="A retracted/rejected entity lacks a matching ordinary tombstone.")
+        }
+        if (nrow(tomb)) for (i in seq_len(nrow(tomb))) {
+          hit <- life$entity_kind==tomb$entity_kind[i] & life$entity_id==tomb$entity_id[i]
+          if (!any(hit) || !identical(as.character(life$lifecycle_state[hit][1]),as.character(tomb$tombstone_state[i]))) add("HISTORICAL_TOMBSTONE_STATE_INVALID",check_class="lifecycle",entity_kind=tomb$entity_kind[i],entity_id=tomb$entity_id[i],table="entity_tombstones",expected=tomb$tombstone_state[i],observed=if(any(hit)) life$lifecycle_state[hit][1] else "lifecycle row missing",message="Tombstone and lifecycle state are inconsistent.")
+          if (any(hit) && "identity_scheme" %in% names(tomb) && "identity_scheme" %in% names(life)) {
+            tomb_hash <- as.character(tomb$identity_hash[i] %||% "")[1]
+            life_hash <- as.character(life$identity_hash[hit][1] %||% "")[1]
+            tomb_scheme <- as.character(tomb$identity_scheme[i] %||% "")[1]
+            life_scheme <- as.character(life$identity_scheme[hit][1] %||% "")[1]
+            if (.wb_validation_nonempty(tomb_hash) && (!identical(tomb_hash, life_hash) || !identical(tomb_scheme, life_scheme))) {
+              add("HISTORICAL_TOMBSTONE_IDENTITY_MISMATCH",check_class="lifecycle",entity_kind=tomb$entity_kind[i],entity_id=tomb$entity_id[i],table="entity_tombstones",expected=paste(life_scheme,life_hash,sep=":"),observed=paste(tomb_scheme,tomb_hash,sep=":"),message="Tombstone identity does not preserve the lifecycle content-identity contract.")
+            }
+          }
         }
         if (.wb_table_exists(con,"entity_supersessions")) {
           sup <- DBI::dbGetQuery(con,"SELECT * FROM entity_supersessions;")
@@ -639,18 +850,84 @@ wb_bundle_validation_report <- function(bundle_dir,
         }
       }
     })
+    timed("content_completeness", {
+      physical <- .wb_entity_physical_inventory(bundle)
+      if (nrow(physical)) {
+        life <- if (.wb_table_exists(con,"entity_lifecycle")) DBI::dbGetQuery(con,"SELECT * FROM entity_lifecycle;") else data.frame()
+        keep <- physical$entity_kind %in% c("matrix","space","model","artifact")
+        if (nrow(life)) keep <- keep | vapply(seq_len(nrow(physical)),function(i) any(life$entity_kind==physical$entity_kind[i] & life$entity_id==physical$entity_id[i] & life$provenance_bound==1L),logical(1))
+        keep <- keep & physical$entity_kind != "external_source"
+        physical <- unique(physical[keep,,drop=FALSE])
+        bindings <- if (.wb_table_exists(con,"prov_run_entity_bindings")) DBI::dbGetQuery(con,"SELECT * FROM prov_run_entity_bindings;") else data.frame()
+        outputs_all <- if (.wb_table_exists(con,"prov_run_outputs")) DBI::dbGetQuery(con,"SELECT * FROM prov_run_outputs;") else data.frame()
+        registry <- if (.wb_table_exists(con,"prov_registry_mutations")) DBI::dbGetQuery(con,"SELECT * FROM prov_registry_mutations ORDER BY rowid;") else data.frame()
+        baseline_rows <- function(kind,id) {
+          rows <- list(); n <- 0L
+          if (nrow(bindings)) {
+            hit <- bindings$entity_kind==kind & bindings$entity_id==id
+            if (kind=="model") hit <- hit | (bindings$entity_kind=="model_ref" & vapply(strsplit(as.character(bindings$entity_id),"|",fixed=TRUE),function(x) length(x)>=2L && identical(x[2],id),logical(1)))
+            if (any(hit)) { n<-n+1L; rows[[n]]<-data.frame(hash=as.character(bindings$content_hash[hit]),scheme=if("content_identity_scheme" %in% names(bindings)) as.character(bindings$content_identity_scheme[hit]) else NA_character_,source="prov_run_entity_bindings",stringsAsFactors=FALSE) }
+          }
+          if (kind=="artifact" && nrow(outputs_all) && "content_sha256" %in% names(outputs_all)) {
+            hit <- !is.na(outputs_all$artifact_id) & outputs_all$artifact_id==id
+            if (any(hit)) { n<-n+1L; rows[[n]]<-data.frame(hash=as.character(outputs_all$content_sha256[hit]),scheme=if("content_identity_scheme" %in% names(outputs_all)) as.character(outputs_all$content_identity_scheme[hit]) else NA_character_,source="prov_run_outputs",stringsAsFactors=FALSE) }
+          }
+          if (kind %in% c("cell_set","feature_set") && nrow(registry) && "content_hash" %in% names(registry)) {
+            entities <- lapply(seq_len(nrow(registry)),function(i){ key<-.wb_validation_json(registry$registry_key_json[i]); if(is.null(key)) NULL else .wb_registry_event_entity(as.character(registry$registry_type[i]),key) })
+            hit <- vapply(entities,function(x)!is.null(x)&&identical(x$kind,kind)&&identical(x$id,id),logical(1))
+            if(any(hit)){ n<-n+1L; rows[[n]]<-data.frame(hash=as.character(registry$content_hash[hit]),scheme=if("content_identity_scheme" %in% names(registry)) as.character(registry$content_identity_scheme[hit]) else NA_character_,source="prov_registry_mutations",stringsAsFactors=FALSE) }
+          }
+          if (nrow(life) && all(c("identity_hash","identity_scheme") %in% names(life))) {
+            hit <- life$entity_kind==kind & life$entity_id==id
+            if (any(hit)) { n<-n+1L; rows[[n]]<-data.frame(hash=as.character(life$identity_hash[hit]),scheme=as.character(life$identity_scheme[hit]),source="entity_lifecycle",stringsAsFactors=FALSE) }
+          }
+          if(!length(rows)) return(data.frame(hash=character(),scheme=character(),source=character(),stringsAsFactors=FALSE))
+          out<-do.call(rbind,rows); out[!is.na(out$hash)&grepl("^[A-Fa-f0-9]{64}$",out$hash),,drop=FALSE]
+        }
+        actual_rows <- function(kind,id) {
+          identities <- tryCatch({
+            if(kind=="matrix") list(.wb_prov_payload_identity(bundle,wb_prim_matrix(id)))
+            else if(kind=="space") { sr<-DBI::dbGetQuery(con,"SELECT dims FROM spaces WHERE space_id=?;",params=list(id)); if(nrow(sr)&&identical(as.integer(sr$dims[1]),2L)) list(.wb_prov_payload_identity(bundle,wb_prim_space(id)),.wb_prov_payload_identity(bundle,wb_prim_space_2d(id))) else list(.wb_prov_payload_identity(bundle,wb_prim_space(id))) }
+            else if(kind=="model") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM space_models WHERE space_id=?;",params=list(id)); if(nrow(mr)){ checked<-.wb_validation_path(root,mr$model_path[1],"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list() }
+            else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]]))) else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
+            else if(kind%in%c("cell_set","feature_set")) list(list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]])))
+            else list()
+          },error=function(e)list())
+          if(!length(identities)) return(data.frame(hash=character(),scheme=character(),stringsAsFactors=FALSE))
+          do.call(rbind,lapply(identities,function(x)data.frame(hash=as.character(x$content_sha256%||%NA_character_),scheme=as.character(x$content_identity_scheme%||%NA_character_),stringsAsFactors=FALSE)))
+        }
+        for(i in seq_len(nrow(physical))){
+          kind<-as.character(physical$entity_kind[i]); id<-as.character(physical$entity_id[i]); base<-baseline_rows(kind,id)
+          tagged_baseline <- base[!is.na(base$scheme)&nzchar(base$scheme)&base$scheme%in%unname(.wb_content_identity_schemes()),,drop=FALSE]
+          actual<-if(nrow(tagged_baseline)) actual_rows(kind,id) else data.frame(hash=character(),scheme=character(),stringsAsFactors=FALSE)
+          status<-"structurally_checked_only"; recorded_scheme<-NA_character_; actual_scheme<-if(nrow(actual)) paste(sort(unique(actual$scheme)),collapse=",") else NA_character_; source<-if(nrow(base)) paste(sort(unique(base$source)),collapse=",") else NA_character_
+          if(!nrow(base)) add("DURABLE_CONTENT_IDENTITY_MISSING",severity="warning",check_class="content_completeness",entity_kind=kind,entity_id=id,observed="no recorded baseline",message="Bundle-owned durable payload has no recorded content identity and cannot be proved unchanged.")
+          else {
+            tagged<-base[!is.na(base$scheme)&nzchar(base$scheme),,drop=FALSE]
+            if(!nrow(tagged)){ status<-"legacy_unverifiable"; add("DURABLE_CONTENT_IDENTITY_LEGACY_UNVERIFIABLE",severity="warning",check_class="content_completeness",entity_kind=kind,entity_id=id,observed="untagged baseline",message="Durable payload has only untagged legacy hashes and is not claimed content-verified.") }
+            else {
+              recorded_scheme<-paste(sort(unique(tagged$scheme)),collapse=",")
+              supported<-tagged$scheme%in%unname(.wb_content_identity_schemes())
+              if(any(supported)&&nrow(actual)&&any(vapply(seq_len(nrow(tagged[supported,,drop=FALSE])),function(j) any(actual$scheme==tagged$scheme[supported][j]&tolower(actual$hash)==tolower(tagged$hash[supported][j]),na.rm=TRUE),logical(1)))) status<-"content_verified"
+              else if(any(supported)&&nrow(actual)){ status<-"content_mismatch"; add("DURABLE_CONTENT_IDENTITY_MISMATCH",check_class="content_completeness",entity_kind=kind,entity_id=id,expected=paste(tagged$hash[supported],collapse=","),observed=paste(actual$hash,collapse=","),message="No tagged durable content baseline matches the current payload.") }
+              else status<-"legacy_unverifiable"
+            }
+          }
+          content_coverage[nrow(content_coverage)+1L,] <- list(kind,id,source,recorded_scheme,actual_scheme,status)
+        }
+      }
+    })
   } else {
     for (x in c("sqlite_integrity", "matrix_content", "spaces_and_models", "artifacts", "provenance", "source_inputs", "lifecycle")) skip(x, "content", "requested structural validation does not read or hash payload content")
   }
 
-  pending_paths <- if (dir.exists(root)) list.files(root, recursive = TRUE, full.names = FALSE, all.files = TRUE, no.. = TRUE) else character()
-  pending_paths <- pending_paths[grepl("(^|/)\\.pending(/|$)|^\\.manifest[.]json[.](staging|backup)-|INGEST_FAILED[.]json$", pending_paths)]
-  if (length(pending_paths)) for (path in pending_paths) {
-    if (identical(basename(path),"INGEST_FAILED.json")) add("INGEST_FAILED_INCOMPLETE",check_class="recipient",entity_kind="ingestion",entity_id="failed",path=path,observed="present",message="Bundle ingestion failed/incomplete; see INGEST_FAILED.json marker.")
-    else add("PENDING_WORKSPACE_RESIDUE", check_class = "recipient", entity_kind = "pending_publication", entity_id = basename(path), path = path, observed = "present", message = "Incomplete publication/ingestion residue is present.")
-  }
-
   if (has_level("recipient")) timed("recipient", {
+    pending_paths <- if (dir.exists(root)) list.files(root, recursive = TRUE, full.names = FALSE, all.files = TRUE, no.. = TRUE) else character()
+    pending_paths <- pending_paths[grepl("(^|/)\\.pending(/|$)|^\\.manifest[.]json[.](staging|backup)-|INGEST_FAILED[.]json$", pending_paths)]
+    if (length(pending_paths)) for (path in pending_paths) {
+      if (identical(basename(path),"INGEST_FAILED.json")) add("INGEST_FAILED_INCOMPLETE",check_class="recipient",entity_kind="ingestion",entity_id="failed",path=path,observed="present",message="Bundle ingestion failed/incomplete; see INGEST_FAILED.json marker.")
+      else add("PENDING_WORKSPACE_RESIDUE", check_class = "recipient", entity_kind = "pending_publication", entity_id = basename(path), path = path, observed = "present", message = "Incomplete publication/ingestion residue is present.")
+    }
     lock <- tryCatch(wb_bundle_writer_lock_info(root), error = function(e) list(locked=FALSE))
     if (isTRUE(lock$locked)) add("ACTIVE_BUNDLE_WRITER", check_class="recipient",entity_kind="writer_lock",entity_id="exclusive",path=.wb_writer_lock_path(root),observed=.wb_writer_lock_diagnostic(lock),message="Recipient validation requires no active bundle writer.")
     if (!is.null(manifest)) {
@@ -675,6 +952,7 @@ wb_bundle_validation_report <- function(bundle_dir,
   if (nrow(diagnostics)) diagnostics <- diagnostics[order(diagnostics$severity, diagnostics$code, diagnostics$entity_kind, diagnostics$entity_id, diagnostics$path, na.last=TRUE),,drop=FALSE]
   rownames(diagnostics) <- NULL
   if (nrow(skipped)) skipped <- unique(skipped[order(skipped$check_class),,drop=FALSE])
+  if (nrow(content_coverage)) { content_coverage <- content_coverage[order(content_coverage$entity_kind,content_coverage$entity_id),,drop=FALSE]; rownames(content_coverage)<-NULL }
   timings <- stats::aggregate(elapsed_seconds ~ check_class, timings, sum)
   timings <- timings[order(timings$check_class),,drop=FALSE]; timings$elapsed_seconds <- round(timings$elapsed_seconds, 6)
   errors <- diagnostics$severity == "error"
@@ -687,7 +965,7 @@ wb_bundle_validation_report <- function(bundle_dir,
     requested_level = level,
     completed_levels = .wb_validation_levels()[seq_len(requested_index)],
     ok = !any(errors), status = if (any(errors)) "error" else if (any(diagnostics$severity == "warning")) "ok_with_warnings" else "ok",
-    diagnostics = diagnostics, skipped_checks = skipped, elapsed_by_check_class = timings,
+    diagnostics = diagnostics, skipped_checks = skipped, content_coverage = content_coverage, elapsed_by_check_class = timings,
     elapsed_seconds = round(as.numeric(difftime(finished, started, units="secs")),6),
     peak_memory_mb = as.numeric(peak_memory_mb),
     started_at = format(started, "%Y-%m-%dT%H:%M:%OS6%z"), finished_at = format(finished, "%Y-%m-%dT%H:%M:%OS6%z"),

@@ -143,6 +143,7 @@ test_feature_set_namespace_transfer_contract <- function() {
   stopifnot(inherits(qc$outputs$overlap_qc, "wb_primitive"))
   stopifnot(nrow(qc$outputs$overlap_qc$table) == 2L)
 
+  wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 
   TRUE

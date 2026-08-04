@@ -199,6 +199,7 @@ test_op_matrix_log_normalize_multifragment_contract <- function() {
   out_frags <- wb_matrix_fragments(staged, "RNA_log_norm")
   stopifnot(nrow(out_frags) == 2L)
   stopifnot(sum(as.integer(out_frags$n_cells)) == 4L)
+  wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 
   got <- as.matrix(wb_slice(staged, matrix_id = "RNA_log_norm", features = features, cells = cells))

@@ -28,6 +28,7 @@
       entity_id TEXT NOT NULL,
       lifecycle_state TEXT NOT NULL,
       identity_hash TEXT,
+      identity_scheme TEXT,
       provenance_bound INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
@@ -37,6 +38,9 @@
       CHECK(lifecycle_state IN ('current','superseded','rejected','retracted','ephemeral'))
     );
   ")
+  if (!.wb_db_has_column(con, "entity_lifecycle", "identity_scheme")) {
+    DBI::dbExecute(con, "ALTER TABLE entity_lifecycle ADD COLUMN identity_scheme TEXT;")
+  }
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_entity_lifecycle_state ON entity_lifecycle(lifecycle_state, entity_kind);")
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS entity_supersessions (
@@ -61,27 +65,32 @@
       retracted_by TEXT,
       reason TEXT NOT NULL,
       identity_hash TEXT,
+      identity_scheme TEXT,
       PRIMARY KEY(entity_kind, entity_id),
       CHECK(tombstone_state IN ('retracted','rejected'))
     );
   ")
+  if (!.wb_db_has_column(con, "entity_tombstones", "identity_scheme")) {
+    DBI::dbExecute(con, "ALTER TABLE entity_tombstones ADD COLUMN identity_scheme TEXT;")
+  }
   invisible(TRUE)
 }
 
 .wb_entity_lifecycle_upsert <- function(con, kind, id, state = "current",
-                                        identity_hash = NA_character_, bound = FALSE,
+                                        identity_hash = NA_character_, identity_scheme = NA_character_, bound = FALSE,
                                         reason = NA_character_, actor = NA_character_) {
   now <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
   DBI::dbExecute(con, "
-    INSERT INTO entity_lifecycle(entity_kind, entity_id, lifecycle_state, identity_hash,
+    INSERT INTO entity_lifecycle(entity_kind, entity_id, lifecycle_state, identity_hash, identity_scheme,
       provenance_bound, created_at, updated_at, reason, actor)
-    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(entity_kind, entity_id) DO UPDATE SET
       identity_hash = COALESCE(entity_lifecycle.identity_hash, excluded.identity_hash),
+      identity_scheme = COALESCE(entity_lifecycle.identity_scheme, excluded.identity_scheme),
       provenance_bound = MAX(entity_lifecycle.provenance_bound, excluded.provenance_bound),
       updated_at = CASE WHEN excluded.provenance_bound > entity_lifecycle.provenance_bound
                         THEN excluded.updated_at ELSE entity_lifecycle.updated_at END;
-  ", params = list(kind, id, state, identity_hash, as.integer(isTRUE(bound)), now, now, reason, actor))
+  ", params = list(kind, id, state, identity_hash, identity_scheme, as.integer(isTRUE(bound)), now, now, reason, actor))
   invisible(TRUE)
 }
 
@@ -109,6 +118,7 @@
 }
 
 .wb_entity_bind_one <- function(con, kind, id, identity_hash = NA_character_,
+                                identity_scheme = NA_character_,
                                 actor = NA_character_) {
   .wb_entity_lifecycle_tables(con)
   hash <- .wb_entity_nonmissing_hash(identity_hash)
@@ -121,8 +131,8 @@
   if (!nrow(row)) {
     DBI::dbExecute(
       con,
-      "INSERT INTO entity_lifecycle(entity_kind, entity_id, lifecycle_state, identity_hash, provenance_bound, created_at, updated_at, reason, actor) VALUES(?, ?, 'current', ?, 1, ?, ?, NULL, ?);",
-      params = list(kind, id, hash, now, now, actor)
+      "INSERT INTO entity_lifecycle(entity_kind, entity_id, lifecycle_state, identity_hash, identity_scheme, provenance_bound, created_at, updated_at, reason, actor) VALUES(?, ?, 'current', ?, ?, 1, ?, ?, NULL, ?);",
+      params = list(kind, id, hash, identity_scheme, now, now, actor)
     )
     return(invisible(TRUE))
   }
@@ -143,10 +153,15 @@
       call. = FALSE
     )
   }
+  old_scheme <- as.character(row$identity_scheme[1] %||% NA_character_)[1]
+  new_scheme <- as.character(identity_scheme %||% NA_character_)[1]
+  if (!is.na(old_scheme) && nzchar(old_scheme) && !is.na(new_scheme) && nzchar(new_scheme) && !identical(old_scheme, new_scheme)) {
+    stop("Conflicting immutable identity schemes for ", kind, " '", id, "': existing=", old_scheme, ", binding=", new_scheme, ".", call. = FALSE)
+  }
   DBI::dbExecute(
     con,
-    "UPDATE entity_lifecycle SET lifecycle_state = 'current', identity_hash = COALESCE(identity_hash, ?), provenance_bound = 1, updated_at = ?, reason = CASE WHEN lifecycle_state = 'ephemeral' THEN 'Selected ephemeral identity promoted to a durable current claim.' ELSE reason END, actor = COALESCE(?, actor) WHERE entity_kind = ? AND entity_id = ?;",
-    params = list(hash, now, actor, kind, id)
+    "UPDATE entity_lifecycle SET lifecycle_state = 'current', identity_hash = COALESCE(identity_hash, ?), identity_scheme = COALESCE(identity_scheme, ?), provenance_bound = 1, updated_at = ?, reason = CASE WHEN lifecycle_state = 'ephemeral' THEN 'Selected ephemeral identity promoted to a durable current claim.' ELSE reason END, actor = COALESCE(?, actor) WHERE entity_kind = ? AND entity_id = ?;",
+    params = list(hash, identity_scheme, now, actor, kind, id)
   )
   invisible(TRUE)
 }
@@ -155,31 +170,33 @@
 # the transaction that persists the corresponding provenance binding.
 .wb_entity_bind_provenance <- function(con, entity_kind, entity_id,
                                        identity_hash = NA_character_,
+                                       identity_scheme = NA_character_,
                                        actor = NA_character_) {
   targets <- .wb_entity_binding_targets(entity_kind, entity_id, con = con)
   for (target in targets) {
     .wb_entity_bind_one(
       con, target$kind, target$id,
-      identity_hash = identity_hash, actor = actor
+      identity_hash = identity_hash, identity_scheme = identity_scheme, actor = actor
     )
   }
   invisible(TRUE)
 }
 
 .wb_entity_backfill_binding <- function(con, entity_kind, entity_id,
-                                        identity_hash = NA_character_) {
+                                        identity_hash = NA_character_,
+                                        identity_scheme = NA_character_) {
   hash <- .wb_entity_nonmissing_hash(identity_hash)
   targets <- .wb_entity_binding_targets(entity_kind, entity_id, con = con)
   for (target in targets) {
     row <- DBI::dbGetQuery(
       con,
-      "SELECT identity_hash FROM entity_lifecycle WHERE entity_kind = ? AND entity_id = ?;",
+      "SELECT identity_hash, identity_scheme FROM entity_lifecycle WHERE entity_kind = ? AND entity_id = ?;",
       params = list(target$kind, target$id)
     )
     if (!nrow(row)) {
       .wb_entity_lifecycle_upsert(
         con, target$kind, target$id, state = "current",
-        identity_hash = hash, bound = TRUE
+        identity_hash = hash, identity_scheme = identity_scheme, bound = TRUE
       )
       next
     }
@@ -191,10 +208,19 @@
         call. = FALSE
       )
     }
+    old_scheme <- as.character(row$identity_scheme[1] %||% NA_character_)[1]
+    new_scheme <- as.character(identity_scheme %||% NA_character_)[1]
+    if (!is.na(old_scheme) && nzchar(old_scheme) && !is.na(new_scheme) && nzchar(new_scheme) && !identical(old_scheme, new_scheme)) {
+      stop(
+        "Conflicting immutable identity schemes in persisted provenance for ",
+        target$kind, " '", target$id, "'.",
+        call. = FALSE
+      )
+    }
     DBI::dbExecute(
       con,
-      "UPDATE entity_lifecycle SET identity_hash = COALESCE(identity_hash, ?), provenance_bound = 1 WHERE entity_kind = ? AND entity_id = ?;",
-      params = list(hash, target$kind, target$id)
+      "UPDATE entity_lifecycle SET identity_hash = COALESCE(identity_hash, ?), identity_scheme = COALESCE(identity_scheme, ?), provenance_bound = 1 WHERE entity_kind = ? AND entity_id = ?;",
+      params = list(hash, identity_scheme, target$kind, target$id)
     )
   }
   invisible(TRUE)
@@ -224,7 +250,15 @@
 .wb_entity_direct_bindings <- function(con) {
   out <- data.frame(entity_kind = character(), entity_id = character(), stringsAsFactors = FALSE)
   if (.wb_table_exists(con, "prov_run_entity_bindings")) {
-    out <- DBI::dbGetQuery(con, "SELECT DISTINCT entity_kind, entity_id FROM prov_run_entity_bindings;")
+    direct <- DBI::dbGetQuery(con, "SELECT DISTINCT direction, entity_kind, entity_id FROM prov_run_entity_bindings;")
+    if (nrow(direct)) {
+      external_model_input <- vapply(seq_len(nrow(direct)),function(i) {
+        if (!identical(as.character(direct$direction[i]),"input") || !identical(as.character(direct$entity_kind[i]),"model_ref")) return(FALSE)
+        bits <- strsplit(as.character(direct$entity_id[i]),"|",fixed=TRUE)[[1]]
+        length(bits)<2L || !.wb_table_exists(con,"space_models") || !nrow(DBI::dbGetQuery(con,"SELECT 1 FROM space_models WHERE space_id=? LIMIT 1;",params=list(bits[2])))
+      },logical(1))
+      out <- direct[!external_model_input,c("entity_kind","entity_id"),drop=FALSE]
+    }
   }
   if (.wb_table_exists(con, "prov_run_outputs")) {
     a <- DBI::dbGetQuery(con, "SELECT DISTINCT artifact_id AS entity_id FROM prov_run_outputs WHERE artifact_id IS NOT NULL AND artifact_id <> '';")
@@ -311,14 +345,23 @@
   if (.wb_table_exists(con, "prov_run_entity_bindings")) {
     persisted <- DBI::dbGetQuery(
       con,
-      "SELECT entity_kind, entity_id, content_hash FROM prov_run_entity_bindings ORDER BY entity_kind, entity_id;"
+      paste0(
+        "SELECT direction, entity_kind, entity_id, content_hash, ",
+        if (.wb_db_has_column(con, "prov_run_entity_bindings", "content_identity_scheme")) "content_identity_scheme" else "NULL AS content_identity_scheme",
+        " FROM prov_run_entity_bindings ORDER BY entity_kind, entity_id;"
+      )
     )
     if (nrow(persisted)) for (i in seq_len(nrow(persisted))) {
+      if (identical(as.character(persisted$direction[i]),"input") && identical(as.character(persisted$entity_kind[i]),"model_ref")) {
+        bits <- strsplit(as.character(persisted$entity_id[i]),"|",fixed=TRUE)[[1]]
+        registered <- length(bits)>=2L && .wb_table_exists(con,"space_models") && nrow(DBI::dbGetQuery(con,"SELECT 1 FROM space_models WHERE space_id=? LIMIT 1;",params=list(bits[2])))==1L
+        if (!registered) next
+      }
       .wb_entity_backfill_binding(
         con,
         as.character(persisted$entity_kind[i]),
         as.character(persisted$entity_id[i]),
-        persisted$content_hash[i]
+        persisted$content_hash[i], persisted$content_identity_scheme[i]
       )
     }
   }
@@ -326,7 +369,11 @@
       .wb_db_has_column(con, "prov_registry_mutations", "content_hash")) {
     persisted_registry <- DBI::dbGetQuery(
       con,
-      "SELECT registry_type, registry_key_json, content_hash FROM prov_registry_mutations ORDER BY registry_type, registry_key_json;"
+      paste0(
+        "SELECT registry_type, registry_key_json, content_hash, ",
+        if (.wb_db_has_column(con, "prov_registry_mutations", "content_identity_scheme")) "content_identity_scheme" else "NULL AS content_identity_scheme",
+        " FROM prov_registry_mutations ORDER BY registry_type, registry_key_json;"
+      )
     )
     if (nrow(persisted_registry)) for (i in seq_len(nrow(persisted_registry))) {
       key <- tryCatch(
@@ -338,7 +385,8 @@
       )
       if (!is.null(entity)) {
         .wb_entity_backfill_binding(
-          con, entity$kind, entity$id, persisted_registry$content_hash[i]
+          con, entity$kind, entity$id, persisted_registry$content_hash[i],
+          persisted_registry$content_identity_scheme[i]
         )
       }
     }
@@ -463,8 +511,8 @@ wb_entity_supersessions <- function(bundle) {
     DBI::dbExecute(bundle$con, "UPDATE entity_lifecycle SET lifecycle_state = ?, updated_at = ?, reason = ?, actor = ? WHERE entity_kind = ? AND entity_id = ?;",
       params = list(state, now, reason, actor %||% NA_character_, z$kind, z$id))
     if (state %in% c("retracted", "rejected")) {
-      DBI::dbExecute(bundle$con, "INSERT INTO entity_tombstones(entity_kind, entity_id, tombstone_state, retracted_at, retracted_by, reason, identity_hash) VALUES(?, ?, ?, ?, ?, ?, ?) ON CONFLICT(entity_kind, entity_id) DO NOTHING;",
-        params = list(z$kind, z$id, state, now, actor %||% NA_character_, reason, row$identity_hash[1] %||% NA_character_))
+      DBI::dbExecute(bundle$con, "INSERT INTO entity_tombstones(entity_kind, entity_id, tombstone_state, retracted_at, retracted_by, reason, identity_hash, identity_scheme) VALUES(?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(entity_kind, entity_id) DO NOTHING;",
+        params = list(z$kind, z$id, state, now, actor %||% NA_character_, reason, row$identity_hash[1] %||% NA_character_, row$identity_scheme[1] %||% NA_character_))
     }
   }
   if (isTRUE(getOption("scworkbench.registry_replay_transaction_open"))) write_state() else DBI::dbWithTransaction(bundle$con, write_state())

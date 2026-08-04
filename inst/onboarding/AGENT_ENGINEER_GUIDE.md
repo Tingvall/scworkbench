@@ -95,6 +95,16 @@ Use `wb_op_interface()` to select valid terminal `outputs=` values. Promotion
 commits the required provenance closure; staged session state is ephemeral if
 the R process exits.
 
+Before distributing a bundle, call
+`wb_bundle_validation_report(path, level = "recipient")`. Content validation
+recomputes persisted run and typed content-identity contracts; recipient adds
+finalized-transfer and byte-nonmutation invariants. Do not describe
+`structural` as content integrity. An untagged legacy digest is explicitly
+unverifiable, and an active non-empty SQLite WAL fails closed because opening it
+by path can mutate shared-memory lock bytes. See
+`docs/bundle_integrity_validation.md` for the proof taxonomy and diagnostic
+contract.
+
 When the change is not an op, map it to the right surface first:
 
 - new compute -> op

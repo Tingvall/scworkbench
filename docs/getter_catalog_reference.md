@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-08-03T23:35:21+0200
+Generated at: 2026-08-04T03:26:11+0200
 
 Getter count: 77
 

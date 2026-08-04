@@ -18,6 +18,7 @@ test_payload_content_identity_contract <- function() {
   changed_id <- scworkbench:::.wb_prov_payload_identity(NULL, changed)
   reordered_id <- scworkbench:::.wb_prov_payload_identity(NULL, reordered)
   stopifnot(identical(left_id$verification_level, "content"),
+            identical(left_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["table"]])),
             identical(left_id$structural_fingerprint, changed_id$structural_fingerprint),
             left_id$content_sha256 != changed_id$content_sha256,
             left_id$content_sha256 != reordered_id$content_sha256)
@@ -41,6 +42,9 @@ test_payload_content_identity_contract <- function() {
   model$model_path <- file.path("models", "identity_model.rds")
   model_id <- scworkbench:::.wb_prov_payload_identity(b, model)
   stopifnot(identical(matrix_id$verification_level, "content"), identical(space_id$verification_level, "content"), identical(model_id$verification_level, "content"),
+            identical(matrix_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["matrix"]])),
+            identical(space_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["space"]])),
+            identical(model_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["raw_file"]])),
             identical(model_id$content_sha256, scworkbench:::.wb_prov_file_tree_sha256(file.path(root, "models", "identity_model.rds"))))
 
   s <- wb_session_new()
@@ -49,13 +53,15 @@ test_payload_content_identity_contract <- function() {
   a <- wb_session_run_op(s, b, "cell_vector_association", inputs = list(a = wb_ref_run(p$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L, min_n_per_group = 1L, method = "auto")); s <- a$session
   promoted <- wb_session_promote_current(b, s, created_by = "payload-identity", outputs = list(wb_ref_run(a$run$run_id, "summary"), wb_ref_run(a$run$run_id, "detail")))
   sid <- as.character(promoted$provenance_snapshot_id)[1]
-  stored <- DBI::dbGetQuery(b$con, "SELECT output_name, output_hash, structural_fingerprint, content_sha256, verification_level, verification_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? ORDER BY output_name;", params = list(sid, a$run$run_id))
-  stopifnot(nrow(stored) == 2L, all(stored$verification_level == "content"), all(stored$verification_status == "content_verified"), all(grepl("^[0-9a-f]{64}$", stored$content_sha256)))
+  stored <- DBI::dbGetQuery(b$con, "SELECT output_name, output_hash, structural_fingerprint, content_sha256, content_identity_scheme, verification_level, verification_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? ORDER BY output_name;", params = list(sid, a$run$run_id))
+  stopifnot(nrow(stored) == 2L, all(stored$verification_level == "content"), all(stored$verification_status == "content_verified"), all(grepl("^[0-9a-f]{64}$", stored$content_sha256)),
+            all(stored$content_identity_scheme == unname(scworkbench:::.wb_content_identity_schemes()[["table"]])))
   verified <- wb_prov_validate_replay(b, snapshot_id = sid, profile = "strict", strict = TRUE)
   stopifnot(isTRUE(verified$summary$valid), all(verified$per_output$verification_level == "content"))
   summary_artifact <- as.character(promoted$promoted$artifact_id[promoted$promoted$output == "summary"])[1]
   recipient <- wb_art_birth_certificate(b, summary_artifact)$persisted_provenance$links
-  stopifnot(identical(as.character(recipient$verification_status[recipient$output_name == "summary"]), "content_verified"))
+  stopifnot(identical(as.character(recipient$verification_status[recipient$output_name == "summary"]), "content_verified"),
+            identical(as.character(recipient$content_identity_scheme[recipient$output_name == "summary"]), unname(scworkbench:::.wb_content_identity_schemes()[["table"]])))
 
   # Same-kind/same-shape output with a changed SHA must fail strict content validation.
   DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET content_sha256 = ? WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(strrep("0", 64L), sid, a$run$run_id, "summary"))

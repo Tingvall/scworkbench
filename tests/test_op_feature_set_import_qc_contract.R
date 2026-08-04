@@ -125,6 +125,7 @@ test_op_feature_set_import_qc_contract <- function(bundle_dir) {
   loaded_qc <- wb_art_load(b, qc_artifact_id, expected_kind = "obs_table")
   stopifnot(identical(as.character(loaded_qc$table_type), "feature_set_overlap_qc"))
 
+  wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(wb_validate_bundle(bundle_dir)))
 
   TRUE

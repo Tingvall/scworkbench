@@ -28,8 +28,12 @@ test_validate_bundle_contract <- function() {
   )
   wb_attach_matrix(b, matrix_id = "RNA_counts", mat = mat, feature_type = "gene")
 
+  # Path-only validation fails closed while a non-empty WAL is active so that
+  # SQLite cannot change shared-memory lock bytes during an integrity check.
+  wb_close_bundle(b)
+  b <- NULL
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
-  wrong_type <- try(wb_validate_bundle(b), silent = TRUE)
+  wrong_type <- try(wb_validate_bundle(list(dir = tmp)), silent = TRUE)
   stopifnot(inherits(wrong_type, "try-error"))
   stopifnot(grepl("one non-empty path string", as.character(wrong_type), fixed = TRUE))
   TRUE
