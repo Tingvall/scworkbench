@@ -520,6 +520,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         spaces_ids <- if (.wb_table_exists(con, "spaces")) DBI::dbGetQuery(con, "SELECT space_id FROM spaces;")$space_id else character()
         for (i in seq_len(nrow(models))) {
           id <- as.character(models$space_id[i])
+          if (!id %in% spaces_ids) add("MODEL_DANGLING_OUTPUT_SPACE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, table = "space_models", observed = id, message = "Model output identity is not a registered durable space.")
           if (!as.character(models$source_space_id[i]) %in% spaces_ids) add("MODEL_DANGLING_SOURCE_SPACE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, table = "space_models", observed = models$source_space_id[i], message = "Model references an unregistered source space.")
           checked <- .wb_validation_path(root, models$model_path[i], "either")
           if (isTRUE(checked$ok)) {
@@ -527,6 +528,30 @@ wb_bundle_validation_report <- function(bundle_dir,
             if (inherits(loaded, "error")) add("MODEL_PAYLOAD_UNREADABLE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, path = models$model_path[i], observed = conditionMessage(loaded), message = "Model payload cannot be loaded.")
           }
         }
+      }
+    })
+
+    timed("normalized_memberships", {
+      if (all(c("motif_match_membership", "motif_match_sets", "features") %in% DBI::dbListTables(con))) {
+        dangling <- DBI::dbGetQuery(con, "
+          SELECT membership.motif_match_set, membership.feature_id, match_set.matrix_id
+          FROM motif_match_membership AS membership
+          JOIN motif_match_sets AS match_set
+            ON match_set.motif_match_set = membership.motif_match_set
+          LEFT JOIN features AS feature
+            ON feature.matrix_id = match_set.matrix_id
+           AND feature.feature_id = membership.feature_id
+          WHERE feature.feature_id IS NULL
+          ORDER BY membership.motif_match_set, membership.feature_id;
+        ")
+        if (nrow(dangling)) for (i in seq_len(nrow(dangling))) add(
+          "MOTIF_MATCH_DANGLING_MATRIX_FEATURE", check_class = "normalized_memberships",
+          entity_kind = "motif_match_set", entity_id = dangling$motif_match_set[i],
+          table = "motif_match_membership",
+          expected = paste0(dangling$matrix_id[i], "::", dangling$feature_id[i]),
+          observed = "feature absent from match-set matrix",
+          message = "Motif-match membership references a feature outside its match-set matrix."
+        )
       }
     })
 

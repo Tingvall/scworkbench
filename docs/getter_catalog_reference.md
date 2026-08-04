@@ -1224,4 +1224,3 @@ Arguments: bundle, session, vector_id, expected_kind
 
 Use when:
 - resolve vector reference for plotting or ops
-

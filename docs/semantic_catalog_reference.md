@@ -1907,4 +1907,3 @@ Description: Maps trajectory_smooth tables to per-gene pseudotime curve panels.
 Title: Pseudotime Signature Wrangler
 
 Description: Maps signature, gene-set, signal, or driver curves to pseudotime line datasets.
-

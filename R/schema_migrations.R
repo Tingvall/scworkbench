@@ -2,13 +2,14 @@
 # Component schema helpers remain compatibility shims for callers inside the
 # package, but only this file orchestrates schema creation and upgrades.
 
-.wb_bundle_schema_version <- function() 3L
+.wb_bundle_schema_version <- function() 4L
 
 .wb_bundle_schema_migrations <- function() {
   list(
     list(version = 1L, id = "001_consolidate_durable_schema", apply = .wb_schema_migration_001),
     list(version = 2L, id = "002_referential_integrity", apply = .wb_schema_migration_002),
-    list(version = 3L, id = "003_lifecycle_backfill", apply = .wb_schema_migration_003)
+    list(version = 3L, id = "003_lifecycle_backfill", apply = .wb_schema_migration_003),
+    list(version = 4L, id = "004_complete_space_foreign_keys", apply = .wb_schema_migration_004)
   )
 }
 
@@ -86,17 +87,20 @@
                 message = paste0("Bundle schema version ", observed, " requires writable migration to version ", current, ".")))
   }
   definitions <- .wb_schema_foreign_key_definitions()
-  missing_constraints <- names(definitions)[vapply(names(definitions), function(table) {
-    if (!.wb_table_exists(con, table)) return(TRUE)
-    actual <- DBI::dbGetQuery(con, paste0("PRAGMA foreign_key_list(", DBI::dbQuoteIdentifier(con, table), ");"))
-    length(unique(actual$id)) < length(definitions[[table]])
-  }, logical(1))]
-  if (length(missing_constraints)) {
+  invalid_constraints <- lapply(names(definitions), function(table) {
+    .wb_schema_table_foreign_key_status(con, table)
+  })
+  names(invalid_constraints) <- names(definitions)
+  invalid_constraints <- invalid_constraints[!vapply(invalid_constraints, `[[`, logical(1), "ok")]
+  if (length(invalid_constraints)) {
+    detail <- vapply(names(invalid_constraints), function(table) {
+      paste0(table, " [", invalid_constraints[[table]]$message, "]")
+    }, character(1))
     return(list(
       current = current, observed = observed, status = "invalid_schema",
       message = paste0(
-        "Bundle migration ledger is current but required foreign-key declarations are missing from: ",
-        paste(missing_constraints, collapse = ", "), ". Restore a verified schema backup."
+        "Bundle migration ledger is current but its exact foreign-key signature is invalid: ",
+        paste(detail, collapse = "; "), ". Restore a verified schema backup; lazy repair is forbidden."
       )
     ))
   }
@@ -136,10 +140,9 @@
   invisible(TRUE)
 }
 
-.wb_schema_rebuild_with_foreign_keys <- function(con, table, constraints) {
+.wb_schema_rebuild_with_foreign_keys <- function(con, table, constraints, force = FALSE) {
   .wb_assert(.wb_table_exists(con, table), paste0("Schema migration expected table: ", table))
-  existing <- DBI::dbGetQuery(con, paste0("PRAGMA foreign_key_list(", DBI::dbQuoteIdentifier(con, table), ");"))
-  if (nrow(existing) >= length(constraints)) return(invisible(FALSE))
+  if (!isTRUE(force) && isTRUE(.wb_schema_table_foreign_key_status(con, table)$ok)) return(invisible(FALSE))
 
   schema <- DBI::dbGetQuery(
     con, "SELECT sql FROM sqlite_schema WHERE type='table' AND name=?;", params = list(table)
@@ -156,6 +159,13 @@
   create <- sub(
     "^CREATE[[:space:]]+TABLE[[:space:]]+[^[:space:]\\(]+",
     paste("CREATE TABLE", temporary), schema, ignore.case = TRUE, perl = TRUE
+  )
+  # Migrations may replace an incomplete or incorrect declaration. Strip the
+  # centrally owned table-level clauses before installing the canonical set;
+  # otherwise a same-count wrong relationship can survive beside the repair.
+  create <- gsub(
+    ",?[[:space:]]*FOREIGN[[:space:]]+KEY[[:space:]]*\\([^)]*\\)[[:space:]]+REFERENCES[[:space:]]+[^,([:space:]]+[[:space:]]*\\([^)]*\\)[[:space:]]*(?:ON[[:space:]]+(?:UPDATE|DELETE)[[:space:]]+[A-Z[:space:]]+)?[[:space:]]*(?:ON[[:space:]]+(?:UPDATE|DELETE)[[:space:]]+[A-Z[:space:]]+)?[[:space:]]*(?:MATCH[[:space:]]+[A-Z]+)?[[:space:]]*(?:(?:NOT[[:space:]]+)?DEFERRABLE(?:[[:space:]]+INITIALLY[[:space:]]+(?:DEFERRED|IMMEDIATE))?)?",
+    "", create, ignore.case = TRUE, perl = TRUE
   )
   create <- sub("[)][[:space:]]*$", paste0(",\n  ", paste(constraints, collapse = ",\n  "), "\n)"), create, perl = TRUE)
   .wb_assert(!identical(create, schema), paste0("Could not prepare constrained schema for ", table, "."))
@@ -188,70 +198,207 @@
   )
 }
 
-.wb_schema_foreign_key_definitions <- function() {
-  fk <- .wb_schema_fk
+.wb_schema_fk_spec <- function(columns, parent, parent_columns = columns,
+                               on_update = "NO ACTION", on_delete = "NO ACTION",
+                               match = "NONE", deferred = "DEFERRABLE INITIALLY DEFERRED") {
   list(
-    space_coords = c(fk("space_id", "spaces"), fk("cell_id", "cells")),
-    space_2d = c(fk("space_id", "spaces"), fk("cell_id", "cells")),
-    features = c(fk("matrix_id", "matrices")),
-    matrix_cells = c(fk("matrix_id", "matrices"), fk("cell_id", "cells")),
-    cell_set_membership = c(fk("cell_id", "cells")),
-    matrix_fragments = c(fk("matrix_id", "matrices")),
-    matrix_fragment_cells = c(fk("fragment_id", "matrix_fragments"), fk("cell_id", "cells")),
-    matrix_fragment_features = c(fk("fragment_id", "matrix_fragments")),
-    cell_vector_values = c(fk("vector_id", "cell_vectors"), fk("cell_id", "cells")),
-    feature_sets = c(fk("matrix_id", "matrices")),
-    feature_set_membership = c(
+    columns = as.character(columns), parent = as.character(parent)[1L],
+    parent_columns = as.character(parent_columns), on_update = toupper(on_update),
+    on_delete = toupper(on_delete), match = toupper(match), deferred = toupper(deferred)
+  )
+}
+
+.wb_schema_foreign_key_contract <- function() {
+  fk <- .wb_schema_fk_spec
+  list(
+    space_coords = list(fk("space_id", "spaces"), fk("cell_id", "cells")),
+    space_2d = list(fk("space_id", "spaces"), fk("cell_id", "cells")),
+    features = list(fk("matrix_id", "matrices")),
+    matrix_cells = list(fk("matrix_id", "matrices"), fk("cell_id", "cells")),
+    cell_set_membership = list(fk("cell_id", "cells")),
+    matrix_fragments = list(fk("matrix_id", "matrices")),
+    matrix_fragment_cells = list(fk("fragment_id", "matrix_fragments"), fk("cell_id", "cells")),
+    matrix_fragment_features = list(fk("fragment_id", "matrix_fragments")),
+    cell_vector_values = list(fk("vector_id", "cell_vectors"), fk("cell_id", "cells")),
+    feature_sets = list(fk("matrix_id", "matrices")),
+    feature_set_membership = list(
       fk(c("feature_set", "matrix_id"), "feature_sets", c("feature_set", "matrix_id")),
       fk(c("matrix_id", "feature_id"), "features", c("matrix_id", "feature_id"))
     ),
-    entity_supersessions = c(
+    entity_supersessions = list(
       fk(c("successor_kind", "successor_id"), "entity_lifecycle", c("entity_kind", "entity_id")),
       fk(c("predecessor_kind", "predecessor_id"), "entity_lifecycle", c("entity_kind", "entity_id"))
     ),
-    entity_tombstones = c(fk(c("entity_kind", "entity_id"), "entity_lifecycle", c("entity_kind", "entity_id"))),
-    motifs = c(fk("motif_library", "motif_libraries")),
-    motif_match_sets = c(fk("matrix_id", "matrices"), fk("motif_library", "motif_libraries")),
-    motif_match_membership = c(fk("motif_match_set", "motif_match_sets"), fk("motif_key", "motifs")),
-    space_models = c(fk("source_space_id", "spaces", "space_id")),
-    artifacts = c(fk("provenance_snapshot_id", "prov_heads", "snapshot_id")),
-    artifact_labels = c(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
-    artifact_pseudotime = c(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
-    artifact_relation_rows = c(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
-    artifact_curves_2d = c(fk("artifact_id", "artifacts")),
-    artifact_space_path_meta = c(fk("artifact_id", "artifacts")),
-    artifact_space_path_rows = c(fk("artifact_id", "artifacts")),
-    artifact_space_2d = c(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
-    artifact_umap_model = c(fk("artifact_id", "artifacts")),
-    artifact_model_ref = c(fk("artifact_id", "artifacts")),
-    artifact_tables = c(fk("artifact_id", "artifacts")),
-    artifact_table_rows = c(fk("artifact_id", "artifacts")),
-    prov_heads = c(fk("commit_id", "prov_commits", "commit_id")),
-    prov_runs = c(fk("snapshot_id", "prov_heads", "snapshot_id")),
-    prov_run_edges = c(
+    entity_tombstones = list(fk(c("entity_kind", "entity_id"), "entity_lifecycle", c("entity_kind", "entity_id"))),
+    motifs = list(fk("motif_library", "motif_libraries")),
+    motif_match_sets = list(fk("matrix_id", "matrices"), fk("motif_library", "motif_libraries")),
+    motif_match_membership = list(fk("motif_match_set", "motif_match_sets"), fk("motif_key", "motifs")),
+    space_models = list(fk("space_id", "spaces", "space_id"), fk("source_space_id", "spaces", "space_id")),
+    artifacts = list(fk("provenance_snapshot_id", "prov_heads", "snapshot_id")),
+    artifact_labels = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
+    artifact_pseudotime = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
+    artifact_relation_rows = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
+    artifact_curves_2d = list(fk("artifact_id", "artifacts")),
+    artifact_space_path_meta = list(fk("artifact_id", "artifacts")),
+    artifact_space_path_rows = list(fk("artifact_id", "artifacts"), fk("space_id", "spaces", "space_id")),
+    artifact_space_2d = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
+    artifact_umap_model = list(fk("artifact_id", "artifacts"), fk("space_id", "spaces", "space_id")),
+    artifact_model_ref = list(fk("artifact_id", "artifacts")),
+    artifact_tables = list(fk("artifact_id", "artifacts")),
+    artifact_table_rows = list(fk("artifact_id", "artifacts")),
+    prov_heads = list(fk("commit_id", "prov_commits", "commit_id")),
+    prov_runs = list(fk("snapshot_id", "prov_heads", "snapshot_id")),
+    prov_run_edges = list(
       fk(c("snapshot_id", "parent_run_id"), "prov_runs", c("snapshot_id", "run_id")),
       fk(c("snapshot_id", "child_run_id"), "prov_runs", c("snapshot_id", "run_id"))
     ),
-    prov_run_outputs = c(
+    prov_run_outputs = list(
       fk(c("snapshot_id", "run_id"), "prov_runs", c("snapshot_id", "run_id")),
       fk("artifact_id", "artifacts", "artifact_id")
     ),
-    prov_run_entity_bindings = c(
+    prov_run_entity_bindings = list(
       fk(c("snapshot_id", "run_id"), "prov_runs", c("snapshot_id", "run_id")),
       fk("commit_id", "prov_commits", "commit_id")
     ),
-    prov_source_identities = c(
+    prov_source_identities = list(
       fk(c("snapshot_id", "run_id"), "prov_runs", c("snapshot_id", "run_id")),
       fk("matrix_id", "matrices", "matrix_id")
     ),
-    prov_source_inputs = c(fk(c("snapshot_id", "run_id"), "prov_runs", c("snapshot_id", "run_id"))),
-    prov_replay_equivalence_results = c(
+    prov_source_inputs = list(fk(c("snapshot_id", "run_id"), "prov_runs", c("snapshot_id", "run_id"))),
+    prov_replay_equivalence_results = list(
       fk("replay_snapshot_id", "prov_heads", "snapshot_id"),
       fk("replay_artifact_id", "artifacts", "artifact_id")
     ),
-    prov_materializations = c(fk("commit_id", "prov_commits", "commit_id")),
-    prov_registry_mutations = c(fk("commit_id", "prov_commits", "commit_id"))
+    prov_materializations = list(fk("commit_id", "prov_commits", "commit_id")),
+    prov_registry_mutations = list(fk("commit_id", "prov_commits", "commit_id"))
   )
+}
+
+.wb_schema_fk_signature <- function(spec) {
+  paste(
+    paste(spec$columns, collapse = ","), spec$parent,
+    paste(spec$parent_columns, collapse = ","), spec$on_update,
+    spec$on_delete, spec$match, sep = " -> "
+  )
+}
+
+.wb_schema_actual_foreign_key_signatures <- function(con, table) {
+  actual <- DBI::dbGetQuery(con, paste0(
+    "PRAGMA foreign_key_list(", DBI::dbQuoteIdentifier(con, table), ");"
+  ))
+  if (!nrow(actual)) return(character())
+  groups <- split(actual, actual$id)
+  unname(sort(vapply(groups, function(rows) {
+    rows <- rows[order(as.integer(rows$seq)), , drop = FALSE]
+    .wb_schema_fk_signature(list(
+      columns = as.character(rows$from), parent = as.character(rows$table[1L]),
+      parent_columns = as.character(rows$to), on_update = toupper(as.character(rows$on_update[1L])),
+      on_delete = toupper(as.character(rows$on_delete[1L])), match = toupper(as.character(rows$match[1L]))
+    ))
+  }, character(1))))
+}
+
+.wb_schema_table_foreign_key_status <- function(con, table) {
+  expected_specs <- .wb_schema_foreign_key_contract()[[table]]
+  if (is.null(expected_specs) || !.wb_table_exists(con, table)) {
+    return(list(ok = FALSE, message = "required table is absent"))
+  }
+  expected <- unname(sort(vapply(expected_specs, .wb_schema_fk_signature, character(1))))
+  actual <- .wb_schema_actual_foreign_key_signatures(con, table)
+  signature_ok <- identical(actual, expected)
+  schema <- DBI::dbGetQuery(
+    con, "SELECT sql FROM sqlite_schema WHERE type='table' AND name=?;", params = list(table)
+  )$sql
+  deferred_count <- if (length(schema) && !is.na(schema[[1L]])) {
+    hits <- gregexpr("DEFERRABLE[[:space:]]+INITIALLY[[:space:]]+DEFERRED", schema[[1L]], ignore.case = TRUE, perl = TRUE)[[1L]]
+    if (identical(hits[[1L]], -1L)) 0L else length(hits)
+  } else 0L
+  deferred_ok <- identical(as.integer(deferred_count), as.integer(length(expected_specs))) &&
+    !grepl("NOT[[:space:]]+DEFERRABLE|INITIALLY[[:space:]]+IMMEDIATE", schema[[1L]], ignore.case = TRUE, perl = TRUE)
+  if (signature_ok && deferred_ok) return(list(ok = TRUE, message = "exact signature matches"))
+  missing <- setdiff(expected, actual)
+  extra <- setdiff(actual, expected)
+  detail <- c(
+    if (length(missing)) paste0("missing=", paste(missing, collapse = " | ")),
+    if (length(extra)) paste0("unexpected=", paste(extra, collapse = " | ")),
+    if (!deferred_ok) paste0("deferred declarations=", deferred_count, "/", length(expected_specs))
+  )
+  list(ok = FALSE, message = paste(detail, collapse = "; "))
+}
+
+.wb_schema_foreign_key_definitions <- function() {
+  lapply(.wb_schema_foreign_key_contract(), function(specs) {
+    vapply(specs, function(spec) {
+      .wb_schema_fk(spec$columns, spec$parent, spec$parent_columns)
+    }, character(1))
+  })
+}
+
+.wb_schema_identifier_relationships <- function() {
+  rows <- list()
+  add <- function(table, columns, target, classification, enforcement) {
+    rows[[length(rows) + 1L]] <<- data.frame(
+      table = table, columns = paste(columns, collapse = ", "), target = target,
+      classification = classification, enforcement = enforcement,
+      stringsAsFactors = FALSE
+    )
+  }
+  contract <- .wb_schema_foreign_key_contract()
+  for (table in names(contract)) for (spec in contract[[table]]) add(
+    table, spec$columns,
+    paste0(spec$parent, "(", paste(spec$parent_columns, collapse = ", "), ")"),
+    "sqlite_foreign_key", "Exact central FK signature; DEFERRABLE INITIALLY DEFERRED"
+  )
+
+  # Relationships whose normalized child shape cannot express the parent's
+  # full identity, or whose parent is polymorphic/JSON-encoded, are checked by
+  # the exhaustive deep validator instead of an ordinary SQLite FK.
+  app <- list(
+    list("cells", "dataset_id", "datasets(dataset_id)", "DANGLING_DATASET_REFERENCE"),
+    list("matrix_fragments", "feature_ids_json", "features(matrix_id, feature_id) via matrix_id", "MATRIX_FRAGMENT_FEATURE_ORDER_MISMATCH / payload identity checks"),
+    list("matrix_fragments", "cell_ids_json", "cells(cell_id)", "MATRIX_FRAGMENT_CELL_COVERAGE_GAP / payload identity checks"),
+    list("matrix_fragment_features", "feature_id", "features(matrix_id, feature_id) via matrix_fragments.matrix_id", "MATRIX_FRAGMENT_FEATURE_REGISTRY_MISMATCH"),
+    list("motif_match_membership", "feature_id", "features(matrix_id, feature_id) via motif_match_sets.matrix_id", "MOTIF_MATCH_DANGLING_MATRIX_FEATURE"),
+    list("prov_heads", "head_run_ids_json", "prov_runs(snapshot_id, run_id)", "PROVENANCE_DANGLING_HEAD_RUN"),
+    list("prov_materializations", "run_id", "prov_runs(run_id), snapshot-independent legacy key", "MATERIALIZATION_DANGLING_RUN"),
+    list("prov_registry_mutations", "run_id", "prov_runs(run_id), snapshot-independent materialization key", "registry/provenance deep validation"),
+    list("prov_replay_equivalence_results", "original_run_id, replay_run_id", "prov_runs(run_id), cross-snapshot replay identities", "replay-equivalence deep validation"),
+    list("prov_run_entity_bindings", "entity_kind, entity_id", "polymorphic durable registry", "PROVENANCE_DANGLING_ENTITY_BINDING"),
+    list("entity_lifecycle", "entity_kind, entity_id", "polymorphic durable registry", "lifecycle/deep-validation state binding"),
+    list("registry_mutation_events", "run_id", "session staging run", "promotion transaction validates selected run topology")
+  )
+  for (x in app) add(x[[1L]], x[[2L]], x[[3L]], "application_validated", x[[4L]])
+
+  # These values are deliberately namespaced labels, payload-local identities,
+  # human actors, or external/source identifiers. They are not durable registry
+  # child relationships and must remain representable without invented rows.
+  symbolic <- list(
+    list("artifacts", "input_space_id", "symbolic operation input space"),
+    list("artifacts", "input_matrix_id", "symbolic operation input matrix"),
+    list("artifacts", "cell_set", "symbolic selector/cell-set namespace"),
+    list("artifact_model_ref", "model_space_id", "engine-owned model identity; may be external"),
+    list("artifact_model_ref", "in_space_id", "optional engine input-space label; may be external"),
+    list("artifact_curves_2d", "lineage_id", "artifact-local lineage identity"),
+    list("artifact_pseudotime", "lineage_id", "artifact-local lineage identity"),
+    list("artifact_relation_rows", "relation_key", "artifact-local relation identity"),
+    list("artifact_space_path_rows", "path_id", "artifact-local path identity"),
+    list("cell_set_membership", "cell_set", "cell-set namespace; registry is membership-defined"),
+    list("cell_set_recipes", "cell_set", "cell-set namespace; recipe may precede materialization"),
+    list("cell_set_styles", "cell_set", "cell-set namespace; style may precede materialization"),
+    list("feature_sets", "set_id", "stable external/catalog set identity"),
+    list("feature_sets", "source_id", "external feature-set source identity"),
+    list("motif_libraries", "source_id", "external motif-library source identity"),
+    list("motifs", "motif_id", "source-library motif identity"),
+    list("space_models", "cell_set", "symbolic fitted-cell selector"),
+    list("prov_source_inputs", "source_id", "external source identity"),
+    list("registry_mutation_events", "event_id", "session-local event identity"),
+    list("prov_registry_mutations", "event_id", "promoted registry-event identity"),
+    list("prov_replay_equivalence_results", "result_id", "replay result identity")
+  )
+  for (x in symbolic) add(x[[1L]], x[[2L]], "external or local namespace", "symbolic_or_external", x[[3L]])
+
+  out <- do.call(rbind, rows)
+  out[order(out$table, out$columns, out$classification), , drop = FALSE]
 }
 
 .wb_schema_migration_002 <- function(con, bundle_dir = NULL) {
@@ -285,6 +432,27 @@
     class = "scworkbench_bundle"
   )
   .wb_entity_lifecycle_migrate_locked(bundle)
+  invisible(TRUE)
+}
+
+.wb_schema_migration_004 <- function(con, bundle_dir = NULL) {
+  definitions <- .wb_schema_foreign_key_definitions()
+  DBI::dbExecute(con, "PRAGMA defer_foreign_keys=ON;")
+  for (table in c("space_models", "artifact_umap_model", "artifact_space_path_rows")) {
+    tryCatch(
+      .wb_schema_rebuild_with_foreign_keys(con, table, definitions[[table]]),
+      error = function(e) stop(
+        "Complete-space foreign-key migration failed while rebuilding ", table,
+        ": ", conditionMessage(e), call. = FALSE
+      )
+    )
+  }
+  violations <- DBI::dbGetQuery(con, "PRAGMA foreign_key_check;")
+  if (nrow(violations)) stop(
+    "Complete-space foreign-key migration found dangling durable references in table ",
+    violations$table[[1L]], " at rowid ", violations$rowid[[1L]], ".",
+    call. = FALSE
+  )
   invisible(TRUE)
 }
 
