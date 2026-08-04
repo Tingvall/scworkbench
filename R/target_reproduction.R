@@ -193,6 +193,7 @@ wb_target_emit_r_script <- function(plan, execution_bundle_dir = "<WRITABLE_INGE
       .wb_r_single_quote_escape(as.character(z$run_id[1])), "', original_output_name = '", nm,
       "', expected_kind = '", .wb_r_single_quote_escape(as.character(z$primitive_kind[1])),
       "', expected_content_sha256 = '", .wb_r_single_quote_escape(as.character(z$content_sha256[1] %||% "")),
+      "', expected_content_identity_scheme = '", .wb_r_single_quote_escape(as.character(z$content_identity_scheme[1] %||% "")),
       "', replay_equivalence_policy = '", .wb_r_single_quote_escape(as.character(z$replay_equivalence_policy[1] %||% "not_comparable")),
       "', expected_reference = '", .wb_r_single_quote_escape(as.character(z$replay_equivalence_reference[1] %||% "")),
       "', replayed_prim = target_res$run$outputs[['", nm, "']], replay_run_id = replay_map[['",

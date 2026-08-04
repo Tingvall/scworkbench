@@ -159,6 +159,7 @@ test_op_hvg_pca_contract <- function() {
     stopifnot(nzchar(aid), inherits(wb_art_load(b, aid), "wb_primitive"))
   }
   stopifnot(all(as.character(pca_ok$lineage_status) == "complete"))
+  wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 
   # PCA with two components uses the generic wb_add_space() wide writer.  A

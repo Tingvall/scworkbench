@@ -226,12 +226,13 @@
       !.wb_table_exists(bundle$con, "prov_commits")) return(data.frame())
   DBI::dbGetQuery(
     bundle$con,
-    "SELECT pm.path, pm.primitive_kind, pm.output_hash, pm.content_sha256
-     FROM prov_materializations pm
-     INNER JOIN prov_commits pc ON pc.commit_id = pm.commit_id
-     WHERE pm.run_id = ? AND pm.output_name = ? AND pc.state = 'complete'
-     ORDER BY pc.created_at DESC, pc.rowid DESC
-     LIMIT 1;",
+    paste0("SELECT pm.path, pm.primitive_kind, pm.output_hash, pm.content_sha256, ",
+     if (.wb_db_has_column(bundle$con, "prov_materializations", "content_identity_scheme")) "pm.content_identity_scheme" else "NULL AS content_identity_scheme", "\n",
+     "FROM prov_materializations pm\n",
+     "INNER JOIN prov_commits pc ON pc.commit_id = pm.commit_id\n",
+     "WHERE pm.run_id = ? AND pm.output_name = ? AND pc.state = 'complete'\n",
+     "ORDER BY pc.created_at DESC, pc.rowid DESC\n",
+     "LIMIT 1;"),
     params = list(as.character(run_id)[1], as.character(output_name)[1])
   )
 }
@@ -273,6 +274,7 @@
         primitive_kind = primitive_kind, path = rel,
         output_hash = output_hash,
         content_sha256 = content_sha256,
+        content_identity_scheme = unname(.wb_content_identity_schemes()[["raw_file"]]),
         stringsAsFactors = FALSE
       )
     }

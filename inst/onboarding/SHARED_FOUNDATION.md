@@ -91,3 +91,13 @@ active assembly handle returned by `wb_init_bundle()`. Ingestion records durable
 outputs and declared source inputs. Reopening the bundle ends assembly authority.
 Inspect the machine-readable ownership inventory with
 `wb_mutation_catalog_semantic()`.
+
+# Bundle integrity proof
+
+Use `wb_bundle_validation_report()` when a structured integrity result is
+needed. `structural`, `content`, and `recipient` are cumulative proof levels;
+only content/recipient verify tagged payload identities and the complete
+persisted run contract. `content_coverage` exposes every bundle-owned durable
+entity's verification status. Recipient bundles must be finalized with no
+active WAL, writer, or pending workspace. See
+`docs/bundle_integrity_validation.md`.

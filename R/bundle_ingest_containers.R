@@ -284,7 +284,7 @@
     op_name = paste0("bundle_ingest_", tolower(gsub("[^A-Za-z0-9]+", "_", source_type))),
     inputs = list(
       cell_set = "all", parents = character(0),
-      provenance_refs = if (nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list(),
+      provenance_refs = if (!is.na(as.character(rowdata_artifact_id %||% NA_character_)[1]) && nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list(),
       user_inputs = list(source_path = source_path)
     ),
     params = list(importer_version = .wb_ingest_version(), cell_id_policy = cell_id_policy, feature_id_policy = feature_id_policy, status = status, phase = phase),
@@ -299,12 +299,13 @@
     name = "container_ingest_report",
     description = "Container ingestion metadata and v1 unsupported field summary",
     created_by = created_by,
-    parent_artifacts = if (nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list()
+    parent_artifacts = if (!is.na(as.character(rowdata_artifact_id %||% NA_character_)[1]) && nzchar(as.character(rowdata_artifact_id %||% "")[1])) list(wb_ref_artifact(rowdata_artifact_id, "feature_metadata")) else list()
   )
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, artifact_id = artifact_id,
     matrix_ids = matrix_ids, created_by = created_by, source_identity = source_identity
   )
+  wb_refresh_manifest(bundle)
   artifact_id
 }
 
@@ -377,6 +378,7 @@
     parent_artifacts = list()
   )
   .wb_prov_record_ingestion_substep(bundle, run, artifact_id, created_by = created_by)
+  wb_refresh_manifest(bundle)
   artifact_id
 }
 
@@ -546,7 +548,9 @@
 .wb_ingest_10x_write_bpcells_fragment <- function(sample,
                                                   out_dir,
                                                   matrix_id,
-                                                  sample_id) {
+                                                  sample_id,
+                                                  feature_ids,
+                                                  cell_ids) {
   .wb_require_pkg("BPCells", "10x Matrix Market ingestion")
   staging <- tempfile(pattern = paste0("10x_", sample_id, "_"), tmpdir = tempdir())
   dir.create(staging, recursive = TRUE, showWarnings = FALSE)
@@ -555,7 +559,17 @@
   .wb_ingest_10x_link_or_copy(sample$features_path, file.path(staging, "features.tsv.gz"))
   .wb_ingest_10x_link_or_copy(sample$barcodes_path, file.path(staging, "barcodes.tsv.gz"))
   if (dir.exists(out_dir)) unlink(out_dir, recursive = TRUE, force = TRUE)
-  BPCells::import_matrix_market_10x(staging, outdir = out_dir, row_major = FALSE)
+  imported <- paste0(out_dir, ".imported")
+  on.exit(if (dir.exists(imported)) unlink(imported, recursive = TRUE, force = TRUE), add = TRUE)
+  BPCells::import_matrix_market_10x(staging, outdir = imported, row_major = FALSE)
+  mat <- .wb_bp_open_matrix_dir(imported)
+  .wb_assert(identical(as.integer(dim(mat)), c(length(feature_ids), length(cell_ids))),
+             paste0("Imported 10x fragment dimensions disagree with canonical identities for sample_id=", sample_id))
+  rownames(mat) <- as.character(feature_ids)
+  colnames(mat) <- as.character(cell_ids)
+  BPCells::write_matrix_dir(mat, out_dir)
+  unlink(imported, recursive = TRUE, force = TRUE)
+  invisible(out_dir)
 }
 
 .wb_ingest_matrix <- function(bundle, matrix_id, mat, layer, source, created_by, emit_report_artifact = FALSE) {
@@ -797,7 +811,9 @@ wb_bundle_from_10x_mtx <- function(input,
         sample = per[[i]]$sample,
         out_dir = abs_path,
         matrix_id = matrix_id,
-        sample_id = sample_id
+        sample_id = sample_id,
+        feature_ids = per[[i]]$final_features,
+        cell_ids = per[[i]]$cell_ids
       )
       message("10x_mtx: registered library ", i, "/", length(per), " (", sample_id, ")")
       frag_mat <- .wb_bp_open_matrix_dir(abs_path)

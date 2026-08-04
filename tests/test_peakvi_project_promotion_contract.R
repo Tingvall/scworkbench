@@ -24,6 +24,7 @@ test_peakvi_project_promotion_contract <- function() {
   p <- wb_session_promote_current(b,rr$session,outputs="fit_summary")
   wb_close_bundle(b); b <- wb_open_bundle(root)
   projected <- wb_space(b, "projected", cells = ids)
+  wb_finalize_recipient_bundle(b)
   stopifnot("projected" %in% wb_spaces(b)$space_id,
             identical(as.character(projected$cell_id), ids),
             identical(rownames(projected), ids),

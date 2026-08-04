@@ -23,6 +23,7 @@ test_umap_promotion_atomicity_contract <- function() {
   dir.create(file.path(root, "models", "umap"), recursive = TRUE, showWarnings = FALSE)
   owner_path <- file.path(root, "models", "umap", "user_owned.uwot")
   writeLines("user owned", owner_path, useBytes = TRUE)
+  wb_finalize_recipient_bundle(b)
 
   count_table <- function(table) {
     if (!.wb_table_exists(b$con, table)) return(0L)
