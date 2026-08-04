@@ -51,6 +51,176 @@
                           purpose = "model_ref payload")
 }
 
+# Return the only model-path representation permitted in a PyBench request.
+# Durable registry identity wins over an in-memory convenience path. Absolute
+# convenience paths are converted only when they are lexically rooted in, and
+# canonically resolve through, the exact active bundle or its engine-bound
+# session overlay.
+.wb_pybench_model_request_path <- function(bundle, model,
+                                           purpose = "PyBench model input") {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+             "bundle must be a scworkbench_bundle.")
+  .wb_assert_kind(model, "model_ref")
+
+  fail <- function(status, raw) {
+    stop(
+      status$code, ": invalid ", purpose, " path '", as.character(raw)[1],
+      "' (", status$observed, ").",
+      call. = FALSE
+    )
+  }
+  checked_payload <- function(root, relative) {
+    status <- .wb_path_status(
+      root, relative, expected_type = "either", must_exist = TRUE,
+      purpose = purpose
+    )
+    if (isTRUE(status$ok) && identical(status$observed, "directory")) {
+      status <- .wb_path_tree_status(root, relative, purpose = purpose)
+    }
+    status
+  }
+  materialize_bound_overlay <- function(relative, active_status) {
+    source_dir <- as.character(bundle$staging_source_dir %||% "")[1]
+    if (is.na(source_dir) || !nzchar(source_dir)) fail(active_status, relative)
+    source_root <- normalizePath(source_dir, winslash = "/", mustWork = TRUE)
+    source_status <- checked_payload(source_root, relative)
+    if (!isTRUE(source_status$ok)) fail(source_status, relative)
+
+    .wb_assert_mutation_context(
+      bundle = bundle,
+      action = "PyBench session model input materialization",
+      allowed = "session_execution"
+    )
+    destination <- file.path(.wb_bundle_root(bundle), relative)
+    dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)
+    staged <- tempfile(
+      pattern = paste0(".", basename(destination), ".pybench-stage-"),
+      tmpdir = dirname(destination)
+    )
+    backup <- tempfile(
+      pattern = paste0(".", basename(destination), ".pybench-backup-"),
+      tmpdir = dirname(destination)
+    )
+    publication_complete <- FALSE
+    moved_old <- FALSE
+    on.exit({
+      if (file.exists(staged) || dir.exists(staged)) {
+        unlink(staged, recursive = TRUE, force = TRUE)
+      }
+      if (!isTRUE(publication_complete) && isTRUE(moved_old) &&
+          (file.exists(backup) || dir.exists(backup))) {
+        if (file.exists(destination) || dir.exists(destination)) {
+          unlink(destination, recursive = TRUE, force = TRUE)
+        }
+        file.rename(backup, destination)
+      }
+      if (isTRUE(publication_complete) && (file.exists(backup) || dir.exists(backup))) {
+        unlink(backup, recursive = TRUE, force = TRUE)
+      }
+    }, add = TRUE)
+
+    copied <- if (dir.exists(source_status$absolute)) {
+      tryCatch({
+        fs::dir_copy(source_status$absolute, staged)
+        TRUE
+      }, error = function(e) FALSE)
+    } else {
+      isTRUE(file.copy(source_status$absolute, staged, copy.mode = TRUE))
+    }
+    .wb_assert(copied, "Failed to materialize the bound session model input.")
+    staged_relative <- file.path(dirname(relative), basename(staged))
+    staged_relative <- sub("^\\./", "", gsub("\\\\", "/", staged_relative))
+    staged_status <- checked_payload(.wb_bundle_root(bundle), staged_relative)
+    .wb_assert(isTRUE(staged_status$ok),
+               paste0(staged_status$code, ": staged PyBench model copy is unsafe."))
+
+    destination_present <- file.exists(destination) || dir.exists(destination) ||
+      nzchar(Sys.readlink(destination))
+    if (destination_present) {
+      moved_old <- isTRUE(file.rename(destination, backup))
+      .wb_assert(moved_old, "Failed to isolate the session overlay model input.")
+    }
+    .wb_assert(isTRUE(file.rename(staged, destination)),
+               "Failed to publish the contained session model input.")
+    publication_complete <- TRUE
+
+    final_status <- checked_payload(.wb_bundle_root(bundle), relative)
+    if (!isTRUE(final_status$ok)) fail(final_status, relative)
+    final_status
+  }
+  checked_relative <- function(raw) {
+    status <- checked_payload(.wb_bundle_root(bundle), raw)
+    if (!isTRUE(status$ok)) status <- materialize_bound_overlay(raw, status)
+    status$relative
+  }
+
+  artifact_id <- as.character(model$artifact_id %||% "")[1]
+  has_artifact_id <- !is.na(artifact_id) && nzchar(artifact_id)
+  registry_path <- character(0)
+  if (has_artifact_id && .wb_table_exists(bundle$con, "artifact_model_ref")) {
+    registry_path <- as.character(DBI::dbGetQuery(
+      bundle$con,
+      "SELECT model_path FROM artifact_model_ref WHERE artifact_id = ?;",
+      params = list(artifact_id)
+    )$model_path)
+  }
+  if (length(registry_path)) {
+    .wb_assert(length(registry_path) == 1L,
+               "artifact_model_ref identity resolved to multiple model paths.")
+    # A registry value is durable state. It must already obey the portable
+    # relative contract; only the in-memory convenience field gets the narrow
+    # absolute-to-relative compatibility conversion below.
+    if (.wb_path_is_absolute(registry_path[[1]])) {
+      status <- .wb_path_status(
+        bundle$dir, registry_path[[1]], expected_type = "either",
+        must_exist = TRUE, purpose = purpose
+      )
+      fail(status, registry_path[[1]])
+    }
+    return(checked_relative(registry_path[[1]]))
+  }
+
+  raw <- as.character(model$model_path %||% "")[1]
+  if (is.na(raw) || !nzchar(raw)) {
+    fail(list(code = "PATH_EMPTY", observed = "empty"), raw)
+  }
+  if (!.wb_path_is_absolute(raw)) return(checked_relative(raw))
+
+  # Keep the lexical path for containment classification. Normalizing first
+  # would hide parent traversal or an escaping symlink before the canonical
+  # resolver has a chance to diagnose it.
+  lexical <- sub("/+$", "", gsub("\\\\", "/", raw))
+  roots <- list(active = .wb_bundle_root(bundle))
+  source_dir <- as.character(bundle$staging_source_dir %||% "")[1]
+  if (!is.na(source_dir) && nzchar(source_dir)) {
+    roots$overlay_source <- normalizePath(source_dir, winslash = "/", mustWork = TRUE)
+  }
+  for (root_name in names(roots)) {
+    root <- sub("/+$", "", roots[[root_name]])
+    if (!startsWith(lexical, paste0(root, "/"))) next
+    relative <- substring(lexical, nchar(root) + 2L)
+    if (identical(root_name, "active")) return(checked_relative(relative))
+    status <- {
+      source_status <- checked_payload(root, relative)
+      if (!isTRUE(source_status$ok)) source_status else
+        tryCatch({
+          checked_relative(relative)
+          checked_payload(.wb_bundle_root(bundle), relative)
+        }, error = function(e) {
+          stop(e)
+        })
+    }
+    if (!isTRUE(status$ok)) fail(status, raw)
+    return(status$relative)
+  }
+
+  status <- .wb_path_status(
+    bundle$dir, raw, expected_type = "either", must_exist = TRUE,
+    purpose = purpose
+  )
+  fail(status, raw)
+}
+
 #' (Advanced) Repair relocatable model_ref artifact paths
 #'
 #' Rewrites `artifact_model_ref`, `artifact_umap_model`, and `space_models`
