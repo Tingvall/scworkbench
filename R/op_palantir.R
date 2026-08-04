@@ -86,9 +86,9 @@ wb_op_palantir_project <- function(bundle,
              "palantir_project requires model_ref(engine='palantir').")
   .wb_assert(is.character(plot_space_id) && length(plot_space_id) == 1L && nzchar(plot_space_id),
              "palantir_project requires plot_space_id.")
-  model_path <- as.character(model$model_path %||% "")[1]
-  .wb_assert(nzchar(model_path) && file.exists(model_path),
-             "palantir_project requires readable model_ref$model_path.")
+  model_path <- .wb_pybench_model_request_path(
+    bundle, model, purpose = "Palantir project model"
+  )
 
   # Validate target plot space exists and is 2D before handing off to Python.
   sp <- wb_space(bundle, space_id = plot_space_id)

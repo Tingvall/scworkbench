@@ -231,9 +231,9 @@ wb_op_peakvi_project <- function(bundle,
   .wb_assert_kind(peakvi_model, "model_ref")
   .wb_assert(identical(as.character(peakvi_model$engine %||% "")[1], "peakvi"),
              "peakvi_project requires model_ref(engine='peakvi').")
-  model_path <- as.character(peakvi_model$model_path %||% "")[1]
-  .wb_assert(nzchar(model_path) && file.exists(model_path),
-             "peakvi_project requires readable model_ref$model_path.")
+  model_path <- .wb_pybench_model_request_path(
+    bundle, peakvi_model, purpose = "PeakVI project model"
+  )
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && nzchar(matrix_id),
              "peakvi_project requires matrix_id.")
 

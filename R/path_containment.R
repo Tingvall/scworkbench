@@ -98,10 +98,10 @@
        contract_version = .wb_bundle_path_contract_version(), purpose = purpose)
 }
 
-.wb_bundle_path_require <- function(bundle_or_dir, path,
-                                    expected_type = c("either", "file", "directory"),
-                                    must_exist = TRUE,
-                                    purpose = "durable portable payload") {
+.wb_bundle_path_status <- function(bundle_or_dir, path,
+                                   expected_type = c("either", "file", "directory"),
+                                   must_exist = TRUE,
+                                   purpose = "durable portable payload") {
   root <- if (inherits(bundle_or_dir, "scworkbench_bundle")) bundle_or_dir$dir else bundle_or_dir
   status <- .wb_path_status(root, path, expected_type = match.arg(expected_type),
                             must_exist = must_exist, purpose = purpose)
@@ -112,12 +112,30 @@
     # Session overlays deliberately symlink immutable leaves to their one
     # recorded source bundle. That transient engine view may read only that
     # exact source; it can never turn the link into durable state.
-    source_root <- normalizePath(bundle_or_dir$staging_source_dir, winslash="/", mustWork=TRUE)
-    resolved <- normalizePath(file.path(bundle_or_dir$dir, path), winslash="/", mustWork=FALSE)
-    if (.wb_path_inside(resolved, source_root) && (file.exists(resolved) || dir.exists(resolved))) {
-      return(resolved)
+    source_root <- normalizePath(bundle_or_dir$staging_source_dir, winslash = "/", mustWork = TRUE)
+    source_status <- .wb_path_status(
+      source_root, path, expected_type = match.arg(expected_type),
+      must_exist = must_exist, purpose = purpose
+    )
+    resolved <- normalizePath(file.path(bundle_or_dir$dir, path), winslash = "/", mustWork = FALSE)
+    if (isTRUE(source_status$ok) && identical(resolved, source_status$absolute)) {
+      source_status$code <- "OK_TRANSIENT_TRUSTED_OVERLAY"
+      source_status$trust <- "trusted_staging_overlay"
+      source_status$portable <- TRUE
+      return(source_status)
     }
   }
+  status
+}
+
+.wb_bundle_path_require <- function(bundle_or_dir, path,
+                                    expected_type = c("either", "file", "directory"),
+                                    must_exist = TRUE,
+                                    purpose = "durable portable payload") {
+  status <- .wb_bundle_path_status(
+    bundle_or_dir, path, expected_type = match.arg(expected_type),
+    must_exist = must_exist, purpose = purpose
+  )
   if (!isTRUE(status$ok)) {
     stop(status$code, ": invalid ", purpose, " path '", as.character(path)[1],
          "' (", status$observed, ").", call. = FALSE)
@@ -164,9 +182,8 @@
 wb_bundle_path_status <- function(bundle_or_dir, path,
                                   expected_type = c("either", "file", "directory"),
                                   must_exist = TRUE) {
-  root <- if (inherits(bundle_or_dir, "scworkbench_bundle")) bundle_or_dir$dir else bundle_or_dir
-  .wb_path_status(root, path, expected_type = match.arg(expected_type),
-                  must_exist = must_exist)
+  .wb_bundle_path_status(bundle_or_dir, path, expected_type = match.arg(expected_type),
+                         must_exist = must_exist)
 }
 
 .wb_model_deserialization_status <- function(bundle, model_path,

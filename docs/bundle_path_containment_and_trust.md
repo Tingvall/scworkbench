@@ -64,3 +64,14 @@ external inputs, and trusted-runtime-or-opt-in model loading. Python may receive
 the absolute mounted bundle root as runtime context, but paths written to a
 portable registry must be relative and resolve inside that root. Receipts and
 registry rows remain subject to R-side containment validation.
+
+PeakVI and Palantir projection requests obtain their model input through one
+engine-owned bridge resolver. An `artifact_id` makes the durable
+`artifact_model_ref.model_path` authoritative; otherwise a contained relative
+primitive is accepted. The absolute convenience path exposed by
+`wb_art_load()` is converted only when it resolves inside the exact active
+bundle or its explicitly bound session overlay. A session overlay atomically
+materializes a checked copy of a promoted model before Python validation so the
+request remains relative and the executable payload tree contains no escaping
+links. Traversing, missing, external absolute, and symlink-escaping inputs fail
+before the Python process is launched.
