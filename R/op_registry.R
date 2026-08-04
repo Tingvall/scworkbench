@@ -204,7 +204,7 @@ wb_write_op_catalog_reference <- function(path_md = "docs/op_catalog_reference.m
   catalog <- wb_op_catalog_semantic(bundle = bundle)
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_op_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_op_catalog_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "op catalog semantic export")

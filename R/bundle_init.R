@@ -542,8 +542,11 @@ wb_refresh_manifest <- function(bundle) {
 
 .wb_manifest_publish_current_locked <- function(bundle_or_dir, result = NULL) {
   target <- .wb_writer_lock_target(bundle_or_dir)
-  manifest_path <- file.path(target, "manifest.json")
-  if (!dir.exists(target) || !file.exists(manifest_path)) return(invisible(FALSE))
+  if (!dir.exists(target)) return(invisible(FALSE))
+  manifest_status <- .wb_path_status(target,"manifest.json",expected_type="file",must_exist=TRUE,purpose="bundle manifest publication")
+  if (identical(manifest_status$code,"PAYLOAD_MISSING")) return(invisible(FALSE))
+  .wb_assert(isTRUE(manifest_status$ok),paste0(manifest_status$code,": unsafe bundle manifest publication path."))
+  manifest_path <- manifest_status$absolute
   candidate <- if (inherits(bundle_or_dir, "scworkbench_bundle")) bundle_or_dir else
     if (inherits(result, "scworkbench_bundle")) result else NULL
   if (!is.null(candidate) && DBI::dbIsValid(candidate$con)) {
@@ -555,8 +558,10 @@ wb_refresh_manifest <- function(bundle) {
 
   durable <- jsonlite::read_json(manifest_path, simplifyVector = TRUE)
   db_rel <- as.character(durable$storage$sqlite$path %||% "")[1]
-  db_path <- file.path(target, db_rel)
-  if (!nzchar(db_rel) || !file.exists(db_path)) return(invisible(FALSE))
+  db_status <- .wb_path_status(target,db_rel,expected_type="file",must_exist=TRUE,purpose="manifest SQLite database")
+  if (identical(db_status$code,"PAYLOAD_MISSING")) return(invisible(FALSE))
+  .wb_assert(isTRUE(db_status$ok),paste0(db_status$code,": unsafe manifest SQLite path."))
+  db_path <- db_status$absolute
   con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
   on.exit(DBI::dbDisconnect(con), add = TRUE)
   .wb_sqlite_configure_connection(con, writable = TRUE)

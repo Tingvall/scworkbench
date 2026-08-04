@@ -33,6 +33,7 @@
 
 .wb_pybench_run_module <- function(module,
                                    request,
+                                   bundle = NULL,
                                    python_bin = .wb_pybench_default_python(),
                                    env = character(0),
                                    request_path = tempfile("pybench_req_", fileext = ".json"),
@@ -92,6 +93,7 @@
   }
 
   receipt <- .wb_pyproto_read_receipt_json(receipt_path, request = request)
+  if (!is.null(bundle)) .wb_pybench_canonicalize_model_paths(bundle, request$outputs)
   list(
     status = 0L,
     stdout_stderr = out,
@@ -100,6 +102,31 @@
     request_path = request_path,
     receipt_path = receipt_path
   )
+}
+
+.wb_pybench_canonicalize_model_paths <- function(bundle, outputs) {
+  .wb_assert(inherits(bundle,"scworkbench_bundle"),"bundle must be scworkbench_bundle")
+  ids <- if (length(outputs)) vapply(outputs,function(x) as.character(x$artifact_id %||% "")[1],character(1)) else character()
+  ids <- ids[nzchar(ids)]
+  if (!length(ids) || !.wb_table_exists(bundle$con,"artifact_model_ref")) return(invisible(TRUE))
+  for (artifact_id in ids) {
+    row <- DBI::dbGetQuery(bundle$con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(artifact_id))
+    if (!nrow(row)) next
+    raw <- as.character(row$model_path[1] %||% "")[1]
+    if (.wb_path_is_absolute(raw)) {
+      resolved <- normalizePath(raw,winslash="/",mustWork=FALSE)
+      root <- .wb_bundle_root(bundle)
+      .wb_assert(.wb_path_inside(resolved,root) && (file.exists(resolved)||dir.exists(resolved)),
+                 "PYBENCH_PATH_CONTRACT_VIOLATION: model output resolves outside the mounted bundle.")
+      relative <- substring(resolved,nchar(root)+2L)
+    } else {
+      status <- .wb_path_status(bundle$dir,raw,expected_type="either",must_exist=TRUE,purpose="PyBench model output")
+      .wb_assert(isTRUE(status$ok),paste0("PYBENCH_PATH_CONTRACT_VIOLATION: ",status$code))
+      relative <- status$relative
+    }
+    DBI::dbExecute(bundle$con,"UPDATE artifact_model_ref SET model_path=? WHERE artifact_id=?;",params=list(relative,artifact_id))
+  }
+  invisible(TRUE)
 }
 
 # Build a pybench-op-v1 request payload (internal helper).
@@ -113,6 +140,7 @@
   req <- list(
     protocol_version = .wb_pyproto_version(),
     bundle_dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE),
+    path_contract = .wb_pyproto_path_contract(),
     op_name = as.character(op_name)[1],
     run = list(run_id = as.character(run_id)[1]),
     inputs = inputs %||% list(),

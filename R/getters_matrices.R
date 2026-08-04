@@ -129,8 +129,8 @@ wb_matrix_read_features <- function(bundle,
     cix <- match(cells_keep, cell_ids_frag)
 
     # Open BPCells
-    abs_path <- file.path(bundle$dir, row$path[1])
-    .wb_assert(dir.exists(abs_path), paste0("Missing BPCells dir for fragment: ", abs_path))
+    abs_path <- .wb_bundle_path_require(bundle, row$path[1], expected_type = "directory",
+                                        purpose = paste0("matrix fragment ", row$fragment_id[1]))
     mat <- .wb_bp_open_matrix_dir(abs_path)
 
     # Slice

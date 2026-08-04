@@ -120,7 +120,7 @@ test_targeted_reproduction_execute_contract <- function() {
   model_link <- wb_art_birth_certificate(cb,model_art)$persisted_provenance$links
   stopifnot(identical(as.character(model_link$verification_status[model_link$output_name=="model"]),"content_verified"))
   bad_path <- tempfile("unloadable_uwot_",tmpdir=clone,fileext=".uwot"); saveRDS(list(not_a_uwot_model=TRUE),bad_path)
-  bad_model <- wb_prim_model_ref("rna_umap","rna_pca",engine="uwot"); bad_model$model_path <- bad_path
+  bad_model <- wb_prim_model_ref("rna_umap","rna_pca",engine="uwot"); bad_model$model_path <- basename(bad_path)
   bad_identity <- scworkbench:::.wb_prov_payload_identity(cb,bad_model)
   bad_verification <- try(scworkbench:::.wb_prov_verify_replay_output(
     cb,"original_bad_model","model","model_ref",bad_identity$content_sha256,

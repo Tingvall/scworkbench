@@ -47,25 +47,35 @@ wb_space_model_path <- function(bundle, space_id) {
              paste0("Invalid model_path stored for space_id: ", space_id))
 
 
-  abs <- file.path(bundle$dir, rel)
-
-  .wb_assert(
-    file.exists(abs),
-    paste0("Model file does not exist on disk: ", abs)
-  )
-
-  abs
+  .wb_bundle_path_require(bundle, rel, expected_type = "either", must_exist = TRUE,
+                          purpose = paste0("space model ", space_id))
 }
 
 #' Load a fitted space model
 #'
 #' @param bundle scworkbench bundle
 #' @param space_id space_id of a fitted 2D space
+#' @param allow_untrusted_deserialization Explicitly authorize loading a
+#'   contained serialized model that is not provenance-bound. Never authorizes
+#'   an absolute, traversing, or symlink-escaping path.
+#' @param trusted_runtime Whether the caller is an engine-controlled trusted
+#'   execution runtime.
 #' @return model object (uwot model)
 #' @export
-wb_load_space_model <- function(bundle, space_id) {
+wb_load_space_model <- function(bundle, space_id,
+                                allow_untrusted_deserialization = FALSE,
+                                trusted_runtime = FALSE) {
   row <- wb_space_model(bundle, space_id)
   path <- wb_space_model_path(bundle, space_id)
+  trust <- .wb_model_deserialization_status(
+    bundle, as.character(row$model_path[1]),
+    provenance_bound = identical(as.integer(row$provenance_bound[1] %||% 0L), 1L),
+    trusted_runtime = trusted_runtime
+  )
+  .wb_assert(
+    isTRUE(trust$deserialization_allowed) || isTRUE(allow_untrusted_deserialization),
+    "MODEL_DESERIALIZATION_TRUST_REQUIRED: loading serialized model state requires trusted provenance/runtime or allow_untrusted_deserialization=TRUE."
+  )
 
   model_type <- row$model_type %||% "uwot_umap"
 

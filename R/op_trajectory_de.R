@@ -5,6 +5,10 @@
   if (!is.null(obj)) return(obj)
 
   path <- as.character(model$model_path %||% "")[1]
+  .wb_assert(
+    identical(as.character(model$deserialization_trust %||% "")[1], "trusted_provenance_or_runtime"),
+    "MODEL_DESERIALIZATION_TRUST_REQUIRED: trajectory model_path deserialization requires a model_ref loaded through the trusted bundle boundary."
+  )
   .wb_assert(nzchar(path) && file.exists(path),
              "trajectory_de requires model_ref with in-memory model_obj or readable model_path.")
   readRDS(path)

@@ -287,26 +287,40 @@
       }
     }
   }
-  candidates <- character(0)
-  if (.wb_path_is_absolute(raw)) candidates <- c(candidates, raw)
-  if (!is.null(staging_bundle) && inherits(staging_bundle, "scworkbench_bundle") && !.wb_path_is_absolute(raw)) candidates <- c(candidates, file.path(staging_bundle$dir, raw))
-  if (inherits(bundle, "scworkbench_bundle") && !.wb_path_is_absolute(raw)) candidates <- c(candidates, file.path(bundle$dir, raw))
-  candidates <- unique(candidates[nzchar(candidates)])
-  hit <- candidates[file.exists(candidates) | dir.exists(candidates)]
-  if (length(hit)) return(hit[1])
+  if (.wb_path_is_absolute(raw)) {
+    trusted_roots <- list()
+    if (!is.null(staging_bundle) && inherits(staging_bundle,"scworkbench_bundle")) trusted_roots <- c(trusted_roots,list(staging_bundle$dir))
+    if (inherits(workspace,"wb_promotion_workspace") && inherits(bundle,"scworkbench_bundle")) trusted_roots <- c(trusted_roots,list(bundle$dir))
+    resolved <- normalizePath(raw,winslash="/",mustWork=FALSE)
+    if (length(trusted_roots) && any(vapply(trusted_roots,function(root) .wb_path_inside(resolved,normalizePath(root,winslash="/",mustWork=TRUE)),logical(1))) && (file.exists(resolved)||dir.exists(resolved))) return(resolved)
+    stop("PATH_ABSOLUTE: durable provenance payload paths must be bundle-relative.", call. = FALSE)
+  }
+  candidates <- list()
+  if (!is.null(staging_bundle) && inherits(staging_bundle, "scworkbench_bundle")) candidates <- c(candidates, list(staging_bundle))
+  if (inherits(bundle, "scworkbench_bundle")) candidates <- c(candidates, list(bundle))
+  for (candidate_bundle in candidates) {
+    status <- .wb_path_status(candidate_bundle$dir, raw, expected_type="either",
+                              must_exist=TRUE, purpose=kind)
+    if (isTRUE(status$ok)) return(status$absolute)
+  }
   stop(paste0(
     "Missing ", kind, " payload for ", if (nzchar(id)) id else "<unknown>",
     "; lifecycle context=", if (inherits(workspace, "wb_promotion_workspace")) "promotion_workspace" else if (!is.null(staging_bundle)) "session_staging" else "durable_bundle",
-    "; attempted path(s): ", paste(candidates, collapse = ", ")
+    "; attempted contained bundle root(s): ", paste(vapply(candidates, function(x) x$dir, character(1)), collapse = ", ")
   ), call. = FALSE)
 }
 
 .wb_prov_file_tree_sha256 <- function(root) {
   .wb_assert(file.exists(root), paste0("Missing payload path for SHA-256: ", root))
   if (!dir.exists(root)) return(.wb_prov_sha256_file(root))
-  files <- sort(list.files(root, recursive = TRUE, full.names = TRUE, all.files = FALSE, no.. = TRUE))
+  root_abs <- normalizePath(root, winslash="/", mustWork=TRUE)
+  entries <- sort(as.character(fs::dir_ls(root_abs, recurse=TRUE, type="any", all=TRUE, follow=FALSE)))
+  resolved <- vapply(entries, normalizePath, character(1), winslash="/", mustWork=TRUE)
+  .wb_assert(all(vapply(resolved, .wb_path_inside, logical(1), root=root_abs)),
+             "PATH_SYMLINK_ESCAPE: payload tree contains an entry resolving outside its durable root.")
+  files <- entries[!dir.exists(entries)]
   .wb_prov_sha256_object(lapply(files, function(f) list(
-    path = substring(f, nchar(root) + 2L), sha256 = .wb_prov_sha256_file(f)
+    path = substring(f, nchar(root_abs) + 2L), sha256 = .wb_prov_sha256_file(f)
   )))
 }
 
@@ -355,6 +369,9 @@
 }
 
 .wb_replay_model_loadable <- function(bundle, prim) {
+  # This routine executes only inside explicit provenance replay verification;
+  # it is not used by recipient validation. The replay runtime is the trusted
+  # execution boundary, while containment remains mandatory below.
   if (!.wb_is_primitive(prim) || !identical(as.character(prim$kind), "model_ref")) {
     return(list(ok = FALSE, message = "Output is not a model_ref."))
   }
@@ -363,8 +380,12 @@
   if (!nzchar(path) && identical(engine, "uwot")) {
     path <- tryCatch(wb_space_model_path(bundle, as.character(prim$model_space_id %||% prim$space_id %||% "")[1]), error = function(e) "")
   }
-  if (nzchar(path) && !.wb_path_is_absolute(path)) path <- file.path(bundle$dir, path)
-  if (!nzchar(path) || !file.exists(path)) return(list(ok = FALSE, message = "Model payload is missing."))
+  status <- if (nzchar(path) && .wb_path_is_absolute(path)) {
+    resolved <- normalizePath(path,winslash="/",mustWork=FALSE); root <- .wb_bundle_root(bundle)
+    if (.wb_path_inside(resolved,root) && (file.exists(resolved)||dir.exists(resolved))) list(ok=TRUE,absolute=resolved) else list(ok=FALSE)
+  } else if (nzchar(path)) .wb_path_status(bundle$dir, path, expected_type="either", must_exist=TRUE, purpose="replay model") else list(ok=FALSE)
+  if (!isTRUE(status$ok)) return(list(ok = FALSE, message = "Model payload is missing or outside the bundle trust boundary."))
+  path <- status$absolute
   loaded <- tryCatch({
     if (identical(engine, "uwot")) {
       .wb_require_pkg("uwot", "UMAP replay-equivalence validation")
@@ -422,7 +443,16 @@
     status <- if (verified) "verified" else "failed"
     message <- if (verified) paste0(policy, " matched.") else paste0(policy, " mismatch.")
   } else if (identical(policy, "loadable_reference")) {
-    load_result <- .wb_replay_model_loadable(bundle, replayed_prim)
+    load_prim <- replayed_prim
+    replay_aid <- as.character(replay_artifact_id %||% "")[1]
+    if ((!nzchar(replay_aid) || is.na(replay_aid)) && .wb_table_exists(bundle$con,"prov_run_outputs")) {
+      lookup <- DBI::dbGetQuery(bundle$con,"SELECT artifact_id FROM prov_run_outputs WHERE snapshot_id=? AND run_id=? AND output_name=? AND artifact_id IS NOT NULL ORDER BY rowid DESC LIMIT 1;",params=list(as.character(replay_snapshot_id)[1],as.character(replay_run_id)[1],as.character(original_output_name)[1]))
+      if (nrow(lookup)) replay_aid <- as.character(lookup$artifact_id[1] %||% "")[1]
+    }
+    if (nzchar(replay_aid) && !is.na(replay_aid)) {
+      load_prim <- tryCatch(wb_art_load(bundle,replay_aid,expected_kind="model_ref"),error=function(e) replayed_prim)
+    }
+    load_result <- .wb_replay_model_loadable(bundle, load_prim)
     ref_ok <- !is.na(expected_ref) && nzchar(expected_ref) && identical(expected_ref, replayed_ref)
     verified <- isTRUE(kind_ok) && isTRUE(ref_ok) && isTRUE(load_result$ok)
     status <- if (verified) "verified" else "failed"
@@ -977,8 +1007,13 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
       if (length(input_bindings)) for (binding in input_bindings) {
         binding_path <- as.character(binding$path %||% NA_character_)[1]
         binding_identity <- if (identical(binding$entity_kind,"model_ref") && !is.na(binding_path) && nzchar(binding_path)) {
-          absolute <- if (.wb_path_is_absolute(binding_path)) binding_path else file.path(bundle$dir,binding_path)
-          if (file.exists(absolute) || dir.exists(absolute)) .wb_prov_path_identity(absolute) else list(content_sha256=NA_character_,content_identity_scheme=NA_character_)
+          absolute <- if (.wb_path_is_absolute(binding_path)) {
+            resolved <- normalizePath(binding_path,winslash="/",mustWork=FALSE)
+            roots <- c(.wb_bundle_root(bundle),as.character(bundle$staging_source_dir %||% character()))
+            roots <- roots[nzchar(roots)]
+            if (any(vapply(roots,function(root) .wb_path_inside(resolved,normalizePath(root,winslash="/",mustWork=TRUE)),logical(1)))) resolved else ""
+          } else tryCatch(.wb_bundle_path_require(bundle,binding_path,expected_type="either",purpose="model provenance input"),error=function(e) "")
+          if (nzchar(absolute) && (file.exists(absolute) || dir.exists(absolute))) .wb_prov_path_identity(absolute) else list(content_sha256=NA_character_,content_identity_scheme=NA_character_)
         } else list(content_sha256=NA_character_,content_identity_scheme=NA_character_)
         .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "input", binding$binding_name, binding$entity_kind, binding$entity_id, "CONSUMES", path=binding_path, content_hash=binding_identity$content_sha256, content_identity_scheme=binding_identity$content_identity_scheme, source = "resolved_operation_input")
       }

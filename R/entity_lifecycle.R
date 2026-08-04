@@ -424,10 +424,10 @@
         }
         paths <- as.character(refs$path)
         paths <- paths[!is.na(paths) & nzchar(paths)]
-        if (length(paths) && any(
-          file.exists(file.path(bundle$dir, paths)) |
-            dir.exists(file.path(bundle$dir, paths))
-        )) return(TRUE)
+        if (length(paths) && any(vapply(paths,function(path) {
+          isTRUE(.wb_path_status(bundle$dir,path,expected_type="either",must_exist=TRUE,
+                                 purpose="model lifecycle binding")$ok)
+        },logical(1)))) return(TRUE)
       }
       return(FALSE)
     }

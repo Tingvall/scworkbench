@@ -95,7 +95,11 @@
     roots <- setdiff(roots, c("manifest.json", dirname(db_rel), ".git"))
     mutable <- c("mat", "models", "artifact_models")
     for (nm in roots) {
-      src <- file.path(bundle$dir, nm)
+      status <- if (nm %in% mutable && dir.exists(file.path(bundle$dir,nm))) {
+        .wb_path_tree_status(bundle$dir,nm,purpose="session staging payload tree")
+      } else .wb_path_status(bundle$dir,nm,expected_type="either",must_exist=TRUE,purpose="session staging payload root")
+      .wb_assert(isTRUE(status$ok),paste0(status$code,": unsafe session staging payload root ",nm))
+      src <- status$absolute
       dst <- file.path(stage_dir, nm)
       if (nm %in% mutable && dir.exists(src)) {
         .wb_session_stage_link_children(src, dst)

@@ -532,8 +532,9 @@ wb_bundle_schema_status <- function(bundle_or_dir) {
   .wb_assert(!isTRUE(lock$locked), paste0(
     "Bundle schema status requires stable recipient state; ", .wb_writer_lock_diagnostic(lock)
   ))
-  manifest <- jsonlite::read_json(file.path(path, "manifest.json"), simplifyVector = TRUE)
-  db <- file.path(path, as.character(manifest$storage$sqlite$path)[1L])
+  manifest_path <- .wb_bundle_path_require(path,"manifest.json",expected_type="file",purpose="bundle manifest")
+  manifest <- jsonlite::read_json(manifest_path, simplifyVector = TRUE)
+  db <- .wb_bundle_path_require(path,as.character(manifest$storage$sqlite$path)[1L],expected_type="file",purpose="manifest SQLite database")
   .wb_assert(!file.exists(paste0(db, "-wal")) && !file.exists(paste0(db, "-shm")),
              "Bundle schema status requires finalized SQLite state without WAL sidecars.")
   con <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db, winslash = "/", mustWork = TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO)

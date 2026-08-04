@@ -14,9 +14,13 @@
 #' @param expected_kind Optional expected primitive kind. When supplied, loading
 #'   fails if the stored artifact has another kind.
 #'
+#' @param allow_untrusted_deserialization Explicitly allow R deserialization of
+#'   a contained model payload that is not provenance-bound. This never permits
+#'   an external, traversing, or symlink-escaping path.
 #' @return A `wb_primitive` reconstructed from the promoted payload.
 #' @export
-wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
+wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
+                        allow_untrusted_deserialization = FALSE) {
   con <- bundle$con
   .wb_assert(!is.null(con), "wb_art_load(): bundle$con is NULL (no DB connection).")
   artifact_id <- as.character(artifact_id)
@@ -40,7 +44,8 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
                    normalizePath(bundle$dir, winslash = "/", mustWork = TRUE))) {
       source_bundle <- wb_open_bundle(source_dir, validate = FALSE)
       on.exit(wb_close_bundle(source_bundle), add = TRUE)
-      return(wb_art_load(source_bundle, artifact_id = artifact_id, expected_kind = expected_kind))
+      return(wb_art_load(source_bundle, artifact_id = artifact_id, expected_kind = expected_kind,
+                         allow_untrusted_deserialization = allow_untrusted_deserialization))
     }
   }
   .wb_assert(nrow(art) == 1, paste0("wb_art_load(): artifact not found: ", artifact_id))
@@ -255,9 +260,20 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL) {
       )
       p$model_type <- as.character(df$model_type[[1]] %||% engine)
       p$model_path <- model_path
+      lifecycle <- if (.wb_table_exists(con, "entity_lifecycle")) {
+        wb_entity_lifecycle(bundle, "artifact", artifact_id)
+      } else data.frame()
+      provenance_bound <- nrow(lifecycle) && identical(as.integer(lifecycle$provenance_bound[1] %||% 0L), 1L)
+      trust <- .wb_model_deserialization_status(bundle, stored_model_path,
+                                                provenance_bound = provenance_bound)
+      p$deserialization_trust <- trust$trust
 
       # Load in-memory object for engines with project/continue ops that require the model object.
       if (engine %in% c("slingshot", "monocle3")) {
+        .wb_assert(
+          isTRUE(trust$deserialization_allowed) || isTRUE(allow_untrusted_deserialization),
+          "MODEL_DESERIALIZATION_TRUST_REQUIRED: loading serialized model state requires trusted provenance/runtime or allow_untrusted_deserialization=TRUE."
+        )
         p$model_obj <- readRDS(model_path)
       }
       p

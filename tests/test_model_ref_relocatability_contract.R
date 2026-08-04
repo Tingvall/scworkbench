@@ -87,24 +87,20 @@ test_model_ref_relocatability_contract <- function() {
                        normalizePath(moved, winslash = "/", mustWork = TRUE)))
   stopifnot(identical(loaded2$model_obj$contract, "model_ref_relocatability"))
 
-  stale_abs <- file.path("/old/location/artifact_models", basename(stored))
+  stale_abs <- normalizePath(file.path(moved, stored), winslash="/", mustWork=TRUE)
   DBI::dbExecute(
     b2$con,
     "UPDATE artifact_model_ref SET model_path = ? WHERE artifact_id = ?;",
     params = list(stale_abs, model_artifact_id)
   )
 
-  loaded3 <- wb_art_load(b2, model_artifact_id, expected_kind = "model_ref")
-  stopifnot(identical(as.character(loaded3$kind), "model_ref"))
-  stopifnot(file.exists(as.character(loaded3$model_path)))
-  stopifnot(identical(normalizePath(loaded3$model_path, winslash = "/", mustWork = TRUE),
-                      normalizePath(file.path(moved, "artifact_models", basename(stored)), winslash = "/", mustWork = TRUE)))
-  stopifnot(identical(loaded3$model_obj$contract, "model_ref_relocatability"))
+  unsafe <- tryCatch(wb_art_load(b2, model_artifact_id, expected_kind = "model_ref"),error=function(e)e)
+  stopifnot(inherits(unsafe,"error"),grepl("LEGACY_EXTERNAL_MODEL_REFERENCE",conditionMessage(unsafe),fixed=TRUE))
 
   repair_plan <- wb_repair_model_ref_paths(b2, dry_run = TRUE)
   repair_row <- repair_plan[repair_plan$artifact_id == model_artifact_id, , drop = FALSE]
   stopifnot(nrow(repair_row) == 1L)
-  stopifnot(identical(as.character(repair_row$action), "repair_stale_absolute_basename"))
+  stopifnot(identical(as.character(repair_row$action), "repair_absolute_inside_bundle"))
   stopifnot(identical(as.character(repair_row$new_model_path), file.path("artifact_models", basename(stored))))
 
   invisible(wb_repair_model_ref_paths(b2, dry_run = FALSE))
@@ -125,8 +121,7 @@ test_model_ref_relocatability_contract <- function() {
     error = function(e) e
   )
   stopifnot(inherits(err, "error"))
-  stopifnot(grepl("Attempted:", conditionMessage(err), fixed = TRUE))
-  stopifnot(grepl(file.path(moved, "artifact_models", "does_not_exist.rds"), conditionMessage(err), fixed = TRUE))
+  stopifnot(grepl("LEGACY_EXTERNAL_MODEL_REFERENCE", conditionMessage(err), fixed = TRUE))
 
   TRUE
 }

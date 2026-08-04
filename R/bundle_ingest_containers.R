@@ -26,7 +26,7 @@
 }
 
 .wb_ingest_promote_staged_bundle_locked <- function(stage_dir, final_dir, source_type, overwrite = FALSE) {
-  stage_manifest_path <- file.path(stage_dir, "manifest.json")
+  stage_manifest_path <- .wb_bundle_path_require(stage_dir,"manifest.json",expected_type="file",purpose="staged ingestion manifest")
   stage_manifest <- jsonlite::read_json(stage_manifest_path, simplifyVector = TRUE)
   if (dir.exists(final_dir)) {
     .wb_assert(isTRUE(overwrite), paste0("bundle_dir exists: ", final_dir, " (set overwrite=TRUE)"))
@@ -809,7 +809,8 @@ wb_bundle_from_10x_mtx <- function(input,
       total_nnz <- total_nnz + as.integer(dims[["n_nonzero"]])
       frag_dirname <- paste0("mat_frag_", matrix_id, "_", .wb_ingest_clean_id(sample_id, "sample"), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
       rel_path <- file.path("mat", frag_dirname)
-      abs_path <- file.path(bundle$dir, rel_path)
+      abs_path <- .wb_bundle_path_require(bundle,rel_path,expected_type="directory",must_exist=FALSE,
+                                          purpose="10x matrix fragment output")
       .wb_ingest_10x_write_bpcells_fragment(
         sample = per[[i]]$sample,
         out_dir = abs_path,

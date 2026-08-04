@@ -4,7 +4,12 @@
 \alias{wb_art_load}
 \title{Load a Promoted Artifact as a Primitive}
 \usage{
-wb_art_load(bundle, artifact_id, expected_kind = NULL)
+wb_art_load(
+  bundle,
+  artifact_id,
+  expected_kind = NULL,
+  allow_untrusted_deserialization = FALSE
+)
 }
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
@@ -13,6 +18,10 @@ wb_art_load(bundle, artifact_id, expected_kind = NULL)
 
 \item{expected_kind}{Optional expected primitive kind. When supplied, loading
 fails if the stored artifact has another kind.}
+
+\item{allow_untrusted_deserialization}{Explicitly allow R deserialization of
+a contained model payload that is not provenance-bound. This never permits
+an external, traversing, or symlink-escaping path.}
 }
 \value{
 A \code{wb_primitive} reconstructed from the promoted payload.

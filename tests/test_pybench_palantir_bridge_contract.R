@@ -84,6 +84,7 @@ test_pybench_palantir_bridge_contract <- function(bundle_dir,
   bridge <- .wb_pybench_run_module(
     module = "pybench.ops.palantir_fit",
     request = req,
+    bundle = b,
     python_bin = pybench_python
   )
 

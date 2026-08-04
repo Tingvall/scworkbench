@@ -4,19 +4,23 @@
 \alias{wb_repair_model_ref_paths}
 \title{(Advanced) Repair relocatable model_ref artifact paths}
 \usage{
-wb_repair_model_ref_paths(bundle, dry_run = TRUE)
+wb_repair_model_ref_paths(bundle, dry_run = TRUE, import_external = FALSE)
 }
 \arguments{
 \item{bundle}{scworkbench bundle.}
 
 \item{dry_run}{If \code{TRUE}, report planned changes without updating SQLite.}
+
+\item{import_external}{Explicitly authorize reading an absolute legacy model
+source, copy it into bundle-owned model storage, replace the registry path with a
+contained relative path, and record a declared ingestion transaction.
+The default never probes an external path.}
 }
 \value{
-Data frame with one row per model_ref path row and planned action.
+Data frame with one row per registered model path and planned action.
 }
 \description{
-Rewrites \code{artifact_model_ref.model_path} rows to bundle-relative paths when
-the corresponding model file exists inside this bundle. This does not search
-arbitrary filesystem locations: stale absolute paths are repaired only by
-matching their basename under \verb{bundle/artifact_models/}.
+Rewrites \code{artifact_model_ref}, \code{artifact_umap_model}, and \code{space_models}
+model paths to bundle-relative paths. It never searches arbitrary filesystem
+locations or guesses a replacement by basename.
 }

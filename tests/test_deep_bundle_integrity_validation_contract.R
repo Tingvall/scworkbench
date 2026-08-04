@@ -161,7 +161,9 @@ test_deep_bundle_integrity_validation_contract <- function() {
   missing_model <- .deep_validation_mutant(base, root, "missing_model", function(p) file.rename(file.path(p,"models","fixture.rds"),file.path(p,"models","fixture.removed")))
   expect("PAYLOAD_MISSING", missing_model)
   altered_model <- .deep_validation_mutant(base, root, "altered_model", function(p) writeLines("not an RDS",file.path(p,"models","fixture.rds")))
-  expect("MODEL_PAYLOAD_UNREADABLE", altered_model)
+  altered_model_report <- wb_bundle_validation_report(file.path(root,"altered_model"), level="content")
+  stopifnot(isFALSE(altered_model_report$path_contract$unsafe_payloads_loaded))
+  stopifnot(!"MODEL_PAYLOAD_UNREADABLE" %in% altered_model_report$diagnostics$code)
 
   altered_artifact <- .deep_validation_mutant(base, root, "altered_artifact", function(p) {
     con <- DBI::dbConnect(RSQLite::SQLite(), file.path(p,"db","app.sqlite")); row <- DBI::dbGetQuery(con,"SELECT artifact_id,row_json FROM artifact_table_rows LIMIT 1;")

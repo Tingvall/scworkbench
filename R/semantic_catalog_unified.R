@@ -157,7 +157,7 @@ wb_write_parameter_semantics_reference <- function(path_md = "docs/parameter_sem
   catalog <- wb_parameter_semantics_catalog()
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_parameter_semantics_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_parameter_semantics_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "parameter semantics catalog export")
@@ -363,7 +363,7 @@ wb_write_recipe_semantics_reference <- function(path_md = "docs/recipe_semantics
   catalog <- wb_recipe_semantics_catalog()
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_recipe_semantics_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_recipe_semantics_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "recipe semantics catalog export")
@@ -827,7 +827,7 @@ wb_write_semantic_catalog_reference <- function(path_md = "docs/semantic_catalog
   audit <- wb_semantic_catalog_audit(bundle = bundle)
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_semantic_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_semantic_catalog_reference_lines(catalog), path_md)
   }
   .wb_require_pkg("jsonlite", "semantic catalog export")
   for (spec in list(

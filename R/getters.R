@@ -142,8 +142,7 @@
 wb_manifest <- function(bundle, view = c("durable", "reconstructed")) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
   view <- match.arg(view)
-  man_path <- file.path(bundle$dir, "manifest.json")
-  .wb_assert(file.exists(man_path), "Bundle manifest is missing.")
+  man_path <- .wb_bundle_path_require(bundle,"manifest.json",expected_type="file",purpose="bundle manifest")
   durable <- jsonlite::read_json(man_path, simplifyVector = TRUE)
   if (identical(view, "durable")) return(durable)
 
@@ -567,8 +566,8 @@ wb_matrix <- function(bundle, matrix_id) {
     )
   }
 
-  abs_path <- file.path(bundle$dir, row$path)
-  .wb_assert(dir.exists(abs_path), paste0("Missing BPCells matrix directory: ", abs_path))
+  abs_path <- .wb_bundle_path_require(bundle, row$path, expected_type = "directory",
+                                      purpose = paste0("matrix ", matrix_id))
 
   .wb_bp_open_matrix_dir(abs_path)
 }
@@ -838,6 +837,9 @@ wb_matrix_resolve <- function(bundle, matrix_id) {
   }
 
   # Return absolute paths + metadata
-  fr$abs_path <- file.path(bundle$dir, fr$path)
+  fr$abs_path <- vapply(fr$path, function(path) {
+    .wb_bundle_path_require(bundle, path, expected_type = "directory",
+                            purpose = paste0("matrix fragment for ", matrix_id))
+  }, character(1))
   fr
 }
