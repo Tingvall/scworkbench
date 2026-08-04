@@ -475,6 +475,15 @@ wb_bundle_writer_lock_info <- function(bundle_or_dir, stale_after_seconds = 3600
   if ((isTRUE(outermost) || isTRUE(nested_handle_ready)) &&
       !identical(operation, "manifest refresh")) {
     .wb_manifest_publish_current_locked(bundle_or_dir, result = result)
+    checkpoint_handle <- if (inherits(bundle_or_dir, "scworkbench_bundle")) bundle_or_dir else
+      if (inherits(result, "scworkbench_bundle")) result else NULL
+    if (!is.null(checkpoint_handle) && DBI::dbIsValid(checkpoint_handle$con) &&
+        !isTRUE(RSQLite::sqliteIsTransacting(checkpoint_handle$con))) {
+      # A concurrent reader can make TRUNCATE report busy; publication is
+      # already committed and remains correct, so checkpointing is best-effort
+      # here. Recipient finalization retains the strict checkpoint contract.
+      try(DBI::dbGetQuery(checkpoint_handle$con, "PRAGMA wal_checkpoint(TRUNCATE);"), silent = TRUE)
+    }
   }
   result
 }

@@ -49,7 +49,24 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
     }
     DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db_path, winslash="/", mustWork=TRUE), "?immutable=1"), flags = RSQLite::SQLITE_RO)
   } else DBI::dbConnect(RSQLite::SQLite(), db_path)
-  attr(con, "scworkbench_read_only") <- isTRUE(read_only)
+  opened <- FALSE
+  on.exit(if (!opened && DBI::dbIsValid(con)) try(DBI::dbDisconnect(con), silent = TRUE), add = TRUE)
+  # Foreign-key enforcement is connection-local and is verified immediately.
+  # Durable journal-mode coordination remains inside the writer-locked
+  # migration scope below.
+  .wb_sqlite_configure_connection(
+    con, writable = !isTRUE(read_only), configure_journal = FALSE
+  )
+
+  schema_status <- .wb_schema_status(con)
+  if (isTRUE(read_only) && !identical(schema_status$status, "current")) {
+    try(DBI::dbDisconnect(con), silent = TRUE)
+    stop(
+      "BUNDLE_SCHEMA_UPGRADE_REQUIRED: ", schema_status$message,
+      " Open the bundle writable with the current scworkbench and run wb_migrate_bundle().",
+      call. = FALSE
+    )
+  }
 
   bundle <- list(
     dir = bundle_dir,
@@ -61,8 +78,9 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
   if (isTRUE(validate)) {
     wb_validate_bundle(bundle_dir, read_only = read_only)
   }
-  if (!isTRUE(read_only)) wb_migrate_artifacts(bundle)
+  if (!isTRUE(read_only)) wb_migrate_bundle(bundle)
 
+  opened <- TRUE
   bundle
 }
 
@@ -119,6 +137,7 @@ wb_recipient_readiness <- function(bundle_dir) {
   jm <- if (unresolved) NA_character_ else {
     con <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db, winslash="/", mustWork=TRUE), "?immutable=1"), flags=RSQLite::SQLITE_RO)
     on.exit(DBI::dbDisconnect(con), add=TRUE)
+    .wb_sqlite_configure_connection(con, writable = FALSE)
     as.character(DBI::dbGetQuery(con, "PRAGMA journal_mode;")[[1]][1])
   }
   list(ready=!unresolved, journal_mode=jm,

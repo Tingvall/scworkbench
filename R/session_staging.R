@@ -34,6 +34,7 @@
   dir.create(dirname(destination_path), recursive = TRUE, showWarnings = FALSE)
   destination_con <- DBI::dbConnect(RSQLite::SQLite(), destination_path)
   on.exit(try(DBI::dbDisconnect(destination_con), silent = TRUE), add = TRUE)
+  .wb_sqlite_configure_connection(destination_con, writable = TRUE)
 
   RSQLite::sqliteCopyDatabase(source_con, destination_con)
 

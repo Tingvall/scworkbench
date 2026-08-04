@@ -272,7 +272,7 @@ wb_bundle_validation_report <- function(bundle_dir,
             path = db_rel, observed = conditionMessage(con), message = "SQLite could not be opened read-only.")
         con <- NULL
       } else {
-        attr(con, "scworkbench_read_only") <- TRUE
+        .wb_sqlite_configure_connection(con, writable = FALSE)
         bundle <- structure(list(dir = root, manifest = manifest, con = con, read_only = TRUE), class = "scworkbench_bundle")
       }
     }
@@ -281,6 +281,28 @@ wb_bundle_validation_report <- function(bundle_dir,
 
   if (!is.null(con)) timed("schema_and_registry", {
     tables <- DBI::dbListTables(con)
+    schema_status <- .wb_schema_status(con)
+    if (!identical(schema_status$status, "current")) {
+      add(
+        "BUNDLE_SCHEMA_UPGRADE_REQUIRED", check_class = "schema",
+        entity_kind = "sqlite", entity_id = "main", table = "bundle_schema_migrations",
+        expected = paste0("version ", schema_status$current),
+        observed = paste0("version ", schema_status$observed),
+        message = schema_status$message
+      )
+    }
+    foreign_key_violations <- DBI::dbGetQuery(con, "PRAGMA foreign_key_check;")
+    if (nrow(foreign_key_violations)) for (index in seq_len(nrow(foreign_key_violations))) {
+      violation <- foreign_key_violations[index, , drop = FALSE]
+      add(
+        "SQLITE_FOREIGN_KEY_VIOLATION", check_class = "schema",
+        entity_kind = "registry_row", entity_id = as.character(violation$rowid[[1L]]),
+        table = as.character(violation$table[[1L]]),
+        expected = paste0("referenced row in ", violation$parent[[1L]]),
+        observed = paste0("foreign-key id ", violation$fkid[[1L]]),
+        message = "Durable registry row violates the centrally declared referential-integrity contract."
+      )
+    }
     required <- c("cells", "datasets", "features", "matrices", "spaces", "space_coords", "space_2d")
     for (table in setdiff(required, tables)) {
       add("REQUIRED_TABLE_MISSING", table = table, observed = "missing", message = paste0("Required table is missing: ", table))
@@ -984,6 +1006,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         immutable <- tryCatch({
           icon <- DBI::dbConnect(RSQLite::SQLite(), paste0("file:", normalizePath(db,winslash="/",mustWork=TRUE), "?immutable=1"), flags=RSQLite::SQLITE_RO)
           on.exit(DBI::dbDisconnect(icon), add=TRUE)
+          .wb_sqlite_configure_connection(icon, writable = FALSE)
           DBI::dbGetQuery(icon,"SELECT COUNT(*) AS n FROM sqlite_schema;")
           TRUE
         }, error=function(e) e)

@@ -39,7 +39,7 @@
     "wb_unsafe_purge_ephemeral_entity"
   ),
   bundle_state_coordination = c(
-    "wb_migrate_artifacts", "wb_finalize_recipient_bundle",
+    "wb_migrate_artifacts", "wb_migrate_bundle", "wb_finalize_recipient_bundle",
     "wb_repair_model_ref_paths"
   ),
   provenance_binding_writer = c(".wb_entity_bind_provenance"),
@@ -71,7 +71,7 @@
   )
   promotion <- c("wb_promote_analysis", "wb_session_promote_current", "wb_client_promote")
   administrative <- c("wb_repair_model_ref_paths")
-  schema_migration <- c("wb_migrate_artifacts")
+  schema_migration <- c("wb_migrate_artifacts", "wb_migrate_bundle")
   recipient_finalization <- c("wb_finalize_recipient_bundle")
   lifecycle <- c("wb_entity_supersede", "wb_entity_retract", "wb_entity_reject",
     "wb_entity_mark_ephemeral", "wb_art_delete")

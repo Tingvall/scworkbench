@@ -16,6 +16,9 @@
 #'
 #' @keywords internal
 .wb_ensure_cell_set_recipes_table <- function(con) {
+  if (.wb_schema_component_is_current(
+    con, "cell_set_recipes", list(cell_set_recipes = c("role", "status"))
+  )) return(invisible(TRUE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS cell_set_recipes (
       cell_set     TEXT PRIMARY KEY,

@@ -135,6 +135,10 @@ wb_register_matrix_fragment <- function(
 }
 
 .wb_ensure_matrix_fragment_tables <- function(con) {
+  if (.wb_schema_component_is_current(
+    con, c("matrix_fragments", "matrix_fragment_cells", "matrix_fragment_features"),
+    list(matrix_fragments = c("storage", "path", "n_features", "n_cells", "feature_ids_json", "cell_ids_json", "source", "created_at", "description"))
+  )) return(invisible(TRUE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS matrix_fragments (
       fragment_id      TEXT PRIMARY KEY,

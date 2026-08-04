@@ -22,6 +22,10 @@
 }
 
 .wb_entity_lifecycle_tables <- function(con) {
+  if (.wb_schema_component_is_current(
+    con, c("entity_lifecycle", "entity_supersessions", "entity_tombstones"),
+    list(entity_lifecycle = "identity_scheme", entity_tombstones = "identity_scheme")
+  )) return(invisible(TRUE))
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS entity_lifecycle (
       entity_kind TEXT NOT NULL,

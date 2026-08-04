@@ -657,9 +657,11 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
 
 .wb_migrate_provenance_tables <- function(con) {
   if (isTRUE(attr(con, "scworkbench_read_only"))) return(invisible(FALSE))
+  status <- .wb_schema_status(con)
+  if (identical(status$status, "current")) return(invisible(TRUE))
   bundle_dir <- .wb_bundle_dir_from_connection(con)
   .wb_with_bundle_writer_lock(bundle_dir, operation = "provenance schema migration", code = {
-    .wb_migrate_provenance_tables_locked(con)
+    .wb_schema_migrate_connection(con, bundle_dir = bundle_dir, backup = TRUE)
   })
 }
 
