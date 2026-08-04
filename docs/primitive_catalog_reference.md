@@ -206,4 +206,3 @@ Promotable: TRUE
 Use when:
 - represent checkpoint paths
 - score cells against high-dimensional trajectories
-

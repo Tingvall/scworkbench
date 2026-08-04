@@ -231,4 +231,3 @@ Produces: data.frame
 Use when:
 - load and inspect artifact tables
 - agent-friendly reference inspection
-

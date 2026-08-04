@@ -1973,21 +1973,33 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
       "SELECT model_path FROM artifact_umap_model WHERE artifact_id = ?;",
       params = list(artifact_id)
     )
-    if (nrow(row) == 1) model_path <- as.character(row$model_path[1] %||% NA_character_)
+    stored_model_path <- NA_character_
+    if (nrow(row) == 1) {
+      stored_model_path <- as.character(row$model_path[1] %||% NA_character_)
+      model_path <- stored_model_path
+    }
     DBI::dbExecute(con, "DELETE FROM artifact_umap_model WHERE artifact_id = ?;", params = list(artifact_id))
 
-    if (isTRUE(remove_model_file) && !is.na(model_path) && nzchar(model_path) && file.exists(model_path)) {
+    checked_model <- if (!is.null(bundle) && !is.na(stored_model_path) && nzchar(stored_model_path)) {
+      .wb_path_status(bundle$dir, stored_model_path, expected_type="either", must_exist=TRUE,
+                      purpose="UMAP artifact model deletion")
+    } else list(ok=FALSE)
+    if (isTRUE(remove_model_file) && isTRUE(checked_model$ok)) {
+      model_path <- checked_model$absolute
       can_remove <- TRUE
       if (isTRUE(model_file_only_if_unique)) {
         n_other <- DBI::dbGetQuery(
           con,
           "SELECT COUNT(*) AS n FROM artifact_umap_model WHERE model_path = ?;",
-          params = list(model_path)
+          params = list(stored_model_path)
         )$n[[1]] %||% 0L
         can_remove <- as.integer(n_other) == 0L
       }
       if (can_remove) {
-        model_removed <- isTRUE(file.remove(model_path))
+        if (dir.exists(model_path)) {
+          unlink(model_path, recursive=TRUE, force=TRUE)
+          model_removed <- !dir.exists(model_path) && !file.exists(model_path)
+        } else model_removed <- isTRUE(file.remove(model_path))
       }
     }
   } else if (identical(type, "model_ref")) {
@@ -2006,7 +2018,12 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
     }
     DBI::dbExecute(con, "DELETE FROM artifact_model_ref WHERE artifact_id = ?;", params = list(artifact_id))
 
-    if (isTRUE(remove_model_file) && !is.na(model_path) && nzchar(model_path) && file.exists(model_path)) {
+    checked_model <- if (!is.null(bundle) && !is.na(stored_model_path) && nzchar(stored_model_path)) {
+      .wb_path_status(bundle$dir, stored_model_path, expected_type="either", must_exist=TRUE,
+                      purpose="model_ref artifact deletion")
+    } else list(ok=FALSE)
+    if (isTRUE(remove_model_file) && isTRUE(checked_model$ok)) {
+      model_path <- checked_model$absolute
       can_remove <- TRUE
       if (isTRUE(model_file_only_if_unique)) {
         candidate_paths <- unique(c(
@@ -2027,7 +2044,10 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
         can_remove <- as.integer(n_other) == 0L
       }
       if (can_remove) {
-        model_removed <- isTRUE(file.remove(model_path))
+        if (dir.exists(model_path)) {
+          unlink(model_path, recursive=TRUE, force=TRUE)
+          model_removed <- !dir.exists(model_path) && !file.exists(model_path)
+        } else model_removed <- isTRUE(file.remove(model_path))
       }
     }
   } else if (type %in% c("feature_table", "obs_table")) {

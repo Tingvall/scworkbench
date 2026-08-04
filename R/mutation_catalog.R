@@ -67,10 +67,10 @@
     "wb_bundle_from_sce", "wb_bundle_from_seurat", "wb_publish_app_bundle",
     "wb_attach_cell_vector",
     "wb_feature_set_import_table", "wb_feature_set_import_list",
-    "wb_motif_library_import_jaspar"
+    "wb_motif_library_import_jaspar", "wb_repair_model_ref_paths"
   )
   promotion <- c("wb_promote_analysis", "wb_session_promote_current", "wb_client_promote")
-  administrative <- c("wb_repair_model_ref_paths")
+  administrative <- character()
   schema_migration <- c("wb_migrate_artifacts", "wb_migrate_bundle")
   recipient_finalization <- c("wb_finalize_recipient_bundle")
   lifecycle <- c("wb_entity_supersede", "wb_entity_retract", "wb_entity_reject",

@@ -28,16 +28,15 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
     }
   }
 
-  man_path <- file.path(bundle_dir, "manifest.json")
-  if (!file.exists(man_path)) stop("Missing manifest.json in bundle: ", bundle_dir)
-
+  man_path <- .wb_bundle_path_require(bundle_dir,"manifest.json",expected_type="file",
+                                      purpose="bundle manifest")
   manifest <- jsonlite::read_json(man_path, simplifyVector = TRUE)
 
   db_rel <- manifest$storage$sqlite$path
   if (is.null(db_rel)) stop("manifest.json missing storage$sqlite$path")
 
-  db_path <- file.path(bundle_dir, db_rel)
-  if (!file.exists(db_path)) stop("SQLite DB not found: ", db_path)
+  db_path <- .wb_bundle_path_require(bundle_dir, db_rel, expected_type = "file",
+                                     must_exist = TRUE, purpose = "manifest SQLite database")
 
   con <- if (isTRUE(read_only)) {
     # SQLite WAL readers may create -shm/-wal even with SQLITE_RO.  An
@@ -130,8 +129,10 @@ wb_recipient_readiness <- function(bundle_dir) {
       reason = "exclusive bundle writer is active; recipient state is not stable"
     ))
   }
-  man <- jsonlite::read_json(file.path(bundle_dir, "manifest.json"), simplifyVector=TRUE)
-  db <- file.path(bundle_dir, as.character(man$storage$sqlite$path)[1])
+  man_path <- .wb_bundle_path_require(bundle_dir,"manifest.json",expected_type="file",purpose="bundle manifest")
+  man <- jsonlite::read_json(man_path, simplifyVector=TRUE)
+  db <- .wb_bundle_path_require(bundle_dir, as.character(man$storage$sqlite$path)[1],
+                                expected_type="file", purpose="manifest SQLite database")
   wal <- paste0(db, "-wal"); shm <- paste0(db, "-shm")
   unresolved <- file.exists(wal) || file.exists(shm)
   jm <- if (unresolved) NA_character_ else {

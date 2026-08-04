@@ -289,6 +289,7 @@ wb_op_scvi_train <- function(bundle,
   )
 
   bridge <- .wb_palantir_bridge_run_or_stop(
+    bundle = bundle,
     module = "pybench.ops.scvi_train",
     request = req,
     python_bin = python_bin

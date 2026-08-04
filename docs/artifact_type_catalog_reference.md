@@ -1052,4 +1052,3 @@ Entity kind: space_path_point
 Use when:
 - score cells against checkpoint paths
 - reuse space trajectories
-

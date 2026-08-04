@@ -46,7 +46,7 @@ wb_op_umap_transform <- function(bundle,
   mrow <- wb_space_model(bundle, model_space_id)
   .wb_assert(nrow(mrow) == 1, paste0("No model registered for space_id: ", model_space_id))
 
-  model <- wb_load_space_model(bundle, model_space_id)
+  model <- wb_load_space_model(bundle, model_space_id, trusted_runtime = TRUE)
 
   # 2) Decide dims to use (stored dims are the default)
   dims_model <- NULL

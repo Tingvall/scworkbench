@@ -864,7 +864,7 @@ wb_write_getter_catalog_reference <- function(path_md = "docs/getter_catalog_ref
   catalog <- wb_getter_catalog_semantic()
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_getter_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_getter_catalog_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "getter catalog semantic export")

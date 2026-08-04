@@ -320,9 +320,10 @@ wb_attach_to_cells <- function(
       }
 
       # write BPCells fragment
-      frag_dirname <- paste0("mat_frag_", matrix_id, "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
+      frag_dirname <- paste0("mat_frag_", .wb_matrix_id_path_safe(matrix_id), "_", format(Sys.time(), "%Y%m%d_%H%M%S"))
       rel_path <- file.path("mat", frag_dirname)
-      abs_path <- file.path(bundle$dir, rel_path)
+      abs_path <- .wb_bundle_path_require(bundle, rel_path, expected_type="directory", must_exist=FALSE,
+                                          purpose="attached matrix output")
 
       if (dir.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
       BPCells::write_matrix_dir(mat2, abs_path)

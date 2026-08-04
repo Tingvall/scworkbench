@@ -4,7 +4,7 @@
 
 Record count: 147
 
-Meaningful public transformations: 60
+Meaningful public transformations: 61
 
 Exported directly guarded functions: 26
 
@@ -1376,11 +1376,11 @@ Exported: true
 
 Implemented: true
 
-Durable mutation: false
+Durable mutation: true
 
-Boundary: `administrative_non_scientific`
+Boundary: `public_transaction`
 
-Supported route: `explicit_administrative_repair`
+Supported route: `declared_ingestion_transaction`
 
 ## `wb_init_bundle`
 

@@ -169,6 +169,7 @@ test_source_ownership_contract <- function() {
   DBI::dbExecute(fresh$con, "INSERT INTO datasets(dataset_id,n_cells) VALUES('fixture',2);")
   DBI::dbExecute(fresh$con, "INSERT INTO cells(cell_id,dataset_id) VALUES('c1','fixture'),('c2','fixture');")
   DBI::dbExecute(fresh$con, "INSERT INTO matrices(matrix_id,n_features,n_cells) VALUES('RNA_counts',2,2);")
+  dir.create(file.path(fresh_dir,"mat","fresh_fragment"),recursive=TRUE,showWarnings=FALSE)
   registered <- withVisible(wb_register_matrix_fragment(
     fresh$con,
     matrix_id = "RNA_counts",

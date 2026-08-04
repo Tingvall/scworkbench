@@ -30,8 +30,11 @@
 
 .wb_prepare_staged_payload <- function(staging_bundle, workspace, rel_path) {
   rel_path <- as.character(rel_path %||% "")[1]
-  .wb_assert(nzchar(rel_path) && !startsWith(rel_path, "/") && !grepl("(^|/)\\.\\.(/|$)", rel_path), "Unsafe staged payload path")
-  src <- file.path(staging_bundle$dir, rel_path)
+  status <- .wb_path_status(staging_bundle$dir, rel_path, expected_type="either",
+                            must_exist=TRUE, purpose="staged promotion payload")
+  .wb_assert(isTRUE(status$ok), paste0(status$code, ": unsafe staged payload path"))
+  rel_path <- status$relative
+  src <- status$absolute
   existing <- workspace$mappings[[rel_path]]
   if (!is.null(existing)) {
     mapped_source <- normalizePath(as.character(existing$source %||% "")[1], winslash = "/", mustWork = FALSE)
@@ -74,7 +77,7 @@
   model_path <- as.character(prim$model_path %||% "")[1]
   if (!nzchar(model_path)) return(invisible(workspace))
 
-  candidate <- if (.wb_path_is_absolute(model_path)) model_path else file.path(staging_bundle$dir, model_path)
+  candidate <- if (.wb_path_is_absolute(model_path)) model_path else .wb_bundle_path_require(staging_bundle, model_path, expected_type="either", purpose="staged model_ref")
   .wb_assert(file.exists(candidate) || dir.exists(candidate), paste0(
     "Staged model_ref payload does not exist: ", model_path
   ))
@@ -250,11 +253,10 @@
         .wb_committed_materialization(workspace$bundle, rid, nm)
       } else data.frame()
       if (nrow(prior)) {
-        source <- file.path(workspace$bundle$dir, as.character(prior$path[1]))
-        .wb_assert(file.exists(source), paste0(
-          "Committed materialization payload is missing for run=", rid,
-          ", output=", nm, ": ", as.character(prior$path[1])
-        ))
+        source <- .wb_bundle_path_require(
+          workspace$bundle, as.character(prior$path[1]), expected_type="file",
+          purpose=paste0("committed materialization ",rid,"::",nm)
+        )
         pending <- .wb_promotion_workspace_path(workspace, rel)
         .wb_assert(isTRUE(file.copy(source, pending, copy.date = TRUE)), paste0(
           "Failed to stage committed materialization for run=", rid, ", output=", nm

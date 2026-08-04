@@ -33,8 +33,8 @@ commits, registry mutations, materializations, lifecycle history, and tagged
 content identities. Its \code{content_coverage} result accounts for every
 bundle-owned durable payload. Untagged legacy identities and missing
 baselines remain explicit warnings, never current-scheme proofs. External
-sources not declared as bundled and unavailable locally are reported as
-unverifiable warnings, not corruption. A non-empty active SQLite WAL fails
+sources not declared as bundled are reported as uninspected unverifiable
+warnings and are never accessed. A non-empty active SQLite WAL fails
 closed before any database connection is opened.
 
 \code{recipient} adds finalized-transfer invariants: no active writer, SQLite

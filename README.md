@@ -180,6 +180,9 @@ Start here:
   plot/wrangler contracts.
 - `docs/semantic_catalog_reference.md`: unified semantic search/planning
   catalog.
+- `docs/bundle_path_containment_and_trust.md`: portable durable-path,
+  external-reference migration, recipient inspection, and serialized-model
+  trust contracts.
 
 ## Testing
 

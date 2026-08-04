@@ -17,8 +17,11 @@
 .wb_promotion_workspace_path <- function(workspace, final_rel) {
   .wb_assert(inherits(workspace, "wb_promotion_workspace"), "workspace must be wb_promotion_workspace")
   final_rel <- as.character(final_rel)[1]
-  .wb_assert(nzchar(final_rel) && !startsWith(final_rel, "/") && !grepl("(^|/)\\.\\.(/|$)", final_rel), "final_rel must be bundle-relative")
-  final_abs <- file.path(workspace$bundle$dir, final_rel)
+  status <- .wb_path_status(workspace$bundle$dir,final_rel,expected_type="either",must_exist=FALSE,
+                            purpose="promotion final payload")
+  .wb_assert(isTRUE(status$ok),paste0(status$code,": final_rel must be bundle-relative and contained"))
+  final_rel <- status$relative
+  final_abs <- status$absolute
   .wb_assert(!file.exists(final_abs) && !dir.exists(final_abs), paste0("Promotion final path already exists: ", final_rel))
   pending_abs <- file.path(workspace$pending_root, final_rel)
   dir.create(dirname(pending_abs), recursive = TRUE, showWarnings = FALSE)

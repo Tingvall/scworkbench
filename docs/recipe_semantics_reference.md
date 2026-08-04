@@ -353,4 +353,3 @@ Cautions:
 - 2D curves are display projections and may not equal high-dimensional geometry.
 - Composite display paths are derived geometry, not merged fitted models.
 - If dynamics use one lineage, do not display unrelated lineages as if they were used.
-

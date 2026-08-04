@@ -92,8 +92,8 @@
   })
 
   for (p in paths) {
-    abs <- file.path(bundle$dir, p)
-    if (dir.exists(abs) || file.exists(abs)) unlink(abs, recursive = TRUE, force = TRUE)
+    checked <- .wb_path_status(bundle$dir, p, must_exist=FALSE, purpose="matrix removal")
+    if (isTRUE(checked$ok) && (dir.exists(checked$absolute) || file.exists(checked$absolute))) unlink(checked$absolute, recursive = TRUE, force = TRUE)
   }
   invisible(TRUE)
 }
@@ -112,7 +112,8 @@
   con <- bundle$con
   safe_id <- .wb_matrix_id_path_safe(matrix_id)
   rel_path <- file.path("mat", paste0("mat_frag_", safe_id, "_", format(Sys.time(), "%Y%m%d_%H%M%S")))
-  abs_path <- file.path(bundle$dir, rel_path)
+  abs_path <- .wb_bundle_path_require(bundle, rel_path, expected_type="directory", must_exist=FALSE,
+                                      purpose="transformed matrix output")
   if (dir.exists(abs_path) || file.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
 
   .wb_require_pkg("BPCells", "matrix transform write")
@@ -260,8 +261,8 @@
       .wb_assert(length(frag_cells) == as.integer(frow$n_cells[1]),
                  paste0("matrix_log_normalize: fragment cell metadata mismatch for fragment ", frow$fragment_id[1], "."))
 
-      src_path <- file.path(bundle$dir, frow$path[1])
-      .wb_assert(dir.exists(src_path), paste0("Missing BPCells matrix fragment directory: ", src_path))
+      src_path <- .wb_bundle_path_require(bundle, frow$path[1], expected_type = "directory",
+                                          purpose = paste0("matrix fragment ", frow$fragment_id[1]))
       src_mat <- .wb_bp_open_matrix_dir(src_path)
       .wb_assert(identical(as.integer(dim(src_mat)), as.integer(c(length(feature_ids), length(frag_cells)))),
                  paste0("matrix_log_normalize: source fragment dimensions mismatch for fragment ", frow$fragment_id[1], "."))
@@ -282,7 +283,8 @@
           format(Sys.time(), "%Y%m%d_%H%M%S")
         )
       )
-      abs_path <- file.path(bundle$dir, rel_path)
+      abs_path <- .wb_bundle_path_require(bundle, rel_path, expected_type = "directory",
+                                          must_exist = FALSE, purpose = "normalized matrix output")
       if (dir.exists(abs_path) || file.exists(abs_path)) unlink(abs_path, recursive = TRUE, force = TRUE)
       created_paths <- c(created_paths, abs_path)
       persisted <- .wb_matrix_write_continuous(norm, abs_path)

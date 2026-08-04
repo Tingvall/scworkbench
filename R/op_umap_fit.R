@@ -138,7 +138,8 @@ wb_op_umap_fit <- function(bundle,
   ))
   model_file <- paste0(space_id_out, ".uwot")
   model_path_rel <- file.path("models", "umap", model_file)
-  model_path_abs <- file.path(bundle$dir, model_path_rel)
+  model_path_abs <- .wb_bundle_path_require(bundle,model_path_rel,expected_type="file",must_exist=FALSE,
+                                             purpose="UMAP model output")
   .wb_assert(!file.exists(model_path_abs) && !dir.exists(model_path_abs), paste0(
     "umap_fit: output model path already exists: ", model_path_rel,
     ". Use a new output space ID."

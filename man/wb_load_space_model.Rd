@@ -4,12 +4,24 @@
 \alias{wb_load_space_model}
 \title{Load a fitted space model}
 \usage{
-wb_load_space_model(bundle, space_id)
+wb_load_space_model(
+  bundle,
+  space_id,
+  allow_untrusted_deserialization = FALSE,
+  trusted_runtime = FALSE
+)
 }
 \arguments{
 \item{bundle}{scworkbench bundle}
 
 \item{space_id}{space_id of a fitted 2D space}
+
+\item{allow_untrusted_deserialization}{Explicitly authorize loading a
+contained serialized model that is not provenance-bound. Never authorizes
+an absolute, traversing, or symlink-escaping path.}
+
+\item{trusted_runtime}{Whether the caller is an engine-controlled trusted
+execution runtime.}
 }
 \value{
 model object (uwot model)

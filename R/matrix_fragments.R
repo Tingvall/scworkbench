@@ -31,6 +31,14 @@ wb_register_matrix_fragment <- function(
 
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && !is.na(matrix_id) && nzchar(matrix_id), "matrix_id invalid")
   .wb_assert(is.character(path_rel) && length(path_rel) == 1L && !is.na(path_rel) && nzchar(path_rel), "path_rel invalid")
+  context <- .wb_current_mutation_context(con)
+  root <- as.character(context$dir %||% .wb_assembly_connection_dir(con) %||% "")[1]
+  .wb_assert(nzchar(root), "matrix fragment registration requires a bundle-root mutation context")
+  path_status <- .wb_path_status(root, path_rel, expected_type = "directory",
+                                 must_exist = file.exists(file.path(root,"manifest.json")),
+                                 purpose = "matrix fragment")
+  .wb_assert(isTRUE(path_status$ok), paste0(path_status$code, ": invalid matrix fragment path."))
+  path_rel <- path_status$relative
   .wb_assert(is.character(feature_ids) && length(feature_ids) > 0L, "feature_ids empty")
   .wb_assert(is.character(cell_ids) && length(cell_ids) > 0L, "cell_ids empty")
 

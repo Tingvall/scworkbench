@@ -30,32 +30,12 @@
 
 .wb_validation_path <- function(root, raw, expected_type = c("either", "file", "directory")) {
   expected_type <- match.arg(expected_type)
-  raw <- as.character(raw %||% "")[1]
-  if (is.na(raw) || !nzchar(raw)) {
-    return(list(ok = FALSE, code = "PATH_EMPTY", absolute = NA_character_, observed = "empty"))
+  status <- .wb_path_status(root, raw, expected_type = expected_type,
+                            must_exist = TRUE, purpose = "validation payload")
+  if (isTRUE(status$ok) && dir.exists(status$absolute)) {
+    return(.wb_path_tree_status(root, raw, purpose = "validation payload tree"))
   }
-  if (.wb_path_is_absolute(raw)) {
-    return(list(ok = FALSE, code = "PATH_ABSOLUTE", absolute = raw, observed = "absolute"))
-  }
-  parts <- strsplit(gsub("\\\\", "/", raw), "/", fixed = TRUE)[[1]]
-  if (any(parts == "..")) {
-    return(list(ok = FALSE, code = "PATH_ESCAPE", absolute = raw, observed = "parent traversal"))
-  }
-  root_abs <- normalizePath(root, winslash = "/", mustWork = TRUE)
-  candidate <- file.path(root_abs, raw)
-  if (!file.exists(candidate) && !dir.exists(candidate)) {
-    return(list(ok = FALSE, code = "PAYLOAD_MISSING", absolute = candidate, observed = "missing"))
-  }
-  resolved <- normalizePath(candidate, winslash = "/", mustWork = TRUE)
-  prefix <- paste0(root_abs, "/")
-  if (!identical(resolved, root_abs) && !startsWith(resolved, prefix)) {
-    return(list(ok = FALSE, code = "PATH_SYMLINK_ESCAPE", absolute = resolved, observed = "outside bundle"))
-  }
-  actual <- if (dir.exists(candidate)) "directory" else "file"
-  if (!identical(expected_type, "either") && !identical(actual, expected_type)) {
-    return(list(ok = FALSE, code = "PATH_TYPE_MISMATCH", absolute = resolved, observed = actual))
-  }
-  list(ok = TRUE, code = "OK", absolute = resolved, observed = actual)
+  status
 }
 
 .wb_validation_json <- function(x) {
@@ -92,8 +72,8 @@
 #' content identities. Its `content_coverage` result accounts for every
 #' bundle-owned durable payload. Untagged legacy identities and missing
 #' baselines remain explicit warnings, never current-scheme proofs. External
-#' sources not declared as bundled and unavailable locally are reported as
-#' unverifiable warnings, not corruption. A non-empty active SQLite WAL fails
+#' sources not declared as bundled are reported as uninspected unverifiable
+#' warnings and are never accessed. A non-empty active SQLite WAL fails
 #' closed before any database connection is opened.
 #'
 #' `recipient` adds finalized-transfer invariants: no active writer, SQLite
@@ -171,8 +151,12 @@ wb_bundle_validation_report <- function(bundle_dir,
 
   fingerprint <- function() {
     if (!dir.exists(root)) return(NA_character_)
-    files <- sort(list.files(root, recursive = TRUE, full.names = TRUE, all.files = TRUE, no.. = TRUE))
-    files <- files[!dir.exists(files)]
+    files <- sort(as.character(fs::dir_ls(root, recurse = TRUE, type = "file", all = TRUE, follow = FALSE)))
+    safe <- vapply(files, function(path) {
+      rel <- substring(path, nchar(root) + 2L)
+      isTRUE(.wb_path_status(root, rel, must_exist = TRUE)$ok)
+    }, logical(1))
+    files <- files[safe]
     info <- file.info(files)
     .wb_prov_sha256_object(list(
       paths = substring(files, nchar(root) + 2L),
@@ -190,11 +174,12 @@ wb_bundle_validation_report <- function(bundle_dir,
     if (!dir.exists(root)) {
       add("BUNDLE_DIRECTORY_MISSING", path = root, observed = "missing", message = "Bundle directory does not exist.")
     } else {
-      manifest_path <- file.path(root, "manifest.json")
-      if (!file.exists(manifest_path)) {
-        add("MANIFEST_MISSING", path = "manifest.json", observed = "missing", message = "manifest.json is missing.")
+      manifest_checked <- .wb_validation_path(root,"manifest.json","file")
+      if (!isTRUE(manifest_checked$ok)) {
+        code <- if (identical(manifest_checked$code,"PAYLOAD_MISSING")) "MANIFEST_MISSING" else manifest_checked$code
+        add(code,path="manifest.json",observed=manifest_checked$observed,message=if (identical(code,"MANIFEST_MISSING")) "manifest.json is missing." else "manifest.json is outside the bundle trust boundary.")
       } else {
-        manifest <- tryCatch(jsonlite::read_json(manifest_path, simplifyVector = TRUE), error = function(e) e)
+        manifest <- tryCatch(jsonlite::read_json(manifest_checked$absolute, simplifyVector = TRUE), error = function(e) e)
         if (inherits(manifest, "error")) {
           add("MANIFEST_MALFORMED", path = "manifest.json", observed = conditionMessage(manifest), message = "manifest.json is not valid JSON.")
           manifest <- NULL
@@ -422,11 +407,27 @@ wb_bundle_validation_report <- function(bundle_dir,
         )
       }
     }
+    if (.wb_table_exists(con,"prov_run_outputs") && "materialization_path" %in% DBI::dbListFields(con,"prov_run_outputs")) {
+      rows <- DBI::dbGetQuery(con,"SELECT run_id,output_name,materialization_path FROM prov_run_outputs WHERE materialization_path IS NOT NULL AND materialization_path <> '' ORDER BY run_id,output_name;")
+      if (nrow(rows)) for (i in seq_len(nrow(rows))) {
+        raw <- as.character(rows$materialization_path[i])
+        checked <- .wb_validation_path(root,raw,"either")
+        if (!isTRUE(checked$ok)) add(checked$code,check_class="paths",entity_kind="materialization",entity_id=paste(rows$run_id[i],rows$output_name[i],sep="::"),path=raw,table="prov_run_outputs",expected="contained materialization",observed=checked$observed,message="Invalid durable materialization_path in prov_run_outputs.")
+      }
+    }
+    if (.wb_table_exists(con,"prov_run_entity_bindings")) {
+      rows <- DBI::dbGetQuery(con,"SELECT run_id,binding_name,entity_kind,entity_id,path FROM prov_run_entity_bindings WHERE direction='output' AND path IS NOT NULL AND path <> '' ORDER BY run_id,binding_name;")
+      if (nrow(rows)) for (i in seq_len(nrow(rows))) {
+        raw <- as.character(rows$path[i])
+        checked <- .wb_validation_path(root,raw,"either")
+        if (!isTRUE(checked$ok)) add(checked$code,check_class="paths",entity_kind=as.character(rows$entity_kind[i]),entity_id=as.character(rows$entity_id[i]),path=raw,table="prov_run_entity_bindings",expected="contained output binding",observed=checked$observed,message="Invalid durable output path in prov_run_entity_bindings.")
+      }
+    }
   }
   timed("paths", check_paths())
 
   if (has_level("content") && !is.null(con)) {
-    db_path <- file.path(root,as.character(manifest$storage$sqlite$path %||% ""))
+    db_path <- .wb_bundle_path_require(root,as.character(manifest$storage$sqlite$path %||% ""),expected_type="file",purpose="manifest SQLite database")
     wal_path <- paste0(db_path,"-wal")
     if (file.exists(wal_path) && !file.exists(paste0(db_path,"-shm")) && isTRUE(file.info(wal_path)$size > 0)) add("SQLITE_UNRESOLVED_WAL_STATE",check_class="sqlite_integrity",entity_kind="sqlite",entity_id="main",path=substring(wal_path,nchar(root)+2L),observed=paste0(file.info(wal_path)$size," bytes without SHM"),message="A lone non-empty WAL cannot be safely included by immutable read-only validation; finalize the bundle before content transfer.")
     timed("sqlite_integrity", {
@@ -524,8 +525,9 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (!as.character(models$source_space_id[i]) %in% spaces_ids) add("MODEL_DANGLING_SOURCE_SPACE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, table = "space_models", observed = models$source_space_id[i], message = "Model references an unregistered source space.")
           checked <- .wb_validation_path(root, models$model_path[i], "either")
           if (isTRUE(checked$ok)) {
-            loaded <- tryCatch(if (grepl("uwot", as.character(models$model_type[i]), ignore.case = TRUE)) uwot::load_uwot(checked$absolute) else readRDS(checked$absolute), error = function(e) e)
-            if (inherits(loaded, "error")) add("MODEL_PAYLOAD_UNREADABLE", check_class = "spaces_and_models", entity_kind = "model", entity_id = id, path = models$model_path[i], observed = conditionMessage(loaded), message = "Model payload cannot be loaded.")
+            life <- if (.wb_table_exists(con, "entity_lifecycle")) wb_entity_lifecycle(bundle, "model", id) else data.frame()
+            provenance_bound <- nrow(life) && identical(as.integer(life$provenance_bound[1]), 1L)
+            if (!provenance_bound) add("MODEL_DESERIALIZATION_TRUST_REQUIRED", severity = "warning", check_class = "deserialization_trust", entity_kind = "model", entity_id = id, path = models$model_path[i], observed = "contained but not provenance-bound", message = "Serialized model payload was not loaded; explicit opt-in is required because trusted provenance/runtime is absent.")
           }
         }
       }
@@ -715,7 +717,9 @@ wb_bundle_validation_report <- function(bundle_dir,
         if (.wb_validation_nonempty(aid) && .wb_validation_nonempty(sha) && has("artifacts")) {
           actual_identity <- tryCatch({
             atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(aid))$type[1]
-            if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,aid),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else {
+            if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,aid),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else if (as.character(atype) == "model_ref") {
+              mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(aid)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
+            } else {
               prim <- wb_art_load(bundle, aid); .wb_prov_payload_identity(bundle, prim)
             }
           }, error = function(e) NULL)
@@ -742,7 +746,8 @@ wb_bundle_validation_report <- function(bundle_dir,
           bound_path <- as.character(bindings$path[i] %||% "")[1]
           if (kind == "model_ref") {
             external_model_input <- identical(as.character(bindings$direction[i]),"input") && .wb_validation_nonempty(bound_path) && .wb_path_is_absolute(bound_path)
-            present <- if (external_model_input) file.exists(bound_path) || dir.exists(bound_path) else .wb_validation_nonempty(bound_path) && isTRUE(.wb_validation_path(root, bound_path, "either")$ok)
+            if (external_model_input) add("LEGACY_EXTERNAL_MODEL_REFERENCE", severity="warning", check_class="deserialization_trust", entity_kind="model_ref", entity_id=id, path=bound_path, observed="nonportable external path not inspected", message="External model input is explicit legacy state; recipient validation did not access or deserialize it.")
+            present <- if (external_model_input) TRUE else .wb_validation_nonempty(bound_path) && isTRUE(.wb_validation_path(root, bound_path, "either")$ok)
             bits <- strsplit(id, "|", fixed = TRUE)[[1]]
             if (!present && length(bits) >= 2L && has("artifact_model_ref")) {
               refs <- DBI::dbGetQuery(con, "SELECT model_path FROM artifact_model_ref WHERE engine=? AND model_space_id=?;", params=list(bits[1],bits[2]))
@@ -782,11 +787,13 @@ wb_bundle_validation_report <- function(bundle_dir,
                   if (nrow(mr)) candidate <- as.character(mr$model_path[1])
                 }
                 if (!.wb_validation_nonempty(candidate)) candidate <- bound_path
-                checked <- if (.wb_path_is_absolute(candidate)) list(ok=file.exists(candidate)||dir.exists(candidate),absolute=candidate) else .wb_validation_path(root, candidate, "either")
+                checked <- if (.wb_path_is_absolute(candidate)) list(ok=FALSE,absolute=NA_character_) else .wb_validation_path(root, candidate, "either")
                 if (isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
               } else if (kind == "artifact") {
                 atype <- DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]
-                if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else .wb_prov_payload_identity(bundle,wb_art_load(bundle,id))
+                if (as.character(atype) %in% c("feature_table","obs_table")) list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]])) else if (as.character(atype) == "model_ref") {
+                  mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked <- if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
+                } else .wb_prov_payload_identity(bundle,wb_art_load(bundle,id))
               } else if (kind %in% c("cell_set","feature_set")) {
                 list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]]))
               } else if (kind == "external_source") {
@@ -884,11 +891,11 @@ wb_bundle_validation_report <- function(bundle_dir,
           valid_sha <- .wb_validation_nonempty(sha) && identical(alg,"sha256") && grepl("^[A-Fa-f0-9]{64}$", sha)
           if (.wb_validation_nonempty(sha) && !valid_sha) { add("SOURCE_CHECKSUM_MALFORMED", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", expected = "sha256 plus 64 hexadecimal characters", observed = paste(alg,sha), message = "Source checksum syntax is invalid."); add_source_coverage(id); next }
           raw <- as.character(x$path %||% "")[1]; bundled <- isTRUE(x$bundled %||% x$bundle_owned %||% FALSE)
-          local <- if (!.wb_validation_nonempty(raw)) "" else if (.wb_path_is_absolute(raw)) raw else file.path(root, raw)
           source_status <- "structurally_checked_only"; actual_scheme <- NA_character_; recorded_scheme <- if(valid_sha) unname(.wb_content_identity_schemes()[["raw_file"]]) else NA_character_
-          if (bundled && (!nzchar(local) || !file.exists(local))) add("BUNDLED_SOURCE_MISSING", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = "bundled source file", observed = "missing", message = "A source declared as bundled is unavailable.")
-          else if (nzchar(local) && file.exists(local) && valid_sha) { actual <- .wb_prov_sha256_file(local); actual_scheme <- unname(.wb_content_identity_schemes()[["raw_file"]]); source_status <- if(identical(tolower(actual),tolower(sha))) "content_verified" else "content_mismatch"; if (!identical(tolower(actual),tolower(sha))) add("SOURCE_CHECKSUM_MISMATCH", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = sha, observed = actual, message = "Locally available immutable source does not match its recorded checksum.") }
-          else if (!bundled && (!nzchar(local) || !file.exists(local))) { source_status <- "externally_unavailable"; add("EXTERNAL_SOURCE_UNVERIFIABLE", severity = "warning", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, observed = "not locally available", message = "External source cannot be verified on this recipient; bundle integrity is not failed.") }
+          checked_source <- if (bundled) .wb_validation_path(root, raw, "file") else NULL
+          if (bundled && !isTRUE(checked_source$ok)) add(if(identical(checked_source$code,"PAYLOAD_MISSING")) "BUNDLED_SOURCE_MISSING" else checked_source$code, check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = "contained bundled source file", observed = checked_source$observed, message = "A bundled source path is unavailable or outside the bundle.")
+          else if (bundled && isTRUE(checked_source$ok) && valid_sha) { actual <- .wb_prov_sha256_file(checked_source$absolute); actual_scheme <- unname(.wb_content_identity_schemes()[["raw_file"]]); source_status <- if(identical(tolower(actual),tolower(sha))) "content_verified" else "content_mismatch"; if (!identical(tolower(actual),tolower(sha))) add("SOURCE_CHECKSUM_MISMATCH", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = sha, observed = actual, message = "Bundled immutable source does not match its recorded checksum.") }
+          else if (!bundled) { source_status <- "external_uninspected"; add("EXTERNAL_SOURCE_UNVERIFIABLE", severity = "warning", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, observed = "external path deliberately not accessed", message = "External source is outside the recipient trust boundary and was not inspected.") }
           add_source_coverage(id,recorded_scheme,actual_scheme,source_status)
         }
       }
@@ -983,7 +990,7 @@ wb_bundle_validation_report <- function(bundle_dir,
             if(kind=="matrix") list(.wb_prov_payload_identity(bundle,wb_prim_matrix(id)))
             else if(kind=="space") { sr<-DBI::dbGetQuery(con,"SELECT dims FROM spaces WHERE space_id=?;",params=list(id)); if(nrow(sr)&&identical(as.integer(sr$dims[1]),2L)) list(.wb_prov_payload_identity(bundle,wb_prim_space(id)),.wb_prov_payload_identity(bundle,wb_prim_space_2d(id))) else list(.wb_prov_payload_identity(bundle,wb_prim_space(id))) }
             else if(kind=="model") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM space_models WHERE space_id=?;",params=list(id)); if(nrow(mr)){ checked<-.wb_validation_path(root,mr$model_path[1],"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list() }
-            else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]]))) else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
+            else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]]))) else if(as.character(at)=="model_ref") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked<-if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
             else if(kind%in%c("cell_set","feature_set")) list(list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]])))
             else list()
           },error=function(e)list())
@@ -1016,8 +1023,14 @@ wb_bundle_validation_report <- function(bundle_dir,
   }
 
   if (has_level("recipient")) timed("recipient", {
-    pending_paths <- if (dir.exists(root)) list.files(root, recursive = TRUE, full.names = FALSE, all.files = TRUE, no.. = TRUE) else character()
+    pending_abs <- if (dir.exists(root)) {
+      as.character(fs::dir_ls(root, recurse = TRUE, type = "any", all = TRUE, follow = FALSE))
+    } else character()
+    pending_paths <- substring(pending_abs, nchar(root) + 2L)
     pending_paths <- pending_paths[grepl("(^|/)\\.pending(/|$)|^\\.manifest[.]json[.](staging|backup)-|INGEST_FAILED[.]json$", pending_paths)]
+    # The empty, pre-created .pending container is part of the normal bundle
+    # layout. Only entries beneath it represent unfinished publication work.
+    pending_paths <- pending_paths[!grepl("(^|/)\\.pending$", pending_paths)]
     if (length(pending_paths)) for (path in pending_paths) {
       if (identical(basename(path),"INGEST_FAILED.json")) add("INGEST_FAILED_INCOMPLETE",check_class="recipient",entity_kind="ingestion",entity_id="failed",path=path,observed="present",message="Bundle ingestion failed/incomplete; see INGEST_FAILED.json marker.")
       else add("PENDING_WORKSPACE_RESIDUE", check_class = "recipient", entity_kind = "pending_publication", entity_id = basename(path), path = path, observed = "present", message = "Incomplete publication/ingestion residue is present.")
@@ -1025,7 +1038,8 @@ wb_bundle_validation_report <- function(bundle_dir,
     lock <- tryCatch(wb_bundle_writer_lock_info(root), error = function(e) list(locked=FALSE))
     if (isTRUE(lock$locked)) add("ACTIVE_BUNDLE_WRITER", check_class="recipient",entity_kind="writer_lock",entity_id="exclusive",path=.wb_writer_lock_path(root),observed=.wb_writer_lock_diagnostic(lock),message="Recipient validation requires no active bundle writer.")
     if (!is.null(manifest)) {
-      db <- file.path(root, as.character(manifest$storage$sqlite$path %||% "")); sidecars <- c(paste0(db,"-wal"),paste0(db,"-shm"),paste0(db,"-journal")); hit <- sidecars[file.exists(sidecars)]
+      db_checked <- .wb_validation_path(root, as.character(manifest$storage$sqlite$path %||% ""), "file")
+      db <- if (isTRUE(db_checked$ok)) db_checked$absolute else ""; sidecars <- if(nzchar(db)) c(paste0(db,"-wal"),paste0(db,"-shm"),paste0(db,"-journal")) else character(); hit <- sidecars[file.exists(sidecars)]
       for (p in hit) add("SQLITE_UNRESOLVED_JOURNAL_STATE",check_class="recipient",entity_kind="sqlite",entity_id="main",path=substring(p,nchar(root)+2L),observed="present",message="Recipient bundle contains unresolved SQLite WAL/SHM/journal state.")
       if (!length(hit) && file.exists(db)) {
         immutable <- tryCatch({
@@ -1055,6 +1069,13 @@ wb_bundle_validation_report <- function(bundle_dir,
   peak_memory_mb <- max(c(gc_before[, 6L], gc_after[, 6L]), na.rm = TRUE)
   structure(list(
     schema_version = "scworkbench.bundle_validation_report.v1",
+    path_contract = list(
+      version = .wb_bundle_path_contract_version(),
+      durable_paths = "bundle_relative_contained",
+      external_paths = "declared_nonportable_uninspected",
+      serialized_payloads = "not_loaded_by_validation",
+      unsafe_payloads_loaded = FALSE
+    ),
     bundle_path = root,
     bundle_manifest_version = manifest_version,
     requested_level = level,

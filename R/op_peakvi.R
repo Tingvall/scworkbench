@@ -167,6 +167,7 @@ wb_op_peakvi_fit <- function(bundle,
     outputs = prereg
   )
   bridge <- .wb_palantir_bridge_run_or_stop(
+    bundle = bundle,
     module = "pybench.ops.peakvi_fit",
     request = req,
     python_bin = python_bin
@@ -273,6 +274,7 @@ wb_op_peakvi_project <- function(bundle,
   )
 
   bridge <- .wb_palantir_bridge_run_or_stop(
+    bundle = bundle,
     module = "pybench.ops.peakvi_project",
     request = req,
     python_bin = python_bin

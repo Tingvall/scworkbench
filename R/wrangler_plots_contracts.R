@@ -555,7 +555,7 @@ wb_write_plot_catalog_reference <- function(path_md = "docs/plot_catalog_referen
   catalog <- wb_plot_catalog_semantic()
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_plot_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_plot_catalog_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "plot catalog semantic export")

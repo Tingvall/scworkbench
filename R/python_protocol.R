@@ -2,6 +2,13 @@
 
 .wb_pyproto_version <- function() "pybench-op-v1"
 
+.wb_pyproto_path_contract <- function() list(
+  version = .wb_bundle_path_contract_version(),
+  durable_paths = "bundle_relative_contained",
+  external_inputs = "explicit_import_only",
+  serialized_models = "trusted_provenance_runtime_or_explicit_opt_in"
+)
+
 .wb_pyproto_assert_scalar_chr <- function(x, name) {
   .wb_assert(is.character(x) && length(x) == 1L && nzchar(x),
              paste0(name, " must be a length-1 non-empty string"))
@@ -29,6 +36,13 @@
 
   .wb_pyproto_assert_scalar_chr(as.character(req$bundle_dir %||% ""), "request$bundle_dir")
   .wb_pyproto_assert_scalar_chr(as.character(req$op_name %||% ""), "request$op_name")
+  path_contract <- req$path_contract %||% list()
+  .wb_assert(is.list(path_contract), "request$path_contract must be a list")
+  expected_contract <- .wb_pyproto_path_contract()
+  for (field in names(expected_contract)) {
+    .wb_assert(identical(as.character(path_contract[[field]] %||% ""), as.character(expected_contract[[field]])),
+               paste0("request$path_contract$", field, " does not match the engine containment contract"))
+  }
 
   run <- req$run %||% list()
   .wb_assert(is.list(run), "request$run must be a list")

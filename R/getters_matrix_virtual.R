@@ -80,8 +80,8 @@ wb_matrix_read_feature <- function(bundle, matrix_id, feature_id, cell_ids) {
     keep <- which(!is.na(cix))
     if (!length(keep)) next
 
-    abs_path <- file.path(bundle$dir, row$path[1])
-    .wb_assert(dir.exists(abs_path), paste0("Missing BPCells dir for fragment: ", abs_path))
+    abs_path <- .wb_bundle_path_require(bundle,row$path[1],expected_type="directory",
+                                        purpose="virtual matrix fragment")
 
     mat <- .wb_bp_open_matrix_dir(abs_path)
 

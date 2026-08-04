@@ -237,7 +237,7 @@ wb_write_wrangler_catalog_reference <- function(path_md = "docs/wrangler_catalog
   catalog <- wb_wrangler_catalog_semantic()
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_wrangler_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_wrangler_catalog_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "wrangler catalog semantic export")
@@ -317,7 +317,7 @@ wb_write_primitive_catalog_reference <- function(path_md = "docs/primitive_catal
   catalog <- wb_primitive_catalog_semantic()
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_primitive_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_primitive_catalog_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "primitive catalog semantic export")
@@ -526,7 +526,7 @@ wb_write_artifact_type_catalog_reference <- function(path_md = "docs/artifact_ty
   catalog <- wb_artifact_type_catalog_semantic()
   if (!is.null(path_md)) {
     dir.create(dirname(path_md), recursive = TRUE, showWarnings = FALSE)
-    writeLines(.wb_artifact_type_catalog_reference_lines(catalog), con = path_md, useBytes = TRUE)
+    .wb_write_markdown_reference(.wb_artifact_type_catalog_reference_lines(catalog), path_md)
   }
   if (!is.null(path_json)) {
     .wb_require_pkg("jsonlite", "artifact type catalog semantic export")
@@ -534,4 +534,9 @@ wb_write_artifact_type_catalog_reference <- function(path_md = "docs/artifact_ty
     jsonlite::write_json(catalog, path = path_json, auto_unbox = TRUE, pretty = TRUE, null = "null")
   }
   invisible(catalog)
+}
+.wb_write_markdown_reference <- function(lines, path) {
+  lines <- as.character(lines)
+  while (length(lines) && !nzchar(lines[[length(lines)]])) lines <- head(lines, -1L)
+  writeLines(lines, con=path, useBytes=TRUE)
 }

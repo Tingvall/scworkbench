@@ -143,7 +143,7 @@ test_pybench_payload_parity_contract <- function(bundle_dir,
         model_space_id = "peakvi_space",
         in_space_id = "peakvi_space",
         model_type = "smoke",
-        model_path = normalizePath(model_path, winslash = "/", mustWork = TRUE)
+        model_path = file.path("artifact_models", basename(model_path))
       ),
       list(
         kind = "obs_table",

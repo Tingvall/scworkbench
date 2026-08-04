@@ -1054,6 +1054,11 @@ wb_promote_analysis <- function(bundle,
                  "model_ref promotion cannot retain an external model path; provide model_obj or a durable bundle-owned model path.")
     }
   }
+  stored_status <- .wb_path_status(bundle$dir, stored_model_path,
+                                   expected_type="either", must_exist=FALSE,
+                                   purpose="promoted model_ref")
+  .wb_assert(isTRUE(stored_status$ok), paste0(stored_status$code, ": promoted model_ref path is not portable."))
+  stored_model_path <- stored_status$relative
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 

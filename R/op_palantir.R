@@ -49,8 +49,8 @@
 }
 
 #' @keywords internal
-.wb_palantir_bridge_run_or_stop <- function(...) {
-  bridge <- .wb_pybench_run_module(...)
+.wb_palantir_bridge_run_or_stop <- function(bundle = NULL, ...) {
+  bridge <- .wb_pybench_run_module(..., bundle=bundle)
   rec <- bridge$receipt %||% list()
   if (!identical(as.character(rec$status %||% "error"), "ok")) {
     msg <- paste0(
@@ -127,6 +127,7 @@ wb_op_palantir_project <- function(bundle,
     outputs = prereg
   )
   bridge <- .wb_palantir_bridge_run_or_stop(
+    bundle = bundle,
     module = "pybench.ops.palantir_project",
     request = req,
     python_bin = python_bin
@@ -260,6 +261,7 @@ wb_op_palantir_fit <- function(bundle,
   )
 
   bridge <- .wb_palantir_bridge_run_or_stop(
+    bundle = bundle,
     module = "pybench.ops.palantir_fit",
     request = req,
     python_bin = python_bin
