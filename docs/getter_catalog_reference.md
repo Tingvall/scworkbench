@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: 2026-08-04T03:26:11+0200
+Generated at: 2026-08-04T13:13:54+0200
 
 Getter count: 77
 
@@ -236,17 +236,17 @@ Use when:
 
 Title: Bundle Manifest
 
-Description: Read the bundle manifest metadata.
+Description: Read the atomically published authoritative manifest, or request an explicitly reconstructed diagnostic registry view.
 
 Returns: list
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, view
 
 Use when:
-- inspect bundle identity
-- read manifest fields
+- inspect durable bundle identity and current state
+- diagnose manifest/registry publication disagreement
 
 ### `wb_bundle_overview`
 

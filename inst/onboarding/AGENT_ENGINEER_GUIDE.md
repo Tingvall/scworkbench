@@ -95,6 +95,12 @@ Use `wb_op_interface()` to select valid terminal `outputs=` values. Promotion
 commits the required provenance closure; staged session state is ephemeral if
 the R process exits.
 
+Manifest schema 2.2 separates immutable `creation` identity from authoritative
+`current_state`. Successful outermost writer scopes publish a flushed,
+validated same-filesystem temporary JSON file with one atomic rename before
+releasing the writer lock. `wb_manifest(bundle)` is the durable view;
+`wb_manifest(bundle, view = "reconstructed")` is explicitly diagnostic.
+
 Before distributing a bundle, call
 `wb_bundle_validation_report(path, level = "recipient")`. Content validation
 recomputes persisted run and typed content-identity contracts; recipient adds

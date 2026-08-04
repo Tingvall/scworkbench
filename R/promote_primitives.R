@@ -504,8 +504,8 @@ wb_promote_analysis <- function(bundle,
   DBI::dbCommit(bundle$con)
   transaction_open <- FALSE
   if (dir.exists(workspace$pending_root)) unlink(workspace$pending_root, recursive = TRUE, force = TRUE)
-  # The on-disk manifest is a cached transfer index. Publish it only after the
-  # scientific-state transaction and payload workspace have both committed.
+  # Publish authoritative current state only after the scientific-state
+  # transaction and payload workspace have both committed.
   .wb_refresh_manifest_committed(bundle)
 
   list(

@@ -8,7 +8,8 @@ validation.
 The levels are cumulative:
 
 - `structural` proves that the supported manifest and SQLite schema open
-  read-only, required registries exist, cached manifest counts and inventories
+  read-only, required registries exist, authoritative manifest counts,
+  inventories, per-table hashes, and the aggregate current-state fingerprint
   agree with SQLite, identities are well formed, and durable paths exist with
   the declared file type inside the bundle. It does not prove payload bytes or
   provenance content identities.
@@ -60,6 +61,12 @@ kind/ID, path/table, expected/observed value, and message. Reports also contain
 completed levels, explicitly skipped checks, elapsed time per check class, and
 peak R memory evidence. `ok = TRUE` means every requested check completed
 without an error; warnings remain visible in `status = "ok_with_warnings"`.
+
+Fresh manifests use schema 2.2 and identify the atomic publication protocol and
+durable state source. `MANIFEST_REGISTRY_MISMATCH` is recoverable: it means a
+committed registry change exists but the previous complete manifest was
+preserved because publication did not reach its atomic rename. Validation is
+read-only and never performs that repair.
 
 The default is `content`. It is compatible with the former validator's habit of
 opening every matrix, while avoiding the inaccurate claim that a dimensional

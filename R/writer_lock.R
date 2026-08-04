@@ -460,11 +460,23 @@ wb_bundle_writer_lock_info <- function(bundle_or_dir, stale_after_seconds = 3600
                                         operation = "committed mutation",
                                         timeout_seconds = getOption("scworkbench.writer_lock_timeout_seconds", 10),
                                         code) {
+  outermost <- !.wb_writer_lock_held(bundle_or_dir)
   lock <- .wb_bundle_writer_lock_acquire(
     bundle_or_dir, operation = operation, timeout_seconds = timeout_seconds
   )
   on.exit(.wb_bundle_writer_lock_release(lock), add = TRUE)
-  force(code)
+  result <- force(code)
+  # Publication is the final step of the outermost successful writer scope.
+  # Nested scopes may still be inside their coordinator's SQLite transaction,
+  # so they must never advertise state independently.
+  nested_handle_ready <- inherits(bundle_or_dir, "scworkbench_bundle") &&
+    DBI::dbIsValid(bundle_or_dir$con) &&
+    !isTRUE(RSQLite::sqliteIsTransacting(bundle_or_dir$con))
+  if ((isTRUE(outermost) || isTRUE(nested_handle_ready)) &&
+      !identical(operation, "manifest refresh")) {
+    .wb_manifest_publish_current_locked(bundle_or_dir, result = result)
+  }
+  result
 }
 
 #' Explicitly Recover A Stale Bundle-Writer Lock
