@@ -351,7 +351,12 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     )
   )
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
-  if (!is.null(session$durable)) .wb_session_validate_source(session, bundle)
+  if (!is.null(session$durable)) {
+    .wb_assert(identical(as.character(session$durable$state %||% "")[1], "active"),
+               "DURABLE_SESSION_FINALIZED: finalized sessions cannot run new operations.")
+    .wb_session_validate_source(session, bundle)
+    .wb_session_validate_payloads(session)
+  }
   session_lock <- NULL
   if (!is.null(session$durable)) {
     session_lock <- .wb_bundle_writer_lock_acquire(
@@ -415,6 +420,11 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
   planned_run_id <- paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = ""))
+  if (!is.null(session$durable)) {
+    .wb_session_operation_marker(session, op_name = op_name, run_id = planned_run_id)
+    completed_operation <- FALSE
+    on.exit(if (!isTRUE(completed_operation)) invisible(NULL), add = TRUE)
+  }
   res <- .wb_with_mutation_context(
     bundle = work_bundle,
     route = "session_execution",
@@ -470,6 +480,8 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     session$durable$runtime_attestations[[run$run_id]] <- .wb_prov_runtime_fingerprint(op_name)
     session <- .wb_session_record_payload_identities(session, run)
     session <- .wb_session_checkpoint(session, "active")
+    .wb_session_operation_marker(session, clear = TRUE)
+    completed_operation <- TRUE
   }
 
   list(session = session, run = run, result = res)
