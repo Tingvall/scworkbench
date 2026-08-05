@@ -29,6 +29,28 @@ test_durable_session_generation_recovery_contract <- function() {
   promoted <- wb_session_promote_current(b, resumed, outputs = "vector", created_by = "durable-generation")
   stopifnot(identical(as.character(promoted$promoted$status[1]), "ok"))
 
+  # A pointer publication is the commit point.  The injected error is returned
+  # to the caller, but a stale pre-publication handle can never retry over it.
+  pre_publication <- wb_session_resume(b, s$durable$workspace)
+  options(scworkbench.durable_session_fault_hook = function(where) if (identical(where, "after_generation_publication")) stop("injected post-publication error"))
+  post <- try(.wb_session_checkpoint(pre_publication, "active"), silent = TRUE)
+  stopifnot(inherits(post, "try-error"), grepl("post-publication", as.character(post), fixed = TRUE))
+  committed_after_error <- wb_session_resume(b, s$durable$workspace)
+  stopifnot(identical(names(committed_after_error$runs), names(pre_publication$runs)))
+  stale <- try(run_vector(pre_publication, "must_not_overwrite", "score"), silent = TRUE)
+  stopifnot(inherits(stale, "try-error"), grepl("DURABLE_SESSION_STALE_GENERATION", as.character(stale), fixed = TRUE))
+  options(scworkbench.durable_session_fault_hook = old_hook)
+
+  # An operation marker is intentionally outside the completed generation: a
+  # killed operation is listed as interrupted and resume returns its prior DAG.
+  .wb_session_operation_marker(committed_after_error, "metadata_cell_vector", "run_interrupted")
+  listed_marker <- wb_session_list(root)
+  stopifnot(identical(as.character(listed_marker$state[listed_marker$session_id == "generation_case"]), "interrupted"))
+  recovered_marker <- wb_session_resume(b, s$durable$workspace)
+  stopifnot(identical(names(recovered_marker$runs), names(committed_after_error$runs)))
+  cleared <- run_vector(recovered_marker, "marker_cleared", "score")
+  stopifnot(!file.exists(file.path(s$durable$workspace, "OPERATION.json")), length(cleared$session$runs) == length(committed_after_error$runs) + 1L)
+
   # Publication metadata and bytes are independently integrity-bound before RDS is read.
   ptr <- .wb_session_pointer(s$durable$workspace)
   meta_path <- ptr$metadata_path

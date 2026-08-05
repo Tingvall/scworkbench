@@ -55,13 +55,16 @@
 
 .wb_session_operation_marker <- function(session, op_name = NULL, run_id = NULL, clear = FALSE) {
   if (is.null(session$durable)) return(invisible(NULL))
-  path <- file.path(session$durable$workspace, "OPERATION.json")
-  if (isTRUE(clear)) {
-    if (file.exists(path)) unlink(path, force = TRUE)
-    return(invisible(NULL))
-  }
-  .wb_session_atomic_json(list(schema = "scworkbench.durable_session.operation.v1", op_name = as.character(op_name)[1],
-                               run_id = as.character(run_id)[1], started_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")), path)
+  .wb_session_workspace_lock(session, "operation marker", {
+    .wb_session_assert_mutation_owner(session)
+    path <- file.path(session$durable$workspace, "OPERATION.json")
+    if (isTRUE(clear)) {
+      if (file.exists(path)) unlink(path, force = TRUE)
+      return(invisible(NULL))
+    }
+    .wb_session_atomic_json(list(schema = "scworkbench.durable_session.operation.v1", op_name = as.character(op_name)[1],
+                                 run_id = as.character(run_id)[1], started_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")), path)
+  })
   invisible(NULL)
 }
 
@@ -96,6 +99,33 @@
   invisible(TRUE)
 }
 
+# A durable handle is an optimistic lease on one exact publication, not merely
+# on a workspace.  The writer lock serializes publication, while this binding
+# prevents a second process that opened an older graph from publishing over a
+# newer one after it acquires that lock.
+.wb_session_assert_current_generation <- function(session, allow_unbound = FALSE) {
+  .wb_assert(!is.null(session$durable), "DURABLE_SESSION_OWNERSHIP: durable metadata is missing.")
+  expected <- as.character(session$durable$checkpoint_generation %||% "")[1]
+  if (!nzchar(expected)) {
+    .wb_assert(isTRUE(allow_unbound), "DURABLE_SESSION_STALE_GENERATION: session is not bound to a current checkpoint generation.")
+    return(invisible(TRUE))
+  }
+  binding <- .wb_session_pointer(session$durable$workspace)
+  expected_meta <- as.character(session$durable$checkpoint_metadata_sha256 %||% "")[1]
+  .wb_assert(identical(expected, binding$generation) &&
+               (!nzchar(expected_meta) || identical(expected_meta, as.character(binding$pointer$metadata_sha256 %||% "")[1])),
+             "DURABLE_SESSION_STALE_GENERATION: workspace current generation changed; reopen the session before mutating it.")
+  invisible(TRUE)
+}
+
+.wb_session_assert_mutation_owner <- function(session, allow_unbound = FALSE) {
+  if (!isTRUE(allow_unbound) || nzchar(as.character(session$durable$checkpoint_generation %||% "")[1])) {
+    .wb_session_validate_ownership(session)
+  }
+  .wb_session_assert_current_generation(session, allow_unbound = allow_unbound)
+  invisible(TRUE)
+}
+
 .wb_session_checkpoint_file <- function(session) {
   p <- .wb_session_pointer(session$durable$workspace)
   file.path(dirname(p$metadata_path), "session.rds")
@@ -103,24 +133,32 @@
 
 .wb_session_checkpoint <- function(session, state = "active") {
   if (is.null(session$durable)) return(session)
-  session$durable$state <- as.character(state)[1]
-  session$durable$updated_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
-  # SQLite connections are process-local external pointers.  The stage itself
-  # is durable; reopening it is part of resume rather than RDS restoration.
-  persisted <- session
-  persisted$staging_bundle <- NULL
   .wb_session_workspace_lock(session, "checkpoint", {
+    unbound <- !nzchar(as.character(session$durable$checkpoint_generation %||% "")[1])
+    .wb_session_assert_mutation_owner(session, allow_unbound = unbound)
+    parent_generation <- as.character(session$durable$checkpoint_generation %||% "")[1]
+    session$durable$state <- as.character(state)[1]
+    session$durable$updated_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
     root <- .wb_session_generation_root(session)
     dir.create(root, recursive = TRUE, showWarnings = FALSE)
     generation <- paste0("g_", format(Sys.time(), "%Y%m%d%H%M%OS6"), "_", .wb_writer_lock_token())
     generation <- gsub("[^A-Za-z0-9_.-]", "", generation)
     dir <- .wb_session_contained_path(session$durable$workspace, file.path(root, generation), "checkpoint generation")
     dir.create(dir, recursive = FALSE, showWarnings = FALSE)
+    # The serialized session is bound to the generation it is about to publish.
+    # The metadata SHA is filled into the live handle after its own bytes exist.
+    session$durable$checkpoint_generation <- generation
+    session$durable$checkpoint_metadata_sha256 <- NULL
+    # SQLite connections are process-local external pointers.  The stage itself
+    # is durable; reopening it is part of resume rather than RDS restoration.
+    persisted <- session
+    persisted$staging_bundle <- NULL
     .wb_session_fault("before_serialization")
     rds <- file.path(dir, "session.rds")
     saveRDS(persisted, rds, version = 3)
     .wb_session_fault("after_serialized_bytes")
     meta <- list(schema = "scworkbench.durable_session.v2", generation = generation,
+                 parent_generation = if (nzchar(parent_generation)) parent_generation else NULL,
                  session_id = session$session_id, state = session$durable$state,
                  updated_at = session$durable$updated_at, ownership_token = session$durable$ownership_token,
                  source_identity = session$durable$source_identity,
@@ -133,6 +171,7 @@
                     metadata_sha256 = .wb_prov_sha256_file(file.path(dir, "session.json")))
     .wb_session_fault("before_generation_publication")
     .wb_session_atomic_json(pointer, .wb_session_pointer_file(session$durable$workspace))
+    session$durable$checkpoint_metadata_sha256 <- pointer$metadata_sha256
     .wb_session_fault("after_generation_publication")
   })
   session
@@ -167,8 +206,9 @@
     .wb_assert(!is.null(run), paste0("DURABLE_SESSION_CORRUPT: checkpoint references missing run ", rid))
     recorded <- session$durable$payload_identities[[rid]]
     for (nm in names(recorded)) {
-      actual <- .wb_prov_payload_identity(session$staging_bundle, run$outputs[[nm]])
-      .wb_assert(identical(as.character(recorded[[nm]]$content_sha256), as.character(actual$content_sha256)) &&
+      actual <- try(.wb_prov_payload_identity(session$staging_bundle, run$outputs[[nm]]), silent = TRUE)
+      .wb_assert(!inherits(actual, "try-error") &&
+                   identical(as.character(recorded[[nm]]$content_sha256), as.character(actual$content_sha256)) &&
                    identical(as.character(recorded[[nm]]$content_identity_scheme), as.character(actual$content_identity_scheme)),
                  paste0("DURABLE_SESSION_PAYLOAD_CORRUPT: staged output ", rid, "/", nm, " no longer matches checkpoint identity."))
     }
@@ -197,6 +237,7 @@ wb_session_create <- function(bundle, workspace_root = .wb_session_workspace_roo
                     source_identity = .wb_session_source_identity(bundle), state = "creating",
                     ownership_token = .wb_writer_lock_token(), workspace_root = root,
                     payload_identities = list(), runtime_attestations = list(session = .wb_prov_runtime_fingerprint("session")),
+                    checkpoint_generation = NULL, checkpoint_metadata_sha256 = NULL,
                     created_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z"))
   staged <- try(.wb_session_stage_bundle(bundle, s), silent = TRUE)
   if (inherits(staged, "try-error")) { unlink(workspace, recursive = TRUE, force = TRUE); stop(staged) }
@@ -222,7 +263,8 @@ wb_session_list <- function(workspace_root = .wb_session_workspace_root()) {
     pointer <- try(.wb_session_pointer(d), silent = TRUE)
     if (inherits(pointer, "try-error")) {
       partial <- dir.exists(file.path(d, "checkpoints"))
-      return(data.frame(workspace=d, session_id=NA_character_, state=if (partial) "partial" else "abandoned", updated_at=NA_character_, stringsAsFactors=FALSE))
+      current <- file.exists(.wb_session_pointer_file(d))
+      return(data.frame(workspace=d, session_id=NA_character_, state=if (current) "corrupt" else if (partial) "partial" else "abandoned", updated_at=NA_character_, stringsAsFactors=FALSE))
     }
     x <- try(jsonlite::read_json(pointer$metadata_path, simplifyVector = TRUE), silent = TRUE)
     if (inherits(x, "try-error")) return(data.frame(workspace=d, session_id=NA_character_, state="corrupt", updated_at=NA_character_, stringsAsFactors=FALSE))
@@ -251,10 +293,14 @@ wb_session_open <- function(workspace) {
   s <- try(readRDS(path), silent = TRUE)
   .wb_assert(!inherits(s, "try-error") && wb_is_session(s) && !is.null(s$durable), "DURABLE_SESSION_CORRUPT: checkpoint cannot be read.")
   .wb_assert(identical(normalizePath(s$durable$workspace, winslash="/", mustWork=TRUE), workspace), "DURABLE_SESSION_CORRUPT: workspace identity mismatch.")
+  .wb_session_contained_path(as.character(s$durable$workspace_root %||% "")[1], workspace,
+                             "opened workspace")
   .wb_assert(identical(as.character(s$session_id)[1], as.character(meta$session_id)[1]) &&
                identical(as.character(s$durable$ownership_token %||% "")[1], as.character(meta$ownership_token %||% "")[1]) &&
                nzchar(as.character(meta$ownership_token %||% "")[1]), "DURABLE_SESSION_CORRUPT: checkpoint ownership binding failed.")
   .wb_assert(as.character(s$durable$state) %in% c("active", "finalized"), "DURABLE_SESSION_INCOMPLETE: checkpoint was not completed.")
+  s$durable$checkpoint_generation <- binding$generation
+  s$durable$checkpoint_metadata_sha256 <- as.character(binding$pointer$metadata_sha256)[1]
   s$staging_bundle <- NULL
   staged <- .wb_session_stage_bundle(structure(list(), class="scworkbench_bundle"), s)
   staged$session
@@ -292,13 +338,28 @@ wb_session_cleanup <- function(session) {
   workspace <- session$durable$workspace
   root <- session$durable$workspace_root
   .wb_session_contained_path(root, workspace, "cleanup workspace")
-  .wb_session_validate_ownership(session)
   .wb_session_workspace_lock(session, "cleanup", {
+    .wb_session_assert_mutation_owner(session)
     current <- .wb_session_pointer(workspace)$generation
+    # Faulted atomic pointer publications and incomplete generations are never
+    # current state.  Retention only visits direct checkpoint children.
+    tmp_pointers <- list.files(workspace, pattern = "^CURRENT\\.json\\.tmp-", full.names = TRUE)
+    if (length(tmp_pointers)) unlink(tmp_pointers, force = TRUE)
     generations <- list.dirs(.wb_session_generation_root(session), recursive = FALSE, full.names = TRUE)
     for (dir in generations) {
       dir <- .wb_session_contained_path(workspace, dir, "cleanup generation")
-      if (!identical(basename(dir), current) && !nzchar(Sys.readlink(dir))) unlink(dir, recursive = TRUE, force = TRUE)
+      if (identical(basename(dir), current) || nzchar(Sys.readlink(dir))) next
+      meta_path <- file.path(dir, "session.json")
+      rds_path <- file.path(dir, "session.rds")
+      meta <- try(jsonlite::read_json(meta_path, simplifyVector = TRUE), silent = TRUE)
+      complete <- !inherits(meta, "try-error") &&
+        identical(as.character(meta$schema %||% "")[1], "scworkbench.durable_session.v2") &&
+        identical(as.character(meta$generation %||% "")[1], basename(dir)) &&
+        file.exists(rds_path) &&
+        identical(as.character(meta$checkpoint_sha256 %||% "")[1], .wb_prov_sha256_file(rds_path))
+      # Historical complete generations are audit/recovery records.  Only an
+      # incomplete, unpublished child is eligible for deletion.
+      if (!complete) unlink(dir, recursive = TRUE, force = TRUE)
     }
   })
   invisible(session)

@@ -103,7 +103,10 @@ wb_is_session <- function(x) inherits(x, "wb_session")
 #' @export
 wb_session_set_active <- function(session, output_name, ref) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
-  if (!is.null(session$durable)) .wb_assert(identical(as.character(session$durable$state), "active"), "DURABLE_SESSION_FINALIZED: finalized sessions cannot run new operations.")
+  if (!is.null(session$durable)) {
+    .wb_assert(identical(as.character(session$durable$state), "active"), "DURABLE_SESSION_FINALIZED: finalized sessions cannot run new operations.")
+    .wb_session_workspace_lock(session, "set active output", .wb_session_assert_mutation_owner(session))
+  }
   .wb_assert(is.list(ref) && !is.null(ref$ref_type), "ref must be a wb_ref_*")
   session$active[[as.character(output_name)]] <- ref
   session
@@ -121,6 +124,7 @@ wb_session_set_active <- function(session, output_name, ref) {
 wb_session_add_run <- function(session, run) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   .wb_assert(wb_is_run(run), "run must be a wb_run.")
+  if (!is.null(session$durable)) .wb_session_workspace_lock(session, "add run", .wb_session_assert_mutation_owner(session))
   session$runs[[run$run_id]] <- run
   session$head_run_id <- run$run_id
   session
@@ -363,6 +367,11 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
       session$durable$workspace, operation = "durable session operation"
     )
     on.exit(.wb_bundle_writer_lock_release(session_lock), add = TRUE)
+    # This must be inside the workspace lock: a handle may have been opened
+    # before another process published a later checkpoint.
+    .wb_session_assert_mutation_owner(session)
+    .wb_session_validate_source(session, bundle)
+    .wb_session_validate_payloads(session)
   }
   op <- .wb_op(op_name)
   validated <- .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs, session = session)

@@ -51,6 +51,13 @@ wb_session_promote_current <- function(bundle,
   if (!is.null(session$durable)) {
     .wb_session_validate_source(session, bundle)
     .wb_session_validate_payloads(session)
+    session_lock <- .wb_bundle_writer_lock_acquire(
+      session$durable$workspace, operation = "durable session promotion"
+    )
+    on.exit(.wb_bundle_writer_lock_release(session_lock), add = TRUE)
+    .wb_session_assert_mutation_owner(session)
+    .wb_session_validate_source(session, bundle)
+    .wb_session_validate_payloads(session)
   }
   .wb_assert(!is.null(session$head_run_id) && nzchar(session$head_run_id),
              "session$head_run_id is NULL/empty. Run at least one op before promoting.")

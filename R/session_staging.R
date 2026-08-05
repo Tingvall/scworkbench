@@ -139,17 +139,26 @@
 #' @export
 wb_session_discard <- function(session) {
   .wb_assert(wb_is_session(session), "session must be wb_session")
-  if (!is.null(session$staging_bundle) && inherits(session$staging_bundle, "scworkbench_bundle")) {
-    try(wb_close_bundle(session$staging_bundle), silent = TRUE)
-  }
   stage_dir <- as.character(session$staging_dir %||% "")[1]
   if (!is.null(session$durable)) {
     workspace <- as.character(session$durable$workspace %||% "")[1]
     root <- as.character(session$durable$workspace_root %||% dirname(workspace))[1]
     .wb_session_contained_path(root, workspace, "discard workspace")
-    .wb_session_validate_ownership(session)
-    .wb_session_workspace_lock(session, "discard", unlink(workspace, recursive = TRUE, force = TRUE))
-  } else if (nzchar(stage_dir) && dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)
+    .wb_session_workspace_lock(session, "discard", {
+      .wb_session_assert_mutation_owner(session)
+      if (!is.null(session$staging_bundle) && inherits(session$staging_bundle, "scworkbench_bundle")) {
+        try(wb_close_bundle(session$staging_bundle), silent = TRUE)
+      }
+      # `workspace` is a validated owned directory, never a link followed from
+      # stage into the source bundle.
+      unlink(workspace, recursive = TRUE, force = TRUE)
+    })
+  } else {
+    if (!is.null(session$staging_bundle) && inherits(session$staging_bundle, "scworkbench_bundle")) {
+      try(wb_close_bundle(session$staging_bundle), silent = TRUE)
+    }
+    if (nzchar(stage_dir) && dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)
+  }
   session$staging_bundle <- NULL
   session$staging_dir <- NULL
   session$staging_source_dir <- NULL
