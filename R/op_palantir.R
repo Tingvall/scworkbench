@@ -113,7 +113,7 @@ wb_op_palantir_project <- function(bundle,
   req <- .wb_pybench_build_request(
     bundle = bundle,
     op_name = "palantir_project",
-    run_id = as.character(run_tmp$run_id),
+    run_id = .wb_pybench_current_run_id(bundle),
     inputs = list(
       model_path = model_path,
       plot_space = plot_space_id
@@ -240,7 +240,7 @@ wb_op_palantir_fit <- function(bundle,
   req <- .wb_pybench_build_request(
     bundle = bundle,
     op_name = "palantir_fit",
-    run_id = as.character(run_tmp$run_id),
+    run_id = .wb_pybench_current_run_id(bundle),
     inputs = list(
       cell_set = as.character(cell_set %||% "all")[1],
       cell_ids = cells,

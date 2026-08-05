@@ -1,4 +1,8 @@
-# Pybench Op Protocol v1 (`pybench-op-v1`)
+# Pybench Op Protocol v1 (`pybench-op-v1`) — retired
+
+This protocol is historical. Writable v1 requests are rejected. The active
+contract and machine-readable authority are documented in
+[`pybench_op_protocol_v2.md`](pybench_op_protocol_v2.md).
 
 This document defines the handoff protocol between:
 

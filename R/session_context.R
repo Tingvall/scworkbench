@@ -441,6 +441,18 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
   planned_run_id <- paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = ""))
+  work_bundle$pybench_session_binding <- list(
+    session_id = as.character(session$session_id)[1],
+    source_attestation = list(
+      scheme = "scworkbench-scientific-state-v1",
+      content_sha256 = as.character((session$durable %||% list(source_identity = .wb_session_source_identity(bundle)))$source_identity$scientific_state_fingerprint)[1]
+    ),
+    checkpoint_generation = as.character((session$durable %||% list(checkpoint_generation = "ephemeral"))$checkpoint_generation %||% "ephemeral")[1],
+    root_sha256 = .wb_prov_sha256_object(list(
+      session_id = as.character(session$session_id)[1],
+      stage_root = normalizePath(work_bundle$dir, winslash = "/", mustWork = TRUE)
+    ))
+  )
   if (!is.null(session$durable)) {
     .wb_session_operation_marker(session, op_name = op_name, run_id = planned_run_id)
     completed_operation <- FALSE

@@ -1,0 +1,1 @@
+{"message_type":"request","protocol_version":"pybench-op-v1","bundle_dir":"/tmp/bundle","op_name":"protocol_hello","run":{"run_id":"run_old"},"inputs":{},"params":{},"outputs":{}}

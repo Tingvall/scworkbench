@@ -1,0 +1,5 @@
+{
+  "message_type":"request", "protocol_version":"pybench-op-v2", "bundle_dir":"/runtime/stage", "path_contract":{}, "op_name":"fit", "run":{"session_id":"s","run_id":"r"},
+  "execution_capability":{"capability_id":"c","mode":"staging_write","session_id":"s","run_id":"r","source_attestation":{"scheme":"scworkbench-scientific-state-v1","content_sha256":"1111111111111111111111111111111111111111111111111111111111111111"},"staging_identity":{"root_sha256":"2222222222222222222222222222222222222222222222222222222222222222","checkpoint_generation":"g"},"write_allowlist":[{"output_name":"model","output_id":"a","output_kind":"model_ref","mutation_class":"payload_tree","path":"../outside"}]},
+  "inputs":{},"params":{},"outputs":{"model":{"artifact_id":"a","type":"model_ref"}}
+}

@@ -1,0 +1,5 @@
+{
+  "message_type":"request", "protocol_version":"pybench-op-v2", "bundle_dir":"/runtime/source", "path_contract":{}, "op_name":"inspect", "run":{"session_id":"s","run_id":"r"},
+  "execution_capability":{"capability_id":"c","mode":"read_only","session_id":"s","run_id":"r","source_attestation":{"scheme":"scworkbench-scientific-state-v1","content_sha256":"1111111111111111111111111111111111111111111111111111111111111111"},"staging_identity":{"root_sha256":"2222222222222222222222222222222222222222222222222222222222222222","checkpoint_generation":"g"},"write_allowlist":[{"output_name":"x","output_id":"a","output_kind":"cell_vector","mutation_class":"sqlite_rows","table":"artifact_labels","key_scope":{"column":"artifact_id","values":["a"]}}]},
+  "inputs":{},"params":{},"outputs":{}
+}

@@ -259,7 +259,7 @@ wb_op_scvi_train <- function(bundle,
   req <- .wb_pybench_build_request(
     bundle = bundle,
     op_name = "scvi_train",
-    run_id = as.character(run_tmp$run_id),
+    run_id = .wb_pybench_current_run_id(bundle),
     inputs = list(
       matrix = matrix_id,
       cell_set = as.character(cell_set %||% "all")[1],

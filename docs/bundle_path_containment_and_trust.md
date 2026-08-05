@@ -58,7 +58,7 @@ import sources and are outside recipient validation.
 
 ## PyBench boundary
 
-Every engine-built `pybench-op-v1` request now includes a required
+Every engine-built `pybench-op-v2` request now includes a required
 `path_contract` record. It declares bundle-relative durable paths, explicit-only
 external inputs, and trusted-runtime-or-opt-in model loading. Python may receive
 the absolute mounted bundle root as runtime context, but paths written to a

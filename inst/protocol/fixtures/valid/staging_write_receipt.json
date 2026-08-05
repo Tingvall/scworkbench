@@ -1,0 +1,11 @@
+{
+  "message_type":"receipt", "protocol_version":"pybench-op-v2", "status":"ok", "op_name":"protocol_hello", "run_id":"run_fixture",
+  "capability_echo": {
+    "capability_id":"cap_fixture", "mode":"staging_write", "session_id":"session_fixture", "run_id":"run_fixture",
+    "source_attestation":{"scheme":"scworkbench-scientific-state-v1","content_sha256":"1111111111111111111111111111111111111111111111111111111111111111"},
+    "staging_identity":{"root_sha256":"2222222222222222222222222222222222222222222222222222222222222222","checkpoint_generation":"g_fixture"},
+    "write_allowlist":[{"output_name":"labels","output_id":"artifact_fixture","output_kind":"cell_vector","mutation_class":"sqlite_rows","table":"artifact_labels","key_scope":{"column":"artifact_id","values":["artifact_fixture"]}}]
+  },
+  "outputs":{"labels":{"artifact_id":"artifact_fixture","type":"cell_vector"}},
+  "write_manifest":[{"output_name":"labels","output_id":"artifact_fixture","output_kind":"cell_vector","mutation_class":"sqlite_rows","table":"artifact_labels","key_scope":{"column":"artifact_id","values":["artifact_fixture"]},"row_count":2,"content_sha256":"3333333333333333333333333333333333333333333333333333333333333333"}]
+}

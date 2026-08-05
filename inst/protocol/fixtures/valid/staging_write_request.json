@@ -1,0 +1,19 @@
+{
+  "message_type": "request",
+  "protocol_version": "pybench-op-v2",
+  "bundle_dir": "/runtime/private-stage",
+  "path_contract": {"version":"scworkbench-bundle-path-v1","durable_paths":"bundle_relative_contained","external_inputs":"explicit_import_only","serialized_models":"trusted_provenance_runtime_or_explicit_opt_in"},
+  "op_name": "protocol_hello",
+  "run": {"session_id":"session_fixture","run_id":"run_fixture"},
+  "execution_capability": {
+    "capability_id":"cap_fixture",
+    "mode":"staging_write",
+    "session_id":"session_fixture",
+    "run_id":"run_fixture",
+    "source_attestation":{"scheme":"scworkbench-scientific-state-v1","content_sha256":"1111111111111111111111111111111111111111111111111111111111111111"},
+    "staging_identity":{"root_sha256":"2222222222222222222222222222222222222222222222222222222222222222","checkpoint_generation":"g_fixture"},
+    "write_allowlist":[{"output_name":"labels","output_id":"artifact_fixture","output_kind":"cell_vector","mutation_class":"sqlite_rows","table":"artifact_labels","key_scope":{"column":"artifact_id","values":["artifact_fixture"]}}]
+  },
+  "inputs": {}, "params": {},
+  "outputs":{"labels":{"artifact_id":"artifact_fixture","type":"cell_vector"}}
+}

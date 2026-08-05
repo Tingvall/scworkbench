@@ -37,8 +37,15 @@
                                    python_bin = .wb_pybench_default_python(),
                                    env = character(0),
                                    request_path = tempfile("pybench_req_", fileext = ".json"),
-                                   receipt_path = tempfile("pybench_rec_", fileext = ".json")) {
+                                   receipt_path = tempfile("pybench_rec_", fileext = ".json"),
+                                   isolated = TRUE) {
   .wb_pyproto_validate_request(request)
+  if (isTRUE(isolated)) {
+    return(.wb_pybench_execute_isolated(
+      module = module, request = request, bundle = bundle, python_bin = python_bin,
+      env = env, request_path = request_path, receipt_path = receipt_path
+    ))
+  }
   .wb_pyproto_assert_scalar_chr(as.character(module %||% ""), "module")
   py <- as.character(python_bin %||% "")[1]
   if (!nzchar(py) || !file.exists(py)) {
@@ -129,20 +136,112 @@
   invisible(TRUE)
 }
 
-# Build a pybench-op-v1 request payload (internal helper).
+# Build the output-bound SQLite/payload authority for a pybench-op-v2 request.
+.wb_pybench_write_allowlist <- function(outputs, params = list()) {
+  table_map <- list(
+    cell_vector = c("artifact_labels"),
+    cell_vector_family = c("artifact_relation_rows"),
+    relation_family = c("artifact_relation_rows"),
+    pseudotime = c("artifact_pseudotime"),
+    path_2d_family = c("artifact_curves_2d"),
+    space_path = c("artifact_space_path_meta", "artifact_space_path_rows"),
+    space_2d = c("artifact_space_2d"),
+    obs_table = c("artifact_tables", "artifact_table_rows"),
+    feature_table = c("artifact_tables", "artifact_table_rows"),
+    model_ref = c("artifact_model_ref")
+  )
+  out <- list()
+  add <- function(x) { out[[length(out) + 1L]] <<- x }
+  for (nm in names(outputs %||% list())) {
+    spec <- outputs[[nm]]
+    id <- as.character(spec$artifact_id %||% "")[1]
+    kind <- as.character(spec$type %||% "")[1]
+    if (identical(kind, "space")) next
+    tables <- table_map[[kind]] %||% character()
+    .wb_assert(length(tables) > 0L, paste0("PYBENCH_CAPABILITY_MISMATCH: no v2 mutation mapping for output kind '", kind, "'"))
+    for (table in tables) add(list(
+      output_name = nm, output_id = id, output_kind = kind, mutation_class = "sqlite_rows",
+      table = table, key_scope = list(column = "artifact_id", values = list(id))
+    ))
+    if (identical(kind, "model_ref")) add(list(
+      output_name = nm, output_id = id, output_kind = kind, mutation_class = "payload_tree",
+      path = paste0("artifact_models/", id)
+    ))
+  }
+  space_id <- as.character(params$output_space_id %||% params$space_id_out %||% "")[1]
+  if (nzchar(space_id)) {
+    # A space is an operation output even where the legacy bridge returned it
+    # as a typed registry primitive rather than a preregistered artifact.
+    space_name <- if ("space_registry" %in% names(outputs)) "space_registry" else if ("space" %in% names(outputs)) "space" else names(outputs)[1]
+    if (!length(space_name) || !nzchar(space_name)) space_name <- "space"
+    synthetic <- list(output_name = space_name, output_id = space_id, output_kind = "space")
+    for (table in c("spaces", "space_2d", "space_coords")) add(c(synthetic, list(
+      mutation_class = "sqlite_rows", table = table,
+      key_scope = list(column = "space_id", values = list(space_id))
+    )))
+  }
+  out
+}
+
+.wb_pybench_current_run_id <- function(bundle) {
+  ctx <- .wb_current_mutation_context(bundle$con, bundle$dir)
+  .wb_assert(!is.null(ctx) && identical(as.character(ctx$route), "session_execution") && nzchar(as.character(ctx$run_id %||% "")[1]),
+             "PYBENCH_CAPABILITY_MISMATCH: writable PyBench requests require a preallocated session run")
+  as.character(ctx$run_id)[1]
+}
+
+# Build a pybench-op-v2 request payload (internal helper).
 .wb_pybench_build_request <- function(bundle,
                                       op_name,
-                                      run_id,
+                                      run_id = NULL,
                                       inputs = list(),
                                       params = list(),
-                                      outputs = list()) {
+                                      outputs = list(),
+                                      mode = "staging_write") {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  mode <- match.arg(mode, c("staging_write", "read_only"))
+  binding <- bundle$pybench_session_binding %||% NULL
+  if (identical(mode, "staging_write")) {
+    .wb_assert(nzchar(as.character(bundle$staging_source_dir %||% "")[1]) && !is.null(binding),
+               "PYBENCH_SOURCE_WRITE_ATTEMPT: writable PyBench requests are restricted to an engine-created session stage")
+    actual_run <- .wb_pybench_current_run_id(bundle)
+    if (!is.null(run_id) && nzchar(as.character(run_id)[1])) {
+      .wb_assert(identical(as.character(run_id)[1], actual_run),
+                 "PYBENCH_CAPABILITY_MISMATCH: supplied run ID is not the session's preallocated run ID")
+    }
+  } else {
+    actual_run <- as.character(run_id %||% paste0("read_", .wb_writer_lock_token()))[1]
+    if (is.null(binding)) {
+      source <- .wb_session_source_identity(bundle)
+      binding <- list(
+        session_id = paste0("read_only_", substr(.wb_prov_sha256_object(bundle$dir), 1L, 16L)),
+        source_attestation = list(scheme = "scworkbench-scientific-state-v1", content_sha256 = source$scientific_state_fingerprint),
+        checkpoint_generation = "committed-read-only",
+        root_sha256 = .wb_prov_sha256_object(list(source = source$bundle_dir, mode = "read_only"))
+      )
+    }
+  }
+  space_id <- as.character(params$output_space_id %||% params$space_id_out %||% "")[1]
+  if (identical(mode, "staging_write") && nzchar(space_id) && !"space_registry" %in% names(outputs)) {
+    outputs$space_registry <- list(artifact_id = space_id, type = "space")
+  }
+  allow <- if (identical(mode, "read_only")) list() else .wb_pybench_write_allowlist(outputs, params)
+  capability <- list(
+    capability_id = paste0("cap_", .wb_writer_lock_token()), mode = mode,
+    session_id = as.character(binding$session_id)[1], run_id = actual_run,
+    source_attestation = binding$source_attestation,
+    staging_identity = list(root_sha256 = as.character(binding$root_sha256)[1],
+                            checkpoint_generation = as.character(binding$checkpoint_generation)[1]),
+    write_allowlist = allow
+  )
   req <- list(
+    message_type = "request",
     protocol_version = .wb_pyproto_version(),
     bundle_dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE),
     path_contract = .wb_pyproto_path_contract(),
     op_name = as.character(op_name)[1],
-    run = list(run_id = as.character(run_id)[1]),
+    run = list(session_id = as.character(binding$session_id)[1], run_id = actual_run),
+    execution_capability = capability,
     inputs = inputs %||% list(),
     params = params %||% list(),
     outputs = outputs %||% list()

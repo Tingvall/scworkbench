@@ -143,7 +143,7 @@ wb_op_peakvi_fit <- function(bundle,
   req <- .wb_pybench_build_request(
     bundle = bundle,
     op_name = "peakvi_fit",
-    run_id = as.character(run_tmp$run_id),
+    run_id = .wb_pybench_current_run_id(bundle),
     inputs = list(
       matrix = matrix_id,
       cell_set = as.character(cell_set %||% "all")[1],
@@ -257,7 +257,7 @@ wb_op_peakvi_project <- function(bundle,
   req <- .wb_pybench_build_request(
     bundle = bundle,
     op_name = "peakvi_project",
-    run_id = paste0("peakvi_project_", format(Sys.time(), "%Y%m%d_%H%M%S")),
+    run_id = .wb_pybench_current_run_id(bundle),
     inputs = list(
       matrix = matrix_id,
       cell_ids = cells,

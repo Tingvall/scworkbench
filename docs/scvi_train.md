@@ -106,7 +106,7 @@ pybench.ops.scvi_train
 Request protocol:
 
 ```text
-pybench-op-v1
+pybench-op-v2
 ```
 
 Required request fields:
