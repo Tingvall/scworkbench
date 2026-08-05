@@ -12,7 +12,7 @@ test_pybench_palantir_bridge_contract <- function(bundle_dir,
   s <- wb_session_create(b, workspace, session_id = "palantir_v2")
   rr <- wb_session_run_op(s, b, "palantir_fit", inputs = list(
     fit_space = "peakvi_space", cell_set = "core", root_cell = cells[1],
-    terminal_cells = cells[c(2, 3)], dims = 1:20, knn = 30L,
+    terminal_cells = cells[c(2, 3)], dims = as.character(1:20), knn = 30L,
     n_diffusion_components = 10L, n_waypoints = 100L, seed = 20L,
     min_cells = 10L
   ))
@@ -31,7 +31,7 @@ test_pybench_palantir_bridge_contract <- function(bundle_dir,
     outputs = c("pseudotime", "branch_membership", "branch_summary", "entropy", "model"),
     created_by = "pybench-palantir-v2-contract")
   stopifnot(all(promoted$promoted$status == "ok"), promoted$session$durable$state == "promoted")
-  ids <- stats::setNames(as.character(promoted$promoted$artifact_id), as.character(promoted$promoted$output_name))
+  ids <- stats::setNames(as.character(promoted$promoted$artifact_id), as.character(promoted$promoted$output))
   wb_close_bundle(b); b <- wb_open_bundle(bundle_dir)
   pt <- wb_art_load(b, ids[["pseudotime"]], "cell_vector")
   bm <- wb_art_load(b, ids[["branch_membership"]], "relation_family")

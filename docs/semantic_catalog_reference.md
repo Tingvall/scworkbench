@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_semantic_catalog(); do not edit entries by hand. -->
 
-Generated at: 2026-08-04T21:34:23+0200
+Generated at: 2026-08-05T16:03:21+0200
 
-Record count: 314
+Record count: 315
 
-Graph edges: 900
+Graph edges: 906
 
 ## artifact_type
 
@@ -1207,6 +1207,12 @@ Description: Fit monocle3 graph/pseudotime using a scworkbench latent space inje
 Title: Monocle3 project curves
 
 Description: Project a fitted monocle3 trajectory graph into a 2D display space.
+
+### `op:py_protocol_hello`
+
+Title: PyBench protocol hello
+
+Description: Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.
 
 ### `op:peakvi_fit`
 

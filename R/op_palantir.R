@@ -108,7 +108,8 @@ wb_op_palantir_project <- function(bundle,
   outs_spec <- list(curves = list(type = "path_2d_family", name = "Palantir projected trajectories"))
   prereg <- .wb_pybench_preregister_outputs(bundle = bundle, run = run_tmp, outputs_spec = outs_spec)
   staging_ids <- vapply(prereg, function(x) as.character(x$artifact_id), character(1))
-  on.exit(.wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE), add = TRUE)
+  pybench_success <- FALSE
+  on.exit(if (!isTRUE(pybench_success)) .wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE), add = TRUE)
 
   req <- .wb_pybench_build_request(
     bundle = bundle,
@@ -136,6 +137,7 @@ wb_op_palantir_project <- function(bundle,
 
   cv_prim <- wb_art_load(bundle, prereg$curves$artifact_id, expected_kind = "path_2d_family")
   cv_prim$plot_space_id <- as.character(plot_space_id)
+  pybench_success <- TRUE
 
   list(
     outputs = list(curves = cv_prim),
@@ -235,7 +237,8 @@ wb_op_palantir_fit <- function(bundle,
   )
   prereg <- .wb_pybench_preregister_outputs(bundle = bundle, run = run_tmp, outputs_spec = outs_spec)
   staging_ids <- vapply(prereg, function(x) as.character(x$artifact_id), character(1))
-  on.exit(.wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = TRUE), add = TRUE)
+  pybench_success <- FALSE
+  on.exit(if (!isTRUE(pybench_success)) .wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE), add = TRUE)
 
   req <- .wb_pybench_build_request(
     bundle = bundle,
@@ -276,6 +279,14 @@ wb_op_palantir_fit <- function(bundle,
     entropy = wb_art_load(bundle, prereg$entropy$artifact_id, expected_kind = "cell_vector"),
     model = wb_art_load(bundle, prereg$model$artifact_id, expected_kind = "model_ref")
   )
+  # Palantir fits and projects in the same analytical space.  Preserve that
+  # association and the exact fitted-cell universe on the session primitive so
+  # a process-replaced dependent project can derive typed coverage without
+  # inspecting Python model internals.
+  outputs$model$in_space_id <- as.character(fit_space_id)
+  outputs$model$model_space_id <- as.character(fit_space_id)
+  outputs$model$cells <- as.character(cells)
+  pybench_success <- TRUE
 
   params_out <- list(
     space_id = fit_space_id,

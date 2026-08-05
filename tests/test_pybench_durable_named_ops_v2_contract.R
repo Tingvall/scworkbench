@@ -1,0 +1,69 @@
+.pybench_v2_test_env <- function() {
+  python <- .wb_pybench_default_python()
+  if (!file.exists(python)) return(NULL)
+  old <- Sys.getenv("PYBENCH_TEST_MOCK_TRAINING", unset = NA_character_)
+  Sys.setenv(PYBENCH_TEST_MOCK_TRAINING = "1")
+  list(old = old)
+}
+
+.pybench_v2_restore_env <- function(x) {
+  if (is.na(x$old)) Sys.unsetenv("PYBENCH_TEST_MOCK_TRAINING") else Sys.setenv(PYBENCH_TEST_MOCK_TRAINING = x$old)
+}
+
+.pybench_v2_atac_fixture <- function() {
+  if (!requireNamespace("BPCells", quietly = TRUE) || !requireNamespace("Matrix", quietly = TRUE)) return(NULL)
+  bundle_dir <- tempfile("scwb_named_v2_bundle_"); workspace <- tempfile("scwb_named_v2_sessions_")
+  b <- wb_init_bundle(bundle_dir, overwrite = TRUE)
+  cells <- paste0("cell_", seq_len(12L)); peaks <- paste0("peak_", seq_len(5L))
+  wb_define_cells(b, cells, metadata = data.frame(cell_id = cells, batch = rep(c("a", "b"), each = 6L)))
+  counts <- Matrix::Matrix(matrix(seq_len(60L) %% 4L, nrow = 5L, dimnames = list(peaks, cells)), sparse = TRUE)
+  wb_attach_matrix(b, "ATAC_counts", counts, layer = "counts", feature_type = "peak")
+  list(b = b, bundle_dir = bundle_dir, workspace = workspace, cells = cells)
+}
+
+test_pybench_durable_peakvi_fit_v2_contract <- function() {
+  env <- .pybench_v2_test_env(); if (is.null(env)) return(contract_test_skip("PyBench interpreter unavailable"))
+  x <- .pybench_v2_atac_fixture(); if (is.null(x)) return(contract_test_skip("BPCells/Matrix unavailable"))
+  b <- x$b; on.exit({ .pybench_v2_restore_env(env); try(wb_close_bundle(b), silent=TRUE); unlink(x$bundle_dir,recursive=TRUE); unlink(x$workspace,recursive=TRUE) }, add=TRUE)
+  fit <- wb_session_run_op(wb_session_create(b, x$workspace, "peakvi_fit_v2"), b, "peakvi_fit", inputs = list(
+    matrix="ATAC_counts", n_latent=3L, max_epochs=1L, space_id_out="peakvi.mock", cell_set="all", min_cells=2L))
+  ws <- fit$session$durable$workspace; wb_close_bundle(b); b <- wb_open_bundle(x$bundle_dir)
+  p <- wb_session_promote_current(b, wb_session_resume(b, ws), outputs="model", created_by="named-v2")
+  id <- as.character(p$promoted$artifact_id[p$promoted$output=="model"])[1]
+  stopifnot(p$session$durable$state=="promoted", "peakvi.mock" %in% wb_spaces(b)$space_id,
+            identical(wb_art_load(b,id,"model_ref")$engine,"peakvi"))
+  TRUE
+}
+
+test_pybench_durable_peakvi_project_v2_contract <- function() {
+  env <- .pybench_v2_test_env(); if (is.null(env)) return(contract_test_skip("PyBench interpreter unavailable"))
+  x <- .pybench_v2_atac_fixture(); if (is.null(x)) return(contract_test_skip("BPCells/Matrix unavailable"))
+  b <- x$b; on.exit({ .pybench_v2_restore_env(env); try(wb_close_bundle(b), silent=TRUE); unlink(x$bundle_dir,recursive=TRUE); unlink(x$workspace,recursive=TRUE) }, add=TRUE)
+  rel <- "artifact_models/peakvi_fixture"; dir.create(file.path(x$bundle_dir,rel),recursive=TRUE); writeLines("fixture",file.path(x$bundle_dir,rel,"model.txt"))
+  prim <- wb_prim_model_ref("peakvi.fixture","peakvi.fixture","peakvi"); prim$model_type <- "peakvi"; prim$model_path <- file.path(x$bundle_dir,rel)
+  run <- wb_new_run("peakvi_fit",inputs=list(cell_set="all",user_inputs=list()),outputs=list(model=prim))
+  made <- wb_promote_analysis(b,setNames(list(run),run$run_id),run$run_id,outputs="model",name_prefix="fixture")
+  model_id <- as.character(made$promoted$artifact_id[made$promoted$output=="model"])[1]
+  model <- wb_art_load(b,model_id,"model_ref")
+  projected <- wb_session_run_op(wb_session_create(b,x$workspace,"peakvi_project_v2"),b,"peakvi_project",inputs=list(
+    matrix="ATAC_counts",model=model,space_id_out="peakvi.projected.mock",cell_set="all",min_cells=1L))
+  ws <- projected$session$durable$workspace; wb_close_bundle(b); b <- wb_open_bundle(x$bundle_dir)
+  p <- wb_session_promote_current(b,wb_session_resume(b,ws),outputs="fit_summary",created_by="named-v2")
+  stopifnot(all(p$promoted$status=="ok"),"peakvi.projected.mock" %in% wb_spaces(b)$space_id)
+  TRUE
+}
+
+test_pybench_durable_palantir_fit_project_v2_contract <- function() {
+  env <- .pybench_v2_test_env(); if (is.null(env)) return(contract_test_skip("PyBench interpreter unavailable"))
+  bundle_dir<-tempfile("pal_v2_b");workspace<-tempfile("pal_v2_w");b<-wb_init_bundle(bundle_dir,overwrite=TRUE);cells<-paste0("c",1:12)
+  on.exit({.pybench_v2_restore_env(env);try(wb_close_bundle(b),silent=TRUE);unlink(bundle_dir,recursive=TRUE);unlink(workspace,recursive=TRUE)},add=TRUE)
+  wb_define_cells(b,cells);wb_attach_space(b,"latent",data.frame(cell_id=cells,d1=1:12,d2=12:1,d3=(1:12)/2));wb_attach_space(b,"plot2d",data.frame(cell_id=cells,x=1:12,y=12:1))
+  fit<-wb_session_run_op(wb_session_create(b,workspace,"pal_fit"),b,"palantir_fit",inputs=list(fit_space="latent",root_cell=cells[1],terminal_cells=cells[c(11,12)],dims=as.character(1:3),knn=3L,n_diffusion_components=2L,n_waypoints=10L,cell_set="all",min_cells=2L))
+  ws<-fit$session$durable$workspace;fit_run_id<-fit$run$run_id;wb_close_bundle(b);b<-wb_open_bundle(bundle_dir)
+  project<-wb_session_run_op(wb_session_resume(b,ws),b,"palantir_project",inputs=list(model=wb_ref_run(fit_run_id,"model"),plot_space="plot2d",min_cells_per_branch=2L,approx_points=5L,cell_set="all",min_cells=1L))
+  ws<-project$session$durable$workspace;wb_close_bundle(b);b<-wb_open_bundle(bundle_dir);curves<-wb_session_promote_current(b,wb_session_resume(b,ws),outputs="curves",created_by="named-v2")
+  cid<-as.character(curves$promoted$artifact_id[curves$promoted$output=="curves"])[1]
+  stopifnot(curves$session$durable$state=="promoted", identical(wb_art_load(b,cid,"path_2d_family")$kind,"path_2d_family"),
+            any(curves$promoted$run_id==fit_run_id))
+  TRUE
+}

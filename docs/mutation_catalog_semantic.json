@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
-  "generated_at": "2026-08-04T21:34:21+0200",
-  "record_count": 147,
+  "generated_at": "2026-08-05T16:03:21+0200",
+  "record_count": 148,
   "meaningful_public_transformation_count": 61,
   "exported_guarded_function_count": 26,
   "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_matrix_log_normalize", "wb_op_palantir_fit", "wb_op_palantir_project", "wb_op_pca_fit", "wb_op_peakvi_project", "wb_op_umap_fit", "wb_op_umap_transform", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
@@ -1149,6 +1149,18 @@
       "supported_route": "direct_pure_computation",
       "supported_route_count": 0,
       "boundary": "pure",
+      "direct_committed_write": false
+    },
+    {
+      "interface_id": "matrix_space_model_writer:wb_op_py_protocol_hello",
+      "function_name": "wb_op_py_protocol_hello",
+      "category": "matrix_space_model_writer",
+      "exported": false,
+      "implemented": true,
+      "durable_mutation": true,
+      "supported_route": "registered_session_execution_and_promotion",
+      "supported_route_count": 1,
+      "boundary": "internal",
       "direct_committed_write": false
     },
     {

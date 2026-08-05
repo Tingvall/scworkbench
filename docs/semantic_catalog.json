@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
-  "generated_at": "2026-08-04T21:34:23+0200",
-  "record_count": 314,
+  "generated_at": "2026-08-05T16:03:21+0200",
+  "record_count": 315,
   "record_type_counts": {
     "artifact_type": 74,
     "getter": 77,
-    "op": 56,
+    "op": 57,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -9629,6 +9629,117 @@
       }
     },
     {
+      "record_id": "op:py_protocol_hello",
+      "record_type": "op",
+      "name": "py_protocol_hello",
+      "title": "PyBench protocol hello",
+      "description": "Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.",
+      "search_text": "PyBench protocol hello\nQualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.\nprotocol\npython\nqualification\ncell_set\nselect\nFALSE\nvector\ncell_vector\nterminal_artifact\nTRUE\nDeterministic continuous preview vector.\nmembership\nrelation_family\nDeterministic preview membership.\nsummary\nobs_table\nProtocol write summary.\nn_preview\nint\n25\n1\n1e+05\nMaximum cells written by the lightweight protocol operation.",
+      "tags": ["op", "protocol", "python", "qualification"],
+      "payload": {
+        "op_name": "py_protocol_hello",
+        "title": "PyBench protocol hello",
+        "description": "Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.",
+        "intent": ["protocol", "python", "qualification"],
+        "consumes": [
+          {
+            "name": "cell_set",
+            "kind": "select",
+            "required": false
+          }
+        ],
+        "produces": [
+          {
+            "name": "vector",
+            "kind": "cell_vector",
+            "output_name": "vector",
+            "primitive_kind": "cell_vector",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "vector",
+            "description": "Deterministic continuous preview vector."
+          },
+          {
+            "name": "membership",
+            "kind": "relation_family",
+            "output_name": "membership",
+            "primitive_kind": "relation_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "membership",
+            "description": "Deterministic preview membership."
+          },
+          {
+            "name": "summary",
+            "kind": "obs_table",
+            "output_name": "summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "summary",
+            "description": "Protocol write summary."
+          }
+        ],
+        "inputs": {
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "all",
+            "value_type": "cell_set",
+            "required": false,
+            "non_empty": true
+          }
+        },
+        "controls": {
+          "cell_set": {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "required": false,
+            "help": "Named bundle cell set defining the requested cell universe."
+          },
+          "cell_ids": {
+            "name": "cell_ids",
+            "type": "cell_ids",
+            "default": null,
+            "required": false,
+            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+          },
+          "min_cells": {
+            "name": "min_cells",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "required": false,
+            "help": "Minimum effective cell count required before runner execution."
+          }
+        },
+        "params": [
+          {
+            "name": "n_preview",
+            "type": "int",
+            "default": 25,
+            "min": 1,
+            "max": 100000,
+            "help": "Maximum cells written by the lightweight protocol operation.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": true,
+            "non_empty": false
+          }
+        ],
+        "promotable": ["vector", "membership", "summary"],
+        "replay_equivalence": {
+          "vector": "exact_canonical_value",
+          "membership": "exact_canonical_value",
+          "summary": "exact_canonical_value"
+        },
+        "chunking": null
+      }
+    },
+    {
       "record_id": "op:peakvi_fit",
       "record_type": "op",
       "name": "peakvi_fit",
@@ -16608,9 +16719,9 @@
   ],
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
-    "generated_at": "2026-08-04T21:34:23+0200",
-    "node_count": 314,
-    "edge_count": 900,
+    "generated_at": "2026-08-05T16:03:21+0200",
+    "node_count": 315,
+    "edge_count": 906,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -16899,6 +17010,12 @@
         "record_type": "op",
         "name": "monocle3_project",
         "title": "Monocle3 project curves"
+      },
+      {
+        "record_id": "op:py_protocol_hello",
+        "record_type": "op",
+        "name": "py_protocol_hello",
+        "title": "PyBench protocol hello"
       },
       {
         "record_id": "op:peakvi_fit",
@@ -21239,6 +21356,42 @@
         "to": "artifact_type:path_2d_family",
         "edge_type": "promotes_as",
         "label": "promotable:curves"
+      },
+      {
+        "from": "op:py_protocol_hello",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:py_protocol_hello",
+        "to": "primitive:cell_vector",
+        "edge_type": "produces",
+        "label": "output:vector"
+      },
+      {
+        "from": "op:py_protocol_hello",
+        "to": "primitive:relation_family",
+        "edge_type": "produces",
+        "label": "output:membership"
+      },
+      {
+        "from": "op:py_protocol_hello",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:summary"
+      },
+      {
+        "from": "op:py_protocol_hello",
+        "to": "artifact_type:cell_vector",
+        "edge_type": "promotes_as",
+        "label": "promotable:vector"
+      },
+      {
+        "from": "op:py_protocol_hello",
+        "to": "artifact_type:relation_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:membership"
       },
       {
         "from": "primitive:matrix",

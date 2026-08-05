@@ -182,7 +182,7 @@ wb_mutation_catalog_semantic <- function() {
   missing_guarded <- setdiff(exported_guarded, cataloged_functions)
   list(
     schema_version = "scworkbench.mutation_catalog.semantic.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     record_count = length(recs),
     meaningful_public_transformation_count = length(meaningful),
     exported_guarded_function_count = length(exported_guarded),

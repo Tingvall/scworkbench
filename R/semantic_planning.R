@@ -144,7 +144,7 @@ wb_semantic_plan_artifact_next_steps <- function(bundle, artifact_id, include_re
 
   list(
     schema_version = "scworkbench.semantic_artifact_plan.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     artifact = list(
       artifact_id = info$artifact_id,
       artifact_type = info$artifact_type,

@@ -138,7 +138,8 @@ wb_op_peakvi_fit <- function(bundle,
   )
   prereg <- .wb_pybench_preregister_outputs(bundle = bundle, run = run_tmp, outputs_spec = outs_spec)
   staging_ids <- vapply(prereg, function(x) as.character(x$artifact_id), character(1))
-  on.exit(.wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE), add = TRUE)
+  pybench_success <- FALSE
+  on.exit(if (!isTRUE(pybench_success)) .wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE), add = TRUE)
 
   req <- .wb_pybench_build_request(
     bundle = bundle,
@@ -181,6 +182,7 @@ wb_op_peakvi_fit <- function(bundle,
   .wb_assert(ncol(X) == n_latent, "peakvi_fit: latent space dimensionality mismatch.")
 
   model_prim <- wb_art_load(bundle, prereg$model$artifact_id, expected_kind = "model_ref")
+  pybench_success <- TRUE
 
   list(
     outputs = list(

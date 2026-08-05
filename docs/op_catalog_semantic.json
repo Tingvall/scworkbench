@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
-  "generated_at": "2026-08-04T21:34:21+0200",
-  "op_count": 56,
+  "generated_at": "2026-08-05T16:03:21+0200",
+  "op_count": 57,
   "ops": [
     {
       "op_name": "leiden",
@@ -9183,6 +9183,108 @@
       "promotable": "curves",
       "replay_equivalence": {
         "curves": "exact_canonical_value"
+      },
+      "chunking": null
+    },
+    {
+      "op_name": "py_protocol_hello",
+      "title": "PyBench protocol hello",
+      "description": "Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.",
+      "intent": ["protocol", "python", "qualification"],
+      "consumes": [
+        {
+          "name": "cell_set",
+          "kind": "select",
+          "required": false
+        }
+      ],
+      "produces": [
+        {
+          "name": "vector",
+          "kind": "cell_vector",
+          "output_name": "vector",
+          "primitive_kind": "cell_vector",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "vector",
+          "description": "Deterministic continuous preview vector."
+        },
+        {
+          "name": "membership",
+          "kind": "relation_family",
+          "output_name": "membership",
+          "primitive_kind": "relation_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "membership",
+          "description": "Deterministic preview membership."
+        },
+        {
+          "name": "summary",
+          "kind": "obs_table",
+          "output_name": "summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "summary",
+          "description": "Protocol write summary."
+        }
+      ],
+      "inputs": {
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "all",
+          "value_type": "cell_set",
+          "required": false,
+          "non_empty": true
+        }
+      },
+      "controls": {
+        "cell_set": {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "required": false,
+          "help": "Named bundle cell set defining the requested cell universe."
+        },
+        "cell_ids": {
+          "name": "cell_ids",
+          "type": "cell_ids",
+          "default": null,
+          "required": false,
+          "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+        },
+        "min_cells": {
+          "name": "min_cells",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "required": false,
+          "help": "Minimum effective cell count required before runner execution."
+        }
+      },
+      "params": [
+        {
+          "name": "n_preview",
+          "type": "int",
+          "default": 25,
+          "min": 1,
+          "max": 100000,
+          "help": "Maximum cells written by the lightweight protocol operation.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": true,
+          "non_empty": false
+        }
+      ],
+      "promotable": ["vector", "membership", "summary"],
+      "replay_equivalence": {
+        "vector": "exact_canonical_value",
+        "membership": "exact_canonical_value",
+        "summary": "exact_canonical_value"
       },
       "chunking": null
     },

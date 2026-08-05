@@ -192,7 +192,7 @@ wb_wrangler_catalog_semantic <- function() {
   wranglers <- c(table_records, mapper_records)
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.wrangler_catalog.semantic.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     wrangler_count = length(wranglers),
     wranglers = wranglers
   ))
@@ -271,7 +271,7 @@ wb_primitive_catalog_semantic <- function() {
   primitives <- .wb_primitive_catalog_entries()
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.primitive_catalog.semantic.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     primitive_count = length(primitives),
     primitives = primitives
   ))
@@ -483,7 +483,7 @@ wb_artifact_type_catalog_semantic <- function() {
   artifact_types <- .wb_artifact_type_catalog_fill_known_tables(.wb_artifact_type_catalog_entries())
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.artifact_type_catalog.semantic.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     artifact_type_count = length(artifact_types),
     artifact_types = artifact_types
   ))

@@ -204,11 +204,13 @@
           if (identical(as.character(allowed$mutation_class), "sqlite_rows")) {
             return(identical(.wb_pyproto_descriptor_key(reported), .wb_pyproto_descriptor_key(allowed)))
           }
-          rel <- as.character(reported$path)[1]; prefix <- as.character(allowed$path)[1]
-          identical(rel, prefix) || startsWith(rel, paste0(prefix, "/")) ||
-            (identical(dirname(rel), dirname(prefix)) && startsWith(basename(rel), basename(prefix)))
+          .wb_pybench_payload_matches(as.character(reported$path)[1], allowed)
         }, logical(1))
-        .wb_assert(sum(hit) == 1L, "PYBENCH_RECEIPT_MISMATCH: write manifest contains an unrequested or ambiguous descriptor")
+        .wb_assert(sum(hit) == 1L, paste0(
+          "PYBENCH_RECEIPT_MISMATCH: write manifest contains an unrequested or ambiguous descriptor (output=",
+          as.character(reported$output_name %||% ""), ", class=", as.character(reported$mutation_class %||% ""),
+          ", target=", as.character(reported$table %||% reported$path %||% ""), ")"
+        ))
       }
     }
   } else {

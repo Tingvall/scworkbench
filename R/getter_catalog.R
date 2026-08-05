@@ -801,7 +801,7 @@ wb_getter_catalog_semantic <- function() {
   })
   .wb_getter_catalog_semantic_clean(list(
     schema_version = "scworkbench.getter_catalog.semantic.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     getter_count = length(entries),
     getters = entries
   ))

@@ -31,7 +31,7 @@ test_pybench_protocol_hello_bridge_contract <- function(bundle_dir,
             nrow(promoted$promoted) == 3L,
             all(promoted$promoted$status == "ok"))
   artifact_ids <- stats::setNames(as.character(promoted$promoted$artifact_id),
-                                  as.character(promoted$promoted$output_name))
+                                  as.character(promoted$promoted$output))
 
   wb_close_bundle(b); b <- wb_open_bundle(source)
   vec <- wb_art_load(b, artifact_ids[["vector"]], expected_kind = "cell_vector")

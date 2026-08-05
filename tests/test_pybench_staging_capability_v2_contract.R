@@ -1,4 +1,29 @@
 test_pybench_staging_capability_v2_contract <- function() {
+  identity_con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+  on.exit(try(DBI::dbDisconnect(identity_con), silent = TRUE), add = TRUE)
+  DBI::dbExecute(identity_con, paste0(
+    "CREATE TABLE numeric_rows(output_id TEXT,text_value TEXT,real_value REAL,",
+    "int_value INTEGER,null_value TEXT,blob_value BLOB);"
+  ))
+  DBI::dbExecute(identity_con, paste0(
+    "INSERT INTO numeric_rows VALUES",
+    "('out_a','quote '' snowman ☃' || char(10) || 'line',0.1,9007199254740991,NULL,X'00FF'),",
+    "('out_a','tiny',1.2345678901234567,-7,NULL,X'616263'),",
+    "('out_b','other',-98765.43210987654,42,NULL,X'');"
+  ))
+  identity_snapshot <- .wb_pybench_db_snapshot(identity_con)
+  identity_descriptor <- function(output_id) list(
+    table = "numeric_rows", key_scope = list(column = "output_id", values = list(output_id))
+  )
+  stopifnot(
+    identical(.wb_pybench_rows_sha256(.wb_pybench_scope_rows(
+      identity_snapshot, identity_descriptor("out_a"), canonical = TRUE
+    )), "d3a0ff82b436b6e208f53cfb77ba390ea1eb02abd4ca7e289419681b86fe7d9a"),
+    identical(.wb_pybench_rows_sha256(.wb_pybench_scope_rows(
+      identity_snapshot, identity_descriptor("out_b"), canonical = TRUE
+    )), "d7f3b14cb6ddc68826f833b5975ba6af640003dd923f0f3539465424908569d1")
+  )
+
   valid_dir <- file.path("inst", "protocol", "fixtures", "valid")
   invalid_dir <- file.path("inst", "protocol", "fixtures", "invalid")
   for (path in list.files(valid_dir, full.names = TRUE)) {
@@ -155,6 +180,7 @@ test_pybench_staging_capability_v2_contract <- function() {
       "for k in ('capability_id','session_id','run_id','source_attestation','staging_identity'): assert m[k]==c[k]",
       "spec=q['outputs']['model']; rel='artifact_models/'+spec['artifact_id']+'.bin'; dst=root/rel; dst.parent.mkdir(parents=True,exist_ok=True)",
       "dst.write_bytes(b'isolated-v2-payload')",
+      "if os.environ.get('MOCK_SIBLING_PAYLOAD'): (dst.parent/(spec['artifact_id']+'_evil.bin')).write_bytes(b'undeclared')",
       "if os.environ.get('MOCK_EXTRA_SQL'):",
       " dbrel=json.load(open(root/'manifest.json'))['storage']['sqlite']['path']; con=sqlite3.connect(root/dbrel); con.execute('CREATE TABLE undeclared_v2(x TEXT)'); con.commit(); con.close()",
       "d=copy.deepcopy(next(x for x in c['write_allowlist'] if x['mutation_class']=='payload_tree')); d['path']=rel; d['row_count']=0; d['content_sha256']=hashlib.sha256(dst.read_bytes()).hexdigest()",
@@ -194,6 +220,15 @@ test_pybench_staging_capability_v2_contract <- function() {
     stopifnot(inherits(extra, "try-error"), grepl("PYBENCH_OUT_OF_SCOPE_MUTATION", as.character(extra), fixed = TRUE),
               identical(before_extra, .wb_pybench_db_snapshot(stage$con)),
               !file.exists(file.path(stage$dir, "artifact_models", paste0(extra_outputs$model$artifact_id, ".bin"))))
+
+    sibling_outputs <- .wb_pybench_preregister_outputs(stage, run, list(model = list(type = "model_ref")))
+    sibling_req <- .wb_pybench_build_request(stage, "mock_v2", "run_planned", outputs = sibling_outputs)
+    sibling <- try(.wb_pybench_run_module("mock_v2", sibling_req, bundle = stage,
+                                          python_bin = Sys.which("python3"),
+                                          env = c(paste0("PYTHONPATH=", module_dir), "MOCK_SIBLING_PAYLOAD=1")), silent = TRUE)
+    stopifnot(inherits(sibling, "try-error"), grepl("PYBENCH_OUT_OF_SCOPE_MUTATION", as.character(sibling), fixed = TRUE),
+              !file.exists(file.path(stage$dir, "artifact_models", paste0(sibling_outputs$model$artifact_id, ".bin"))),
+              !file.exists(file.path(stage$dir, "artifact_models", paste0(sibling_outputs$model$artifact_id, "_evil.bin"))))
 
     link_outputs <- .wb_pybench_preregister_outputs(stage, run, list(model = list(type = "model_ref")))
     link_req <- .wb_pybench_build_request(stage, "mock_v2", "run_planned", outputs = link_outputs)

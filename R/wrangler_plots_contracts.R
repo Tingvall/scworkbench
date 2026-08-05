@@ -487,7 +487,7 @@ wb_plot_catalog_semantic <- function() {
   names(plots) <- NULL
   .wb_plot_catalog_semantic_clean(list(
     schema_version = "scworkbench.plot_catalog.semantic.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     plot_count = length(plots),
     plots = plots
   ))

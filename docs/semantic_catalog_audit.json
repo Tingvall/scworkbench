@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.semantic_catalog_audit.v1",
-  "generated_at": "2026-08-04T21:34:26+0200",
+  "generated_at": "2026-08-05T16:03:21+0200",
   "ok": true,
   "missing_ops": [],
   "missing_plot_mappers": [],
@@ -15,6 +15,6 @@
   "unknown_op_kinds": [],
   "bad_edge_count": 0,
   "known_table_type_count": 67,
-  "record_count": 314,
-  "edge_count": 900
+  "record_count": 315,
+  "edge_count": 906
 }

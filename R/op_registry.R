@@ -104,7 +104,7 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
   names(ops) <- NULL
   .wb_op_catalog_semantic_clean(list(
     schema_version = "scworkbench.op_catalog.semantic.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     op_count = length(ops),
     ops = ops
   ))

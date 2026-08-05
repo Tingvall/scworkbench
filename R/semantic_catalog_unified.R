@@ -112,7 +112,7 @@ wb_parameter_semantics_catalog <- function() {
   params <- .wb_parameter_semantics_entries()
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.parameter_semantics_catalog.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     parameter_count = length(params),
     parameters = params
   ))
@@ -316,7 +316,7 @@ wb_recipe_semantics_catalog <- function() {
   recipes <- .wb_recipe_semantics_entries()
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.recipe_semantics_catalog.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     recipe_count = length(recipes),
     recipes = recipes
   ))
@@ -614,7 +614,7 @@ wb_semantic_compatibility_graph <- function(bundle = NULL) {
 
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.semantic_compatibility_graph.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     node_count = length(records),
     edge_count = length(edges),
     nodes = lapply(records, function(x) {
@@ -645,7 +645,7 @@ wb_semantic_catalog <- function(bundle = NULL) {
   names(type_count_list) <- names(type_counts)
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.semantic_catalog.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     record_count = length(records),
     record_type_counts = type_count_list,
     records = records,
@@ -752,7 +752,7 @@ wb_semantic_catalog_audit <- function(bundle = NULL) {
 
   .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.semantic_catalog_audit.v1",
-    generated_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
+    generated_at = .wb_catalog_generated_at(),
     ok = ok,
     missing_ops = missing_ops,
     missing_plot_mappers = missing_plot_mappers,
@@ -866,6 +866,15 @@ wb_refresh_semantic_catalogs <- function(bundle = NULL,
                                          validate = TRUE,
                                          fail_on_audit = TRUE,
                                          write_graph_views = TRUE) {
+  old_stamp <- getOption("scworkbench.catalog_generated_at", NULL)
+  on.exit(options(scworkbench.catalog_generated_at = old_stamp), add = TRUE)
+  stamp_path <- file.path(docs_dir, "op_catalog_semantic.json")
+  stamp <- if (file.exists(stamp_path)) {
+    prior <- try(jsonlite::read_json(stamp_path, simplifyVector = TRUE), silent = TRUE)
+    if (!inherits(prior, "try-error")) as.character(prior$generated_at %||% "")[1] else ""
+  } else ""
+  if (!nzchar(stamp)) stamp <- "source-controlled"
+  options(scworkbench.catalog_generated_at = stamp)
   json_paths <- file.path(
     docs_dir,
     c(

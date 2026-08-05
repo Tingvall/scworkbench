@@ -2,10 +2,24 @@
 
 .wb_pybench_rows_sha256 <- function(rows) {
   rows <- as.data.frame(rows, stringsAsFactors = FALSE)
-  if (length(names(rows))) rows <- rows[, sort(names(rows)), drop = FALSE]
-  canonical <- jsonlite::toJSON(rows, dataframe = "rows", auto_unbox = TRUE,
-                                digits = NA, na = "null", null = "null", pretty = FALSE)
-  digest::digest(as.character(canonical), algo = "sha256", serialize = FALSE)
+  columns <- sort(names(rows), method = "radix")
+  rows <- rows[, columns, drop = FALSE]
+  if (nrow(rows) > 1L) {
+    rows <- rows[do.call(order, c(unname(rows), list(na.last = FALSE, method = "radix"))), , drop = FALSE]
+  }
+  token <- function(value) {
+    value <- enc2utf8(as.character(value))
+    paste0(nchar(value, type = "bytes"), ":", value)
+  }
+  stream <- c("scworkbench-sqlite-rows-v2\n", paste0("C", length(columns), "\n"))
+  if (length(columns)) stream <- c(stream, vapply(columns, token, character(1)))
+  stream <- c(stream, paste0("R", nrow(rows), "\n"))
+  if (nrow(rows) && length(columns)) {
+    stream <- c(stream, unlist(lapply(seq_len(nrow(rows)), function(i) {
+      vapply(rows[i, , drop = TRUE], token, character(1))
+    }), use.names = FALSE))
+  }
+  digest::digest(paste0(stream, collapse = ""), algo = "sha256", serialize = FALSE)
 }
 
 .wb_pybench_db_snapshot <- function(con) {
@@ -14,9 +28,42 @@
   rows <- stats::setNames(lapply(tables, function(table) {
     info <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", DBI::dbQuoteIdentifier(con, table), ");"))
     cols <- as.character(info$name)
-    order <- if (length(cols)) paste(vapply(cols, function(x) as.character(DBI::dbQuoteIdentifier(con, x)), character(1)), collapse = ",") else "rowid"
-    value <- DBI::dbGetQuery(con, paste0("SELECT * FROM ", DBI::dbQuoteIdentifier(con, table), " ORDER BY ", order, ";"))
-    list(row_count = nrow(value), content_sha256 = .wb_prov_sha256_object(value), rows = value)
+    order <- if (length(cols)) paste(vapply(cols, function(x) paste0("src.", as.character(DBI::dbQuoteIdentifier(con, x))), character(1)), collapse = ",") else "src.rowid"
+    from <- paste0(DBI::dbQuoteIdentifier(con, table), " AS src")
+    value <- DBI::dbGetQuery(con, paste0("SELECT src.* FROM ", from, " ORDER BY ", order, ";"))
+    type_expr <- vapply(cols, function(column) {
+      quoted <- as.character(DBI::dbQuoteIdentifier(con, column))
+      paste0("typeof(", quoted, ") AS ", quoted)
+    }, character(1))
+    canonical_expr <- vapply(cols, function(column) {
+      quoted <- as.character(DBI::dbQuoteIdentifier(con, column))
+      paste0(
+        "CASE typeof(", quoted, ") ",
+        "WHEN 'null' THEN 'null:' ",
+        "WHEN 'integer' THEN 'integer:' || printf('%lld',", quoted, ") ",
+        "WHEN 'real' THEN NULL ",
+        "WHEN 'text' THEN 'text:' || hex(CAST(", quoted, " AS BLOB)) ",
+        "WHEN 'blob' THEN 'blob:' || hex(", quoted, ") END AS ", quoted
+      )
+    }, character(1))
+    canonical <- if (length(canonical_expr)) {
+      DBI::dbGetQuery(con, paste0("SELECT ", paste(canonical_expr, collapse = ","), " FROM ",
+                                  from, " ORDER BY ", order, ";"))
+    } else data.frame()
+    types <- if (length(type_expr)) {
+      DBI::dbGetQuery(con, paste0("SELECT ", paste(type_expr, collapse = ","), " FROM ",
+                                  from, " ORDER BY ", order, ";"))
+    } else data.frame()
+    for (column in cols) {
+      real <- identical(nrow(types), nrow(value)) & as.character(types[[column]]) == "real"
+      if (!any(real)) next
+      canonical[[column]][real] <- vapply(as.numeric(value[[column]][real]), function(number) {
+        bytes <- writeBin(as.double(number), raw(), size = 8L, endian = "big")
+        paste0("real:", paste(sprintf("%02X", as.integer(bytes)), collapse = ""))
+      }, character(1))
+    }
+    list(row_count = nrow(value), content_sha256 = .wb_prov_sha256_object(value),
+         rows = value, canonical_rows = canonical)
   }), tables)
   list(schema = schema, schema_sha256 = .wb_prov_sha256_object(schema), tables = rows)
 }
@@ -95,7 +142,7 @@
   invisible(path)
 }
 
-.wb_pybench_scope_rows <- function(snapshot, descriptor) {
+.wb_pybench_scope_rows <- function(snapshot, descriptor, canonical = FALSE) {
   table <- as.character(descriptor$table)[1]
   tab <- snapshot$tables[[table]]
   .wb_assert(!is.null(tab), paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: allowed table is absent: ", table))
@@ -103,13 +150,20 @@
   column <- as.character(descriptor$key_scope$column)[1]
   .wb_assert(column %in% names(rows), paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: key column is absent: ", table, ".", column))
   values <- as.character(descriptor$key_scope$values)
-  rows[as.character(rows[[column]]) %in% values, , drop = FALSE]
+  selected <- as.character(rows[[column]]) %in% values
+  out <- if (isTRUE(canonical)) tab$canonical_rows[selected, , drop = FALSE] else rows[selected, , drop = FALSE]
+  rownames(out) <- NULL
+  out
 }
 
 .wb_pybench_payload_matches <- function(rel, allowed) {
   prefix <- sub("/+$", "", as.character(allowed$path)[1])
-  identical(rel, prefix) || startsWith(rel, paste0(prefix, "/")) ||
-    (identical(dirname(rel), dirname(prefix)) && startsWith(basename(rel), basename(prefix)))
+  stem <- basename(prefix)
+  sibling <- basename(rel)
+  extension_form <- identical(dirname(rel), dirname(prefix)) &&
+    startsWith(sibling, paste0(stem, ".")) &&
+    grepl("^[A-Za-z0-9][A-Za-z0-9._-]*$", substring(sibling, nchar(stem) + 2L))
+  identical(rel, prefix) || startsWith(rel, paste0(prefix, "/")) || extension_form
 }
 
 .wb_pybench_audit_mutations <- function(pre_db, post_db, pre_payload, post_payload, request) {
@@ -127,21 +181,26 @@
   for (table in changed_tables) {
     candidates <- Filter(function(x) identical(as.character(x$table), table), sqlite_allow)
     .wb_assert(length(candidates) > 0L, paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: undeclared SQLite table mutation: ", table))
-    covered_pre <- covered_post <- logical(0)
+    key_columns <- unique(vapply(candidates, function(x) as.character(x$key_scope$column)[1], character(1)))
+    .wb_assert(length(key_columns) == 1L,
+               paste0("PYBENCH_CAPABILITY_MISMATCH: table allowances use incompatible key columns: ", table))
+    column <- key_columns[[1]]
+    values <- unique(unlist(lapply(candidates, function(x) as.character(x$key_scope$values)), use.names = FALSE))
+    full_pre <- pre_db$tables[[table]]$rows
+    full_post <- post_db$tables[[table]]$rows
+    .wb_assert(column %in% names(full_pre) && column %in% names(full_post),
+               paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: key column is absent: ", table, ".", column))
+    outside_pre <- full_pre[!as.character(full_pre[[column]]) %in% values, , drop = FALSE]
+    outside_post <- full_post[!as.character(full_post[[column]]) %in% values, , drop = FALSE]
+    rownames(outside_pre) <- NULL; rownames(outside_post) <- NULL
+    .wb_assert(identical(outside_pre, outside_post), paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: sibling rows changed in ", table))
     for (allowed in candidates) {
       pre_rows <- .wb_pybench_scope_rows(pre_db, allowed)
       post_rows <- .wb_pybench_scope_rows(post_db, allowed)
-      full_pre <- pre_db$tables[[table]]$rows
-      full_post <- post_db$tables[[table]]$rows
-      column <- as.character(allowed$key_scope$column)[1]
-      values <- as.character(allowed$key_scope$values)
-      outside_pre <- full_pre[!as.character(full_pre[[column]]) %in% values, , drop = FALSE]
-      outside_post <- full_post[!as.character(full_post[[column]]) %in% values, , drop = FALSE]
-      .wb_assert(identical(outside_pre, outside_post), paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: sibling rows changed in ", table))
       if (!identical(pre_rows, post_rows)) {
         d <- allowed
         d$row_count <- as.integer(nrow(post_rows))
-        d$content_sha256 <- .wb_pybench_rows_sha256(post_rows)
+        d$content_sha256 <- .wb_pybench_rows_sha256(.wb_pybench_scope_rows(post_db, allowed, canonical = TRUE))
         descriptors[[length(descriptors) + 1L]] <- d
       }
     }
@@ -168,9 +227,21 @@
 
 .wb_pybench_verify_receipt_audit <- function(receipt, observed) {
   reported <- receipt$write_manifest %||% list()
-  .wb_assert(identical(sort(vapply(reported, .wb_pybench_manifest_key, character(1))),
-                       sort(vapply(observed, .wb_pybench_manifest_key, character(1)))),
-             "PYBENCH_RECEIPT_MISMATCH: receipt write manifest differs from authoritative R audit")
+  reported_keys <- sort(vapply(reported, .wb_pybench_manifest_key, character(1)))
+  observed_keys <- sort(vapply(observed, .wb_pybench_manifest_key, character(1)))
+  if (!identical(reported_keys, observed_keys)) {
+    missing <- setdiff(observed_keys, reported_keys)
+    extra <- setdiff(reported_keys, observed_keys)
+    summarize <- function(x) {
+      if (!length(x)) return("none")
+      paste(vapply(strsplit(head(x, 3L), "\r", fixed = TRUE), function(parts) {
+        paste0(paste(head(parts, max(1L, length(parts) - 1L)), collapse = "/"),
+               "#", substr(tail(parts, 1L), 1L, 12L))
+      }, character(1)), collapse = ", ")
+    }
+    stop("PYBENCH_RECEIPT_MISMATCH: receipt write manifest differs from authoritative R audit; ",
+         "missing_observed=", summarize(missing), "; extra_reported=", summarize(extra), call. = FALSE)
+  }
   invisible(TRUE)
 }
 
@@ -186,7 +257,11 @@
     if (!file.exists(src) && !dir.exists(src)) { unlink(dst, recursive = TRUE, force = TRUE); next }
     if (file.exists(dst) || dir.exists(dst)) unlink(dst, recursive = TRUE, force = TRUE)
     dir.create(dirname(dst), recursive = TRUE, showWarnings = FALSE)
-    ok <- file.copy(src, dst, recursive = dir.exists(src), copy.mode = TRUE, copy.date = TRUE)
+    ok <- if (dir.exists(src)) {
+      file.copy(src, dirname(dst), recursive = TRUE, copy.mode = TRUE, copy.date = TRUE)
+    } else {
+      file.copy(src, dst, recursive = FALSE, copy.mode = TRUE, copy.date = TRUE)
+    }
     .wb_assert(isTRUE(ok), paste0("PYBENCH_TRANSITION_FAILED: failed to publish audited payload: ", rel))
   }
   invisible(TRUE)
