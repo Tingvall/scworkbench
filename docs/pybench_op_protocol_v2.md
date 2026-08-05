@@ -25,7 +25,12 @@ effect. Python opens this mode with SQLite URI `mode=ro` plus
 ## Isolated transition and receipt
 
 Writable Python runs against a private per-run reflink/copy, never the visible
-session stage. R captures canonical pre/post SQLite schema, ordered table rows,
+session stage. Before launch R writes an ephemeral
+`.scworkbench-pybench-stage.json` marker into that copy. Python requires the
+marker and verifies its protocol, capability, session/run, source attestation,
+stage-root identity, and checkpoint generation against the request. The marker
+contains no committed-source host path and is destroyed with the transition.
+R captures canonical pre/post SQLite schema, ordered table rows,
 and bundle-relative payload identities. It derives the actual mutation set,
 rejects schema changes and mutations outside an allowed key scope/path, and
 then compares the actual set with the receipt `write_manifest`. A descriptor

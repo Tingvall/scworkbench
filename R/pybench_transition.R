@@ -26,6 +26,7 @@
   rels <- list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE, include.dirs = TRUE)
   rels <- gsub("\\\\", "/", rels)
   rels <- rels[!grepl("(^|/)\\.scworkbench-writer\\.lock($|/)", rels)]
+  rels <- setdiff(rels, ".scworkbench-pybench-stage.json")
   if (isTRUE(ignore_manifest)) rels <- setdiff(rels, "manifest.json")
   db_rel <- ""
   manifest <- try(jsonlite::read_json(file.path(root, "manifest.json"), simplifyVector = TRUE), silent = TRUE)
@@ -74,6 +75,22 @@
   transition$staging_source_dir <- bundle$staging_source_dir
   transition$pybench_session_binding <- bundle$pybench_session_binding
   list(root = root, bundle = transition)
+}
+
+.wb_pybench_write_stage_marker <- function(root, request) {
+  cap <- request$execution_capability
+  marker <- list(
+    schema = "scworkbench.pybench.stage.v2",
+    protocol_version = .wb_pyproto_version(),
+    capability_id = cap$capability_id,
+    session_id = cap$session_id,
+    run_id = cap$run_id,
+    source_attestation = cap$source_attestation,
+    staging_identity = cap$staging_identity
+  )
+  path <- file.path(root, ".scworkbench-pybench-stage.json")
+  jsonlite::write_json(marker, path, auto_unbox = TRUE, pretty = FALSE, null = "null")
+  invisible(path)
 }
 
 .wb_pybench_scope_rows <- function(snapshot, descriptor) {
@@ -203,6 +220,7 @@
     unlink(cloned$root, recursive = TRUE, force = TRUE)
   }, add = TRUE)
   request$bundle_dir <- normalizePath(cloned$root, winslash = "/", mustWork = TRUE)
+  .wb_pybench_write_stage_marker(cloned$root, request)
   result <- .wb_pybench_run_module(module, request, bundle = cloned$bundle, python_bin = python_bin, env = env,
                                    request_path = request_path, receipt_path = receipt_path, isolated = FALSE)
   .wb_pyproto_validate_receipt(result$receipt, request)
