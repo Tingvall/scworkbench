@@ -42,5 +42,10 @@ test_durable_resumable_sessions_contract <- function() {
   blocked <- try(wb_session_resume(b, finalized$durable$workspace), silent = TRUE)
   stopifnot(inherits(blocked, "try-error"), grepl("DURABLE_SESSION_FINALIZED", as.character(blocked), fixed = TRUE))
   wb_session_discard(finalized)
+  owned <- wb_session_create(b, root, session_id = "ownership_case")
+  impostor <- owned; impostor$durable$ownership_token <- "not-the-owner"
+  refused <- try(wb_session_discard(impostor), silent = TRUE)
+  stopifnot(inherits(refused, "try-error"), grepl("DURABLE_SESSION_OWNERSHIP", as.character(refused), fixed = TRUE), dir.exists(owned$durable$workspace))
+  wb_session_discard(owned)
   TRUE
 }

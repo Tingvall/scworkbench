@@ -85,6 +85,17 @@
   list(generation = gen, metadata_path = meta, pointer = x)
 }
 
+.wb_session_validate_ownership <- function(session) {
+  .wb_assert(!is.null(session$durable), "DURABLE_SESSION_OWNERSHIP: durable metadata is missing.")
+  binding <- .wb_session_pointer(session$durable$workspace)
+  meta <- try(jsonlite::read_json(binding$metadata_path, simplifyVector = TRUE), silent = TRUE)
+  .wb_assert(!inherits(meta, "try-error") && identical(as.character(meta$ownership_token %||% "")[1],
+               as.character(session$durable$ownership_token %||% "")[1]) &&
+               nzchar(as.character(meta$ownership_token %||% "")[1]),
+             "DURABLE_SESSION_OWNERSHIP: session does not own this workspace.")
+  invisible(TRUE)
+}
+
 .wb_session_checkpoint_file <- function(session) {
   p <- .wb_session_pointer(session$durable$workspace)
   file.path(dirname(p$metadata_path), "session.rds")
@@ -281,6 +292,7 @@ wb_session_cleanup <- function(session) {
   workspace <- session$durable$workspace
   root <- session$durable$workspace_root
   .wb_session_contained_path(root, workspace, "cleanup workspace")
+  .wb_session_validate_ownership(session)
   .wb_session_workspace_lock(session, "cleanup", {
     current <- .wb_session_pointer(workspace)$generation
     generations <- list.dirs(.wb_session_generation_root(session), recursive = FALSE, full.names = TRUE)
