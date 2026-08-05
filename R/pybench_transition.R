@@ -245,26 +245,190 @@
   invisible(TRUE)
 }
 
-.wb_pybench_publish_transition <- function(source, destination, pre_payload, post_payload) {
-  RSQLite::sqliteCopyDatabase(source$con, destination$con)
+.wb_pybench_publication_fault <- function(boundary) {
+  hook <- getOption("scworkbench.pybench_transition_fault_hook", NULL)
+  if (is.function(hook)) hook(as.character(boundary)[1])
+  invisible(NULL)
+}
+
+.wb_pybench_changed_payload_roots <- function(pre_payload, post_payload) {
   paths <- union(names(pre_payload), names(post_payload))
-  changed <- paths[vapply(paths, function(x) !identical(pre_payload[[x]] %||% NULL, post_payload[[x]] %||% NULL), logical(1))]
-  for (rel in changed) {
-    src <- file.path(source$dir, rel)
-    dst <- file.path(destination$dir, rel)
-    status <- .wb_path_status(destination$dir, rel, expected_type = "either", must_exist = FALSE, purpose = "PyBench audited publication")
-    .wb_assert(isTRUE(status$ok), paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: unsafe publication path: ", rel))
-    if (!file.exists(src) && !dir.exists(src)) { unlink(dst, recursive = TRUE, force = TRUE); next }
-    if (file.exists(dst) || dir.exists(dst)) unlink(dst, recursive = TRUE, force = TRUE)
-    dir.create(dirname(dst), recursive = TRUE, showWarnings = FALSE)
-    ok <- if (dir.exists(src)) {
-      file.copy(src, dirname(dst), recursive = TRUE, copy.mode = TRUE, copy.date = TRUE)
-    } else {
-      file.copy(src, dst, recursive = FALSE, copy.mode = TRUE, copy.date = TRUE)
-    }
-    .wb_assert(isTRUE(ok), paste0("PYBENCH_TRANSITION_FAILED: failed to publish audited payload: ", rel))
+  changed <- paths[vapply(paths, function(x) {
+    !identical(pre_payload[[x]] %||% NULL, post_payload[[x]] %||% NULL)
+  }, logical(1))]
+  if (!length(changed)) return(character())
+  changed <- changed[order(lengths(strsplit(changed, "/", fixed = TRUE)), changed, method = "radix")]
+  changed[!vapply(changed, function(path) {
+    any(vapply(setdiff(changed, path), function(parent) startsWith(path, paste0(parent, "/")), logical(1)))
+  }, logical(1))]
+}
+
+.wb_pybench_copy_publication_path <- function(source, destination, purpose) {
+  .wb_assert(file.exists(source) || dir.exists(source),
+             paste0("PYBENCH_PUBLICATION_FAILED: missing ", purpose))
+  .wb_assert(!file.exists(destination) && !dir.exists(destination),
+             paste0("PYBENCH_PUBLICATION_FAILED: non-private ", purpose, " destination"))
+  dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)
+  status <- suppressWarnings(system2(
+    "cp", c("-a", "--reflink=auto", shQuote(source), shQuote(destination)),
+    stdout = FALSE, stderr = FALSE
+  ))
+  .wb_assert(identical(as.integer(status), 0L) && (file.exists(destination) || dir.exists(destination)),
+             paste0("PYBENCH_PUBLICATION_FAILED: could not prepare ", purpose))
+  invisible(destination)
+}
+
+.wb_pybench_publication_condition <- function(original, rollback_errors = character()) {
+  detail <- if (length(rollback_errors)) {
+    paste0("; rollback errors: ", paste(rollback_errors, collapse = "; "))
+  } else ""
+  structure(
+    list(
+      message = paste0(
+        "PYBENCH_PUBLICATION_FAILED: audited transition was not published; original error: ",
+        conditionMessage(original), detail
+      ),
+      call = NULL,
+      parent = original,
+      rollback_errors = as.character(rollback_errors)
+    ),
+    class = c("scworkbench_pybench_publication_error", "error", "condition")
+  )
+}
+
+# Publish payloads before SQLite. The destination database is the commit point:
+# readers respecting the session lock can never observe a new database whose
+# referenced payloads are absent. Preimages remain private until post-commit
+# cleanup completes, so any error through that boundary restores the old
+# database and every created, replaced, or deleted payload root.
+.wb_pybench_publish_transition <- function(source, destination, pre_payload, post_payload) {
+  .wb_assert(inherits(source, "scworkbench_bundle") && inherits(destination, "scworkbench_bundle"),
+             "PYBENCH_PUBLICATION_FAILED: publication requires bundle handles")
+  .wb_assert(!RSQLite::sqliteIsTransacting(source$con) && !RSQLite::sqliteIsTransacting(destination$con),
+             "PYBENCH_PUBLICATION_FAILED: publication cannot run inside a SQLite transaction")
+
+  changed <- .wb_pybench_changed_payload_roots(pre_payload, post_payload)
+  token <- .wb_writer_lock_token()
+  workspace <- file.path(destination$dir, paste0(".scworkbench-pybench-publication-", token))
+  .wb_assert(!file.exists(workspace) && !dir.exists(workspace),
+             "PYBENCH_PUBLICATION_FAILED: publication workspace collision")
+  dir.create(workspace, recursive = FALSE, showWarnings = FALSE)
+  .wb_assert(dir.exists(workspace), "PYBENCH_PUBLICATION_FAILED: could not create publication workspace")
+
+  db_preimage <- file.path(workspace, "sqlite", "preimage.sqlite")
+  prepared <- vector("list", length(changed))
+  database_changed <- FALSE
+  cleanup_workspace <- function() {
+    unlink(workspace, recursive = TRUE, force = TRUE)
+    !file.exists(workspace) && !dir.exists(workspace)
   }
-  invisible(TRUE)
+  rollback <- function() {
+    errors <- character()
+    if (isTRUE(database_changed)) {
+      restored <- tryCatch({
+        preimage_con <- DBI::dbConnect(RSQLite::SQLite(), db_preimage)
+        tryCatch({
+          .wb_sqlite_configure_connection(preimage_con, writable = FALSE)
+          RSQLite::sqliteCopyDatabase(preimage_con, destination$con)
+        }, finally = {
+          try(DBI::dbDisconnect(preimage_con), silent = TRUE)
+        })
+        TRUE
+      }, error = function(e) {
+        errors <<- c(errors, paste0("SQLite restore failed: ", conditionMessage(e)))
+        FALSE
+      })
+      database_changed <<- !isTRUE(restored)
+    }
+    for (item in rev(prepared)) {
+      if (is.null(item) || !isTRUE(item$visible_touched)) next
+      restored <- tryCatch({
+        if (file.exists(item$destination) || dir.exists(item$destination)) {
+          unlink(item$destination, recursive = TRUE, force = TRUE)
+        }
+        if (isTRUE(item$had_preimage)) {
+          dir.create(dirname(item$destination), recursive = TRUE, showWarnings = FALSE)
+          .wb_assert(file.rename(item$backup, item$destination),
+                     paste0("could not restore payload ", item$relative))
+        }
+        TRUE
+      }, error = function(e) {
+        errors <<- c(errors, paste0("payload restore failed for ", item$relative, ": ", conditionMessage(e)))
+        FALSE
+      })
+      if (!isTRUE(restored)) next
+    }
+    if (!cleanup_workspace()) errors <- c(errors, "publication workspace cleanup failed")
+    errors
+  }
+
+  tryCatch({
+    .wb_session_sqlite_backup(destination$con, db_preimage)
+    for (i in seq_along(changed)) {
+      rel <- changed[[i]]
+      src <- file.path(source$dir, rel)
+      dst_status <- .wb_path_status(
+        destination$dir, rel, expected_type = "either", must_exist = FALSE,
+        purpose = "PyBench audited publication"
+      )
+      .wb_assert(isTRUE(dst_status$ok),
+                 paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: unsafe publication path: ", rel))
+      src_status <- .wb_path_status(
+        source$dir, rel, expected_type = "either", must_exist = FALSE,
+        purpose = "PyBench audited transition source"
+      )
+      .wb_assert(isTRUE(src_status$ok),
+                 paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: unsafe transition source path: ", rel))
+      dst <- file.path(destination$dir, rel)
+      incoming <- file.path(workspace, "incoming", sprintf("%06d", i))
+      backup <- file.path(workspace, "preimages", sprintf("%06d", i))
+      source_exists <- file.exists(src) || dir.exists(src)
+      destination_exists <- file.exists(dst) || dir.exists(dst)
+      if (source_exists) .wb_pybench_copy_publication_path(src, incoming, paste0("incoming payload ", rel))
+      if (destination_exists) .wb_pybench_copy_publication_path(dst, backup, paste0("payload preimage ", rel))
+      prepared[[i]] <- list(
+        relative = rel, destination = dst, incoming = incoming, backup = backup,
+        source_exists = source_exists, had_preimage = destination_exists,
+        nested_model = dir.exists(src) && (identical(dirname(rel), "artifact_models") || startsWith(rel, "artifact_models/")),
+        visible_touched = FALSE
+      )
+    }
+
+    .wb_pybench_publication_fault("after_payload_preimages_before_visible_change")
+    first_published <- FALSE
+    for (i in seq_along(prepared)) {
+      item <- prepared[[i]]
+      dir.create(dirname(item$destination), recursive = TRUE, showWarnings = FALSE)
+      if (file.exists(item$destination) || dir.exists(item$destination)) {
+        unlink(item$destination, recursive = TRUE, force = TRUE)
+      }
+      prepared[[i]]$visible_touched <- TRUE
+      if (!isTRUE(item$source_exists)) {
+        .wb_pybench_publication_fault("after_payload_deletion")
+        next
+      }
+      if (isTRUE(item$nested_model)) {
+        .wb_pybench_publication_fault("during_nested_model_directory_publication")
+      }
+      .wb_assert(file.rename(item$incoming, item$destination),
+                 paste0("PYBENCH_PUBLICATION_FAILED: could not publish payload ", item$relative))
+      if (!isTRUE(first_published)) {
+        first_published <- TRUE
+        .wb_pybench_publication_fault("after_first_payload_published")
+      }
+    }
+    .wb_pybench_publication_fault("after_all_payloads_before_sqlite")
+
+    database_changed <- TRUE
+    RSQLite::sqliteCopyDatabase(source$con, destination$con)
+    .wb_pybench_publication_fault("after_sqlite_update_before_cleanup")
+
+    .wb_assert(cleanup_workspace(), "PYBENCH_PUBLICATION_FAILED: publication workspace cleanup failed")
+    invisible(TRUE)
+  }, error = function(e) {
+    rollback_errors <- rollback()
+    stop(.wb_pybench_publication_condition(e, rollback_errors))
+  })
 }
 
 .wb_pybench_execute_isolated <- function(module, request, bundle, python_bin, env, request_path, receipt_path) {
@@ -320,8 +484,7 @@
   .wb_pybench_verify_receipt_audit(result$receipt, observed)
   .wb_assert(identical(source_before, .wb_pybench_source_snapshot(bundle)),
              "PYBENCH_SOURCE_WRITE_ATTEMPT: committed source changed during subprocess execution")
-  hook <- getOption("scworkbench.pybench_transition_fault_hook", NULL)
-  if (is.function(hook)) hook("after_receipt_before_publication")
+  .wb_pybench_publication_fault("after_receipt_before_publication")
   .wb_pybench_publish_transition(cloned$bundle, bundle, pre_payload, post_payload)
   result$request <- request
   result$observed_write_manifest <- observed
