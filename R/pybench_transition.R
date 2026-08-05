@@ -236,7 +236,7 @@
       if (!length(x)) return("none")
       paste(vapply(strsplit(head(x, 3L), "\r", fixed = TRUE), function(parts) {
         paste0(paste(head(parts, max(1L, length(parts) - 1L)), collapse = "/"),
-               "#", substr(tail(parts, 1L), 1L, 12L))
+               "#", substr(parts[[length(parts)]], 1L, 12L))
       }, character(1)), collapse = ", ")
     }
     stop("PYBENCH_RECEIPT_MISMATCH: receipt write manifest differs from authoritative R audit; ",
