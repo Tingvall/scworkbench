@@ -366,8 +366,9 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   )
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   if (!is.null(session$durable)) {
-    .wb_assert(identical(as.character(session$durable$state %||% "")[1], "active"),
-               "DURABLE_SESSION_FINALIZED: finalized sessions cannot run new operations.")
+    durable_state <- as.character(session$durable$state %||% "")[1]
+    .wb_assert(identical(durable_state, "active"),
+               paste0("DURABLE_SESSION_", toupper(durable_state), ": terminal sessions cannot run new operations."))
     .wb_session_validate_source(session, bundle)
     .wb_session_validate_payloads(session)
   }

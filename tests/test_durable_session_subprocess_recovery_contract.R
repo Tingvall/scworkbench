@@ -17,6 +17,11 @@ test_durable_session_subprocess_recovery_contract <- function() {
     missing_policy = "error", overwrite = TRUE, cell_set = "all", min_cells = 1L
   ))
   s <- prior$session
+  # Release the bundle-assembly lifetime lock before a separate process opens
+  # the committed source. The durable stage/checkpoint remains independently
+  # owned by the session workspace.
+  wb_close_bundle(b)
+  b <- wb_open_bundle(tmp)
   repo <- normalizePath(".", winslash = "/", mustWork = TRUE)
   code <- paste0(
     "devtools::load_all('", gsub("'", "\\\\'", repo), "',quiet=TRUE);",
@@ -29,12 +34,15 @@ test_durable_session_subprocess_recovery_contract <- function() {
   stopifnot(!is.na(pid) && pid > 1L)
   deadline <- Sys.time() + 30
   while (!file.exists(flag) && Sys.time() < deadline) Sys.sleep(0.1)
-  stopifnot(file.exists(flag))
+  if (!file.exists(flag)) {
+    child_log <- if (file.exists(log)) paste(readLines(log, warn = FALSE), collapse = "\n") else "<missing child log>"
+    stop("child did not enter interrupted operation:\n", child_log, call. = FALSE)
+  }
   tools::pskill(as.integer(pid), signal = 9L)
   Sys.sleep(0.5)
   # SIGKILL cannot execute on.exit handlers.  Recovery is explicit and only
   # accepted after the process identity is no longer live.
-  for (target in c(tmp, s$durable$workspace)) {
+  for (target in c(tmp, s$durable$workspace, file.path(s$durable$workspace, "stage"))) {
     info <- wb_bundle_writer_lock_info(target, stale_after_seconds = 0)
     if (isTRUE(info$locked)) wb_recover_bundle_writer_lock(target, "RECOVER STALE SCWORKBENCH WRITER LOCK", stale_after_seconds = 0, allow_unknown_owner = TRUE)
   }
@@ -65,13 +73,13 @@ test_durable_session_subprocess_recovery_contract <- function() {
   while (!file.exists(race_flag) && Sys.time() < deadline) Sys.sleep(0.1)
   stopifnot(file.exists(race_flag))
   winner <- wb_session_resume(b, race$durable$workspace)
-  stopifnot(length(winner$runs) == 1L, identical(winner$runs[[1]]$outputs$vector$name, "race_winner"))
+  stopifnot(length(winner$runs) == 1L, identical(winner$runs[[1]]$params$vector_name, "race_winner"))
   stale_run <- try(wb_session_run_op(stale_parent, b, "metadata_cell_vector", inputs = list(source_column="group", vector_name="race_loser", value_type="categorical", missing_policy="error", overwrite=TRUE, cell_set="all", min_cells=1L)), silent=TRUE)
   stale_discard <- try(wb_session_discard(stale_parent), silent=TRUE)
   stopifnot(inherits(stale_run, "try-error"), inherits(stale_discard, "try-error"),
             grepl("DURABLE_SESSION_STALE_GENERATION", as.character(stale_run), fixed=TRUE),
             grepl("DURABLE_SESSION_STALE_GENERATION", as.character(stale_discard), fixed=TRUE),
-            identical(wb_session_resume(b, race$durable$workspace)$runs[[1]]$outputs$vector$name, "race_winner"))
+            identical(wb_session_resume(b, race$durable$workspace)$runs[[1]]$params$vector_name, "race_winner"))
   wb_session_discard(winner)
   TRUE
 }

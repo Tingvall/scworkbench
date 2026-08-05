@@ -342,10 +342,17 @@ wb_session_open <- function(workspace) {
 #' @export
 wb_session_resume <- function(bundle, workspace) {
   s <- wb_session_open(workspace)
-  .wb_session_validate_source(s, bundle)
-  .wb_session_validate_payloads(s)
+  validated <- FALSE
+  on.exit({
+    if (!validated && !is.null(s$staging_bundle) && inherits(s$staging_bundle, "scworkbench_bundle")) {
+      try(wb_close_bundle(s$staging_bundle), silent = TRUE)
+    }
+  }, add = TRUE)
   .wb_assert(identical(as.character(s$durable$state), "active"),
              paste0("DURABLE_SESSION_", toupper(as.character(s$durable$state)), ": terminal sessions are inspectable but cannot resume execution."))
+  .wb_session_validate_source(s, bundle)
+  .wb_session_validate_payloads(s)
+  validated <- TRUE
   s
 }
 

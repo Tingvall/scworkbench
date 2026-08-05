@@ -153,6 +153,7 @@ wb_session_promote_current <- function(bundle,
     # still-active checkpoint carries the old source identity and a later open
     # fails closed with DURABLE_SESSION_SOURCE_CHANGED; it cannot repeat the
     # promotion invisibly.  A successful receipt makes promotion terminal.
+    .wb_session_fault("after_bundle_promotion_before_session_receipt")
     session$durable$promotion_receipt <- list(
       schema = "scworkbench.durable_session.promotion.v1",
       promoted_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z"),

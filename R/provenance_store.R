@@ -289,6 +289,7 @@
   }
   if (.wb_path_is_absolute(raw)) {
     trusted_roots <- list()
+    if (inherits(bundle, "scworkbench_bundle")) trusted_roots <- c(trusted_roots, list(bundle$dir))
     if (!is.null(staging_bundle) && inherits(staging_bundle,"scworkbench_bundle")) trusted_roots <- c(trusted_roots,list(staging_bundle$dir))
     if (inherits(workspace,"wb_promotion_workspace") && inherits(bundle,"scworkbench_bundle")) trusted_roots <- c(trusted_roots,list(bundle$dir))
     resolved <- normalizePath(raw,winslash="/",mustWork=FALSE)
@@ -345,11 +346,14 @@
     }
   }
   if (kind %in% c("space", "space_2d") && !is.null(bundle)) {
+    registry <- if (.wb_table_exists(bundle$con, "spaces")) {
+      DBI::dbGetQuery(bundle$con, "SELECT * FROM spaces WHERE space_id = ?;", params = list(prim$space_id))
+    } else data.frame()
     tab <- if (kind == "space_2d" || .wb_table_exists(bundle$con, "space_2d")) {
       tryCatch(DBI::dbGetQuery(bundle$con, "SELECT * FROM space_2d WHERE space_id = ? ORDER BY cell_id;", params = list(prim$space_id)), error = function(e) data.frame())
     } else data.frame()
     if (!nrow(tab) && .wb_table_exists(bundle$con, "space_coords")) tab <- DBI::dbGetQuery(bundle$con, "SELECT * FROM space_coords WHERE space_id = ? ORDER BY cell_id, dim;", params = list(prim$space_id))
-    if (nrow(tab)) return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(kind = kind, space_id = prim$space_id, coordinates = tab)), content_identity_scheme = unname(.wb_content_identity_schemes()[["space"]]), verification_level = "content", verification_status = "content_verified"))
+    if (nrow(registry) == 1L && nrow(tab)) return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(kind = kind, space_id = prim$space_id, registry = registry, coordinates = tab)), content_identity_scheme = unname(.wb_content_identity_schemes()[["space"]]), verification_level = "content", verification_status = "content_verified"))
   }
   if (kind == "model_ref" && !is.null(bundle)) {
     rel <- as.character(prim$model_path %||% "")[1]
