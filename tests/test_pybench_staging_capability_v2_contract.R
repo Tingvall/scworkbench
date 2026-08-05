@@ -42,6 +42,28 @@ test_pybench_staging_capability_v2_contract <- function() {
   }, add = TRUE)
   wb_define_cells(b, c("c1", "c2"))
 
+  read_module <- tempfile("scwb_read_only_module_")
+  dir.create(read_module, recursive = TRUE, showWarnings = FALSE)
+  on.exit(unlink(read_module, recursive = TRUE, force = TRUE), add = TRUE)
+  writeLines(c(
+    "import argparse,json,os,pathlib,sqlite3",
+    "p=argparse.ArgumentParser();p.add_argument('--request');p.add_argument('--receipt');a=p.parse_args();q=json.load(open(a.request));root=pathlib.Path(q['bundle_dir'])",
+    "db=json.load(open(root/'manifest.json'))['storage']['sqlite']['path'];con=sqlite3.connect('file:'+str(root/db)+'?mode=ro',uri=True);con.execute('PRAGMA query_only=ON');assert con.execute('select count(*) from cells').fetchone()[0]==2;con.close()",
+    "if os.environ.get('MOCK_READ_MUTATE'): (root/'forbidden.cache').write_text('x')",
+    "r={'message_type':'receipt','protocol_version':'pybench-op-v2','status':'ok','op_name':q['op_name'],'run_id':q['run']['run_id'],'capability_echo':q['execution_capability'],'outputs':{},'write_manifest':[]};json.dump(r,open(a.receipt,'w'))"
+  ), file.path(read_module, "mock_read.py"))
+  read_req <- .wb_pybench_build_request(b, "mock_read", "read_contract", mode = "read_only")
+  source_read_before <- list(db = .wb_pybench_db_snapshot(b$con), payload = .wb_pybench_payload_snapshot(b$dir))
+  read_ok <- .wb_pybench_run_module("mock_read", read_req, bundle = b, python_bin = Sys.which("python3"),
+                                    env = paste0("PYTHONPATH=", read_module))
+  stopifnot(read_ok$status == 0L, identical(source_read_before$db, .wb_pybench_db_snapshot(b$con)),
+            identical(source_read_before$payload, .wb_pybench_payload_snapshot(b$dir)),
+            !file.exists(file.path(b$dir, "forbidden.cache")))
+  read_bad <- try(.wb_pybench_run_module("mock_read", read_req, bundle = b, python_bin = Sys.which("python3"),
+                                         env = c(paste0("PYTHONPATH=", read_module), "MOCK_READ_MUTATE=1")), silent = TRUE)
+  stopifnot(inherits(read_bad, "try-error"), grepl("PYBENCH_SOURCE_WRITE_ATTEMPT", as.character(read_bad), fixed = TRUE),
+            !file.exists(file.path(b$dir, "forbidden.cache")))
+
   source_before <- .wb_pybench_db_snapshot(b$con)
   direct <- try(.wb_pybench_build_request(
     b, "py_protocol_hello", run_id = "run_direct",
@@ -87,11 +109,12 @@ test_pybench_staging_capability_v2_contract <- function() {
     pre_payload <- .wb_pybench_payload_snapshot(stage$dir)
     clone <- .wb_pybench_clone_bundle(stage)
     on.exit({ try(wb_close_bundle(clone$bundle), silent = TRUE); unlink(clone$root, recursive = TRUE, force = TRUE) }, add = TRUE)
+    clone_pre_payload <- .wb_pybench_payload_snapshot(clone$root)
     DBI::dbExecute(clone$bundle$con,
       "INSERT INTO artifact_labels(artifact_id,cell_id,label,value_type,value_num) VALUES (?,?,?,?,?);",
       params = list(outputs$vector$artifact_id, "c1", "ok", "categorical", NA_real_))
     post_db <- .wb_pybench_db_snapshot(clone$bundle$con)
-    observed <- .wb_pybench_audit_mutations(pre_db, post_db, pre_payload,
+    observed <- .wb_pybench_audit_mutations(pre_db, post_db, clone_pre_payload,
                                              .wb_pybench_payload_snapshot(clone$root), req)
     stopifnot(length(observed) == 1L, observed[[1]]$row_count == 1L,
               grepl("^[a-f0-9]{64}$", observed[[1]]$content_sha256))
@@ -99,18 +122,20 @@ test_pybench_staging_capability_v2_contract <- function() {
     # An undeclared sibling row and schema mutation are rejected in the clone;
     # the visible stage remains byte/content equivalent and can be retried.
     bad_row <- .wb_pybench_clone_bundle(stage)
+    bad_row_pre_payload <- .wb_pybench_payload_snapshot(bad_row$root)
     DBI::dbExecute(bad_row$bundle$con,
       "INSERT INTO artifact_labels(artifact_id,cell_id,label,value_type,value_num) VALUES (?,?,?,?,?);",
       params = list(outputs$sibling$artifact_id, "c1", "bad", "categorical", NA_real_))
-    rejected <- try(.wb_pybench_audit_mutations(pre_db, .wb_pybench_db_snapshot(bad_row$bundle$con), pre_payload,
+    rejected <- try(.wb_pybench_audit_mutations(pre_db, .wb_pybench_db_snapshot(bad_row$bundle$con), bad_row_pre_payload,
                                                  .wb_pybench_payload_snapshot(bad_row$root), req), silent = TRUE)
     wb_close_bundle(bad_row$bundle); unlink(bad_row$root, recursive = TRUE, force = TRUE)
     stopifnot(inherits(rejected, "try-error"), grepl("PYBENCH_OUT_OF_SCOPE_MUTATION", as.character(rejected), fixed = TRUE),
               identical(pre_db, .wb_pybench_db_snapshot(stage$con)), identical(pre_payload, .wb_pybench_payload_snapshot(stage$dir)))
 
     bad_schema <- .wb_pybench_clone_bundle(stage)
+    bad_schema_pre_payload <- .wb_pybench_payload_snapshot(bad_schema$root)
     DBI::dbExecute(bad_schema$bundle$con, "CREATE TABLE pybench_escape(x TEXT);")
-    rejected <- try(.wb_pybench_audit_mutations(pre_db, .wb_pybench_db_snapshot(bad_schema$bundle$con), pre_payload,
+    rejected <- try(.wb_pybench_audit_mutations(pre_db, .wb_pybench_db_snapshot(bad_schema$bundle$con), bad_schema_pre_payload,
                                                  .wb_pybench_payload_snapshot(bad_schema$root), req), silent = TRUE)
     wb_close_bundle(bad_schema$bundle); unlink(bad_schema$root, recursive = TRUE, force = TRUE)
     stopifnot(inherits(rejected, "try-error"), grepl("SQLite schema changed", as.character(rejected), fixed = TRUE),
@@ -133,6 +158,7 @@ test_pybench_staging_capability_v2_contract <- function() {
       "if os.environ.get('MOCK_EXTRA_SQL'):",
       " dbrel=json.load(open(root/'manifest.json'))['storage']['sqlite']['path']; con=sqlite3.connect(root/dbrel); con.execute('CREATE TABLE undeclared_v2(x TEXT)'); con.commit(); con.close()",
       "d=copy.deepcopy(next(x for x in c['write_allowlist'] if x['mutation_class']=='payload_tree')); d['path']=rel; d['row_count']=0; d['content_sha256']=hashlib.sha256(dst.read_bytes()).hexdigest()",
+      "if os.environ.get('MOCK_SYMLINK'): dst.unlink(); dst.symlink_to(pathlib.Path('/etc/hosts'))",
       "r={'message_type':'receipt','protocol_version':'pybench-op-v2','status':'ok','op_name':q['op_name'],'run_id':q['run']['run_id'],'capability_echo':c,'outputs':{'model':spec},'write_manifest':[d]}",
       "json.dump(r,open(a.receipt,'w'))"
     ), file.path(module_dir, "mock_v2.py"))
@@ -168,6 +194,14 @@ test_pybench_staging_capability_v2_contract <- function() {
     stopifnot(inherits(extra, "try-error"), grepl("PYBENCH_OUT_OF_SCOPE_MUTATION", as.character(extra), fixed = TRUE),
               identical(before_extra, .wb_pybench_db_snapshot(stage$con)),
               !file.exists(file.path(stage$dir, "artifact_models", paste0(extra_outputs$model$artifact_id, ".bin"))))
+
+    link_outputs <- .wb_pybench_preregister_outputs(stage, run, list(model = list(type = "model_ref")))
+    link_req <- .wb_pybench_build_request(stage, "mock_v2", "run_planned", outputs = link_outputs)
+    link <- try(.wb_pybench_run_module("mock_v2", link_req, bundle = stage,
+                                       python_bin = Sys.which("python3"),
+                                       env = c(paste0("PYTHONPATH=", module_dir), "MOCK_SYMLINK=1")), silent = TRUE)
+    stopifnot(inherits(link, "try-error"), grepl("symlink payload mutation", as.character(link), fixed = TRUE),
+              !file.exists(file.path(stage$dir, "artifact_models", paste0(link_outputs$model$artifact_id, ".bin"))))
   })
   wb_session_discard(s)
   TRUE

@@ -23,30 +23,32 @@
 
 .wb_pybench_payload_snapshot <- function(root, ignore_manifest = TRUE) {
   root <- normalizePath(root, winslash = "/", mustWork = TRUE)
-  rels <- list.files(root, recursive = TRUE, all.files = TRUE, no.. = TRUE, include.dirs = TRUE)
-  rels <- gsub("\\\\", "/", rels)
-  rels <- rels[!grepl("(^|/)\\.scworkbench-writer\\.lock($|/)", rels)]
-  rels <- setdiff(rels, ".scworkbench-pybench-stage.json")
-  if (isTRUE(ignore_manifest)) rels <- setdiff(rels, "manifest.json")
   db_rel <- ""
   manifest <- try(jsonlite::read_json(file.path(root, "manifest.json"), simplifyVector = TRUE), silent = TRUE)
   if (!inherits(manifest, "try-error")) db_rel <- as.character(manifest$storage$sqlite$path %||% "")[1]
-  rels <- setdiff(rels, c(db_rel, paste0(db_rel, c("-wal", "-shm", "-journal"))))
+  ignored <- c(".scworkbench-pybench-stage.json", db_rel, paste0(db_rel, c("-wal", "-shm", "-journal")))
+  if (isTRUE(ignore_manifest)) ignored <- c(ignored, "manifest.json")
   out <- list()
-  for (rel in sort(rels)) {
-    path <- file.path(root, rel)
-    link <- Sys.readlink(path)
-    if (nzchar(link)) {
-      # Hash linked content, not the host path stored in the link target.
-      if (dir.exists(path)) next
-      out[[rel]] <- list(type = "file", content_sha256 = .wb_prov_sha256_file(path))
-    } else if (dir.exists(path)) {
-      out[[rel]] <- list(type = "dir", content_sha256 = .wb_prov_sha256_object(character()))
-    } else if (file.exists(path)) {
-      out[[rel]] <- list(type = "file", content_sha256 = .wb_prov_sha256_file(path))
+  walk <- function(dir, prefix = "") {
+    kids <- list.files(dir, recursive = FALSE, all.files = TRUE, no.. = TRUE, full.names = TRUE)
+    for (path in sort(kids)) {
+      rel <- gsub("\\\\", "/", if (nzchar(prefix)) file.path(prefix, basename(path)) else basename(path))
+      if (rel %in% ignored || grepl("(^|/)\\.scworkbench-writer\\.lock($|/)", rel)) next
+      link <- Sys.readlink(path)
+      if (nzchar(link)) {
+        # Do not traverse a directory link: a hostile target may escape or
+        # recurse back into the transition tree.
+        out[[rel]] <<- list(type = "symlink", content_sha256 = .wb_prov_sha256_object("symlink"))
+      } else if (dir.exists(path)) {
+        out[[rel]] <<- list(type = "dir", content_sha256 = .wb_prov_sha256_object(character()))
+        walk(path, rel)
+      } else if (file.exists(path)) {
+        out[[rel]] <<- list(type = "file", content_sha256 = .wb_prov_sha256_file(path))
+      }
     }
   }
-  out
+  walk(root)
+  out[sort(names(out))]
 }
 
 .wb_pybench_source_snapshot <- function(stage_bundle) {
@@ -148,6 +150,8 @@
   paths <- union(names(pre_payload), names(post_payload))
   changed_paths <- paths[vapply(paths, function(x) !identical(pre_payload[[x]] %||% NULL, post_payload[[x]] %||% NULL), logical(1))]
   for (rel in changed_paths) {
+    .wb_assert(!identical(as.character((post_payload[[rel]] %||% list())$type %||% ""), "symlink"),
+               paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: symlink payload mutation is forbidden: ", rel))
     candidates <- Filter(function(x) .wb_pybench_payload_matches(rel, x), payload_allow)
     .wb_assert(length(candidates) == 1L, paste0("PYBENCH_OUT_OF_SCOPE_MUTATION: undeclared or ambiguous payload mutation: ", rel))
     allowed <- candidates[[1]]
@@ -192,14 +196,25 @@
   mode <- as.character(request$execution_capability$mode)[1]
   .wb_assert(!is.null(bundle) && inherits(bundle, "scworkbench_bundle"), "PyBench v2 execution requires an engine bundle handle")
   if (identical(mode, "read_only")) {
-    pre_db <- .wb_pybench_db_snapshot(bundle$con)
-    pre_payload <- .wb_pybench_payload_snapshot(bundle$dir)
+    source_db <- .wb_pybench_db_snapshot(bundle$con)
+    source_payload <- .wb_pybench_payload_snapshot(bundle$dir)
+    cloned <- .wb_pybench_clone_bundle(bundle)
+    on.exit({
+      try(wb_close_bundle(cloned$bundle), silent = TRUE)
+      unlink(cloned$root, recursive = TRUE, force = TRUE)
+    }, add = TRUE)
+    pre_db <- .wb_pybench_db_snapshot(cloned$bundle$con)
+    pre_payload <- .wb_pybench_payload_snapshot(cloned$root)
+    request$bundle_dir <- normalizePath(cloned$root, winslash = "/", mustWork = TRUE)
     result <- .wb_pybench_run_module(module, request, bundle = NULL, python_bin = python_bin, env = env,
                                      request_path = request_path, receipt_path = receipt_path, isolated = FALSE)
-    post_db <- .wb_pybench_db_snapshot(bundle$con)
-    post_payload <- .wb_pybench_payload_snapshot(bundle$dir)
+    post_db <- .wb_pybench_db_snapshot(cloned$bundle$con)
+    post_payload <- .wb_pybench_payload_snapshot(cloned$root)
     .wb_assert(identical(pre_db$schema_sha256, post_db$schema_sha256) && identical(pre_db$tables, post_db$tables) && identical(pre_payload, post_payload),
                "PYBENCH_SOURCE_WRITE_ATTEMPT: read-only subprocess changed bundle state")
+    .wb_assert(identical(source_db, .wb_pybench_db_snapshot(bundle$con)) &&
+                 identical(source_payload, .wb_pybench_payload_snapshot(bundle$dir)),
+               "PYBENCH_SOURCE_WRITE_ATTEMPT: committed source changed during read-only execution")
     .wb_assert(length(result$receipt$write_manifest %||% list()) == 0L, "PYBENCH_RECEIPT_MISMATCH: read-only receipt reported writes")
     return(result)
   }
@@ -213,12 +228,12 @@
              "PYBENCH_STALE_STAGING_IDENTITY: request is not bound to the current session stage generation")
   source_before <- .wb_pybench_source_snapshot(bundle)
   pre_db <- .wb_pybench_db_snapshot(bundle$con)
-  pre_payload <- .wb_pybench_payload_snapshot(bundle$dir)
   cloned <- .wb_pybench_clone_bundle(bundle)
   on.exit({
     try(wb_close_bundle(cloned$bundle), silent = TRUE)
     unlink(cloned$root, recursive = TRUE, force = TRUE)
   }, add = TRUE)
+  pre_payload <- .wb_pybench_payload_snapshot(cloned$root)
   request$bundle_dir <- normalizePath(cloned$root, winslash = "/", mustWork = TRUE)
   .wb_pybench_write_stage_marker(cloned$root, request)
   result <- .wb_pybench_run_module(module, request, bundle = cloned$bundle, python_bin = python_bin, env = env,

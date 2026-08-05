@@ -6,14 +6,10 @@ test_durable_session_scvi_recovery_contract <- function() {
   bundle_dir <- tempfile("scwb_durable_scvi_bundle_")
   workspace_root <- tempfile("scwb_durable_scvi_sessions_")
   b <- wb_init_bundle(bundle_dir, overwrite = TRUE)
-  op_env <- environment(wb_op_scvi_train)
-  old_bridge <- get(".wb_palantir_bridge_run_or_stop", envir = op_env)
-  bridge_unlocked <- FALSE
+  old_mock <- Sys.getenv("PYBENCH_TEST_MOCK_TRAINING", unset = NA_character_)
+  Sys.setenv(PYBENCH_TEST_MOCK_TRAINING = "1")
   on.exit({
-    if (bridge_unlocked) {
-      assign(".wb_palantir_bridge_run_or_stop", old_bridge, envir = op_env)
-      lockBinding(".wb_palantir_bridge_run_or_stop", op_env)
-    }
+    if (is.na(old_mock)) Sys.unsetenv("PYBENCH_TEST_MOCK_TRAINING") else Sys.setenv(PYBENCH_TEST_MOCK_TRAINING = old_mock)
     try(wb_close_bundle(b), silent = TRUE)
     unlink(bundle_dir, recursive = TRUE, force = TRUE)
     unlink(workspace_root, recursive = TRUE, force = TRUE)
@@ -30,45 +26,6 @@ test_durable_session_scvi_recovery_contract <- function() {
   )
   wb_attach_matrix(b, "RNA_counts", counts, layer = "counts", feature_type = "gene")
 
-  # The sole mock is the expensive PyBench call. It writes the same registered
-  # outputs the real bridge owns; R session, staging, checkpoint and promotion
-  # paths remain untouched.
-  unlockBinding(".wb_palantir_bridge_run_or_stop", op_env)
-  bridge_unlocked <- TRUE
-  assign(".wb_palantir_bridge_run_or_stop", function(bundle = NULL, module, request, ...) {
-    stopifnot(identical(module, "pybench.ops.scvi_train"))
-    sb <- wb_open_bundle(request$bundle_dir, validate = FALSE)
-    on.exit(wb_close_bundle(sb), add = TRUE)
-    ids <- as.character(request$inputs$cell_ids)
-    n_latent <- as.integer(request$params$n_latent)
-    sid <- as.character(request$params$output_space_id)
-    latent <- matrix(seq_len(length(ids) * n_latent) / 100, nrow = length(ids),
-                     dimnames = list(ids, paste0("latent_", seq_len(n_latent))))
-    wb_add_space(sb, sid, latent, source = "durable-scvi-mocked-pybench")
-
-    model_id <- as.character(request$outputs$model$artifact_id)
-    model_rel <- file.path("artifact_models", paste0(model_id, "_tree"))
-    model_dir <- file.path(sb$dir, model_rel)
-    dir.create(file.path(model_dir, "weights"), recursive = TRUE, showWarnings = FALSE)
-    writeLines("mock-scvi-config-v1", file.path(model_dir, "model.json"), useBytes = TRUE)
-    writeBin(as.raw(seq_len(32L)), file.path(model_dir, "weights", "weights.bin"))
-    DBI::dbExecute(sb$con, paste(
-      "INSERT INTO artifact_model_ref(artifact_id,engine,model_space_id,in_space_id,model_type,model_path)",
-      "VALUES(?,?,?,?,?,?);"),
-      params = list(model_id, "scvi", sid, sid, "scvi_train", model_rel))
-
-    summary_id <- as.character(request$outputs$fit_summary$artifact_id)
-    DBI::dbExecute(sb$con,
-      "INSERT INTO artifact_tables(artifact_id,table_type,entity_kind,meta_json) VALUES(?,?,?,?);",
-      params = list(summary_id, "scvi_fit_summary", "training", "{}"))
-    row <- jsonlite::toJSON(list(status = "ok", epochs = 3L, final_loss = 0.125), auto_unbox = TRUE)
-    DBI::dbExecute(sb$con,
-      "INSERT INTO artifact_table_rows(artifact_id,row_idx,row_json) VALUES(?,?,?);",
-      params = list(summary_id, 1L, as.character(row)))
-    list(receipt = list(status = "ok", protocol_version = "pybench-op-v2",
-                        pybench = list(version = "durable-scvi-mock"), timings = list(total_sec = 0)))
-  }, envir = op_env)
-
   s <- wb_session_create(b, workspace_root, "scvi_recovery")
   trained <- wb_session_run_op(s, b, "scvi_train", inputs = list(
     matrix = "RNA_counts", batch_key = "batch", n_latent = 3L,
@@ -80,9 +37,7 @@ test_durable_session_scvi_recovery_contract <- function() {
   stopifnot(all(c("space", "model", "fit_summary") %in% names(expected)),
             dir.exists(trained$run$outputs$model$model_path))
 
-  assign(".wb_palantir_bridge_run_or_stop", old_bridge, envir = op_env)
-  lockBinding(".wb_palantir_bridge_run_or_stop", op_env)
-  bridge_unlocked <- FALSE
+  Sys.unsetenv("PYBENCH_TEST_MOCK_TRAINING")
   wb_close_bundle(b)
   rm(s)
   gc()
