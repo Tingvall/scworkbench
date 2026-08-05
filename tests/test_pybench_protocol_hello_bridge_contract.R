@@ -3,100 +3,46 @@ test_pybench_protocol_hello_bridge_contract <- function(bundle_dir,
   if (!file.exists(pybench_python)) {
     return(contract_test_skip(paste("Pybench interpreter not found at", pybench_python)))
   }
+  work_parent <- tempfile("scwb_pybench_hello_")
+  dir.create(work_parent, recursive = TRUE, showWarnings = FALSE)
+  source <- file.path(work_parent, "source.bundle")
+  workspace <- file.path(work_parent, "sessions")
+  fs::dir_copy(bundle_dir, source)
+  b <- wb_open_bundle(source)
+  on.exit({ try(wb_close_bundle(b), silent = TRUE); unlink(work_parent, recursive = TRUE, force = TRUE) }, add = TRUE)
 
-  b <- wb_open_bundle(bundle_dir)
-  on.exit(wb_close_bundle(b), add = TRUE)
-  con <- b$con
+  s <- wb_session_create(b, workspace, session_id = "protocol_hello_v2")
+  rr <- wb_session_run_op(s, b, "py_protocol_hello", inputs = list(
+    cell_set = "core", n_preview = 25L, min_cells = 1L
+  ))
+  stopifnot(identical(rr$run$params$protocol_version, "pybench-op-v2"),
+            all(c("vector", "membership", "summary") %in% names(rr$run$outputs)))
+  session_workspace <- rr$session$durable$workspace
 
-  run <- wb_new_run(
-    op_name = "py_protocol_hello",
-    inputs = list(cell_set = "core"),
-    params = list(n_preview = 25),
-    outputs = list(),
-    notes = "pybench hello bridge contract test"
+  # Replace the R process-local handles, resume the published generation, and
+  # promote only from the resumed durable graph.
+  wb_close_bundle(b); b <- wb_open_bundle(source)
+  resumed <- wb_session_resume(b, session_workspace)
+  promoted <- wb_session_promote_current(
+    b, resumed, outputs = c("vector", "membership", "summary"),
+    created_by = "pybench-v2-hello-contract"
   )
+  stopifnot(identical(promoted$session$durable$state, "promoted"),
+            nrow(promoted$promoted) == 3L,
+            all(promoted$promoted$status == "ok"))
+  artifact_ids <- stats::setNames(as.character(promoted$promoted$artifact_id),
+                                  as.character(promoted$promoted$output_name))
 
-  outs_spec <- list(
-    vector = list(type = "cell_vector", name = "py hello vector"),
-    membership = list(type = "relation_family", name = "py hello membership"),
-    summary = list(type = "obs_table", name = "py hello summary")
-  )
-
-  prereg <- .wb_pybench_preregister_outputs(
-    bundle = b,
-    run = run,
-    outputs_spec = outs_spec,
-    created_by = "test-pybench-bridge"
-  )
-
-  created_art_ids <- vapply(prereg, function(x) as.character(x$artifact_id), character(1))
-  cleanup <- function() {
-    ids <- as.list(unname(created_art_ids))
-    if (!length(ids)) return(invisible(TRUE))
-    try(DBI::dbExecute(con, paste0(
-      "DELETE FROM artifact_labels WHERE artifact_id IN (", paste(rep("?", length(ids)), collapse = ","), ");"
-    ), params = ids), silent = TRUE)
-    try(DBI::dbExecute(con, paste0(
-      "DELETE FROM artifact_relation_rows WHERE artifact_id IN (", paste(rep("?", length(ids)), collapse = ","), ");"
-    ), params = ids), silent = TRUE)
-    try(DBI::dbExecute(con, paste0(
-      "DELETE FROM artifact_tables WHERE artifact_id IN (", paste(rep("?", length(ids)), collapse = ","), ");"
-    ), params = ids), silent = TRUE)
-    try(DBI::dbExecute(con, paste0(
-      "DELETE FROM artifact_table_rows WHERE artifact_id IN (", paste(rep("?", length(ids)), collapse = ","), ");"
-    ), params = ids), silent = TRUE)
-    try(DBI::dbExecute(con, paste0(
-      "DELETE FROM artifacts WHERE artifact_id IN (", paste(rep("?", length(ids)), collapse = ","), ");"
-    ), params = ids), silent = TRUE)
-    invisible(TRUE)
-  }
-  on.exit(cleanup(), add = TRUE)
-
-  req <- .wb_pybench_build_request(
-    bundle = b,
-    op_name = "py_protocol_hello",
-    run_id = as.character(run$run_id),
-    inputs = list(
-      cell_set = "core",
-      space_id = "umap.peakvi_space"
-    ),
-    params = list(n_preview = 25),
-    outputs = prereg
-  )
-
-  bridge <- .wb_pybench_run_module(
-    module = "pybench.ops.py_protocol_hello",
-    request = req,
-    python_bin = pybench_python
-  )
-
-  rec <- bridge$receipt
-  stopifnot(identical(as.character(rec$status), "ok"))
-  stopifnot(identical(as.character(rec$op_name), "py_protocol_hello"))
-  stopifnot(identical(as.character(rec$run_id), as.character(run$run_id)))
-  stopifnot(is.list(rec$outputs))
-  stopifnot(all(c("vector", "membership", "summary") %in% names(rec$outputs)))
-
-  # R loader is the final compatibility check.
-  vec <- wb_art_load(b, prereg$vector$artifact_id, expected_kind = "cell_vector")
-  mem <- wb_art_load(b, prereg$membership$artifact_id, expected_kind = "relation_family")
-  sumt <- wb_art_load(b, prereg$summary$artifact_id, expected_kind = "obs_table")
-
-  stopifnot(identical(as.character(vec$kind), "cell_vector"))
-  stopifnot(identical(as.character(vec$value_type), "continuous"))
-  stopifnot(length(vec$cell_id) == 25L)
-
-  stopifnot(identical(as.character(mem$kind), "relation_family"))
-  stopifnot(length(mem$key) == 25L)
-  stopifnot(all(as.character(mem$key) == "root:HELLO::lineage:WORLD"))
-  stopifnot(all(as.numeric(mem$weight) == 1))
-
-  stopifnot(identical(as.character(sumt$kind), "obs_table"))
-  stopifnot(is.data.frame(sumt$table), nrow(sumt$table) == 1L)
-  stopifnot(all(c("metric", "value", "cell_set") %in% names(sumt$table)))
-  stopifnot(identical(as.character(sumt$table$metric[1]), "n_cells_written"))
-  stopifnot(abs(as.numeric(sumt$table$value[1]) - 25) < 1e-8)
-  stopifnot(identical(as.character(sumt$table$cell_set[1]), "core"))
-
+  wb_close_bundle(b); b <- wb_open_bundle(source)
+  vec <- wb_art_load(b, artifact_ids[["vector"]], expected_kind = "cell_vector")
+  mem <- wb_art_load(b, artifact_ids[["membership"]], expected_kind = "relation_family")
+  sumt <- wb_art_load(b, artifact_ids[["summary"]], expected_kind = "obs_table")
+  stopifnot(identical(as.character(vec$kind), "cell_vector"),
+            identical(as.character(vec$value_type), "continuous"), length(vec$cell_id) == 25L,
+            identical(as.character(mem$kind), "relation_family"), length(mem$key) == 25L,
+            all(as.character(mem$key) == "root:HELLO::lineage:WORLD"),
+            identical(as.character(sumt$kind), "obs_table"), nrow(sumt$table) == 1L,
+            identical(as.character(sumt$table$metric[1]), "n_cells_written"),
+            abs(as.numeric(sumt$table$value[1]) - 25) < 1e-8)
   TRUE
 }

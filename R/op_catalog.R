@@ -424,6 +424,14 @@
   raw
 }
 
+.wb_runner_py_protocol_hello <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  wb_op_py_protocol_hello(
+    bundle = bundle,
+    cell_set = inputs$cell_set %||% "all",
+    n_preview = inputs$n_preview %||% 25L
+  )
+}
+
 .wb_runner_scvi_train <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "scvi_train runner: missing resolved$matrix.")
   .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
@@ -3982,6 +3990,26 @@
           key = "lineage_id",
           description = "Projected monocle3 root-qualified lineage curves in the chosen 2D display space."
         )
+      )
+    ),
+    py_protocol_hello = list(
+      op_name = "py_protocol_hello",
+      title = "PyBench protocol hello",
+      description = "Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.",
+      intent = c("protocol", "python", "qualification"),
+      requires = list(),
+      produces = list(vector = "cell_vector", membership = "relation_family", summary = "obs_table"),
+      promotable = c("vector", "membership", "summary"),
+      runner = .wb_runner_py_protocol_hello,
+      inputs = list(),
+      params = list(
+        list(name = "n_preview", type = "int", default = 25, min = 1, max = 100000,
+             help = "Maximum cells written by the lightweight protocol operation.")
+      ),
+      interface_produces = list(
+        vector = list(kind = "cell_vector", description = "Deterministic continuous preview vector."),
+        membership = list(kind = "relation_family", description = "Deterministic preview membership."),
+        summary = list(kind = "obs_table", description = "Protocol write summary.")
       )
     ),
     peakvi_fit = list(

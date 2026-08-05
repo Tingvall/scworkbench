@@ -182,7 +182,7 @@
     if (!file.exists(src) && !dir.exists(src)) { unlink(dst, recursive = TRUE, force = TRUE); next }
     if (file.exists(dst) || dir.exists(dst)) unlink(dst, recursive = TRUE, force = TRUE)
     dir.create(dirname(dst), recursive = TRUE, showWarnings = FALSE)
-    ok <- file.copy(src, dst, recursive = TRUE, copy.mode = TRUE, copy.date = TRUE)
+    ok <- file.copy(src, dst, recursive = dir.exists(src), copy.mode = TRUE, copy.date = TRUE)
     .wb_assert(isTRUE(ok), paste0("PYBENCH_TRANSITION_FAILED: failed to publish audited payload: ", rel))
   }
   invisible(TRUE)

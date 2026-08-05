@@ -119,7 +119,7 @@ test_pybench_relative_model_bridge_closure_contract <- function() {
       stop("Unexpected mocked PyBench module: ", module, call. = FALSE)
     }
     list(receipt = list(
-      status = "ok", protocol_version = "pybench-op-v1",
+      status = "ok", protocol_version = "pybench-op-v2",
       pybench = list(version = "containment-contract"), timings = list(total_sec = 0)
     ))
   }, envir = op_env)
@@ -204,19 +204,15 @@ test_pybench_relative_model_bridge_closure_contract <- function() {
 
   strict_model <- file.path(moved_root, "artifact_models", "strict_peakvi")
   dir.create(strict_model, recursive = TRUE, showWarnings = FALSE)
-  strict_request <- .wb_pybench_build_request(
+  strict_request <- try(.wb_pybench_build_request(
     b, "peakvi_project", "strict-python-absolute-rejection",
     inputs = list(matrix = "ATAC_counts", model_path = normalizePath(strict_model, winslash = "/", mustWork = TRUE)),
     params = list(matrix_id = "ATAC_counts", space_id_out = "never_written"),
     outputs = list()
-  )
-  strict <- .wb_pybench_run_module(
-    module = "pybench.ops.peakvi_project", request = strict_request,
-    python_bin = pybench_python
-  )
-  stopifnot(as.integer(strict$status) != 0L,
-            identical(as.character(strict$receipt$status), "error"),
-            grepl("PATH_ABSOLUTE", as.character(strict$receipt$message), fixed = TRUE))
+  ), silent = TRUE)
+  stopifnot(inherits(strict_request, "try-error"),
+            grepl("PYBENCH_SOURCE_WRITE_ATTEMPT", as.character(strict_request), fixed = TRUE),
+            !"never_written" %in% wb_spaces(b)$space_id)
 
   TRUE
 }

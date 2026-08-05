@@ -234,7 +234,7 @@
 
 .wb_pyproto_read_receipt_json <- function(path, request = NULL) {
   .wb_assert(file.exists(path), paste0("Receipt JSON not found: ", path))
-  rec <- jsonlite::read_json(path, simplifyVector = TRUE)
+  rec <- jsonlite::read_json(path, simplifyVector = FALSE)
   .wb_pyproto_validate_receipt(rec, request = request)
   rec
 }

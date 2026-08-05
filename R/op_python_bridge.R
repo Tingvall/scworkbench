@@ -91,7 +91,7 @@
 
     # If a receipt exists, prefer protocol error context.
     if (file.exists(receipt_path)) {
-      rec_try <- try(jsonlite::read_json(receipt_path, simplifyVector = TRUE), silent = TRUE)
+      rec_try <- try(jsonlite::read_json(receipt_path, simplifyVector = FALSE), silent = TRUE)
       if (!inherits(rec_try, "try-error") && is.list(rec_try)) {
         return(list(status = as.integer(status), stdout_stderr = out, request = request, receipt = rec_try))
       }

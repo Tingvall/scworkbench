@@ -65,7 +65,7 @@ test_durable_session_scvi_recovery_contract <- function() {
     DBI::dbExecute(sb$con,
       "INSERT INTO artifact_table_rows(artifact_id,row_idx,row_json) VALUES(?,?,?);",
       params = list(summary_id, 1L, as.character(row)))
-    list(receipt = list(status = "ok", protocol_version = "pybench-op-v1",
+    list(receipt = list(status = "ok", protocol_version = "pybench-op-v2",
                         pybench = list(version = "durable-scvi-mock"), timings = list(total_sec = 0)))
   }, envir = op_env)
 

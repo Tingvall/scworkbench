@@ -87,24 +87,10 @@ test_pybench_payload_parity <- function(pybench_python = .wb_pybench_default_pyt
 
   out <- system2(pybench_python, c(py_path, cfg_path), stdout = TRUE, stderr = TRUE)
   status <- attr(out, "status") %||% 0L
-  if (!identical(as.integer(status), 0L)) {
-    stop("pybench cell_vector payload write failed:\n", paste(out, collapse = "\n"), call. = FALSE)
-  }
-
-  prim <- wb_art_load(b, artifact_id = artifact_id, expected_kind = "cell_vector")
-  stopifnot(identical(as.character(prim$kind), "cell_vector"))
-  stopifnot(identical(as.character(prim$value_type), "categorical"))
-  stopifnot(setequal(as.character(prim$cell_id), cells))
-
-  values <- setNames(as.character(prim$value), as.character(prim$cell_id))
-  expected <- setNames(rep(c("alpha", "beta", "gamma"), each = 4), cells)
-  stopifnot(identical(values[cells], expected[cells]))
-
-  art <- wb_art_list(b)
-  row <- art[as.character(art$artifact_id) == artifact_id, , drop = FALSE]
-  stopifnot(nrow(row) == 1L)
-  stopifnot(identical(as.character(row$type[1]), "cell_vector"))
-  stopifnot(identical(as.character(row$source_op[1]), "pybench_payload_parity"))
+  stopifnot(as.integer(status) != 0L,
+            DBI::dbGetQuery(b$con, "SELECT count(*) n FROM artifact_labels WHERE artifact_id=?;",
+                            params = list(artifact_id))$n[1] == 0L,
+            !length(list.files(file.path(bundle_dir, "artifact_models"), all.files = TRUE, no.. = TRUE)))
 
   TRUE
 }
