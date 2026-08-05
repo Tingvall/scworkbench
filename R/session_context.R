@@ -104,10 +104,14 @@ wb_is_session <- function(x) inherits(x, "wb_session")
 wb_session_set_active <- function(session, output_name, ref) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   if (!is.null(session$durable)) {
-    .wb_assert(identical(as.character(session$durable$state), "active"), "DURABLE_SESSION_FINALIZED: finalized sessions cannot run new operations.")
-    .wb_session_workspace_lock(session, "set active output", .wb_session_assert_mutation_owner(session))
+    stop("DURABLE_SESSION_DIRECT_MUTATION: durable session graph changes must be made by wb_session_run_op().", call. = FALSE)
   }
   .wb_assert(is.list(ref) && !is.null(ref$ref_type), "ref must be a wb_ref_*")
+  session$active[[as.character(output_name)]] <- ref
+  session
+}
+
+.wb_session_set_active_checkpointable <- function(session, output_name, ref) {
   session$active[[as.character(output_name)]] <- ref
   session
 }
@@ -124,7 +128,13 @@ wb_session_set_active <- function(session, output_name, ref) {
 wb_session_add_run <- function(session, run) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   .wb_assert(wb_is_run(run), "run must be a wb_run.")
-  if (!is.null(session$durable)) .wb_session_workspace_lock(session, "add run", .wb_session_assert_mutation_owner(session))
+  if (!is.null(session$durable)) stop("DURABLE_SESSION_DIRECT_MUTATION: durable session graph changes must be made by wb_session_run_op().", call. = FALSE)
+  session$runs[[run$run_id]] <- run
+  session$head_run_id <- run$run_id
+  session
+}
+
+.wb_session_add_run_checkpointable <- function(session, run) {
   session$runs[[run$run_id]] <- run
   session$head_run_id <- run$run_id
   session
@@ -370,6 +380,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     # This must be inside the workspace lock: a handle may have been opened
     # before another process published a later checkpoint.
     .wb_session_assert_mutation_owner(session)
+    .wb_session_validate_checkpoint_state(session)
     .wb_session_validate_source(session, bundle)
     .wb_session_validate_payloads(session)
   }
@@ -478,17 +489,17 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     run_id = planned_run_id
   )
 
-  session <- wb_session_add_run(session, run)
+  session <- if (is.null(session$durable)) wb_session_add_run(session, run) else .wb_session_add_run_checkpointable(session, run)
 
   # Update active outputs (by name) for anything produced
   for (nm in names(out)) {
-    session <- wb_session_set_active(session, nm, wb_ref_run(run$run_id, nm))
+    session <- if (is.null(session$durable)) wb_session_set_active(session, nm, wb_ref_run(run$run_id, nm)) else .wb_session_set_active_checkpointable(session, nm, wb_ref_run(run$run_id, nm))
   }
 
   if (!is.null(session$durable)) {
     session$durable$runtime_attestations[[run$run_id]] <- .wb_prov_runtime_fingerprint(op_name)
     session <- .wb_session_record_payload_identities(session, run)
-    session <- .wb_session_checkpoint(session, "active")
+    session <- .wb_session_checkpoint(session, "active", allow_uncheckpointed_state = TRUE)
     .wb_session_operation_marker(session, clear = TRUE)
     completed_operation <- TRUE
   }

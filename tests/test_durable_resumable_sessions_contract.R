@@ -31,7 +31,7 @@ test_durable_resumable_sessions_contract <- function() {
   wb_session_promote_current(b, other$session, outputs = "vector", created_by = "durable-session-test")
   bad <- try(wb_session_resume(b, changed$durable$workspace), silent = TRUE)
   stopifnot(inherits(bad, "try-error"), grepl("DURABLE_SESSION_SOURCE_CHANGED", as.character(bad), fixed = TRUE))
-  wb_session_discard(resumed)
+  wb_session_discard(promoted$session)
   wb_session_discard(changed)
   unsafe <- try(wb_session_create(b, root, session_id = "../escaped_session"), silent = TRUE)
   absolute <- try(wb_session_create(b, root, session_id = "/escaped_session"), silent = TRUE)

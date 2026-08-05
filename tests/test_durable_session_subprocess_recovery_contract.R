@@ -44,7 +44,7 @@ test_durable_session_subprocess_recovery_contract <- function() {
             identical(resumed$head_run_id, names(resumed$runs)[1]))
   promoted <- wb_session_promote_current(b, resumed, outputs = "vector", created_by = "subprocess-kill")
   stopifnot(identical(as.character(promoted$promoted$status[1]), "ok"))
-  wb_session_discard(resumed)
+  wb_session_discard(promoted$session)
 
   # Genuine two-process optimistic-generation race: both handles start from
   # G; the child publishes G+1; the parent cannot run, checkpoint, cleanup, or

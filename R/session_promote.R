@@ -49,6 +49,8 @@ wb_session_promote_current <- function(bundle,
   .wb_assert_bundle_writable(bundle, "promotion")
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   if (!is.null(session$durable)) {
+    .wb_assert(identical(as.character(session$durable$state %||% "")[1], "active"),
+               "DURABLE_SESSION_PROMOTED: terminal durable sessions cannot be promoted again.")
     .wb_session_validate_source(session, bundle)
     .wb_session_validate_payloads(session)
     session_lock <- .wb_bundle_writer_lock_acquire(
@@ -56,6 +58,7 @@ wb_session_promote_current <- function(bundle,
     )
     on.exit(.wb_bundle_writer_lock_release(session_lock), add = TRUE)
     .wb_session_assert_mutation_owner(session)
+    .wb_session_validate_checkpoint_state(session)
     .wb_session_validate_source(session, bundle)
     .wb_session_validate_payloads(session)
   }
@@ -133,7 +136,7 @@ wb_session_promote_current <- function(bundle,
   }
   output_heads <- unique(output_heads)
 
-  wb_promote_analysis(
+  promoted <- wb_promote_analysis(
     bundle = bundle,
     runs = session$runs,
     head_run_id = output_heads,
@@ -145,4 +148,19 @@ wb_session_promote_current <- function(bundle,
     selected_by_run = selected_by_run,
     staging_bundle = session$staging_bundle %||% NULL
   )
+  if (!is.null(session$durable)) {
+    # Bundle publication precedes this receipt.  If a crash occurs here, the
+    # still-active checkpoint carries the old source identity and a later open
+    # fails closed with DURABLE_SESSION_SOURCE_CHANGED; it cannot repeat the
+    # promotion invisibly.  A successful receipt makes promotion terminal.
+    session$durable$promotion_receipt <- list(
+      schema = "scworkbench.durable_session.promotion.v1",
+      promoted_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z"),
+      artifact_ids = as.character(promoted$promoted$artifact_id %||% character(0)),
+      statuses = as.character(promoted$promoted$status %||% character(0))
+    )
+    session <- .wb_session_checkpoint(session, "promoted", allow_uncheckpointed_state = TRUE)
+    promoted$session <- session
+  }
+  promoted
 }

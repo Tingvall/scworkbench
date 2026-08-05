@@ -26,9 +26,6 @@ test_durable_session_generation_recovery_contract <- function() {
   two <- run_vector(wb_session_resume(b, s$durable$workspace), "two", "score")
   resumed <- wb_session_resume(b, s$durable$workspace)
   stopifnot(identical(names(resumed$runs), c(old_run, two$run$run_id)))
-  promoted <- wb_session_promote_current(b, resumed, outputs = "vector", created_by = "durable-generation")
-  stopifnot(identical(as.character(promoted$promoted$status[1]), "ok"))
-
   # A pointer publication is the commit point.  The injected error is returned
   # to the caller, but a stale pre-publication handle can never retry over it.
   pre_publication <- wb_session_resume(b, s$durable$workspace)
@@ -80,6 +77,15 @@ test_durable_session_generation_recovery_contract <- function() {
   recovered <- wb_session_resume(b, s$durable$workspace)
   wb_session_cleanup(recovered)
   stopifnot(!dir.exists(partial), dir.exists(file.path(recovered$durable$workspace, "stage")))
-  wb_session_discard(recovered)
+  promoted <- wb_session_promote_current(b, recovered, outputs = "vector", created_by = "durable-generation")
+  stopifnot(identical(as.character(promoted$promoted$status[1]), "ok"),
+            identical(as.character(promoted$session$durable$state), "promoted"),
+            length(promoted$session$durable$promotion_receipt$artifact_ids) >= 1L)
+  inspected <- wb_session_open(s$durable$workspace)
+  blocked <- try(wb_session_resume(b, s$durable$workspace), silent = TRUE)
+  repeated <- try(wb_session_promote_current(b, promoted$session, outputs = "vector"), silent = TRUE)
+  stopifnot(identical(as.character(inspected$durable$state), "promoted"), inherits(blocked, "try-error"),
+            inherits(repeated, "try-error"), grepl("DURABLE_SESSION_PROMOTED", as.character(repeated), fixed = TRUE))
+  wb_session_discard(inspected)
   TRUE
 }

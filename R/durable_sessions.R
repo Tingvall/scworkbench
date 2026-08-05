@@ -126,16 +126,39 @@
   invisible(TRUE)
 }
 
+.wb_session_checkpoint_state_sha <- function(session) {
+  # Deliberately hash only checkpointable semantic state. Connections, pointer
+  # identities and timestamps are process/publication mechanics, not graph
+  # state; including them would make a valid reopened handle look modified.
+  durable <- session$durable %||% list()
+  state <- list(runs = session$runs, head_run_id = session$head_run_id,
+                active = session$active, payload_identities = durable$payload_identities,
+                lifecycle_state = durable$state, promotion_receipt = durable$promotion_receipt %||% NULL)
+  tmp <- tempfile("scwb_session_state_")
+  on.exit(unlink(tmp, force = TRUE), add = TRUE)
+  saveRDS(state, tmp, version = 3)
+  .wb_prov_sha256_file(tmp)
+}
+
+.wb_session_validate_checkpoint_state <- function(session) {
+  expected <- as.character(session$durable$checkpoint_state_sha %||% "")[1]
+  observed <- .wb_session_checkpoint_state_sha(session)
+  .wb_assert(nzchar(expected) && identical(expected, observed),
+             paste0("DURABLE_SESSION_UNCHECKPOINTED_STATE: in-memory session graph differs from its published checkpoint (expected=", expected, ", observed=", observed, ")."))
+  invisible(TRUE)
+}
+
 .wb_session_checkpoint_file <- function(session) {
   p <- .wb_session_pointer(session$durable$workspace)
   file.path(dirname(p$metadata_path), "session.rds")
 }
 
-.wb_session_checkpoint <- function(session, state = "active") {
+.wb_session_checkpoint <- function(session, state = "active", allow_uncheckpointed_state = FALSE) {
   if (is.null(session$durable)) return(session)
   .wb_session_workspace_lock(session, "checkpoint", {
     unbound <- !nzchar(as.character(session$durable$checkpoint_generation %||% "")[1])
     .wb_session_assert_mutation_owner(session, allow_unbound = unbound)
+    if (!unbound && !isTRUE(allow_uncheckpointed_state)) .wb_session_validate_checkpoint_state(session)
     parent_generation <- as.character(session$durable$checkpoint_generation %||% "")[1]
     session$durable$state <- as.character(state)[1]
     session$durable$updated_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
@@ -149,6 +172,7 @@
     # The metadata SHA is filled into the live handle after its own bytes exist.
     session$durable$checkpoint_generation <- generation
     session$durable$checkpoint_metadata_sha256 <- NULL
+    session$durable$checkpoint_state_sha <- .wb_session_checkpoint_state_sha(session)
     # SQLite connections are process-local external pointers.  The stage itself
     # is durable; reopening it is part of resume rather than RDS restoration.
     persisted <- session
@@ -163,6 +187,7 @@
                  updated_at = session$durable$updated_at, ownership_token = session$durable$ownership_token,
                  source_identity = session$durable$source_identity,
                  checkpoint_sha256 = .wb_prov_sha256_file(rds),
+                 checkpoint_state_sha256 = session$durable$checkpoint_state_sha,
                  payload_identities = session$durable$payload_identities,
                  runtime_attestations = session$durable$runtime_attestations)
     jsonlite::write_json(meta, file.path(dir, "session.json"), auto_unbox = TRUE, pretty = FALSE, null = "null")
@@ -298,9 +323,13 @@ wb_session_open <- function(workspace) {
   .wb_assert(identical(as.character(s$session_id)[1], as.character(meta$session_id)[1]) &&
                identical(as.character(s$durable$ownership_token %||% "")[1], as.character(meta$ownership_token %||% "")[1]) &&
                nzchar(as.character(meta$ownership_token %||% "")[1]), "DURABLE_SESSION_CORRUPT: checkpoint ownership binding failed.")
-  .wb_assert(as.character(s$durable$state) %in% c("active", "finalized"), "DURABLE_SESSION_INCOMPLETE: checkpoint was not completed.")
+  .wb_assert(as.character(s$durable$state) %in% c("active", "finalized", "promoted"), "DURABLE_SESSION_INCOMPLETE: checkpoint was not completed.")
+  .wb_assert(identical(as.character(meta$checkpoint_state_sha256 %||% "")[1],
+                       .wb_session_checkpoint_state_sha(s)),
+             "DURABLE_SESSION_CORRUPT: checkpoint graph-state binding failed.")
   s$durable$checkpoint_generation <- binding$generation
   s$durable$checkpoint_metadata_sha256 <- as.character(binding$pointer$metadata_sha256)[1]
+  s$durable$checkpoint_state_sha <- as.character(meta$checkpoint_state_sha256)[1]
   s$staging_bundle <- NULL
   staged <- .wb_session_stage_bundle(structure(list(), class="scworkbench_bundle"), s)
   staged$session
@@ -315,7 +344,8 @@ wb_session_resume <- function(bundle, workspace) {
   s <- wb_session_open(workspace)
   .wb_session_validate_source(s, bundle)
   .wb_session_validate_payloads(s)
-  .wb_assert(!identical(as.character(s$durable$state), "finalized"), "DURABLE_SESSION_FINALIZED: finalized sessions are inspectable but cannot resume execution.")
+  .wb_assert(identical(as.character(s$durable$state), "active"),
+             paste0("DURABLE_SESSION_", toupper(as.character(s$durable$state)), ": terminal sessions are inspectable but cannot resume execution."))
   s
 }
 
@@ -323,7 +353,7 @@ wb_session_resume <- function(bundle, workspace) {
 #' @param session Durable session.
 #' @return Checkpointed finalized session.
 #' @export
-wb_session_finalize <- function(session) { .wb_assert(wb_is_session(session), "session must be wb_session"); if (identical(as.character(session$durable$state %||% ""), "finalized")) return(session); .wb_session_checkpoint(session, "finalized") }
+wb_session_finalize <- function(session) { .wb_assert(wb_is_session(session), "session must be wb_session"); if (as.character(session$durable$state %||% "") %in% c("finalized", "promoted")) return(session); .wb_session_checkpoint(session, "finalized") }
 
 #' Clean Durable Session Checkpoint Retention
 #'
