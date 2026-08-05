@@ -145,7 +145,9 @@ wb_session_discard <- function(session) {
   stage_dir <- as.character(session$staging_dir %||% "")[1]
   if (!is.null(session$durable)) {
     workspace <- as.character(session$durable$workspace %||% "")[1]
-    .wb_assert(nzchar(workspace) && basename(workspace) == as.character(session$session_id)[1], "Refusing to discard an unowned durable session workspace.")
+    root <- as.character(session$durable$workspace_root %||% dirname(workspace))[1]
+    .wb_session_contained_path(root, workspace, "discard workspace")
+    .wb_assert(nzchar(as.character(session$durable$ownership_token %||% "")[1]), "Refusing to discard a durable session without its ownership token.")
     .wb_session_workspace_lock(session, "discard", unlink(workspace, recursive = TRUE, force = TRUE))
   } else if (nzchar(stage_dir) && dir.exists(stage_dir)) unlink(stage_dir, recursive = TRUE, force = TRUE)
   session$staging_bundle <- NULL

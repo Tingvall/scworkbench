@@ -10,15 +10,28 @@
   root
 }
 
+.wb_session_safe_id <- function(session_id) {
+  id <- as.character(session_id %||% "")[1]
+  .wb_assert(nzchar(id) && identical(id, basename(id)) && !id %in% c(".", "..") &&
+               !grepl("[/\\\\]", id) && !grepl("^[A-Za-z]:", id) && !grepl("^~", id),
+             "DURABLE_SESSION_UNSAFE_ID: session_id must be one safe path component.")
+  id
+}
+
+.wb_session_contained_path <- function(root, path, purpose = "session path") {
+  root <- normalizePath(root, winslash = "/", mustWork = TRUE)
+  path <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  .wb_assert(identical(path, root) || startsWith(path, paste0(root, "/")),
+             paste0("DURABLE_SESSION_PATH_ESCAPE: ", purpose, " is outside workspace root."))
+  path
+}
+
 .wb_session_source_identity <- function(bundle) {
-  db_rel <- as.character(bundle$manifest$storage$sqlite$path %||% "")[1]
-  list(
-    schema = "scworkbench.session_source.v1",
-    bundle_dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE),
-    manifest_fingerprint = as.character(bundle$manifest$current_state$fingerprint %||% "")[1],
-    manifest_sha256 = .wb_prov_sha256_file(file.path(bundle$dir, "manifest.json")),
-    sqlite_sha256 = .wb_prov_sha256_file(file.path(bundle$dir, db_rel))
-  )
+  .wb_with_bundle_writer_lock(bundle, operation = "durable session source identity", code = {
+    state <- .wb_manifest_registry_snapshot(bundle$con)
+    list(schema = "scworkbench.session_source.v2", bundle_dir = normalizePath(bundle$dir, winslash = "/", mustWork = TRUE),
+         scientific_state_fingerprint = as.character(state$fingerprint)[1], scientific_state = state)
+  })
 }
 
 .wb_session_workspace_lock <- function(session, operation, code) {
@@ -69,7 +82,7 @@
   # (including timestamps).  The authoritative committed registry bytes are
   # the compatibility boundary; comparing the manifest receipt would reject a
   # source that has not changed scientifically.
-  fields <- c("bundle_dir", "sqlite_sha256")
+  fields <- c("bundle_dir", "scientific_state_fingerprint")
   bad <- fields[!vapply(fields, function(nm) identical(as.character(expected[[nm]]), as.character(observed[[nm]])), logical(1))]
   .wb_assert(!length(bad), paste0("DURABLE_SESSION_SOURCE_CHANGED: source bundle no longer matches checkpoint (", paste(bad, collapse = ", "), ")."))
   invisible(TRUE)
@@ -104,14 +117,15 @@ wb_session_create <- function(bundle, workspace_root = .wb_session_workspace_roo
   root <- normalizePath(as.character(workspace_root)[1], winslash = "/", mustWork = FALSE)
   dir.create(root, recursive = TRUE, showWarnings = FALSE)
   s <- wb_session_new()
-  if (!is.null(session_id)) s$session_id <- as.character(session_id)[1]
-  workspace <- file.path(root, s$session_id)
+  s$session_id <- .wb_session_safe_id(session_id %||% s$session_id)
+  workspace <- .wb_session_contained_path(root, file.path(root, s$session_id), "workspace")
   .wb_assert(!dir.exists(workspace), paste0("Durable session workspace already exists: ", workspace))
   dir.create(workspace, recursive = TRUE, showWarnings = FALSE)
-  s$staging_dir <- file.path(workspace, "stage")
+  s$staging_dir <- .wb_session_contained_path(root, file.path(workspace, "stage"), "stage")
   s$durable <- list(workspace = normalizePath(workspace, winslash = "/", mustWork = TRUE),
                     source_identity = .wb_session_source_identity(bundle), state = "creating",
-                    payload_identities = list(), runtime_attestation = .wb_prov_runtime_fingerprint("session"),
+                    ownership_token = .wb_writer_lock_token(), workspace_root = root,
+                    payload_identities = list(), runtime_attestations = list(session = .wb_prov_runtime_fingerprint("session")),
                     created_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z"))
   staged <- try(.wb_session_stage_bundle(bundle, s), silent = TRUE)
   if (inherits(staged, "try-error")) { unlink(workspace, recursive = TRUE, force = TRUE); stop(staged) }
@@ -147,7 +161,8 @@ wb_session_open <- function(workspace) {
   s <- try(readRDS(path), silent = TRUE)
   .wb_assert(!inherits(s, "try-error") && wb_is_session(s) && !is.null(s$durable), "DURABLE_SESSION_CORRUPT: checkpoint cannot be read.")
   .wb_assert(identical(normalizePath(s$durable$workspace, winslash="/", mustWork=TRUE), workspace), "DURABLE_SESSION_CORRUPT: workspace identity mismatch.")
-  .wb_assert(identical(as.character(s$durable$state), "active") || identical(as.character(s$durable$state), "finalized"), "DURABLE_SESSION_INCOMPLETE: checkpoint was not completed.")
+  .wb_assert(nzchar(as.character(s$durable$ownership_token %||% "")[1]), "DURABLE_SESSION_CORRUPT: ownership token is missing.")
+  .wb_assert(as.character(s$durable$state) %in% c("active", "finalized"), "DURABLE_SESSION_INCOMPLETE: checkpoint was not completed.")
   s$staging_bundle <- NULL
   staged <- .wb_session_stage_bundle(structure(list(), class="scworkbench_bundle"), s)
   staged$session
@@ -162,6 +177,7 @@ wb_session_resume <- function(bundle, workspace) {
   s <- wb_session_open(workspace)
   .wb_session_validate_source(s, bundle)
   .wb_session_validate_payloads(s)
+  .wb_assert(!identical(as.character(s$durable$state), "finalized"), "DURABLE_SESSION_FINALIZED: finalized sessions are inspectable but cannot resume execution.")
   s
 }
 
@@ -169,4 +185,4 @@ wb_session_resume <- function(bundle, workspace) {
 #' @param session Durable session.
 #' @return Checkpointed finalized session.
 #' @export
-wb_session_finalize <- function(session) { .wb_assert(wb_is_session(session), "session must be wb_session"); .wb_session_checkpoint(session, "finalized") }
+wb_session_finalize <- function(session) { .wb_assert(wb_is_session(session), "session must be wb_session"); if (identical(as.character(session$durable$state %||% ""), "finalized")) return(session); .wb_session_checkpoint(session, "finalized") }

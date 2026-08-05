@@ -33,5 +33,14 @@ test_durable_resumable_sessions_contract <- function() {
   stopifnot(inherits(bad, "try-error"), grepl("DURABLE_SESSION_SOURCE_CHANGED", as.character(bad), fixed = TRUE))
   wb_session_discard(resumed)
   wb_session_discard(changed)
+  unsafe <- try(wb_session_create(b, root, session_id = "../escaped_session"), silent = TRUE)
+  absolute <- try(wb_session_create(b, root, session_id = "/escaped_session"), silent = TRUE)
+  stopifnot(inherits(unsafe, "try-error"), inherits(absolute, "try-error"),
+            grepl("DURABLE_SESSION_UNSAFE_ID", as.character(unsafe), fixed = TRUE))
+  finalized <- wb_session_create(b, root, session_id = "finalized_case")
+  finalized <- wb_session_finalize(finalized)
+  blocked <- try(wb_session_resume(b, finalized$durable$workspace), silent = TRUE)
+  stopifnot(inherits(blocked, "try-error"), grepl("DURABLE_SESSION_FINALIZED", as.character(blocked), fixed = TRUE))
+  wb_session_discard(finalized)
   TRUE
 }

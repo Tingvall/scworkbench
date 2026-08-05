@@ -103,6 +103,7 @@ wb_is_session <- function(x) inherits(x, "wb_session")
 #' @export
 wb_session_set_active <- function(session, output_name, ref) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
+  if (!is.null(session$durable)) .wb_assert(identical(as.character(session$durable$state), "active"), "DURABLE_SESSION_FINALIZED: finalized sessions cannot run new operations.")
   .wb_assert(is.list(ref) && !is.null(ref$ref_type), "ref must be a wb_ref_*")
   session$active[[as.character(output_name)]] <- ref
   session
@@ -466,7 +467,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   }
 
   if (!is.null(session$durable)) {
-    session$durable$runtime_attestation <- .wb_prov_runtime_fingerprint(op_name)
+    session$durable$runtime_attestations[[run$run_id]] <- .wb_prov_runtime_fingerprint(op_name)
     session <- .wb_session_record_payload_identities(session, run)
     session <- .wb_session_checkpoint(session, "active")
   }
