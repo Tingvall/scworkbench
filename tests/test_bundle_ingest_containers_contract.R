@@ -165,8 +165,9 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   )
   blarge <- wb_init_bundle(tempfile("wb_define_cells_large_"), overwrite = TRUE)
   on.exit(wb_close_bundle(blarge), add = TRUE)
+  large_report <- NULL
   t_large <- system.time(
-    wb_define_cells(
+    large_report <- wb_define_cells(
       blarge,
       cell_ids = large_cells,
       metadata = large_meta,
@@ -178,7 +179,9 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   )[["elapsed"]]
   stopifnot(identical(length(wb_cells(blarge, "core")), large_n))
   stopifnot(identical(sum(wb_list(blarge, "datasets")$n_cells), large_n))
-  stopifnot(is.finite(t_large), t_large < 20)
+  stopifnot(is.finite(t_large))
+  stopifnot(identical(large_report$metadata_write_complexity, "O(metadata_fields)"))
+  stopifnot(large_report$metadata_statement_count <= 4L * (ncol(large_meta) - 1L) + 4L)
 
   dup_feature_counts <- counts
   rownames(dup_feature_counts) <- c("dup_gene", "dup_gene", "unique_gene", "dup_gene", "another_gene")

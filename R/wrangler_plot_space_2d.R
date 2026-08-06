@@ -136,15 +136,15 @@ wb_plot_space_2d <- function(bundle,
 
   if (!is.null(color_by)) {
 
-    if (is.character(color_by) && length(color_by) == 1) {
+    if (.wb_is_metadata_field_ref(color_by) || (is.character(color_by) && length(color_by) == 1)) {
       col <- color_by
-      md <- wb_meta(bundle, cols = c("cell_id", col))
+      md <- wb_meta(bundle, cols = list(wb_ref_metadata_field("core:cell_id"), col))
       names(md)[2L] <- "value"
       md$cell_id <- as.character(md$cell_id)
 
       df_base$value   <- md$value[match(df_base$cell_id,   md$cell_id)]
       df_ov_all$value <- md$value[match(df_ov_all$cell_id, md$cell_id)]
-      legend_name <- col
+      legend_name <- if (.wb_is_metadata_field_ref(col)) col$field_id else col
 
     } else if (is.data.frame(color_by)) {
       .wb_assert(all(c("cell_id", "value") %in% colnames(color_by)),
@@ -331,9 +331,9 @@ wb_plot_space_2d <- function(bundle,
       # label_by can override the grouping source. Supported forms mirror color_by.
       if (!is.null(label_by)) {
         df_lbl$label_value <- NA
-        if (is.character(label_by) && length(label_by) == 1L) {
-          col <- as.character(label_by)[1]
-          md <- wb_meta(bundle, cols = c("cell_id", col))
+        if (.wb_is_metadata_field_ref(label_by) || (is.character(label_by) && length(label_by) == 1L)) {
+          col <- label_by
+          md <- wb_meta(bundle, cols = list(wb_ref_metadata_field("core:cell_id"), col))
           names(md)[2L] <- "label_value"
           md$cell_id <- as.character(md$cell_id)
           df_lbl$label_value <- md$label_value[match(df_lbl$cell_id, md$cell_id)]

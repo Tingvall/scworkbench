@@ -793,7 +793,7 @@ Replay equivalence:
 - `vector`: `exact_canonical_value`
 
 Key parameters:
-- `source_column` (string, default=NULL): Imported cell metadata column to materialize.
+- `source_column` (metadata_field, default=NULL): Imported metadata name or explicit wb_ref_metadata_field() reference to materialize.
 - `cell_set` (cell_set, default=all): Named bundle cell set defining the vector universe.
 - `value_type` (choice, default=auto): Explicit vector value type; auto records a conservative native-type decision.
 - `missing_policy` (choice, default=error): How missing values are handled before vector materialization.
@@ -1656,7 +1656,7 @@ Key parameters:
 - `n_layers` (int, default=2): Number of hidden layers passed to the PeakVI model constructor.
 - `n_hidden` (int, default=256): Hidden width passed to the PeakVI model constructor.
 - `dropout` (number, default=0.2): Dropout rate passed to the PeakVI model constructor.
-- `batch_key` (string, default=NULL): Optional observation field used as the PeakVI batch covariate.
+- `batch_key` (metadata_field, default=NULL): Optional observation field used as the PeakVI batch covariate.
 - `max_epochs` (int, default=500): Maximum training epochs passed through to scvi-tools.
 - `lr` (number, default=0.001): Optional learning rate passed through in train plan_kwargs.
 - `early_stopping` (bool, default=TRUE): If TRUE, enable scvi-tools early stopping during PeakVI training.
@@ -1694,8 +1694,8 @@ Key parameters:
 - `n_layers` (int, default=2): Number of hidden layers passed to the scVI model constructor.
 - `dropout` (number, default=0.1): Dropout rate passed to the scVI model constructor.
 - `batch_key` (string, default=NULL): Optional cell metadata field used as the scVI batch covariate.
-- `categorical_covariates` (string_array, default=NULL): Optional categorical cell metadata covariates passed to scVI setup_anndata.
-- `continuous_covariates` (string_array, default=NULL): Optional continuous cell metadata covariates passed to scVI setup_anndata.
+- `categorical_covariates` (metadata_field_array, default=NULL): Optional categorical cell metadata covariates passed to scVI setup_anndata.
+- `continuous_covariates` (metadata_field_array, default=NULL): Optional continuous cell metadata covariates passed to scVI setup_anndata.
 - `max_epochs` (int, default=NULL): Optional maximum training epochs passed through to scvi-tools.
 - `early_stopping` (bool, default=TRUE): If TRUE, enable scvi-tools early stopping during scVI training.
 - `seed` (int, default=1): Random seed for scVI training.

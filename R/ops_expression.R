@@ -13,6 +13,21 @@
 
 .wb_is_nonneg <- function(x) all(is.finite(x) & x >= 0)
 
+.wb_expr_metadata_groups <- function(bundle, by, cells = NULL, drop_na = TRUE) {
+  field <- .wb_metadata_resolve(bundle, by, allow_core = TRUE)
+  meta <- wb_meta(bundle, cells = cells,
+                  cols = list(wb_ref_metadata_field("core:cell_id"),
+                              wb_ref_metadata_field(field$field_id[[1L]])))
+  group <- meta[[2L]]
+  if (isTRUE(drop_na)) {
+    keep <- !is.na(group)
+    meta <- meta[keep, , drop = FALSE]
+    group <- group[keep]
+  }
+  .wb_assert(nrow(meta) > 0, "No cells left after filtering (check by/drop_na/cells).")
+  split(meta$cell_id, group)
+}
+
 #' Slice an expression matrix (thin wrapper over wb_slice)
 #'
 #' @param bundle Bundle handle
@@ -51,13 +66,7 @@ wb_op_expr_vector <- function(bundle, matrix_id, feature_id, cells = NULL) {
 #' @return data.frame with columns: feature_id, <group1>, <group2>, ...
 #' @export
 wb_op_expr_avg_by <- function(bundle, matrix_id, by, features = NULL, cells = NULL, drop_na = TRUE) {
-  meta <- wb_meta(bundle, cells = cells, cols = c("cell_id", by))
-  .wb_require_cols(meta, c("cell_id", by), "metadata")
-
-  if (isTRUE(drop_na)) meta <- meta[!is.na(meta[[by]]), , drop = FALSE]
-  .wb_assert(nrow(meta) > 0, "No cells left after filtering (check by/drop_na/cells).")
-
-  groups <- split(meta$cell_id, meta[[by]])
+  groups <- .wb_expr_metadata_groups(bundle, by, cells = cells, drop_na = drop_na)
 
   # Compute means per group
   out <- lapply(groups, function(cell_ids) {
@@ -84,13 +93,7 @@ wb_op_expr_avg_by <- function(bundle, matrix_id, by, features = NULL, cells = NU
 #' @return data.frame with columns: feature_id, <group1>, <group2>, ...
 #' @export
 wb_op_expr_frac_nonzero_by <- function(bundle, matrix_id, by, features = NULL, cells = NULL, drop_na = TRUE) {
-  meta <- wb_meta(bundle, cells = cells, cols = c("cell_id", by))
-  .wb_require_cols(meta, c("cell_id", by), "metadata")
-
-  if (isTRUE(drop_na)) meta <- meta[!is.na(meta[[by]]), , drop = FALSE]
-  .wb_assert(nrow(meta) > 0, "No cells left after filtering (check by/drop_na/cells).")
-
-  groups <- split(meta$cell_id, meta[[by]])
+  groups <- .wb_expr_metadata_groups(bundle, by, cells = cells, drop_na = drop_na)
 
   out <- lapply(groups, function(cell_ids) {
     x <- wb_slice(bundle, matrix_id = matrix_id, features = features, cells = cell_ids)
@@ -147,13 +150,7 @@ wb_op_expr_zscore_by_feature <- function(bundle, matrix_id, features, cells = NU
 #' @return data.frame with columns: feature_id, <group1>, <group2>, ...
 #' @export
 wb_op_expr_pseudobulk_by <- function(bundle, matrix_id, by, features = NULL, cells = NULL, drop_na = TRUE) {
-  meta <- wb_meta(bundle, cells = cells, cols = c("cell_id", by))
-  .wb_require_cols(meta, c("cell_id", by), "metadata")
-
-  if (isTRUE(drop_na)) meta <- meta[!is.na(meta[[by]]), , drop = FALSE]
-  .wb_assert(nrow(meta) > 0, "No cells left after filtering (check by/drop_na/cells).")
-
-  groups <- split(meta$cell_id, meta[[by]])
+  groups <- .wb_expr_metadata_groups(bundle, by, cells = cells, drop_na = drop_na)
 
   out <- lapply(groups, function(cell_ids) {
     x <- wb_slice(bundle, matrix_id = matrix_id, features = features, cells = cell_ids)
@@ -166,5 +163,4 @@ wb_op_expr_pseudobulk_by <- function(bundle, matrix_id, by, features = NULL, cel
 
   data.frame(feature_id = rownames(mat), mat, row.names = NULL, check.names = FALSE, stringsAsFactors = FALSE)
 }
-
 

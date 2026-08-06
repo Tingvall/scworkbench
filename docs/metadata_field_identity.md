@@ -22,6 +22,18 @@ existing or engine-owned columns receive deterministic private storage names.
 Their source names remain unchanged in the registry. Ambiguous names fail and
 list the valid stable IDs; they never select a field by position.
 
+Source names, stable IDs, and physical storage names are separate namespaces.
+Data-frame column names always enter through the source-name namespace, even
+when they look like `meta:*`, `core:*`, or `__wb_meta_*`. They do not express
+update intent. A generated private name probes the complete case-folded SQLite
+namespace and advances deterministically until it finds a free physical name.
+
+Bare lookup considers stable-ID, source, display, and storage matches together.
+If a spelling identifies different rows, lookup fails with every matching stable
+ID. Use `wb_ref_metadata_field()` to select one stable ID explicitly. The
+structured reference survives JSON provenance, recipes, generated replay, and
+strict replay without becoming an ambiguous bare string.
+
 `cell_id` is always the canonical join key and `dataset_id` is engine-owned.
 Imported fields with either name are retained as separately mapped metadata and
 can only be selected by stable ID. The bare `cell_id` and `dataset_id` names
@@ -31,8 +43,11 @@ Use:
 
 ```r
 fields <- wb_metadata_fields(bundle)
-field <- wb_metadata_field_resolve(bundle, "meta:000003")
-values <- wb_meta(bundle, cols = c("cell_id", field$field_id))
+ref <- wb_ref_metadata_field("meta:000003")
+field <- wb_metadata_field_resolve(bundle, ref)
+values <- wb_meta(bundle, cols = list(
+  wb_ref_metadata_field("core:cell_id"), ref
+))
 ```
 
 `wb_cell_metadata_columns()` extends this mapping with missingness, cardinality,
@@ -47,6 +62,11 @@ update `INTEGER`; numeric values may update `REAL`; factor/character values may
 update `TEXT`. Lossy or cross-domain coercions are rejected before mutation.
 Partial-universe updates are allowed and align strictly by `cell_id`. Duplicate
 or unknown cell IDs are rejected. Zero-row input is a no-op.
+
+Ordinary updates reuse a uniquely matching source name. When names collide or a
+caller intends to update by stable identity, pass a position-aligned `field_refs`
+list to `wb_attach_metadata()`. Each non-NULL entry must be a
+`wb_ref_metadata_field()`; NULL entries remain ordinary source-name imports.
 
 ## Transaction boundary and complexity
 

@@ -362,6 +362,8 @@ wb_attach_normalize <- function(bundle,
 #' @param validate_only If TRUE, return normalized payload and do not write.
 #' @param apply_mode Apply mode: atomic (recommended) or best_effort.
 #' @param emit_report_artifact If TRUE, persist an obs_table attach report artifact.
+#' @param metadata_field_refs Optional position-aligned explicit metadata field
+#'   references for compatible updates.
 #' @return Result from `wb_attach_to_cells()` (or normalized payload for validate_only=TRUE)
 #' @export
 wb_attach_apply <- function(bundle,
@@ -373,7 +375,8 @@ wb_attach_apply <- function(bundle,
                             created_by = NULL,
                             validate_only = FALSE,
                             apply_mode = c("atomic", "best_effort"),
-                            emit_report_artifact = FALSE) {
+                            emit_report_artifact = FALSE,
+                            metadata_field_refs = NULL) {
   apply_mode <- match.arg(apply_mode)
   chk <- wb_attach_validate(
     bundle = bundle,
@@ -406,6 +409,7 @@ wb_attach_apply <- function(bundle,
       matrices = norm$matrices,
       spaces = norm$spaces,
       metadata = norm$metadata,
+      metadata_field_refs = metadata_field_refs,
       cell_ids = norm$cell_ids,
       source = source,
       created_by = created_by

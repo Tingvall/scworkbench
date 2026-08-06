@@ -17,10 +17,20 @@
   .wb_require_pkg("Matrix", "scvi chunk staging")
   .wb_require_pkg("jsonlite", "scvi chunk staging")
 
-  covariates <- unique(as.character(c(batch_key, categorical_covariates, continuous_covariates) %||% character(0)))
-  covariates <- covariates[nzchar(covariates)]
-  meta_cols <- unique(c("cell_id", covariates))
-  meta <- wb_meta(bundle, cells = cell_ids, cols = meta_cols)
+  batch_key_input <- batch_key
+  categorical_covariates_input <- categorical_covariates
+  continuous_covariates_input <- continuous_covariates
+  batch_plan <- .wb_metadata_lookup_plan(bundle, batch_key_input)
+  categorical_plan <- .wb_metadata_lookup_plan(bundle, categorical_covariates_input)
+  continuous_plan <- .wb_metadata_lookup_plan(bundle, continuous_covariates_input)
+  refs <- c(batch_plan$refs, categorical_plan$refs, continuous_plan$refs)
+  aliases <- c(batch_plan$aliases, categorical_plan$aliases, continuous_plan$aliases)
+  keep <- !duplicated(vapply(refs, function(x) x$field_id, character(1)))
+  refs <- refs[keep]
+  aliases <- aliases[keep]
+  meta <- wb_meta(bundle, cells = cell_ids,
+                  cols = c(list(wb_ref_metadata_field("core:cell_id")), refs))
+  names(meta) <- c("cell_id", aliases)
 
   stage_dir <- tempfile("scvi_stage_")
   dir.create(stage_dir, recursive = TRUE, showWarnings = FALSE)
@@ -70,9 +80,9 @@
       cell_metadata_file = "cell_metadata.tsv",
       n_features = length(feature_ids),
       n_cells = length(cell_ids),
-      batch_key = batch_key %||% NULL,
-      categorical_covariates = as.character(categorical_covariates %||% character(0)),
-      continuous_covariates = as.character(continuous_covariates %||% character(0)),
+      batch_key = if (length(batch_plan$aliases)) batch_plan$aliases[[1L]] else NULL,
+      categorical_covariates = categorical_plan$aliases,
+      continuous_covariates = continuous_plan$aliases,
       chunk_cells = chunk_cells,
       chunks = manifest
     ),
@@ -90,14 +100,11 @@
                                       batch_key = NULL,
                                       categorical_covariates = NULL,
                                       continuous_covariates = NULL) {
-  covariates <- unique(as.character(c(batch_key, categorical_covariates, continuous_covariates) %||% character(0)))
-  covariates <- covariates[nzchar(covariates)]
-  if (!length(covariates)) return(invisible(TRUE))
-
-  available <- names(wb_meta(bundle, cells = head(as.character(cells), 1), cols = NULL))
-  missing <- setdiff(covariates, available)
-  .wb_assert(!length(missing),
-             paste0("scvi_train covariate(s) not found in cell metadata: ", paste(missing, collapse = ", ")))
+  fields <- c(.wb_metadata_lookup_items(batch_key),
+              .wb_metadata_lookup_items(categorical_covariates),
+              .wb_metadata_lookup_items(continuous_covariates))
+  if (!length(fields)) return(invisible(TRUE))
+  invisible(lapply(fields, function(field) .wb_metadata_resolve(bundle, field, allow_core = TRUE)))
   invisible(TRUE)
 }
 
@@ -184,12 +191,15 @@ wb_op_scvi_train <- function(bundle,
     seed <- as.integer(seed)[1]
     .wb_assert(!is.na(seed), "scvi_train seed must be integer-like or NULL.")
   }
-  batch_key <- as.character(batch_key %||% "")[1]
-  if (!nzchar(batch_key)) batch_key <- NULL
-  categorical_covariates <- unique(as.character(categorical_covariates %||% character(0)))
-  categorical_covariates <- categorical_covariates[nzchar(categorical_covariates)]
-  continuous_covariates <- unique(as.character(continuous_covariates %||% character(0)))
-  continuous_covariates <- continuous_covariates[nzchar(continuous_covariates)]
+  batch_key_input <- batch_key
+  categorical_covariates_input <- categorical_covariates
+  continuous_covariates_input <- continuous_covariates
+  batch_plan <- .wb_metadata_lookup_plan(bundle, batch_key_input)
+  categorical_plan <- .wb_metadata_lookup_plan(bundle, categorical_covariates_input)
+  continuous_plan <- .wb_metadata_lookup_plan(bundle, continuous_covariates_input)
+  batch_key <- if (length(batch_plan$aliases)) batch_plan$aliases[[1L]] else NULL
+  categorical_covariates <- categorical_plan$aliases
+  continuous_covariates <- continuous_plan$aliases
 
   output_space_id <- as.character(output_space_id %||% "rna.scvi")[1]
   .wb_assert(nzchar(output_space_id), "scvi_train requires non-empty output_space_id.")
@@ -210,9 +220,9 @@ wb_op_scvi_train <- function(bundle,
   .wb_scvi_check_covariates(
     bundle = bundle,
     cells = cells,
-    batch_key = batch_key,
-    categorical_covariates = categorical_covariates,
-    continuous_covariates = continuous_covariates
+    batch_key = batch_key_input,
+    categorical_covariates = categorical_covariates_input,
+    continuous_covariates = continuous_covariates_input
   )
   .wb_scvi_check_count_matrix(
     bundle = bundle,
@@ -227,9 +237,9 @@ wb_op_scvi_train <- function(bundle,
     matrix_id = matrix_id,
     feature_ids = feats,
     cell_ids = cells,
-    batch_key = batch_key,
-    categorical_covariates = categorical_covariates,
-    continuous_covariates = continuous_covariates
+    batch_key = batch_key_input,
+    categorical_covariates = categorical_covariates_input,
+    continuous_covariates = continuous_covariates_input
   )
   on.exit(unlink(stage_dir, recursive = TRUE, force = TRUE), add = TRUE)
 

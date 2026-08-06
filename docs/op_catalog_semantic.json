@@ -4323,13 +4323,13 @@
       "params": [
         {
           "name": "source_column",
-          "type": "string",
+          "type": "metadata_field",
           "required": true,
-          "help": "Imported cell metadata column to materialize.",
+          "help": "Imported metadata name or explicit wb_ref_metadata_field() reference to materialize.",
           "nullable": false,
           "allow_non_finite": false,
           "strict_integer": false,
-          "non_empty": true
+          "non_empty": false
         },
         {
           "name": "cell_set",
@@ -9422,14 +9422,14 @@
         },
         {
           "name": "batch_key",
-          "type": "string",
+          "type": "metadata_field",
           "default": null,
           "help": "Optional observation field used as the PeakVI batch covariate.",
           "required": false,
           "nullable": true,
           "allow_non_finite": false,
           "strict_integer": false,
-          "non_empty": true
+          "non_empty": false
         },
         {
           "name": "max_epochs",
@@ -9665,25 +9665,25 @@
         },
         {
           "name": "categorical_covariates",
-          "type": "string_array",
+          "type": "metadata_field_array",
           "default": null,
           "help": "Optional categorical cell metadata covariates passed to scVI setup_anndata.",
           "required": false,
           "nullable": true,
           "allow_non_finite": false,
           "strict_integer": false,
-          "non_empty": true
+          "non_empty": false
         },
         {
           "name": "continuous_covariates",
-          "type": "string_array",
+          "type": "metadata_field_array",
           "default": null,
           "help": "Optional continuous cell metadata covariates passed to scVI setup_anndata.",
           "required": false,
           "nullable": true,
           "allow_non_finite": false,
           "strict_integer": false,
-          "non_empty": true
+          "non_empty": false
         },
         {
           "name": "max_epochs",

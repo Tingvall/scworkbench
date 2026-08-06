@@ -320,7 +320,7 @@ NULL
 #' @aliases wb_op_metadata_cell_vector
 #' @description Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
 #' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param source_column Imported cell metadata column to materialize.
+#' @param source_column Imported metadata name or explicit wb_ref_metadata_field() reference to materialize.
 #' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
 #' @param value_type Explicit vector value type; auto records a conservative native-type decision.
 #' @param missing_policy How missing values are handled before vector materialization.

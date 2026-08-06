@@ -73,26 +73,87 @@
   DBI::dbGetQuery(con, "SELECT * FROM metadata_fields ORDER BY is_core DESC, rowid;")
 }
 
+#' Create an explicit metadata-field reference
+#'
+#' Use this reference when a metadata field ID must be distinguished from an
+#' arbitrary source/display/storage name with the same spelling. The list form
+#' is JSON-serializable and is preserved by session provenance and strict replay.
+#'
+#' @param field_id Stable `field_id` returned by [wb_metadata_fields()].
+#' @return A typed metadata-field reference list.
+#' @export
+wb_ref_metadata_field <- function(field_id) {
+  .wb_assert(is.character(field_id) && length(field_id) == 1L && !is.na(field_id) && nzchar(field_id),
+             "field_id must be one non-empty stable metadata field identity.")
+  list(ref_type = "metadata_field", field_id = field_id)
+}
+
+.wb_is_metadata_field_ref <- function(x) {
+  is.list(x) && identical(as.character(x$ref_type %||% "")[1L], "metadata_field")
+}
+
+.wb_validate_metadata_field_ref <- function(x, label = "metadata field reference") {
+  .wb_assert(.wb_is_metadata_field_ref(x), paste0(label, " must be created by wb_ref_metadata_field()."))
+  .wb_assert(!is.null(names(x)) && !anyDuplicated(names(x)) &&
+               setequal(names(x), c("ref_type", "field_id")),
+             paste0(label, " must contain exactly ref_type and field_id."))
+  .wb_assert(is.character(x$field_id) && length(x$field_id) == 1L &&
+               !is.na(x$field_id) && nzchar(x$field_id),
+             paste0(label, "$field_id must be one non-empty string."))
+  x
+}
+
+.wb_metadata_lookup_items <- function(x) {
+  if (is.null(x)) return(list())
+  if (.wb_is_metadata_field_ref(x)) return(list(x))
+  if (is.character(x)) return(as.list(x))
+  .wb_assert(is.list(x), "Metadata fields must be names or wb_ref_metadata_field() references.")
+  x
+}
+
+.wb_metadata_lookup_plan <- function(bundle, x) {
+  items <- .wb_metadata_lookup_items(x)
+  if (!length(items)) return(list(refs = list(), aliases = character(), rows = list()))
+  rows <- lapply(items, function(item) .wb_metadata_resolve(bundle, item, allow_core = TRUE))
+  aliases <- vapply(seq_along(items), function(i) {
+    if (.wb_is_metadata_field_ref(items[[i]])) rows[[i]]$field_id[[1L]] else as.character(items[[i]])[1L]
+  }, character(1))
+  refs <- lapply(rows, function(row) wb_ref_metadata_field(row$field_id[[1L]]))
+  .wb_assert(!anyDuplicated(aliases), "Metadata field selection produces duplicate output aliases.")
+  list(refs = refs, aliases = aliases, rows = rows)
+}
+
 .wb_metadata_resolve <- function(bundle, field, allow_core = TRUE) {
   con <- if (inherits(bundle, "scworkbench_bundle")) bundle$con else bundle
-  .wb_assert(is.character(field) && length(field) == 1L && !is.na(field) && nzchar(field),
-             "Metadata field must be one non-empty stable identity or name.")
   reg <- .wb_metadata_registry(con)
-  hit <- which(reg$field_id == field)
-  if (!length(hit) && isTRUE(allow_core) && field %in% .wb_metadata_core_fields()) {
-    hit <- which(reg$field_id == paste0("core:", field))
-  }
-  if (!length(hit)) {
-    hit <- which(reg$source_name == field | reg$display_name == field | reg$storage_name == field)
+  if (.wb_is_metadata_field_ref(field)) {
+    ref <- .wb_validate_metadata_field_ref(field)
+    hit <- which(reg$field_id == ref$field_id)
+    label <- ref$field_id
+  } else {
+    .wb_assert(is.character(field) && length(field) == 1L && !is.na(field) && nzchar(field),
+               "Metadata field must be one non-empty name or wb_ref_metadata_field().")
+    label <- field
+    # The two engine aliases are deliberately stable. Imported fields with
+    # these source names remain addressable through their explicit field refs.
+    if (isTRUE(allow_core) && field %in% .wb_metadata_core_fields()) {
+      hit <- which(reg$field_id == paste0("core:", field))
+    } else {
+      hit <- unique(which(
+        reg$field_id == field | reg$source_name == field |
+          reg$display_name == field | reg$storage_name == field
+      ))
+    }
   }
   if (!isTRUE(allow_core)) hit <- hit[reg$is_core[hit] == 0L]
   if (!length(hit)) {
-    stop("Unknown metadata field '", field, "'. Use wb_metadata_fields() to list valid stable identities.", call. = FALSE)
+    stop("Unknown metadata field '", label, "'. Use wb_metadata_fields() to list valid stable identities.", call. = FALSE)
   }
   if (length(hit) != 1L) {
     stop(
-      "Ambiguous metadata field '", field, "'. Use one of the stable identities: ",
-      paste(reg$field_id[hit], collapse = ", "), call. = FALSE
+      "Ambiguous metadata field '", label, "'. Matching stable identities: ",
+      paste(reg$field_id[hit], collapse = ", "),
+      ". Select explicitly with wb_ref_metadata_field().", call. = FALSE
     )
   }
   reg[hit, , drop = FALSE]
@@ -101,8 +162,8 @@
 #' List canonical cell-metadata fields
 #'
 #' Returns the durable mapping between source/display names, stable field IDs,
-#' and physical SQLite storage. Use `field_id` whenever a source/display name is
-#' ambiguous.
+#' and physical SQLite storage. Use [wb_ref_metadata_field()] whenever a bare
+#' name matches more than one namespace.
 #'
 #' @param bundle Open scworkbench bundle.
 #' @param include_core Include engine-owned `cell_id` and `dataset_id` fields.
@@ -119,7 +180,9 @@ wb_metadata_fields <- function(bundle, include_core = TRUE) {
 #' Resolve one canonical cell-metadata field
 #'
 #' @param bundle Open scworkbench bundle.
-#' @param field Stable field ID, unambiguous source/display name, or storage name.
+#' @param field Unambiguous source/display/storage name or a structured
+#'   [wb_ref_metadata_field()] reference. A bare stable-ID-shaped string is
+#'   rejected when it also names a different field.
 #' @param include_core Whether engine-owned fields may resolve.
 #' @return The single durable field-mapping row.
 #' @export
@@ -173,7 +236,8 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
 }
 
 .wb_write_cell_metadata <- function(con, metadata, target_cell_ids = NULL,
-                                    source = "metadata", created_by = NULL) {
+                                    source = "metadata", created_by = NULL,
+                                    field_refs = NULL) {
   .wb_assert(is.data.frame(metadata), "metadata must be a data.frame")
   md <- as.data.frame(metadata, stringsAsFactors = FALSE, check.names = FALSE)
   .wb_assert(ncol(md) >= 1L, "metadata must contain a first cell-id column")
@@ -193,9 +257,29 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
 
   source_names <- names(md)[-1L]
   source_names[is.na(source_names)] <- ""
+  n_fields <- length(source_names)
+  if (is.null(field_refs)) {
+    field_refs <- rep(list(NULL), n_fields)
+  } else if (is.character(field_refs)) {
+    .wb_assert(length(field_refs) == n_fields,
+               "field_refs must have one entry per metadata payload column.")
+    field_refs <- lapply(field_refs, function(x) {
+      if (is.na(x) || !nzchar(x)) NULL else wb_ref_metadata_field(x)
+    })
+  } else {
+    .wb_assert(is.list(field_refs) && length(field_refs) == n_fields,
+               "field_refs must be a list with one entry per metadata payload column.")
+  }
+  for (j in seq_along(field_refs)) if (!is.null(field_refs[[j]])) {
+    field_refs[[j]] <- .wb_validate_metadata_field_ref(field_refs[[j]], paste0("field_refs[[", j, "]]"))
+  }
   source_types <- vapply(md[-1L], .wb_metadata_source_type, character(1))
   input_fold <- tolower(enc2utf8(source_names))
   input_ambiguous <- duplicated(input_fold) | duplicated(input_fold, fromLast = TRUE)
+  input_reserved_fold <- unique(input_fold[
+    nzchar(source_names) & !input_ambiguous &
+      !(source_names %in% .wb_metadata_core_fields())
+  ])
   import_id <- paste0("metadata:", format(Sys.time(), "%Y%m%dT%H%M%OS6"), ":", Sys.getpid(), ":", sample.int(1e9, 1L))
   now <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
   report <- NULL
@@ -209,12 +293,22 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
 
     for (j in seq_along(source_names)) {
       nm <- source_names[[j]]
-      stable_hit <- which(reg$field_id == nm & reg$is_core == 0L)
-      ordinary_hit <- which((reg$source_name == nm | reg$display_name == nm | reg$storage_name == nm) & reg$is_core == 0L)
-      core_hit <- which((reg$source_name == nm | reg$display_name == nm | reg$storage_name == nm) & reg$is_core == 1L)
-      hit <- if (length(stable_hit) == 1L) stable_hit else if (!input_ambiguous[[j]] && length(ordinary_hit) == 1L) ordinary_hit else integer(0)
-      if (length(stable_hit) > 1L || (!input_ambiguous[[j]] && length(ordinary_hit) > 1L)) {
-        choices <- unique(reg$field_id[c(stable_hit, ordinary_hit)])
+      # Payload column names inhabit the source-name namespace only. A spelling
+      # that happens to equal another row's field_id/display/storage identity
+      # never implies update intent.
+      ordinary_hit <- which(reg$source_name == nm & reg$is_core == 0L)
+      core_hit <- which(reg$source_name == nm & reg$is_core == 1L)
+      explicit <- field_refs[[j]]
+      explicit_hit <- if (is.null(explicit)) integer(0) else which(reg$field_id == explicit$field_id)
+      if (!is.null(explicit)) {
+        .wb_assert(length(explicit_hit) == 1L,
+                   paste0("Unknown explicit metadata field_id '", explicit$field_id, "'."))
+        .wb_assert(reg$is_core[explicit_hit] == 0L,
+                   paste0("Engine-owned field '", explicit$field_id, "' cannot be updated as ordinary metadata."))
+      }
+      hit <- if (!is.null(explicit)) explicit_hit else if (!input_ambiguous[[j]] && length(ordinary_hit) == 1L) ordinary_hit else integer(0)
+      if (is.null(explicit) && !input_ambiguous[[j]] && length(ordinary_hit) > 1L) {
+        choices <- unique(reg$field_id[ordinary_hit])
         stop("Ambiguous metadata field '", nm, "'. Use one of the stable identities: ", paste(choices, collapse = ", "), call. = FALSE)
       }
 
@@ -250,7 +344,17 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
       storage_fold <- tolower(enc2utf8(reg$storage_name))
       preservable <- nzchar(nm) && !any(charToRaw(enc2utf8(nm)) == as.raw(0L)) &&
         !(tolower(enc2utf8(nm)) %in% storage_fold) && !input_ambiguous[[j]] && !length(core_hit)
-      storage_name <- if (preservable) nm else paste0("__wb_", gsub(":", "_", field_id, fixed = TRUE))
+      if (preservable) {
+        storage_name <- nm
+      } else {
+        storage_index <- as.integer(sub("^meta:", "", field_id))
+        repeat {
+          candidate <- sprintf("__wb_meta_%06d", storage_index)
+          if (!(tolower(enc2utf8(candidate)) %in% c(storage_fold, input_reserved_fold))) break
+          storage_index <- storage_index + 1L
+        }
+        storage_name <- candidate
+      }
       collision <- if (preservable) "none" else if (!nzchar(nm)) "empty_name" else if (length(core_hit)) "reserved_core" else if (input_ambiguous[[j]]) "duplicate_or_casefold" else "storage_collision"
       resolution <- if (preservable) "preserved_exactly" else "stable_storage_rename"
       display_name <- if (nzchar(nm)) nm else field_id

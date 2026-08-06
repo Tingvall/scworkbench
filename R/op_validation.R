@@ -135,6 +135,20 @@
     value <- .wb_assert_nonempty_character(value, label, scalar = TRUE)
   } else if (type %in% c("string_vec", "string_array", "cell_ids")) {
     value <- .wb_assert_nonempty_character(value, label)
+  } else if (identical(type, "metadata_field")) {
+    if (.wb_is_metadata_field_ref(value)) value <- .wb_validate_metadata_field_ref(value, label)
+    else value <- .wb_assert_nonempty_character(value, label, scalar = TRUE)
+  } else if (identical(type, "metadata_field_array")) {
+    if (is.character(value)) {
+      value <- .wb_assert_nonempty_character(value, label)
+    } else {
+      .wb_assert(is.list(value) && length(value) > 0L, paste0(label, " must contain metadata names or references."))
+      value <- lapply(seq_along(value), function(i) {
+        item <- value[[i]]
+        if (.wb_is_metadata_field_ref(item)) .wb_validate_metadata_field_ref(item, paste0(label, "[[", i, "]]"))
+        else .wb_assert_nonempty_character(item, paste0(label, "[[", i, "]]"), scalar = TRUE)
+      })
+    }
   } else if (identical(type, "string_vec_or_list")) {
     if (is.character(value)) {
       value <- .wb_assert_nonempty_character(value, label)

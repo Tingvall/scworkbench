@@ -10,7 +10,8 @@ wb_attach_metadata(
   cell_ids = NULL,
   source = "assembly",
   created_by = NULL,
-  emit_report_artifact = FALSE
+  emit_report_artifact = FALSE,
+  field_refs = NULL
 )
 }
 \arguments{
@@ -25,6 +26,10 @@ wb_attach_metadata(
 \item{created_by}{Optional author tag.}
 
 \item{emit_report_artifact}{Whether to persist an attach report artifact.}
+
+\item{field_refs}{Optional position-aligned list of \code{\link[=wb_ref_metadata_field]{wb_ref_metadata_field()}}
+references for explicit compatible updates. Ordinary column names are
+always interpreted as source names.}
 }
 \value{
 Result from \code{\link[=wb_attach_apply]{wb_attach_apply()}}.

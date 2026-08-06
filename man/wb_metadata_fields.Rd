@@ -16,6 +16,6 @@ A data frame ordered by registry creation order.
 }
 \description{
 Returns the durable mapping between source/display names, stable field IDs,
-and physical SQLite storage. Use \code{field_id} whenever a source/display name is
-ambiguous.
+and physical SQLite storage. Use \code{\link[=wb_ref_metadata_field]{wb_ref_metadata_field()}} whenever a bare
+name matches more than one namespace.
 }

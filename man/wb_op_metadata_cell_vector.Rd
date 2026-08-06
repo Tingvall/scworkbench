@@ -18,7 +18,7 @@ wb_op_metadata_cell_vector(
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle} that owns input storage, output registration, and provenance.}
 
-\item{source_column}{Imported cell metadata column to materialize.}
+\item{source_column}{Imported metadata name or explicit wb_ref_metadata_field() reference to materialize.}
 
 \item{cells}{Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.}
 

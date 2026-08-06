@@ -14,7 +14,8 @@ wb_attach_apply(
   created_by = NULL,
   validate_only = FALSE,
   apply_mode = c("atomic", "best_effort"),
-  emit_report_artifact = FALSE
+  emit_report_artifact = FALSE,
+  metadata_field_refs = NULL
 )
 }
 \arguments{
@@ -37,6 +38,9 @@ wb_attach_apply(
 \item{apply_mode}{Apply mode: atomic (recommended) or best_effort.}
 
 \item{emit_report_artifact}{If TRUE, persist an obs_table attach report artifact.}
+
+\item{metadata_field_refs}{Optional position-aligned explicit metadata field
+references for compatible updates.}
 }
 \value{
 Result from \code{wb_attach_to_cells()} (or normalized payload for validate_only=TRUE)

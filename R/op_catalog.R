@@ -944,7 +944,8 @@
 }
 
 .wb_runner_metadata_cell_vector <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  vector_name <- as.character(inputs$vector_name %||% inputs$source_column %||% "")[1]
+  source_field <- .wb_metadata_resolve(bundle, inputs$source_column, allow_core = TRUE)
+  vector_name <- as.character(inputs$vector_name %||% source_field$display_name[[1L]])[1]
   .wb_assert(nzchar(vector_name), "metadata_cell_vector runner: vector_name is required.")
   if (!isTRUE(inputs$overwrite %||% FALSE)) {
     arts <- wb_art_list(bundle)
@@ -2753,7 +2754,7 @@
       runner = .wb_runner_metadata_cell_vector,
       inputs = list(),
       params = list(
-        list(name = "source_column", type = "string", required = TRUE, help = "Imported cell metadata column to materialize."),
+        list(name = "source_column", type = "metadata_field", required = TRUE, help = "Imported metadata name or explicit wb_ref_metadata_field() reference to materialize."),
         list(name = "cell_set", type = "cell_set", default = "all", help = "Named bundle cell set defining the vector universe."),
         list(name = "value_type", type = "choice", default = "auto", choices = c("categorical", "continuous", "auto"), help = "Explicit vector value type; auto records a conservative native-type decision."),
         list(name = "missing_policy", type = "choice", default = "error", choices = c("error", "drop", "as_category"), help = "How missing values are handled before vector materialization."),
@@ -4036,7 +4037,7 @@
              help = "Hidden width passed to the PeakVI model constructor."),
         list(name = "dropout", type = "number", default = 0.2, min = 0, max = 1,
              help = "Dropout rate passed to the PeakVI model constructor."),
-        list(name = "batch_key", type = "string", default = NULL,
+        list(name = "batch_key", type = "metadata_field", default = NULL,
              help = "Optional observation field used as the PeakVI batch covariate."),
         list(name = "max_epochs", type = "int", default = 500, min = 1, max = 100000,
              help = "Maximum training epochs passed through to scvi-tools."),
@@ -4089,9 +4090,9 @@
              help = "Dropout rate passed to the scVI model constructor."),
         list(name = "batch_key", type = "string", default = NULL,
              help = "Optional cell metadata field used as the scVI batch covariate."),
-        list(name = "categorical_covariates", type = "string_array", default = NULL,
+        list(name = "categorical_covariates", type = "metadata_field_array", default = NULL,
              help = "Optional categorical cell metadata covariates passed to scVI setup_anndata."),
-        list(name = "continuous_covariates", type = "string_array", default = NULL,
+        list(name = "continuous_covariates", type = "metadata_field_array", default = NULL,
              help = "Optional continuous cell metadata covariates passed to scVI setup_anndata."),
         list(name = "max_epochs", type = "int", default = NULL, min = 1, max = 100000,
              help = "Optional maximum training epochs passed through to scvi-tools."),

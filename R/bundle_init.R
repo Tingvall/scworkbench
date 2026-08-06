@@ -189,7 +189,9 @@ wb_define_cells <- function(bundle,
     set_name = set_name,
     n_defined = length(ids),
     n_metadata_cols = if (is.null(md)) 0L else ncol(md) - 1L,
-    metadata_fields = metadata_report$fields %||% data.frame()
+    metadata_fields = metadata_report$fields %||% data.frame(),
+    metadata_statement_count = metadata_report$statement_count %||% 0L,
+    metadata_write_complexity = metadata_report$complexity %||% "O(1)"
   ))
 }
 
@@ -286,6 +288,9 @@ wb_attach_space <- function(bundle,
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param metadata Metadata data frame (first column is treated as `cell_id`).
+#' @param field_refs Optional position-aligned list of [wb_ref_metadata_field()]
+#'   references for explicit compatible updates. Ordinary column names are
+#'   always interpreted as source names.
 #' @param cell_ids Optional explicit cell subset.
 #' @param source Provenance source label.
 #' @param created_by Optional author tag.
@@ -298,13 +303,15 @@ wb_attach_metadata <- function(bundle,
                                cell_ids = NULL,
                                source = "assembly",
                                created_by = NULL,
-                               emit_report_artifact = FALSE) {
+                               emit_report_artifact = FALSE,
+                               field_refs = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
 
   res <- wb_attach_apply(
     bundle = bundle,
     cell_ids = cell_ids,
     metadata = metadata,
+    metadata_field_refs = field_refs,
     source = source,
     created_by = created_by,
     emit_report_artifact = emit_report_artifact

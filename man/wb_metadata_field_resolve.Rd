@@ -9,7 +9,9 @@ wb_metadata_field_resolve(bundle, field, include_core = TRUE)
 \arguments{
 \item{bundle}{Open scworkbench bundle.}
 
-\item{field}{Stable field ID, unambiguous source/display name, or storage name.}
+\item{field}{Unambiguous source/display/storage name or a structured
+\code{\link[=wb_ref_metadata_field]{wb_ref_metadata_field()}} reference. A bare stable-ID-shaped string is
+rejected when it also names a different field.}
 
 \item{include_core}{Whether engine-owned fields may resolve.}
 }

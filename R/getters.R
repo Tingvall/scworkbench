@@ -243,15 +243,25 @@ wb_meta <- function(bundle, cells = NULL, cols = NULL, dataset_id = NULL) {
 
   reg <- wb_metadata_fields(bundle, include_core = TRUE)
   if (is.null(cols)) {
+    core_aliases <- .wb_metadata_core_fields()
     display_ambiguous <- duplicated(reg$display_name) | duplicated(reg$display_name, fromLast = TRUE)
-    cols <- ifelse(display_ambiguous, reg$field_id, reg$display_name)
+    namespace_collision <- reg$display_name %in% c(reg$field_id, core_aliases)
+    aliases <- ifelse(reg$is_core == 1L, reg$source_name,
+                      ifelse(display_ambiguous | namespace_collision, reg$field_id, reg$display_name))
+    fields <- lapply(reg$field_id, wb_ref_metadata_field)
   } else {
-    cols <- as.character(cols)
+    fields <- if (.wb_is_metadata_field_ref(cols)) list(cols) else if (is.list(cols)) cols else as.list(cols)
+    aliases <- vapply(fields, function(field) {
+      row <- .wb_metadata_resolve(bundle, field, allow_core = TRUE)
+      if (row$is_core[[1L]] == 1L) row$source_name[[1L]]
+      else if (.wb_is_metadata_field_ref(field)) row$field_id[[1L]]
+      else as.character(field)[1L]
+    }, character(1))
   }
-  resolved <- lapply(cols, function(field) .wb_metadata_resolve(bundle, field, allow_core = TRUE))
+  resolved <- lapply(fields, function(field) .wb_metadata_resolve(bundle, field, allow_core = TRUE))
   sel <- paste(vapply(seq_along(resolved), function(i) {
     paste0(.wb_quote_identifier(con, resolved[[i]]$storage_name[[1L]]), " AS ",
-           .wb_quote_identifier(con, cols[[i]]))
+           .wb_quote_identifier(con, aliases[[i]]))
   }, character(1)), collapse = ", ")
   q <- paste0("SELECT ", sel, " FROM cells")
   params <- list()

@@ -14,6 +14,9 @@
 #'   - 2D: first col=cell_id, plus x,y
 #'   - long: first col=cell_id, plus dim,value
 #' @param metadata Optional data.frame: first col=cell_id, rest are metadata cols
+#' @param metadata_field_refs Optional position-aligned list of
+#'   [wb_ref_metadata_field()] references. Non-NULL entries explicitly update
+#'   existing fields; NULL entries treat payload column names as source names.
 #' @param cell_ids Optional character vector: restrict attach to these cells (must exist in bundle)
 #' @param source Stored in registries
 #' @param created_by Optional (currently unused here; kept for forward compatibility)
@@ -26,7 +29,8 @@ wb_attach_to_cells <- function(
     metadata = NULL,
     cell_ids = NULL,
     source = "attach",
-    created_by = NULL
+    created_by = NULL,
+    metadata_field_refs = NULL
 ) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle")
   .wb_assert_mutation_context(
@@ -114,7 +118,8 @@ wb_attach_to_cells <- function(
   # ============================================================
   if (!is.null(metadata)) {
     metadata_report <- .wb_write_cell_metadata(
-      con, metadata, target_cell_ids = keep, source = source, created_by = created_by
+      con, metadata, target_cell_ids = keep, source = source, created_by = created_by,
+      field_refs = metadata_field_refs
     )
     report$metadata <- metadata_report
   }

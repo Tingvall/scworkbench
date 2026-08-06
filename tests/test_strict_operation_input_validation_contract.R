@@ -15,8 +15,8 @@ test_strict_operation_input_validation_contract <- function() {
     if (tp %in% c("int", "dbl", "number")) return(p$min %||% 1)
     if (tp %in% c("int_range", "int_vec")) return(as.integer(p$min %||% 1))
     if (tp %in% c("bool", "logical")) return(TRUE)
-    if (tp %in% c("string", "path", "cell_set")) return("x")
-    if (tp %in% c("string_vec", "string_array", "cell_ids")) return("x")
+    if (tp %in% c("string", "path", "cell_set", "metadata_field")) return("x")
+    if (tp %in% c("string_vec", "string_array", "cell_ids", "metadata_field_array")) return("x")
     if (identical(tp, "string_vec_or_list")) return(list(signature = "x"))
     if (identical(tp, "cell_ids_or_set")) return("set:core")
     if (identical(tp, "list_or_cell_set")) return(list(cells = "x"))
@@ -28,7 +28,8 @@ test_strict_operation_input_validation_contract <- function() {
     if (type %in% c("int", "int_range", "int_vec", "dbl", "number")) return("not_numeric")
     if (type %in% c("bool", "logical")) return(1L)
     if (type %in% c("string", "path", "cell_set", "choice", "string_vec", "string_array",
-                    "cell_ids", "string_vec_or_list", "cell_ids_or_set", "list_or_cell_set")) return(1L)
+                    "cell_ids", "metadata_field", "metadata_field_array", "string_vec_or_list",
+                    "cell_ids_or_set", "list_or_cell_set")) return(1L)
     if (identical(type, "list")) return("not_a_list")
     stop("No generated wrong value for type: ", type)
   }
@@ -88,12 +89,12 @@ test_strict_operation_input_validation_contract <- function() {
       bad[[nm]] <- wrong_value(tp)
       expect_error(scworkbench:::.wb_validate_op_inputs_contract(op_name, bad, session))
 
-      if (tp %in% c("string", "path", "cell_set", "choice")) {
+      if (tp %in% c("string", "path", "cell_set", "choice", "metadata_field")) {
         empty <- base
         empty[[nm]] <- ""
         expect_error(scworkbench:::.wb_validate_op_inputs_contract(op_name, empty, session), "empty")
       }
-      if (tp %in% c("string_vec", "string_array", "cell_ids", "cell_ids_or_set")) {
+      if (tp %in% c("string_vec", "string_array", "cell_ids", "cell_ids_or_set", "metadata_field_array")) {
         empty <- base
         empty[[nm]] <- character(0)
         expect_error(scworkbench:::.wb_validate_op_inputs_contract(op_name, empty, session), "non-empty")

@@ -11,7 +11,8 @@ wb_attach_to_cells(
   metadata = NULL,
   cell_ids = NULL,
   source = "attach",
-  created_by = NULL
+  created_by = NULL,
+  metadata_field_refs = NULL
 )
 }
 \arguments{
@@ -36,6 +37,10 @@ wb_attach_to_cells(
 \item{source}{Stored in registries}
 
 \item{created_by}{Optional (currently unused here; kept for forward compatibility)}
+
+\item{metadata_field_refs}{Optional position-aligned list of
+\code{\link[=wb_ref_metadata_field]{wb_ref_metadata_field()}} references. Non-NULL entries explicitly update
+existing fields; NULL entries treat payload column names as source names.}
 }
 \value{
 report list

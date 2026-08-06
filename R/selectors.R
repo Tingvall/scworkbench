@@ -134,7 +134,8 @@ wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = 
   con <- b$con
   base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
 
-  .wb_assert(is.character(col) && length(col) == 1 && nzchar(col), "col must be a non-empty column name.")
+  .wb_assert(.wb_is_metadata_field_ref(col) || (is.character(col) && length(col) == 1 && nzchar(col)),
+             "col must be a non-empty column name or wb_ref_metadata_field().")
   field <- .wb_metadata_resolve(b, col, allow_core = TRUE)
   quoted <- .wb_quote_identifier(con, field$storage_name[[1L]])
   js <- jsonlite::toJSON(as.list(base), auto_unbox = TRUE)

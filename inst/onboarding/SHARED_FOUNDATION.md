@@ -83,8 +83,13 @@ SQLite column names. Inspect it with `wb_metadata_fields()` and resolve one fiel
 with `wb_metadata_field_resolve()`. Exact source names are preserved when
 unambiguous; collisions and reserved names retain their source spelling but use
 stable `meta:NNNNNN` identities and private physical storage. Ambiguous names
-must be addressed by stable identity. See `docs/metadata_field_identity.md` for
-type, update, rollback, and set-based ingestion rules.
+must be addressed with `wb_ref_metadata_field()`, not a bare stable-ID-shaped
+string. Input column names remain source names even when they look like
+`meta:*`, `core:*`, or `__wb_meta_*`; explicit compatible updates use the
+position-aligned `field_refs` channel of `wb_attach_metadata()`. Default
+`wb_meta()` always exposes literal core aliases `cell_id` and `dataset_id`.
+See `docs/metadata_field_identity.md` for namespace, type, update, rollback,
+and set-based ingestion rules.
 
 # Provenance-only mutation boundary
 

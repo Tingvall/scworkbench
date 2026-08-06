@@ -169,17 +169,25 @@ wb_op_cells_order_like <- function(bundle, cells) {
 #' @return Named list of character vectors
 #' @export
 wb_op_cells_split_by <- function(bundle, by, cells = NULL, drop_na = TRUE) {
-  meta <- if (is.null(cells)) wb_meta(bundle, cols = c("cell_id", by)) else wb_meta(bundle, cells = cells, cols = c("cell_id", by))
-  .wb_require_cols(meta, c("cell_id", by), "metadata")
+  field <- .wb_metadata_resolve(bundle, by, allow_core = TRUE)
+  cols <- list(wb_ref_metadata_field("core:cell_id"), wb_ref_metadata_field(field$field_id[[1L]]))
+  meta <- if (is.null(cells)) wb_meta(bundle, cols = cols) else wb_meta(bundle, cells = cells, cols = cols)
+  .wb_require_cols(meta, "cell_id", "metadata")
+  group_value <- meta[[2L]]
 
-  if (isTRUE(drop_na)) meta <- meta[!is.na(meta[[by]]), , drop = FALSE]
+  if (isTRUE(drop_na)) {
+    keep <- !is.na(group_value)
+    meta <- meta[keep, , drop = FALSE]
+    group_value <- group_value[keep]
+  }
 
   canon <- .wb_cells_canonical(bundle)
   # preserve canonical order by ordering meta by canonical index
   ord <- match(meta$cell_id, canon)
   meta <- meta[order(ord), , drop = FALSE]
 
-  split(meta$cell_id, meta[[by]])
+  group_value <- group_value[order(ord)]
+  split(meta$cell_id, group_value)
 }
 
 #' Count cells by a metadata column
@@ -219,5 +227,4 @@ wb_op_cells_top_n_by <- function(bundle, by, n = 10, cells = NULL, drop_na = TRU
   tab <- tab[order(tab$n_cells, decreasing = TRUE), , drop = FALSE]
   head(tab$group, n)
 }
-
 

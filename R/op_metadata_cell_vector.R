@@ -1,7 +1,7 @@
 #' Materialize imported cell metadata as a typed cell vector
 #'
 #' @param bundle Bundle containing the imported cell metadata.
-#' @param source_column Name of one cell metadata column.
+#' @param source_column Metadata name or [wb_ref_metadata_field()] reference.
 #' @param cells Optional cell IDs defining the output universe.
 #' @param value_type One of `"categorical"`, `"continuous"`, or `"auto"`.
 #' @param missing_policy One of `"error"`, `"drop"`, or `"as_category"`.
@@ -19,11 +19,13 @@ wb_op_metadata_cell_vector <- function(bundle,
                                        vector_name = source_column,
                                        overwrite = FALSE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  source_column <- as.character(source_column)[1]
+  source_field <- .wb_metadata_resolve(bundle, source_column, allow_core = TRUE)
+  if (missing(vector_name) || is.null(vector_name) || .wb_is_metadata_field_ref(vector_name)) {
+    vector_name <- source_field$display_name[[1L]]
+  }
   vector_name <- as.character(vector_name)[1]
   value_type_requested <- as.character(value_type)[1]
   missing_policy <- as.character(missing_policy)[1]
-  .wb_assert(nzchar(source_column), "source_column must be a non-empty metadata column name.")
   .wb_assert(nzchar(vector_name), "vector_name must be a non-empty string.")
   .wb_assert(value_type_requested %in% c("categorical", "continuous", "auto"),
              "value_type must be categorical, continuous, or auto.")
@@ -36,8 +38,9 @@ wb_op_metadata_cell_vector <- function(bundle,
   target <- if (is.null(cells)) all_cells else as.character(cells)
   .wb_assert(length(target) > 0L && !anyDuplicated(target), "cells must be a non-empty unique cell vector.")
   .wb_assert(all(target %in% all_cells), "Some requested cells are absent from the bundle.")
-  md <- wb_meta(bundle, cells = target, cols = c("cell_id", source_column))
-  raw <- md[[source_column]]
+  md <- wb_meta(bundle, cells = target, cols = list(wb_ref_metadata_field("core:cell_id"),
+                                                    wb_ref_metadata_field(source_field$field_id[[1L]])))
+  raw <- md[[2L]]
   detected_type <- if (is.numeric(raw) || is.integer(raw)) "continuous" else "categorical"
   resolved_type <- if (identical(value_type_requested, "auto")) detected_type else value_type_requested
 
@@ -51,7 +54,7 @@ wb_op_metadata_cell_vector <- function(bundle,
   n_missing <- sum(missing)
   if (n_missing) {
     if (identical(missing_policy, "error")) {
-      stop("Metadata column '", source_column, "' contains ", n_missing,
+      stop("Metadata field '", source_field$field_id[[1L]], "' contains ", n_missing,
            " missing/non-finite values; choose missing_policy='drop' or an applicable replacement policy.", call. = FALSE)
     }
     if (identical(missing_policy, "as_category")) {
@@ -71,6 +74,7 @@ wb_op_metadata_cell_vector <- function(bundle,
     outputs = list(vector = wb_prim_cell_vector(value, value_type = resolved_type)),
     params = list(
       source_column = source_column,
+      source_field_id = source_field$field_id[[1L]],
       source_metadata_scope = "cells",
       source_dataset_id = NULL,
       vector_name = vector_name,
