@@ -191,8 +191,9 @@ result <- wb_session_run_op(
   session = s,
   bundle = b,
   op_name = "operation_name",
-  inputs = list(),
-  params = list(),
+  inputs = list(
+    # operation-specific inputs and parameters from wb_op_interface()
+  ),
   notes = "Scientific purpose and decision context"
 )
 s <- result$session

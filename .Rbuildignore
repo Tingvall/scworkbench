@@ -2,6 +2,15 @@
 ^\.Rproj\.user$
 ^\.Rhistory$
 ^\.git$
+^archive$
+^coordination$
+^scworkbench\.Rcheck$
+^\.cache$
+^\.pytest_cache$
+^\.DS_Store$
+^.*\.backup$
+^.*\.sif$
+^.*\.sandbox$
 ^\.tmp_exports_overview\.csv$
 ^\.agents$
 ^\.codex$
@@ -9,4 +18,3 @@
 ^scripts/reports$
 ^containers/.*\.sif$
 ^scworkbench_.*\.tar\.gz$
-^CITATION\.cff$

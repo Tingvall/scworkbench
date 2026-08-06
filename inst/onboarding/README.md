@@ -36,15 +36,12 @@ file.path(
 4. **Shared vocabulary and invariants:** `SHARED_FOUNDATION.md`
 5. **Operational analysis/development loop:** `PLAYBOOK.md`
 6. **Common analysis patterns:** `RECIPES.md`
-7. **Reusable task, evidence, handoff, and capability templates:**
-   `templates/`
-
 All roles begin with the auditable-transformation law in the operator guide,
 biologist guide, and playbook: scientific results must be recorded through
 engine contracts, while reports consume rather than create evidence.
 
 ## Canonicality
 
-Do not create project-specific copies of these guides. Project task packets may
-link to this directory and add question- or data-specific constraints, but the
-engine operating model belongs here.
+Do not create project-specific copies of these guides. Local projects may link
+to this directory and add data-specific constraints, but the engine operating
+model belongs here.

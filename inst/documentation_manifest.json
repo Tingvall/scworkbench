@@ -1,0 +1,4096 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "path": "README.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "README.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "LICENSE",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "LICENSE",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "LICENSE.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "LICENSE.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "CITATION.cff",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "CITATION.cff",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/getting_started.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/getting_started.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/bundle_concepts.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/bundle_concepts.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/ingestion.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/ingestion.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/sessions_and_ops.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/sessions_and_ops.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/promotion_and_provenance.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/promotion_and_provenance.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/recipient_audit.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/recipient_audit.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/python_bridge.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/python_bridge.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/extension_engineering.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/extension_engineering.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/source_ownership.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/source_ownership.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "inst/protocol/pybench-op-v2.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/pybench-op-v2.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/AGENT_ENGINEER_GUIDE.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/AGENT_ENGINEER_GUIDE.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/AGENT_OPERATOR_GUIDE.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/AGENT_OPERATOR_GUIDE.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/PLAYBOOK.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/PLAYBOOK.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/README.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/README.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/RECIPES.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/RECIPES.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/RUNTIME_ATTESTATION.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/RUNTIME_ATTESTATION.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "inst/onboarding/SHARED_FOUNDATION.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/SHARED_FOUNDATION.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "docs/artifact_type_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/artifact_type_catalog_semantic.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/getter_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/getter_catalog_semantic.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/mutation_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/mutation_catalog_semantic.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/op_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/op_catalog_semantic.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/parameter_semantics_catalog.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/parameter_semantics_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/plot_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/plot_catalog_semantic.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/primitive_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/primitive_catalog_semantic.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/public_documentation_manifest.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/recipe_semantics_catalog.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/recipe_semantics_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/schema_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ schema declarations",
+      "generator": "inst/dev/generate_schema_catalog.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_catalog_audit.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_catalog.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_compatibility_graph.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_artifact_plotting.dot",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_artifact_plotting.svg",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_edges.csv",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_full.dot",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_full.svg",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_manifest.csv",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_nodes.csv",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_ops_primitives.dot",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_ops_primitives.svg",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_parameters.dot",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_parameters.svg",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_recipes.dot",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_recipes.svg",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_trajectory_dynamics.dot",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/semantic_graphs/semantic_graph_trajectory_dynamics.svg",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/wrangler_catalog_reference.md",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/wrangler_catalog_semantic.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "inst/documentation_manifest.json",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ catalog writers",
+      "generator": "inst/dev/regenerate_public_docs.R",
+      "source_tarball": true,
+      "installed_package": true
+    },
+    {
+      "path": "man/dot-wb_ensure_cell_set_recipes_table.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/dot-wb_filter_labels.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/dot-wb_resolve_cells.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/dot-wb_sel_order_like_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/scworkbench-package.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_add_space.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_birth_certificate.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_delete_plan.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_delete.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_dependencies.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_emit_r_script.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_get_labels.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_identity_card.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_list.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_load.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_table_distinct.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_table_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_table_slice.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_trajectory_de_overview.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_trajectory_de_plot_slice.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_trajectory_de_ranked.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_trajectory_de_slice_primitive.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_trajectory_de_top.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_trajectory_related.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_art_trajectory_smooth_overview.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_artifact_type_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_as_primitive.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_apply.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_cell_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_matrix_from_seurat.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_matrix.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_metadata.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_normalize.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_space.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_spaces_from_seurat.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_to_cells.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_attach_validate.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_from_10x_mtx.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_from_h5ad.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_from_sce.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_from_seurat.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_overview.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_path_status.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_schema_status.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_schema.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_validation_report.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_bundle_writer_lock_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_coverage.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_metadata_columns.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_set_add.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_set_define.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_set_derive.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_set_remove.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_set_replace.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_set_set.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_sets.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_vector_load.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cell_vector_winners_from_artifact.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cells_with_matrix.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cells_with_space.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_cells.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_client_discover.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_client_inspect.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_client_load_table.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_client_load.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_client_promote.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_client_run.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_client_select.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_close_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_compute_profile.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_define_cells_from_seurat.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_define_cells.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_entity_lifecycle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_entity_mark_ephemeral.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_entity_reject.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_entity_retract.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_entity_supersede.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_entity_supersessions.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_exec_feature_selection_plan.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_exec_selection_plan.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_family_keys.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_ids.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_set_delete.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_set_get.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_set_import_list.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_set_import_table.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_set_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_set_namespace_transfer.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_set_replace.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_feature_sets.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_features.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_finalize_recipient_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_freeze_packet.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_freeze_snapshot.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_geom_trajectory_2d.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_get_cell_set_recipe.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_get_cell_set_style.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_getter_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ingest_apply.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ingest_cells.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ingest_normalize.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ingest_report.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ingest_reports.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ingest_validate.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_init_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_is_run.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_is_session.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_kg_bundle_graph.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_kg_catalog_audit.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_kg_export_jsonl.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_kg_export_neo4j_csv.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_kg_provenance_graph.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_kg_static_graph.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_list_cell_vectors.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_list_ops.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_list_trajectory_models.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_list_vector_sources.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_list.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_load_space_model.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_manifest.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrices.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix_fragments.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix_read_feature.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix_read_features.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix_resolve.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix_set_genome.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix_spec.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_matrix.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_meta.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_metadata_field_resolve.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_metadata_fields.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_migrate_artifacts.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_migrate_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motif_libraries.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motif_library_import_jaspar.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motif_library_register.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motif_match_get.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motif_match_replace.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motif_match_sets.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motif_register.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_motifs.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_mutation_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_nav_entities.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_nav_handoff.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_nav_targets.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_new_run.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_addmodulescore.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_suffix_label.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_assoc.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_association.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_compare.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_family_calibrate.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_family_graph_smooth.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_family_qc.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_family_reduce.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cell_vector_winners.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_all.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_counts_by.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_filter.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_in_dataset.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_intersect.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_order_like.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_sample.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_setdiff.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_split_by.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_top_n_by.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_cells_union.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_chromvar.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_de_wilcox.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_expr_avg_by.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_expr_frac_nonzero_by.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_expr_pseudobulk_by.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_expr_slice.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_expr_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_expr_zscore_by_feature.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_feature_set_import.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_feature_set_overlap_qc.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_feature_trend_spearman.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_hvg_select.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_interface.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_knn_graph.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_knn_neighbors.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_knn_pseudobulk.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_leiden.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_markers_topn.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_matrix_log_normalize.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_meanexpr.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_metadata_cell_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_monocle3_fit.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_monocle3_project.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_palantir_fit.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_palantir_project.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_pathway_enrich.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_pca_fit.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_peakvi_project.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_slingshot_fit.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_slingshot_lineage_weights.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_slingshot_project.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_slingshot.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_space_path_define.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_space_path_project_2d.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_space_path_score.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_branch_compare.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_de.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_geneset_dynamics.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_route_smooth.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_segment_from_artifacts.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_segment_join.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_segment_path_join.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_signal_dynamics.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_signature_smooth.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_smooth.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_space_path_segment.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_trajectory_vector_smooth.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_umap_fit.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_op_umap_transform.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_open_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ops.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_parameter_semantics_catalog.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_path_2d_family_space_id.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_compatibility_report.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_compatible_types.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_contract.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_mapper_list.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_mapper_register.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_min_inputs.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_space_2d.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_spec.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_plot_validate_dataset.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_cell_vector_family.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_cell_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_feature_table.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_matrix.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_model_ref.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_obs_table.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_path_2d_family.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_relation_family.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_space_2d.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_space_path_family.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prim_space.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_primitive_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_primitive_to_table.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_promote_analysis.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_artifact_lineage.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_bundle_dag.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_dag.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_emit_r_script.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_list_heads.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_replay_equivalence_results.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_run_details.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_source_identity.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_source_inputs.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_prov_validate_replay.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_publish_app_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_read_cell_vector_family.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_read_cell_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_recipe_semantics_catalog.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_recipe.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_recipient_readiness.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_recover_bundle_writer_lock.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ref_artifact.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ref_metadata_field.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_ref_run.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_refresh_manifest.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_refresh_semantic_catalogs.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_register_matrix_fragment.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_register_winner_cell_sets.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_relation_key_parse_lineage.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_repair_model_ref_paths.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_report_draft.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_report_methods.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_report_render_md.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_resolve_cell_set.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_resolve_cell_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_resolve_primitive.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_run_history.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_search_features.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_all.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_and.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_expr.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_meta.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_not.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_or.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_recipe_print.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_recipe.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_set.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_space_box.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_vector_family.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_vector_values.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_sel_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_semantic_catalog_audit.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_semantic_catalog.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_semantic_compatibility_graph.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_semantic_graph_dot.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_semantic_graph_tables.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_semantic_plan_artifact_next_steps.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_add_run.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_cleanup.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_create.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_dag_run_details.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_dag.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_discard.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_finalize.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_list.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_new.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_open.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_promote_current.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_resume.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_run_op.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_set_active.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_session_view.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_set_cell_set_style.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_set_create.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_slice.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_space_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_space_model_path.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_space_model.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_space.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_spaces_with_model.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_spaces.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_status.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_target_emit_r_script.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_target_reproduction_plan.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_trajectory_assert_fit_compatible.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_trajectory_fit_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_trajectory_keys.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_trajectory_lineage_weights.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_unsafe_purge_ephemeral_entity.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_validate_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_vector_ref_to_spec.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_vector.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_wrangle_plot_dataset.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_wrangler_catalog_semantic.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_artifact_type_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_getter_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_mutation_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_op_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_parameter_semantics_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_plot_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_primitive_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_recipe_semantics_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_semantic_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_semantic_graph_views.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "man/wb_write_wrangler_catalog_reference.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false
+    }
+  ],
+  "forbidden_tarball_patterns": ["^archive/", "^coordination/", "(^|/)[.]agents/", "(^|/)[.]codex/", "[.]backup$", "[.]sif$", "scworkbench[.]Rcheck/", "^reports/", "^scripts/reports/"]
+}

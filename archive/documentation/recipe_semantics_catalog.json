@@ -1,0 +1,139 @@
+{
+  "schema_version": "scworkbench.recipe_semantics_catalog.v1",
+  "generated_at": "2026-08-05T16:03:21+0200",
+  "recipe_count": 11,
+  "recipes": [
+    {
+      "recipe_id": "trajectory_geneset_dynamics_discovery",
+      "title": "Run gene-set dynamics along a trajectory",
+      "category": "trajectory_discovery",
+      "question": "Which biological processes turn on, turn off, or behave transiently along a trajectory?",
+      "description": "Screen a feature-set namespace across trajectory pseudotime and report dynamic terms plus driver genes.",
+      "steps": ["Inspect available feature-set namespaces with wb_feature_sets().", "Choose matrix plus either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family.", "Run trajectory_geneset_dynamics with namespace, lineage or pseudotime_key, orientation, and filtering thresholds.", "Promote signature_table, dynamics_table, top_sets, driver_table, driver_curve_table, and fit_summary.", "Plot top dynamic terms and driver-gene curves with pseudotime_signature_line."],
+      "uses": ["getter:wb_feature_sets", "getter:wb_art_list", "op:trajectory_geneset_dynamics", "plot:pseudotime_signature_line", "wrangler:plot_mapper:trajectory_pseudotime_signature_line_v1", "parameter:namespace", "parameter:score_method", "parameter:pseudotime_key", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+      "produces": ["artifact_type:obs_table:trajectory_geneset_dynamics_curve", "artifact_type:obs_table:trajectory_geneset_dynamics", "artifact_type:obs_table:trajectory_geneset_dynamics_drivers", "artifact_type:obs_table:trajectory_geneset_dynamics_driver_curve"],
+      "use_when": ["collaborator asks for GSEA-like discovery along pseudotime", "find metabolism/signaling/processes not preselected by marker intuition"],
+      "cautions": ["Gene-set universe and score_method define the biological meaning.", "Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.", "Pseudotime orientation controls turns_on versus turns_off labels.", "Amplitude thresholds are scale-dependent filters, not p-values."]
+    },
+    {
+      "recipe_id": "feature_set_import_qc_then_dynamics",
+      "title": "Import and QC a feature-set library before trajectory screening",
+      "category": "trajectory_discovery",
+      "question": "Can this external gene-set library be used for dynamic program discovery along a trajectory?",
+      "description": "Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.",
+      "steps": ["Choose the target matrix that defines the feature universe.", "Run feature_set_import with source_path, namespace, species/gene_id_type, and source_version.", "Promote import_summary, import_manifest, and rejected_sets for auditability.", "Run feature_set_overlap_qc on the imported namespace and inspect include/exclude reasons.", "Use the accepted namespace with trajectory_geneset_dynamics and report QC artifacts alongside dynamics."],
+      "uses": ["op:feature_set_import", "op:feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "parameter:source_path", "parameter:namespace", "parameter:split_by_collection", "parameter:min_detected_fraction"],
+      "produces": ["artifact_type:obs_table:feature_set_import_summary", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "artifact_type:obs_table:trajectory_geneset_dynamics"],
+      "use_when": ["collaborator sends new GSEA/MSigDB/custom gene-set library", "need to prove library coverage before screening pseudotime dynamics"],
+      "cautions": ["Import matching is against bundle feature IDs; synonym/ortholog mapping is not performed here.", "QC include/exclude thresholds define the screened universe and should be reported.", "Broad libraries should be split only when collection/subcollection semantics are meaningful."]
+    },
+    {
+      "recipe_id": "feature_set_namespace_transfer_for_normalized_matrix",
+      "title": "Transfer feature-set namespaces to a derived normalized matrix",
+      "category": "matrix_transfer",
+      "question": "How can feature-set libraries registered on raw counts be reused on a comparable derived matrix?",
+      "description": "Transfer matrix-scoped feature-set namespaces from a source matrix to a target matrix using mirror or intersect semantics before running dynamics on the target matrix.",
+      "steps": ["Confirm the target matrix is comparable to the source matrix and uses the same feature ID type.", "Run feature_set_namespace_transfer with source_matrix_id, target_matrix_id, namespace, and mode='mirror' for lossless derived matrices.", "Promote transfer_summary, transfer_manifest, and transfer_rejected for provenance.", "Run feature_set_overlap_qc on the target matrix/namespace before broad screening.", "Run trajectory_geneset_dynamics on the target matrix with the transferred namespace."],
+      "uses": ["op:feature_set_namespace_transfer", "op:feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_transfer_manifest", "parameter:source_matrix_id", "parameter:target_matrix_id", "parameter:namespace", "parameter:target_namespace"],
+      "produces": ["artifact_type:obs_table:feature_set_transfer_summary", "artifact_type:obs_table:feature_set_transfer_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "artifact_type:obs_table:trajectory_geneset_dynamics"],
+      "use_when": ["raw-count feature sets need to be reused on log-normalized RNA", "derived matrices preserve feature IDs but feature-set registry is matrix-scoped"],
+      "cautions": ["This is not ortholog/synonym/gene-to-peak/motif-to-TF mapping.", "mode='mirror' requires identical feature universes.", "mode='intersect' changes gene-set membership and must be reported with loss metrics."]
+    },
+    {
+      "recipe_id": "trajectory_signal_dynamics_discovery",
+      "title": "Run signal dynamics along a trajectory",
+      "category": "trajectory_discovery",
+      "question": "Which precomputed cell-level signals are dynamic along pseudotime?",
+      "description": "Rank UCell, chromVAR, module-score, or other cell_vector_family signals by dynamic behavior along a trajectory.",
+      "steps": ["Load or identify a cell_vector_family artifact containing signals.", "Choose either a trajectory model artifact/model_ref or an explicit pseudotime cell_vector_family plus lineage/pseudotime_key and orientation.", "Run trajectory_signal_dynamics with signal_keys or all keys.", "Promote signal_table, dynamics_table, top_signals, and fit_summary.", "Plot top signal curves with pseudotime_signature_line."],
+      "uses": ["getter:wb_art_list", "getter:wb_read_cell_vector_family", "op:trajectory_signal_dynamics", "plot:pseudotime_signature_line", "parameter:signal_keys", "parameter:pseudotime_key", "parameter:pseudotime_direction", "parameter:min_amplitude"],
+      "produces": ["artifact_type:obs_table:trajectory_signal_dynamics_curve", "artifact_type:obs_table:trajectory_signal_dynamics"],
+      "use_when": ["UCell or chromVAR scores already exist", "screen signal families without recomputing gene-set scores"],
+      "cautions": ["Signal scale depends on upstream scoring method.", "Explicit pseudotime mode records its cell_vector_family source and does not invent a model_ref.", "Only compare signals with compatible score semantics."]
+    },
+    {
+      "recipe_id": "inspect_promoted_artifact",
+      "title": "Inspect a promoted artifact",
+      "category": "artifact_inspection",
+      "question": "What is this artifact and how can I use or plot it?",
+      "description": "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
+      "steps": ["List artifacts with wb_art_list().", "Read identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."],
+      "uses": ["getter:wb_art_list", "getter:wb_art_identity_card", "getter:wb_art_birth_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"],
+      "produces": ["primitive:feature_table", "primitive:obs_table", "primitive:cell_vector", "primitive:cell_vector_family"],
+      "use_when": ["agent needs to decide next step from artifact id", "human wants provenance before interpretation"],
+      "cautions": ["Do not infer biology from artifact type alone; check source op and parameters.", "Prefer bounded table slices before loading large payloads."]
+    },
+    {
+      "recipe_id": "plot_ucell_on_umap",
+      "title": "Plot UCell signatures on UMAP",
+      "category": "visualization",
+      "question": "Where are signature-high cells located in a 2D embedding?",
+      "description": "Overlay one or more UCell signature scores from a cell_vector_family onto a 2D space.",
+      "steps": ["Run or locate ucell output signature_scores.", "Choose a 2D space with wb_spaces() or a space_2d artifact.", "Load/select the desired signature key from the cell_vector_family.", "Use wb_wrangle_plot_dataset for embedding_overlay or plot via compatible client.", "Inspect distribution with violin if group comparison is needed."],
+      "uses": ["op:ucell", "getter:wb_spaces", "getter:wb_read_cell_vector_family", "plot:embedding_overlay", "plot:violin", "wrangler:plot_mapper:space2d_overlay_v1", "wrangler:plot_mapper:cell_vector_violin_v1", "parameter:space"],
+      "produces": "artifact_type:cell_vector_family",
+      "use_when": ["visualize signature activity spatially", "check whether a gene-set score follows known cell states"],
+      "cautions": ["UCell scores are rank-based within cells; interpret as relative signature activity.", "Embedding overlay is a visualization, not a statistical test."]
+    },
+    {
+      "recipe_id": "plot_trajectory_on_umap",
+      "title": "Plot selected trajectory curves on UMAP",
+      "category": "visualization",
+      "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
+      "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
+      "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
+      "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+      "produces": "artifact_type:path_2d_family",
+      "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
+      "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "Composite display paths are derived geometry, not merged fitted models.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
+    },
+    {
+      "recipe_id": "mixed_source_composite_trajectory",
+      "title": "Build a mixed-source composite trajectory",
+      "category": "trajectory_composition",
+      "question": "How can fitted trajectory segments and bridge/path segments be joined into one auditable pseudotime axis?",
+      "description": "Create source-declared trajectory segments, join them with exact boundary collapse, then use the composite pseudotime in explicit-pseudotime dynamics.",
+      "steps": ["Create fitted trajectory segments with trajectory_segment_from_artifacts or bridge segments with trajectory_space_path_segment.", "Ensure every segment declares source_kind, source_engine, lineage key, order, labels, and parent artifacts.", "Run trajectory_segment_join with join_policy='exact_boundary_collapse'.", "Optionally run trajectory_segment_path_join for UMAP display geometry.", "Use composite_pseudotime_unit_segment or composite_pseudotime_cell_weighted_0_1 plus composite_membership in trajectory_geneset_dynamics or trajectory_signal_dynamics explicit-pseudotime mode."],
+      "uses": ["op:trajectory_segment_from_artifacts", "op:trajectory_space_path_segment", "op:trajectory_segment_join", "op:trajectory_segment_path_join", "op:trajectory_geneset_dynamics", "op:trajectory_signal_dynamics", "parameter:source_kind", "parameter:source_engine", "parameter:join_policy", "parameter:pseudotime_key"],
+      "produces": ["artifact_type:cell_vector_family", "artifact_type:cell_vector", "artifact_type:obs_table:trajectory_segment_join_manifest", "artifact_type:obs_table:trajectory_segment_local_membership", "artifact_type:path_2d_family"],
+      "use_when": ["a biological route must pass through waypoints", "one fitted trajectory cannot represent all route intervals", "a curated space-path bridge is needed between fitted segments"],
+      "cautions": ["A composite trajectory is not one fitted model.", "Only fitted_model and space_path_bridge adapters are implemented currently; manual/imported/graph/composite source kinds are reserved.", "Display paths are not analytical pseudotime."]
+    },
+    {
+      "recipe_id": "de_to_pathway_report",
+      "title": "Differential expression to pathway report",
+      "category": "differential_analysis",
+      "question": "Which pathways explain differential genes between two cell sets?",
+      "description": "Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.",
+      "steps": ["Define or choose group_a and group_b cell sets.", "Run de_wilcox on the selected matrix.", "Promote de_table and inspect top features.", "Run pathway_enrich on selected up/down genes or ranked query policy.", "Plot pathway_bar and volcano summaries."],
+      "uses": ["op:de_wilcox", "op:pathway_enrich", "plot:volcano", "plot:pathway_bar", "artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich", "parameter:cell_set", "parameter:matrix", "parameter:namespace"],
+      "produces": ["artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich"],
+      "use_when": ["compare two biological groups", "derive pathway interpretation from DE"],
+      "cautions": ["Cell-set definitions control the comparison.", "Pathway output depends on the selected feature universe and query policy."]
+    },
+    {
+      "recipe_id": "cluster_markers_pathways",
+      "title": "Cluster to markers to pathways",
+      "category": "discovery",
+      "question": "What are the marker genes and pathway programs for clusters?",
+      "description": "Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.",
+      "steps": ["Run leiden on a biologically appropriate space and cell_set.", "Run markers_topn using the cluster labels.", "Promote marker table.", "Optionally run pathway_enrich per cluster marker subset.", "Plot dotplot, ranked lollipop, or pathway bars."],
+      "uses": ["op:leiden", "op:markers_topn", "op:pathway_enrich", "plot:dotplot", "plot:ranked_lollipop", "plot:pathway_bar", "parameter:space", "parameter:cell_set", "parameter:matrix"],
+      "produces": ["artifact_type:cell_vector", "artifact_type:feature_table:markers_topn", "artifact_type:obs_table:pathway_enrich"],
+      "use_when": ["explore unknown populations", "summarize cluster identities"],
+      "cautions": ["Cluster resolution changes biological granularity.", "Markers reflect selected matrix and cell universe."]
+    },
+    {
+      "recipe_id": "semantic_next_steps_from_artifact",
+      "title": "Find next steps from an artifact",
+      "category": "agent_planning",
+      "question": "Given an artifact, what can the agent do next?",
+      "description": "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
+      "steps": ["Inspect artifact_type and primitive_kind.", "Find graph edges from artifact_type to primitive via loads_as.", "Follow primitive to wranglers via wrangled_by and plots via feeds_plot.", "Follow primitive to ops via consumed_by for downstream analysis.", "Return candidates with provenance caveats."],
+      "uses": ["getter:wb_art_identity_card", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"],
+      "produces": ["plot:embedding_overlay", "plot:violin", "plot:ranked_lollipop"],
+      "use_when": ["agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"],
+      "cautions": ["Compatibility means technically possible, not biologically appropriate.", "Use provenance and parameter semantics before making claims."]
+    }
+  ]
+}

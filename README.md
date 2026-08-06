@@ -9,10 +9,10 @@ reimplementing storage, plotting, or analysis semantics.
 
 ## Status
 
-This repository is under active development. Contracts are increasingly stable,
-but the package is not yet a polished public release.
+This repository is under active development. Its public contracts are versioned
+with the package; this statement does not imply CRAN or Bioconductor acceptance.
 
-License: MIT. See `LICENSE.md`.
+License: MIT. See [LICENSE.md](LICENSE.md).
 
 ## Core Ideas
 
@@ -38,8 +38,7 @@ License: MIT. See `LICENSE.md`.
 R/                         R package source
 tests/                     focused contract and smoke tests
 docs/                      contract docs, semantic catalogs, graph exports
-inst/foundation_contracts.md
-                           stable foundation contracts
+inst/onboarding/           installed operator documentation
 inst/golden_bundle/        generated tiny cross-repo fixture
 inst/fullstack/            cross-repo contract check script
 containers/                container build recipes
@@ -158,31 +157,18 @@ Semantic/KG:
 
 See `docs/exported_functions_overview.md` for a broader function map.
 
-## Contract References
+## Documentation
 
-Start here:
+The public documentation index and ownership policy are in
+[docs/getting_started.md](docs/getting_started.md) and
+[docs/source_ownership.md](docs/source_ownership.md). The short user path is:
+open and validate a bundle, inspect an operation interface, run it in a
+session, promote the terminal result, reopen, inspect lineage, then finalize
+and audit a read-only recipient bundle.
 
-- `inst/onboarding/README.md`: shipped onboarding library for any agent or
-  computational operator. After installation, obtain it with
-  `system.file("onboarding", package = "scworkbench")`.
-- `AGENTS.md`: engine guardrails and coding-agent brief.
-- `docs/contracts.md`: cross-repo contract index.
-- `docs/schema_catalog_reference.md`: generated durable-table ownership,
-  ordered migration, referential-integrity, and recovery policy.
-- `inst/foundation_contracts.md`: bundle/getter/selector foundation contracts.
-- `docs/engine_extension_patterns.md`: how to add ops, wranglers, getters,
-  navigation, and semantic records.
-- `docs/primitive_catalog_reference.md`: primitive contracts.
-- `docs/artifact_type_catalog_reference.md`: artifact type contracts.
-- `docs/op_catalog_reference.md`: operation catalog reference.
-- `docs/getter_catalog_reference.md`: getter catalog reference.
-- `docs/wrangler_catalog_reference.md` and `docs/plot_catalog_reference.md`:
-  plot/wrangler contracts.
-- `docs/semantic_catalog_reference.md`: unified semantic search/planning
-  catalog.
-- `docs/bundle_path_containment_and_trust.md`: portable durable-path,
-  external-reference migration, recipient inspection, and serialized-model
-  trust contracts.
+The shipped, platform-agnostic onboarding library is available in a checkout
+at [inst/onboarding](inst/onboarding), or after installation through
+`system.file("onboarding", package = "scworkbench")`.
 
 ## Testing
 
@@ -221,7 +207,7 @@ git diff --check
 Cross-repo fullstack tripwire:
 
 ```sh
-/home/dirk/Projects/lymphocyte_trajectory/coordination/scripts/check_fullstack_contracts.sh
+inst/fullstack/check_fullstack_contracts.sh
 ```
 
 The fullstack script is a contract tripwire, not a replacement for focused
@@ -270,12 +256,10 @@ Use the existing extension pattern:
 6. Run focused tests and `git diff --check`.
 7. Create a coordination handoff for contract-adjacent changes.
 
-See `docs/engine_extension_patterns.md` for the detailed rules.
+See [docs/extension_engineering.md](docs/extension_engineering.md) for the detailed rules.
 
 ## Known Caveats
 
-- License is not finalized.
-- The package is research infrastructure, not a CRAN-ready release.
 - Some optional capabilities depend on suggested packages such as `BPCells`,
   `RANN`, and `UCell`.
 - Large matrices must be accessed through getters/chunk-aware ops; avoid
