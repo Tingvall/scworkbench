@@ -11,6 +11,8 @@ contracts and links only to maintained material.
 - **Recipient audit:** [recipient_audit.md](recipient_audit.md).
 - **Python bridge:** [python_bridge.md](python_bridge.md) and the installed protocol schema at `system.file("protocol/pybench-op-v2.schema.json", package = "scworkbench")`.
 - **Extension engineering:** [extension_engineering.md](extension_engineering.md).
+- **Contributing and support:** [CONTRIBUTING.md](CONTRIBUTING.md) and [SUPPORT.md](SUPPORT.md).
+- **Composite releases:** [release_process.md](release_process.md) and the package [changelog](../NEWS.md).
 - **Durable bundle contracts:** [bundle_state_contract.md](bundle_state_contract.md), [bundle_integrity_validation.md](bundle_integrity_validation.md), [bundle_path_containment_and_trust.md](bundle_path_containment_and_trust.md), and [bundle_writer_lock.md](bundle_writer_lock.md).
 - **Lifecycle, sessions, and promotion:** [entity_lifecycle.md](entity_lifecycle.md), [durable_resumable_sessions.md](durable_resumable_sessions.md), and [promotion_and_provenance.md](promotion_and_provenance.md).
 - **Metadata and primitives:** [metadata_field_identity.md](metadata_field_identity.md), [metadata_cell_vector_diagnostics.md](metadata_cell_vector_diagnostics.md), and [tabular_primitives.md](tabular_primitives.md).

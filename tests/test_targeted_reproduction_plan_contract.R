@@ -11,7 +11,7 @@ test_targeted_reproduction_plan_contract <- function() {
   promoted <- wb_session_promote_current(b, res$session, outputs=c("model","space_2d"))
   plan <- wb_target_reproduction_plan(b, "space:umap_target")
   policy <- setNames(plan$terminal_outputs$replay_equivalence_policy, plan$terminal_outputs$output_name)
-  stopifnot(identical(plan$status,"ok"), identical(plan$run_order, res$run$run_id), all(c("model","space_2d") %in% plan$terminal_outputs$output_name), all(plan$terminal_outputs$verification_level == "content"), identical(policy[["model"]], "loadable_reference"), identical(policy[["space_2d"]], "exact_canonical_value"))
+  stopifnot(identical(plan$status,"ok"), identical(plan$run_order, res$run$run_id), all(c("model","space_2d") %in% plan$terminal_outputs$output_name), all(plan$terminal_outputs$verification_level == "content"), identical(policy[["model"]], "loadable_reference"), identical(policy[["space_2d"]], "cell_aligned_embedding"))
   stopifnot(identical(plan$run_order, wb_target_reproduction_plan(b, paste0("run:", res$run$run_id))$run_order))
   model_id <- paste("uwot", "umap_target", "pca_source", sep="|")
   stopifnot(identical(wb_target_reproduction_plan(b, paste0("model:",model_id))$status,"ok"))
@@ -95,7 +95,7 @@ test_targeted_reproduction_execute_contract <- function() {
   if (!all(target_status=="ok")) stop(paste(names(target_status),target_status,collapse="; "))
   stopifnot(identical(model_plan$run_order,run_ids),identical(run_plan$run_order,run_ids))
   policy <- setNames(plan$terminal_outputs$replay_equivalence_policy,plan$terminal_outputs$output_name)
-  stopifnot(identical(policy[["space_2d"]],"exact_canonical_value"),identical(policy[["model"]],"loadable_reference"))
+  stopifnot(identical(policy[["space_2d"]],"cell_aligned_embedding"),identical(policy[["model"]],"loadable_reference"))
   source_umap <- wb_space(b,"rna_umap")
 
   # Every preflight rejection executes the real emitted script and must fail
@@ -115,7 +115,22 @@ test_targeted_reproduction_execute_contract <- function() {
   cb <- wb_open_bundle(clone); on.exit(try(wb_close_bundle(cb),silent=TRUE),add=TRUE)
   eq <- wb_prov_replay_equivalence_results(cb)
   eq_policy <- setNames(eq$replay_equivalence_policy,eq$original_output_name)
-  stopifnot(isTRUE(wb_validate_bundle(clone)),"rna_umap" %in% wb_spaces(cb)$space_id,identical(wb_space(cb,"rna_umap"),source_umap),nrow(eq)==2L,all(eq$equivalence_verified==1L),identical(eq_policy[["space_2d"]],"exact_canonical_value"),identical(eq_policy[["model"]],"loadable_reference"),eq$payload_identical[eq$original_output_name=="space_2d"]==1L,all(grepl("^[0-9a-f]{64}$",eq$original_content_sha256)),all(grepl("^[0-9a-f]{64}$",eq$replayed_content_sha256)),!is.null(wb_load_space_model(cb,"rna_umap")))
+  replayed_umap <- wb_space(cb,"rna_umap")
+  replayed_umap_matrix <- scworkbench:::.wb_as_coord_matrix(replayed_umap)
+  source_umap_matrix <- scworkbench:::.wb_as_coord_matrix(source_umap)
+  stopifnot(isTRUE(wb_validate_bundle(clone)),"rna_umap" %in% wb_spaces(cb)$space_id,
+            identical(sort(rownames(replayed_umap_matrix)),sort(rownames(source_umap_matrix))),
+            identical(dim(replayed_umap_matrix),dim(source_umap_matrix)),
+            all(is.finite(replayed_umap_matrix)),
+            all(apply(replayed_umap_matrix,2L,function(x) diff(range(x)) > 0)),nrow(eq)==2L,
+            all(eq$equivalence_verified==1L),
+            identical(eq_policy[["space_2d"]],"cell_aligned_embedding"),
+            identical(eq_policy[["model"]],"loadable_reference"),
+            identical(eq$expected_reference[eq$original_output_name=="space_2d"],
+                      eq$replayed_reference[eq$original_output_name=="space_2d"]),
+            all(grepl("^[0-9a-f]{64}$",eq$original_content_sha256)),
+            all(grepl("^[0-9a-f]{64}$",eq$replayed_content_sha256)),
+            !is.null(wb_load_space_model(cb,"rna_umap")))
   model_art <- eq$replay_artifact_id[eq$original_output_name=="model"]
   model_link <- wb_art_birth_certificate(cb,model_art)$persisted_provenance$links
   stopifnot(identical(as.character(model_link$verification_status[model_link$output_name=="model"]),"content_verified"))

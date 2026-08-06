@@ -157,7 +157,7 @@ Promotable outputs: space_2d, model
 
 Replay equivalence:
 - `model`: `loadable_reference`
-- `space_2d`: `exact_canonical_value`
+- `space_2d`: `cell_aligned_embedding`
 
 Key parameters:
 - `dims` (int_range, default=NULL): Dims to use (e.g. 2:30).

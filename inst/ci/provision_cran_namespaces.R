@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
 
 provision_cran_namespaces <- function(packages,
-                                      repo = getOption("repos")[["CRAN"]], retries = 3L) {
+                                      repo = getOption("repos")[["CRAN"]], retries = 3L,
+                                      target_versions = NULL) {
   packages <- unique(as.character(packages))
   if (!length(packages)) return(invisible(data.frame()))
   if (!is.character(repo) || length(repo) != 1L || !nzchar(repo)) {
@@ -12,12 +13,32 @@ provision_cran_namespaces <- function(packages,
   names(results) <- packages
   for (package in packages) {
     installed <- package %in% rownames(installed.packages())
-    action <- if (installed) "already_installed" else "install"
+    expected <- if (is.null(target_versions) || !package %in% names(target_versions)) {
+      NULL
+    } else {
+      as.character(target_versions[[package]])
+    }
+    observed <- if (installed) as.character(utils::packageVersion(package)) else NA_character_
+    if (installed && !is.null(expected) && !identical(observed, expected)) {
+      remove.packages(package)
+      installed <- FALSE
+    }
+    action <- if (installed) "already_installed" else if (is.null(expected)) "install" else "install_locked_version"
 
     if (!installed) {
       install_error <- NULL
       for (attempt in seq_len(as.integer(retries))) {
-        install_error <- tryCatch({utils::install.packages(package, repos = repo, dependencies = NA); NULL}, error = function(error) conditionMessage(error))
+        install_error <- tryCatch({
+          if (is.null(expected)) {
+            utils::install.packages(package, repos = repo, dependencies = NA)
+          } else {
+            remotes::install_version(
+              package, version = expected, repos = repo,
+              upgrade = "never", dependencies = FALSE
+            )
+          }
+          NULL
+        }, error = function(error) conditionMessage(error))
         if (package %in% rownames(installed.packages())) break
         if (attempt < retries) Sys.sleep(min(2^(attempt-1L), 8L))
       }
@@ -35,6 +56,10 @@ provision_cran_namespaces <- function(packages,
     }
 
     version <- tryCatch(as.character(utils::packageVersion(package)), error = function(error) NA_character_)
+    if (!is.null(expected) && !identical(version, expected)) {
+      stop("CRAN version lock mismatch after installation: package=", package,
+           "; expected=", expected, "; observed=", version)
+    }
     results[[package]] <- data.frame(
       package = package,
       action = action,

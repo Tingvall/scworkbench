@@ -19,3 +19,6 @@
 ^containers/.*\.sif$
 ^scworkbench_.*\.tar\.gz$
 ^CITATION\.cff$
+^\.gitlab$
+^\.gitlab-ci\.yml$
+^release-evidence$

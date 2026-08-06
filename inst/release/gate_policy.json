@@ -1,0 +1,23 @@
+{
+  "schema": "scworkbench.release-gates.v1",
+  "required": [
+    "static_release_contract",
+    "canonical_contracts_complete_discovery",
+    "source_package_check",
+    "documentation_package_contract",
+    "pybench_bounded_protocol",
+    "fullstack_tripwire",
+    "existing_sif_qualification",
+    "recipient_readonly_audit"
+  ],
+  "scheduled_or_manual": {
+    "gpu_scvi_peakvi": {
+      "default_status": "not_run",
+      "required_for_final_release": true
+    },
+    "large_data_ingestion_analysis": {
+      "default_status": "not_run",
+      "required_for_final_release": true
+    }
+  }
+}

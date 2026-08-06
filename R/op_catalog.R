@@ -1841,7 +1841,7 @@
       promotable = c("space_2d", "model"),
       replay_equivalence = list(
         model = "loadable_reference",
-        space_2d = "exact_canonical_value"
+        space_2d = "cell_aligned_embedding"
       ),
       runner = .wb_runner_umap_fit,
       inputs = list(

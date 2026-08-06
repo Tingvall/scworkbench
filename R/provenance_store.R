@@ -74,7 +74,10 @@
 .wb_prov_schema_version <- function() "1.8"
 
 .wb_replay_equivalence_policies <- function() {
-  c("exact_content", "exact_canonical_value", "loadable_reference", "not_comparable")
+  c(
+    "exact_content", "exact_canonical_value", "cell_aligned_embedding",
+    "loadable_reference", "not_comparable"
+  )
 }
 
 .wb_replay_model_reference <- function(prim) {
@@ -89,7 +92,96 @@
   ))
 }
 
-.wb_replay_equivalence_declaration <- function(op_name, output_name, prim, identity) {
+.wb_replay_space_alignment_reference <- function(bundle, prim) {
+  if (!inherits(bundle, "scworkbench_bundle") || !.wb_is_primitive(prim) ||
+      !as.character(prim$kind)[1] %in% c("space", "space_2d")) {
+    return(list(valid = FALSE, reference = NA_character_,
+                message = "Output is not a bundle-backed space primitive."))
+  }
+  space_id <- as.character(prim$space_id %||% "")[1]
+  registry <- tryCatch(
+    DBI::dbGetQuery(
+      bundle$con,
+      "SELECT space_id, source, dims, storage FROM spaces WHERE space_id = ?;",
+      params = list(space_id)
+    ),
+    error = function(e) data.frame()
+  )
+  if (nrow(registry) != 1L) {
+    return(list(valid = FALSE, reference = NA_character_,
+                message = "Space registry row is missing or ambiguous."))
+  }
+
+  dims <- as.integer(registry$dims[1])
+  wide <- identical(as.character(registry$storage[1]), "wide:space_2d")
+  coordinates <- if (wide) {
+    tryCatch(
+      DBI::dbGetQuery(
+        bundle$con,
+        "SELECT cell_id, x, y FROM space_2d WHERE space_id = ? ORDER BY cell_id;",
+        params = list(space_id)
+      ),
+      error = function(e) data.frame()
+    )
+  } else {
+    tryCatch(
+      DBI::dbGetQuery(
+        bundle$con,
+        "SELECT cell_id, dim, value FROM space_coords WHERE space_id = ? ORDER BY cell_id, dim;",
+        params = list(space_id)
+      ),
+      error = function(e) data.frame()
+    )
+  }
+  cells <- sort(unique(as.character(coordinates$cell_id %||% character())))
+  values <- if (wide && nrow(coordinates)) {
+    as.matrix(coordinates[, c("x", "y"), drop = FALSE])
+  } else if (nrow(coordinates)) {
+    split(as.numeric(coordinates$value), as.integer(coordinates$dim))
+  } else {
+    list()
+  }
+  finite <- if (wide) {
+    length(values) > 0L && all(is.finite(values))
+  } else {
+    length(values) == dims && all(vapply(values, function(x) all(is.finite(x)), logical(1)))
+  }
+  nondegenerate <- if (wide) {
+    nrow(values) > 1L && all(apply(values, 2L, function(x) diff(range(x)) > 0))
+  } else {
+    length(values) == dims && all(vapply(values, function(x) length(x) > 1L && diff(range(x)) > 0, logical(1)))
+  }
+  complete <- nrow(coordinates) > 0L && length(cells) > 0L &&
+    if (wide) dims == 2L && nrow(coordinates) == length(cells) else
+      nrow(coordinates) == length(cells) * dims &&
+        !anyDuplicated(paste(coordinates$cell_id, coordinates$dim, sep = "\r"))
+  valid <- isTRUE(complete) && isTRUE(finite) && isTRUE(nondegenerate)
+  contract <- list(
+    identity_version = "scworkbench.replay.cell_aligned_embedding.v1",
+    kind = as.character(prim$kind)[1],
+    space_id = space_id,
+    source = as.character(registry$source[1] %||% ""),
+    storage = as.character(registry$storage[1]),
+    dims = dims,
+    n_cells = length(cells),
+    cell_ids_sha256 = .wb_prov_sha256_object(cells),
+    complete = isTRUE(complete),
+    finite = isTRUE(finite),
+    nondegenerate = isTRUE(nondegenerate)
+  )
+  list(
+    valid = valid,
+    reference = .wb_prov_sha256_object(contract),
+    message = if (valid) {
+      "Space has the declared cell universe, dimensions, and finite nondegenerate coordinates."
+    } else {
+      "Space is incomplete, non-finite, or degenerate."
+    }
+  )
+}
+
+.wb_replay_equivalence_declaration <- function(op_name, output_name, prim, identity,
+                                               bundle = NULL) {
   # Ingestion/provenance-only runs are valid engine records even when they do
   # not dispatch through the analytical op catalog.
   op <- tryCatch(.wb_get_op(as.character(op_name)[1]), error = function(e) list(replay_equivalence = list()))
@@ -110,6 +202,13 @@
   ))
   reference <- if (identical(policy, "loadable_reference") && identical(kind, "model_ref")) {
     .wb_replay_model_reference(prim)
+  } else if (identical(policy, "cell_aligned_embedding")) {
+    alignment <- .wb_replay_space_alignment_reference(bundle, prim)
+    .wb_assert(isTRUE(alignment$valid), paste0(
+      "Cannot declare cell-aligned embedding replay equivalence for ",
+      op_name, "::", output_name, ": ", alignment$message
+    ))
+    alignment$reference
   } else if (policy %in% c("exact_content", "exact_canonical_value")) {
     as.character(identity$content_sha256 %||% NA_character_)[1]
   } else {
@@ -426,8 +525,13 @@
   original_scheme <- as.character(expected_content_identity_scheme %||% NA_character_)[1]
   replayed_scheme <- as.character(actual_identity$content_identity_scheme %||% NA_character_)[1]
   expected_ref <- as.character(expected_reference %||% NA_character_)[1]
+  alignment_result <- if (identical(policy, "cell_aligned_embedding")) {
+    .wb_replay_space_alignment_reference(bundle, replayed_prim)
+  } else NULL
   replayed_ref <- if (identical(policy, "loadable_reference") && identical(actual_kind, "model_ref")) {
     .wb_replay_model_reference(replayed_prim)
+  } else if (identical(policy, "cell_aligned_embedding")) {
+    as.character(alignment_result$reference %||% NA_character_)[1]
   } else if (policy %in% c("exact_content", "exact_canonical_value")) {
     replayed_sha
   } else NA_character_
@@ -446,6 +550,16 @@
     verified <- isTRUE(kind_ok) && isTRUE(payload_identical)
     status <- if (verified) "verified" else "failed"
     message <- if (verified) paste0(policy, " matched.") else paste0(policy, " mismatch.")
+  } else if (identical(policy, "cell_aligned_embedding")) {
+    ref_ok <- !is.na(expected_ref) && nzchar(expected_ref) && identical(expected_ref, replayed_ref)
+    verified <- isTRUE(kind_ok) && isTRUE(ref_ok) && isTRUE(alignment_result$valid)
+    status <- if (verified) "verified" else "failed"
+    message <- if (verified) alignment_result$message else paste(
+      c(if (!kind_ok) "Primitive kind mismatch." else NULL,
+        if (!ref_ok) "Cell-aligned embedding reference mismatch." else NULL,
+        if (!isTRUE(alignment_result$valid)) alignment_result$message else NULL),
+      collapse = " "
+    )
   } else if (identical(policy, "loadable_reference")) {
     load_prim <- replayed_prim
     replay_aid <- as.character(replay_artifact_id %||% "")[1]
@@ -1036,7 +1150,9 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           prim <- outs[[nm]]
           kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
           identity <- .wb_prov_payload_identity(bundle, prim, workspace = workspace, staging_bundle = staging_bundle)
-          replay_decl <- .wb_replay_equivalence_declaration(run$op_name, nm, prim, identity)
+          replay_decl <- .wb_replay_equivalence_declaration(
+            run$op_name, nm, prim, identity, bundle = bundle
+          )
           out_hash <- identity$structural_fingerprint
           art_id <- artifact_map[[paste0(rid, "::", nm)]] %||% NA_character_
           mat_row <- if (is.data.frame(materializations) && nrow(materializations)) {
@@ -2032,13 +2148,21 @@ wb_prov_validate_replay <- function(bundle,
       } else identical(as.character(ex$structural_fingerprint), as.character(actual_identity$structural_fingerprint))
       policy <- as.character(ex$replay_equivalence_policy %||% "not_comparable")[1]
       expected_reference <- as.character(ex$replay_equivalence_reference %||% NA_character_)[1]
+      alignment_result <- if (identical(policy, "cell_aligned_embedding")) {
+        .wb_replay_space_alignment_reference(replay_bundle, prim)
+      } else NULL
       replayed_reference <- if (identical(policy, "loadable_reference") && identical(actual_kind, "model_ref")) {
         .wb_replay_model_reference(prim)
+      } else if (identical(policy, "cell_aligned_embedding")) {
+        as.character(alignment_result$reference %||% NA_character_)[1]
       } else if (policy %in% c("exact_content", "exact_canonical_value")) {
         as.character(actual_identity$content_sha256)
       } else NA_character_
       equivalence_verified <- if (policy %in% c("exact_content", "exact_canonical_value")) {
         isTRUE(kind_match) && isTRUE(hash_match)
+      } else if (identical(policy, "cell_aligned_embedding")) {
+        isTRUE(kind_match) && isTRUE(alignment_result$valid) &&
+          !is.na(expected_reference) && identical(expected_reference, replayed_reference)
       } else if (identical(policy, "loadable_reference")) {
         loadable <- .wb_replay_model_loadable(replay_bundle, prim)
         isTRUE(kind_match) && !is.na(expected_reference) && identical(expected_reference, replayed_reference) && isTRUE(loadable$ok)

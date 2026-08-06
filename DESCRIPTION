@@ -26,10 +26,10 @@ RoxygenNote: 7.3.3
 LazyData: true
 Imports:
     DBI,
+    digest,
     fs,
     RSQLite,
     jsonlite,
-    Seurat,
     Matrix
 Suggests:
     BPCells,
@@ -59,6 +59,10 @@ Suggests:
     uwot,
     rnndescent,
     FNN,
+    Seurat,
     slingshot,
     TFBSTools,
     viridisLite
+Config/scworkbench/PyBench-Version: 0.1.0
+Config/scworkbench/PyBench-Protocol: 2
+Config/scworkbench/PyBench-Protocol-SHA256: d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b

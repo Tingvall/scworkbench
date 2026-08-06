@@ -24,6 +24,11 @@ lock <- read_fullstack_r_dependency_lock(arguments$lock)
 classes <- fullstack_source_classes(lock, arguments$description)
 refs <- fullstack_source_refs(lock, classes)
 packages <- names(classes)
+locked_versions <- fullstack_read_version_lock(lock, arguments$lock)
+missing_version_locks <- setdiff(packages, locked_versions$package)
+if (length(missing_version_locks)) {
+  stop("Product dependencies missing from R version lock: ", paste(missing_version_locks, collapse = ", "))
+}
 
 diagnose_namespace <- function(package) {
   loaded <- tryCatch(
@@ -71,6 +76,8 @@ if (nrow(failed)) {
     "; library_paths=", paste(.libPaths(), collapse = " | ")
   )
 }
+
+fullstack_assert_locked_versions(lock, arguments$lock)
 
 cat(
   "Fresh-process fullstack namespace validation OK: ", nrow(manifest), " package(s)\n",

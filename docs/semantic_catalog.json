@@ -954,7 +954,7 @@
         "promotable": ["space_2d", "model"],
         "replay_equivalence": {
           "model": "loadable_reference",
-          "space_2d": "exact_canonical_value"
+          "space_2d": "cell_aligned_embedding"
         },
         "chunking": null
       }
