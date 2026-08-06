@@ -1,0 +1,597 @@
+{
+  "schema_version": "scworkbench.parameter_semantics_catalog.v1",
+  "generated_at": "2026-08-05T16:03:21+0200",
+  "parameter_count": 59,
+  "parameters": [
+    {
+      "parameter_name": "cell_set",
+      "title": "Cell Set / Analysis Universe",
+      "category": "selection",
+      "description": "Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.",
+      "applies_to": "op inputs",
+      "affects": ["cell inclusion", "statistics", "plots", "runtime"],
+      "guidance": ["Use a biologically justified set for focused analysis.", "Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment."],
+      "aliases": ["cells", "cell_ids"]
+    },
+    {
+      "parameter_name": "target_cell_set",
+      "title": "Target Derived Cell Set",
+      "category": "selection",
+      "description": "Stable bundle name assigned to a newly materialized derived cell universe.",
+      "applies_to": "cell-set derivation params",
+      "affects": ["bundle registry", "downstream op inputs", "claim auditability"],
+      "guidance": ["Use meaningful names for claim-supporting universes.", "Downstream promoted runs should consume this named set rather than a raw cell_id vector."],
+      "aliases": ["output_cell_set", "derived_cell_set"]
+    },
+    {
+      "parameter_name": "role",
+      "title": "Cell-Set Lifecycle Role",
+      "category": "selection_lifecycle",
+      "description": "Declared purpose of a cell set, such as analysis_universe, exclusion_set, endpoint_set, annotation, diagnostic, or temporary.",
+      "applies_to": "cell-set derivation params",
+      "affects": ["visibility", "interpretation", "agent planning"],
+      "guidance": ["Use analysis_universe for claim-supporting restriction sets.", "Use temporary for exploratory sets that should not be interpreted as accepted state."],
+      "aliases": "cell_set_role"
+    },
+    {
+      "parameter_name": "status",
+      "title": "Cell-Set Lifecycle Status",
+      "category": "selection_lifecycle",
+      "description": "Declared maturity of a cell set, such as candidate, accepted, superseded, rejected, active, or temporary.",
+      "applies_to": "cell-set derivation params",
+      "affects": ["visibility", "interpretation", "audit state"],
+      "guidance": ["Use candidate while evaluating a restriction.", "Use accepted only after biological and diagnostic review."],
+      "aliases": ["cell_set_status", "lifecycle_status"]
+    },
+    {
+      "parameter_name": "matrix",
+      "title": "Matrix Input",
+      "category": "data_source",
+      "description": "Symbolic matrix primitive consumed by an op. The matrix defines the feature universe and measurement scale.",
+      "applies_to": "op inputs",
+      "affects": ["feature universe", "measurement scale", "detected features"],
+      "guidance": ["Choose RNA/ATAC/counts/normalized matrix intentionally.", "Matrix semantics are more important than the string id; future matrix metadata should formalize this."],
+      "aliases": "matrix_id"
+    },
+    {
+      "parameter_name": "output_matrix_id",
+      "title": "Output Matrix Identifier",
+      "category": "data_source",
+      "description": "Matrix id assigned to a newly created bundle matrix.",
+      "applies_to": "matrix-producing op params",
+      "affects": ["downstream matrix selection", "replay", "artifact interpretation"],
+      "guidance": ["Use a name that records the transform and scale, for example RNA_log1p_cp10k.", "Do not reuse an existing matrix id unless overwrite behavior is intentional."],
+      "aliases": ["new_matrix_id", "target_matrix_id"]
+    },
+    {
+      "parameter_name": "scale_factor",
+      "title": "Library-Size Normalization Scale",
+      "category": "normalization",
+      "description": "Target per-cell total used when converting raw counts to scaled expression before log transformation.",
+      "applies_to": "matrix normalization params",
+      "affects": ["expression scale", "dynamic curves", "feature-set scores"],
+      "guidance": ["10000 is the common log1p(CP10K) convention for scRNA-seq.", "Changing this value changes numeric scale but usually preserves rank-like patterns after log1p."],
+      "aliases": ["target_sum", "counts_per_cell", "cp_scale"]
+    },
+    {
+      "parameter_name": "overwrite",
+      "title": "Overwrite Existing Output",
+      "category": "mutation",
+      "description": "Controls whether an op may replace an existing persisted bundle object with the same identifier.",
+      "applies_to": "mutating op params",
+      "affects": ["bundle state", "reproducibility", "rerun safety"],
+      "guidance": ["Keep FALSE for safety when creating named outputs.", "Set TRUE only for deliberate deterministic reruns or temporary development outputs."],
+      "aliases": ["replace", "force"]
+    },
+    {
+      "parameter_name": "space",
+      "title": "Embedding / Latent Space Input",
+      "category": "data_source",
+      "description": "Symbolic space primitive used for geometry, clustering, nearest-neighbor, projection, or trajectory operations.",
+      "applies_to": "op inputs",
+      "affects": ["geometry", "neighborhoods", "trajectory shape"],
+      "guidance": ["Use a space whose dimensions represent the biology under study.", "Changing space can change distances, branches, and inferred progress."],
+      "aliases": ["space_id", "fit_space", "plot_space"]
+    },
+    {
+      "parameter_name": "model",
+      "title": "Model Reference Input",
+      "category": "data_source",
+      "description": "Reference to a fitted model or trajectory object used by downstream projection/smoothing/dynamics ops.",
+      "applies_to": "op inputs",
+      "affects": ["pseudotime", "lineage keys", "projection semantics"],
+      "guidance": ["Model provenance defines the biological orientation and branch structure.", "Do not treat models from different methods as interchangeable without checking semantics."],
+      "aliases": "model_ref"
+    },
+    {
+      "parameter_name": "pseudotime",
+      "title": "Pseudotime Vector Input",
+      "category": "trajectory",
+      "description": "Continuous per-cell progress coordinate, usually inferred by a trajectory method or path-scoring op.",
+      "applies_to": "op inputs",
+      "affects": ["ordering", "trend tests", "dynamic classes"],
+      "guidance": ["Pseudotime is relative to its root/orientation.", "Compare methods only after aligning orientation and intersecting cells when needed."],
+      "aliases": ["trajectory_time", "progress"]
+    },
+    {
+      "parameter_name": "trajectory_fit_id",
+      "title": "Trajectory Fit Identity",
+      "category": "trajectory",
+      "description": "Stable identity binding trajectory-derived artifacts emitted from one fit, including model_ref, pseudotime, lineage weights, and projected paths.",
+      "applies_to": "trajectory artifacts and params",
+      "affects": ["lineage label meaning", "artifact compatibility", "provenance validation"],
+      "guidance": ["Lineage labels such as L1 are only meaningful within one trajectory_fit_id.", "Do not combine pseudotime, weights, model, or paths across fit families without an explicit mapping operation."],
+      "aliases": ["trajectory_family_id", "fit_family_id"]
+    },
+    {
+      "parameter_name": "trajectory_composite_id",
+      "title": "Trajectory Composite Identity",
+      "category": "trajectory",
+      "description": "Stable identity for a derived trajectory assembled from separately fitted parent trajectory segments.",
+      "applies_to": "segmented trajectory join outputs",
+      "affects": ["composite pseudotime interpretation", "parent segment provenance", "downstream trajectory dynamics"],
+      "guidance": ["A trajectory_composite_id is not a trajectory_fit_id and does not imply one merged model.", "Use parent segment metadata to inspect which fit families contributed to the composite."],
+      "aliases": ["composite_trajectory_id", "segmented_trajectory_id"]
+    },
+    {
+      "parameter_name": "source_kind",
+      "title": "Trajectory Segment Source Kind",
+      "category": "trajectory",
+      "description": "Declares how a trajectory segment was generated. Implemented source kinds are fitted_model and space_path_bridge; graph_path_bridge, imported_pseudotime, manual_pseudotime, and composite are reserved until adapters exist.",
+      "applies_to": "trajectory segment params and manifests",
+      "affects": ["claim boundaries", "compatibility validation", "auditability"],
+      "guidance": ["Do not infer source kind from labels.", "Curated/manual/imported segments are reserved and must not be claimed as implemented until a segment adapter exists.", "Bridge segments must be declared rather than hidden as fitted models."],
+      "aliases": "segment_source_kind"
+    },
+    {
+      "parameter_name": "source_engine",
+      "title": "Trajectory Segment Source Engine",
+      "category": "trajectory",
+      "description": "Declares the engine or source family that produced a segment, such as slingshot, monocle3, palantir, space_path, manual, imported, graph, or unknown.",
+      "applies_to": "trajectory segment params and manifests",
+      "affects": ["methods text", "source-specific interpretation", "agent planning"],
+      "guidance": ["Use source_engine with source_kind to distinguish fitted models from bridge or imported segments.", "Unknown is allowed but less useful for audit."],
+      "aliases": "segment_source_engine"
+    },
+    {
+      "parameter_name": "join_policy",
+      "title": "Trajectory Segment Join Policy",
+      "category": "trajectory",
+      "description": "Rule used to convert segment-local pseudotimes into one composite pseudotime.",
+      "applies_to": "trajectory_segment_join params",
+      "affects": ["waypoint handling", "composite scale", "overlap interpretation"],
+      "guidance": ["exact_boundary_collapse maps adjacent overlap cells to the shared boundary without averaging.", "Unsupported policies fail explicitly.", "Report the join policy when using composite pseudotime for dynamics."],
+      "aliases": ["trajectory_join_policy", "overlap_policy", "boundary_policy"]
+    },
+    {
+      "parameter_name": "pseudotime_direction",
+      "title": "Pseudotime Direction",
+      "category": "trajectory",
+      "description": "Controls whether pseudotime is used as provided or inverted before binning, curve metrics, and class assignment.",
+      "applies_to": "op params",
+      "affects": ["early/late interpretation", "turns_on/turns_off labels", "report captions"],
+      "guidance": ["Set this so early and late correspond to the biological start and endpoint.", "Inversion changes interpretation, not the underlying cell scores."],
+      "aliases": ["orientation", "direction"]
+    },
+    {
+      "parameter_name": "pseudotime_key",
+      "title": "Pseudotime Key",
+      "category": "trajectory",
+      "description": "Selects the key/lineage from an explicit cell_vector_family pseudotime input.",
+      "applies_to": "op params",
+      "affects": ["cell ordering", "lineage identity", "curve labels"],
+      "guidance": ["Required when explicit pseudotime contains multiple keys.", "Do not assume equal key names across unrelated trajectory fits or composites."],
+      "aliases": ["lineage_key", "trajectory_key"]
+    },
+    {
+      "parameter_name": "membership",
+      "title": "Pseudotime Membership Filter",
+      "category": "selection",
+      "description": "Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells before dynamics are computed.",
+      "applies_to": "op params",
+      "affects": ["analysis universe", "cell counts", "curve stability"],
+      "guidance": ["Use membership to restrict composite trajectories to their intended cell universe.", "Report n_membership_cells and n_cells_used from fit_summary."],
+      "aliases": ["trajectory_membership", "cell_filter"]
+    },
+    {
+      "parameter_name": "start_label",
+      "title": "Biological Start Label",
+      "category": "trajectory",
+      "description": "Human-readable label for the intended biological start of a trajectory or dynamics analysis.",
+      "applies_to": "op params",
+      "affects": ["metadata", "reports", "interpretation"],
+      "guidance": ["Use this to make orientation explicit in reports.", "This records intent; it does not root the trajectory by itself."],
+      "aliases": ["root_label", "early_label"]
+    },
+    {
+      "parameter_name": "end_label",
+      "title": "Biological End Label",
+      "category": "trajectory",
+      "description": "Human-readable label for the intended biological endpoint of a trajectory or dynamics analysis.",
+      "applies_to": "op params",
+      "affects": ["metadata", "reports", "interpretation"],
+      "guidance": ["Use this to make endpoint interpretation explicit.", "This records intent; it does not alter model geometry by itself."],
+      "aliases": ["terminal_label", "late_label"]
+    },
+    {
+      "parameter_name": "lineage",
+      "title": "Lineage Subset",
+      "category": "trajectory",
+      "description": "Restricts analysis to one or more lineage/path keys from a trajectory, relation, or path family.",
+      "applies_to": "op params",
+      "affects": ["branch selection", "curve counts", "reported dynamics"],
+      "guidance": ["Use lineage keys that are present in the upstream model/artifact.", "Different methods may use different lineage/branch key semantics."],
+      "aliases": ["branch", "path_id", "lineage_id"]
+    },
+    {
+      "parameter_name": "score_method",
+      "title": "Feature-Set Scoring Method",
+      "category": "signature",
+      "description": "Defines how member features are collapsed into a per-cell or per-bin feature-set score.",
+      "applies_to": "op params",
+      "affects": ["score scale", "curve shape", "dynamic ranking"],
+      "guidance": ["Mean/sum depend on expression scale and set size.", "Rank-based methods reduce scale sensitivity but change interpretation."],
+      "aliases": ["scoring", "signature_score_method"]
+    },
+    {
+      "parameter_name": "namespace",
+      "title": "Feature-Set Namespace",
+      "category": "signature",
+      "description": "Selects the registered collection of feature sets to screen or score.",
+      "applies_to": "op params",
+      "affects": ["tested hypotheses", "multiple testing universe", "discovery scope"],
+      "guidance": ["Treat namespace as the biological hypothesis library.", "Report the namespace because it defines what could have been discovered."],
+      "aliases": ["gene_set_namespace", "collection"]
+    },
+    {
+      "parameter_name": "feature_sets",
+      "title": "Feature-Set Subset",
+      "category": "signature",
+      "description": "Optional restriction to named feature sets within a namespace.",
+      "applies_to": "op params",
+      "affects": ["screening universe", "reported terms"],
+      "guidance": ["Use NULL for broad discovery.", "Use explicit subsets for targeted validation."],
+      "aliases": ["gene_sets", "signatures"]
+    },
+    {
+      "parameter_name": "source_path",
+      "title": "Feature-Set Source Path",
+      "category": "import",
+      "description": "File-backed source for feature-set imports, such as GMT, RDS list/data.frame, or CSV-style table.",
+      "applies_to": "feature-set import params",
+      "affects": ["imported library", "provenance", "replay"],
+      "guidance": ["Use file-backed imports for agent/session execution so provenance can point to the source.", "Record source_id and source_version when the path alone is not a durable library identity."],
+      "aliases": ["gene_set_file", "gmt_path"]
+    },
+    {
+      "parameter_name": "source_format",
+      "title": "Feature-Set Source Format",
+      "category": "import",
+      "description": "Parser choice for a feature-set import source.",
+      "applies_to": "feature-set import params",
+      "affects": ["column interpretation", "wide versus long parsing", "library import validity"],
+      "guidance": ["Use auto for ordinary .gmt and .rds files.", "Set explicitly when a file extension is ambiguous."],
+      "aliases": ["format", "input_format"]
+    },
+    {
+      "parameter_name": "split_by_collection",
+      "title": "Split Feature-Set Namespace By Collection",
+      "category": "import",
+      "description": "Controls whether broad gene-set libraries are split into collection/subcollection namespaces during import.",
+      "applies_to": "feature-set import params",
+      "affects": ["namespace granularity", "screening universe", "multiple testing universe"],
+      "guidance": ["Use TRUE for broad mixed libraries such as MSigDB when collection/subcollection labels are meaningful.", "Keep WikiPathways or focused custom libraries in their own namespace unless splitting adds biological clarity."],
+      "aliases": ["split_namespace", "collection_split"]
+    },
+    {
+      "parameter_name": "gene_id_type",
+      "title": "Gene Identifier Type",
+      "category": "import",
+      "description": "Records the identifier convention used by imported feature-set genes.",
+      "applies_to": "feature-set import params",
+      "affects": ["mapping interpretation", "cross-species reliability", "QC interpretation"],
+      "guidance": ["Use explicit labels such as gene_symbol or ensembl_id when known.", "The current import path matches against bundle feature IDs; it does not perform synonym or ortholog mapping."],
+      "aliases": ["feature_id_type", "id_type"]
+    },
+    {
+      "parameter_name": "source_matrix_id",
+      "title": "Source Matrix Identifier",
+      "category": "matrix_transfer",
+      "description": "Matrix id that owns the source matrix-scoped feature-set namespace or other transferable registry state.",
+      "applies_to": "matrix transfer params",
+      "affects": ["source feature universe", "registry provenance", "transfer validity"],
+      "guidance": ["Use a matrix whose feature IDs define the existing feature-set memberships.", "Do not use this for cross-feature-type conversion; that requires an explicit mapping artifact."],
+      "aliases": ["from_matrix", "source_matrix"]
+    },
+    {
+      "parameter_name": "target_matrix_id",
+      "title": "Target Matrix Identifier",
+      "category": "matrix_transfer",
+      "description": "Matrix id that will receive transferred feature-set memberships after mirror or intersect validation.",
+      "applies_to": "matrix transfer params",
+      "affects": ["target feature universe", "retained features", "downstream namespace availability"],
+      "guidance": ["Use mirror only when source and target feature universes are identical.", "Use intersect when feature universes overlap and loss should be recorded."],
+      "aliases": ["to_matrix", "target_matrix"]
+    },
+    {
+      "parameter_name": "target_namespace",
+      "title": "Target Feature-Set Namespace",
+      "category": "matrix_transfer",
+      "description": "Optional namespace assigned to transferred feature sets on the target matrix.",
+      "applies_to": "feature-set transfer params",
+      "affects": ["downstream namespace selection", "provenance readability"],
+      "guidance": ["Leave NULL to preserve source namespace.", "Set explicitly when keeping raw-count and normalized-matrix namespaces separate is useful."],
+      "aliases": "destination_namespace"
+    },
+    {
+      "parameter_name": "min_retained_features",
+      "title": "Minimum Retained Features",
+      "category": "matrix_transfer",
+      "description": "Minimum number of source feature-set members that must remain valid on a target matrix during transfer.",
+      "applies_to": "feature-set transfer params",
+      "affects": ["intersect transfer rejection", "screening universe quality"],
+      "guidance": ["Use with mode='intersect' to avoid transferring nearly empty sets.", "For mode='mirror' this should normally be trivially satisfied."],
+      "aliases": "min_transfer_features"
+    },
+    {
+      "parameter_name": "min_retained_fraction",
+      "title": "Minimum Retained Fraction",
+      "category": "matrix_transfer",
+      "description": "Minimum fraction of source feature-set members that must remain valid on a target matrix during transfer.",
+      "applies_to": "feature-set transfer params",
+      "affects": ["lossy transfer rejection", "QC stringency"],
+      "guidance": ["Use to prevent broad lossy transfers from silently changing gene-set meaning.", "This is not a biological mapping confidence score; it only measures retained feature IDs."],
+      "aliases": "transfer_fraction"
+    },
+    {
+      "parameter_name": "signal_keys",
+      "title": "Signal Key Subset",
+      "category": "signal",
+      "description": "Optional restriction to selected keys in a cell_vector_family, such as UCell signatures or chromVAR motifs.",
+      "applies_to": "op params",
+      "affects": ["screening universe", "reported signals"],
+      "guidance": ["Use NULL for broad signal-family screening.", "Use explicit keys for targeted follow-up."],
+      "aliases": ["keys", "signature_keys", "motif_keys"]
+    },
+    {
+      "parameter_name": "n_bins",
+      "title": "Pseudotime Bin Count",
+      "category": "trajectory",
+      "description": "Number of bins used to aggregate cells along pseudotime before curve summaries and dynamics metrics.",
+      "applies_to": "op params",
+      "affects": ["curve resolution", "noise", "runtime"],
+      "guidance": ["More bins preserve detail but increase sparsity/noise.", "Fewer bins smooth curves but may hide sharp transitions."],
+      "aliases": "bins"
+    },
+    {
+      "parameter_name": "min_cells_per_bin",
+      "title": "Minimum Cells Per Bin",
+      "category": "filtering",
+      "description": "Minimum number of cells required for a pseudotime bin to be retained.",
+      "applies_to": "op params",
+      "affects": ["curve support", "missing bins", "confidence"],
+      "guidance": ["Higher values make curves more stable but can remove sparse terminal regions.", "Report this when interpreting missing or truncated curves."],
+      "aliases": "min_bin_cells"
+    },
+    {
+      "parameter_name": "summary_fun",
+      "title": "Bin Summary Function",
+      "category": "summary",
+      "description": "Statistic used to summarize cell-level values within each bin.",
+      "applies_to": "op params",
+      "affects": ["curve values", "outlier sensitivity"],
+      "guidance": ["Mean is sensitive to outliers and abundance shifts.", "Median is more robust but may compress sparse expression."],
+      "aliases": "summary_function"
+    },
+    {
+      "parameter_name": "min_amplitude",
+      "title": "Minimum Curve Amplitude Filter",
+      "category": "filtering",
+      "description": "Minimum observed/smoothed curve range required for a signal or feature set to pass report filters.",
+      "applies_to": "op params",
+      "affects": ["reported dynamics", "noise filtering"],
+      "guidance": ["This is a reporting/filter threshold, not a p-value.", "Set it relative to score scale; amplitude units differ between mean expression, UCell, chromVAR, and ranks."],
+      "aliases": "amplitude_threshold"
+    },
+    {
+      "parameter_name": "class_min_amplitude",
+      "title": "Minimum Amplitude For Non-Flat Class",
+      "category": "classification",
+      "description": "Minimum curve range required before assigning a non-flat dynamic class.",
+      "applies_to": "op params",
+      "affects": ["flat versus dynamic classes", "turns_on/turns_off/transient calls"],
+      "guidance": ["Use this to avoid classifying tiny numerical wiggles as biology.", "Keep distinct from min_amplitude if you want permissive reporting but conservative classes."],
+      "aliases": "dynamic_class_amplitude"
+    },
+    {
+      "parameter_name": "min_bins_observed",
+      "title": "Minimum Observed Bins Filter",
+      "category": "filtering",
+      "description": "Minimum number of retained pseudotime bins required for a curve to pass filters.",
+      "applies_to": "op params",
+      "affects": ["curve completeness", "terminal-region confidence"],
+      "guidance": ["Higher values reduce fragmentary curves.", "Sparse branches may fail this filter even if biologically interesting."],
+      "aliases": "min_bins"
+    },
+    {
+      "parameter_name": "min_features_detected",
+      "title": "Minimum Detected Set Members",
+      "category": "filtering",
+      "description": "Minimum number of feature-set members detected in the matrix before a set passes filters.",
+      "applies_to": "op params",
+      "affects": ["feature-set validity", "dropout robustness"],
+      "guidance": ["Use this to avoid interpreting gene sets represented by too few measured genes.", "Important for targeted panels and cross-species or sparse feature spaces."],
+      "aliases": "min_detected_genes"
+    },
+    {
+      "parameter_name": "min_detected_fraction",
+      "title": "Minimum Detected Set Fraction",
+      "category": "filtering",
+      "description": "Minimum fraction of feature-set members detected in the matrix before a set passes filters.",
+      "applies_to": "op params",
+      "affects": ["feature-set validity", "dropout robustness"],
+      "guidance": ["Complements min_features_detected by scaling with set size.", "Useful when screening gene sets of very different sizes."],
+      "aliases": "detected_fraction"
+    },
+    {
+      "parameter_name": "min_mean_score",
+      "title": "Minimum Mean Score Filter",
+      "category": "filtering",
+      "description": "Minimum mean smoothed curve score required before a gene set or signal passes report filters.",
+      "applies_to": "op params",
+      "affects": ["low-abundance filtering", "reported dynamics"],
+      "guidance": ["Use this to avoid over-interpreting tiny but smooth low-expression changes.", "Thresholds are score-scale dependent; keep disabled for broad discovery if unsure."],
+      "aliases": "mean_score_threshold"
+    },
+    {
+      "parameter_name": "min_max_score",
+      "title": "Minimum Maximum Score Filter",
+      "category": "filtering",
+      "description": "Minimum maximum smoothed curve score required before a gene set or signal passes report filters.",
+      "applies_to": "op params",
+      "affects": ["low-abundance filtering", "reported dynamics"],
+      "guidance": ["For log1p CP10K mean scores, a small threshold such as 0.1 can separate robust programs from near-zero wiggles.", "Do not reuse the same number for UCell, chromVAR, or other score scales without checking distributions."],
+      "aliases": "max_score_threshold"
+    },
+    {
+      "parameter_name": "min_signal_to_noise",
+      "title": "Minimum Signal-To-Noise Filter",
+      "category": "filtering",
+      "description": "Minimum amplitude divided by mean bootstrap standard error required before a curve passes filters.",
+      "applies_to": "op params",
+      "affects": ["uncertainty-aware filtering", "reported dynamics"],
+      "guidance": ["Requires bootstrap-derived standard errors to be meaningful.", "Use as a support filter, not as a formal p-value."],
+      "aliases": ["snr_threshold", "min_snr"]
+    },
+    {
+      "parameter_name": "low_abundance_max_score",
+      "title": "Low-Abundance Flag Threshold",
+      "category": "filtering",
+      "description": "Maximum score threshold below which dynamic-looking curves are flagged as low abundance.",
+      "applies_to": "op params",
+      "affects": ["interpretation", "report triage"],
+      "guidance": ["This flag warns about low-expression dynamics without removing them by default.", "Set relative to the selected matrix or score method."],
+      "aliases": ["low_expression_threshold", "low_signal_threshold"]
+    },
+    {
+      "parameter_name": "on_off_min_delta",
+      "title": "On/Off Delta Threshold",
+      "category": "classification",
+      "description": "Minimum late-minus-early absolute difference required for turns_on or turns_off classes.",
+      "applies_to": "op params",
+      "affects": ["turns_on calls", "turns_off calls"],
+      "guidance": ["Interpret relative to score scale.", "A stricter threshold reduces weak monotonic calls."],
+      "aliases": "delta_threshold"
+    },
+    {
+      "parameter_name": "monotonic_min_abs_rho",
+      "title": "Monotonicity Threshold",
+      "category": "classification",
+      "description": "Minimum absolute Spearman correlation with pseudotime required for monotonic on/off classes.",
+      "applies_to": "op params",
+      "affects": ["turns_on calls", "turns_off calls", "transient calls"],
+      "guidance": ["Higher values require cleaner monotonic behavior.", "Transient or multi-phase curves should not be forced into monotonic classes."],
+      "aliases": "rho_threshold"
+    },
+    {
+      "parameter_name": "smooth_method",
+      "title": "Curve Smoothing Method",
+      "category": "smoothing",
+      "description": "Optional smoother applied to binned curves before metrics and class assignment.",
+      "applies_to": "op params",
+      "affects": ["curve shape", "classification", "confidence bands"],
+      "guidance": ["Smoothing can reveal broad dynamics but can also erase sharp transitions.", "Report the method because it affects classes."],
+      "aliases": "smoother"
+    },
+    {
+      "parameter_name": "loess_span",
+      "title": "LOESS Span",
+      "category": "smoothing",
+      "description": "Controls the locality of LOESS smoothing when smooth_method is loess.",
+      "applies_to": "op params",
+      "affects": ["smoothness", "local transitions"],
+      "guidance": ["Smaller span follows local variation more closely.", "Larger span produces broader, smoother trends."],
+      "aliases": "span"
+    },
+    {
+      "parameter_name": "bootstrap_n",
+      "title": "Bootstrap Replicate Count",
+      "category": "uncertainty",
+      "description": "Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals.",
+      "applies_to": "op params",
+      "affects": ["confidence bands", "runtime"],
+      "guidance": ["Use for report-quality uncertainty bands.", "Large values increase runtime."],
+      "aliases": "n_bootstrap"
+    },
+    {
+      "parameter_name": "ci_level",
+      "title": "Confidence Interval Level",
+      "category": "uncertainty",
+      "description": "Nominal confidence level for bootstrap confidence bands.",
+      "applies_to": "op params",
+      "affects": "confidence band width",
+      "guidance": ["Higher levels produce wider intervals.", "Only meaningful when bootstrap_n is greater than zero."],
+      "aliases": "confidence_level"
+    },
+    {
+      "parameter_name": "n_permutations",
+      "title": "Empirical Permutation Count",
+      "category": "statistics",
+      "description": "Number of score-pseudotime permutations used to estimate empirical dynamic-score p-values.",
+      "applies_to": "trajectory dynamics op params",
+      "affects": ["p_dynamic", "q_dynamic", "runtime"],
+      "guidance": ["Use 0 for fast exploratory discovery.", "Use hundreds to thousands for final reports when runtime is acceptable.", "Permutation p-values support dynamic-score ranking but do not replace effect-size and abundance filters."],
+      "aliases": ["n_perm", "permutations"]
+    },
+    {
+      "parameter_name": "permutation_seed",
+      "title": "Permutation Random Seed",
+      "category": "reproducibility",
+      "description": "Seed used for empirical score-pseudotime permutation tests.",
+      "applies_to": "trajectory dynamics op params",
+      "affects": ["p_dynamic reproducibility", "q_dynamic reproducibility"],
+      "guidance": ["Set explicitly for replayable reports.", "Changing the seed can slightly change empirical p-values when n_permutations is modest."],
+      "aliases": "perm_seed"
+    },
+    {
+      "parameter_name": "p_adjust_method",
+      "title": "P-Value Adjustment Method",
+      "category": "statistics",
+      "description": "Multiple-testing correction method used to convert empirical p_dynamic values into q_dynamic values.",
+      "applies_to": "statistical op params",
+      "affects": ["FDR calls", "reported statistical support"],
+      "guidance": ["BH is the usual default for discovery-style FDR control.", "Correction is across the screened feature-set universe, so namespace/subset choice matters."],
+      "aliases": ["fdr_method", "multiple_testing_method"]
+    },
+    {
+      "parameter_name": "mad_multiplier",
+      "title": "MAD Distance Inclusion Multiplier",
+      "category": "trajectory_inclusion",
+      "description": "Threshold multiplier for median absolute deviation distance filters around a trajectory/path.",
+      "applies_to": "workflow or op params",
+      "affects": ["included cells", "trajectory tightness", "terminal contamination"],
+      "guidance": ["Lower values create a tighter trajectory tube and exclude more distant cells.", "Interpret relative to the embedding/space; unlike fixed distance thresholds, MAD adapts to scale.", "Not yet universal in op interfaces; include when route inclusion becomes a first-class op parameter."],
+      "aliases": ["mad_threshold", "distance_mad_multiplier"]
+    },
+    {
+      "parameter_name": "top_n",
+      "title": "Top-N Retention",
+      "category": "reporting",
+      "description": "Number of top-ranked records retained for compact outputs or reports.",
+      "applies_to": "op params",
+      "affects": ["report size", "visible discoveries"],
+      "guidance": ["Does not usually change the full underlying calculation unless explicitly documented.", "Use larger values for exploratory reports."],
+      "aliases": "n_top"
+    },
+    {
+      "parameter_name": "seed",
+      "title": "Random Seed",
+      "category": "reproducibility",
+      "description": "Seed used for stochastic algorithms or resampling.",
+      "applies_to": "op params",
+      "affects": ["reproducibility", "stochastic outputs"],
+      "guidance": ["Set explicitly for replayable reports.", "Changing seed can affect stochastic fits, bootstraps, or approximations."],
+      "aliases": ["random_seed", "bootstrap_seed"]
+    }
+  ]
+}

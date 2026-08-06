@@ -191,8 +191,9 @@ result <- wb_session_run_op(
   session = s,
   bundle = b,
   op_name = "operation_name",
-  inputs = list(),
-  params = list(),
+  inputs = list(
+    # operation-specific inputs and parameters from wb_op_interface()
+  ),
   notes = "Scientific purpose and decision context"
 )
 s <- result$session
@@ -354,5 +355,5 @@ consult the generated package reference and these repository documents:
 - `docs/wrangler_catalog_reference.md` and `docs/plot_catalog_reference.md`
   for renderer-independent display data;
 - `docs/semantic_catalog_reference.md` for semantic discovery;
-- `docs/engine_extension_patterns.md` when an identified gap needs an engine
+- `docs/extension_engineering.md` when an identified gap needs an engine
   change.

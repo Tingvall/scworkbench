@@ -868,12 +868,9 @@ wb_refresh_semantic_catalogs <- function(bundle = NULL,
                                          write_graph_views = TRUE) {
   old_stamp <- getOption("scworkbench.catalog_generated_at", NULL)
   on.exit(options(scworkbench.catalog_generated_at = old_stamp), add = TRUE)
-  stamp_path <- file.path(docs_dir, "op_catalog_semantic.json")
-  stamp <- if (file.exists(stamp_path)) {
-    prior <- try(jsonlite::read_json(stamp_path, simplifyVector = TRUE), silent = TRUE)
-    if (!inherits(prior, "try-error")) as.character(prior$generated_at %||% "")[1] else ""
-  } else ""
-  if (!nzchar(stamp)) stamp <- "source-controlled"
+  # Reference exports are tracked package content.  A wall-clock stamp makes
+  # equivalent source produce noisy drift, so use one stable sentinel instead.
+  stamp <- "source-controlled"
   options(scworkbench.catalog_generated_at = stamp)
   json_paths <- file.path(
     docs_dir,
