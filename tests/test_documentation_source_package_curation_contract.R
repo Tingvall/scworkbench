@@ -16,5 +16,15 @@ test_documentation_source_package_curation_contract <- function() {
   index <- paste(readLines(file.path(root, "docs/getting_started.md"), warn = FALSE), collapse = "\n")
   required <- c("bundle_concepts.md", "ingestion.md", "sessions_and_ops.md", "promotion_and_provenance.md", "recipient_audit.md", "python_bridge.md", "extension_engineering.md")
   stopifnot(all(vapply(required, grepl, logical(1), x = index, fixed = TRUE)))
+  markdown <- entries$path[grepl("[.]md$", entries$path)]
+  for (path in markdown) {
+    text <- paste(readLines(file.path(root, path), warn = FALSE), collapse = "\n")
+    links <- regmatches(text, gregexpr("\\]\\(([^)#]+)(?:#[^)]*)?\\)", text, perl = TRUE))[[1L]]
+    if (!length(links)) next
+    targets <- sub("^.*\\]\\(([^)#]+).*$", "\\1", links, perl = TRUE)
+    targets <- targets[!grepl("^[a-z]+://", targets, ignore.case = TRUE)]
+    resolved <- file.path(dirname(path), targets)
+    stopifnot(all(file.exists(file.path(root, resolved))))
+  }
   TRUE
 }

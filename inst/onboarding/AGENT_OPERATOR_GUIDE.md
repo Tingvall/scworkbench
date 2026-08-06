@@ -355,5 +355,5 @@ consult the generated package reference and these repository documents:
 - `docs/wrangler_catalog_reference.md` and `docs/plot_catalog_reference.md`
   for renderer-independent display data;
 - `docs/semantic_catalog_reference.md` for semantic discovery;
-- `docs/engine_extension_patterns.md` when an identified gap needs an engine
+- `docs/extension_engineering.md` when an identified gap needs an engine
   change.
