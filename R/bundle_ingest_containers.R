@@ -71,18 +71,19 @@
   if (nrow(out) != length(row_ids)) {
     stop("metadata row count does not match object cells/features.", call. = FALSE)
   }
-  for (nm in names(out)) {
-    val <- out[[nm]]
+  for (j in seq_len(ncol(out))) {
+    val <- out[[j]]
     if (is.factor(val)) val <- as.character(val)
     if (is.logical(val)) val <- as.integer(val)
     if (is.list(val) && !is.data.frame(val)) {
       val <- vapply(val, function(z) jsonlite::toJSON(.wb_json_sanitize(z), auto_unbox = TRUE, null = "null"), character(1))
     }
     if (!is.atomic(val)) val <- as.character(val)
-    out[[nm]] <- val
+    out[[j]] <- val
   }
-  out[[id_col]] <- as.character(row_ids)
-  out[, c(id_col, setdiff(names(out), id_col)), drop = FALSE]
+  key <- data.frame(as.character(row_ids), stringsAsFactors = FALSE, check.names = FALSE)
+  names(key) <- id_col
+  cbind(key, out, stringsAsFactors = FALSE)
 }
 
 .wb_ingest_dataset_id <- function(metadata, dataset_col, n) {
@@ -1150,7 +1151,8 @@ wb_bundle_from_sce <- function(input,
     original_cell_id_col <- make.unique(c(names(md), original_cell_id_col), sep = ".")[[length(names(md)) + 1L]]
   }
   md[[original_cell_id_col]] <- raw_cell_ids
-  md <- md[, c("cell_id", original_cell_id_col, setdiff(names(md), c("cell_id", original_cell_id_col))), drop = FALSE]
+  original_position <- ncol(md)
+  md <- md[, c(1L, original_position, setdiff(seq_len(ncol(md)), c(1L, original_position))), drop = FALSE]
   if (!is.null(metadata_cols)) {
     md <- md[, unique(c("cell_id", original_cell_id_col, intersect(c(metadata_cols, dataset_col), names(md)))), drop = FALSE]
   }

@@ -63,7 +63,7 @@ generate_schema_catalog <- function(root = ".", output = file.path(root, "docs",
     "artifacts.artifact_id", "bundle_schema_migrations.migration_id",
     "cell_vectors.vector_id", "cells.cell_id", "datasets.dataset_id",
     "feature_sets.feature_set", "features.feature_id", "matrices.matrix_id",
-    "matrix_fragments.fragment_id", "motif_libraries.motif_library",
+    "matrix_fragments.fragment_id", "metadata_fields.field_id", "motif_libraries.motif_library",
     "motif_match_sets.motif_match_set", "motifs.motif_key",
     "prov_commits.commit_id", "prov_heads.snapshot_id", "prov_runs.run_id",
     "spaces.space_id"

@@ -138,8 +138,8 @@ wb_plot_space_2d <- function(bundle,
 
     if (is.character(color_by) && length(color_by) == 1) {
       col <- color_by
-      q <- sprintf('SELECT cell_id, "%s" AS value FROM cells;', col)
-      md <- DBI::dbGetQuery(bundle$con, q)
+      md <- wb_meta(bundle, cols = c("cell_id", col))
+      names(md)[2L] <- "value"
       md$cell_id <- as.character(md$cell_id)
 
       df_base$value   <- md$value[match(df_base$cell_id,   md$cell_id)]
@@ -333,8 +333,8 @@ wb_plot_space_2d <- function(bundle,
         df_lbl$label_value <- NA
         if (is.character(label_by) && length(label_by) == 1L) {
           col <- as.character(label_by)[1]
-          q <- sprintf('SELECT cell_id, "%s" AS label_value FROM cells;', col)
-          md <- DBI::dbGetQuery(bundle$con, q)
+          md <- wb_meta(bundle, cols = c("cell_id", col))
+          names(md)[2L] <- "label_value"
           md$cell_id <- as.character(md$cell_id)
           df_lbl$label_value <- md$label_value[match(df_lbl$cell_id, md$cell_id)]
         } else if (is.data.frame(label_by)) {

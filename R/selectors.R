@@ -135,16 +135,17 @@ wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = 
   base <- .wb_sel_resolve_cell_ids(x) %||% wb_cells(b, cell_set = "all")
 
   .wb_assert(is.character(col) && length(col) == 1 && nzchar(col), "col must be a non-empty column name.")
+  field <- .wb_metadata_resolve(b, col, allow_core = TRUE)
+  quoted <- .wb_quote_identifier(con, field$storage_name[[1L]])
   js <- jsonlite::toJSON(as.list(base), auto_unbox = TRUE)
 
   if (!is.null(values)) {
     vals <- jsonlite::toJSON(as.list(values), auto_unbox = TRUE)
-    q <- sprintf(
+    q <- paste0(
       'SELECT cell_id FROM cells
        WHERE cell_id IN (SELECT value FROM json_each(?))
-         AND "%s" IN (SELECT value FROM json_each(?))
-       ORDER BY rowid;', col
-    )
+         AND ', quoted, ' IN (SELECT value FROM json_each(?))
+       ORDER BY rowid;')
     ids <- as.character(DBI::dbGetQuery(con, q, params = list(js, vals))$cell_id)
 
     return(.wb_sel_attach_bundle_recipe(
@@ -156,14 +157,13 @@ wb_sel_meta <- function(x, col, values = NULL, min = NULL, max = NULL, bundle = 
   }
 
   if (!is.null(min) || !is.null(max)) {
-    q <- sprintf(
+    q <- paste0(
       'SELECT cell_id FROM cells
        WHERE cell_id IN (SELECT value FROM json_each(?))
-         AND ("%s" IS NOT NULL)
-         AND (? IS NULL OR "%s" >= ?)
-         AND (? IS NULL OR "%s" <= ?)
-       ORDER BY rowid;', col, col, col, col
-    )
+         AND (', quoted, ' IS NOT NULL)
+         AND (? IS NULL OR ', quoted, ' >= ?)
+         AND (? IS NULL OR ', quoted, ' <= ?)
+       ORDER BY rowid;')
     ids <- as.character(DBI::dbGetQuery(con, q, params = list(js, min, min, max, max))$cell_id)
 
     return(.wb_sel_attach_bundle_recipe(

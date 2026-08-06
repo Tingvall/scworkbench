@@ -2,14 +2,15 @@
 # Component schema helpers remain compatibility shims for callers inside the
 # package, but only this file orchestrates schema creation and upgrades.
 
-.wb_bundle_schema_version <- function() 4L
+.wb_bundle_schema_version <- function() 5L
 
 .wb_bundle_schema_migrations <- function() {
   list(
     list(version = 1L, id = "001_consolidate_durable_schema", apply = .wb_schema_migration_001),
     list(version = 2L, id = "002_referential_integrity", apply = .wb_schema_migration_002),
     list(version = 3L, id = "003_lifecycle_backfill", apply = .wb_schema_migration_003),
-    list(version = 4L, id = "004_complete_space_foreign_keys", apply = .wb_schema_migration_004)
+    list(version = 4L, id = "004_complete_space_foreign_keys", apply = .wb_schema_migration_004),
+    list(version = 5L, id = "005_metadata_field_registry", apply = .wb_schema_migration_005)
   )
 }
 
@@ -389,6 +390,7 @@
     list("feature_sets", "source_id", "external feature-set source identity"),
     list("motif_libraries", "source_id", "external motif-library source identity"),
     list("motifs", "motif_id", "source-library motif identity"),
+    list("metadata_fields", "import_id", "ingestion or attachment transaction identity"),
     list("space_models", "cell_set", "symbolic fitted-cell selector"),
     list("prov_source_inputs", "source_id", "external source identity"),
     list("registry_mutation_events", "event_id", "session-local event identity"),
@@ -453,6 +455,11 @@
     violations$table[[1L]], " at rowid ", violations$rowid[[1L]], ".",
     call. = FALSE
   )
+  invisible(TRUE)
+}
+
+.wb_schema_migration_005 <- function(con, bundle_dir = NULL) {
+  .wb_metadata_backfill_registry(con)
   invisible(TRUE)
 }
 

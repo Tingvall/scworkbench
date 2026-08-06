@@ -4,7 +4,7 @@
 
 Generated at: 2026-08-05T16:03:21+0200
 
-Getter count: 77
+Getter count: 79
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -376,6 +376,38 @@ Arguments: bundle, summarize, max_distinct_for_grouping
 Use when:
 - choose metadata coloring columns
 - avoid direct SQLite metadata introspection
+
+### `wb_metadata_fields`
+
+Title: Canonical Metadata Fields
+
+Description: List durable source, display, stable, and physical identities for cell metadata fields.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, include_core
+
+Use when:
+- inspect imported rename and coercion evidence
+- choose stable IDs for ambiguous names
+
+### `wb_metadata_field_resolve`
+
+Title: Resolve Metadata Field
+
+Description: Resolve one stable ID or unambiguous metadata name to its durable mapping.
+
+Returns: one-row data.frame
+
+Payload level: metadata
+
+Arguments: bundle, field, include_core
+
+Use when:
+- resolve a client field selection
+- obtain the physical mapping without SQLite access
 
 ### `wb_cell_coverage`
 

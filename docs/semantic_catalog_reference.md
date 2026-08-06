@@ -4,7 +4,7 @@
 
 Generated at: 2026-08-05T16:03:21+0200
 
-Record count: 315
+Record count: 317
 
 Graph edges: 906
 
@@ -515,6 +515,18 @@ Description: Read cell-level metadata for selected cells and columns.
 Title: Cell Metadata Columns
 
 Description: List cell metadata columns with type, missingness, cardinality, and display hints for clients.
+
+### `getter:wb_metadata_fields`
+
+Title: Canonical Metadata Fields
+
+Description: List durable source, display, stable, and physical identities for cell metadata fields.
+
+### `getter:wb_metadata_field_resolve`
+
+Title: Resolve Metadata Field
+
+Description: Resolve one stable ID or unambiguous metadata name to its durable mapping.
 
 ### `getter:wb_cell_coverage`
 

@@ -23,7 +23,7 @@
     "wb_repair_model_ref_paths"
   ),
   attachment_ingestion = c(
-    "wb_init_bundle", "wb_define_cells", "wb_define_cells_from_seurat",
+    "wb_init_bundle", "wb_define_cells", "wb_define_cells_from_seurat", ".wb_write_cell_metadata",
     "wb_attach_validate", "wb_attach_normalize",
     "wb_attach_apply", "wb_attach_to_cells", "wb_attach_matrix",
     "wb_attach_matrix_from_seurat", "wb_attach_space",
@@ -60,7 +60,7 @@
     "wb_ingest_normalize", "wb_ingest_report", "wb_ingest_reports"
   )
   declared_ingestion <- c(
-    "wb_init_bundle", "wb_define_cells", "wb_define_cells_from_seurat",
+    "wb_init_bundle", "wb_define_cells", "wb_define_cells_from_seurat", ".wb_write_cell_metadata",
     "wb_attach_apply", "wb_attach_matrix", "wb_attach_matrix_from_seurat",
     "wb_attach_space", "wb_attach_spaces_from_seurat", "wb_attach_metadata",
     "wb_ingest_apply", "wb_bundle_from_10x_mtx", "wb_bundle_from_h5ad",

@@ -63,8 +63,8 @@ wb_cell_metadata_columns <- function(bundle,
   con <- bundle$con
   .wb_assert(.wb_db_has_table(con, "cells"), "cells table missing.")
 
-  info <- DBI::dbGetQuery(con, sprintf("PRAGMA table_info(%s);", DBI::dbQuoteIdentifier(con, "cells")))
-  if (!nrow(info)) {
+  fields <- wb_metadata_fields(bundle, include_core = TRUE)
+  if (!nrow(fields)) {
     return(data.frame(
       column_name = character(0),
       storage_type = character(0),
@@ -82,10 +82,10 @@ wb_cell_metadata_columns <- function(bundle,
   n_rows <- DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM cells;")$n[[1]] %||% 0L
   n_rows <- as.integer(n_rows)
 
-  out <- lapply(seq_len(nrow(info)), function(i) {
-    nm <- as.character(info$name[[i]])
-    storage_type <- as.character(info$type[[i]] %||% "")
-    quoted <- as.character(DBI::dbQuoteIdentifier(con, nm))
+  out <- lapply(seq_len(nrow(fields)), function(i) {
+    nm <- as.character(fields$storage_name[[i]])
+    storage_type <- as.character(fields$storage_type[[i]] %||% "")
+    quoted <- .wb_quote_identifier(con, nm)
 
     n_missing <- NA_integer_
     n_distinct <- NA_integer_
@@ -108,16 +108,30 @@ wb_cell_metadata_columns <- function(bundle,
     } else {
       "character"
     }
-    useful_for_coloring <- !identical(nm, "cell_id")
+    useful_for_coloring <- !isTRUE(fields$is_core[[i]] == 1L && identical(nm, "cell_id"))
     useful_for_grouping <- isTRUE(useful_for_coloring) &&
       isTRUE(is.finite(n_distinct)) &&
       n_distinct > 0L &&
       n_distinct <= as.integer(max_distinct_for_grouping)
 
     data.frame(
-      column_name = nm,
+      column_name = as.character(fields$display_name[[i]]),
+      field_id = as.character(fields$field_id[[i]]),
+      source_name = as.character(fields$source_name[[i]]),
+      display_name = as.character(fields$display_name[[i]]),
+      storage_name = nm,
+      source_position = as.integer(fields$source_position[[i]]),
       storage_type = storage_type,
-      display_label = gsub("_", " ", nm, fixed = TRUE),
+      source_type = as.character(fields$source_type[[i]]),
+      coercion_type = as.character(fields$coercion_type[[i]]),
+      collision_status = as.character(fields$collision_status[[i]]),
+      resolution = as.character(fields$resolution[[i]]),
+      is_core = as.logical(fields$is_core[[i]]),
+      import_id = as.character(fields$import_id[[i]]),
+      import_source = as.character(fields$import_source[[i]]),
+      created_by = as.character(fields$created_by[[i]]),
+      evidence_json = as.character(fields$evidence_json[[i]]),
+      display_label = as.character(fields$display_name[[i]]),
       r_class = r_class,
       n_missing = n_missing,
       n_distinct = n_distinct,

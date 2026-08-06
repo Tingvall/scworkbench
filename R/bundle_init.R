@@ -125,20 +125,15 @@ wb_define_cells <- function(bundle,
   if (!is.null(metadata)) {
     .wb_assert(is.data.frame(metadata), "metadata must be a data.frame")
     md <- as.data.frame(metadata, stringsAsFactors = FALSE, check.names = FALSE)
-    if (!("cell_id" %in% colnames(md))) {
-      .wb_assert(ncol(md) >= 1L, "metadata must have at least one column")
-      md$cell_id <- as.character(md[[1]])
-    } else {
-      md$cell_id <- as.character(md$cell_id)
-    }
-    md <- md[match(ids, md$cell_id), , drop = FALSE]
-    .wb_assert(!anyNA(match(ids, md$cell_id)), "metadata rows not aligned to cell_ids")
-    for (nm in setdiff(colnames(md), "cell_id")) {
-      x <- md[[nm]]
-      if (is.factor(x)) x <- as.character(x)
-      if (is.logical(x)) x <- as.integer(x)
-      md[[nm]] <- x
-    }
+    .wb_assert(ncol(md) >= 1L, "metadata must have at least one column (first column = cell_id)")
+    md_ids <- as.character(md[[1L]])
+    .wb_assert(!anyNA(md_ids) && all(nzchar(md_ids)), "metadata contains missing or empty cell IDs")
+    .wb_assert(!anyDuplicated(md_ids), "metadata contains duplicate cell IDs")
+    ii <- match(ids, md_ids)
+    .wb_assert(!anyNA(ii), "metadata rows not aligned to cell_ids")
+    md <- md[ii, , drop = FALSE]
+    md[[1L]] <- ids
+    names(md)[1L] <- "cell_id"
   }
 
   cells_df <- data.frame(
@@ -146,20 +141,6 @@ wb_define_cells <- function(bundle,
     dataset_id = ds,
     stringsAsFactors = FALSE
   )
-  if (!is.null(md)) {
-    md$cell_id <- NULL
-    md$dataset_id <- NULL
-    cells_df <- cbind(cells_df, md, stringsAsFactors = FALSE)
-  }
-
-  existing_cols <- DBI::dbListFields(bundle$con, "cells")
-  new_cols <- setdiff(colnames(cells_df), existing_cols)
-  for (nm in new_cols) {
-    x <- cells_df[[nm]]
-    col_type <- if (is.numeric(x)) "REAL" else "TEXT"
-    if (is.integer(x)) col_type <- "INTEGER"
-    DBI::dbExecute(bundle$con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
-  }
 
   .wb_ensure_cell_set_membership_table(bundle$con)
   cell_set_name <- if (identical(set_name, "core")) "core" else paste0("set:", set_name)
@@ -180,12 +161,18 @@ wb_define_cells <- function(bundle,
     ds_tab$n_cells <- as.integer(ds_tab$n_cells)
   }
 
+  metadata_report <- NULL
   DBI::dbWithTransaction(bundle$con, {
     DBI::dbWriteTable(bundle$con, "cells", cells_df, append = TRUE)
     DBI::dbWriteTable(bundle$con, "cell_set_membership", membership_df, append = TRUE)
     if (nrow(ds_tab)) {
       DBI::dbExecute(bundle$con, "DELETE FROM datasets;")
       DBI::dbWriteTable(bundle$con, "datasets", ds_tab, append = TRUE)
+    }
+    if (!is.null(md)) {
+      metadata_report <- .wb_write_cell_metadata(
+        bundle$con, md, target_cell_ids = ids, source = source, created_by = created_by
+      )
     }
   })
 
@@ -201,7 +188,8 @@ wb_define_cells <- function(bundle,
   invisible(list(
     set_name = set_name,
     n_defined = length(ids),
-    n_metadata_cols = ncol(cells_df) - 2L
+    n_metadata_cols = if (is.null(md)) 0L else ncol(md) - 1L,
+    metadata_fields = metadata_report$fields %||% data.frame()
   ))
 }
 
@@ -376,7 +364,7 @@ wb_refresh_manifest <- function(bundle) {
 
 .wb_manifest_registry_table_names <- function() {
   c(
-    "bundle_schema_migrations", "cells", "datasets", "features", "matrices", "matrix_cells",
+    "bundle_schema_migrations", "cells", "metadata_fields", "datasets", "features", "matrices", "matrix_cells",
     "matrix_fragments", "matrix_fragment_cells", "matrix_fragment_features",
     "spaces", "space_models", "artifacts", "artifact_tables",
     "cell_set_membership", "cell_set_recipes", "cell_set_styles",

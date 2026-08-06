@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "2026-08-05T16:03:21+0200",
-  "record_count": 315,
+  "record_count": 317,
   "record_type_counts": {
     "artifact_type": 74,
-    "getter": 77,
+    "getter": 79,
     "op": 57,
     "parameter": 59,
     "plot": 12,
@@ -11430,6 +11430,46 @@
       }
     },
     {
+      "record_id": "getter:wb_metadata_fields",
+      "record_type": "getter",
+      "name": "wb_metadata_fields",
+      "title": "Canonical Metadata Fields",
+      "description": "List durable source, display, stable, and physical identities for cell metadata fields.",
+      "search_text": "Canonical Metadata Fields\nList durable source, display, stable, and physical identities for cell metadata fields.\ncells\ndata.frame\nbundle\ninclude_core\ninspect imported rename and coercion evidence\nchoose stable IDs for ambiguous names",
+      "tags": ["getter", "cells"],
+      "payload": {
+        "function_name": "wb_metadata_fields",
+        "title": "Canonical Metadata Fields",
+        "category": "cells",
+        "description": "List durable source, display, stable, and physical identities for cell metadata fields.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "include_core"],
+        "use_when": ["inspect imported rename and coercion evidence", "choose stable IDs for ambiguous names"],
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_metadata_field_resolve",
+      "record_type": "getter",
+      "name": "wb_metadata_field_resolve",
+      "title": "Resolve Metadata Field",
+      "description": "Resolve one stable ID or unambiguous metadata name to its durable mapping.",
+      "search_text": "Resolve Metadata Field\nResolve one stable ID or unambiguous metadata name to its durable mapping.\ncells\none-row data.frame\nbundle\nfield\ninclude_core\nresolve a client field selection\nobtain the physical mapping without SQLite access",
+      "tags": ["getter", "cells"],
+      "payload": {
+        "function_name": "wb_metadata_field_resolve",
+        "title": "Resolve Metadata Field",
+        "category": "cells",
+        "description": "Resolve one stable ID or unambiguous metadata name to its durable mapping.",
+        "returns": "one-row data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "field", "include_core"],
+        "use_when": ["resolve a client field selection", "obtain the physical mapping without SQLite access"],
+        "mutates": false
+      }
+    },
+    {
       "record_id": "getter:wb_cell_coverage",
       "record_type": "getter",
       "name": "wb_cell_coverage",
@@ -16720,7 +16760,7 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "2026-08-05T16:03:21+0200",
-    "node_count": 315,
+    "node_count": 317,
     "edge_count": 906,
     "nodes": [
       {
@@ -17124,6 +17164,18 @@
         "record_type": "getter",
         "name": "wb_cell_metadata_columns",
         "title": "Cell Metadata Columns"
+      },
+      {
+        "record_id": "getter:wb_metadata_fields",
+        "record_type": "getter",
+        "name": "wb_metadata_fields",
+        "title": "Canonical Metadata Fields"
+      },
+      {
+        "record_id": "getter:wb_metadata_field_resolve",
+        "record_type": "getter",
+        "name": "wb_metadata_field_resolve",
+        "title": "Resolve Metadata Field"
       },
       {
         "record_id": "getter:wb_cell_coverage",

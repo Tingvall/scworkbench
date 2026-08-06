@@ -115,6 +115,8 @@
 "getter:wb_matrix_read_features","getter","wb_matrix_read_features","Read Features","Read multiple features across cells from a logical matrix."
 "getter:wb_matrix_resolve","getter","wb_matrix_resolve","Resolve Matrix","Resolve matrix fragments to absolute storage paths."
 "getter:wb_meta","getter","wb_meta","Cell Metadata","Read cell-level metadata for selected cells and columns."
+"getter:wb_metadata_field_resolve","getter","wb_metadata_field_resolve","Resolve Metadata Field","Resolve one stable ID or unambiguous metadata name to its durable mapping."
+"getter:wb_metadata_fields","getter","wb_metadata_fields","Canonical Metadata Fields","List durable source, display, stable, and physical identities for cell metadata fields."
 "getter:wb_motif_libraries","getter","wb_motif_libraries","Motif Libraries","List registered motif libraries."
 "getter:wb_motif_match_get","getter","wb_motif_match_get","Motif Match Membership","Load motif match membership rows for a match set."
 "getter:wb_motif_match_sets","getter","wb_motif_match_sets","Motif Match Sets","List motif match sets available for peak features."

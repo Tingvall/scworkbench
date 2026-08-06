@@ -103,6 +103,26 @@
       use_when = c("choose metadata coloring columns", "avoid direct SQLite metadata introspection")
     ),
     list(
+      function_name = "wb_metadata_fields",
+      title = "Canonical Metadata Fields",
+      category = "cells",
+      description = "List durable source, display, stable, and physical identities for cell metadata fields.",
+      returns = "data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "include_core"),
+      use_when = c("inspect imported rename and coercion evidence", "choose stable IDs for ambiguous names")
+    ),
+    list(
+      function_name = "wb_metadata_field_resolve",
+      title = "Resolve Metadata Field",
+      category = "cells",
+      description = "Resolve one stable ID or unambiguous metadata name to its durable mapping.",
+      returns = "one-row data.frame",
+      payload_level = "metadata",
+      arguments = c("bundle", "field", "include_core"),
+      use_when = c("resolve a client field selection", "obtain the physical mapping without SQLite access")
+    ),
+    list(
       function_name = "wb_cell_coverage",
       title = "Cell Coverage",
       category = "cells",

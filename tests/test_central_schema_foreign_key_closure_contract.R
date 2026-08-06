@@ -58,7 +58,7 @@
 
   # Reproduce the accepted Request-14 v3 declaration: target tables had only
   # their pre-closure relationships while the ordered ledger was current.
-  DBI::dbExecute(b$con, "DELETE FROM bundle_schema_migrations WHERE version=4;")
+  DBI::dbExecute(b$con, "DELETE FROM bundle_schema_migrations WHERE version>=4;")
   old <- list(
     space_models = c(scworkbench:::.wb_schema_fk("source_space_id", "spaces", "space_id")),
     artifact_umap_model = c(scworkbench:::.wb_schema_fk("artifact_id", "artifacts")),

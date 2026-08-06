@@ -113,43 +113,10 @@ wb_attach_to_cells <- function(
   # 1) METADATA ATTACH (SQLite cells table)
   # ============================================================
   if (!is.null(metadata)) {
-    md_res <- .take_first_col_as_cell_id(metadata, what = "metadata")
-    md <- md_res$data
-    md$cell_id <- md_res$cell_ids
-
-    md <- md[md$cell_id %in% keep, , drop = FALSE]
-
-    if (nrow(md) > 0) {
-      existing_cols <- DBI::dbGetQuery(con, "PRAGMA table_info(cells);")$name
-
-      # add columns if needed
-      for (nm in setdiff(colnames(md), "cell_id")) {
-        if (nm %in% existing_cols) next
-
-        x <- md[[nm]]
-        if (is.factor(x)) x <- as.character(x)
-        if (is.logical(x)) x <- as.integer(x)
-
-        col_type <- if (is.integer(x)) "INTEGER" else if (is.numeric(x)) "REAL" else "TEXT"
-        DBI::dbExecute(con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
-      }
-
-      # update row-by-row (simple + safe)
-      for (nm in setdiff(colnames(md), "cell_id")) {
-        vals <- md[[nm]]
-        for (i in seq_len(nrow(md))) {
-          DBI::dbExecute(
-            con,
-            sprintf('UPDATE cells SET "%s" = ? WHERE cell_id = ?;', nm),
-            params = list(vals[[i]], md$cell_id[[i]])
-          )
-        }
-      }
-
-      report$metadata <- list(n_rows = nrow(md), cols = setdiff(colnames(md), "cell_id"))
-    } else {
-      report$metadata <- list(n_rows = 0, cols = character(0))
-    }
+    metadata_report <- .wb_write_cell_metadata(
+      con, metadata, target_cell_ids = keep, source = source, created_by = created_by
+    )
+    report$metadata <- metadata_report
   }
 
   # ============================================================

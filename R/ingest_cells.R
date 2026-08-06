@@ -43,9 +43,10 @@ wb_ingest_cells <- function(
              "cell_ids must be a non-empty character vector")
 
   con <- bundle$con
-  cell_ids <- unique(as.character(cell_ids))
+  cell_ids <- as.character(cell_ids)
   cell_ids <- cell_ids[nzchar(cell_ids)]
   .wb_assert(length(cell_ids) > 0, "cell_ids empty after cleaning")
+  .wb_assert(!anyDuplicated(cell_ids), "wb_ingest_cells(): duplicate cell IDs are forbidden")
 
   cell_set <- paste0("set:", set_name)
 
@@ -85,10 +86,8 @@ wb_ingest_cells <- function(
     stringsAsFactors = FALSE
   )
 
-  DBI::dbWriteTable(con, "cells", new_cells_df, append = TRUE)
-
   # -------------------------
-  # 3) Add membership rows for this set
+  # 3) Add membership rows and metadata atomically
   # -------------------------
   created_at <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
   ins <- data.frame(
@@ -100,14 +99,16 @@ wb_ingest_cells <- function(
     description = paste0("ingested cells for ", cell_set),
     stringsAsFactors = FALSE
   )
-  DBI::dbWriteTable(con, "cell_set_membership", ins, append = TRUE)
-
-  # -------------------------
-  # 4) Metadata (optional) into cells table columns
-  # -------------------------
-  if (!is.null(metadata)) {
-    .wb_ingest_cell_metadata(con, cell_ids, metadata)
-  }
+  metadata_report <- NULL
+  .wb_metadata_with_transaction(con, {
+    DBI::dbWriteTable(con, "cells", new_cells_df, append = TRUE)
+    DBI::dbWriteTable(con, "cell_set_membership", ins, append = TRUE)
+    if (!is.null(metadata)) {
+      metadata_report <- .wb_write_cell_metadata(
+        con, metadata, target_cell_ids = cell_ids, source = source, created_by = created_by
+      )
+    }
+  })
 
   # -------------------------
   # 5) Spaces (optional)
@@ -144,7 +145,8 @@ wb_ingest_cells <- function(
     cell_set     = cell_set,
     n_ingested   = length(cell_ids),
     n_spaces     = length(spaces),
-    n_matrices   = length(matrices)
+    n_matrices   = length(matrices),
+    metadata_fields = metadata_report$fields %||% data.frame()
   ))
 }
 
@@ -153,77 +155,7 @@ wb_ingest_cells <- function(
 # Metadata ingestion (first column == cell_id if no explicit column)
 # -------------------------
 .wb_ingest_cell_metadata <- function(con, cell_ids, metadata) {
-  .wb_assert(is.data.frame(metadata), "metadata must be a data.frame")
-
-  md <- as.data.frame(metadata, stringsAsFactors = FALSE, check.names = FALSE)
-
-  # first column is cell_id unless explicit "cell_id" exists
-  if (!("cell_id" %in% colnames(md))) {
-    .wb_assert(ncol(md) >= 1, "metadata must have at least 1 column")
-    md$cell_id <- as.character(md[[1]])
-  } else {
-    md$cell_id <- as.character(md$cell_id)
-  }
-
-  md$cell_id <- as.character(md$cell_id)
-  md <- md[md$cell_id %in% cell_ids, , drop = FALSE]
-  if (!nrow(md)) return(invisible(TRUE))
-
-  # Convert factor/logical
-  for (nm in setdiff(colnames(md), "cell_id")) {
-    x <- md[[nm]]
-    if (is.factor(x))  x <- as.character(x)
-    if (is.logical(x)) x <- as.integer(x)
-    md[[nm]] <- x
-  }
-
-  # Add missing columns
-  existing_cols <- DBI::dbListFields(con, "cells")
-  new_cols <- setdiff(colnames(md), existing_cols)
-
-  for (nm in new_cols) {
-    x <- md[[nm]]
-    col_type <- if (is.numeric(x)) "REAL" else "TEXT"
-    if (is.integer(x)) col_type <- "INTEGER"
-    DBI::dbExecute(con, sprintf('ALTER TABLE cells ADD COLUMN "%s" %s;', nm, col_type))
-  }
-
-  cols_to_write <- setdiff(colnames(md), "cell_id")
-  if (length(cols_to_write)) {
-    tmp_name <- paste0("tmp_cell_metadata_", as.integer(Sys.time()), "_", paste(sample(c(letters, 0:9), 6, replace = TRUE), collapse = ""))
-    DBI::dbWriteTable(
-      con,
-      tmp_name,
-      md[, c("cell_id", cols_to_write), drop = FALSE],
-      temporary = TRUE,
-      overwrite = TRUE
-    )
-
-    quoted_cols <- vapply(cols_to_write, DBI::dbQuoteIdentifier, character(1), conn = con)
-    set_sql <- paste(
-      sprintf(
-        "%s = (SELECT t.%s FROM %s t WHERE t.cell_id = cells.cell_id)",
-        quoted_cols,
-        quoted_cols,
-        tmp_name
-      ),
-      collapse = ", "
-    )
-
-    DBI::dbExecute(
-      con,
-      sprintf(
-        "UPDATE cells
-            SET %s
-          WHERE cell_id IN (SELECT cell_id FROM %s);",
-        set_sql,
-        tmp_name
-      )
-    )
-    DBI::dbExecute(con, sprintf("DROP TABLE IF EXISTS %s;", tmp_name))
-  }
-
-  invisible(TRUE)
+  .wb_write_cell_metadata(con, metadata, target_cell_ids = cell_ids, source = "ingest")
 }
 
 

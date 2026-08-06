@@ -151,7 +151,7 @@ wb_ingest_validate <- function(bundle,
   if (!is.null(cell_ids)) {
     raw_ids <- as.character(cell_ids)
     dup_ids <- unique(.wb_ing_dup_values(raw_ids))
-    if (length(dup_ids)) warns <- c(warns, paste0("cell_ids contains duplicates (n=", length(dup_ids), ")."))
+    if (length(dup_ids)) errors <- c(errors, paste0("cell_ids contains duplicate IDs (n=", length(dup_ids), ")."))
     ids <- unique(raw_ids)
     ids <- ids[nzchar(ids)]
     if (!length(ids)) errors <- c(errors, "cell_ids provided but empty after cleaning.")
@@ -171,7 +171,7 @@ wb_ingest_validate <- function(bundle,
         n_cells = length(unique(md_ids)),
         duplicate_cell_ids = dup_md
       )
-      if (length(dup_md)) warns <- c(warns, paste0("metadata contains duplicate cell_ids (n=", length(dup_md), ")."))
+      if (length(dup_md)) errors <- c(errors, paste0("metadata contains duplicate cell_ids (n=", length(dup_md), ")."))
     }
   }
 

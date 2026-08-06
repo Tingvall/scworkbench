@@ -288,7 +288,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         message = "Durable registry row violates the centrally declared referential-integrity contract."
       )
     }
-    required <- c("cells", "datasets", "features", "matrices", "spaces", "space_coords", "space_2d")
+    required <- c("cells", "metadata_fields", "datasets", "features", "matrices", "spaces", "space_coords", "space_2d")
     for (table in setdiff(required, tables)) {
       add("REQUIRED_TABLE_MISSING", table = table, observed = "missing", message = paste0("Required table is missing: ", table))
     }
@@ -367,6 +367,54 @@ wb_bundle_validation_report <- function(bundle_dir,
       if (anyNA(cells$cell_id) || any(!nzchar(as.character(cells$cell_id))) || anyDuplicated(cells$cell_id)) {
         add("CELL_IDENTITY_DUPLICATE_OR_EMPTY", entity_kind = "cell", table = "cells",
             observed = "duplicate, missing, or empty cell_id", message = "Canonical cell identities must be non-empty and unique.")
+      }
+      if ("metadata_fields" %in% tables) {
+        fields <- DBI::dbGetQuery(con, "SELECT * FROM metadata_fields ORDER BY rowid;")
+        physical <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", .wb_quote_identifier(con, "cells"), ");"))
+        missing_map <- setdiff(as.character(physical$name), as.character(fields$storage_name))
+        dangling_map <- setdiff(as.character(fields$storage_name), as.character(physical$name))
+        if (length(missing_map)) add(
+          "METADATA_FIELD_MAPPING_MISSING", check_class = "schema", entity_kind = "metadata_field",
+          entity_id = paste(missing_map, collapse = ","), table = "metadata_fields",
+          observed = "unregistered cells column", message = "Every cells-table column must have one durable metadata-field mapping."
+        )
+        if (length(dangling_map)) add(
+          "METADATA_FIELD_MAPPING_DANGLING", check_class = "schema", entity_kind = "metadata_field",
+          entity_id = paste(dangling_map, collapse = ","), table = "metadata_fields",
+          observed = "missing cells column", message = "Metadata-field mapping refers to absent physical storage."
+        )
+        folded <- tolower(enc2utf8(as.character(fields$storage_name)))
+        if (anyDuplicated(folded)) add(
+          "METADATA_FIELD_STORAGE_CONFLICT", check_class = "schema", entity_kind = "metadata_field",
+          table = "metadata_fields", observed = "case-fold collision",
+          message = "Physical metadata storage names must be unique under SQLite identifier folding."
+        )
+        non_resolvable <- is.na(fields$field_id) | !nzchar(as.character(fields$field_id)) |
+          is.na(fields$display_name) | !nzchar(as.character(fields$display_name)) |
+          is.na(fields$storage_name) | !nzchar(as.character(fields$storage_name)) |
+          !(as.character(fields$storage_type) %in% c("INTEGER", "REAL", "TEXT"))
+        if (any(non_resolvable)) add(
+          "METADATA_FIELD_NON_RESOLVABLE", check_class = "schema", entity_kind = "metadata_field",
+          entity_id = paste(which(non_resolvable), collapse = ","), table = "metadata_fields",
+          observed = "missing or invalid canonical identity", message = "Every metadata mapping must resolve through a non-empty stable, display, and storage identity."
+        )
+        core_expected <- paste0("core:", .wb_metadata_core_fields())
+        core_observed <- as.character(fields$field_id[fields$is_core == 1L])
+        if (!setequal(core_expected, core_observed)) add(
+          "METADATA_FIELD_CORE_CONFLICT", check_class = "schema", entity_kind = "metadata_field",
+          table = "metadata_fields", expected = paste(core_expected, collapse = ","),
+          observed = paste(core_observed, collapse = ","), message = "Engine-owned cells fields are missing or conflicting."
+        )
+        for (i in seq_len(nrow(fields))) {
+          match_type <- physical$type[match(tolower(fields$storage_name[[i]]), tolower(physical$name))]
+          canonical_type <- if (!length(match_type) || is.na(match_type)) NA_character_ else if (grepl("INT", toupper(match_type))) "INTEGER" else if (grepl("REAL|FLOA|DOUB|NUM", toupper(match_type))) "REAL" else "TEXT"
+          if (is.na(canonical_type) || !identical(canonical_type, as.character(fields$storage_type[[i]]))) add(
+            "METADATA_FIELD_TYPE_CONFLICT", check_class = "schema", entity_kind = "metadata_field",
+            entity_id = fields$field_id[[i]], table = "metadata_fields",
+            expected = canonical_type, observed = fields$storage_type[[i]],
+            message = "Metadata field storage type disagrees with physical SQLite storage."
+          )
+        }
       }
       datasets <- DBI::dbGetQuery(con, "SELECT dataset_id, n_cells FROM datasets ORDER BY rowid;")
       actual_ds <- table(as.character(cells$dataset_id), useNA = "ifany")

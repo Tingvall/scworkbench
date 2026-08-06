@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "2026-08-05T16:03:21+0200",
-  "node_count": 315,
+  "node_count": 317,
   "edge_count": 906,
   "nodes": [
     {
@@ -405,6 +405,18 @@
       "record_type": "getter",
       "name": "wb_cell_metadata_columns",
       "title": "Cell Metadata Columns"
+    },
+    {
+      "record_id": "getter:wb_metadata_fields",
+      "record_type": "getter",
+      "name": "wb_metadata_fields",
+      "title": "Canonical Metadata Fields"
+    },
+    {
+      "record_id": "getter:wb_metadata_field_resolve",
+      "record_type": "getter",
+      "name": "wb_metadata_field_resolve",
+      "title": "Resolve Metadata Field"
     },
     {
       "record_id": "getter:wb_cell_coverage",

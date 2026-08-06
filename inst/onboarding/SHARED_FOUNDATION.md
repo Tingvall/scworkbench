@@ -76,6 +76,16 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
 - Claims in reports map to run/artifact IDs.
 - Prefer symbolic references (`set:<name>`, refs) over huge literal payloads.
 
+## Cell metadata identities
+
+Imported cell metadata is governed by a durable field registry rather than raw
+SQLite column names. Inspect it with `wb_metadata_fields()` and resolve one field
+with `wb_metadata_field_resolve()`. Exact source names are preserved when
+unambiguous; collisions and reserved names retain their source spelling but use
+stable `meta:NNNNNN` identities and private physical storage. Ambiguous names
+must be addressed by stable identity. See `docs/metadata_field_identity.md` for
+type, update, rollback, and set-based ingestion rules.
+
 # Provenance-only mutation boundary
 
 An ordinary `wb_open_bundle()` handle represents committed scientific state.

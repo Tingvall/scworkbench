@@ -241,17 +241,18 @@ wb_meta <- function(bundle, cells = NULL, cols = NULL, dataset_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be a scworkbench_bundle handle")
   con <- bundle$con
 
-  all_cols <- DBI::dbListFields(con, "cells")
-  .wb_assert("cell_id" %in% all_cols, "cells table missing cell_id column")
-
+  reg <- wb_metadata_fields(bundle, include_core = TRUE)
   if (is.null(cols)) {
-    cols <- all_cols
+    display_ambiguous <- duplicated(reg$display_name) | duplicated(reg$display_name, fromLast = TRUE)
+    cols <- ifelse(display_ambiguous, reg$field_id, reg$display_name)
   } else {
-    missing <- setdiff(cols, all_cols)
-    .wb_assert(length(missing) == 0, paste0("Unknown cells columns: ", paste(missing, collapse = ", ")))
+    cols <- as.character(cols)
   }
-
-  sel <- paste(sprintf('"%s"', cols), collapse = ", ")
+  resolved <- lapply(cols, function(field) .wb_metadata_resolve(bundle, field, allow_core = TRUE))
+  sel <- paste(vapply(seq_along(resolved), function(i) {
+    paste0(.wb_quote_identifier(con, resolved[[i]]$storage_name[[1L]]), " AS ",
+           .wb_quote_identifier(con, cols[[i]]))
+  }, character(1)), collapse = ", ")
   q <- paste0("SELECT ", sel, " FROM cells")
   params <- list()
 
