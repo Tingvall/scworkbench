@@ -147,7 +147,6 @@ That pairing is the intended workflow for:
 
 ## Related Docs
 
-- `docs/peakvi_fit_contract_draft.md`
-- `docs/peakvi_script_parity_handoff.md`
-- `docs/peakvi_tetralith_handoff_2026_04_22.md`
+- `docs/pybench_op_protocol_v2.md`
+- `docs/pybench_integration_contract.md`
 - `docs/apptainer_fullstack.md`

@@ -132,6 +132,176 @@
       "installed_package": false
     },
     {
+      "path": "docs/bundle_integrity_validation.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/bundle_integrity_validation.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/bundle_path_containment_and_trust.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/bundle_path_containment_and_trust.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/bundle_state_contract.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/bundle_state_contract.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/bundle_writer_lock.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/bundle_writer_lock.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/entity_lifecycle.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/entity_lifecycle.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/durable_resumable_sessions.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/durable_resumable_sessions.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/metadata_field_identity.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/metadata_field_identity.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/metadata_cell_vector_diagnostics.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/metadata_cell_vector_diagnostics.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/pybench_integration_contract.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/pybench_integration_contract.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/pybench_op_protocol_v2.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/pybench_op_protocol_v2.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/scvi_train.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/scvi_train.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/peakvi_fit.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/peakvi_fit.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/rna_map_ops.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/rna_map_ops.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/tabular_primitives.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/tabular_primitives.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/trajectory_fit_family_contract.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/trajectory_fit_family_contract.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/trajectory_segment_contract.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/trajectory_segment_contract.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
+      "path": "docs/trajectory_segment_join_contract.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/trajectory_segment_join_contract.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false
+    },
+    {
       "path": "inst/protocol/pybench-op-v2.schema.json",
       "class": "public_canonical",
       "audience": "public",
