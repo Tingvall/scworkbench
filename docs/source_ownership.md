@@ -45,6 +45,9 @@ The command fixes generated timestamps to `source-controlled`, so separate
 processes produce byte-identical output.
 
 The source-tarball policy is also executable: it keeps code, metadata, MIT
-license files, `CITATION.cff`, public docs, installed onboarding, and the v2
-protocol schema; it excludes archives, coordination, editor state, caches,
-build products, backups, and local output.
+license files, the package-native `inst/CITATION`, public docs, installed
+onboarding, and the v2 protocol schema. Repository-level `CITATION.cff` remains
+the canonical software citation for hosting services but is excluded from the
+R source tarball because R treats that top-level filename as non-standard. The
+policy also excludes archives, coordination, editor state, caches, build
+products, backups, and local output.

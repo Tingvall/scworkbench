@@ -2,8 +2,28 @@
 
 scwb_documentation_policy <- function(root = ".") {
   root <- normalizePath(root, winslash = "/", mustWork = TRUE)
+  entry <- function(path,
+                    class,
+                    audience,
+                    status,
+                    canonical_source,
+                    generator = NULL,
+                    source_tarball = TRUE,
+                    installed_package = FALSE) {
+    list(
+      path = path,
+      class = class,
+      audience = audience,
+      status = status,
+      canonical_source = canonical_source,
+      generator = generator,
+      source_tarball = source_tarball,
+      installed_package = installed_package,
+      installed_relative_path = if (installed_package) sub("^inst/", "", path) else NULL
+    )
+  }
   canonical <- c(
-    "README.md", "LICENSE", "LICENSE.md", "CITATION.cff",
+    "README.md", "LICENSE", "LICENSE.md", "CITATION.cff", "inst/CITATION",
     "docs/getting_started.md", "docs/bundle_concepts.md", "docs/ingestion.md",
     "docs/sessions_and_ops.md", "docs/promotion_and_provenance.md",
     "docs/recipient_audit.md", "docs/python_bridge.md",
@@ -27,15 +47,43 @@ scwb_documentation_policy <- function(root = ".") {
   ))
   generated_docs <- sort(generated_docs[file.exists(file.path(root, generated_docs))])
   entries <- c(
-    lapply(canonical, function(path) list(path = path, class = "public_canonical", audience = "public", status = "current", canonical_source = path, generator = NULL, source_tarball = TRUE, installed_package = grepl("^inst/", path))),
-    lapply(onboarding, function(path) list(path = path, class = "public_canonical", audience = "operator", status = "current", canonical_source = path, generator = NULL, source_tarball = TRUE, installed_package = TRUE)),
-    lapply(generated_docs, function(path) list(path = path, class = "generated_public_reference", audience = "public", status = "generated", canonical_source = if (grepl("^man/", path)) "R/ roxygen comments" else if (identical(path, "docs/schema_catalog_reference.md")) "R/ schema declarations" else "R/ catalog writers", generator = if (grepl("^man/", path)) "devtools::document()" else if (identical(path, "docs/schema_catalog_reference.md")) "inst/dev/generate_schema_catalog.R" else "inst/dev/regenerate_public_docs.R", source_tarball = TRUE, installed_package = identical(path, "inst/documentation_manifest.json")))
+    lapply(canonical, function(path) entry(
+      path, "public_canonical", "public", "current", path,
+      source_tarball = !identical(path, "CITATION.cff"),
+      installed_package = grepl("^inst/", path)
+    )),
+    lapply(onboarding, function(path) entry(
+      path, "public_canonical", "operator", "current", path,
+      installed_package = TRUE
+    )),
+    lapply(generated_docs, function(path) entry(
+      path,
+      "generated_public_reference",
+      "public",
+      "generated",
+      if (grepl("^man/", path)) "R/ roxygen comments" else if (identical(path, "docs/schema_catalog_reference.md")) "R/ schema declarations" else "R/ catalog writers",
+      generator = if (grepl("^man/", path)) "devtools::document()" else if (identical(path, "docs/schema_catalog_reference.md")) "inst/dev/generate_schema_catalog.R" else "inst/dev/regenerate_public_docs.R",
+      installed_package = identical(path, "inst/documentation_manifest.json")
+    ))
   )
   paths <- vapply(entries, `[[`, character(1), "path")
   manifest_paths <- c("docs/public_documentation_manifest.json", "inst/documentation_manifest.json")
   stopifnot(!anyDuplicated(paths), all(file.exists(file.path(root, setdiff(paths, manifest_paths)))))
-  list(version = 1L, entries = entries,
-       forbidden_tarball_patterns = c("^archive/", "^coordination/", "(^|/)[.]agents/", "(^|/)[.]codex/", "[.]backup$", "[.]sif$", "scworkbench[.]Rcheck/", "^reports/", "^scripts/reports/"))
+  list(
+    version = 1L,
+    entries = entries,
+    forbidden_tarball_patterns = c(
+      "^archive/", "^coordination/", "(^|/)[.]agents/", "(^|/)[.]codex/",
+      "[.]backup$", "[.]sif$", "scworkbench[.]Rcheck/", "^reports/", "^scripts/reports/"
+    ),
+    forbidden_public_text_patterns = c(
+      "/home/dirk", "/scratch", "pybench-op-v1",
+      "wb_session_run_op\\([\\s\\S]{0,800}?params[[:space:]]*=",
+      "[.]backup", "coordination/(team|handoffs|requests)",
+      "\\b(Scout|Forge|Lumen|Quill|Folio|Terra)\\b",
+      "License:[[:space:]]*What license", "[Ll]icense is not finalized"
+    )
+  )
 }
 
 scwb_write_documentation_manifest <- function(root = ".") {

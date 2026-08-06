@@ -9,7 +9,8 @@
       "canonical_source": "README.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "LICENSE",
@@ -19,7 +20,8 @@
       "canonical_source": "LICENSE",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "LICENSE.md",
@@ -29,7 +31,8 @@
       "canonical_source": "LICENSE.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "CITATION.cff",
@@ -38,8 +41,20 @@
       "status": "current",
       "canonical_source": "CITATION.cff",
       "generator": null,
+      "source_tarball": false,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "inst/CITATION",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/CITATION",
+      "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": true,
+      "installed_relative_path": "CITATION"
     },
     {
       "path": "docs/getting_started.md",
@@ -49,7 +64,8 @@
       "canonical_source": "docs/getting_started.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/bundle_concepts.md",
@@ -59,7 +75,8 @@
       "canonical_source": "docs/bundle_concepts.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/ingestion.md",
@@ -69,7 +86,8 @@
       "canonical_source": "docs/ingestion.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/sessions_and_ops.md",
@@ -79,7 +97,8 @@
       "canonical_source": "docs/sessions_and_ops.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/promotion_and_provenance.md",
@@ -89,7 +108,8 @@
       "canonical_source": "docs/promotion_and_provenance.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/recipient_audit.md",
@@ -99,7 +119,8 @@
       "canonical_source": "docs/recipient_audit.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/python_bridge.md",
@@ -109,7 +130,8 @@
       "canonical_source": "docs/python_bridge.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/extension_engineering.md",
@@ -119,7 +141,8 @@
       "canonical_source": "docs/extension_engineering.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/source_ownership.md",
@@ -129,7 +152,8 @@
       "canonical_source": "docs/source_ownership.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/bundle_integrity_validation.md",
@@ -139,7 +163,8 @@
       "canonical_source": "docs/bundle_integrity_validation.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/bundle_path_containment_and_trust.md",
@@ -149,7 +174,8 @@
       "canonical_source": "docs/bundle_path_containment_and_trust.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/bundle_state_contract.md",
@@ -159,7 +185,8 @@
       "canonical_source": "docs/bundle_state_contract.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/bundle_writer_lock.md",
@@ -169,7 +196,8 @@
       "canonical_source": "docs/bundle_writer_lock.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/entity_lifecycle.md",
@@ -179,7 +207,8 @@
       "canonical_source": "docs/entity_lifecycle.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/durable_resumable_sessions.md",
@@ -189,7 +218,8 @@
       "canonical_source": "docs/durable_resumable_sessions.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/metadata_field_identity.md",
@@ -199,7 +229,8 @@
       "canonical_source": "docs/metadata_field_identity.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/metadata_cell_vector_diagnostics.md",
@@ -209,7 +240,8 @@
       "canonical_source": "docs/metadata_cell_vector_diagnostics.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/pybench_integration_contract.md",
@@ -219,7 +251,8 @@
       "canonical_source": "docs/pybench_integration_contract.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/pybench_op_protocol_v2.md",
@@ -229,7 +262,8 @@
       "canonical_source": "docs/pybench_op_protocol_v2.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/scvi_train.md",
@@ -239,7 +273,8 @@
       "canonical_source": "docs/scvi_train.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/peakvi_fit.md",
@@ -249,7 +284,8 @@
       "canonical_source": "docs/peakvi_fit.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/rna_map_ops.md",
@@ -259,7 +295,8 @@
       "canonical_source": "docs/rna_map_ops.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/tabular_primitives.md",
@@ -269,7 +306,8 @@
       "canonical_source": "docs/tabular_primitives.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/trajectory_fit_family_contract.md",
@@ -279,7 +317,8 @@
       "canonical_source": "docs/trajectory_fit_family_contract.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/trajectory_segment_contract.md",
@@ -289,7 +328,8 @@
       "canonical_source": "docs/trajectory_segment_contract.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/trajectory_segment_join_contract.md",
@@ -299,7 +339,8 @@
       "canonical_source": "docs/trajectory_segment_join_contract.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "inst/protocol/pybench-op-v2.schema.json",
@@ -309,7 +350,8 @@
       "canonical_source": "inst/protocol/pybench-op-v2.schema.json",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "protocol/pybench-op-v2.schema.json"
     },
     {
       "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
@@ -319,7 +361,8 @@
       "canonical_source": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/AGENT_BIOLOGIST_GUIDE.md"
     },
     {
       "path": "inst/onboarding/AGENT_ENGINEER_GUIDE.md",
@@ -329,7 +372,8 @@
       "canonical_source": "inst/onboarding/AGENT_ENGINEER_GUIDE.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/AGENT_ENGINEER_GUIDE.md"
     },
     {
       "path": "inst/onboarding/AGENT_OPERATOR_GUIDE.md",
@@ -339,7 +383,8 @@
       "canonical_source": "inst/onboarding/AGENT_OPERATOR_GUIDE.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/AGENT_OPERATOR_GUIDE.md"
     },
     {
       "path": "inst/onboarding/PLAYBOOK.md",
@@ -349,7 +394,8 @@
       "canonical_source": "inst/onboarding/PLAYBOOK.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/PLAYBOOK.md"
     },
     {
       "path": "inst/onboarding/README.md",
@@ -359,7 +405,8 @@
       "canonical_source": "inst/onboarding/README.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/README.md"
     },
     {
       "path": "inst/onboarding/RECIPES.md",
@@ -369,7 +416,8 @@
       "canonical_source": "inst/onboarding/RECIPES.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/RECIPES.md"
     },
     {
       "path": "inst/onboarding/RUNTIME_ATTESTATION.md",
@@ -379,7 +427,8 @@
       "canonical_source": "inst/onboarding/RUNTIME_ATTESTATION.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/RUNTIME_ATTESTATION.md"
     },
     {
       "path": "inst/onboarding/SHARED_FOUNDATION.md",
@@ -389,7 +438,8 @@
       "canonical_source": "inst/onboarding/SHARED_FOUNDATION.md",
       "generator": null,
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "onboarding/SHARED_FOUNDATION.md"
     },
     {
       "path": "docs/artifact_type_catalog_reference.md",
@@ -399,7 +449,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/artifact_type_catalog_semantic.json",
@@ -409,7 +460,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/getter_catalog_reference.md",
@@ -419,7 +471,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/getter_catalog_semantic.json",
@@ -429,7 +482,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/mutation_catalog_reference.md",
@@ -439,7 +493,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/mutation_catalog_semantic.json",
@@ -449,7 +504,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/op_catalog_reference.md",
@@ -459,7 +515,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/op_catalog_semantic.json",
@@ -469,7 +526,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/parameter_semantics_catalog.json",
@@ -479,7 +537,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/parameter_semantics_reference.md",
@@ -489,7 +548,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/plot_catalog_reference.md",
@@ -499,7 +559,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/plot_catalog_semantic.json",
@@ -509,7 +570,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/primitive_catalog_reference.md",
@@ -519,7 +581,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/primitive_catalog_semantic.json",
@@ -529,7 +592,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/public_documentation_manifest.json",
@@ -539,7 +603,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/recipe_semantics_catalog.json",
@@ -549,7 +614,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/recipe_semantics_reference.md",
@@ -559,7 +625,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/schema_catalog_reference.md",
@@ -569,7 +636,8 @@
       "canonical_source": "R/ schema declarations",
       "generator": "inst/dev/generate_schema_catalog.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_catalog_audit.json",
@@ -579,7 +647,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_catalog_reference.md",
@@ -589,7 +658,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_catalog.json",
@@ -599,7 +669,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_compatibility_graph.json",
@@ -609,7 +680,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_artifact_plotting.dot",
@@ -619,7 +691,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_artifact_plotting.svg",
@@ -629,7 +702,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_edges.csv",
@@ -639,7 +713,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_full.dot",
@@ -649,7 +724,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_full.svg",
@@ -659,7 +735,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_manifest.csv",
@@ -669,7 +746,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_nodes.csv",
@@ -679,7 +757,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_ops_primitives.dot",
@@ -689,7 +768,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_ops_primitives.svg",
@@ -699,7 +779,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_parameters.dot",
@@ -709,7 +790,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_parameters.svg",
@@ -719,7 +801,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_recipes.dot",
@@ -729,7 +812,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_recipes.svg",
@@ -739,7 +823,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_trajectory_dynamics.dot",
@@ -749,7 +834,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/semantic_graphs/semantic_graph_trajectory_dynamics.svg",
@@ -759,7 +845,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/wrangler_catalog_reference.md",
@@ -769,7 +856,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "docs/wrangler_catalog_semantic.json",
@@ -779,7 +867,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "inst/documentation_manifest.json",
@@ -789,7 +878,8 @@
       "canonical_source": "R/ catalog writers",
       "generator": "inst/dev/regenerate_public_docs.R",
       "source_tarball": true,
-      "installed_package": true
+      "installed_package": true,
+      "installed_relative_path": "documentation_manifest.json"
     },
     {
       "path": "man/dot-wb_ensure_cell_set_recipes_table.Rd",
@@ -799,7 +889,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/dot-wb_filter_labels.Rd",
@@ -809,7 +900,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/dot-wb_resolve_cells.Rd",
@@ -819,7 +911,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/dot-wb_sel_order_like_bundle.Rd",
@@ -829,7 +922,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/scworkbench-package.Rd",
@@ -839,7 +933,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_add_space.Rd",
@@ -849,7 +944,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_birth_certificate.Rd",
@@ -859,7 +955,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_delete_plan.Rd",
@@ -869,7 +966,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_delete.Rd",
@@ -879,7 +977,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_dependencies.Rd",
@@ -889,7 +988,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_emit_r_script.Rd",
@@ -899,7 +999,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_get_labels.Rd",
@@ -909,7 +1010,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_identity_card.Rd",
@@ -919,7 +1021,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_list.Rd",
@@ -929,7 +1032,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_load.Rd",
@@ -939,7 +1043,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_table_distinct.Rd",
@@ -949,7 +1054,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_table_info.Rd",
@@ -959,7 +1065,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_table_slice.Rd",
@@ -969,7 +1076,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_trajectory_de_overview.Rd",
@@ -979,7 +1087,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_trajectory_de_plot_slice.Rd",
@@ -989,7 +1098,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_trajectory_de_ranked.Rd",
@@ -999,7 +1109,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_trajectory_de_slice_primitive.Rd",
@@ -1009,7 +1120,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_trajectory_de_top.Rd",
@@ -1019,7 +1131,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_trajectory_related.Rd",
@@ -1029,7 +1142,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_art_trajectory_smooth_overview.Rd",
@@ -1039,7 +1153,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_artifact_type_catalog_semantic.Rd",
@@ -1049,7 +1164,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_as_primitive.Rd",
@@ -1059,7 +1175,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_apply.Rd",
@@ -1069,7 +1186,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_cell_vector.Rd",
@@ -1079,7 +1197,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_matrix_from_seurat.Rd",
@@ -1089,7 +1208,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_matrix.Rd",
@@ -1099,7 +1219,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_metadata.Rd",
@@ -1109,7 +1230,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_normalize.Rd",
@@ -1119,7 +1241,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_space.Rd",
@@ -1129,7 +1252,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_spaces_from_seurat.Rd",
@@ -1139,7 +1263,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_to_cells.Rd",
@@ -1149,7 +1274,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_attach_validate.Rd",
@@ -1159,7 +1285,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_from_10x_mtx.Rd",
@@ -1169,7 +1296,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_from_h5ad.Rd",
@@ -1179,7 +1307,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_from_sce.Rd",
@@ -1189,7 +1318,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_from_seurat.Rd",
@@ -1199,7 +1329,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_overview.Rd",
@@ -1209,7 +1340,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_path_status.Rd",
@@ -1219,7 +1351,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_schema_status.Rd",
@@ -1229,7 +1362,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_schema.Rd",
@@ -1239,7 +1373,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_validation_report.Rd",
@@ -1249,7 +1384,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_bundle_writer_lock_info.Rd",
@@ -1259,7 +1395,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_coverage.Rd",
@@ -1269,7 +1406,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_metadata_columns.Rd",
@@ -1279,7 +1417,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_set_add.Rd",
@@ -1289,7 +1428,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_set_define.Rd",
@@ -1299,7 +1439,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_set_derive.Rd",
@@ -1309,7 +1450,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_set_remove.Rd",
@@ -1319,7 +1461,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_set_replace.Rd",
@@ -1329,7 +1472,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_set_set.Rd",
@@ -1339,7 +1483,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_sets.Rd",
@@ -1349,7 +1494,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_vector_load.Rd",
@@ -1359,7 +1505,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cell_vector_winners_from_artifact.Rd",
@@ -1369,7 +1516,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cells_with_matrix.Rd",
@@ -1379,7 +1527,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cells_with_space.Rd",
@@ -1389,7 +1538,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_cells.Rd",
@@ -1399,7 +1549,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_client_discover.Rd",
@@ -1409,7 +1560,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_client_inspect.Rd",
@@ -1419,7 +1571,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_client_load_table.Rd",
@@ -1429,7 +1582,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_client_load.Rd",
@@ -1439,7 +1593,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_client_promote.Rd",
@@ -1449,7 +1604,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_client_run.Rd",
@@ -1459,7 +1615,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_client_select.Rd",
@@ -1469,7 +1626,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_close_bundle.Rd",
@@ -1479,7 +1637,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_compute_profile.Rd",
@@ -1489,7 +1648,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_define_cells_from_seurat.Rd",
@@ -1499,7 +1659,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_define_cells.Rd",
@@ -1509,7 +1670,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_entity_lifecycle.Rd",
@@ -1519,7 +1681,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_entity_mark_ephemeral.Rd",
@@ -1529,7 +1692,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_entity_reject.Rd",
@@ -1539,7 +1703,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_entity_retract.Rd",
@@ -1549,7 +1714,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_entity_supersede.Rd",
@@ -1559,7 +1725,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_entity_supersessions.Rd",
@@ -1569,7 +1736,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_exec_feature_selection_plan.Rd",
@@ -1579,7 +1747,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_exec_selection_plan.Rd",
@@ -1589,7 +1758,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_family_keys.Rd",
@@ -1599,7 +1769,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_ids.Rd",
@@ -1609,7 +1780,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_set_delete.Rd",
@@ -1619,7 +1791,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_set_get.Rd",
@@ -1629,7 +1802,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_set_import_list.Rd",
@@ -1639,7 +1813,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_set_import_table.Rd",
@@ -1649,7 +1824,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_set_info.Rd",
@@ -1659,7 +1835,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_set_namespace_transfer.Rd",
@@ -1669,7 +1846,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_set_replace.Rd",
@@ -1679,7 +1857,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_feature_sets.Rd",
@@ -1689,7 +1868,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_features.Rd",
@@ -1699,7 +1879,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_finalize_recipient_bundle.Rd",
@@ -1709,7 +1890,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_freeze_packet.Rd",
@@ -1719,7 +1901,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_freeze_snapshot.Rd",
@@ -1729,7 +1912,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_geom_trajectory_2d.Rd",
@@ -1739,7 +1923,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_get_cell_set_recipe.Rd",
@@ -1749,7 +1934,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_get_cell_set_style.Rd",
@@ -1759,7 +1945,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_getter_catalog_semantic.Rd",
@@ -1769,7 +1956,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ingest_apply.Rd",
@@ -1779,7 +1967,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ingest_cells.Rd",
@@ -1789,7 +1978,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ingest_normalize.Rd",
@@ -1799,7 +1989,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ingest_report.Rd",
@@ -1809,7 +2000,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ingest_reports.Rd",
@@ -1819,7 +2011,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ingest_validate.Rd",
@@ -1829,7 +2022,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_init_bundle.Rd",
@@ -1839,7 +2033,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_is_run.Rd",
@@ -1849,7 +2044,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_is_session.Rd",
@@ -1859,7 +2055,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_kg_bundle_graph.Rd",
@@ -1869,7 +2066,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_kg_catalog_audit.Rd",
@@ -1879,7 +2077,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_kg_export_jsonl.Rd",
@@ -1889,7 +2088,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_kg_export_neo4j_csv.Rd",
@@ -1899,7 +2099,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_kg_provenance_graph.Rd",
@@ -1909,7 +2110,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_kg_static_graph.Rd",
@@ -1919,7 +2121,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_list_cell_vectors.Rd",
@@ -1929,7 +2132,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_list_ops.Rd",
@@ -1939,7 +2143,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_list_trajectory_models.Rd",
@@ -1949,7 +2154,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_list_vector_sources.Rd",
@@ -1959,7 +2165,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_list.Rd",
@@ -1969,7 +2176,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_load_space_model.Rd",
@@ -1979,7 +2187,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_manifest.Rd",
@@ -1989,7 +2198,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrices.Rd",
@@ -1999,7 +2209,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix_fragments.Rd",
@@ -2009,7 +2220,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix_info.Rd",
@@ -2019,7 +2231,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix_read_feature.Rd",
@@ -2029,7 +2242,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix_read_features.Rd",
@@ -2039,7 +2253,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix_resolve.Rd",
@@ -2049,7 +2264,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix_set_genome.Rd",
@@ -2059,7 +2275,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix_spec.Rd",
@@ -2069,7 +2286,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_matrix.Rd",
@@ -2079,7 +2297,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_meta.Rd",
@@ -2089,7 +2308,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_metadata_field_resolve.Rd",
@@ -2099,7 +2319,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_metadata_fields.Rd",
@@ -2109,7 +2330,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_migrate_artifacts.Rd",
@@ -2119,7 +2341,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_migrate_bundle.Rd",
@@ -2129,7 +2352,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motif_libraries.Rd",
@@ -2139,7 +2363,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motif_library_import_jaspar.Rd",
@@ -2149,7 +2374,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motif_library_register.Rd",
@@ -2159,7 +2385,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motif_match_get.Rd",
@@ -2169,7 +2396,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motif_match_replace.Rd",
@@ -2179,7 +2407,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motif_match_sets.Rd",
@@ -2189,7 +2418,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motif_register.Rd",
@@ -2199,7 +2429,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_motifs.Rd",
@@ -2209,7 +2440,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_mutation_catalog_semantic.Rd",
@@ -2219,7 +2451,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_nav_entities.Rd",
@@ -2229,7 +2462,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_nav_handoff.Rd",
@@ -2239,7 +2473,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_nav_targets.Rd",
@@ -2249,7 +2484,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_new_run.Rd",
@@ -2259,7 +2495,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_addmodulescore.Rd",
@@ -2269,7 +2506,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_catalog_semantic.Rd",
@@ -2279,7 +2517,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_suffix_label.Rd",
@@ -2289,7 +2528,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_assoc.Rd",
@@ -2299,7 +2539,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_association.Rd",
@@ -2309,7 +2550,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_compare.Rd",
@@ -2319,7 +2561,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_family_calibrate.Rd",
@@ -2329,7 +2572,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_family_graph_smooth.Rd",
@@ -2339,7 +2583,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_family_qc.Rd",
@@ -2349,7 +2594,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_family_reduce.Rd",
@@ -2359,7 +2605,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cell_vector_winners.Rd",
@@ -2369,7 +2616,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_all.Rd",
@@ -2379,7 +2627,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_counts_by.Rd",
@@ -2389,7 +2638,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_filter.Rd",
@@ -2399,7 +2649,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_in_dataset.Rd",
@@ -2409,7 +2660,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_intersect.Rd",
@@ -2419,7 +2671,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_order_like.Rd",
@@ -2429,7 +2682,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_sample.Rd",
@@ -2439,7 +2693,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_setdiff.Rd",
@@ -2449,7 +2704,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_split_by.Rd",
@@ -2459,7 +2715,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_top_n_by.Rd",
@@ -2469,7 +2726,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_cells_union.Rd",
@@ -2479,7 +2737,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_chromvar.Rd",
@@ -2489,7 +2748,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_de_wilcox.Rd",
@@ -2499,7 +2759,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_expr_avg_by.Rd",
@@ -2509,7 +2770,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_expr_frac_nonzero_by.Rd",
@@ -2519,7 +2781,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_expr_pseudobulk_by.Rd",
@@ -2529,7 +2792,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_expr_slice.Rd",
@@ -2539,7 +2803,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_expr_vector.Rd",
@@ -2549,7 +2814,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_expr_zscore_by_feature.Rd",
@@ -2559,7 +2825,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_feature_set_import.Rd",
@@ -2569,7 +2836,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_feature_set_overlap_qc.Rd",
@@ -2579,7 +2847,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_feature_trend_spearman.Rd",
@@ -2589,7 +2858,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_hvg_select.Rd",
@@ -2599,7 +2869,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_interface.Rd",
@@ -2609,7 +2880,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_knn_graph.Rd",
@@ -2619,7 +2891,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_knn_neighbors.Rd",
@@ -2629,7 +2902,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_knn_pseudobulk.Rd",
@@ -2639,7 +2913,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_leiden.Rd",
@@ -2649,7 +2924,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_markers_topn.Rd",
@@ -2659,7 +2935,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_matrix_log_normalize.Rd",
@@ -2669,7 +2946,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_meanexpr.Rd",
@@ -2679,7 +2957,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_metadata_cell_vector.Rd",
@@ -2689,7 +2968,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_monocle3_fit.Rd",
@@ -2699,7 +2979,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_monocle3_project.Rd",
@@ -2709,7 +2990,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_palantir_fit.Rd",
@@ -2719,7 +3001,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_palantir_project.Rd",
@@ -2729,7 +3012,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_pathway_enrich.Rd",
@@ -2739,7 +3023,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_pca_fit.Rd",
@@ -2749,7 +3034,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_peakvi_project.Rd",
@@ -2759,7 +3045,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_slingshot_fit.Rd",
@@ -2769,7 +3056,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_slingshot_lineage_weights.Rd",
@@ -2779,7 +3067,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_slingshot_project.Rd",
@@ -2789,7 +3078,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_slingshot.Rd",
@@ -2799,7 +3089,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_space_path_define.Rd",
@@ -2809,7 +3100,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_space_path_project_2d.Rd",
@@ -2819,7 +3111,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_space_path_score.Rd",
@@ -2829,7 +3122,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_branch_compare.Rd",
@@ -2839,7 +3133,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_de.Rd",
@@ -2849,7 +3144,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_geneset_dynamics.Rd",
@@ -2859,7 +3155,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_route_smooth.Rd",
@@ -2869,7 +3166,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_segment_from_artifacts.Rd",
@@ -2879,7 +3177,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_segment_join.Rd",
@@ -2889,7 +3188,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_segment_path_join.Rd",
@@ -2899,7 +3199,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_signal_dynamics.Rd",
@@ -2909,7 +3210,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_signature_smooth.Rd",
@@ -2919,7 +3221,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_smooth.Rd",
@@ -2929,7 +3232,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_space_path_segment.Rd",
@@ -2939,7 +3243,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_trajectory_vector_smooth.Rd",
@@ -2949,7 +3254,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_umap_fit.Rd",
@@ -2959,7 +3265,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_op_umap_transform.Rd",
@@ -2969,7 +3276,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_open_bundle.Rd",
@@ -2979,7 +3287,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ops.Rd",
@@ -2989,7 +3298,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_parameter_semantics_catalog.Rd",
@@ -2999,7 +3309,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_path_2d_family_space_id.Rd",
@@ -3009,7 +3320,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_catalog_semantic.Rd",
@@ -3019,7 +3331,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_compatibility_report.Rd",
@@ -3029,7 +3342,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_compatible_types.Rd",
@@ -3039,7 +3353,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_contract.Rd",
@@ -3049,7 +3364,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_mapper_list.Rd",
@@ -3059,7 +3375,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_mapper_register.Rd",
@@ -3069,7 +3386,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_min_inputs.Rd",
@@ -3079,7 +3397,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_space_2d.Rd",
@@ -3089,7 +3408,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_spec.Rd",
@@ -3099,7 +3419,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_plot_validate_dataset.Rd",
@@ -3109,7 +3430,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_cell_vector_family.Rd",
@@ -3119,7 +3441,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_cell_vector.Rd",
@@ -3129,7 +3452,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_feature_table.Rd",
@@ -3139,7 +3463,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_matrix.Rd",
@@ -3149,7 +3474,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_model_ref.Rd",
@@ -3159,7 +3485,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_obs_table.Rd",
@@ -3169,7 +3496,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_path_2d_family.Rd",
@@ -3179,7 +3507,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_relation_family.Rd",
@@ -3189,7 +3518,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_space_2d.Rd",
@@ -3199,7 +3529,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_space_path_family.Rd",
@@ -3209,7 +3540,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prim_space.Rd",
@@ -3219,7 +3551,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_primitive_catalog_semantic.Rd",
@@ -3229,7 +3562,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_primitive_to_table.Rd",
@@ -3239,7 +3573,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_promote_analysis.Rd",
@@ -3249,7 +3584,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_artifact_lineage.Rd",
@@ -3259,7 +3595,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_bundle_dag.Rd",
@@ -3269,7 +3606,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_dag.Rd",
@@ -3279,7 +3617,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_emit_r_script.Rd",
@@ -3289,7 +3628,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_list_heads.Rd",
@@ -3299,7 +3639,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_replay_equivalence_results.Rd",
@@ -3309,7 +3650,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_run_details.Rd",
@@ -3319,7 +3661,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_source_identity.Rd",
@@ -3329,7 +3672,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_source_inputs.Rd",
@@ -3339,7 +3683,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_prov_validate_replay.Rd",
@@ -3349,7 +3694,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_publish_app_bundle.Rd",
@@ -3359,7 +3705,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_read_cell_vector_family.Rd",
@@ -3369,7 +3716,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_read_cell_vector.Rd",
@@ -3379,7 +3727,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_recipe_semantics_catalog.Rd",
@@ -3389,7 +3738,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_recipe.Rd",
@@ -3399,7 +3749,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_recipient_readiness.Rd",
@@ -3409,7 +3760,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_recover_bundle_writer_lock.Rd",
@@ -3419,7 +3771,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ref_artifact.Rd",
@@ -3429,7 +3782,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ref_metadata_field.Rd",
@@ -3439,7 +3793,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_ref_run.Rd",
@@ -3449,7 +3804,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_refresh_manifest.Rd",
@@ -3459,7 +3815,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_refresh_semantic_catalogs.Rd",
@@ -3469,7 +3826,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_register_matrix_fragment.Rd",
@@ -3479,7 +3837,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_register_winner_cell_sets.Rd",
@@ -3489,7 +3848,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_relation_key_parse_lineage.Rd",
@@ -3499,7 +3859,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_repair_model_ref_paths.Rd",
@@ -3509,7 +3870,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_report_draft.Rd",
@@ -3519,7 +3881,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_report_methods.Rd",
@@ -3529,7 +3892,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_report_render_md.Rd",
@@ -3539,7 +3903,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_resolve_cell_set.Rd",
@@ -3549,7 +3914,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_resolve_cell_vector.Rd",
@@ -3559,7 +3925,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_resolve_primitive.Rd",
@@ -3569,7 +3936,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_run_history.Rd",
@@ -3579,7 +3947,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_search_features.Rd",
@@ -3589,7 +3958,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_all.Rd",
@@ -3599,7 +3969,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_and.Rd",
@@ -3609,7 +3980,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_expr.Rd",
@@ -3619,7 +3991,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_meta.Rd",
@@ -3629,7 +4002,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_not.Rd",
@@ -3639,7 +4013,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_or.Rd",
@@ -3649,7 +4024,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_recipe_print.Rd",
@@ -3659,7 +4035,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_recipe.Rd",
@@ -3669,7 +4046,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_set.Rd",
@@ -3679,7 +4057,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_space_box.Rd",
@@ -3689,7 +4068,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_vector_family.Rd",
@@ -3699,7 +4079,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_vector_values.Rd",
@@ -3709,7 +4090,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_sel_vector.Rd",
@@ -3719,7 +4101,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_semantic_catalog_audit.Rd",
@@ -3729,7 +4112,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_semantic_catalog.Rd",
@@ -3739,7 +4123,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_semantic_compatibility_graph.Rd",
@@ -3749,7 +4134,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_semantic_graph_dot.Rd",
@@ -3759,7 +4145,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_semantic_graph_tables.Rd",
@@ -3769,7 +4156,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_semantic_plan_artifact_next_steps.Rd",
@@ -3779,7 +4167,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_add_run.Rd",
@@ -3789,7 +4178,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_cleanup.Rd",
@@ -3799,7 +4189,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_create.Rd",
@@ -3809,7 +4200,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_dag_run_details.Rd",
@@ -3819,7 +4211,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_dag.Rd",
@@ -3829,7 +4222,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_discard.Rd",
@@ -3839,7 +4233,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_finalize.Rd",
@@ -3849,7 +4244,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_list.Rd",
@@ -3859,7 +4255,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_new.Rd",
@@ -3869,7 +4266,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_open.Rd",
@@ -3879,7 +4277,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_promote_current.Rd",
@@ -3889,7 +4288,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_resume.Rd",
@@ -3899,7 +4299,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_run_op.Rd",
@@ -3909,7 +4310,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_set_active.Rd",
@@ -3919,7 +4321,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_session_view.Rd",
@@ -3929,7 +4332,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_set_cell_set_style.Rd",
@@ -3939,7 +4343,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_set_create.Rd",
@@ -3949,7 +4354,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_slice.Rd",
@@ -3959,7 +4365,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_space_info.Rd",
@@ -3969,7 +4376,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_space_model_path.Rd",
@@ -3979,7 +4387,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_space_model.Rd",
@@ -3989,7 +4398,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_space.Rd",
@@ -3999,7 +4409,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_spaces_with_model.Rd",
@@ -4009,7 +4420,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_spaces.Rd",
@@ -4019,7 +4431,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_status.Rd",
@@ -4029,7 +4442,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_target_emit_r_script.Rd",
@@ -4039,7 +4453,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_target_reproduction_plan.Rd",
@@ -4049,7 +4464,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_trajectory_assert_fit_compatible.Rd",
@@ -4059,7 +4475,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_trajectory_fit_info.Rd",
@@ -4069,7 +4486,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_trajectory_keys.Rd",
@@ -4079,7 +4497,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_trajectory_lineage_weights.Rd",
@@ -4089,7 +4508,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_unsafe_purge_ephemeral_entity.Rd",
@@ -4099,7 +4519,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_validate_bundle.Rd",
@@ -4109,7 +4530,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_vector_ref_to_spec.Rd",
@@ -4119,7 +4541,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_vector.Rd",
@@ -4129,7 +4552,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_wrangle_plot_dataset.Rd",
@@ -4139,7 +4563,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_wrangler_catalog_semantic.Rd",
@@ -4149,7 +4574,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_artifact_type_catalog_reference.Rd",
@@ -4159,7 +4585,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_getter_catalog_reference.Rd",
@@ -4169,7 +4596,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_mutation_catalog_reference.Rd",
@@ -4179,7 +4607,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_op_catalog_reference.Rd",
@@ -4189,7 +4618,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_parameter_semantics_reference.Rd",
@@ -4199,7 +4629,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_plot_catalog_reference.Rd",
@@ -4209,7 +4640,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_primitive_catalog_reference.Rd",
@@ -4219,7 +4651,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_recipe_semantics_reference.Rd",
@@ -4229,7 +4662,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_semantic_catalog_reference.Rd",
@@ -4239,7 +4673,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_semantic_graph_views.Rd",
@@ -4249,7 +4684,8 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     },
     {
       "path": "man/wb_write_wrangler_catalog_reference.Rd",
@@ -4259,8 +4695,10 @@
       "canonical_source": "R/ roxygen comments",
       "generator": "devtools::document()",
       "source_tarball": true,
-      "installed_package": false
+      "installed_package": false,
+      "installed_relative_path": null
     }
   ],
-  "forbidden_tarball_patterns": ["^archive/", "^coordination/", "(^|/)[.]agents/", "(^|/)[.]codex/", "[.]backup$", "[.]sif$", "scworkbench[.]Rcheck/", "^reports/", "^scripts/reports/"]
+  "forbidden_tarball_patterns": ["^archive/", "^coordination/", "(^|/)[.]agents/", "(^|/)[.]codex/", "[.]backup$", "[.]sif$", "scworkbench[.]Rcheck/", "^reports/", "^scripts/reports/"],
+  "forbidden_public_text_patterns": ["/home/dirk", "/scratch", "pybench-op-v1", "wb_session_run_op\\([\\s\\S]{0,800}?params[[:space:]]*=", "[.]backup", "coordination/(team|handoffs|requests)", "\\b(Scout|Forge|Lumen|Quill|Folio|Terra)\\b", "License:[[:space:]]*What license", "[Ll]icense is not finalized"]
 }
