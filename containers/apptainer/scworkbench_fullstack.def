@@ -170,10 +170,11 @@ monocle3_ref <- lock$GitHubMonocle3Ref
 cran_pkgs <- version_lock$package[version_lock$source_class == "CRAN"]
 cran_versions <- stats::setNames(version_lock$version[match(cran_pkgs, version_lock$package)], cran_pkgs)
 source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
-provision_cran_namespaces(
+cran_initial <- provision_cran_namespaces(
   cran_pkgs,
   repo = getOption("repos")[["CRAN"]],
-  target_versions = cran_versions
+  target_versions = cran_versions,
+  allow_deferred = TRUE
 )
 
 install_pinned_github_prerequisites <- function(records, retries = 3L) {
@@ -250,6 +251,18 @@ for (package in bioc_support_pkgs) {
          "; release=", lock$BioconductorRelease, "; retries=3; install_error=",
          ifelse(is.null(install_error), "<none>", install_error))
   }
+}
+
+# Some CRAN packages (for example restfulr) depend on Bioconductor S4
+# packages. The first CRAN pass installed every resolvable locked package and
+# retained only those cross-repository leaves; finish them after the locked
+# Bioconductor layer is available.
+if (length(cran_initial$pending)) {
+  provision_cran_namespaces(
+    cran_initial$pending,
+    repo = getOption("repos")[["CRAN"]],
+    target_versions = cran_versions[cran_initial$pending]
+  )
 }
 
 monocle3_prereqs <- fullstack_monocle3_closure_packages(lock)

@@ -7,7 +7,8 @@ provision_cran_namespaces <- function(packages,
                                       installed_names = NULL,
                                       installed_version = NULL,
                                       remove_one = NULL,
-                                      sleep_fun = Sys.sleep) {
+                                      sleep_fun = Sys.sleep,
+                                      allow_deferred = FALSE) {
   packages <- unique(as.character(packages))
   if (!length(packages)) return(invisible(data.frame()))
   if (!is.character(repo) || length(repo) != 1L || !nzchar(repo)) {
@@ -97,6 +98,14 @@ provision_cran_namespaces <- function(packages,
     }
     if (!length(deferred)) break
     if (!progress) {
+      if (isTRUE(allow_deferred)) {
+        completed <- Filter(Negate(is.null), results)
+        return(invisible(list(
+          completed = if (length(completed)) do.call(rbind, completed) else data.frame(),
+          pending = deferred,
+          errors = last_errors[deferred]
+        )))
+      }
       details <- vapply(deferred, function(package) {
         paste0(package, "=", last_errors[[package]])
       }, character(1))
