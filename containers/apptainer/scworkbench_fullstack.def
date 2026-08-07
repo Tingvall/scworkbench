@@ -32,6 +32,7 @@ From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435
     ../pybench/LICENSE /opt/pybench/LICENSE
     ../pybench/CHANGELOG.md /opt/pybench/CHANGELOG.md
     ../pybench/src /opt/pybench/src
+    ../pybench/protocol /opt/pybench/protocol
     scripts/prepare_bpcells_python_fork.sh /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
     third_party/patches/bpcells-python-noninteger-read.patch /opt/scworkbench/third_party/patches/bpcells-python-noninteger-read.patch
     containers/apptainer/run-scworkbench-shiny /usr/local/bin/run-scworkbench-shiny
@@ -127,6 +128,7 @@ From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435
         test -f "/opt/pybench/${required}"
     done
     test -d /opt/pybench/src/pybench
+    test -f /opt/pybench/protocol/pybench-op-v2.schema.json
     /opt/pyenv/bin/python -m pip install --no-cache-dir --no-deps /opt/pybench
 
     # The container only needs installable source, not the large local report payloads.

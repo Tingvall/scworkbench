@@ -58,7 +58,14 @@ test_release_engineering_contract <- function() {
     file.path(root, "containers/apptainer/scworkbench_fullstack.def"), warn = FALSE
   )
   stopifnot(any(grepl("^From: .*@sha256:[0-9a-f]{64}$", definition)),
-            any(grepl("fullstack_python_requirements[.]lock", definition)))
+            any(grepl("fullstack_python_requirements[.]lock", definition)),
+            any(grepl("[.][.]/pybench/protocol /opt/pybench/protocol", definition)))
+
+  build_script <- paste(readLines(
+    file.path(root, "containers/apptainer/build_fullstack.sh"), warn = FALSE
+  ), collapse = "\n")
+  stopifnot(grepl('"${PYBENCH_ROOT}/protocol/"', build_script, fixed = TRUE),
+            grepl("protocol/pybench-op-v2[.]schema[.]json", build_script))
 
   scripts <- c(
     "inst/ci/run_canonical_gate.sh", "inst/ci/record_manual_gate.sh",

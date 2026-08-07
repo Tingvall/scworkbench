@@ -70,8 +70,9 @@ rsync -a --exclude '.git/' --exclude '.venv/' --exclude '.deps/' --exclude '__py
   "${PYBENCH_ROOT}/CITATION.cff" "${PYBENCH_ROOT}/LICENSE" \
   "${PYBENCH_ROOT}/CHANGELOG.md" "${BUILD_CONTEXT}/pybench/"
 rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/src/" "${BUILD_CONTEXT}/pybench/src/"
+rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/protocol/" "${BUILD_CONTEXT}/pybench/protocol/"
 
-for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md src/pybench; do
+for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md src/pybench protocol/pybench-op-v2.schema.json; do
   if [[ ! -e "${BUILD_CONTEXT}/pybench/${required}" ]]; then
     echo "Compact context missing required pybench packaging input: ${required}" >&2
     exit 1
