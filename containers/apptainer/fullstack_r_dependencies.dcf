@@ -1,7 +1,8 @@
-SchemaVersion: scworkbench.fullstack.rdeps.v1
+SchemaVersion: scworkbench.fullstack.rdeps.v2
 CRANRepository: https://cloud.r-project.org
 BioconductorRelease: 3.21
-CRANPackages: DBI, RSQLite, jsonlite, Seurat, Matrix, uwot, igraph,
+VersionLock: fullstack_r_versions.lock.csv
+CRANPackages: DBI, fs, RSQLite, jsonlite, Seurat, Matrix, uwot, igraph,
     RANN, ggplot2, viridisLite, shiny, shinyFiles, magrittr, DT, plotly,
     visNetwork, zip, colourpicker, digest, SeuratObject, irlba, rnndescent,
     FNN, progress, tzdb, hms, vroom, hexbin, readr

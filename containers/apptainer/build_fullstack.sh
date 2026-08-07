@@ -20,6 +20,13 @@ if [[ ! -d "${PYBENCH_ROOT}" ]]; then
   exit 1
 fi
 
+EXPECTED_PYBENCH_COMMIT="$(sed -n 's/^PyBenchCommit:[[:space:]]*//p' "${REPO_ROOT}/inst/release/composite_release.dcf")"
+OBSERVED_PYBENCH_COMMIT="$(git -C "${PYBENCH_ROOT}" rev-parse HEAD)"
+if [[ "${OBSERVED_PYBENCH_COMMIT}" != "${EXPECTED_PYBENCH_COMMIT}" ]]; then
+  echo "PyBench checkout does not match composite release metadata: expected ${EXPECTED_PYBENCH_COMMIT}, observed ${OBSERVED_PYBENCH_COMMIT}" >&2
+  exit 1
+fi
+
 echo "Repo root: ${REPO_ROOT}"
 echo "Definition: ${DEF_FILE}"
 echo "Sandbox: ${SANDBOX_PATH}"
@@ -47,7 +54,7 @@ rsync -a \
   "${REPO_ROOT}/" "${BUILD_CONTEXT}/scworkbench/"
 rsync -a --exclude '.git/' --exclude '.Rproj.user/' --exclude '.agents/' --exclude '.codex/' \
   "${REPO_ROOT}/../scworkbenchShiny/" "${BUILD_CONTEXT}/scworkbenchShiny/"
-for required in pyproject.toml README.md CITATION.cff LICENSE; do
+for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md; do
   if [[ ! -f "${PYBENCH_ROOT}/${required}" ]]; then
     echo "Missing required pybench packaging input: ${PYBENCH_ROOT}/${required}" >&2
     exit 1
@@ -60,10 +67,11 @@ fi
 
 rsync -a --exclude '.git/' --exclude '.venv/' --exclude '.deps/' --exclude '__pycache__/' \
   "${PYBENCH_ROOT}/pyproject.toml" "${PYBENCH_ROOT}/README.md" \
-  "${PYBENCH_ROOT}/CITATION.cff" "${PYBENCH_ROOT}/LICENSE" "${BUILD_CONTEXT}/pybench/"
+  "${PYBENCH_ROOT}/CITATION.cff" "${PYBENCH_ROOT}/LICENSE" \
+  "${PYBENCH_ROOT}/CHANGELOG.md" "${BUILD_CONTEXT}/pybench/"
 rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/src/" "${BUILD_CONTEXT}/pybench/src/"
 
-for required in pyproject.toml README.md CITATION.cff LICENSE src/pybench; do
+for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md src/pybench; do
   if [[ ! -e "${BUILD_CONTEXT}/pybench/${required}" ]]; then
     echo "Compact context missing required pybench packaging input: ${required}" >&2
     exit 1

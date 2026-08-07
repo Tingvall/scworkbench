@@ -1,11 +1,14 @@
 Bootstrap: docker
-From: bioconductor/bioconductor_docker:RELEASE_3_21
+From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435b04827ff926dc141584a34f65a12cb
 
 %labels
     Maintainer Dirk_de_Weerd
     Package scworkbench
     Stack full
     Runtime apptainer
+    ScworkbenchVersion 0.1.0
+    PyBenchVersion 0.1.0
+    PyBenchProtocol 2
 
 %help
     Full-stack scworkbench Apptainer image.
@@ -27,6 +30,7 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
     ../pybench/README.md /opt/pybench/README.md
     ../pybench/CITATION.cff /opt/pybench/CITATION.cff
     ../pybench/LICENSE /opt/pybench/LICENSE
+    ../pybench/CHANGELOG.md /opt/pybench/CHANGELOG.md
     ../pybench/src /opt/pybench/src
     scripts/prepare_bpcells_python_fork.sh /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
     third_party/patches/bpcells-python-noninteger-read.patch /opt/scworkbench/third_party/patches/bpcells-python-noninteger-read.patch
@@ -100,8 +104,10 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
     rm -rf /var/lib/apt/lists/*
 
     python3 -m venv /opt/pyenv
-    /opt/pyenv/bin/python -m pip install --no-cache-dir --upgrade pip setuptools wheel pybind11 setuptools-scm
-    /opt/pyenv/bin/python -m pip install --no-cache-dir numpy pandas scipy
+    /opt/pyenv/bin/python -m pip install --no-cache-dir \
+        pip==26.2 setuptools==83.0.0 wheel==0.47.0 pybind11==3.0.4 setuptools-scm==10.2.1
+    /opt/pyenv/bin/python -m pip install --no-cache-dir \
+        -r /opt/scworkbench/containers/apptainer/fullstack_python_requirements.lock
     DEB_MULTIARCH="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
     export CPATH=/usr/include/eigen3:/usr/include/hdf5/serial:/usr/include
     export LIBRARY_PATH=/usr/lib/${DEB_MULTIARCH}/hdf5/serial:/usr/lib/${DEB_MULTIARCH}
@@ -117,18 +123,7 @@ From: bioconductor/bioconductor_docker:RELEASE_3_21
     /opt/pyenv/bin/python -m pip install --no-cache-dir "${BPCELLS_PYTHON_WHEEL}"
     /opt/pyenv/bin/python -c 'import bpcells.experimental; print("Python BPCells fork import OK")'
     rm -rf /tmp/BPCells_python_fork_build
-    /opt/pyenv/bin/python -m pip install --no-cache-dir \
-        scikit-learn \
-        anndata \
-        scanpy \
-        palantir \
-        mudata \
-        jupyterlab
-    # Install a CUDA-capable PyTorch build. At runtime the container should be
-    # launched with --nv on hosts that provide a compatible NVIDIA driver.
-    /opt/pyenv/bin/python -m pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cu124 torch
-    /opt/pyenv/bin/python -m pip install --no-cache-dir scvi-tools
-    for required in pyproject.toml README.md CITATION.cff LICENSE; do
+    for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md; do
         test -f "/opt/pybench/${required}"
     done
     test -d /opt/pybench/src/pybench
@@ -155,6 +150,7 @@ if (length(missing_bootstrap)) stop("Missing bootstrap package(s): ", paste(miss
 lock_path <- "/opt/scworkbench/containers/apptainer/fullstack_r_dependencies.dcf"
 source("/opt/scworkbench/inst/ci/fullstack_r_dependency_lock.R")
 lock <- read_fullstack_r_dependency_lock(lock_path)
+version_lock <- fullstack_read_version_lock(lock, lock_path)
 configure_fullstack_repositories(lock)
 is_installed <- function(package) package %in% rownames(installed.packages())
 fullstack_validate_monocle3_closure(
@@ -169,9 +165,14 @@ monocle3_ref <- lock$GitHubMonocle3Ref
 
 # CRAN-managed packages. This includes declared Suggests and runtime support
 # packages needed by the Shiny reference client.
-cran_pkgs <- unique(c(lock$CRANPackages, lock$GitHubBPCellsPrerequisites, lock$GitHubMonocle3CRANPrerequisites))
+cran_pkgs <- version_lock$package[version_lock$source_class == "CRAN"]
+cran_versions <- stats::setNames(version_lock$version[match(cran_pkgs, version_lock$package)], cran_pkgs)
 source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
-provision_cran_namespaces(cran_pkgs, repo = getOption("repos")[["CRAN"]])
+provision_cran_namespaces(
+  cran_pkgs,
+  repo = getOption("repos")[["CRAN"]],
+  target_versions = cran_versions
+)
 
 install_pinned_github_prerequisites <- function(records, retries = 3L) {
   for (package in names(records)) {
@@ -226,7 +227,11 @@ if (!identical(installed_bpcells_ref, bpcells_r_ref)) {
 
 # Bioconductor release-managed declared Suggests and their direct genomic
 # support packages. Do not add GitHub-only packages to this list.
-bioc_support_pkgs <- unique(c(lock$BioconductorPackages, lock$GitHubMonocle3BioconductorPrerequisites))
+bioc_support_pkgs <- unique(c(
+  lock$BioconductorPackages,
+  lock$GitHubMonocle3BioconductorPrerequisites,
+  version_lock$package[version_lock$source_class == "Bioconductor release"]
+))
 for (package in bioc_support_pkgs) {
   if (is_installed(package)) next
   install_error <- NULL
@@ -298,6 +303,8 @@ if (is_installed("Seqinfo")) {
   remove.packages("Seqinfo")
 }
 
+fullstack_assert_locked_versions(lock, lock_path)
+
 source_class <- fullstack_source_classes(lock, "/opt/scworkbench/DESCRIPTION")
 source_ref <- fullstack_source_refs(lock, source_class)
 product_packages <- names(source_class)
@@ -326,6 +333,13 @@ runtime_provenance <- c(
   paste0("bioconductor_version=", BiocManager::version()),
   paste0("github_bpcells_ref=", bpcells_r_ref),
   paste0("github_monocle3_ref=", monocle3_ref),
+  paste0("scworkbench_version=", as.character(utils::packageVersion("scworkbench"))),
+  paste0("pybench_version=", system("/opt/pyenv/bin/python -c 'import importlib.metadata as m; print(m.version(\"pybench\"))'", intern = TRUE)),
+  "pybench_protocol_version=2",
+  "pybench_protocol_sha256=d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b",
+  "base_image_digest_amd64=sha256:41ed449aa2181f330cdc8d0499a11a7435b04827ff926dc141584a34f65a12cb",
+  paste0("r_version_lock_sha256=", system("sha256sum /opt/scworkbench/containers/apptainer/fullstack_r_versions.lock.csv | awk '{print $1}'", intern = TRUE)),
+  paste0("python_version_lock_sha256=", system("sha256sum /opt/scworkbench/containers/apptainer/fullstack_python_requirements.lock | awk '{print $1}'", intern = TRUE)),
   "package_source_manifest=/opt/scworkbench_package_sources.csv",
   "package_validation_manifest=/opt/scworkbench_package_validation.csv"
 )
@@ -340,6 +354,9 @@ EOF
       --lock /opt/scworkbench/containers/apptainer/fullstack_r_dependencies.dcf \
       --description /opt/scworkbench/DESCRIPTION \
       --manifest /opt/scworkbench_package_validation.csv
+    /opt/pyenv/bin/python /opt/scworkbench/inst/ci/validate_fullstack_python_lock.py \
+      --requirements /opt/scworkbench/containers/apptainer/fullstack_python_requirements.lock \
+      --pybench /opt/pybench/pyproject.toml
     Rscript /opt/scworkbench/inst/ci/check_declared_suggests.R \
       --description /opt/scworkbench/DESCRIPTION \
       --manifest /opt/scworkbench_declared_suggests.csv

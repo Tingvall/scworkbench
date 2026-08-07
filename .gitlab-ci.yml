@@ -1,0 +1,118 @@
+stages:
+  - validate
+  - test
+  - package
+  - integration
+  - release
+
+default:
+  tags:
+    - scworkbench-fullstack
+  interruptible: true
+  before_script:
+    - mkdir -p ci-evidence
+
+variables:
+  GIT_STRATEGY: clone
+  GIT_DEPTH: "0"
+  R_DEFAULT_PACKAGES: "utils,stats,methods"
+
+static_release_contract:
+  stage: validate
+  script:
+    - Rscript inst/ci/validate_release_metadata.R .
+    - Rscript inst/dev/regenerate_public_docs.R --check
+    - Rscript -e 'devtools::load_all(".", quiet=TRUE); source("tests/test_release_engineering_contract.R"); stopifnot(test_release_engineering_contract())'
+    - git diff --exit-code
+    - git diff --check
+
+canonical_contracts_complete_discovery:
+  stage: test
+  timeout: 2h
+  script:
+    - inst/ci/run_canonical_gate.sh ci-evidence/canonical.log
+  artifacts:
+    when: always
+    paths: [ci-evidence/canonical.log]
+
+source_package_check:
+  stage: package
+  timeout: 2h
+  script:
+    - Rscript inst/tests/check_documentation_contracts.R
+    - inst/ci/check_release_package.sh | tee ci-evidence/source-package.log
+    - grep -x 'Status: OK' ci-evidence/source-package.log
+  artifacts:
+    when: always
+    paths:
+      - ci-evidence/source-package.log
+      - scworkbench_*.tar.gz
+
+pybench_bounded_protocol:
+  stage: integration
+  script:
+    - inst/ci/provision_pinned_pybench.sh .ci/pybench
+    - Rscript inst/ci/validate_release_metadata.R . .ci/pybench
+    - .ci/pybench/.venv/bin/python -m pytest -q .ci/pybench/tests/test_capability_v2.py .ci/pybench/tests/test_protocol.py
+
+fullstack_tripwire:
+  stage: integration
+  timeout: 1h
+  script:
+    - inst/ci/provision_pinned_pybench.sh .ci/pybench
+    - SCWORKBENCH_PYBENCH_PYTHON=.ci/pybench/.venv/bin/python PYTHONPATH=.ci/pybench/src inst/fullstack/check_fullstack_contracts.sh | tee ci-evidence/fullstack.log
+    - grep -x '\[fullstack\] ok' ci-evidence/fullstack.log
+  artifacts:
+    when: always
+    paths: [ci-evidence/fullstack.log]
+
+existing_sif_qualification:
+  stage: release
+  timeout: 3h
+  script:
+    - test -n "${SCWORKBENCH_QUALIFIED_SIF:-}"
+    - inst/ci/provision_pinned_pybench.sh .ci/pybench
+    - SINGULARITY_BIND="$CI_PROJECT_DIR/.ci/pybench:/work/pybench" SINGULARITYENV_PYTHONPATH=/work/pybench/src containers/apptainer/qualify_fullstack_release.sh "${SCWORKBENCH_QUALIFIED_SIF}" "$CI_PROJECT_DIR" | tee ci-evidence/qualification.log
+    - grep -x 'Status: OK' ci-evidence/qualification.log
+    - sha256sum "${SCWORKBENCH_QUALIFIED_SIF}" > ci-evidence/SIF.sha256
+  artifacts:
+    when: always
+    paths:
+      - ci-evidence/qualification.log
+      - ci-evidence/SIF.sha256
+
+gpu_scvi_peakvi:
+  stage: release
+  timeout: 12h
+  resource_group: scworkbench-gpu-release
+  script:
+    - test -n "${SCWORKBENCH_GPU_GATE_COMMAND:-}"
+    - bash -lc "${SCWORKBENCH_GPU_GATE_COMMAND}" | tee ci-evidence/gpu.log
+    - inst/ci/record_manual_gate.sh gpu_scvi_peakvi passed ci-evidence/gpu_scvi_peakvi.json ci-evidence/gpu.log
+  artifacts:
+    when: always
+    paths:
+      - ci-evidence/gpu.log
+      - ci-evidence/gpu_scvi_peakvi.json
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: manual
+      allow_failure: false
+
+large_data_ingestion_analysis:
+  stage: release
+  timeout: 24h
+  resource_group: scworkbench-large-data-release
+  script:
+    - test -n "${SCWORKBENCH_LARGE_DATA_GATE_COMMAND:-}"
+    - bash -lc "${SCWORKBENCH_LARGE_DATA_GATE_COMMAND}" | tee ci-evidence/large-data.log
+    - inst/ci/record_manual_gate.sh large_data_ingestion_analysis passed ci-evidence/large_data_ingestion_analysis.json ci-evidence/large-data.log
+  artifacts:
+    when: always
+    paths:
+      - ci-evidence/large-data.log
+      - ci-evidence/large_data_ingestion_analysis.json
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - when: manual
+      allow_failure: false

@@ -20,7 +20,7 @@ read_fullstack_r_dependency_lock <- function(path) {
   fields <- read.dcf(path)
   required <- c(
     "SchemaVersion", "CRANRepository", "BioconductorRelease", "CRANPackages",
-    "BioconductorPackages", "BioconductorGenomicFamily", "GitHubBPCellsRepo",
+    "BioconductorPackages", "BioconductorGenomicFamily", "VersionLock", "GitHubBPCellsRepo",
     "GitHubBPCellsRef", "GitHubBPCellsSubdir", "GitHubBPCellsPrerequisites", "GitHubMonocle3Repo",
     "GitHubMonocle3Ref", "GitHubMonocle3CRANPrerequisites", "GitHubMonocle3BioconductorPrerequisites",
     "GitHubMonocle3GitHubPrerequisites"
@@ -45,6 +45,40 @@ read_fullstack_r_dependency_lock <- function(path) {
     stop("Fullstack dependency lock assigns a GitHub prerequisite to more than one source")
   }
   lock
+}
+
+fullstack_read_version_lock <- function(lock, dependency_lock_path) {
+  path <- file.path(dirname(normalizePath(dependency_lock_path, mustWork = TRUE)), lock$VersionLock)
+  if (!file.exists(path)) stop("Fullstack R version lock does not exist: ", path)
+  versions <- utils::read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+  required <- c("package", "source_class", "source_ref", "version")
+  if (!identical(names(versions), required)) {
+    stop("Fullstack R version lock must have columns: ", paste(required, collapse = ", "))
+  }
+  if (!nrow(versions) || anyNA(versions) || any(!nzchar(versions$package)) ||
+      any(!nzchar(versions$version)) || anyDuplicated(versions$package)) {
+    stop("Fullstack R version lock contains missing or duplicate package identities")
+  }
+  versions
+}
+
+fullstack_assert_locked_versions <- function(lock, dependency_lock_path, packages = NULL) {
+  versions <- fullstack_read_version_lock(lock, dependency_lock_path)
+  if (!is.null(packages)) {
+    missing <- setdiff(packages, versions$package)
+    if (length(missing)) stop("Packages missing from fullstack R version lock: ", paste(missing, collapse = ", "))
+    versions <- versions[match(packages, versions$package), , drop = FALSE]
+  }
+  installed <- vapply(versions$package, function(package) {
+    tryCatch(as.character(utils::packageVersion(package)), error = function(error) NA_character_)
+  }, character(1))
+  mismatch <- is.na(installed) | installed != versions$version
+  if (any(mismatch)) {
+    details <- paste0(versions$package[mismatch], " expected=", versions$version[mismatch],
+                      " observed=", ifelse(is.na(installed[mismatch]), "<missing>", installed[mismatch]))
+    stop("Fullstack R version lock mismatch: ", paste(details, collapse = "; "))
+  }
+  invisible(versions)
 }
 
 configure_fullstack_repositories <- function(lock) {

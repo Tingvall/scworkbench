@@ -15,6 +15,9 @@ test -f "${CHECKOUT}/inst/onboarding/AGENT_OPERATOR_GUIDE.md"
 echo "==> Candidate image"
 sha256sum "${IMAGE_PATH}"
 
+echo "==> Composite release metadata"
+Rscript "${CHECKOUT}/inst/ci/validate_release_metadata.R" "${CHECKOUT}"
+
 echo "==> Shipped onboarding path"
 singularity exec --cleanenv "${IMAGE_PATH}" \
   test -f /opt/scworkbench/inst/onboarding/AGENT_OPERATOR_GUIDE.md
@@ -52,6 +55,24 @@ singularity exec --cleanenv "${IMAGE_PATH}" \
 echo "==> Baked fresh-process package validation"
 singularity exec --cleanenv "${IMAGE_PATH}" \
   cat /opt/scworkbench_package_validation.csv
+
+echo "==> Locked R runtime"
+singularity exec --cleanenv \
+  --bind "${CHECKOUT}:/work/scworkbench" \
+  --pwd /work/scworkbench \
+  "${IMAGE_PATH}" \
+  Rscript inst/ci/validate_fullstack_r_dependencies.R \
+    --lock containers/apptainer/fullstack_r_dependencies.dcf \
+    --description DESCRIPTION
+
+echo "==> Locked Python runtime"
+singularity exec --cleanenv \
+  --bind "${CHECKOUT}:/work/scworkbench" \
+  --pwd /work/scworkbench \
+  "${IMAGE_PATH}" \
+  /opt/pyenv/bin/python inst/ci/validate_fullstack_python_lock.py \
+    --requirements containers/apptainer/fullstack_python_requirements.lock \
+    --pybench /opt/pybench/pyproject.toml
 
 echo "==> Non-forced release gate"
 singularity exec --cleanenv \

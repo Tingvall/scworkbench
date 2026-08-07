@@ -13,6 +13,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "NEWS.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "NEWS.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "LICENSE",
       "class": "public_canonical",
       "audience": "public",
@@ -150,6 +161,39 @@
       "audience": "public",
       "status": "current",
       "canonical_source": "docs/source_ownership.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/CONTRIBUTING.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/CONTRIBUTING.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/SUPPORT.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/SUPPORT.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "docs/release_process.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/release_process.md",
       "generator": null,
       "source_tarball": true,
       "installed_package": false,

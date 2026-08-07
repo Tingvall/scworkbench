@@ -78,14 +78,21 @@ Inspect and run an operation:
 
 ```r
 wb_list_ops()
-wb_op_interface("trajectory_geneset_dynamics", bundle = b)
+wb_op_interface("metadata_cell_vector", bundle = b)
 
 s <- wb_session_new()
 rr <- wb_session_run_op(
   session = s,
   bundle = b,
-  op_name = "cells_counts_by",
-  inputs = list(cell_set = "all", column = "dataset_id")
+  op_name = "metadata_cell_vector",
+  inputs = list(
+    source_column = "dataset_id",
+    vector_name = "dataset_id",
+    value_type = "categorical",
+    missing_policy = "error",
+    cell_set = "all",
+    min_cells = 1L
+  )
 )
 ```
 
@@ -169,6 +176,11 @@ and audit a read-only recipient bundle.
 The shipped, platform-agnostic onboarding library is available in a checkout
 at [inst/onboarding](inst/onboarding), or after installation through
 `system.file("onboarding", package = "scworkbench")`.
+
+Contribution, support, and composite-release policies are documented in
+[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md),
+[docs/SUPPORT.md](docs/SUPPORT.md), and
+[docs/release_process.md](docs/release_process.md).
 
 ## Testing
 
