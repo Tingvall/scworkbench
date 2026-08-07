@@ -10,3 +10,8 @@ Rscript -e 'stopifnot(as.character(packageVersion("roxygen2")) == "7.3.3"); devt
 Rscript inst/tests/run_contract_tests.R
 R CMD build .
 R CMD check --no-manual scworkbench_0.1.0.tar.gz
+status="$(grep '^Status:' scworkbench.Rcheck/00check.log | tail -n 1)"
+if [[ "${status}" != "Status: OK" ]]; then
+  echo "Release package check did not end in Status: OK: ${status:-<missing>}" >&2
+  exit 1
+fi

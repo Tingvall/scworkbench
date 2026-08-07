@@ -37,7 +37,6 @@ Suggests:
     BSgenome.Hsapiens.UCSC.hg19,
     BSgenome.Mmusculus.UCSC.mm10,
     chromVAR,
-    digest,
     GenomeInfoDb,
     GenomicRanges,
     ggplot2,

@@ -17,7 +17,8 @@ test_release_engineering_contract <- function() {
   imports <- packages("Imports")
   suggests <- packages("Suggests")
   stopifnot("digest" %in% imports, !"Seurat" %in% imports,
-            all(c("Seurat", "SeuratObject") %in% suggests))
+            all(c("Seurat", "SeuratObject") %in% suggests),
+            !length(intersect(imports, suggests)))
 
   ci <- paste(readLines(file.path(root, ".gitlab-ci.yml"), warn = FALSE), collapse = "\n")
   jobs <- c(
