@@ -77,9 +77,13 @@ under private safe aliases, quotes every identifier with
 field. Schema additions, registry rows, and values share one SQLite transaction;
 failure leaves none of them visible.
 
-Statement complexity is `O(n_fields)`, not `O(n_cells * n_fields)`. Staging still
-materializes the input data frame and temporary SQLite table, so peak memory and
-temporary storage scale with the payload size. Import mapping/evidence describes
+SQL statement count is `O(n_fields)` and independent of cell count. Data work is
+`O(n_rows * n_fields * log(bundle_cells))`: values are staged once in a temporary
+table whose canonical `cell_id` is a primary key, then each field update uses
+indexed staging lookup. Peak memory and temporary storage scale as
+`O(n_rows * n_fields)`. Ordinary stage, replicate, sample, role, and other
+biologically relevant per-cell fields should be retained; immutable descriptors
+shared by an entire source library belong in source identity instead. Import mapping/evidence describes
 mechanical ingestion and does not create an unprovenanced scientific primitive;
 use `metadata_cell_vector` when a metadata field becomes a reusable scientific
 vector.

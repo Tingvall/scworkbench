@@ -106,7 +106,12 @@ test_metadata_bulk_writer_scale_contract <- function() {
   started <- proc.time()[["elapsed"]]
   report <- scworkbench:::.wb_write_cell_metadata(b$con, md, target_cell_ids = ids, source = "scale-contract")
   elapsed <- proc.time()[["elapsed"]] - started
-  stopifnot(identical(report$complexity, "O(metadata_fields)"))
+  stopifnot(identical(report$statement_complexity, "O(metadata_fields)"))
+  stopifnot(identical(report$complexity, "O(metadata_rows * metadata_fields * log(bundle_cells))"))
+  stopifnot(identical(report$staging_index_strategy, "TEMP TABLE cell_id TEXT PRIMARY KEY"))
+  plan <- unlist(lapply(report$query_plan, function(x) as.character(x$detail)), use.names = FALSE)
+  stopifnot(any(grepl("USING INDEX|USING COVERING INDEX", plan)),
+            !any(grepl("SCAN s$", plan)))
   stopifnot(report$statement_count <= 4L * n_fields + 4L)
   stopifnot(report$statement_count < n_cells * n_fields)
   probe <- wb_meta(b, cells = ids[c(1L, n_cells)], cols = c("cell_id", "bulk field 1", paste0("bulk field ", n_fields)))
@@ -114,6 +119,76 @@ test_metadata_bulk_writer_scale_contract <- function() {
   stopifnot(identical(as.integer(probe[[2L]]), c(n_cells + 1L, 2L)))
   attr(report, "fixture") <- c(n_cells = n_cells, n_fields = n_fields)
   attr(report, "elapsed_seconds") <- elapsed
+  TRUE
+}
+
+test_metadata_bulk_writer_large_universe_contract <- function() {
+  root <- tempfile("scwb_metadata_large_universe_")
+  b <- wb_init_bundle(root, overwrite = TRUE)
+  on.exit({ try(wb_close_bundle(b), silent = TRUE); unlink(root, recursive = TRUE, force = TRUE) }, add = TRUE)
+  n_cells <- 120895L
+  ids <- sprintf("cell_%06d", seq_len(n_cells))
+  wb_define_cells(b, ids)
+  set.seed(270605L)
+  permuted <- sample(ids)
+  ordinal <- match(permuted, ids)
+  md <- data.frame(
+    cell_id = permuted,
+    stage = c("egg", "larva", "pupa", "adult")[1L + ordinal %% 4L],
+    replicate = sprintf("rep_%02d", 1L + ordinal %% 12L),
+    role = c("worker", "queen", "drone")[1L + ordinal %% 3L],
+    library = sprintf("lib_%02d", 1L + ordinal %% 9L),
+    batch = as.integer(1L + ordinal %% 5L),
+    qc_pass = ordinal %% 7L != 0L,
+    umi_total = as.integer(ordinal * 3L),
+    detected = as.integer(100L + ordinal %% 12000L),
+    score = as.numeric(ordinal) / n_cells,
+    note = ifelse(ordinal %% 2L == 0L, "even", NA_character_),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+  gc(reset = TRUE)
+  started <- proc.time()[["elapsed"]]
+  report <- scworkbench:::.wb_write_cell_metadata(
+    b$con, md, target_cell_ids = ids, source = "large-universe-contract"
+  )
+  elapsed <- proc.time()[["elapsed"]] - started
+  gc_evidence <- gc()
+  memory_mb <- max(gc_evidence[, "max used"] * c(56, 8) / (1024^2))
+  stopifnot(report$n_rows == n_cells, nrow(report$fields) == 10L,
+            report$statement_count <= 4L * 10L + 4L,
+            identical(report$statement_complexity, "O(metadata_fields)"),
+            identical(report$staging_index_strategy, "TEMP TABLE cell_id TEXT PRIMARY KEY"))
+  plan <- unlist(lapply(report$query_plan, function(x) as.character(x$detail)), use.names = FALSE)
+  stopifnot(any(grepl("USING INDEX|USING COVERING INDEX", plan)), !any(grepl("SCAN s$", plan)))
+  probe_idx <- unique(c(1L, 2L, n_cells %/% 2L, n_cells - 1L, n_cells))
+  probe <- wb_meta(b, cells = ids[probe_idx], cols = c("cell_id", "stage", "batch", "qc_pass", "umi_total", "score"))
+  stopifnot(identical(as.character(probe$cell_id), ids[probe_idx]),
+            identical(as.character(probe$stage), c("egg", "larva", "pupa", "adult")[1L + probe_idx %% 4L]),
+            identical(as.integer(probe$batch), as.integer(1L + probe_idx %% 5L)),
+            identical(as.integer(probe$umi_total), as.integer(probe_idx * 3L)),
+            isTRUE(all.equal(as.numeric(probe$score), as.numeric(probe_idx) / n_cells)))
+  before_fields <- DBI::dbGetQuery(b$con, "SELECT * FROM metadata_fields ORDER BY rowid;")
+  old_hook <- getOption("scworkbench.metadata_writer_test_hook")
+  on.exit(options(scworkbench.metadata_writer_test_hook = old_hook), add = TRUE)
+  options(scworkbench.metadata_writer_test_hook = function(event, ...) {
+    if (identical(event, "after_staging")) stop("forced large-stage rollback", call. = FALSE)
+  })
+  failed <- try(scworkbench:::.wb_write_cell_metadata(
+    b$con, data.frame(cell_id = permuted, rollback_large = ordinal),
+    target_cell_ids = ids, source = "forced-large-rollback"
+  ), silent = TRUE)
+  options(scworkbench.metadata_writer_test_hook = old_hook)
+  stopifnot(inherits(failed, "try-error"),
+            identical(before_fields, DBI::dbGetQuery(b$con, "SELECT * FROM metadata_fields ORDER BY rowid;")),
+            !("rollback_large" %in% DBI::dbListFields(b$con, "cells")))
+  partial_ids <- ids[c(3L, n_cells %/% 2L, n_cells - 2L)]
+  partial <- data.frame(cell_id = rev(partial_ids), stage = c("new_last", "new_mid", "new_first"))
+  partial_report <- scworkbench:::.wb_write_cell_metadata(b$con, partial, target_cell_ids = partial_ids, source = "partial-large")
+  stopifnot(partial_report$n_rows == 3L,
+            identical(as.character(wb_meta(b, cells = partial_ids, cols = c("cell_id", "stage"))$stage),
+                      c("new_first", "new_mid", "new_last")))
+  message(sprintf("large metadata evidence: rows=%d fields=%d statements=%d elapsed=%.3fs peak_gc=%.1fMiB",
+                  n_cells, 10L, report$statement_count, elapsed, memory_mb))
   TRUE
 }
 

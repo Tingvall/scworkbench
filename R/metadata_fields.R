@@ -380,16 +380,35 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
     tmp <- paste0("__wb_metadata_stage_", Sys.getpid(), "_", sample.int(1e9, 1L))
     tmp_q <- .wb_quote_identifier(con, tmp)
     stage <- data.frame(cell_id = ids, stringsAsFactors = FALSE, check.names = FALSE)
-    for (j in seq_along(mappings)) stage[[sprintf("v%06d", j)]] <- mappings[[j]]$values[[1L]]
-    DBI::dbWriteTable(con, tmp, stage, temporary = TRUE, overwrite = TRUE, row.names = FALSE)
+    value_types <- character(length(mappings))
+    for (j in seq_along(mappings)) {
+      value_name <- sprintf("v%06d", j)
+      stage[[value_name]] <- mappings[[j]]$values[[1L]]
+      value_types[[j]] <- as.character(mappings[[j]]$storage_type[[1L]])
+    }
+    stage_columns <- c(
+      paste0(.wb_quote_identifier(con, "cell_id"), " TEXT PRIMARY KEY"),
+      vapply(seq_along(mappings), function(j) paste0(
+        .wb_quote_identifier(con, sprintf("v%06d", j)), " ", value_types[[j]]
+      ), character(1))
+    )
+    DBI::dbExecute(con, paste0("CREATE TEMP TABLE ", tmp_q, " (", paste(stage_columns, collapse = ", "), ");"))
+    DBI::dbAppendTable(con, tmp, stage)
+    stage_index <- DBI::dbGetQuery(con, paste0("PRAGMA index_list(", tmp_q, ");"))
+    .wb_assert(nrow(stage_index) >= 1L && any(as.integer(stage_index$unique) == 1L),
+               "Metadata staging table must have a unique cell_id index.")
+    .wb_metadata_writer_hook("after_staging", con, report)
+    query_plans <- vector("list", length(mappings))
     for (j in seq_along(mappings)) {
       storage_q <- .wb_quote_identifier(con, mappings[[j]]$storage_name[[1L]])
       value_q <- .wb_quote_identifier(con, sprintf("v%06d", j))
-      DBI::dbExecute(con, paste0(
+      update_sql <- paste0(
         "UPDATE ", .wb_quote_identifier(con, "cells"), " AS c SET ", storage_q,
         " = (SELECT s.", value_q, " FROM ", tmp_q, " AS s WHERE s.cell_id = c.cell_id)",
         " WHERE c.cell_id IN (SELECT cell_id FROM ", tmp_q, ");"
-      ))
+      )
+      query_plans[[j]] <- DBI::dbGetQuery(con, paste("EXPLAIN QUERY PLAN", update_sql))
+      DBI::dbExecute(con, update_sql)
     }
     .wb_metadata_writer_hook("after_values", con, report)
     DBI::dbExecute(con, paste0("DROP TABLE ", tmp_q, ";"))
@@ -400,8 +419,13 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
     report <- list(
       n_rows = nrow(md), fields = fields,
       statement_count = as.integer(3L * sum(fields$created_at == now) +
-        2L * sum(fields$created_at != now) + 2L),
-      complexity = "O(metadata_fields)", import_id = import_id
+        2L * sum(fields$created_at != now) + 3L),
+      complexity = "O(metadata_rows * metadata_fields * log(bundle_cells))",
+      statement_complexity = "O(metadata_fields)",
+      staging_index_strategy = "TEMP TABLE cell_id TEXT PRIMARY KEY",
+      staging_index_count = nrow(stage_index),
+      query_plan = query_plans,
+      import_id = import_id
     )
     .wb_metadata_writer_hook("before_commit", con, report)
   })

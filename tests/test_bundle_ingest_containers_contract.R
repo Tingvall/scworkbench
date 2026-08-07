@@ -180,7 +180,7 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(identical(length(wb_cells(blarge, "core")), large_n))
   stopifnot(identical(sum(wb_list(blarge, "datasets")$n_cells), large_n))
   stopifnot(is.finite(t_large))
-  stopifnot(identical(large_report$metadata_write_complexity, "O(metadata_fields)"))
+  stopifnot(identical(large_report$metadata_write_complexity, "O(metadata_rows * metadata_fields * log(bundle_cells))"))
   stopifnot(large_report$metadata_statement_count <= 4L * (ncol(large_meta) - 1L) + 4L)
 
   dup_feature_counts <- counts

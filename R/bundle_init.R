@@ -191,7 +191,10 @@ wb_define_cells <- function(bundle,
     n_metadata_cols = if (is.null(md)) 0L else ncol(md) - 1L,
     metadata_fields = metadata_report$fields %||% data.frame(),
     metadata_statement_count = metadata_report$statement_count %||% 0L,
-    metadata_write_complexity = metadata_report$complexity %||% "O(1)"
+    metadata_statement_complexity = metadata_report$statement_complexity %||% "O(1)",
+    metadata_write_complexity = metadata_report$complexity %||% "O(1)",
+    metadata_staging_index_strategy = metadata_report$staging_index_strategy %||% NA_character_,
+    metadata_query_plan = metadata_report$query_plan %||% list()
   ))
 }
 
