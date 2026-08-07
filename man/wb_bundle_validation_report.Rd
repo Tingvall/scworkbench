@@ -6,13 +6,17 @@
 \usage{
 wb_bundle_validation_report(
   bundle_dir,
-  level = c("content", "structural", "recipient")
+  level = c("content", "structural", "recipient"),
+  progress = FALSE
 )
 }
 \arguments{
 \item{bundle_dir}{Path to the bundle directory (not an open bundle handle).}
 
 \item{level}{Cumulative validation level.}
+
+\item{progress}{\code{FALSE} for quiet operation, \code{TRUE} to emit check-class
+progress messages, or a function accepting one structured progress event.}
 }
 \value{
 A deterministic named report containing status, stable diagnostics,

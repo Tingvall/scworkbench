@@ -211,9 +211,11 @@
     source_identity <- list(
       source_type = as.character(source %||% "ingestion")[1],
       inputs = list(list(
+        scope = "internal_assembly",
+        source_id = paste0("internal_", as.character(transaction_name)[1]),
         uri = paste0("scworkbench-ingestion://", as.character(transaction_name)[1]),
-        role = "caller_supplied_payload",
-        format = "in_memory"
+        role = "engine_assembly_event",
+        format = "internal_event"
       ))
     )
   }

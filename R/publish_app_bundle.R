@@ -89,6 +89,8 @@ wb_publish_app_bundle <- function(
     source_type = "Seurat",
     publisher = "wb_publish_app_bundle",
     inputs = list(list(
+      scope = "in_memory",
+      source_id = "wb_publish_app_bundle_seurat",
       uri = "scworkbench-ingestion://wb_publish_app_bundle/in-memory-seurat",
       role = "source_object",
       format = "Seurat"

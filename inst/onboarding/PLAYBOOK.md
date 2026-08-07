@@ -32,12 +32,16 @@ migrates SQLite or writes WAL/journal/staging state. Use normal getters,
 `wb_prov_source_inputs()` for the recipient audit. Mutation, session, and
 promotion APIs fail before attempting a write.
 
-For external inputs, use `source_identity$inputs` entries with `sha256` (the
-canonical SHA-256 field), optional `path`/`uri`, `role`, and `format`.
+For external inputs, construct explicit `public_file`/`external_file` entries
+with `wb_source_input()` and dry-run the complete identity with
+`wb_source_preflight()`. These require source ID, accession, role, format,
+path or URI, and canonical SHA-256 identity.
 `wb_prov_source_inputs()` normalizes these to `checksum_algorithm`,
 `checksum_value`, and `checksum_status`. In `wb_prov_bundle_dag()` the node
 classification column is `node_type`; filter `node_type == "external_source"`
 and `edge_type == "CONSUMES"` to inspect source-to-ingestion edges.
+Automatic assembly events have no external-source node. Genuine object inputs
+use the distinct `in_memory_source` node type and remain explicitly nonportable.
 
 Before transferring a writable bundle, run `wb_finalize_recipient_bundle(b)`
 and confirm `wb_recipient_readiness(path)$ready`. The supported container audit

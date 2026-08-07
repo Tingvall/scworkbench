@@ -1,5 +1,9 @@
 # Ingestion
 
+See [source declarations and preflight](source_ingestion.md) for the canonical
+offline checksum/declaration workflow and source-scope taxonomy. Strict public
+and external file identities fail before any bundle or staging write.
+
 Use the registered ingestion APIs for supported source formats. Inspect the
 interface and validation report before applying an ingest plan; do not create
 bundle registry rows by direct SQL.

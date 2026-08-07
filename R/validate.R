@@ -42,6 +42,35 @@
   tryCatch(jsonlite::fromJSON(as.character(x)[1], simplifyVector = FALSE), error = function(e) NULL)
 }
 
+.wb_validation_process_memory <- function() {
+  status <- "/proc/self/status"
+  if (!file.exists(status)) return(list(rss_mb=NA_real_, peak_rss_mb=NA_real_))
+  lines <- readLines(status, warn=FALSE)
+  value <- function(key) {
+    hit <- grep(paste0("^",key,":"),lines,value=TRUE)
+    if (!length(hit)) return(NA_real_)
+    as.numeric(sub("^.*:[[:space:]]*([0-9]+)[[:space:]]+kB.*$","\\1",hit[1])) / 1024
+  }
+  list(rss_mb=value("VmRSS"),peak_rss_mb=value("VmHWM"))
+}
+
+#' Describe bundle validation work and scaling
+#'
+#' @param level Cumulative validation level.
+#' @return Data frame describing authoritative check classes and dominant scaling.
+#' @export
+wb_bundle_validation_plan <- function(level=c("content","structural","recipient")) {
+  level <- match.arg(level); n <- match(level,.wb_validation_levels())
+  plan <- data.frame(
+    level=c("structural","content","content","content","content","recipient"),
+    check_class=c("schema_and_registry","matrix_content","artifacts","provenance","content_completeness","recipient"),
+    dominant_scaling=c("registry rows","matrix identities plus fragment count","artifact registry and payload identities","provenance rows","durable entities and payload bytes","bundle files and bytes (two fingerprints)"),
+    external_files_accessed=FALSE,
+    stringsAsFactors=FALSE
+  )
+  plan[seq_len(c(1L,5L,6L)[n]),,drop=FALSE]
+}
+
 .wb_validation_artifact_payload_table <- function(type) {
   switch(as.character(type)[1],
     cell_vector = "artifact_labels",
@@ -89,11 +118,14 @@
 #'
 #' @param bundle_dir Path to the bundle directory (not an open bundle handle).
 #' @param level Cumulative validation level.
+#' @param progress `FALSE` for quiet operation, `TRUE` to emit check-class
+#'   progress messages, or a function accepting one structured progress event.
 #' @return A deterministic named report containing status, stable diagnostics,
 #'   skipped checks, durable `content_coverage`, and elapsed time by check class.
 #' @export
 wb_bundle_validation_report <- function(bundle_dir,
-                                        level = c("content", "structural", "recipient")) {
+                                        level = c("content", "structural", "recipient"),
+                                        progress = FALSE) {
   level <- match.arg(level)
   if (!is.character(bundle_dir) || length(bundle_dir) != 1L || is.na(bundle_dir) || !nzchar(bundle_dir)) {
     stop("wb_bundle_validation_report(): bundle_dir must be one non-empty path string; pass bundle$dir, not an open scworkbench_bundle handle.", call. = FALSE)
@@ -108,6 +140,15 @@ wb_bundle_validation_report <- function(bundle_dir,
     recorded_scheme=character(),actual_scheme=character(),verification_status=character(),
     stringsAsFactors=FALSE
   )
+  resource_samples <- data.frame(event=character(),check_class=character(),elapsed_seconds=numeric(),rss_mb=numeric(),peak_rss_mb=numeric(),stringsAsFactors=FALSE)
+  emit_progress <- function(event,check_class) {
+    mem <- .wb_validation_process_memory()
+    record <- list(event=as.character(event),check_class=as.character(check_class),elapsed_seconds=as.numeric(difftime(Sys.time(),started,units="secs")),rss_mb=mem$rss_mb,peak_rss_mb=mem$peak_rss_mb)
+    resource_samples[nrow(resource_samples)+1L,] <<- record
+    if (isTRUE(progress)) message("[scworkbench validation] ",event," ",check_class," elapsed=",round(record$elapsed_seconds,3),"s rss=",round(record$rss_mb,1),"MB peak=",round(record$peak_rss_mb,1),"MB")
+    else if (is.function(progress)) progress(record)
+    invisible(record)
+  }
   add <- function(code, severity = "error", check_class = "structural",
                   entity_kind = NA_character_, entity_id = NA_character_, path = NA_character_,
                   table = NA_character_, expected = NA_character_, observed = NA_character_, message = code) {
@@ -140,14 +181,17 @@ wb_bundle_validation_report <- function(bundle_dir,
     skipped[nrow(skipped) + 1L, ] <<- list(check_class, minimum_level, reason)
   }
   timed <- function(check_class, code) {
+    emit_progress("start",check_class)
     t0 <- proc.time()[["elapsed"]]
     force(code)
     timings[nrow(timings) + 1L, ] <<- list(check_class, proc.time()[["elapsed"]] - t0)
+    emit_progress("complete",check_class)
     invisible(TRUE)
   }
   requested_index <- match(level, .wb_validation_levels())
   has_level <- function(x) requested_index >= match(x, .wb_validation_levels())
   root <- normalizePath(bundle_dir, winslash = "/", mustWork = FALSE)
+  if (has_level("recipient")) emit_progress("start","recipient_fingerprint_before")
 
   fingerprint <- function() {
     if (!dir.exists(root)) return(NA_character_)
@@ -165,6 +209,7 @@ wb_bundle_validation_report <- function(bundle_dir,
     ))
   }
   before_fingerprint <- if (has_level("recipient")) fingerprint() else NA_character_
+  if (has_level("recipient")) emit_progress("complete","recipient_fingerprint_before")
   manifest <- NULL
   con <- NULL
   bundle <- NULL
@@ -935,6 +980,9 @@ wb_bundle_validation_report <- function(bundle_dir,
           source_id <- as.character(src$source_id[i]); id <- paste(src$snapshot_id[i],src$run_id[i],source_id,sep="/"); x <- .wb_validation_json(src$source_json[i])
           if (is.null(x)) { add("SOURCE_IDENTITY_MALFORMED", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", observed = "invalid JSON", message = "Source input declaration is malformed."); add_source_coverage(id); next }
           if (!paste(src$snapshot_id[i],src$run_id[i],sep="\r") %in% paste(runs$snapshot_id,runs$run_id,sep="\r")) add("SOURCE_INPUT_DANGLING_RUN", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", message = "Source input references a missing run.")
+          scope <- as.character(x$scope %||% x$source_scope %||% "legacy_external")[1]
+          entity_kind <- if (identical(scope,"in_memory")) "in_memory_source" else "external_source"
+          if (.wb_validation_nonempty(x$sha256) && .wb_validation_nonempty(x$checksum) && !identical(tolower(as.character(x$sha256)[1]),tolower(as.character(x$checksum)[1]))) add("SOURCE_CHECKSUM_ALIASES_CONFLICT",check_class="source_inputs",entity_kind=entity_kind,entity_id=id,table="prov_source_inputs",expected=as.character(x$sha256)[1],observed=as.character(x$checksum)[1],message="Persisted checksum aliases disagree.")
           alg <- tolower(as.character(x$checksum_algorithm %||% if (!is.null(x$sha256)) "sha256" else "")[1]); sha <- as.character(x$sha256 %||% x$checksum %||% "")[1]
           valid_sha <- .wb_validation_nonempty(sha) && identical(alg,"sha256") && grepl("^[A-Fa-f0-9]{64}$", sha)
           if (.wb_validation_nonempty(sha) && !valid_sha) { add("SOURCE_CHECKSUM_MALFORMED", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, table = "prov_source_inputs", expected = "sha256 plus 64 hexadecimal characters", observed = paste(alg,sha), message = "Source checksum syntax is invalid."); add_source_coverage(id); next }
@@ -943,7 +991,8 @@ wb_bundle_validation_report <- function(bundle_dir,
           checked_source <- if (bundled) .wb_validation_path(root, raw, "file") else NULL
           if (bundled && !isTRUE(checked_source$ok)) add(if(identical(checked_source$code,"PAYLOAD_MISSING")) "BUNDLED_SOURCE_MISSING" else checked_source$code, check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = "contained bundled source file", observed = checked_source$observed, message = "A bundled source path is unavailable or outside the bundle.")
           else if (bundled && isTRUE(checked_source$ok) && valid_sha) { actual <- .wb_prov_sha256_file(checked_source$absolute); actual_scheme <- unname(.wb_content_identity_schemes()[["raw_file"]]); source_status <- if(identical(tolower(actual),tolower(sha))) "content_verified" else "content_mismatch"; if (!identical(tolower(actual),tolower(sha))) add("SOURCE_CHECKSUM_MISMATCH", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, expected = sha, observed = actual, message = "Bundled immutable source does not match its recorded checksum.") }
-          else if (!bundled) { source_status <- "external_uninspected"; add("EXTERNAL_SOURCE_UNVERIFIABLE", severity = "warning", check_class = "source_inputs", entity_kind = "external_source", entity_id = id, path = raw, observed = "external path deliberately not accessed", message = "External source is outside the recipient trust boundary and was not inspected.") }
+          else if (!bundled && scope %in% c("public_file","external_file","legacy_external")) { source_status <- "external_uninspected"; add("EXTERNAL_SOURCE_UNVERIFIABLE", severity = "warning", check_class = "source_inputs", entity_kind = entity_kind, entity_id = id, path = raw, observed = "external path deliberately not accessed", message = "External source is outside the recipient trust boundary and was not inspected.") }
+          else if (identical(scope,"in_memory")) source_status <- "nonportable_in_memory_boundary"
           add_source_coverage(id,recorded_scheme,actual_scheme,source_status)
         }
       }
@@ -1005,7 +1054,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         life <- if (.wb_table_exists(con,"entity_lifecycle")) DBI::dbGetQuery(con,"SELECT * FROM entity_lifecycle;") else data.frame()
         keep <- physical$entity_kind %in% c("matrix","space","model","artifact")
         if (nrow(life)) keep <- keep | vapply(seq_len(nrow(physical)),function(i) any(life$entity_kind==physical$entity_kind[i] & life$entity_id==physical$entity_id[i] & life$provenance_bound==1L),logical(1))
-        keep <- keep & physical$entity_kind != "external_source"
+        keep <- keep & !physical$entity_kind %in% c("external_source", "in_memory_source")
         physical <- unique(physical[keep,,drop=FALSE])
         bindings <- if (.wb_table_exists(con,"prov_run_entity_bindings")) DBI::dbGetQuery(con,"SELECT * FROM prov_run_entity_bindings;") else data.frame()
         outputs_all <- if (.wb_table_exists(con,"prov_run_outputs")) DBI::dbGetQuery(con,"SELECT * FROM prov_run_outputs;") else data.frame()
@@ -1104,6 +1153,7 @@ wb_bundle_validation_report <- function(bundle_dir,
 
   if (!is.null(con)) { try(DBI::dbDisconnect(con), silent=TRUE); con <- NULL }
   after_fingerprint <- if (has_level("recipient")) fingerprint() else NA_character_
+  if (has_level("recipient")) emit_progress("complete","recipient_fingerprint_after")
   if (has_level("recipient") && !identical(before_fingerprint, after_fingerprint)) add("VALIDATION_MUTATED_BUNDLE",check_class="recipient",entity_kind="bundle",entity_id=basename(root),expected=before_fingerprint,observed=after_fingerprint,message="Recipient validation changed the bundle filesystem fingerprint.")
 
   if (nrow(diagnostics)) diagnostics <- diagnostics[order(diagnostics$severity, diagnostics$code, diagnostics$entity_kind, diagnostics$entity_id, diagnostics$path, na.last=TRUE),,drop=FALSE]
@@ -1115,6 +1165,7 @@ wb_bundle_validation_report <- function(bundle_dir,
   errors <- diagnostics$severity == "error"
   finished <- Sys.time(); gc_after <- suppressWarnings(gc())
   peak_memory_mb <- max(c(gc_before[, 6L], gc_after[, 6L]), na.rm = TRUE)
+  process_peak_rss_mb <- suppressWarnings(max(resource_samples$peak_rss_mb,na.rm=TRUE)); if (!is.finite(process_peak_rss_mb)) process_peak_rss_mb <- NA_real_
   structure(list(
     schema_version = "scworkbench.bundle_validation_report.v1",
     path_contract = list(
@@ -1131,7 +1182,7 @@ wb_bundle_validation_report <- function(bundle_dir,
     ok = !any(errors), status = if (any(errors)) "error" else if (any(diagnostics$severity == "warning")) "ok_with_warnings" else "ok",
     diagnostics = diagnostics, skipped_checks = skipped, content_coverage = content_coverage, elapsed_by_check_class = timings,
     elapsed_seconds = round(as.numeric(difftime(finished, started, units="secs")),6),
-    peak_memory_mb = as.numeric(peak_memory_mb),
+    peak_memory_mb = as.numeric(peak_memory_mb), process_peak_rss_mb=process_peak_rss_mb, resource_samples=resource_samples,
     started_at = format(started, "%Y-%m-%dT%H:%M:%OS6%z"), finished_at = format(finished, "%Y-%m-%dT%H:%M:%OS6%z"),
     pre_validation_fingerprint = before_fingerprint, post_validation_fingerprint = after_fingerprint
   ), class = c("scworkbench_bundle_validation_report", "list"))

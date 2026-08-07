@@ -640,6 +640,7 @@ wb_bundle_from_10x_mtx <- function(input,
                                    original_feature_id_col = "original_feature_id",
                                    emit_report_artifact = TRUE,
                                    source_identity = NULL) {
+  if (!is.null(source_identity)) source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
   .wb_require_pkg("Matrix", "10x Matrix Market ingestion")
   .wb_require_pkg("BPCells", "10x Matrix Market ingestion")
   duplicate_cell_id_policy <- match.arg(duplicate_cell_id_policy)
@@ -966,6 +967,7 @@ wb_bundle_from_seurat <- function(input,
                                   created_by = NULL,
                                   emit_report_artifact = TRUE,
                                   source_identity = NULL) {
+  if (!is.null(source_identity)) source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
   .wb_require_pkg("SeuratObject", "Seurat ingestion")
   .wb_require_pkg("Matrix", "Seurat ingestion")
   src <- .wb_ingest_source_object(input, "Seurat")
@@ -974,6 +976,7 @@ wb_bundle_from_seurat <- function(input,
   if (is.null(source_identity)) {
     source_input <- if (!is.null(src$source_path) && nzchar(src$source_path)) {
       list(
+        scope = "external_file", source_id = "seurat_rds", accession = basename(src$source_path),
         path = src$source_path,
         role = "source_object",
         format = "rds",
@@ -982,6 +985,7 @@ wb_bundle_from_seurat <- function(input,
       )
     } else {
       list(
+        scope = "in_memory", source_id = "in_memory_seurat",
         uri = "scworkbench-ingestion://bundle_from_seurat/in-memory-seurat",
         role = "source_object",
         format = "Seurat"
@@ -989,6 +993,7 @@ wb_bundle_from_seurat <- function(input,
     }
     source_identity <- list(source_type = "Seurat", inputs = list(source_input))
   }
+  source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
 
   bundle <- wb_init_bundle(bundle_dir, overwrite = overwrite)
   completed <- FALSE
@@ -1086,6 +1091,8 @@ wb_bundle_from_seurat <- function(input,
 #' @param overwrite Whether an existing bundle directory may be replaced.
 #' @param created_by Optional provenance actor.
 #' @param emit_report_artifact Whether to promote an ingest report artifact.
+#' @param source_identity Optional immutable structured source declaration. File
+#'   and in-memory inputs receive a canonical declaration when omitted.
 #' @return An open scworkbench bundle.
 #' @export
 wb_bundle_from_sce <- function(input,
@@ -1102,7 +1109,9 @@ wb_bundle_from_sce <- function(input,
                                original_feature_id_col = "original_feature_id",
                                overwrite = FALSE,
                                created_by = NULL,
-                               emit_report_artifact = TRUE) {
+                               emit_report_artifact = TRUE,
+                               source_identity = NULL) {
+  if (!is.null(source_identity)) source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
   .wb_require_pkg("SingleCellExperiment", "SingleCellExperiment ingestion")
   .wb_require_pkg("SummarizedExperiment", "SingleCellExperiment ingestion")
   .wb_require_pkg("Matrix", "SingleCellExperiment ingestion")
@@ -1111,6 +1120,14 @@ wb_bundle_from_sce <- function(input,
   src <- .wb_ingest_source_object(input, "SingleCellExperiment")
   sce <- src$object
   .wb_assert(methods::is(sce, "SingleCellExperiment"), "input must be a SingleCellExperiment object or an .rds containing one")
+  if (is.null(source_identity)) {
+    source_input <- if (!is.null(src$source_path) && nzchar(src$source_path)) list(
+      scope="external_file", source_id="sce_rds", accession=basename(src$source_path), path=src$source_path,
+      role="source_object", format="rds", sha256=wb_source_sha256(src$source_path), checksum=wb_source_sha256(src$source_path), checksum_algorithm="sha256", bundled=FALSE
+    ) else list(scope="in_memory", source_id="in_memory_sce", uri="scworkbench-ingestion://bundle_from_sce/in-memory-sce", role="source_object", format="SingleCellExperiment", bundled=FALSE)
+    source_identity <- list(source_type="SingleCellExperiment", inputs=list(source_input))
+  }
+  source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
 
   cell_ids <- colnames(sce)
   if (is.null(cell_ids)) cell_ids <- paste0("cell_", seq_len(ncol(sce)))
@@ -1238,7 +1255,8 @@ wb_bundle_from_sce <- function(input,
         original_feature_id_column = original_feature_id_col
       ),
       created_by = created_by,
-      matrix_ids = imported
+      matrix_ids = imported,
+      source_identity = source_identity
     )
   }
   completed <- TRUE
@@ -1268,12 +1286,18 @@ wb_bundle_from_h5ad <- function(input,
                                 original_feature_id_col = "ann_data_var_name",
                                 overwrite = FALSE,
                                 created_by = NULL,
-                                emit_report_artifact = TRUE) {
+                                emit_report_artifact = TRUE,
+                                source_identity = NULL) {
+  if (!is.null(source_identity)) source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
   .wb_require_pkg("zellkonverter", "AnnData h5ad ingestion")
   .wb_assert(is.character(input) && length(input) == 1L && file.exists(input), "input must be an existing .h5ad path")
   duplicate_cell_id_policy <- match.arg(duplicate_cell_id_policy)
   duplicate_feature_id_policy <- match.arg(duplicate_feature_id_policy)
   input_path <- normalizePath(input, winslash = "/", mustWork = TRUE)
+  if (is.null(source_identity)) source_identity <- list(source_type="AnnData/h5ad", inputs=list(list(
+    scope="external_file", source_id="h5ad_source", accession=basename(input_path), path=input_path,
+    role="source_object", format="h5ad", sha256=wb_source_sha256(input_path), checksum=wb_source_sha256(input_path), checksum_algorithm="sha256", bundled=FALSE)))
+  source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
   .wb_assert(is.character(bundle_dir) && length(bundle_dir) == 1L && nzchar(bundle_dir), "bundle_dir must be a non-empty string")
   final_dir <- normalizePath(bundle_dir, winslash = "/", mustWork = FALSE)
   if (dir.exists(final_dir) && !isTRUE(overwrite)) {
@@ -1320,6 +1344,7 @@ wb_bundle_from_h5ad <- function(input,
       overwrite = TRUE,
       created_by = created_by,
       emit_report_artifact = emit_report_artifact
+      ,source_identity = list(source_type="SingleCellExperiment", inputs=list(list(scope="in_memory", source_id="h5ad_converted_sce", uri="scworkbench-ingestion://bundle_from_h5ad/converted-sce", role="conversion_intermediate", format="SingleCellExperiment", bundled=FALSE)))
     )
     phase <- "h5ad_report"
     if (isTRUE(emit_report_artifact)) {
@@ -1356,7 +1381,8 @@ wb_bundle_from_h5ad <- function(input,
         status = "completed",
         phase = phase,
         created_by = created_by,
-        matrix_ids = wb_matrices(bundle)$matrix_id
+        matrix_ids = wb_matrices(bundle)$matrix_id,
+        source_identity = source_identity
       )
     }
     phase <- "finalize_staging"

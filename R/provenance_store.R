@@ -643,6 +643,9 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
                  "each source input requires path, uri, or accession")
       input
     })
+    if (any(vapply(x$inputs, function(input) !is.null(input$scope) || !is.null(input$source_scope), logical(1)))) {
+      x <- wb_source_preflight(x, verify_files = FALSE, strict = TRUE)$source_identity
+    }
   }
   x
 }
@@ -654,15 +657,18 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   commit <- DBI::dbGetQuery(con, "SELECT commit_id FROM prov_heads WHERE snapshot_id = ?;", params = list(snapshot_id))$commit_id
   for (i in seq_along(inputs)) {
     input <- inputs[[i]]
+    scope <- as.character(input$scope %||% input$source_scope %||% "legacy_external")[1]
+    if (identical(scope, "internal_assembly")) next
     canonical <- jsonlite::toJSON(.wb_json_sanitize(input), auto_unbox = TRUE, null = "null")
     source_id <- as.character(input$source_id %||% paste0("source_", .wb_hash_text(canonical)))[1]
     checksum <- as.character(input$checksum %||% NA_character_)[1]
-    status <- if (nzchar(checksum) && !is.na(checksum)) "checksummed" else "declared_no_checksum"
+    status <- if (identical(scope, "in_memory")) "nonportable_in_memory" else if (nzchar(checksum) && !is.na(checksum)) "checksummed" else "declared_no_checksum"
     old <- DBI::dbGetQuery(con, "SELECT source_json FROM prov_source_inputs WHERE snapshot_id=? AND run_id=? AND source_id=?;", params=list(snapshot_id, run_id, source_id))
     if (!nrow(old)) DBI::dbExecute(con, "INSERT INTO prov_source_inputs(snapshot_id, run_id, source_id, source_json, checksum_status) VALUES(?, ?, ?, ?, ?);", params=list(snapshot_id, run_id, source_id, canonical, status))
     else if (!identical(as.character(old$source_json[1]), as.character(canonical))) stop(paste0("Conflicting immutable external source input: ", source_id), call.=FALSE)
+    entity_kind <- if (identical(scope, "in_memory")) "in_memory_source" else "external_source"
     .wb_prov_insert_entity_binding(con, snapshot_id, as.character(commit[1] %||% NA_character_), run_id,
-      "input", paste0("external_input.", i), "external_source", source_id, "CONSUMES",
+      "input", paste0(scope, ".", i), entity_kind, source_id, "CONSUMES",
       path=as.character(input$uri %||% input$path %||% input$accession %||% NA_character_)[1], content_hash=checksum,
       content_identity_scheme=if (!is.na(checksum) && grepl("^[A-Fa-f0-9]{64}$", checksum)) unname(.wb_content_identity_schemes()[["raw_file"]]) else NA_character_,
       source="declared_ingestion_input")
@@ -742,6 +748,7 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
                                            content_hash = NA_character_,
                                            content_identity_scheme = NA_character_, source) {
   bind_lifecycle <- TRUE
+  if (identical(direction, "input") && identical(entity_kind, "in_memory_source")) bind_lifecycle <- FALSE
   if (identical(direction,"input") && identical(entity_kind,"model_ref")) {
     bits <- strsplit(as.character(entity_id),"|",fixed=TRUE)[[1]]
     bind_lifecycle <- length(bits)>=2L && .wb_table_exists(con,"space_models") &&
@@ -1458,7 +1465,7 @@ wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
 wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_migrate_provenance_tables(bundle$con)
-  empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), path=character(), uri=character(), role=character(), format=character(), checksum_algorithm=character(), checksum_value=character(), checksum_status=character(), stringsAsFactors=FALSE)
+  empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), scope=character(), portable=logical(), path=character(), uri=character(), accession=character(), role=character(), format=character(), checksum_algorithm=character(), checksum_value=character(), checksum_status=character(), stringsAsFactors=FALSE)
   if (!.wb_table_exists(bundle$con, "prov_source_inputs")) return(empty)
   out <- DBI::dbGetQuery(bundle$con, "SELECT snapshot_id, run_id, source_id, source_json, checksum_status FROM prov_source_inputs ORDER BY snapshot_id, run_id, source_id;")
   if (!is.null(run_id)) out <- out[as.character(out$run_id) %in% as.character(run_id), , drop=FALSE]
@@ -1470,7 +1477,8 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
     val <- as.character(if (nzchar(sha)) sha else x$checksum %||% "")[1]
     valid_sha <- identical(alg, "sha256") && grepl("^[A-Fa-f0-9]{64}$", val)
     status <- if (!nzchar(val)) "declared_no_checksum" else if (valid_sha) "checksummed" else if (identical(alg, "sha256") || nzchar(sha)) "malformed_checksum" else "unsupported_checksum"
-    list(path=as.character(x$path %||% NA_character_)[1], uri=as.character(x$uri %||% NA_character_)[1], role=as.character(x$role %||% x$file_kind %||% NA_character_)[1], format=as.character(x$format %||% NA_character_)[1], checksum_algorithm=if(nzchar(alg)) alg else NA_character_, checksum_value=if(nzchar(val)) val else NA_character_, checksum_status=status)
+    scope <- as.character(x$scope %||% x$source_scope %||% "legacy_external")[1]
+    list(scope=scope, portable=scope %in% c("public_file", "external_file") && isTRUE(x$bundled %||% FALSE), path=as.character(x$path %||% NA_character_)[1], uri=as.character(x$uri %||% NA_character_)[1], accession=as.character(x$accession %||% NA_character_)[1], role=as.character(x$role %||% x$file_kind %||% NA_character_)[1], format=as.character(x$format %||% NA_character_)[1], checksum_algorithm=if(nzchar(alg)) alg else NA_character_, checksum_value=if(nzchar(val)) val else NA_character_, checksum_status=if(identical(scope,"in_memory")) "nonportable_in_memory" else status)
   })
   extra <- do.call(rbind, lapply(norm, as.data.frame, stringsAsFactors=FALSE))
   cbind(out[, c("snapshot_id", "run_id", "source_id", "source_json"), drop=FALSE], extra, stringsAsFactors=FALSE)

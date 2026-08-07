@@ -408,8 +408,12 @@ wb_kg_bundle_graph <- function(bundle) {
   if (.wb_table_exists(con, "prov_source_inputs")) {
     src <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, source_id, source_json, checksum_status FROM prov_source_inputs ORDER BY snapshot_id, run_id, source_id;")
     if (nrow(src)) for (i in seq_len(nrow(src))) {
-      snid <- paste0("external_source:", .wb_kg_slug(src$source_id[i]))
-      nodes[[length(nodes) + 1L]] <- .wb_kg_node(snid, as.character(src$source_id[i]), "ExternalSource", "declared_ingestion_input", payload=as.list(src[i, , drop=FALSE]))
+      declaration <- .wb_validation_json(src$source_json[i]) %||% list()
+      scope <- as.character(declaration$scope %||% declaration$source_scope %||% "legacy_external")[1]
+      prefix <- if (identical(scope,"in_memory")) "in_memory_source:" else "external_source:"
+      node_type <- if (identical(scope,"in_memory")) "InMemorySource" else "ExternalSource"
+      snid <- paste0(prefix, .wb_kg_slug(src$source_id[i]))
+      nodes[[length(nodes) + 1L]] <- .wb_kg_node(snid, as.character(src$source_id[i]), node_type, "declared_ingestion_input", payload=c(as.list(src[i, , drop=FALSE]), list(scope=scope)))
       edges[[length(edges) + 1L]] <- .wb_kg_edge(snid, paste0("run:", .wb_kg_slug(src$run_id[i])), "SUPPLIED_TO", "declared_ingestion_input", payload=as.list(src[i, , drop=FALSE]))
     }
   }

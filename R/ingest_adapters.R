@@ -402,6 +402,7 @@ wb_ingest_apply <- function(bundle,
                             validate_only = FALSE,
                             apply_mode = c("atomic", "best_effort"),
                             emit_report_artifact = FALSE) {
+  if (!is.null(source_identity)) source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
   .wb_assert_bundle_writable(bundle, "ingestion")
   apply_mode <- match.arg(apply_mode)
   chk <- wb_ingest_validate(

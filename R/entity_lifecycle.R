@@ -3,7 +3,7 @@
 .wb_entity_lifecycle_schema <- function() "scworkbench.entity_lifecycle.v1"
 
 .wb_entity_kinds <- function() {
-  c("matrix", "space", "model", "model_ref", "artifact", "cell_set", "feature_set", "external_source", "registry")
+  c("matrix", "space", "model", "model_ref", "artifact", "cell_set", "feature_set", "external_source", "in_memory_source", "registry")
 }
 
 .wb_entity_normalize <- function(entity_kind, entity_id) {
@@ -316,7 +316,14 @@
     x <- DBI::dbGetQuery(con, "SELECT feature_set, matrix_id FROM feature_sets;")
     if (nrow(x)) add("feature_set", mapply(.wb_feature_set_entity_id, x$feature_set, x$matrix_id, USE.NAMES = FALSE))
   }
-  if (.wb_table_exists(con, "prov_source_inputs")) add("external_source", DBI::dbGetQuery(con, "SELECT DISTINCT source_id FROM prov_source_inputs;")$source_id)
+  if (.wb_table_exists(con, "prov_source_inputs")) {
+    sources <- DBI::dbGetQuery(con, "SELECT DISTINCT source_id, source_json FROM prov_source_inputs;")
+    if (nrow(sources)) {
+      in_memory <- vapply(sources$source_json, function(txt) identical(as.character((.wb_validation_json(txt) %||% list())$scope %||% ""), "in_memory"), logical(1))
+      add("external_source", sources$source_id[!in_memory])
+      add("in_memory_source", sources$source_id[in_memory])
+    }
+  }
   if (!length(rows)) return(data.frame(entity_kind = character(), entity_id = character(), stringsAsFactors = FALSE))
   unique(do.call(rbind, rows))
 }

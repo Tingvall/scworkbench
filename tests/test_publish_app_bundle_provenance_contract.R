@@ -87,14 +87,15 @@ test_publish_app_bundle_provenance_contract <- function() {
   ]
   stopifnot(
     nrow(publisher_inputs) == 1L,
-    identical(as.character(publisher_inputs$checksum_status), "declared_no_checksum"),
+    identical(as.character(publisher_inputs$scope), "in_memory"),
+    identical(as.character(publisher_inputs$checksum_status), "nonportable_in_memory"),
     identical(
       as.character(publisher_inputs$uri),
       "scworkbench-ingestion://wb_publish_app_bundle/in-memory-seurat"
     ),
     nrow(publisher_identity) == 1L,
     nrow(ingest_runs) == 1L,
-    any(run_bindings$direction == "input" & run_bindings$entity_kind == "external_source" &
+    any(run_bindings$direction == "input" & run_bindings$entity_kind == "in_memory_source" &
           run_bindings$relationship_type == "CONSUMES"),
     any(run_bindings$direction == "output" & run_bindings$entity_kind == "matrix" &
           run_bindings$entity_id == "RNA_counts"),

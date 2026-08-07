@@ -57,6 +57,9 @@ test_deep_bundle_integrity_validation_contract <- function() {
     nrow = 4, byrow = TRUE, dimnames = list(paste0("gene_", 1:4), cells)
   ), sparse = TRUE)
   wb_attach_matrix(b, "RNA_counts", counts, feature_type = "gene")
+  source_path <- file.path(root,"source.raw"); writeBin(as.raw(1:64),source_path)
+  source_identity <- list(inputs=list(wb_source_input(path=source_path,uri="https://example.org/GSEFIX/source.raw",source_id="deep_fixture_source",accession="GSEFIX",role="counts",format="raw",scope="external_file",accession_derived=TRUE)))
+  scworkbench:::.wb_record_declared_ingestion(b,"deep_fixture_source",matrix_ids="RNA_counts",source="test",source_identity=source_identity)
   wb_attach_space(b, "pca", data.frame(cell_id = cells, x = seq_along(cells), y = rev(seq_along(cells))))
   wb_attach_space(b, "fixture_model", data.frame(cell_id = cells, x = seq_along(cells), y = rev(seq_along(cells))))
 
@@ -177,7 +180,7 @@ test_deep_bundle_integrity_validation_contract <- function() {
   expect("ARTIFACT_PAYLOAD_MISSING", missing_artifact)
 
   bad_source <- .deep_validation_mutant(base, root, "malformed_source", function(p) {
-    con<-DBI::dbConnect(RSQLite::SQLite(),file.path(p,"db","app.sqlite")); row<-DBI::dbGetQuery(con,"SELECT snapshot_id,run_id,source_id,source_json FROM prov_source_inputs LIMIT 1;"); x<-jsonlite::fromJSON(row$source_json[1],simplifyVector=FALSE); x$checksum_algorithm<-"sha256"; x$checksum<-"bad"; DBI::dbExecute(con,"UPDATE prov_source_inputs SET source_json=? WHERE snapshot_id=? AND run_id=? AND source_id=?;",params=list(jsonlite::toJSON(x,auto_unbox=TRUE),row$snapshot_id[1],row$run_id[1],row$source_id[1])); DBI::dbDisconnect(con)
+    con<-DBI::dbConnect(RSQLite::SQLite(),file.path(p,"db","app.sqlite")); row<-DBI::dbGetQuery(con,"SELECT snapshot_id,run_id,source_id,source_json FROM prov_source_inputs LIMIT 1;"); x<-jsonlite::fromJSON(row$source_json[1],simplifyVector=FALSE); x$checksum_algorithm<-"sha256"; x$checksum<-"bad"; x$sha256<-"bad"; DBI::dbExecute(con,"UPDATE prov_source_inputs SET source_json=? WHERE snapshot_id=? AND run_id=? AND source_id=?;",params=list(jsonlite::toJSON(x,auto_unbox=TRUE),row$snapshot_id[1],row$run_id[1],row$source_id[1])); DBI::dbDisconnect(con)
   })
   expect("SOURCE_CHECKSUM_MALFORMED", bad_source)
 

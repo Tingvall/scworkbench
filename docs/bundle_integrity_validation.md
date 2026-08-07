@@ -5,6 +5,16 @@
 uses content validation by default; `read_only = TRUE` selects recipient
 validation.
 
+`wb_bundle_validation_plan(level)` lists cumulative check classes and their
+dominant scaling. `wb_bundle_validation_report(..., progress = TRUE)` emits
+start/completion events with elapsed time, current RSS, and process peak RSS;
+passing a callback retains the same structured events elsewhere. The returned
+`resource_samples`, `process_peak_rss_mb`, and `elapsed_by_check_class` preserve
+diagnostic evidence. Recipient validation fingerprints every contained file
+before and after validation, so its filesystem work scales with bundle bytes;
+matrix checks scale with ordered identities and fragment count, while external
+files are never accessed.
+
 The levels are cumulative:
 
 - `structural` proves that the supported manifest and SQLite schema open
@@ -95,3 +105,12 @@ stale run/contract hashes, typed and symbolic ancestry, source identities,
 artifact ancestry, retained retracted/rejected payloads, valid loadable payload
 substitutions, untagged legacy hashes, missing baselines, and byte-identical
 active-WAL failure.
+
+On 2026-08-07 the immutable RC23 GSE270605 diagnostic bundle (120,895 cells,
+569 MiB on disk) completed full recipient validation in 40.04 seconds. External
+`/usr/bin/time -v` evidence recorded 831,340 KiB maximum RSS, 1,188,584
+filesystem input blocks, zero swaps, no signal, and successful authoritative
+validation (`ok_with_warnings`; warnings were the 30 intentionally uninspected
+external files). All per-check timings completed and the pre/post fingerprints
+were identical. This establishes a measured bounded-memory completion, not an
+OOM inference.

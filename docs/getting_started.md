@@ -9,6 +9,7 @@ contracts and links only to maintained material.
 - **Sessions and operations:** [sessions_and_ops.md](sessions_and_ops.md).
 - **Promotion and provenance:** [promotion_and_provenance.md](promotion_and_provenance.md).
 - **Recipient audit:** [recipient_audit.md](recipient_audit.md).
+- **Source declarations:** [source_ingestion.md](source_ingestion.md).
 - **Python bridge:** [python_bridge.md](python_bridge.md) and the installed protocol schema at `system.file("protocol/pybench-op-v2.schema.json", package = "scworkbench")`.
 - **Extension engineering:** [extension_engineering.md](extension_engineering.md).
 - **Contributing and support:** [CONTRIBUTING.md](CONTRIBUTING.md) and [SUPPORT.md](SUPPORT.md).

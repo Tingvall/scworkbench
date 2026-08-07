@@ -19,7 +19,8 @@ wb_bundle_from_h5ad(
   original_feature_id_col = "ann_data_var_name",
   overwrite = FALSE,
   created_by = NULL,
-  emit_report_artifact = TRUE
+  emit_report_artifact = TRUE,
+  source_identity = NULL
 )
 }
 \arguments{
@@ -54,6 +55,9 @@ made unique while preserving original IDs.}
 \item{created_by}{Optional provenance actor.}
 
 \item{emit_report_artifact}{Whether to promote an ingest report artifact.}
+
+\item{source_identity}{Optional immutable structured source declaration. File
+and in-memory inputs receive a canonical declaration when omitted.}
 }
 \value{
 An open scworkbench bundle.
