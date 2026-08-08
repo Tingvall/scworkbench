@@ -19,7 +19,44 @@
   }
   .wb_assert(is.character(path) && length(path) == 1L && nzchar(path),
              "bundle_or_dir must identify one bundle path")
-  normalizePath(path, winslash = "/", mustWork = FALSE)
+
+  # normalizePath(..., mustWork = FALSE) may return its input unchanged when
+  # the leaf does not exist.  That makes a relative bundle acquire one key and
+  # then, after initialization creates it, publish under another.  Walk from a
+  # real absolute root instead: existing components are resolved immediately
+  # (including symlinked ancestors), while nonexistent components are reduced
+  # lexically.  Consequently creating an ordinary missing suffix cannot change
+  # its identity.
+  raw <- path.expand(path)
+  if (.Platform$OS.type == "windows") raw <- chartr("\\", "/", raw)
+  if (!.wb_path_is_absolute(raw)) raw <- file.path(getwd(), raw)
+
+  if (.Platform$OS.type == "windows") {
+    # fs supplies portable absolute/root parsing on Windows.  The component
+    # walk below is principally needed for POSIX symlink semantics; fs still
+    # gives Windows callers a stable absolute, dot-reduced identity.
+    return(as.character(fs::path_norm(fs::path_abs(raw))))
+  }
+
+  parts <- strsplit(raw, "/", fixed = TRUE)[[1L]]
+  current <- "/"
+  for (part in parts) {
+    if (!nzchar(part) || identical(part, ".")) next
+    if (identical(part, "..")) {
+      current <- dirname(current)
+      next
+    }
+    candidate <- file.path(current, part)
+    link <- Sys.readlink(candidate)
+    exists <- file.exists(candidate) || dir.exists(candidate) ||
+      (!is.na(link) && nzchar(link))
+    current <- if (exists) {
+      normalizePath(candidate, winslash = "/", mustWork = TRUE)
+    } else {
+      candidate
+    }
+  }
+  current
 }
 
 .wb_writer_lock_path <- function(bundle_or_dir) {
