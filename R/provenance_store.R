@@ -9,28 +9,107 @@
   )
 }
 
-.wb_hash_text <- function(x) {
-  txt <- paste(as.character(x %||% ""), collapse = "|")
-  b <- as.integer(charToRaw(enc2utf8(txt)))
-  if (!length(b)) return("0000000000000000")
+.wb_identity_schemes <- function() {
+  c(
+    legacy = "scworkbench.identity.legacy-hash-text16.v1",
+    run = "scworkbench.integrity.run.framed-utf8.sha256.v2",
+    contract = "scworkbench.integrity.contract.utf8.sha256.v2",
+    structural = "scworkbench.structural.primitive-summary.sha256.v2",
+    materialization = "scworkbench.materialization.r-serialize-v3.sha256.v2",
+    identifier = "scworkbench.identifier.framed-utf8.sha256.v1"
+  )
+}
 
+.wb_identity_digest_hook <- function(domain, n_bytes) {
+  hook <- getOption("scworkbench.provenance_digest_test_hook", NULL)
+  if (is.function(hook)) hook(domain = as.character(domain)[1], n_bytes = as.double(n_bytes)[1])
+  invisible(TRUE)
+}
+
+.wb_sha256_raw <- function(x, domain = "raw") {
+  .wb_assert(is.raw(x), "SHA-256 input must be raw bytes.")
+  .wb_require_pkg("digest", "provenance SHA-256 identity")
+  .wb_identity_digest_hook(domain, length(x))
+  tolower(as.character(digest::digest(x, algo = "sha256", serialize = FALSE)))
+}
+
+.wb_utf8_raw <- function(x) {
+  x <- as.character(x %||% "")
+  x[is.na(x)] <- "NA"
+  charToRaw(enc2utf8(paste(x, collapse = "|")))
+}
+
+.wb_hash_framed_utf8 <- function(parts, domain) {
+  parts <- as.character(parts %||% "")
+  parts[is.na(parts)] <- "NA"
+  encoded <- lapply(enc2utf8(parts), charToRaw)
+  framed <- c(
+    charToRaw(enc2utf8(as.character(domain)[1])), as.raw(0L),
+    unlist(lapply(encoded, function(bytes) {
+      c(charToRaw(sprintf("%016x", length(bytes))), as.raw(0L), bytes)
+    }), use.names = FALSE)
+  )
+  .wb_sha256_raw(framed, domain = domain)
+}
+
+# Generic non-persisted text identity. Persisted integrity callers use the
+# scheme-specific helpers below so a digest is never ambiguous.
+.wb_hash_text <- function(x) {
+  if (is.raw(x)) return(.wb_sha256_raw(x, domain = "generic_raw"))
+  .wb_sha256_raw(.wb_utf8_raw(x), domain = "generic_text")
+}
+
+# Read-only compatibility implementation for hashes already persisted before
+# provenance schema 1.9. Double arithmetic avoids the original integer
+# overflow; chunked vector operations avoid the warning-producing per-byte R
+# loop. New identities must never use this function.
+.wb_hash_text_legacy_v1 <- function(x) {
+  bytes <- as.double(as.integer(.wb_utf8_raw(x)))
+  if (!length(bytes)) return("0000000000000000")
   h1 <- 0
   h2 <- 0
-  for (i in seq_along(b)) {
-    h1 <- (h1 + (b[[i]] * i)) %% 2147483647
-    h2 <- (h2 + (b[[i]] * ((i %% 251) + 1L))) %% 2147483629
+  chunk_size <- 1000000L
+  starts <- seq.int(1L, length(bytes), by = chunk_size)
+  for (start in starts) {
+    end <- min(length(bytes), start + chunk_size - 1L)
+    pos <- as.double(seq.int(start, end))
+    block <- bytes[start:end]
+    h1 <- (h1 + sum(block * pos)) %% 2147483647
+    h2 <- (h2 + sum(block * ((pos %% 251) + 1))) %% 2147483629
   }
   paste0(sprintf("%08x", as.integer(h1)), sprintf("%08x", as.integer(h2)))
 }
 
 .wb_prov_run_hash <- function(op_name, params_json, inputs_json,
-                              symbolic_inputs_json, execution_inputs_json) {
-  .wb_hash_text(c(op_name %||% "", params_json, inputs_json,
-                  symbolic_inputs_json, execution_inputs_json))
+                              symbolic_inputs_json, execution_inputs_json,
+                              scheme = unname(.wb_identity_schemes()[["run"]])) {
+  parts <- c(op_name %||% "", params_json, inputs_json,
+             symbolic_inputs_json, execution_inputs_json)
+  if (identical(as.character(scheme)[1], unname(.wb_identity_schemes()[["legacy"]]))) {
+    return(.wb_hash_text_legacy_v1(parts))
+  }
+  .wb_assert(identical(as.character(scheme)[1], unname(.wb_identity_schemes()[["run"]])),
+             paste0("Unsupported run hash scheme: ", as.character(scheme)[1]))
+  .wb_hash_framed_utf8(parts, domain = "run-integrity-v2")
 }
 
-.wb_prov_contract_hash <- function(contract_json) {
-  .wb_hash_text(as.character(contract_json %||% "")[1])
+.wb_prov_contract_hash <- function(contract_json,
+                                   scheme = unname(.wb_identity_schemes()[["contract"]])) {
+  if (identical(as.character(scheme)[1], unname(.wb_identity_schemes()[["legacy"]]))) {
+    return(.wb_hash_text_legacy_v1(as.character(contract_json %||% "")[1]))
+  }
+  .wb_assert(identical(as.character(scheme)[1], unname(.wb_identity_schemes()[["contract"]])),
+             paste0("Unsupported contract hash scheme: ", as.character(scheme)[1]))
+  .wb_sha256_raw(.wb_utf8_raw(as.character(contract_json %||% "")[1]), domain = "contract-integrity-v2")
+}
+
+.wb_prov_materialization_hash <- function(prim) {
+  .wb_sha256_raw(serialize(prim, NULL, version = 3), domain = "materialization-v2")
+}
+
+.wb_identifier_sha256 <- function(parts, namespace) {
+  paste0(as.character(namespace)[1], ":sha256:",
+         .wb_hash_framed_utf8(parts, domain = paste0("identifier:", as.character(namespace)[1])))
 }
 
 .wb_prov_primitive_entity_binding <- function(x) {
@@ -71,7 +150,7 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.8"
+.wb_prov_schema_version <- function() "1.9"
 
 .wb_replay_equivalence_policies <- function() {
   c(
@@ -217,9 +296,8 @@
   list(policy = policy, reference = reference, status = "declared")
 }
 
-# Content identity is deliberately separate from .wb_hash_text(): the latter is
-# a short convenience identifier used by legacy graph/run records, never an
-# integrity digest.  Tables preserve their supplied row order; callers must
+# Content identity is deliberately separate from structural, integrity, and
+# display-identifier schemes. Tables preserve their supplied row order; callers must
 # declare and implement a stable-key ordering before an output is semantically
 # unordered.
 .wb_prov_sha256_object <- function(x) {
@@ -265,7 +343,10 @@
 .wb_prov_structural_fingerprint <- function(prim) {
   kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
   summary <- if (.wb_is_primitive(prim)) .wb_prim_summary(prim) else list(class = class(prim))
-  .wb_hash_text(c(kind, jsonlite::toJSON(.wb_json_sanitize(summary), auto_unbox = TRUE, null = "null")))
+  .wb_hash_framed_utf8(
+    c(kind, jsonlite::toJSON(.wb_json_sanitize(summary), auto_unbox = TRUE, null = "null")),
+    domain = "primitive-structural-v2"
+  )
 }
 
 .wb_prov_output_identity_select <- function(con, prefix = "") {
@@ -275,7 +356,9 @@
   level <- if (.wb_db_has_column(con, "prov_run_outputs", "verification_level")) paste0("COALESCE(", p, "verification_level, 'structural') AS verification_level") else "'structural' AS verification_level"
   status <- if (.wb_db_has_column(con, "prov_run_outputs", "verification_status")) paste0("COALESCE(", p, "verification_status, 'legacy_structural_only') AS verification_status") else "'legacy_structural_only' AS verification_status"
   scheme <- if (.wb_db_has_column(con, "prov_run_outputs", "content_identity_scheme")) paste0(p, "content_identity_scheme") else "NULL AS content_identity_scheme"
-  paste(structural, content, level, status, scheme, sep = ", ")
+  structural_scheme <- if (.wb_db_has_column(con, "prov_run_outputs", "structural_fingerprint_scheme")) paste0(p, "structural_fingerprint_scheme") else "NULL AS structural_fingerprint_scheme"
+  output_scheme <- if (.wb_db_has_column(con, "prov_run_outputs", "output_hash_scheme")) paste0(p, "output_hash_scheme") else "NULL AS output_hash_scheme"
+  paste(structural, content, level, status, scheme, structural_scheme, output_scheme, sep = ", ")
 }
 
 .wb_prov_output_replay_select <- function(con, prefix = "") {
@@ -290,6 +373,13 @@
     paste0("COALESCE(", p, "replay_equivalence_status, 'legacy_not_comparable') AS replay_equivalence_status")
   } else "'legacy_not_comparable' AS replay_equivalence_status"
   paste(policy, reference, status, sep = ", ")
+}
+
+.wb_prov_run_identity_select <- function(con, prefix = "") {
+  p <- if (nzchar(prefix)) paste0(prefix,".") else ""
+  run_scheme <- if (.wb_db_has_column(con,"prov_runs","run_hash_scheme")) paste0(p,"run_hash_scheme") else "NULL AS run_hash_scheme"
+  contract_scheme <- if (.wb_db_has_column(con,"prov_runs","contract_hash_scheme")) paste0(p,"contract_hash_scheme") else "NULL AS contract_hash_scheme"
+  paste(run_scheme,contract_scheme,sep=", ")
 }
 
 .wb_prov_table_payload <- function(prim) {
@@ -660,7 +750,7 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
     scope <- as.character(input$scope %||% input$source_scope %||% "legacy_external")[1]
     if (identical(scope, "internal_assembly")) next
     canonical <- jsonlite::toJSON(.wb_json_sanitize(input), auto_unbox = TRUE, null = "null")
-    source_id <- as.character(input$source_id %||% paste0("source_", .wb_hash_text(canonical)))[1]
+    source_id <- as.character(input$source_id %||% .wb_identifier_sha256(canonical, "source"))[1]
     checksum <- as.character(input$checksum %||% NA_character_)[1]
     status <- if (identical(scope, "in_memory")) "nonportable_in_memory" else if (nzchar(checksum) && !is.na(checksum)) "checksummed" else "declared_no_checksum"
     old <- DBI::dbGetQuery(con, "SELECT source_json FROM prov_source_inputs WHERE snapshot_id=? AND run_id=? AND source_id=?;", params=list(snapshot_id, run_id, source_id))
@@ -889,6 +979,8 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   }
   if (!.wb_db_has_column(con, "prov_runs", "contract_json")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN contract_json TEXT;")
   if (!.wb_db_has_column(con, "prov_runs", "contract_hash")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN contract_hash TEXT;")
+  if (!.wb_db_has_column(con, "prov_runs", "run_hash_scheme")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN run_hash_scheme TEXT;")
+  if (!.wb_db_has_column(con, "prov_runs", "contract_hash_scheme")) DBI::dbExecute(con, "ALTER TABLE prov_runs ADD COLUMN contract_hash_scheme TEXT;")
   DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS prov_source_identities (snapshot_id TEXT NOT NULL, run_id TEXT NOT NULL, matrix_id TEXT NOT NULL, source_identity_json TEXT NOT NULL, PRIMARY KEY(snapshot_id, run_id, matrix_id));")
   DBI::dbExecute(con, "CREATE TABLE IF NOT EXISTS prov_source_inputs (snapshot_id TEXT NOT NULL, run_id TEXT NOT NULL, source_id TEXT NOT NULL, source_json TEXT NOT NULL, checksum_status TEXT NOT NULL, PRIMARY KEY(snapshot_id, run_id, source_id));")
 
@@ -930,6 +1022,12 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   }
   if (!.wb_db_has_column(con, "prov_run_outputs", "structural_fingerprint")) {
     DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN structural_fingerprint TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "output_hash_scheme")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN output_hash_scheme TEXT;")
+  }
+  if (!.wb_db_has_column(con, "prov_run_outputs", "structural_fingerprint_scheme")) {
+    DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN structural_fingerprint_scheme TEXT;")
   }
   if (!.wb_db_has_column(con, "prov_run_outputs", "content_sha256")) {
     DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN content_sha256 TEXT;")
@@ -997,7 +1095,19 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   ")
   if (!.wb_db_has_column(con, "prov_materializations", "content_sha256")) DBI::dbExecute(con, "ALTER TABLE prov_materializations ADD COLUMN content_sha256 TEXT;")
   if (!.wb_db_has_column(con, "prov_materializations", "content_identity_scheme")) DBI::dbExecute(con, "ALTER TABLE prov_materializations ADD COLUMN content_identity_scheme TEXT;")
+  if (!.wb_db_has_column(con, "prov_materializations", "output_hash_scheme")) DBI::dbExecute(con, "ALTER TABLE prov_materializations ADD COLUMN output_hash_scheme TEXT;")
 
+  invisible(TRUE)
+}
+
+.wb_migrate_provenance_identity_schemes_locked <- function(con) {
+  .wb_migrate_provenance_tables_locked(con)
+  legacy <- unname(.wb_identity_schemes()[["legacy"]])
+  DBI::dbExecute(con, "UPDATE prov_runs SET run_hash_scheme=? WHERE run_hash_scheme IS NULL OR run_hash_scheme='';", params=list(legacy))
+  DBI::dbExecute(con, "UPDATE prov_runs SET contract_hash_scheme=? WHERE contract_hash IS NOT NULL AND contract_hash<>'' AND (contract_hash_scheme IS NULL OR contract_hash_scheme='');", params=list(legacy))
+  DBI::dbExecute(con, "UPDATE prov_run_outputs SET output_hash_scheme=? WHERE output_hash_scheme IS NULL OR output_hash_scheme='';", params=list(legacy))
+  DBI::dbExecute(con, "UPDATE prov_run_outputs SET structural_fingerprint_scheme=? WHERE structural_fingerprint IS NOT NULL AND structural_fingerprint<>'' AND (structural_fingerprint_scheme IS NULL OR structural_fingerprint_scheme='');", params=list(legacy))
+  DBI::dbExecute(con, "UPDATE prov_materializations SET output_hash_scheme=? WHERE output_hash_scheme IS NULL OR output_hash_scheme='';", params=list(legacy))
   invisible(TRUE)
 }
 
@@ -1077,8 +1187,8 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
 
       DBI::dbExecute(
         con,
-        "INSERT INTO prov_runs(snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, op_version, runtime_fingerprint_json, contract_json, contract_hash)
-         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+        "INSERT INTO prov_runs(snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, op_version, runtime_fingerprint_json, contract_json, contract_hash, run_hash_scheme, contract_hash_scheme)
+         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
         params = list(
           sid,
           as.character(run$run_id),
@@ -1093,7 +1203,9 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           "1",
           as.character(jsonlite::toJSON(utils::modifyList(.wb_prov_runtime_fingerprint(run$op_name), runtime_fingerprint %||% list()), auto_unbox = TRUE, null = "null")),
           as.character(contract_json),
-          as.character(.wb_prov_contract_hash(contract_json))
+          as.character(.wb_prov_contract_hash(contract_json)),
+          unname(.wb_identity_schemes()[["run"]]),
+          unname(.wb_identity_schemes()[["contract"]])
         )
       )
 
@@ -1171,12 +1283,13 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
 
           DBI::dbExecute(
             con,
-            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, materialization_class, materialization_path, structural_fingerprint, content_sha256, verification_level, verification_status, replay_equivalence_policy, replay_equivalence_reference, replay_equivalence_status, content_identity_scheme)
-             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+            "INSERT INTO prov_run_outputs(snapshot_id, run_id, output_name, primitive_kind, output_hash, artifact_id, materialization_class, materialization_path, structural_fingerprint, content_sha256, verification_level, verification_status, replay_equivalence_policy, replay_equivalence_reference, replay_equivalence_status, content_identity_scheme, output_hash_scheme, structural_fingerprint_scheme)
+             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
             params = list(
               sid, as.character(rid), as.character(nm), as.character(kind), as.character(out_hash), as.character(art_id), mat_class, mat_path,
               identity$structural_fingerprint, identity$content_sha256, identity$verification_level, identity$verification_status,
-              replay_decl$policy, replay_decl$reference, replay_decl$status, identity$content_identity_scheme
+              replay_decl$policy, replay_decl$reference, replay_decl$status, identity$content_identity_scheme,
+              unname(.wb_identity_schemes()[["structural"]]), unname(.wb_identity_schemes()[["structural"]])
             )
           )
           primitive_binding <- .wb_prov_primitive_entity_binding(prim)
@@ -1226,7 +1339,7 @@ wb_prov_list_heads <- function(bundle) {
 #'   is used.
 #'
 #' @return A named list with `snapshot_id`, `head_run_ids`, `nodes`, and
-#'   `edges`.
+#'   `edges`. Persisted output identity schemes are retained in output payloads.
 #'
 #' @export
 wb_prov_dag <- function(bundle, snapshot_id = NULL) {
@@ -1344,6 +1457,7 @@ wb_prov_dag <- function(bundle, snapshot_id = NULL) {
 #'   is used.
 #'
 #' @return A named list with `run`, `parents`, `children`, and `outputs`.
+#'   The run and output records expose their explicit persisted identity schemes.
 #'
 #' @export
 wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
@@ -1364,10 +1478,14 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
 
   has_sym <- .wb_db_has_column(con, "prov_runs", "symbolic_inputs_json")
   has_exec <- .wb_db_has_column(con, "prov_runs", "execution_inputs_json")
+  has_run_scheme <- .wb_db_has_column(con, "prov_runs", "run_hash_scheme")
+  has_contract_scheme <- .wb_db_has_column(con, "prov_runs", "contract_hash_scheme")
   rr <- DBI::dbGetQuery(
     con,
     paste0(
       "SELECT run_id, op_name, created_at, notes, params_json, inputs_json, op_version, runtime_fingerprint_json, contract_json, contract_hash, ",
+      if (has_run_scheme) "run_hash_scheme" else "NULL AS run_hash_scheme", ", ",
+      if (has_contract_scheme) "contract_hash_scheme" else "NULL AS contract_hash_scheme", ", ",
       if (has_sym) "symbolic_inputs_json" else "NULL AS symbolic_inputs_json",
       ", ",
       if (has_exec) "execution_inputs_json" else "NULL AS execution_inputs_json",
@@ -1425,10 +1543,12 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
       symbolic_inputs = jsonlite::fromJSON(as.character(rr$symbolic_inputs_json[1] %||% "null"), simplifyVector = FALSE),
       execution_inputs = jsonlite::fromJSON(as.character(rr$execution_inputs_json[1] %||% "null"), simplifyVector = FALSE),
       run_hash = as.character(rr$run_hash[1]),
+      run_hash_scheme = as.character(rr$run_hash_scheme[1] %||% NA_character_),
       operation_version = as.character(rr$op_version[1] %||% NA_character_),
       runtime_fingerprint = jsonlite::fromJSON(as.character(rr$runtime_fingerprint_json[1] %||% "null"), simplifyVector = FALSE),
       contract = jsonlite::fromJSON(as.character(rr$contract_json[1] %||% "null"), simplifyVector = FALSE),
-      contract_hash = as.character(rr$contract_hash[1] %||% NA_character_)
+      contract_hash = as.character(rr$contract_hash[1] %||% NA_character_),
+      contract_hash_scheme = as.character(rr$contract_hash_scheme[1] %||% NA_character_)
     ),
     parents = parents,
     children = children,

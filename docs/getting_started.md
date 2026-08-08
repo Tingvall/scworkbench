@@ -7,7 +7,7 @@ contracts and links only to maintained material.
 - **Bundle concepts:** [bundle_concepts.md](bundle_concepts.md).
 - **Ingestion:** [ingestion.md](ingestion.md).
 - **Sessions and operations:** [sessions_and_ops.md](sessions_and_ops.md).
-- **Promotion and provenance:** [promotion_and_provenance.md](promotion_and_provenance.md).
+- **Promotion and provenance:** [promotion_and_provenance.md](promotion_and_provenance.md) and [provenance_identity_schemes.md](provenance_identity_schemes.md).
 - **Recipient audit:** [recipient_audit.md](recipient_audit.md).
 - **Source declarations:** [source_ingestion.md](source_ingestion.md).
 - **Python bridge:** [python_bridge.md](python_bridge.md) and the installed protocol schema at `system.file("protocol/pybench-op-v2.schema.json", package = "scworkbench")`.

@@ -2,7 +2,7 @@
 # Component schema helpers remain compatibility shims for callers inside the
 # package, but only this file orchestrates schema creation and upgrades.
 
-.wb_bundle_schema_version <- function() 5L
+.wb_bundle_schema_version <- function() 6L
 
 .wb_bundle_schema_migrations <- function() {
   list(
@@ -10,7 +10,8 @@
     list(version = 2L, id = "002_referential_integrity", apply = .wb_schema_migration_002),
     list(version = 3L, id = "003_lifecycle_backfill", apply = .wb_schema_migration_003),
     list(version = 4L, id = "004_complete_space_foreign_keys", apply = .wb_schema_migration_004),
-    list(version = 5L, id = "005_metadata_field_registry", apply = .wb_schema_migration_005)
+    list(version = 5L, id = "005_metadata_field_registry", apply = .wb_schema_migration_005),
+    list(version = 6L, id = "006_provenance_identity_schemes", apply = .wb_schema_migration_006)
   )
 }
 
@@ -138,6 +139,11 @@
   .wb_ensure_space_models_table(con)
   .wb_ensure_registry_mutation_events_table(con)
   .wb_ensure_prov_registry_mutations_table(con)
+  invisible(TRUE)
+}
+
+.wb_schema_migration_006 <- function(con, bundle_dir = NULL) {
+  .wb_migrate_provenance_identity_schemes_locked(con)
   invisible(TRUE)
 }
 

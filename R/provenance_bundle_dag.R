@@ -453,8 +453,8 @@ wb_prov_bundle_dag <- function(bundle,
 
   runs <- DBI::dbGetQuery(
     con,
-    "SELECT snapshot_id, run_id, op_name, created_at, notes, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash
-     FROM prov_runs ORDER BY created_at, snapshot_id, run_id;"
+    paste0("SELECT snapshot_id, run_id, op_name, created_at, notes, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, ",
+           .wb_prov_run_identity_select(con)," FROM prov_runs ORDER BY created_at, snapshot_id, run_id;")
   )
   if (has_sid_filter && nrow(runs)) {
     runs <- runs[as.character(runs$snapshot_id) %in% sid_filter, , drop = FALSE]

@@ -66,7 +66,7 @@
 }
 
 .wb_kg_edge_id <- function(source_id, target_id, edge_type, source = "scworkbench") {
-  paste("edge", .wb_hash_text(c(source_id, target_id, edge_type, source)), sep = ":")
+  .wb_identifier_sha256(c(source_id, target_id, edge_type, source), "edge")
 }
 
 .wb_kg_edge <- function(source_id, target_id, edge_type, source,
@@ -365,7 +365,7 @@ wb_kg_bundle_graph <- function(bundle) {
 
   con <- bundle$con
   if (.wb_table_exists(con, "prov_runs")) {
-    runs <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json FROM prov_runs ORDER BY snapshot_id, run_id;")
+    runs <- DBI::dbGetQuery(con, paste0("SELECT snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, contract_hash, ",.wb_prov_run_identity_select(con)," FROM prov_runs ORDER BY snapshot_id, run_id;"))
     if (nrow(runs)) {
       ops <- unique(as.character(runs$op_name %||% character(0)))
       ops <- ops[!is.na(ops) & nzchar(ops)]
@@ -511,10 +511,11 @@ wb_kg_provenance_graph <- function(bundle) {
 
 .wb_kg_catalog_hashes <- function() {
   list(
-    semantic_catalog = .wb_hash_text(.wb_kg_json(wb_semantic_catalog())),
-    semantic_compatibility_graph = .wb_hash_text(.wb_kg_json(wb_semantic_compatibility_graph())),
-    parameter_semantics = .wb_hash_text(.wb_kg_json(wb_parameter_semantics_catalog())),
-    recipe_semantics = .wb_hash_text(.wb_kg_json(wb_recipe_semantics_catalog()))
+    scheme = unname(.wb_identity_schemes()[["identifier"]]),
+    semantic_catalog = .wb_identifier_sha256(.wb_kg_json(wb_semantic_catalog()), "semantic_catalog"),
+    semantic_compatibility_graph = .wb_identifier_sha256(.wb_kg_json(wb_semantic_compatibility_graph()), "semantic_compatibility_graph"),
+    parameter_semantics = .wb_identifier_sha256(.wb_kg_json(wb_parameter_semantics_catalog()), "parameter_semantics"),
+    recipe_semantics = .wb_identifier_sha256(.wb_kg_json(wb_recipe_semantics_catalog()), "recipe_semantics")
   )
 }
 

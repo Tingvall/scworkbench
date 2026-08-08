@@ -28,6 +28,46 @@
   invisible(nrow(rows))
 }
 
+.wb_stage_copy_fragment_memberships <- function(from_con, to_con, fragments) {
+  if (!nrow(fragments)) return(invisible(0L))
+  copied <- 0L
+  for (i in seq_len(nrow(fragments))) {
+    fragment_id <- as.character(fragments$fragment_id[[i]])
+    declared_features <- as.character(jsonlite::fromJSON(fragments$feature_ids_json[[i]]))
+    declared_cells <- as.character(jsonlite::fromJSON(fragments$cell_ids_json[[i]]))
+    source_features <- as.character(DBI::dbGetQuery(
+      from_con,
+      "SELECT feature_id FROM matrix_fragment_features WHERE fragment_id = ?;",
+      params = list(fragment_id)
+    )$feature_id)
+    source_cells <- as.character(DBI::dbGetQuery(
+      from_con,
+      "SELECT cell_id FROM matrix_fragment_cells WHERE fragment_id = ?;",
+      params = list(fragment_id)
+    )$cell_id)
+    .wb_assert(length(source_features) == length(declared_features) &&
+                 setequal(source_features, declared_features), paste0(
+      "Staged matrix fragment feature registry contradicts its declared identities: ", fragment_id
+    ))
+    .wb_assert(length(source_cells) == length(declared_cells) &&
+                 setequal(source_cells, declared_cells), paste0(
+      "Staged matrix fragment cell registry contradicts its declared identities: ", fragment_id
+    ))
+    .wb_db_append_chunked(to_con, "matrix_fragment_features", data.frame(
+      fragment_id = rep(fragment_id, length(declared_features)),
+      feature_id = declared_features,
+      stringsAsFactors = FALSE
+    ))
+    .wb_db_append_chunked(to_con, "matrix_fragment_cells", data.frame(
+      fragment_id = rep(fragment_id, length(declared_cells)),
+      cell_id = declared_cells,
+      stringsAsFactors = FALSE
+    ))
+    copied <- copied + length(declared_features) + length(declared_cells)
+  }
+  invisible(copied)
+}
+
 .wb_prepare_staged_payload <- function(staging_bundle, workspace, rel_path) {
   rel_path <- as.character(rel_path %||% "")[1]
   status <- .wb_path_status(staging_bundle$dir, rel_path, expected_type="either",
@@ -116,10 +156,7 @@
   .wb_copy_db_rows(src, dst, "features", "matrix_id = ?", list(matrix_id))
   .wb_copy_db_rows(src, dst, "matrix_fragments", "matrix_id = ?", list(matrix_id))
   if (nrow(frags)) {
-    ids <- as.character(frags$fragment_id)
-    q <- paste(rep("?", length(ids)), collapse = ",")
-    .wb_copy_db_rows(src, dst, "matrix_fragment_cells", paste0("fragment_id IN (", q, ")"), as.list(ids))
-    .wb_copy_db_rows(src, dst, "matrix_fragment_features", paste0("fragment_id IN (", q, ")"), as.list(ids))
+    .wb_stage_copy_fragment_memberships(src, dst, frags)
   }
   invisible(TRUE)
 }
@@ -230,6 +267,7 @@
   DBI::dbGetQuery(
     bundle$con,
     paste0("SELECT pm.path, pm.primitive_kind, pm.output_hash, pm.content_sha256, ",
+     if (.wb_db_has_column(bundle$con, "prov_materializations", "output_hash_scheme")) "pm.output_hash_scheme" else "NULL AS output_hash_scheme", ", ",
      if (.wb_db_has_column(bundle$con, "prov_materializations", "content_identity_scheme")) "pm.content_identity_scheme" else "NULL AS content_identity_scheme", "\n",
      "FROM prov_materializations pm\n",
      "INNER JOIN prov_commits pc ON pc.commit_id = pm.commit_id\n",
@@ -263,11 +301,13 @@
         ))
         primitive_kind <- as.character(prior$primitive_kind[1])
         output_hash <- as.character(prior$output_hash[1])
+        output_hash_scheme <- as.character(prior$output_hash_scheme[1] %||% unname(.wb_identity_schemes()[["legacy"]]))
       } else {
         prim <- .wb_materialization_primitive(workspace, prim)
         saveRDS(prim, .wb_promotion_workspace_path(workspace, rel), version = 3)
         primitive_kind <- as.character(prim$kind)
-        output_hash <- .wb_hash_text(serialize(prim, NULL, version = 3))
+        output_hash <- .wb_prov_materialization_hash(prim)
+        output_hash_scheme <- unname(.wb_identity_schemes()[["materialization"]])
       }
       content_sha256 <- .wb_prov_sha256_file(.wb_promotion_workspace_path(workspace, rel))
       i <- i + 1L
@@ -275,6 +315,7 @@
         commit_id = commit_id, run_id = rid, output_name = nm,
         primitive_kind = primitive_kind, path = rel,
         output_hash = output_hash,
+        output_hash_scheme = output_hash_scheme,
         content_sha256 = content_sha256,
         content_identity_scheme = unname(.wb_content_identity_schemes()[["raw_file"]]),
         stringsAsFactors = FALSE

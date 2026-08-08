@@ -57,6 +57,11 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
   states with `wb_entity_lifecycle()` and see `docs/entity_lifecycle.md`.
   Promotion atomically converts selected ephemeral work to a current,
   content-identified durable claim; terminal history is never revived.
+  Content SHA-256, structural fingerprints, run/contract integrity, promotion
+  materialization compatibility, and graph identifiers are distinct versioned
+  identity schemes. Mixed historical/current provenance remains valid after
+  migration without rewriting legacy hashes. See
+  `docs/provenance_identity_schemes.md`.
 
 10. Contract-Owned Friendships
 - If two objects have a stable analytical relationship, encode it as an engine

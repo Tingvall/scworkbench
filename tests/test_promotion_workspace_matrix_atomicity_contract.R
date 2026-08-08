@@ -57,6 +57,53 @@ test_promotion_workspace_matrix_atomicity_contract <- function() {
   TRUE
 }
 
+test_promotion_matrix_fragment_membership_order_contract <- function() {
+  if (!requireNamespace("BPCells", quietly = TRUE)) {
+    return(contract_test_skip("BPCells is not installed."))
+  }
+
+  root <- tempfile("scwb_promotion_fragment_order_")
+  b <- wb_init_bundle(root, overwrite = TRUE)
+  on.exit({
+    try(wb_close_bundle(b), silent = TRUE)
+    unlink(root, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+
+  cells <- c("cell_2", "cell_10", "cell_1", "cell_z", "cell_a", "cell_m",
+             "cell_20", "cell_3", "cell_y", "cell_b", "cell_n", "cell_11")
+  features <- c("gene_z", "gene_a", "gene_10", "gene_2")
+  counts <- matrix(seq_len(length(cells) * length(features)), nrow = length(features),
+                   dimnames = list(features, cells))
+  wb_define_cells(b, cells)
+  wb_attach_matrix(b, matrix_id = "RNA_counts", mat = counts, feature_type = "gene")
+  staged <- wb_session_run_op(
+    wb_session_new(), b, "matrix_log_normalize",
+    inputs = list(matrix = "RNA_counts", output_matrix_id = "RNA_log", scale_factor = 1000)
+  )
+  promoted <- wb_session_promote_current(b, staged$session, outputs = "summary")
+  stopifnot(all(promoted$promoted$status == "ok"), "RNA_log" %in% wb_matrices(b)$matrix_id)
+
+  fragments <- DBI::dbGetQuery(
+    b$con,
+    "SELECT fragment_id, feature_ids_json, cell_ids_json FROM matrix_fragments WHERE matrix_id='RNA_log' ORDER BY rowid;"
+  )
+  stopifnot(nrow(fragments) == 1L)
+  normalized_features <- as.character(DBI::dbGetQuery(
+    b$con, "SELECT feature_id FROM matrix_fragment_features WHERE fragment_id=? ORDER BY rowid;",
+    params = list(fragments$fragment_id[[1]])
+  )$feature_id)
+  normalized_cells <- as.character(DBI::dbGetQuery(
+    b$con, "SELECT cell_id FROM matrix_fragment_cells WHERE fragment_id=? ORDER BY rowid;",
+    params = list(fragments$fragment_id[[1]])
+  )$cell_id)
+  stopifnot(
+    identical(normalized_features, as.character(jsonlite::fromJSON(fragments$feature_ids_json[[1]]))),
+    identical(normalized_cells, as.character(jsonlite::fromJSON(fragments$cell_ids_json[[1]]))),
+    isTRUE(wb_bundle_validation_report(root, "content")$ok)
+  )
+  TRUE
+}
+
 test_promotion_workspace_mixed_matrix_space_atomicity_contract <- function() {
   required <- c("BPCells", "Matrix", "irlba", "uwot")
   if (!all(vapply(required, requireNamespace, logical(1), quietly = TRUE))) {

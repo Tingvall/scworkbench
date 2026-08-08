@@ -26,3 +26,6 @@
 - UMAP replay now declares cell-aligned embedding validity separately from raw
   coordinate and serialized-model identity, avoiding false exact-replay claims
   across fresh processes.
+- Provenance run, contract, structural, and materialization identities now use
+  explicit SHA-256 schemes, eliminating large-payload integer overflow while
+  retaining bounded validation of already-persisted legacy identities.

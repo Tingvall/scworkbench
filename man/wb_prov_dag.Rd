@@ -14,7 +14,7 @@ is used.}
 }
 \value{
 A named list with \code{snapshot_id}, \code{head_run_ids}, \code{nodes}, and
-\code{edges}.
+\code{edges}. Persisted output identity schemes are retained in output payloads.
 }
 \description{
 Rebuild the persisted run/artifact DAG for one provenance snapshot.

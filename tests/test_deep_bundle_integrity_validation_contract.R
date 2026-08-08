@@ -96,7 +96,10 @@ test_deep_bundle_integrity_validation_contract <- function() {
             identical(recipient$pre_validation_fingerprint, recipient$post_validation_fingerprint),
             isTRUE(wb_validate_bundle(base, read_only = TRUE)))
 
-  expect <- function(code, codes) stopifnot(code %in% codes)
+  expect <- function(code, codes) {
+    if (!code %in% codes) stop("Expected diagnostic ",code,"; observed: ",paste(sort(unique(codes)),collapse=", "),call.=FALSE)
+    invisible(TRUE)
+  }
   manifest_codes <- .deep_validation_mutant(base, root, "manifest_mismatch", function(p) {
     man <- jsonlite::read_json(file.path(p, "manifest.json"), simplifyVector = FALSE)
     man$counts$n_cells <- as.integer(man$counts$n_cells) + 1L
@@ -317,7 +320,10 @@ test_deep_bundle_integrity_validation_closure_contract <- function() {
     "DURABLE_CONTENT_IDENTITY_MISSING", "DURABLE_CONTENT_IDENTITY_LEGACY_UNVERIFIABLE"
   )))
 
-  expect <- function(code, codes) stopifnot(code %in% codes)
+  expect <- function(code, codes) {
+    if (!code %in% codes) stop("Expected diagnostic ",code,"; observed: ",paste(sort(unique(codes)),collapse=", "),call.=FALSE)
+    invisible(TRUE)
+  }
   run_mutant <- function(label, mutate) .deep_validation_mutant(base, root, label, mutate)
 
   expect("RUN_HASH_MISMATCH", run_mutant("params_tamper", function(path) {
@@ -332,10 +338,10 @@ test_deep_bundle_integrity_validation_closure_contract <- function() {
   expect("RUN_HASH_MISMATCH", run_mutant("symbolic_tamper", function(path) {
     .deep_validation_db(path, "UPDATE prov_runs SET symbolic_inputs_json=? WHERE rowid=(SELECT rowid FROM prov_runs LIMIT 1);", params = list('{"changed":true}'))
   }))
-  expect("RUN_HASH_MISMATCH", run_mutant("stale_run_hash", function(path) {
+  expect("INTEGRITY_DIGEST_SCHEME_CONTRADICTION", run_mutant("stale_run_hash", function(path) {
     .deep_validation_db(path, "UPDATE prov_runs SET run_hash='stale' WHERE rowid=(SELECT rowid FROM prov_runs LIMIT 1);")
   }))
-  expect("RUN_CONTRACT_HASH_MISMATCH", run_mutant("stale_contract_hash", function(path) {
+  expect("INTEGRITY_DIGEST_SCHEME_CONTRADICTION", run_mutant("stale_contract_hash", function(path) {
     .deep_validation_db(path, "UPDATE prov_runs SET contract_hash='stale' WHERE rowid=(SELECT rowid FROM prov_runs LIMIT 1);")
   }))
   expect("RUN_TYPED_INPUT_BINDING_MISSING", run_mutant("dangling_typed_input", function(path) {

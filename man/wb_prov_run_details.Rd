@@ -16,6 +16,7 @@ is used.}
 }
 \value{
 A named list with \code{run}, \code{parents}, \code{children}, and \code{outputs}.
+The run and output records expose their explicit persisted identity schemes.
 }
 \description{
 Read one persisted run plus its local lineage and outputs from a provenance

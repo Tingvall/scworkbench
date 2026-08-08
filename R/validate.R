@@ -177,6 +177,28 @@ wb_bundle_validation_report <- function(bundle_dir,
     }
     "current"
   }
+  integrity_scheme <- function(value, recorded_scheme, current_scheme, entity_kind, entity_id, table, field) {
+    value <- tolower(as.character(value %||% "")[1])
+    recorded <- as.character(recorded_scheme %||% "")[1]
+    legacy <- unname(.wb_identity_schemes()[["legacy"]])
+    if (is.na(recorded) || !nzchar(recorded)) {
+      if (grepl("^[0-9a-f]{16}$", value)) recorded <- legacy
+      else {
+        add("INTEGRITY_IDENTITY_SCHEME_MISSING",check_class="provenance",entity_kind=entity_kind,entity_id=entity_id,table=table,expected=current_scheme,observed="missing",message=paste0(field," has no declared identity scheme."))
+        return(NA_character_)
+      }
+    }
+    if (!recorded %in% c(legacy,current_scheme)) {
+      add("INTEGRITY_IDENTITY_SCHEME_UNSUPPORTED",check_class="provenance",entity_kind=entity_kind,entity_id=entity_id,table=table,expected=paste(c(legacy,current_scheme),collapse=","),observed=recorded,message=paste0(field," declares an unknown identity scheme."))
+      return(NA_character_)
+    }
+    pattern <- if (identical(recorded,legacy)) "^[0-9a-f]{16}$" else "^[0-9a-f]{64}$"
+    if (!grepl(pattern,value)) {
+      add("INTEGRITY_DIGEST_SCHEME_CONTRADICTION",check_class="provenance",entity_kind=entity_kind,entity_id=entity_id,table=table,expected=paste0(recorded," digest"),observed=value,message=paste0(field," is malformed for its declared identity scheme."))
+      return(NA_character_)
+    }
+    recorded
+  }
   skip <- function(check_class, minimum_level, reason) {
     skipped[nrow(skipped) + 1L, ] <<- list(check_class, minimum_level, reason)
   }
@@ -684,7 +706,7 @@ wb_bundle_validation_report <- function(bundle_dir,
       run_key <- paste(runs$snapshot_id, runs$run_id, sep = "\r")
       head_schemas <- if (has("prov_heads")) DBI::dbGetQuery(con,"SELECT snapshot_id,schema_version FROM prov_heads;") else data.frame()
       edges <- if (has("prov_run_edges")) DBI::dbGetQuery(con, "SELECT * FROM prov_run_edges;") else data.frame()
-      output_index <- if (has("prov_run_outputs")) DBI::dbGetQuery(con, "SELECT snapshot_id,run_id,output_name,artifact_id FROM prov_run_outputs;") else data.frame()
+      output_index <- if (has("prov_run_outputs")) DBI::dbGetQuery(con, "SELECT * FROM prov_run_outputs;") else data.frame()
       binding_index <- if (has("prov_run_entity_bindings")) DBI::dbGetQuery(con, "SELECT snapshot_id,run_id,direction,binding_name,entity_kind,entity_id FROM prov_run_entity_bindings;") else data.frame()
       artifact_ids <- if (has("artifacts")) as.character(DBI::dbGetQuery(con,"SELECT artifact_id FROM artifacts;")$artifact_id) else character()
       json_fields <- c(
@@ -699,7 +721,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         sid <- as.character(runs$snapshot_id[i]); rid <- as.character(runs$run_id[i]); run_entity <- paste(sid,rid,sep="/")
         schema_version <- if (nrow(head_schemas) && any(head_schemas$snapshot_id==sid)) as.character(head_schemas$schema_version[match(sid,head_schemas$snapshot_id)]) else NA_character_
         current_contract <- identical(schema_version,.wb_prov_schema_version())
-        typed_contract <- schema_version %in% c("1.7","1.8")
+        typed_contract <- schema_version %in% c("1.7","1.8","1.9")
         parsed <- list(); malformed <- character()
         for (field in names(json_fields)) {
           txt <- if (field %in% names(runs)) as.character(runs[[field]][i] %||% "")[1] else ""
@@ -726,15 +748,23 @@ wb_bundle_validation_report <- function(bundle_dir,
         }
         else if (!identical(op_version,"1")) add("RUN_OPERATION_VERSION_UNSUPPORTED",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected="1",observed=op_version,message="Persisted run operation-contract version is unsupported.")
         if (all(c("params_json","inputs_json","symbolic_inputs_json","execution_inputs_json") %in% names(runs))) {
-          expected_run_hash <- .wb_prov_run_hash(op_name,runs$params_json[i],runs$inputs_json[i],runs$symbolic_inputs_json[i],runs$execution_inputs_json[i])
           observed_run_hash <- as.character(runs$run_hash[i] %||% "")[1]
-          if (!identical(observed_run_hash,expected_run_hash)) add("RUN_HASH_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=expected_run_hash,observed=observed_run_hash,message="Persisted run fields no longer match the producer run_hash contract.")
+          observed_run_scheme <- if ("run_hash_scheme" %in% names(runs)) runs$run_hash_scheme[i] else NA_character_
+          run_scheme <- integrity_scheme(observed_run_hash,observed_run_scheme,unname(.wb_identity_schemes()[["run"]]),"run",run_entity,"prov_runs","run_hash")
+          if (!is.na(run_scheme)) {
+            expected_run_hash <- .wb_prov_run_hash(op_name,runs$params_json[i],runs$inputs_json[i],runs$symbolic_inputs_json[i],runs$execution_inputs_json[i],scheme=run_scheme)
+            if (!identical(tolower(observed_run_hash),tolower(expected_run_hash))) add("RUN_HASH_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=expected_run_hash,observed=observed_run_hash,message="Persisted run fields no longer match the producer run_hash contract.")
+          }
         }
         contract_txt <- as.character(runs$contract_json[i] %||% "")[1]
         contract_hash <- as.character(runs$contract_hash[i] %||% "")[1]
         if (nzchar(contract_txt) && !is.na(contract_txt)) {
-          expected_contract_hash <- .wb_prov_contract_hash(contract_txt)
-          if (!nzchar(contract_hash) || !identical(contract_hash,expected_contract_hash)) add("RUN_CONTRACT_HASH_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=expected_contract_hash,observed=contract_hash,message="Persisted operation contract no longer matches contract_hash.")
+          observed_contract_scheme <- if ("contract_hash_scheme" %in% names(runs)) runs$contract_hash_scheme[i] else NA_character_
+          contract_scheme <- integrity_scheme(contract_hash,observed_contract_scheme,unname(.wb_identity_schemes()[["contract"]]),"run",run_entity,"prov_runs","contract_hash")
+          if (!is.na(contract_scheme)) {
+            expected_contract_hash <- .wb_prov_contract_hash(contract_txt,scheme=contract_scheme)
+            if (!identical(tolower(contract_hash),tolower(expected_contract_hash))) add("RUN_CONTRACT_HASH_MISMATCH",check_class="provenance",entity_kind="run",entity_id=run_entity,table="prov_runs",expected=expected_contract_hash,observed=contract_hash,message="Persisted operation contract no longer matches contract_hash.")
+          }
           contract <- parsed$contract_json
           contract_op <- as.character(contract$interface$op_name %||% "")[1]
           contract_version <- as.character(contract$version %||% "")[1]
@@ -905,6 +935,19 @@ wb_bundle_validation_report <- function(bundle_dir,
           }
         }
       }
+      if (nrow(output_index)) for (i in seq_len(nrow(output_index))) {
+        id <- paste(output_index$snapshot_id[i],output_index$run_id[i],output_index$output_name[i],sep="/")
+        output_hash <- as.character(output_index$output_hash[i] %||% "")[1]
+        output_scheme <- if ("output_hash_scheme" %in% names(output_index)) output_index$output_hash_scheme[i] else NA_character_
+        structural <- if ("structural_fingerprint" %in% names(output_index) && .wb_validation_nonempty(output_index$structural_fingerprint[i])) as.character(output_index$structural_fingerprint[i])[1] else output_hash
+        structural_scheme <- if ("structural_fingerprint_scheme" %in% names(output_index)) output_index$structural_fingerprint_scheme[i] else NA_character_
+        resolved_output_scheme <- integrity_scheme(output_hash,output_scheme,unname(.wb_identity_schemes()[["structural"]]),"run_output",id,"prov_run_outputs","output_hash")
+        resolved_structural_scheme <- integrity_scheme(structural,structural_scheme,unname(.wb_identity_schemes()[["structural"]]),"run_output",id,"prov_run_outputs","structural_fingerprint")
+        if (!is.na(resolved_output_scheme) && !is.na(resolved_structural_scheme) &&
+            (!identical(resolved_output_scheme,resolved_structural_scheme) || !identical(tolower(output_hash),tolower(structural)))) {
+          add("RUN_OUTPUT_STRUCTURAL_IDENTITY_CONTRADICTION",check_class="provenance",entity_kind="run_output",entity_id=id,table="prov_run_outputs",expected=paste(resolved_structural_scheme,structural),observed=paste(resolved_output_scheme,output_hash),message="Compatibility output_hash contradicts the declared structural fingerprint identity.")
+        }
+      }
       if (nrow(commits)) for (i in seq_len(nrow(commits))) {
         state <- as.character(commits$state[i]); if (!state %in% c("complete", "failed")) add("INCOMPLETE_COMMIT", check_class = "provenance", entity_kind = "commit", entity_id = commits$commit_id[i], table = "prov_commits", expected = "complete or failed", observed = state, message = "A provenance commit is not finalized.")
       }
@@ -915,6 +958,16 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (!cid %in% commit_ids) add("MATERIALIZATION_DANGLING_COMMIT", check_class = "provenance", entity_kind = "materialization", entity_id = id, table = "prov_materializations", observed = cid, message = "Materialization references a missing commit.")
           if (!as.character(mats$run_id[i]) %in% as.character(runs$run_id)) add("MATERIALIZATION_DANGLING_RUN",check_class="provenance",entity_kind="materialization",entity_id=id,table="prov_materializations",observed=mats$run_id[i],message="Materialization references a missing provenance run.")
           checked <- .wb_validation_path(root, mats$path[i], "either")
+          materialization_hash <- as.character(mats$output_hash[i] %||% "")[1]
+          materialization_scheme <- integrity_scheme(materialization_hash,if("output_hash_scheme" %in% names(mats)) mats$output_hash_scheme[i] else NA_character_,unname(.wb_identity_schemes()[["materialization"]]),"materialization",id,"prov_materializations","output_hash")
+          if (isTRUE(checked$ok) && !is.na(materialization_scheme) && file.exists(checked$absolute) && !dir.exists(checked$absolute)) {
+            prim <- tryCatch(readRDS(checked$absolute),error=function(e)e)
+            if (inherits(prim,"error")) add("MATERIALIZATION_PAYLOAD_UNREADABLE",check_class="provenance",entity_kind="materialization",entity_id=id,path=mats$path[i],observed=conditionMessage(prim),message="Materialization payload cannot be read for identity validation.")
+            else {
+              expected_materialization_hash <- if (identical(materialization_scheme,unname(.wb_identity_schemes()[["legacy"]]))) .wb_hash_text_legacy_v1(serialize(prim,NULL,version=3)) else .wb_prov_materialization_hash(prim)
+              if (!identical(tolower(materialization_hash),tolower(expected_materialization_hash))) add("MATERIALIZATION_OUTPUT_HASH_MISMATCH",check_class="provenance",entity_kind="materialization",entity_id=id,path=mats$path[i],expected=expected_materialization_hash,observed=materialization_hash,message="Materialization payload contradicts its declared output identity.")
+            }
+          }
           if (isTRUE(checked$ok) && "content_sha256" %in% names(mats)) {
             sha <- as.character(mats$content_sha256[i] %||% "")[1]
             if (.wb_validation_nonempty(sha)) {

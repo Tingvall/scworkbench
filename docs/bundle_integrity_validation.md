@@ -58,6 +58,15 @@ matrix, space, model, artifact, and provenance-bound registry entity as
 `DURABLE_CONTENT_IDENTITY_MISSING`; unavailable non-bundled source inputs retain
 their separate warning-only exception.
 
+Run/contract integrity, structural fingerprints, materialization compatibility,
+and graph/display identifiers use separate explicit schemes documented in
+`provenance_identity_schemes.md`. Current integrity values are full SHA-256.
+Schema migration 6 tags existing 16-hex rows as
+`scworkbench.identity.legacy-hash-text16.v1` without rewriting them; current and
+legacy snapshots may coexist. Validation recomputes each value under its
+declared scheme and fails closed on missing current metadata, unknown schemes,
+malformed digests, or digest/scheme contradictions.
+
 Path-only validation fails closed with
 `SQLITE_ACTIVE_WAL_SNAPSHOT_REQUIRED` when a non-empty WAL is active. Even a
 SQLite `mode=ro` connection can change shared-memory lock bytes, so the
