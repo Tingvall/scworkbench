@@ -870,16 +870,9 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (kind == "model_ref") {
             external_model_input <- identical(as.character(bindings$direction[i]),"input") && .wb_validation_nonempty(bound_path) && .wb_path_is_absolute(bound_path)
             if (external_model_input) add("LEGACY_EXTERNAL_MODEL_REFERENCE", severity="warning", check_class="deserialization_trust", entity_kind="model_ref", entity_id=id, path=bound_path, observed="nonportable external path not inspected", message="External model input is explicit legacy state; recipient validation did not access or deserialize it.")
-            present <- if (external_model_input) TRUE else .wb_validation_nonempty(bound_path) && isTRUE(.wb_validation_path(root, bound_path, "either")$ok)
-            bits <- strsplit(id, "|", fixed = TRUE)[[1]]
-            if (!present && length(bits) >= 2L && has("artifact_model_ref")) {
-              refs <- DBI::dbGetQuery(con, "SELECT model_path FROM artifact_model_ref WHERE engine=? AND model_space_id=?;", params=list(bits[1],bits[2]))
-              present <- nrow(refs) && any(vapply(refs$model_path, function(p) isTRUE(.wb_validation_path(root,p,"either")$ok), logical(1)))
-            }
-            if (!present && length(bits) >= 2L && has("space_models")) {
-              refs <- DBI::dbGetQuery(con, "SELECT model_path FROM space_models WHERE space_id=?;", params=list(bits[2]))
-              present <- nrow(refs) && any(vapply(refs$model_path, function(p) isTRUE(.wb_validation_path(root,p,"either")$ok), logical(1)))
-            }
+            resolved_model <- if (external_model_input) NULL else
+              .wb_model_ref_physical_presence(bundle, id, allow_pending = FALSE)
+            present <- if (external_model_input) TRUE else isTRUE(resolved_model$present)
           }
           if (!present && kind != "registry") add("PROVENANCE_DANGLING_ENTITY_BINDING", check_class = "provenance", entity_kind = kind, entity_id = id, table = "prov_run_entity_bindings", observed = "durable entity missing", message = "Provenance binding has no durable payload; ordinary retraction/rejection tombstones do not authorize deletion.")
           recorded_hash <- as.character(bindings$content_hash[i] %||% "")[1]
@@ -896,14 +889,9 @@ wb_bundle_validation_report <- function(bundle_dir,
                 identities[[if(length(hit)) hit[1] else 1L]]
               } else if (kind %in% c("model", "model_ref")) {
                 candidate <- ""
-                bits <- strsplit(id,"|",fixed=TRUE)[[1]]
-                if (kind == "model_ref" && length(bits)>=2L && has("artifact_model_ref")) {
-                  mr <- DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE engine=? AND model_space_id=? ORDER BY artifact_id;",params=list(bits[1],bits[2]))
-                  if (nrow(mr)) candidate <- as.character(mr$model_path[1])
-                }
-                if (!.wb_validation_nonempty(candidate) && kind == "model_ref" && length(bits)>=2L && has("space_models")) {
-                  mr <- DBI::dbGetQuery(con,"SELECT model_path FROM space_models WHERE space_id=?;",params=list(bits[2]))
-                  if (nrow(mr)) candidate <- as.character(mr$model_path[1])
+                if (kind == "model_ref") {
+                  resolved <- .wb_model_ref_physical_presence(bundle, id, allow_pending = FALSE)
+                  if (isTRUE(resolved$present)) candidate <- as.character(resolved$model_path)
                 }
                 if (!.wb_validation_nonempty(candidate) && kind == "model" && has("space_models")) {
                   mr <- DBI::dbGetQuery(con, "SELECT model_path FROM space_models WHERE space_id=?;", params=list(id))
@@ -1072,8 +1060,16 @@ wb_bundle_validation_report <- function(bundle_dir,
         for (i in seq_len(nrow(life))) {
           kind <- as.character(life$entity_kind[i]); id <- as.character(life$entity_id[i]); state <- as.character(life$lifecycle_state[i]); present <- any(physical$entity_kind==kind & physical$entity_id==id); bound <- identical(as.integer(life$provenance_bound[i]),1L)
           if (kind=="model_ref") {
-            bits <- strsplit(id,"|",fixed=TRUE)[[1]]
-            present <- length(bits)>=2L && any(physical$entity_kind=="model" & physical$entity_id==bits[2])
+            resolved_model <- .wb_model_ref_physical_presence(bundle, id, allow_pending = FALSE)
+            present <- isTRUE(resolved_model$present)
+            if (!present && bound) add(
+              resolved_model$code, check_class="lifecycle", entity_kind=kind,
+              entity_id=id, path=resolved_model$model_path,
+              table=if(identical(resolved_model$storage,"space_models")) "space_models" else "artifact_model_ref",
+              expected="storage-aware model_ref owner, payload, and provenance",
+              observed=resolved_model$message,
+              message=resolved_model$message
+            )
           }
           is_tomb <- nrow(tomb) && any(tomb$entity_kind==kind & tomb$entity_id==id & tomb$tombstone_state==state)
           if (!present && bound && state %in% c("current","superseded","retracted","rejected")) add("ILLEGAL_HISTORICAL_ENTITY_DELETION", check_class="lifecycle",entity_kind=kind,entity_id=id,table="entity_lifecycle",expected="provenance-bound durable historical payload",observed=state,message="A provenance-bound immutable entity payload is physically missing; retraction/rejection tombstones do not authorize deletion.")

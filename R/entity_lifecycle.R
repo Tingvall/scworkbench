@@ -21,6 +21,238 @@
   paste0(as.character(matrix_id)[1], "::", as.character(feature_set)[1])
 }
 
+.wb_model_ref_identity_parse <- function(entity_id) {
+  id <- as.character(entity_id %||% "")[1]
+  # Appending a sentinel preserves the intentional empty input-space field in
+  # identities such as "uwot|output|"; base strsplit drops trailing empties.
+  bits <- strsplit(paste0(id, "#"), "|", fixed = TRUE)[[1L]]
+  bits[[length(bits)]] <- sub("#$", "", bits[[length(bits)]])
+  if (length(bits) != 3L || any(is.na(bits)) || !nzchar(bits[[1L]]) || !nzchar(bits[[2L]])) {
+    return(list(ok = FALSE, id = id, engine = NA_character_, model_space_id = NA_character_,
+                in_space_id = NA_character_))
+  }
+  in_space_id <- bits[[3L]]
+  # Older/pre-registered model primitives could serialize an unavailable
+  # optional input space through paste() as the literal sentinel "NA" while
+  # artifact_model_ref correctly stored SQL NULL. Treat only that exact legacy
+  # sentinel as an absent optional identity field.
+  if (identical(in_space_id, "NA")) in_space_id <- ""
+  list(ok = TRUE, id = id, engine = bits[[1L]], model_space_id = bits[[2L]],
+       in_space_id = in_space_id)
+}
+
+# Canonical storage-aware resolver for a lifecycle model_ref identity.  It is
+# deliberately read-only: validation and lifecycle migration use exactly the
+# same registry/path/provenance rules, while only their callers decide whether
+# to report a diagnostic or transition legacy lifecycle state.
+.wb_model_ref_physical_presence <- function(bundle, entity_id, allow_pending = FALSE) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  con <- bundle$con
+  identity <- .wb_model_ref_identity_parse(entity_id)
+  fail <- function(code, message, storage = "unresolved", artifact_id = NA_character_,
+                   model_path = NA_character_, materialization_path = NA_character_) {
+    list(present = FALSE, code = code, message = message, storage = storage,
+         identity = identity, artifact_id = artifact_id, model_path = model_path,
+         materialization_path = materialization_path, absolute_model_path = NA_character_)
+  }
+  if (!isTRUE(identity$ok)) {
+    return(fail("MODEL_REF_IDENTITY_MALFORMED",
+                "model_ref lifecycle identity must be engine|model_space_id|in_space_id"))
+  }
+
+  value <- function(x) {
+    out <- as.character(x %||% "")[1L]
+    if (is.na(out)) "" else out
+  }
+
+  check_path <- function(path, purpose) {
+    .wb_path_status(bundle$dir, value(path), expected_type = "either",
+                    must_exist = TRUE, purpose = purpose)
+  }
+
+  # A reference is space-model-backed when one row matches its destination,
+  # engine/model type, and (when declared) input space. This includes uwot and
+  # legacy/custom fitted space-model engines; other engines continue to the
+  # artifact-backed resolver below.
+  space_rows <- if (.wb_table_exists(con, "space_models")) DBI::dbGetQuery(
+    con, "SELECT * FROM space_models WHERE space_id = ?;",
+    params = list(identity$model_space_id)
+  ) else data.frame()
+  if (nrow(space_rows)) {
+    model_types <- as.character(space_rows$model_type)
+    compatible <- model_types == identity$engine |
+      startsWith(model_types, paste0(identity$engine, "_"))
+    if (nzchar(identity$in_space_id)) {
+      compatible <- compatible & as.character(space_rows$source_space_id) == identity$in_space_id
+    }
+    matched_space <- space_rows[compatible, , drop = FALSE]
+    if (nrow(matched_space)) {
+      status <- check_path(matched_space$model_path[[1L]], "space-model lifecycle payload")
+      if (!isTRUE(status$ok)) {
+        return(fail("MODEL_REF_SPACE_MODEL_PAYLOAD_INVALID",
+                    paste0(status$code, ": space-model payload is missing or not contained"),
+                    storage = "space_models", model_path = matched_space$model_path[[1L]]))
+      }
+      return(list(present = TRUE, code = "OK", message = "space_models payload present",
+                  storage = "space_models", identity = identity, artifact_id = NA_character_,
+                  model_path = as.character(matched_space$model_path[[1L]]),
+                  materialization_path = NA_character_,
+                  absolute_model_path = as.character(status$absolute)))
+    }
+    if (identical(identity$engine, "uwot")) {
+      return(fail("MODEL_REF_SPACE_MODEL_IDENTITY_MISMATCH",
+                  "space_models row does not match the model engine/input-space identity",
+                  storage = "space_models"))
+    }
+  } else if (identical(identity$engine, "uwot")) {
+    return(fail("MODEL_REF_SPACE_MODEL_MISSING",
+                "uwot model_ref has no matching space_models row", storage = "space_models"))
+  }
+
+  required <- c("artifact_model_ref", "artifacts", "prov_run_entity_bindings",
+                "prov_run_outputs", "prov_materializations", "prov_commits")
+  missing_tables <- required[!vapply(required, function(table) .wb_table_exists(con, table), logical(1))]
+  if (length(missing_tables)) {
+    return(fail("MODEL_REF_ARTIFACT_REGISTRY_MISSING",
+                paste0("artifact-backed model_ref requires tables: ", paste(missing_tables, collapse = ", ")),
+                storage = "artifact_model_ref"))
+  }
+
+  candidates <- DBI::dbGetQuery(con, "
+    SELECT amr.*, a.type AS owner_type
+    FROM artifact_model_ref amr
+    LEFT JOIN artifacts a ON a.artifact_id = amr.artifact_id
+    WHERE amr.engine = ? AND amr.model_space_id = ?
+      AND COALESCE(amr.in_space_id, '') = ?
+    ORDER BY amr.artifact_id;
+  ", params = list(identity$engine, identity$model_space_id, identity$in_space_id))
+  if (!nrow(candidates)) {
+    bound_owners <- DBI::dbGetQuery(con, "
+      SELECT DISTINCT o.artifact_id
+      FROM prov_run_entity_bindings b
+      JOIN prov_run_outputs o
+        ON o.snapshot_id=b.snapshot_id AND o.run_id=b.run_id
+       AND o.output_name=b.binding_name
+      JOIN artifacts a ON a.artifact_id=o.artifact_id AND a.type='model_ref'
+      LEFT JOIN artifact_model_ref amr ON amr.artifact_id=o.artifact_id
+      WHERE b.entity_kind='model_ref' AND b.entity_id=? AND b.direction='output'
+        AND amr.artifact_id IS NULL;
+    ", params = list(identity$id))
+    if (nrow(bound_owners)) {
+      return(fail("MODEL_REF_ARTIFACT_PAYLOAD_MISSING",
+                  "owning model_ref artifact has no artifact_model_ref payload row",
+                  storage = "artifact_model_ref",
+                  artifact_id = as.character(bound_owners$artifact_id[[1L]])))
+    }
+    return(fail("MODEL_REF_ARTIFACT_IDENTITY_MISMATCH",
+                "no artifact_model_ref row matches engine, model space, and input space",
+                storage = "artifact_model_ref"))
+  }
+
+  failures <- list()
+  for (i in seq_len(nrow(candidates))) {
+    artifact_id <- as.character(candidates$artifact_id[[i]])
+    model_path <- as.character(candidates$model_path[[i]])
+    if (!identical(value(candidates$owner_type[[i]]), "model_ref")) {
+      failures[[length(failures) + 1L]] <- fail(
+        "MODEL_REF_ARTIFACT_OWNER_INVALID",
+        "artifact_model_ref row lacks an owning artifacts row of type model_ref",
+        storage = "artifact_model_ref", artifact_id = artifact_id, model_path = model_path
+      )
+      next
+    }
+    model_status <- check_path(model_path, "artifact-backed model lifecycle payload")
+    if (!isTRUE(model_status$ok)) {
+      failures[[length(failures) + 1L]] <- fail(
+        "MODEL_REF_ARTIFACT_PAYLOAD_INVALID",
+        paste0(model_status$code, ": artifact-backed model payload is missing or not contained"),
+        storage = "artifact_model_ref", artifact_id = artifact_id, model_path = model_path
+      )
+      next
+    }
+
+    links <- DBI::dbGetQuery(con, "
+      SELECT b.snapshot_id, b.commit_id, b.run_id, b.binding_name, b.path,
+             b.content_hash AS binding_hash, b.content_identity_scheme AS binding_scheme,
+             o.artifact_id, o.primitive_kind, o.materialization_path,
+             o.content_sha256 AS output_hash, o.content_identity_scheme AS output_scheme,
+             pm.path AS persisted_materialization_path,
+             pm.primitive_kind AS persisted_primitive_kind,
+             c.state AS commit_state
+      FROM prov_run_entity_bindings b
+      JOIN prov_run_outputs o
+        ON o.snapshot_id = b.snapshot_id AND o.run_id = b.run_id
+       AND o.output_name = b.binding_name
+      LEFT JOIN prov_materializations pm
+        ON pm.commit_id = b.commit_id AND pm.run_id = b.run_id
+       AND pm.output_name = b.binding_name
+      LEFT JOIN prov_commits c ON c.commit_id = b.commit_id
+      WHERE b.entity_kind = 'model_ref' AND b.entity_id = ?
+        AND b.direction = 'output' AND b.relationship_type = 'MATERIALIZES'
+        AND o.artifact_id = ?
+      ORDER BY b.snapshot_id, b.run_id;
+    ", params = list(identity$id, artifact_id))
+    if (!nrow(links)) {
+      failures[[length(failures) + 1L]] <- fail(
+        "MODEL_REF_PROVENANCE_BINDING_MISSING",
+        "artifact-backed model has no matching output binding and artifact materialization",
+        storage = "artifact_model_ref", artifact_id = artifact_id, model_path = model_path
+      )
+      next
+    }
+
+    for (j in seq_len(nrow(links))) {
+      if (isTRUE(allow_pending) && identical(as.character(links$commit_state[[j]]), "pending")) {
+        return(list(present = TRUE, code = "PENDING", message = "pending model publication",
+                    storage = "pending", identity = identity, artifact_id = artifact_id,
+                    model_path = model_path, materialization_path = value(links$path[[j]]),
+                    absolute_model_path = as.character(model_status$absolute)))
+      }
+      materialization_path <- value(links$persisted_materialization_path[[j]])
+      paths_agree <- nzchar(materialization_path) &&
+        identical(materialization_path, value(links$path[[j]])) &&
+        identical(materialization_path, value(links$materialization_path[[j]]))
+      kinds_agree <- identical(as.character(links$primitive_kind[[j]]), "model_ref") &&
+        identical(value(links$persisted_primitive_kind[[j]]), "model_ref")
+      hashes_agree <- {
+        bh <- value(links$binding_hash[[j]])
+        oh <- value(links$output_hash[[j]])
+        !nzchar(bh) || !nzchar(oh) || identical(tolower(bh), tolower(oh))
+      }
+      lifecycle_agrees <- TRUE
+      if (.wb_table_exists(con, "entity_lifecycle")) {
+        life <- DBI::dbGetQuery(
+          con, "SELECT identity_hash FROM entity_lifecycle WHERE entity_kind='model_ref' AND entity_id=?;",
+          params = list(identity$id)
+        )
+        if (nrow(life)) {
+          lh <- value(life$identity_hash[[1L]])
+          bh <- value(links$binding_hash[[j]])
+          lifecycle_agrees <- !nzchar(lh) || !nzchar(bh) || identical(tolower(lh), tolower(bh))
+        }
+      }
+      materialization_status <- if (nzchar(materialization_path)) {
+        check_path(materialization_path, "model_ref provenance materialization")
+      } else list(ok = FALSE)
+      if (identical(as.character(links$commit_state[[j]]), "complete") && paths_agree &&
+          kinds_agree && hashes_agree && lifecycle_agrees && isTRUE(materialization_status$ok)) {
+        return(list(present = TRUE, code = "OK", message = "artifact-backed model payload present",
+                    storage = "artifact_model_ref", identity = identity,
+                    artifact_id = artifact_id, model_path = model_path,
+                    materialization_path = materialization_path,
+                    absolute_model_path = as.character(model_status$absolute)))
+      }
+    }
+    failures[[length(failures) + 1L]] <- fail(
+      "MODEL_REF_PROVENANCE_MATERIALIZATION_INVALID",
+      "model_ref binding, committed output, and provenance materialization are inconsistent",
+      storage = "artifact_model_ref", artifact_id = artifact_id, model_path = model_path,
+      materialization_path = value(links$persisted_materialization_path[[1L]])
+    )
+  }
+  failures[[1L]]
+}
+
 .wb_entity_lifecycle_tables <- function(con) {
   if (.wb_schema_component_is_current(
     con, c("entity_lifecycle", "entity_supersessions", "entity_tombstones"),
@@ -102,15 +334,20 @@
   z <- .wb_entity_normalize(entity_kind, entity_id)
   out <- list(z)
   if (identical(z$kind, "model_ref")) {
-    bits <- strsplit(z$id, "|", fixed = TRUE)[[1]]
-    has_registered_model <- !is.null(con) && .wb_table_exists(con, "space_models") &&
-      length(bits) >= 2L && nzchar(bits[[2]]) &&
-      nrow(DBI::dbGetQuery(
-        con, "SELECT 1 FROM space_models WHERE space_id = ? LIMIT 1;",
-        params = list(bits[[2]])
-      )) == 1L
+    identity <- .wb_model_ref_identity_parse(z$id)
+    registered <- if (!is.null(con) && .wb_table_exists(con, "space_models") && isTRUE(identity$ok)) {
+      DBI::dbGetQuery(
+        con, "SELECT model_type, source_space_id FROM space_models WHERE space_id = ?;",
+        params = list(identity$model_space_id)
+      )
+    } else data.frame()
+    has_registered_model <- nrow(registered) == 1L &&
+      (identical(as.character(registered$model_type[[1L]]), identity$engine) ||
+       startsWith(as.character(registered$model_type[[1L]]), paste0(identity$engine, "_"))) &&
+      (!nzchar(identity$in_space_id) ||
+       identical(as.character(registered$source_space_id[[1L]]), identity$in_space_id))
     if (isTRUE(has_registered_model)) {
-      out[[length(out) + 1L]] <- list(kind = "model", id = bits[[2]])
+      out[[length(out) + 1L]] <- list(kind = "model", id = identity$model_space_id)
     }
   }
   out
@@ -251,15 +488,17 @@
   unique(do.call(rbind, rows))
 }
 
-.wb_entity_direct_bindings <- function(con) {
+.wb_entity_direct_bindings <- function(bundle) {
+  con <- bundle$con
   out <- data.frame(entity_kind = character(), entity_id = character(), stringsAsFactors = FALSE)
   if (.wb_table_exists(con, "prov_run_entity_bindings")) {
     direct <- DBI::dbGetQuery(con, "SELECT DISTINCT direction, entity_kind, entity_id FROM prov_run_entity_bindings;")
     if (nrow(direct)) {
       external_model_input <- vapply(seq_len(nrow(direct)),function(i) {
         if (!identical(as.character(direct$direction[i]),"input") || !identical(as.character(direct$entity_kind[i]),"model_ref")) return(FALSE)
-        bits <- strsplit(as.character(direct$entity_id[i]),"|",fixed=TRUE)[[1]]
-        length(bits)<2L || !.wb_table_exists(con,"space_models") || !nrow(DBI::dbGetQuery(con,"SELECT 1 FROM space_models WHERE space_id=? LIMIT 1;",params=list(bits[2])))
+        !isTRUE(.wb_model_ref_physical_presence(
+          bundle, as.character(direct$entity_id[i]), allow_pending = TRUE
+        )$present)
       },logical(1))
       out <- direct[!external_model_input,c("entity_kind","entity_id"),drop=FALSE]
     }
@@ -274,7 +513,7 @@
 .wb_entity_is_provenance_bound <- function(bundle, entity_kind, entity_id) {
   z <- .wb_entity_normalize(entity_kind, entity_id)
   con <- bundle$con
-  bindings <- .wb_entity_direct_bindings(con)
+  bindings <- .wb_entity_direct_bindings(bundle)
   lifecycle_bound <- function(kind, id) {
     if (!.wb_table_exists(con, "entity_lifecycle")) return(FALSE)
     x <- DBI::dbGetQuery(con, "SELECT provenance_bound FROM entity_lifecycle WHERE entity_kind = ? AND entity_id = ?;",
@@ -330,7 +569,7 @@
 
 .wb_entity_inventory <- function(bundle) {
   physical <- .wb_entity_physical_inventory(bundle)
-  bindings <- .wb_entity_direct_bindings(bundle$con)
+  bindings <- .wb_entity_direct_bindings(bundle)
   unique(rbind(physical, bindings))
 }
 
@@ -346,7 +585,7 @@
   .wb_entity_lifecycle_tables(con)
   inv <- .wb_entity_inventory(bundle)
   if (!nrow(inv)) return(invisible(TRUE))
-  bindings <- .wb_entity_direct_bindings(con)
+  bindings <- .wb_entity_direct_bindings(bundle)
   for (i in seq_len(nrow(inv))) {
     kind <- as.character(inv$entity_kind[i]); id <- as.character(inv$entity_id[i])
     bound <- if (identical(kind, "model")) .wb_entity_is_provenance_bound(bundle, kind, id) else
@@ -364,9 +603,10 @@
     )
     if (nrow(persisted)) for (i in seq_len(nrow(persisted))) {
       if (identical(as.character(persisted$direction[i]),"input") && identical(as.character(persisted$entity_kind[i]),"model_ref")) {
-        bits <- strsplit(as.character(persisted$entity_id[i]),"|",fixed=TRUE)[[1]]
-        registered <- length(bits)>=2L && .wb_table_exists(con,"space_models") && nrow(DBI::dbGetQuery(con,"SELECT 1 FROM space_models WHERE space_id=? LIMIT 1;",params=list(bits[2])))==1L
-        if (!registered) next
+        registered <- .wb_model_ref_physical_presence(
+          bundle, as.character(persisted$entity_id[i]), allow_pending = TRUE
+        )
+        if (!isTRUE(registered$present)) next
       }
       .wb_entity_backfill_binding(
         con,
@@ -407,36 +647,7 @@
   physical <- .wb_entity_physical_inventory(bundle)
   binding_physically_present <- function(kind, id) {
     if (kind == "model_ref") {
-      bits <- strsplit(as.character(id), "|", fixed = TRUE)[[1]]
-      registered <- length(bits) >= 2L && any(
-        physical$entity_kind == "model" & physical$entity_id == bits[[2]]
-      )
-      if (isTRUE(registered)) return(TRUE)
-      refs <- DBI::dbGetQuery(
-        con,
-        "SELECT path, commit_id FROM prov_run_entity_bindings WHERE entity_kind = 'model_ref' AND entity_id = ?;",
-        params = list(id)
-      )
-      if (nrow(refs)) {
-        commit_ids <- as.character(refs$commit_id)
-        commit_ids <- commit_ids[!is.na(commit_ids) & nzchar(commit_ids)]
-        if (length(commit_ids) && .wb_table_exists(con, "prov_commits")) {
-          q <- .wb_sql_in_clause(commit_ids)
-          pending <- DBI::dbGetQuery(
-            con,
-            paste0("SELECT 1 FROM prov_commits WHERE state = 'pending' AND commit_id ", q$sql, " LIMIT 1;"),
-            params = q$params
-          )
-          if (nrow(pending)) return(TRUE)
-        }
-        paths <- as.character(refs$path)
-        paths <- paths[!is.na(paths) & nzchar(paths)]
-        if (length(paths) && any(vapply(paths,function(path) {
-          isTRUE(.wb_path_status(bundle$dir,path,expected_type="either",must_exist=TRUE,
-                                 purpose="model lifecycle binding")$ok)
-        },logical(1)))) return(TRUE)
-      }
-      return(FALSE)
+      return(isTRUE(.wb_model_ref_physical_presence(bundle, id, allow_pending = TRUE)$present))
     }
     any(physical$entity_kind == kind & physical$entity_id == id)
   }
