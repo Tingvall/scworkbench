@@ -89,7 +89,7 @@ test_attach_adapters_contract <- function(bundle_dir) {
     is.matrix(hd),
     identical(rownames(hd), as.character(ids)),
     identical(dim(hd), c(length(ids), 3L)),
-    isTRUE(all.equal(unname(hd), unname(as.matrix(sphd[, -1, drop = FALSE]))))
+    isTRUE(all.equal(as.numeric(hd), as.numeric(as.matrix(sphd[, -1, drop = FALSE]))))
   )
 
   TRUE

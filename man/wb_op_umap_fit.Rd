@@ -56,7 +56,8 @@ params   = list(...)
 }
 \description{
 Fits a 2D UMAP embedding from a high-dimensional space (e.g. LSI/PeakVI latent),
-writes the 2D coordinates to \code{space_2d}, and saves a uwot model to disk,
+writes the 2D coordinates through the file-backed space payload contract,
+and saves a uwot model to disk,
 registered in \code{space_models} for later \code{wb_op_umap_transform()}.
 
 Fit a UMAP model on a space and store it for future projection.

@@ -234,7 +234,9 @@
       actual <- try(.wb_prov_payload_identity(session$staging_bundle, run$outputs[[nm]]), silent = TRUE)
       .wb_assert(!inherits(actual, "try-error") &&
                    identical(as.character(recorded[[nm]]$content_sha256), as.character(actual$content_sha256)) &&
-                   identical(as.character(recorded[[nm]]$content_identity_scheme), as.character(actual$content_identity_scheme)),
+                   identical(as.character(recorded[[nm]]$content_identity_scheme), as.character(actual$content_identity_scheme)) &&
+                   identical(as.character(recorded[[nm]]$registry_binding_sha256 %||% NA_character_),
+                             as.character(actual$registry_binding_sha256 %||% NA_character_)),
                  paste0("DURABLE_SESSION_PAYLOAD_CORRUPT: staged output ", rid, "/", nm, " no longer matches checkpoint identity."))
     }
   }

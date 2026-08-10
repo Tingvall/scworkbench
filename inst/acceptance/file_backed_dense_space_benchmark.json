@@ -1,0 +1,109 @@
+{
+  "schema_version": "scworkbench.file_backed_dense_space_benchmark.v1",
+  "generated_at": "2026-08-10T10:41:12.616813+0200",
+  "fixture": {
+    "n_cells": 120895,
+    "dimensions": [50, 30, 2],
+    "historical": {
+      "path": "/home/dirk/Projects/lymphocyte_trajectory/operator_tests/rc25_honeybee_operator_a/GSE270605_honeybee_brain_10x_bundle",
+      "sqlite_bytes": 2715987968,
+      "total_bundle_bytes": 7165013866,
+      "coordinate_value_rows": {
+        "space_coords": 9671600,
+        "space_2d": 241790,
+        "artifact_space_2d": 241790
+      }
+    }
+  },
+  "new_bundle": {
+    "sqlite_bytes": 44941312,
+    "total_bundle_bytes": 143864491,
+    "coordinate_payload_bytes": 98915234,
+    "coordinate_value_rows": {
+      "space_coords": 0,
+      "space_2d": 0,
+      "artifact_space_2d": 0
+    },
+    "space_payload_registry_rows": 4,
+    "pca50_plus_latent30_raw_numeric_bytes": 77372800,
+    "duplicated_ordered_cell_identity_bytes": 9299218,
+    "payload_to_raw_numeric_plus_identity_multiplier": 1.1412591547135778,
+    "multiplier_scope": "Conservative upper bound: numerator includes the two additional 2D payloads; denominator is 50D+30D numeric bytes plus their two ordered cell-ID vectors."
+  },
+  "write": {
+    "benchmark.pca50": {
+      "elapsed_seconds": 4.8040000000000003,
+      "process_peak_rss_mb": 830.96484375,
+      "incremental_peak_rss_mb": 169.62109375
+    },
+    "benchmark.latent30": {
+      "elapsed_seconds": 4.7669999999999995,
+      "process_peak_rss_mb": 899.5390625,
+      "incremental_peak_rss_mb": 68.57421875
+    },
+    "benchmark.umap2": {
+      "elapsed_seconds": 3.9139999999999979,
+      "process_peak_rss_mb": 903.21484375,
+      "incremental_peak_rss_mb": 3.67578125
+    }
+  },
+  "getter": {
+    "full_50d": {
+      "elapsed_seconds": 0.62600000000000122,
+      "process_peak_rss_mb": 1051.23046875,
+      "incremental_peak_rss_mb": 148.015625
+    },
+    "subset_100_cells_5_dims": {
+      "elapsed_seconds": 0.23999999999999844,
+      "process_peak_rss_mb": 903.21484375,
+      "incremental_peak_rss_mb": 0,
+      "values_read": 500,
+      "total_values": 6044750,
+      "estimated_coordinate_bytes_read": 4000,
+      "bounded_fraction": 8.2716406799288644e-05
+    }
+  },
+  "promotion": {
+    "elapsed_seconds": 4.0660000000000025,
+    "process_peak_rss_mb": 1051.23046875,
+    "incremental_peak_rss_mb": 0
+  },
+  "validation": {
+    "structural": {
+      "elapsed_seconds": 1.3879280000000001,
+      "process_peak_rss_mb": 1051.23046875,
+      "status": "ok"
+    },
+    "content": {
+      "elapsed_seconds": 7.276281,
+      "process_peak_rss_mb": 1051.23046875,
+      "status": "ok"
+    },
+    "recipient": {
+      "elapsed_seconds": 8.9542350000000006,
+      "process_peak_rss_mb": 1051.23046875,
+      "status": "ok"
+    }
+  },
+  "pybench_lightweight_writable_audit": {
+    "operation": "py_protocol_hello",
+    "elapsed_seconds": 23.818000000000005,
+    "process_peak_rss_mb": 1051.23046875,
+    "incremental_peak_rss_mb": 0,
+    "source_tree_bytes_read_lower_bound": 143963740,
+    "temporary_workspace_apparent_bytes_high_water": 189232849,
+    "tree_bytes_written_delta": 189232849,
+    "clone_behavior": "session source snapshot plus mutable-tree link/reflink/copy strategy; complete payload tree hashing remains",
+    "reflink_unavailable_boundary": "No reflink availability is assumed; apparent workspace bytes and elapsed time are reported without claiming physical block sharing."
+  },
+  "portability": {
+    "hdf5_boundary": "HDF5 dimension metadata and coordinate arrays are written in reversed C-order by PyBench so rhdf5 exposes the canonical R n_cells-by-n_dims order; R writes its canonical order directly through rhdf5.",
+    "dtype": "IEEE-754 float64 little-endian",
+    "ordered_cell_identity": "UTF-8 variable-length strings in canonical payload row order"
+  },
+  "conclusion": {
+    "sqlite_coordinate_rows_zero": true,
+    "bounded_subset_read": true,
+    "remaining_pybench_boundary": "Complete-payload hashing and full mutable-tree clone/audit overhead remain outside the dense-space relational-row removal."
+  }
+}

@@ -51,6 +51,10 @@ Role: extend and stabilize engine + thin clients.
 - Do not emulate engine authority with options or flags. The writer capability
   is package-private, connection-bound, and dynamically scoped to the registered
   runner, promotion, or ingestion transaction.
+- Dense-space code must cross the central payload resolver/writer boundary.
+  SQLite stores registry and provenance rows, while contained HDF5 files store
+  coordinates. Consumers use `wb_space()` so partial row/dimension requests
+  remain bounded; no operation may restore a relational coordinate writer.
 
 ## Standard Engineer Loop
 
@@ -147,7 +151,7 @@ known table type, required parameter/recipe, or invalid graph edge.
 
 `wb_mutation_catalog_semantic()` separately inventories every exported
 `wb_op_*`, registry writer, matrix/space/model writer, attachment API, and
-primitive payload writer. Its invariant requires exactly one supported
+  primitive payload writer. Its invariant requires exactly one supported
 provenance-producing route for each meaningful public transformation.
 
 ## Done Criteria

@@ -1,9 +1,11 @@
-# File-backed dense-space PyBench interface checkpoint
+# File-backed dense-space R/PyBench interface
 
-Status: **incomplete integration checkpoint; not release-accepted**.
+Status: **implemented composite interface**. R integration is based on Forge
+checkpoint `a62803cdf369cad05d749963dcaeec5f4c22a4c7`; the compatible PyBench
+writer is Quill commit `8418ca81601558dda3784039e7bf18440c8dac3c`.
 
-This note freezes the R-side interface needed for the matching PyBench change.
-It does not authorize either runtime to write legacy `space_coords`, `space_2d`,
+This note freezes the shared interface. It does not authorize either runtime
+to write legacy `space_coords`, `space_2d`,
 or `artifact_space_2d` coordinate rows.
 
 ## HDF5 payload
@@ -23,6 +25,19 @@ Root attributes are `schema_version`, `space_id`, `n_cells`, `n_dims`, `dtype`
 The registered `content_sha256` is the lowercase SHA-256 of the complete HDF5
 file. The ordered cell hash is the scworkbench canonical object SHA-256 of the
 decoded `cell_ids` vector.
+
+### HDF5/R-order portability boundary
+
+The public and R-native shape is always `n_cells x n_dims`. HDF5 itself does
+not define an R/NumPy memory order. The PyBench h5py writer therefore creates
+the coordinate dataset with reversed C-order dimensions/chunks and writes the
+transposed array; `rhdf5` then observes the canonical R shape and values.
+PyBench getters reverse that representation back to the canonical NumPy view.
+R writers use `rhdf5` directly in canonical R order. This transpose is an
+intentional interoperability boundary, not a scientific transform. Composite
+tests verify exact values, ordered cell IDs, labels, receipt identities, close/
+reopen, promotion, and downstream reads across both runtimes. The qualified
+boundary is little-endian Linux with h5py 3.15.1 and Bioconductor `rhdf5`.
 
 ## SQLite registry row
 
@@ -94,9 +109,9 @@ old payload until the registry transaction succeeds; superseded files are
 retired only after commit. R-side promotion subsequently copies the validated
 stage payload through its own private promotion workspace and commit boundary.
 
-## Current blocker
+## Composite verification
 
-PyBench `main` at `56dc588` still mutates `space_coords`. The focused command is:
+The formerly blocked focused command is now:
 
 ```bash
 SCWORKBENCH_PYBENCH_PYTHON=/home/dirk/Projects/pybench/.venv/bin/python \
@@ -108,11 +123,8 @@ test_pybench_durable_peakvi_fit_v2_contract()
 RS
 ```
 
-It currently fails with:
-
-```text
-PYBENCH_OUT_OF_SCOPE_MUTATION: undeclared table/key scope: space_coords
-```
-
-Release gates and acceptance remain paused until PyBench implements this
-interface and the composite tests pass.
+It passes against the pinned Quill commit. PeakVI fit/project, scVI durable
+recovery, staging capability, corruption, and dense-storage contracts exercise
+the same shared registry/payload interface. The remaining PyBench performance
+boundary is explicit: its complete-tree pre/post audit and mutable-tree clone
+still hash or copy more than the current operation's changed dense payload.

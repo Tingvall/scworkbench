@@ -40,6 +40,9 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
 
 7. Identity Cards
 - Birth certificates are canonical provenance payloads.
+- SQLite is the registry/control plane for dense spaces; numerical coordinates
+  are held once in contained, versioned HDF5 payloads. `wb_space()` is the
+  stable boundary and performs bounded row/dimension reads for subsets.
 - Identity cards are human-facing issuers layered on top of birth certificates.
 - Human summaries belong in issuers, not in ad hoc client logic.
 

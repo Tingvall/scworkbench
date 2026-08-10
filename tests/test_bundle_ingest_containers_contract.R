@@ -74,7 +74,14 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(all(c("cell_id", "donor", "cluster") %in% names(meta)))
 
   spaces <- wb_spaces(b)
-  stopifnot("PCA" %in% spaces$space_id)
+  stopifnot("PCA" %in% spaces$space_id,
+            identical(as.character(spaces$storage[spaces$space_id == "PCA"]),
+                      scworkbench:::.wb_space_payload_storage()),
+            !any(c("space_coords", "space_2d", "artifact_space_2d") %in% DBI::dbListTables(b$con)))
+  sce_pca <- wb_space(b, "PCA")
+  stopifnot(identical(sce_pca$cell_id, colnames(counts)),
+            isTRUE(all.equal(as.numeric(as.matrix(sce_pca[, c("x", "y")])),
+                             as.numeric(SingleCellExperiment::reducedDim(sce, "PCA")))))
 
   sets <- wb_cell_sets(b)
   stopifnot("set:sce_cluster__activated" %in% sets)
@@ -98,6 +105,10 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
       cluster = factor(c("naive", "naive", "activated", "activated"))
     ),
     rowData = S4Vectors::DataFrame(symbol = paste0("G", seq_len(5)))
+  )
+  SingleCellExperiment::reducedDim(dup_sce, "PCA") <- matrix(
+    seq_len(8L) / 10, nrow = 4L, ncol = 2L,
+    dimnames = list(colnames(dup_counts), c("PC1", "PC2"))
   )
   out_dup <- tempfile("wb_sce_ingest_dup_")
   bdup <- wb_bundle_from_sce(
@@ -245,6 +256,12 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
       overwrite = TRUE,
       created_by = "test"
     )
+    h5_spaces <- wb_spaces(bh5_explicit)
+    stopifnot("PCA" %in% h5_spaces$space_id,
+              identical(as.character(h5_spaces$storage[h5_spaces$space_id == "PCA"]),
+                        scworkbench:::.wb_space_payload_storage()),
+              !any(c("space_coords", "space_2d", "artifact_space_2d") %in%
+                     DBI::dbListTables(bh5_explicit$con)))
     on.exit(wb_close_bundle(bh5_explicit), add = TRUE)
     stopifnot(identical(wb_cells(bh5_explicit, "core"), expected_ids))
 
@@ -325,6 +342,9 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
     stopifnot(!dir.exists(file.path(out_h5_feature_error, "db")))
     h5_feature_val_err <- try(wb_validate_bundle(out_h5_feature_error), silent = TRUE)
     stopifnot(inherits(h5_feature_val_err, "try-error"))
+    if (!grepl("ingestion failed/incomplete", as.character(h5_feature_val_err), fixed = TRUE)) {
+      stop("Unexpected failed-H5AD validation diagnostic: ", as.character(h5_feature_val_err), call. = FALSE)
+    }
     stopifnot(grepl("ingestion failed/incomplete", as.character(h5_feature_val_err), fixed = TRUE))
   } else if (requireNamespace("zellkonverter", quietly = TRUE)) {
     message("Skipping H5AD round-trip contract checks; set SCWORKBENCH_TEST_H5AD=1 in a provisioned zellkonverter runtime.")

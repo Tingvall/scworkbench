@@ -53,6 +53,7 @@ test_durable_session_source_payload_corruption_contract <- function() {
   writeBin(as.raw(c(0xde, 0xad, 0xbe, 0xef)), victim)
   bad_resume <- try(wb_session_resume(b, file_case$session$durable$workspace), silent = TRUE)
   bad_promote <- try(wb_session_promote_current(b, file_case$session, outputs = "model"), silent = TRUE)
+  if (!inherits(bad_resume, "try-error")) stop("File-backed staged model corruption resumed successfully.", call. = FALSE)
   stopifnot(inherits(bad_resume, "try-error"), inherits(bad_promote, "try-error"),
             grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_resume), fixed = TRUE),
             grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_promote), fixed = TRUE),
@@ -68,6 +69,7 @@ test_durable_session_source_payload_corruption_contract <- function() {
                  params = list("tampered_registry_binding", "registry.umap"))
   bad_resume <- try(wb_session_resume(b, registry_case$session$durable$workspace), silent = TRUE)
   bad_promote <- try(wb_session_promote_current(b, registry_case$session, outputs = "space_2d"), silent = TRUE)
+  if (!inherits(bad_resume, "try-error")) stop("File-backed staged space registry corruption resumed successfully.", call. = FALSE)
   stopifnot(inherits(bad_resume, "try-error"), inherits(bad_promote, "try-error"),
             grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_resume), fixed = TRUE),
             grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_promote), fixed = TRUE),

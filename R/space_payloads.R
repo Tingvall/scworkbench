@@ -79,7 +79,7 @@
 .wb_space_payload_file_name <- function(space_id) {
   token <- paste0(format(Sys.time(), "%Y%m%d%H%M%OS6"), "-", Sys.getpid(), "-",
                   paste0(sample(c(letters, 0:9), 12L, TRUE), collapse = ""))
-  paste0("space_", substr(.wb_hash_text(c(space_id, token)), 1L, 24L), ".h5")
+  paste0("space_", substr(.wb_prov_sha256_object(list(space_id = space_id, token = token)), 1L, 24L), ".h5")
 }
 
 .wb_space_payload_h5_metadata <- function(path) {

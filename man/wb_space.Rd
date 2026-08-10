@@ -19,11 +19,8 @@ wb_space(bundle, space_id, cells = NULL, dims = NULL)
 If 2D: data.frame with columns cell_id,x,y. If >2D: numeric matrix (cells x dims).
 }
 \description{
-Unified getter that automatically reads either:
-\itemize{
-\item \code{space_2d} if the space is stored as 2D wide coords
-\item \code{space_coords} if stored as long coords
-}
+Coordinates are read from the canonical file-backed dense-space payload.
+Legacy relational storage tags remain read-only compatibility paths.
 }
 \details{
 Always aligns rows to the requested \code{cells} order if provided.

@@ -32,15 +32,12 @@ If a data.frame, must contain either:
 
 \item{overwrite}{If TRUE, replaces an existing space with same space_id}
 
-\item{chunk}{Long-format write chunk size (only used for dims > 2)}
+\item{chunk}{Deprecated compatibility argument; HDF5 chunking is selected
+by the canonical writer.}
 }
 \description{
-Writes the space into SQLite:
-\itemize{
-\item spaces (registry)
-\item space_2d (fast path if 2D)
-\item space_coords (long format otherwise)
-}
+Writes coordinates through the canonical file-backed dense-space payload
+contract. SQLite stores only registry, shape, path, and content identity.
 }
 \details{
 Prefer a fitting operation such as \code{pca_fit} or \code{umap_fit} for ordinary

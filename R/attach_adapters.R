@@ -35,7 +35,9 @@
     v3 <- obj[[3]]
     intish <- is.integer(v2) || (is.numeric(v2) && all(abs(v2 - round(v2)) < 1e-8, na.rm = TRUE))
     num3 <- is.numeric(v3) || is.integer(v3)
-    if (isTRUE(intish) && isTRUE(num3)) return("long")
+    repeated_cells <- anyDuplicated(as.character(obj[[1]])) > 0L
+    positive_dims <- isTRUE(intish) && all(as.numeric(v2) >= 1, na.rm = TRUE)
+    if (isTRUE(repeated_cells) && isTRUE(positive_dims) && isTRUE(num3)) return("long")
     return("wide_2d")
   }
 

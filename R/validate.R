@@ -215,6 +215,13 @@ wb_bundle_validation_report <- function(bundle_dir,
   requested_index <- match(level, .wb_validation_levels())
   has_level <- function(x) requested_index >= match(x, .wb_validation_levels())
   root <- normalizePath(bundle_dir, winslash = "/", mustWork = FALSE)
+  failed_ingest_marker <- file.path(root, "INGEST_FAILED.json")
+  if (file.exists(failed_ingest_marker)) {
+    add("INGEST_FAILED_INCOMPLETE", check_class = "structural",
+        entity_kind = "ingestion", entity_id = "failed", path = "INGEST_FAILED.json",
+        observed = "present",
+        message = "Bundle ingestion failed/incomplete; see INGEST_FAILED.json marker.")
+  }
   if (has_level("recipient")) emit_progress("start","recipient_fingerprint_before")
 
   fingerprint <- function() {
@@ -1245,7 +1252,9 @@ wb_bundle_validation_report <- function(bundle_dir,
     # layout. Only entries beneath it represent unfinished publication work.
     pending_paths <- pending_paths[!grepl("(^|/)\\.pending$", pending_paths)]
     if (length(pending_paths)) for (path in pending_paths) {
-      if (identical(basename(path),"INGEST_FAILED.json")) add("INGEST_FAILED_INCOMPLETE",check_class="recipient",entity_kind="ingestion",entity_id="failed",path=path,observed="present",message="Bundle ingestion failed/incomplete; see INGEST_FAILED.json marker.")
+      if (identical(basename(path),"INGEST_FAILED.json")) {
+        if (!"INGEST_FAILED_INCOMPLETE" %in% diagnostics$code) add("INGEST_FAILED_INCOMPLETE",check_class="recipient",entity_kind="ingestion",entity_id="failed",path=path,observed="present",message="Bundle ingestion failed/incomplete; see INGEST_FAILED.json marker.")
+      }
       else add("PENDING_WORKSPACE_RESIDUE", check_class = "recipient", entity_kind = "pending_publication", entity_id = basename(path), path = path, observed = "present", message = "Incomplete publication/ingestion residue is present.")
     }
     lock <- tryCatch(wb_bundle_writer_lock_info(root), error = function(e) list(locked=FALSE))

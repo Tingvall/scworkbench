@@ -47,7 +47,7 @@ test_payload_content_identity_contract <- function() {
   model_id <- scworkbench:::.wb_prov_payload_identity(b, model)
   stopifnot(identical(matrix_id$verification_level, "content"), identical(space_id$verification_level, "content"), identical(model_id$verification_level, "content"),
             identical(matrix_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["matrix"]])),
-            identical(space_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["space"]])),
+            identical(space_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["dense_space"]])),
             identical(model_id$content_identity_scheme, unname(scworkbench:::.wb_content_identity_schemes()[["raw_file"]])),
             identical(model_id$content_sha256, scworkbench:::.wb_prov_file_tree_sha256(file.path(root, "models", "identity_model.rds"))))
 

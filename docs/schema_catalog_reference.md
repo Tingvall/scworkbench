@@ -27,7 +27,6 @@ Writable upgrade acquires the exclusive bundle-writer lock before opening its SQ
 | `artifact_model_ref` | `R/artifacts_schema.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `artifact_pseudotime` | `R/artifacts_schema.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `artifact_relation_rows` | `R/artifacts_schema.R` | `R/schema_migrations.R` | SQLite foreign keys |
-| `artifact_space_2d` | `R/artifacts_schema.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `artifact_space_path_meta` | `R/artifacts_schema.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `artifact_space_path_rows` | `R/artifacts_schema.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `artifact_table_rows` | `R/artifacts_schema.R` | `R/schema_migrations.R` | SQLite foreign keys |
@@ -70,9 +69,8 @@ Writable upgrade acquires the exclusive bundle-writer lock before opening its SQ
 | `prov_source_identities` | `R/provenance_store.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `prov_source_inputs` | `R/provenance_store.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `registry_mutation_events` | `R/registry_materialization.R` | `R/schema_migrations.R` | table-local keys/checks or application-validated relationship |
-| `space_2d` | `R/schema_core.R` | `R/schema_migrations.R` | SQLite foreign keys |
-| `space_coords` | `R/schema_core.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `space_models` | `R/zzz_internal_sqlite.R` | `R/schema_migrations.R` | SQLite foreign keys |
+| `space_payloads` | `R/space_payloads.R` | `R/schema_migrations.R` | SQLite foreign keys |
 | `spaces` | `R/schema_core.R` | `R/schema_migrations.R` | table-local keys/checks or application-validated relationship |
 
 ## Identifier relationship classification
@@ -94,8 +92,6 @@ Every identifier-bearing child relationship in the 52-table durable schema is cl
 | `artifact_relation_rows` | `artifact_id` | `artifacts(artifact_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
 | `artifact_relation_rows` | `cell_id` | `cells(cell_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
 | `artifact_relation_rows` | `relation_key` | `external or local namespace` | `symbolic_or_external` | artifact-local relation identity |
-| `artifact_space_2d` | `artifact_id` | `artifacts(artifact_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
-| `artifact_space_2d` | `cell_id` | `cells(cell_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
 | `artifact_space_path_meta` | `artifact_id` | `artifacts(artifact_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
 | `artifact_space_path_rows` | `artifact_id` | `artifacts(artifact_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
 | `artifact_space_path_rows` | `path_id` | `external or local namespace` | `symbolic_or_external` | artifact-local path identity |
@@ -168,10 +164,7 @@ Every identifier-bearing child relationship in the 52-table durable schema is cl
 | `prov_source_inputs` | `source_id` | `external or local namespace` | `symbolic_or_external` | external source identity |
 | `registry_mutation_events` | `event_id` | `external or local namespace` | `symbolic_or_external` | session-local event identity |
 | `registry_mutation_events` | `run_id` | `session staging run` | `application_validated` | promotion transaction validates selected run topology |
-| `space_2d` | `cell_id` | `cells(cell_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
-| `space_2d` | `space_id` | `spaces(space_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
-| `space_coords` | `cell_id` | `cells(cell_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
-| `space_coords` | `space_id` | `spaces(space_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
 | `space_models` | `cell_set` | `external or local namespace` | `symbolic_or_external` | symbolic fitted-cell selector |
 | `space_models` | `source_space_id` | `spaces(space_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
 | `space_models` | `space_id` | `spaces(space_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |
+| `space_payloads` | `space_id` | `spaces(space_id)` | `sqlite_foreign_key` | Exact central FK signature; DEFERRABLE INITIALLY DEFERRED |

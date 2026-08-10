@@ -73,6 +73,11 @@ test_durable_session_scvi_recovery_contract <- function() {
                       .wb_prov_payload_identity(b, wb_prim_space("rna.scvi.durable"))$content_sha256),
             identical(expected$model$content_sha256, .wb_prov_payload_identity(b, model)$content_sha256),
             identical(expected$fit_summary$content_sha256, .wb_prov_payload_identity(b, summary)$content_sha256))
+  downstream <- wb_op_knn_neighbors(
+    b, space_id = "rna.scvi.durable", query_cells = cells[[1L]],
+    candidate_cells = cells[-1L], k = 2L, include_query = FALSE
+  )
+  stopifnot(nrow(downstream$outputs$neighbors$table) == 2L)
   cert <- wb_art_birth_certificate(b, model_art)
   stopifnot(identical(as.character(cert$artifact$source_op), "scvi_train"),
             identical(as.character(cert$inline_provenance$parsed$run_id), run_id),

@@ -474,7 +474,6 @@ wb_op_matrix_log_normalize <- function(bundle,
     min_library_size = suppressWarnings(min(lib_size, na.rm = TRUE)),
     median_library_size = suppressWarnings(stats::median(lib_size, na.rm = TRUE)),
     max_library_size = suppressWarnings(max(lib_size, na.rm = TRUE)),
-    path = rel_path,
     storage_representation = "bpcells_uncompressed_double",
     stringsAsFactors = FALSE
   )

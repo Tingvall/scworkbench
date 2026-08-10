@@ -9,7 +9,8 @@ wb_prov_validate_replay(
   snapshot_id = NULL,
   mode = c("symbolic", "literal"),
   profile = c("strict", "kind_only", "none"),
-  strict = FALSE
+  strict = FALSE,
+  destination_bundle = NULL
 )
 }
 \arguments{
@@ -23,6 +24,11 @@ used.}
 \item{profile}{Validation profile: \code{"strict"}, \code{"kind_only"}, or \code{"none"}.}
 
 \item{strict}{If \code{TRUE}, stop on the first replay error.}
+
+\item{destination_bundle}{Optional writable source-boundary bundle in which
+to execute the replay. Expected identities are always read from \code{bundle}.
+Use this when the persisted outputs in \code{bundle} are immutable and would
+collide with the replayed output identifiers.}
 }
 \value{
 A named list with \code{summary}, \code{per_run}, \code{per_output}, and

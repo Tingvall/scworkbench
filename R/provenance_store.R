@@ -212,7 +212,6 @@
       source = as.character(registry$source[1] %||% ""),
       storage = as.character(registry$storage[1]), dims = dims,
       n_cells = length(cells), cell_ids_sha256 = .wb_prov_sha256_object(cells),
-      content_sha256 = as.character(summary$registry$content_sha256[[1L]]),
       complete = complete, finite = finite, nondegenerate = nondegenerate
     )
     return(list(valid = valid, reference = .wb_prov_sha256_object(contract),
@@ -350,7 +349,7 @@
   c(
     object = "scworkbench.content.object.canonical-json.v1",
     table = "scworkbench.content.table.row-json-fold.v1",
-    matrix = "scworkbench.content.matrix.fragment-tree.v1",
+    matrix = "scworkbench.content.matrix.fragment-tree.v2",
     space = "scworkbench.content.space.canonical-json.v1",
     dense_space = "scworkbench.content.dense-space-hdf5.sha256.v1",
     raw_file = "scworkbench.content.raw-file.sha256.v1",
@@ -559,7 +558,19 @@
     if (nrow(frags) && "path" %in% names(frags)) {
       rows <- lapply(seq_len(nrow(frags)), function(i) {
         rel <- as.character(frags$path[i]); abs <- .wb_prov_resolve_payload_location(bundle, rel, workspace = workspace, staging_bundle = staging_bundle, kind = "matrix fragment", id = as.character(prim$matrix_id)[1])
-        list(fragment = as.list(frags[i, , drop = FALSE]), payload_sha256 = .wb_prov_file_tree_sha256(abs))
+        # Physical fragment identifiers, paths, and creation times are
+        # publication metadata, not matrix value identity. Keeping them in the
+        # digest made a byte-identical replay fail solely because it ran in a
+        # new session workspace.
+        logical_columns <- intersect(
+          c("matrix_id", "storage", "n_features", "n_cells",
+            "feature_ids_json", "cell_ids_json", "source", "description"),
+          names(frags)
+        )
+        list(
+          fragment = as.list(frags[i, logical_columns, drop = FALSE]),
+          payload_sha256 = .wb_prov_file_tree_sha256(abs)
+        )
       })
       return(list(structural_fingerprint = structural, content_sha256 = .wb_prov_sha256_object(list(kind = kind, matrix_id = prim$matrix_id, fragments = rows)), content_identity_scheme = unname(.wb_content_identity_schemes()[["matrix"]]), verification_level = "content", verification_status = "content_verified"))
     }
@@ -574,6 +585,10 @@
         structural_fingerprint = structural,
         content_sha256 = as.character(payload$content_sha256[[1L]]),
         content_identity_scheme = as.character(payload$content_identity_scheme[[1L]]),
+        registry_binding_sha256 = .wb_prov_sha256_object(list(
+          space = as.list(registry[1L, , drop = FALSE]),
+          payload = as.list(payload[1L, , drop = FALSE])
+        )),
         verification_level = "content", verification_status = "content_verified"
       ))
     }
@@ -2186,6 +2201,10 @@ wb_art_emit_r_script <- function(bundle,
 #' @param mode Replay input mode: `"symbolic"` or `"literal"`.
 #' @param profile Validation profile: `"strict"`, `"kind_only"`, or `"none"`.
 #' @param strict If `TRUE`, stop on the first replay error.
+#' @param destination_bundle Optional writable source-boundary bundle in which
+#'   to execute the replay. Expected identities are always read from `bundle`.
+#'   Use this when the persisted outputs in `bundle` are immutable and would
+#'   collide with the replayed output identifiers.
 #'
 #' @return A named list with `summary`, `per_run`, `per_output`, and
 #'   `replay_session`.
@@ -2195,8 +2214,13 @@ wb_prov_validate_replay <- function(bundle,
                                     snapshot_id = NULL,
                                     mode = c("symbolic", "literal"),
                                     profile = c("strict", "kind_only", "none"),
-                                    strict = FALSE) {
+                                    strict = FALSE,
+                                    destination_bundle = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  if (!is.null(destination_bundle)) {
+    .wb_assert(inherits(destination_bundle, "scworkbench_bundle"),
+               "destination_bundle must be an open scworkbench_bundle")
+  }
   .wb_require_pkg("jsonlite", "provenance replay validation")
   mode <- match.arg(mode)
   profile <- match.arg(profile)
@@ -2233,6 +2257,7 @@ wb_prov_validate_replay <- function(bundle,
 
   replay_map <- list()
   sess <- wb_session_new()
+  execution_bundle <- destination_bundle %||% bundle
   per_run <- list()
   per_out <- list()
   ri <- 0L
@@ -2263,7 +2288,7 @@ wb_prov_validate_replay <- function(bundle,
     out <- try(
       wb_session_run_op(
         session = sess,
-        bundle = bundle,
+        bundle = execution_bundle,
         op_name = op_name,
         inputs = execution_inputs,
         notes = notes
