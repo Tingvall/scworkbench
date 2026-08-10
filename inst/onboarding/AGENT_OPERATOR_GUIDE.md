@@ -93,6 +93,52 @@ interpretation-relevant summary must be an auditable engine transformation.
 Before asking a biological question, establish what the bundle actually
 contains.
 
+### Container mount topology
+
+For any operation that can mutate a bundle, bind the bundle's **parent
+directory**, not only the bundle directory. scworkbench serializes mutation
+with a sibling lock named `.BUNDLE.scworkbench-writer-lock`, so both the bundle
+and its parent must be writable inside the container.
+
+```bash
+IMAGE=/path/to/scworkbench.sif
+HOST_PARENT=/path/to/directory-containing-bundle
+BUNDLE_NAME=example.bundle
+
+singularity exec --cleanenv \
+  --env BUNDLE_NAME="${BUNDLE_NAME}" \
+  --bind "${HOST_PARENT}:/work/bundles" \
+  "${IMAGE}" \
+  Rscript --vanilla -e '
+    library(scworkbench)
+    b <- wb_open_bundle(file.path("/work/bundles", Sys.getenv("BUNDLE_NAME")))
+    on.exit(wb_close_bundle(b), add = TRUE)
+    # Run documented mutation/session operations here.
+  '
+```
+
+Equivalently, put `BUNDLE_NAME` in the R script. The important invariant is
+that the container path has a writable parent.
+
+Do not use `--bind BUNDLE:/bundle` for a writable workflow. That layout makes
+the required sibling lock `/.bundle.scworkbench-writer-lock`, normally under
+the container's immutable root. A timeout showing `owner_status=absent` and a
+root-level lock path indicates an invalid mount topology, not lock contention;
+do not run stale-lock recovery. Rebind the parent directory and retry.
+
+Direct bundle binding remains appropriate for immutable recipient inspection:
+
+```bash
+singularity exec --cleanenv \
+  --bind "${HOST_BUNDLE}:/bundle:ro" \
+  "${IMAGE}" \
+  Rscript --vanilla -e '
+    library(scworkbench)
+    b <- wb_open_bundle("/bundle", read_only = TRUE, validate = TRUE)
+    on.exit(wb_close_bundle(b), add = TRUE)
+  '
+```
+
 ### 1. Open and inspect
 
 Use the supported client for your environment. In R, the minimal pattern is:

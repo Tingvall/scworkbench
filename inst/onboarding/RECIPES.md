@@ -2,6 +2,37 @@
 
 Canonical workflows as reusable patterns.
 
+## 0. Mount a Bundle in a Container
+
+Writable workflow:
+
+```bash
+singularity exec --cleanenv \
+  --bind "/host/project:/work/project" \
+  "/path/to/scworkbench.sif" \
+  Rscript --vanilla /work/project/run_analysis.R
+```
+
+Inside `run_analysis.R`, open a bundle below the mounted parent, for example
+`/work/project/example.bundle`. scworkbench creates the exclusive sibling
+writer lock beside the bundle, at
+`/work/project/.example.bundle.scworkbench-writer-lock`.
+Binding only the bundle to `/bundle` is therefore not a valid writable
+scworkbench topology, even when the bind itself lacks `:ro`.
+
+Recipient audit:
+
+```bash
+singularity exec --cleanenv \
+  --bind "/host/project/example.bundle:/bundle:ro" \
+  "/path/to/scworkbench.sif" \
+  Rscript --vanilla -e '
+    library(scworkbench)
+    b <- wb_open_bundle("/bundle", read_only = TRUE, validate = TRUE)
+    on.exit(wb_close_bundle(b), add = TRUE)
+  '
+```
+
 ## 1. DE Between Two Sets
 
 Inputs:

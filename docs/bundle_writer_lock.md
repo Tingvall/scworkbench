@@ -33,6 +33,21 @@ mismatched directory is restored when safe or retained in private quarantine;
 another owner's directory is never deleted. Acquisition-failure cleanup uses
 the same rule.
 
+### Container mount requirement
+
+A writable container must expose the bundle's parent directory as writable,
+because the lock is a sibling rather than bundle content. For example, bind
+`/host/project:/work/project` and open `/work/project/example.bundle`. Binding
+only `/host/project/example.bundle:/bundle` makes the required sibling lock a
+root-level path such as `/.bundle.scworkbench-writer-lock`, which an immutable
+container root cannot create.
+
+If acquisition times out with `owner_status=absent` and a root-level lock
+path, treat it as a mount-topology error rather than contention or stale-lock
+evidence. Rebind the parent directory; do not recover or delete a lock. A
+direct bundle bind with `:ro` remains the supported topology for immutable
+recipient inspection.
+
 The invariant is:
 
 1. acquire the sibling writer lock;
