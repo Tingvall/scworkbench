@@ -10,8 +10,25 @@
   workspace$pending_root <- pending_root
   workspace$mappings <- list()
   workspace$published <- character(0)
+  workspace$retire_after_commit <- character(0)
   class(workspace) <- "wb_promotion_workspace"
   workspace
+}
+
+.wb_promotion_workspace_retire_after_commit <- function(workspace, path) {
+  .wb_assert(inherits(workspace, "wb_promotion_workspace"), "workspace must be wb_promotion_workspace")
+  status <- .wb_path_status(workspace$bundle$dir, path, expected_type = "either",
+                            must_exist = FALSE, purpose = "superseded promotion payload")
+  .wb_assert(isTRUE(status$ok), paste0(status$code, ": unsafe retirement payload path"))
+  workspace$retire_after_commit <- unique(c(workspace$retire_after_commit, status$absolute))
+  invisible(workspace)
+}
+
+.wb_promotion_workspace_retire <- function(workspace) {
+  for (path in workspace$retire_after_commit) {
+    if (file.exists(path) || dir.exists(path)) unlink(path, recursive = TRUE, force = TRUE)
+  }
+  invisible(TRUE)
 }
 
 .wb_promotion_workspace_path <- function(workspace, final_rel) {

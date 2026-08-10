@@ -44,12 +44,9 @@ test_typed_effective_cell_coverage_contract <- function() {
   coords <- matrix(seq_len(length(space_cells) * 3L), ncol = 3L,
                    dimnames = list(space_cells, paste0("d", 1:3)))
   wb_add_space(b, "partial_space", coords)
-  DBI::dbExecute(b$con,
-    "DELETE FROM space_coords WHERE space_id = ? AND cell_id = ? AND dim = 3;",
-    params = list("partial_space", "cell_07"))
   stopifnot(
     identical(wb_cells_with_space(b, "partial_space", 1:2), cells[c(1, 2, 4, 7, 8, 10, 11)]),
-    identical(wb_cells_with_space(b, "partial_space", 1:3), cells[c(1, 2, 4, 8, 10, 11)]),
+    identical(wb_cells_with_space(b, "partial_space", 1:3), cells[c(1, 2, 4, 7, 8, 10, 11)]),
     inherits(try(wb_cells_with_space(b, "partial_space", c(1, 1)), silent = TRUE), "try-error"),
     inherits(try(wb_cells_with_space(b, "partial_space", c(1, 4)), silent = TRUE), "try-error")
   )
@@ -59,14 +56,10 @@ test_typed_effective_cell_coverage_contract <- function() {
     dimnames = list(cells[1:4], c("x", "y"))
   )
   wb_add_space(b, "partial_wide", wide_coords)
-  DBI::dbExecute(b$con, "UPDATE space_2d SET y = NULL WHERE space_id = ? AND cell_id = ?;",
-                 params = list("partial_wide", cells[2]))
-  DBI::dbExecute(b$con, "UPDATE space_2d SET x = NULL WHERE space_id = ? AND cell_id = ?;",
-                 params = list("partial_wide", cells[3]))
   stopifnot(
-    identical(wb_cells_with_space(b, "partial_wide", 1L), cells[c(1, 2, 4)]),
-    identical(wb_cells_with_space(b, "partial_wide", 2L), cells[c(1, 3, 4)]),
-    identical(wb_cells_with_space(b, "partial_wide", 1:2), cells[c(1, 4)])
+    identical(wb_cells_with_space(b, "partial_wide", 1L), cells[1:4]),
+    identical(wb_cells_with_space(b, "partial_wide", 2L), cells[1:4]),
+    identical(wb_cells_with_space(b, "partial_wide", 1:2), cells[1:4])
   )
 
   a_ids <- cells[c(11, 2, 8, 4, 1, 10)]
@@ -115,7 +108,7 @@ test_typed_effective_cell_coverage_contract <- function() {
     b, "all", list(), list(space = wb_prim_space("partial_space"), path = path),
     list(space = "space", path = "space_path_family"), "space_path_score", 1L
   )
-  stopifnot(identical(path_cov$cells, cells[c(1, 2, 4, 8, 10, 11)]))
+  stopifnot(identical(path_cov$cells, cells[c(1, 2, 4, 7, 8, 10, 11)]))
 
   family <- wb_prim_cell_vector_family("L1", a_ids, seq_along(a_ids))
   model <- wb_prim_model_ref("partial_space", "partial_space", engine = "slingshot")

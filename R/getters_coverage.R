@@ -34,7 +34,12 @@ wb_cells_with_space <- function(bundle, space_id, dims = NULL) {
   .wb_assert(all(dims >= 1L & dims <= n_dims),
              paste0("dims for space '", space_id, "' must be between 1 and ", n_dims, "."))
 
-  if (identical(as.character(row$storage[[1]]), "wide:space_2d")) {
+  if (identical(as.character(row$storage[[1]]), .wb_space_payload_storage())) {
+    payload <- .wb_space_payload_registry_row(bundle, space_id)
+    path <- .wb_space_payload_path(bundle, payload, must_exist = TRUE)
+    meta <- .wb_space_payload_validate_file(path, expected = payload, verify_hash = FALSE)
+    have <- meta$cell_ids
+  } else if (identical(as.character(row$storage[[1]]), "wide:space_2d")) {
     .wb_assert(all(dims %in% 1:2), paste0("Wide 2D space '", space_id, "' only provides dimensions 1 and 2."))
     complete_clause <- if (identical(dims, 1L)) {
       "x IS NOT NULL"

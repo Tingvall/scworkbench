@@ -2,7 +2,7 @@
   if (.wb_schema_component_is_current(con, c(
     "artifacts", "artifact_labels", "artifact_pseudotime", "artifact_relation_rows",
     "artifact_curves_2d", "artifact_space_path_meta", "artifact_space_path_rows",
-    "artifact_space_2d", "artifact_umap_model", "artifact_model_ref", "artifact_tables",
+    "artifact_umap_model", "artifact_model_ref", "artifact_tables",
     "artifact_table_rows"
   ))) return(invisible(TRUE))
   # core artifacts registry
@@ -108,18 +108,6 @@
     );
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_path_rows_artifact ON artifact_space_path_rows(artifact_id);")
-
-  # optional snapshot of 2D space
-  DBI::dbExecute(con, "
-    CREATE TABLE IF NOT EXISTS artifact_space_2d (
-      artifact_id TEXT NOT NULL,
-      cell_id     TEXT NOT NULL,
-      x           REAL NOT NULL,
-      y           REAL NOT NULL,
-      PRIMARY KEY (artifact_id, cell_id)
-    );
-  ")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_space2d_artifact ON artifact_space_2d(artifact_id);")
 
   # optional UMAP model reference
   DBI::dbExecute(con, "

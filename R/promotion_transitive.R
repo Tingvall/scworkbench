@@ -134,6 +134,13 @@
 }
 
 .wb_stage_prepare_space_payloads <- function(staging_bundle, workspace, space_id) {
+  payload <- if (.wb_table_exists(staging_bundle$con, "space_payloads")) {
+    DBI::dbGetQuery(staging_bundle$con, "SELECT path FROM space_payloads WHERE space_id = ?;",
+                    params = list(space_id))
+  } else data.frame()
+  if (nrow(payload)) for (path in unique(as.character(payload$path))) {
+    if (nzchar(path)) .wb_prepare_staged_payload(staging_bundle, workspace, path)
+  }
   sm <- if (.wb_table_exists(staging_bundle$con, "space_models")) {
     DBI::dbGetQuery(staging_bundle$con, "SELECT * FROM space_models WHERE space_id = ?;", params = list(space_id))
   } else data.frame()
@@ -229,9 +236,8 @@
               "' without an explicit merge contract. Use a new output space ID."
             )
           )
-        } else {
-          .wb_stage_prepare_space_payloads(staging_bundle, workspace, prim$space_id)
         }
+        .wb_stage_prepare_space_payloads(staging_bundle, workspace, prim$space_id)
       }
       if (.wb_is_primitive(prim) && identical(prim$kind, "model_ref")) {
         .wb_stage_prepare_model_payload(staging_bundle, bundle, workspace, prim)
@@ -325,7 +331,8 @@
   if (length(rows)) do.call(rbind, rows) else data.frame()
 }
 
-.wb_stage_commit_space <- function(staging_bundle, bundle, space_id, prim = NULL) {
+.wb_stage_commit_space <- function(staging_bundle, bundle, space_id, prim = NULL,
+                                   workspace = NULL) {
   src <- staging_bundle$con
   dst <- bundle$con
   exists <- DBI::dbGetQuery(dst, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id))
@@ -335,26 +342,24 @@
       paste0("Cannot replace committed space during promotion: ", space_id)
     )
     .wb_entity_assert_replaceable(bundle, "space", space_id, action = "merge into")
-    cell_ids <- unique(as.character(prim$cell_ids %||% character(0)))
-    .wb_assert(length(cell_ids) > 0L, "merge_space_2d promotion requires explicit cell_ids")
-    cl <- .wb_sql_in_clause(cell_ids)
-    rows <- DBI::dbGetQuery(
-      src,
-      paste0("SELECT space_id, cell_id, x, y FROM space_2d WHERE space_id = ? AND cell_id ", cl$sql, ";"),
-      params = c(list(space_id), cl$params)
-    )
-    .wb_assert(nrow(rows) == length(cell_ids), paste0(
-      "Staged 2D-space merge is incomplete for ", space_id, ": expected ",
-      length(cell_ids), " cells, found ", nrow(rows), "."
-    ))
-    if (isTRUE(prim$overwrite %||% FALSE)) {
-      DBI::dbExecute(
-        dst,
-        paste0("DELETE FROM space_2d WHERE space_id = ? AND cell_id ", cl$sql, ";"),
-        params = c(list(space_id), cl$params)
-      )
+    staged_space <- DBI::dbGetQuery(src, "SELECT * FROM spaces WHERE space_id = ?;", params = list(space_id))
+    staged_payload <- DBI::dbGetQuery(src, "SELECT * FROM space_payloads WHERE space_id = ?;", params = list(space_id))
+    .wb_assert(nrow(staged_space) == 1L && nrow(staged_payload) == 1L,
+               paste0("Staged dense-space merge is incomplete for ", space_id, "."))
+    old_payload <- DBI::dbGetQuery(dst, "SELECT path FROM space_payloads WHERE space_id = ?;",
+                                  params = list(space_id))
+    DBI::dbExecute(dst, "DELETE FROM space_payloads WHERE space_id = ?;", params = list(space_id))
+    DBI::dbExecute(dst,
+      "UPDATE spaces SET source=?, dims=?, storage=?, description=? WHERE space_id=?;",
+      params = list(staged_space$source[[1L]], staged_space$dims[[1L]], staged_space$storage[[1L]],
+                    staged_space$description[[1L]], space_id))
+    .wb_db_append_chunked(dst, "space_payloads", staged_payload)
+    if (!is.null(workspace) && nrow(old_payload)) {
+      old_paths <- setdiff(as.character(old_payload$path), as.character(staged_payload$path))
+      for (path in old_paths[nzchar(old_paths)]) {
+        .wb_promotion_workspace_retire_after_commit(workspace, path)
+      }
     }
-    .wb_db_append_chunked(dst, "space_2d", rows)
     return(invisible(TRUE))
   }
   row <- DBI::dbGetQuery(src, "SELECT * FROM spaces WHERE space_id = ?;", params = list(space_id))
@@ -362,8 +367,7 @@
   staged_model <- .wb_table_exists(src, "space_models") && nrow(DBI::dbGetQuery(src, "SELECT space_id FROM space_models WHERE space_id = ?;", params = list(space_id))) > 0L
   if (isTRUE(staged_model)) .wb_ensure_space_models_table(dst)
   .wb_copy_db_rows(src, dst, "spaces", "space_id = ?", list(space_id))
-  .wb_copy_db_rows(src, dst, "space_2d", "space_id = ?", list(space_id))
-  .wb_copy_db_rows(src, dst, "space_coords", "space_id = ?", list(space_id))
+  .wb_copy_db_rows(src, dst, "space_payloads", "space_id = ?", list(space_id))
   .wb_copy_db_rows(src, dst, "space_models", "space_id = ?", list(space_id))
   invisible(TRUE)
 }

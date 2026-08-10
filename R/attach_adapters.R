@@ -439,6 +439,10 @@ wb_attach_apply <- function(bundle,
     )
   } else {
     con <- bundle$con
+    payload_collector <- .wb_space_payload_transaction_collector()
+    old_payload_collector <- getOption("scworkbench.space_payload_transaction_collector", NULL)
+    options(scworkbench.space_payload_transaction_collector = payload_collector)
+    on.exit(options(scworkbench.space_payload_transaction_collector = old_payload_collector), add = TRUE)
     mat_root <- file.path(bundle$dir, "mat")
     dirs_before <- if (dir.exists(mat_root)) list.files(mat_root, full.names = TRUE) else character(0)
     out <- try(
@@ -468,6 +472,7 @@ wb_attach_apply <- function(bundle,
       silent = TRUE
     )
     if (inherits(out, "try-error")) {
+      .wb_space_payload_transaction_finish(payload_collector, committed = FALSE)
       dirs_after <- if (dir.exists(mat_root)) list.files(mat_root, full.names = TRUE) else character(0)
       new_dirs <- setdiff(dirs_after, dirs_before)
       if (length(new_dirs)) {
@@ -475,6 +480,7 @@ wb_attach_apply <- function(bundle,
       }
       stop(paste0("Atomic attach failed and was rolled back. ", as.character(out)), call. = FALSE)
     }
+    .wb_space_payload_transaction_finish(payload_collector, committed = TRUE)
     artifact_id <- as.character(out$artifact_id %||% NA_character_)[1]
     res <- out$result
   }

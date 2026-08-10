@@ -171,7 +171,8 @@
   ))
 }
 
-.wb_replay_space_alignment_reference <- function(bundle, prim) {
+.wb_replay_space_alignment_reference <- function(bundle, prim, workspace = NULL,
+                                                  staging_bundle = NULL) {
   if (!inherits(bundle, "scworkbench_bundle") || !.wb_is_primitive(prim) ||
       !as.character(prim$kind)[1] %in% c("space", "space_2d")) {
     return(list(valid = FALSE, reference = NA_character_,
@@ -192,6 +193,31 @@
   }
 
   dims <- as.integer(registry$dims[1])
+  if (identical(as.character(registry$storage[1]), .wb_space_payload_storage())) {
+    summary <- tryCatch(.wb_space_payload_summary(
+      bundle, space_id, verify_hash = FALSE, workspace = workspace,
+      staging_bundle = staging_bundle
+    ),
+                        error = function(e) NULL)
+    if (is.null(summary)) return(list(valid = FALSE, reference = NA_character_,
+                                      message = "File-backed space payload is invalid."))
+    cells <- sort(as.character(summary$cells))
+    complete <- isTRUE(summary$complete)
+    finite <- isTRUE(summary$finite)
+    nondegenerate <- isTRUE(summary$nondegenerate)
+    valid <- complete && finite && nondegenerate
+    contract <- list(
+      identity_version = "scworkbench.replay.cell_aligned_embedding.v1",
+      kind = as.character(prim$kind)[1], space_id = space_id,
+      source = as.character(registry$source[1] %||% ""),
+      storage = as.character(registry$storage[1]), dims = dims,
+      n_cells = length(cells), cell_ids_sha256 = .wb_prov_sha256_object(cells),
+      content_sha256 = as.character(summary$registry$content_sha256[[1L]]),
+      complete = complete, finite = finite, nondegenerate = nondegenerate
+    )
+    return(list(valid = valid, reference = .wb_prov_sha256_object(contract),
+                message = if (valid) "Space has the declared cell universe, dimensions, and finite nondegenerate coordinates." else "Space is incomplete, non-finite, or degenerate."))
+  }
   wide <- identical(as.character(registry$storage[1]), "wide:space_2d")
   coordinates <- if (wide) {
     tryCatch(
@@ -260,7 +286,8 @@
 }
 
 .wb_replay_equivalence_declaration <- function(op_name, output_name, prim, identity,
-                                               bundle = NULL) {
+                                               bundle = NULL, workspace = NULL,
+                                               staging_bundle = NULL) {
   # Ingestion/provenance-only runs are valid engine records even when they do
   # not dispatch through the analytical op catalog.
   op <- tryCatch(.wb_get_op(as.character(op_name)[1]), error = function(e) list(replay_equivalence = list()))
@@ -282,7 +309,9 @@
   reference <- if (identical(policy, "loadable_reference") && identical(kind, "model_ref")) {
     .wb_replay_model_reference(prim)
   } else if (identical(policy, "cell_aligned_embedding")) {
-    alignment <- .wb_replay_space_alignment_reference(bundle, prim)
+    alignment <- .wb_replay_space_alignment_reference(
+      bundle, prim, workspace = workspace, staging_bundle = staging_bundle
+    )
     .wb_assert(isTRUE(alignment$valid), paste0(
       "Cannot declare cell-aligned embedding replay equivalence for ",
       op_name, "::", output_name, ": ", alignment$message
@@ -323,6 +352,7 @@
     table = "scworkbench.content.table.row-json-fold.v1",
     matrix = "scworkbench.content.matrix.fragment-tree.v1",
     space = "scworkbench.content.space.canonical-json.v1",
+    dense_space = "scworkbench.content.dense-space-hdf5.sha256.v1",
     raw_file = "scworkbench.content.raw-file.sha256.v1",
     file_tree = "scworkbench.content.file-tree.canonical-json.v1",
     registry = "scworkbench.content.registry.canonical-json.v1"
@@ -538,6 +568,15 @@
     registry <- if (.wb_table_exists(bundle$con, "spaces")) {
       DBI::dbGetQuery(bundle$con, "SELECT * FROM spaces WHERE space_id = ?;", params = list(prim$space_id))
     } else data.frame()
+    if (nrow(registry) == 1L && identical(as.character(registry$storage[[1L]]), .wb_space_payload_storage())) {
+      payload <- .wb_space_payload_registry_row(bundle, prim$space_id)
+      return(list(
+        structural_fingerprint = structural,
+        content_sha256 = as.character(payload$content_sha256[[1L]]),
+        content_identity_scheme = as.character(payload$content_identity_scheme[[1L]]),
+        verification_level = "content", verification_status = "content_verified"
+      ))
+    }
     tab <- if (kind == "space_2d" || .wb_table_exists(bundle$con, "space_2d")) {
       tryCatch(DBI::dbGetQuery(bundle$con, "SELECT * FROM space_2d WHERE space_id = ? ORDER BY cell_id;", params = list(prim$space_id)), error = function(e) data.frame())
     } else data.frame()
@@ -1270,7 +1309,8 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           kind <- if (.wb_is_primitive(prim)) as.character(prim$kind %||% "unknown")[1] else "unknown"
           identity <- .wb_prov_payload_identity(bundle, prim, workspace = workspace, staging_bundle = staging_bundle)
           replay_decl <- .wb_replay_equivalence_declaration(
-            run$op_name, nm, prim, identity, bundle = bundle
+            run$op_name, nm, prim, identity, bundle = bundle,
+            workspace = workspace, staging_bundle = staging_bundle
           )
           out_hash <- identity$structural_fingerprint
           art_id <- artifact_map[[paste0(rid, "::", nm)]] %||% NA_character_

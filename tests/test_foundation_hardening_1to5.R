@@ -77,7 +77,7 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   }
 
   # space_box + empty-safe
-  sp2d <- sp$space_id[sp$storage == "wide:space_2d"]
+  sp2d <- sp$space_id[as.integer(sp$dims) == 2L]
   if (length(sp2d) > 0) {
     sb <- wb_sel_space_box(sel_all, space_id = sp2d[1], xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf)
     stopifnot(all(as.character(sb) %in% cells_all))

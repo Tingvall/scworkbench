@@ -218,8 +218,7 @@
 .wb_schema_foreign_key_contract <- function() {
   fk <- .wb_schema_fk_spec
   list(
-    space_coords = list(fk("space_id", "spaces"), fk("cell_id", "cells")),
-    space_2d = list(fk("space_id", "spaces"), fk("cell_id", "cells")),
+    space_payloads = list(fk("space_id", "spaces")),
     features = list(fk("matrix_id", "matrices")),
     matrix_cells = list(fk("matrix_id", "matrices"), fk("cell_id", "cells")),
     cell_set_membership = list(fk("cell_id", "cells")),
@@ -248,7 +247,6 @@
     artifact_curves_2d = list(fk("artifact_id", "artifacts")),
     artifact_space_path_meta = list(fk("artifact_id", "artifacts")),
     artifact_space_path_rows = list(fk("artifact_id", "artifacts"), fk("space_id", "spaces", "space_id")),
-    artifact_space_2d = list(fk("artifact_id", "artifacts"), fk("cell_id", "cells")),
     artifact_umap_model = list(fk("artifact_id", "artifacts"), fk("space_id", "spaces", "space_id")),
     artifact_model_ref = list(fk("artifact_id", "artifacts")),
     artifact_tables = list(fk("artifact_id", "artifacts")),

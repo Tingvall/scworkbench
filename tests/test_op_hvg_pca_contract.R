@@ -145,13 +145,8 @@ test_op_hvg_pca_contract <- function() {
             grepl("^[0-9a-f]{64}$", as.character(pca_space_identity$content_sha256[1])))
   wb_close_bundle(b); b <- wb_open_bundle(tmp)
   stopifnot("rna.pca" %in% as.character(wb_spaces(b)$space_id))
-  persisted_pca_ids <- DBI::dbGetQuery(
-    b$con, "SELECT cell_id FROM space_2d WHERE space_id = ? ORDER BY rowid;",
-    params = list("rna.pca")
-  )$cell_id
   durable_pca <- wb_space(b, "rna.pca")
   stopifnot(nrow(durable_pca) == length(cells),
-            identical(as.character(persisted_pca_ids), cells),
             identical(as.character(durable_pca$cell_id), cells),
             identical(rownames(durable_pca), cells))
   for (output in c("loadings", "variance", "fit_summary")) {
@@ -162,9 +157,9 @@ test_op_hvg_pca_contract <- function() {
   wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 
-  # PCA with two components uses the generic wb_add_space() wide writer.  A
+  # PCA with two components uses the canonical file-backed writer. A
   # separate promoted UMAP session must consume its exact canonical IDs and
-  # retain them through the direct UMAP space_2d writer after reopen.
+  # retain them through the same payload contract after reopen.
   if (requireNamespace("uwot", quietly = TRUE)) {
     rr_umap <- wb_session_run_op(
       wb_session_new(), b, "umap_fit",

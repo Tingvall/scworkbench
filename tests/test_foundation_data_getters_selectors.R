@@ -35,7 +35,7 @@ test_foundation_data_getters_selectors <- function(bundle_dir) {
 
     info <- wb_space_info(b, sid)
     dims <- as.integer(info$dims[1])
-    if (!is.na(dims) && dims >= 2 && spaces$storage[1] == "long:space_coords") {
+    if (!is.na(dims) && dims >= 2) {
       cov_space_dims <- wb_cells_with_space(b, sid, dims = 1:2)
       stopifnot(all(cov_space_dims %in% cov_space))
     }
@@ -85,7 +85,7 @@ test_foundation_data_getters_selectors <- function(bundle_dir) {
   stopifnot(inherits(err_not, "try-error"))
 
   # Space-box selector must return subset of input when a 2D space exists.
-  sp2d <- spaces$space_id[spaces$storage == "wide:space_2d"]
+  sp2d <- spaces$space_id[as.integer(spaces$dims) == 2L]
   if (length(sp2d) > 0) {
     sid2d <- sp2d[1]
     box <- wb_sel_space_box(

@@ -125,7 +125,7 @@ wb_attach_to_cells <- function(
   }
 
   # ============================================================
-  # 2) SPACES ATTACH (SQLite spaces tables)
+  # 2) SPACES ATTACH (canonical file-backed payloads)
   # ============================================================
   if (!is.null(spaces) && length(spaces)) {
     for (space_id in names(spaces)) {
@@ -145,88 +145,17 @@ wb_attach_to_cells <- function(
       }
 
       if (all(c("x", "y") %in% colnames(df))) {
-        DBI::dbExecute(
-          con,
-          "INSERT OR IGNORE INTO spaces(space_id, source, dims, storage, description) VALUES(?, ?, ?, ?, ?);",
-          params = list(space_id, source, 2L, "wide:space_2d", space_id)
-        )
-
-        cells_u <- unique(df$cell_id)
-        chunk <- 1000L
-        for (s in seq(1, length(cells_u), by = chunk)) {
-          sub <- cells_u[s:min(s + chunk - 1, length(cells_u))]
-          DBI::dbExecute(
-            con,
-            "DELETE FROM space_2d
-             WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
-            params = list(space_id, jsonlite::toJSON(as.list(sub), auto_unbox = TRUE))
-          )
-        }
-
-        DBI::dbWriteTable(
-          con, "space_2d",
-          data.frame(
-            space_id = space_id,
-            cell_id = df$cell_id,
-            x = as.numeric(df$x),
-            y = as.numeric(df$y),
-            stringsAsFactors = FALSE
-          ),
-          append = TRUE
-        )
-
+        mat <- cbind(x = as.numeric(df$x), y = as.numeric(df$y))
+        rownames(mat) <- df$cell_id
         report$spaces[[space_id]] <- list(type = "2d", n = nrow(df))
-
       } else if (all(c("dim", "value") %in% colnames(df))) {
         dims_n <- suppressWarnings(as.integer(max(df$dim, na.rm = TRUE)))
-        if (is.na(dims_n) || dims_n < 1L) dims_n <- 1L
-        DBI::dbExecute(
-          con,
-          "INSERT OR IGNORE INTO spaces(space_id, source, dims, storage, description) VALUES(?, ?, ?, ?, ?);",
-          params = list(space_id, source, dims_n, "long:space_coords", space_id)
-        )
-
-        df$dim <- as.integer(df$dim)
-        df$value <- as.numeric(df$value)
-
         cells_u <- unique(df$cell_id)
-        chunk <- 1000L
-        for (s in seq(1, length(cells_u), by = chunk)) {
-          sub <- cells_u[s:min(s + chunk - 1, length(cells_u))]
-          DBI::dbExecute(
-            con,
-            "DELETE FROM space_coords
-             WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
-            params = list(space_id, jsonlite::toJSON(as.list(sub), auto_unbox = TRUE))
-          )
-        }
-
-        DBI::dbWriteTable(
-          con, "space_coords",
-          data.frame(
-            space_id = space_id,
-            cell_id = df$cell_id,
-            dim = df$dim,
-            value = df$value,
-            stringsAsFactors = FALSE
-          ),
-          append = TRUE
-        )
-
-        # Ensure long-space metadata stays complete for ingested spaces.
-        DBI::dbExecute(
-          con,
-          "UPDATE spaces
-             SET dims = CASE WHEN dims IS NULL OR dims < ? THEN ? ELSE dims END,
-                 storage = 'long:space_coords',
-                 source = COALESCE(source, ?),
-                 description = COALESCE(description, ?)
-           WHERE space_id = ?;",
-          params = list(dims_n, dims_n, source, space_id, space_id)
-        )
-
+        mat <- matrix(NA_real_, nrow = length(cells_u), ncol = dims_n,
+                      dimnames = list(cells_u, paste0("dim", seq_len(dims_n))))
+        mat[cbind(match(df$cell_id, cells_u), as.integer(df$dim))] <- as.numeric(df$value)
+        .wb_assert(!anyNA(mat), paste0("Space '", space_id, "' long payload is incomplete."))
         report$spaces[[space_id]] <- list(type = "long", n = nrow(df))
-
       } else {
         stop(
           "Space '", space_id, "' must have either columns (x,y) for 2D, or (dim,value) for long. ",
@@ -234,6 +163,8 @@ wb_attach_to_cells <- function(
           call. = FALSE
         )
       }
+      .wb_space_payload_merge_write(bundle, space_id, mat, source = source,
+                                    description = space_id, overwrite_cells = TRUE)
     }
   }
 

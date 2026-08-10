@@ -1966,7 +1966,9 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
     DBI::dbExecute(con, "DELETE FROM artifact_space_path_rows WHERE artifact_id = ?;", params = list(artifact_id))
     DBI::dbExecute(con, "DELETE FROM artifact_space_path_meta WHERE artifact_id = ?;", params = list(artifact_id))
   } else if (identical(type, "space_2d")) {
-    DBI::dbExecute(con, "DELETE FROM artifact_space_2d WHERE artifact_id = ?;", params = list(artifact_id))
+    if (.wb_table_exists(con, "artifact_space_2d")) {
+      DBI::dbExecute(con, "DELETE FROM artifact_space_2d WHERE artifact_id = ?;", params = list(artifact_id))
+    }
   } else if (identical(type, "umap_model")) {
     row <- DBI::dbGetQuery(
       con,

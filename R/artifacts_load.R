@@ -188,22 +188,13 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       )
     },
 
-    # ---- space_2d: minimum ref is space_id; coords live in artifact_space_2d ----
+    # ---- space_2d: durable reference to the canonical file-backed payload ----
     "space_2d" = {
       space_id <- as.character(art$input_space_id[[1]])
       .wb_assert(nzchar(space_id), "wb_art_load(): space_2d artifact missing input_space_id.")
 
-      # If you want the coords too, you can attach them as meta/df.
-      coords <- DBI::dbGetQuery(
-        con,
-        "SELECT cell_id, x, y
-         FROM artifact_space_2d
-         WHERE artifact_id = ?;",
-        params = list(artifact_id)
-      )
-
       p <- wb_prim_space_2d(space_id)
-      if (nrow(coords) > 0) p$df <- coords
+      p$df <- .wb_space_2d_safe(bundle, space_id)
       p
     },
 

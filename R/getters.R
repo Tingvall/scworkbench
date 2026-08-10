@@ -403,9 +403,8 @@ wb_space_info <- function(bundle, space_id = NULL) {
 
 #' Get space coordinates
 #'
-#' Unified getter that automatically reads either:
-#' - `space_2d` if the space is stored as 2D wide coords
-#' - `space_coords` if stored as long coords
+#' Coordinates are read from the canonical file-backed dense-space payload.
+#' Legacy relational storage tags remain read-only compatibility paths.
 #'
 #' Always aligns rows to the requested `cells` order if provided.
 #'
@@ -425,6 +424,20 @@ wb_space <- function(bundle, space_id, cells = NULL, dims = NULL) {
   info <- .wb_get_spaces_row(con, space_id)
   storage <- .wb_nonempty_or(info$storage, "")
   dims_total <- as.integer(.wb_nonempty_or(info$dims, NA_integer_))
+
+  if (identical(storage, .wb_space_payload_storage())) {
+    mat <- .wb_space_payload_read(bundle, space_id, cells = cells, dims = dims)
+    if (identical(dims_total, 2L) && (is.null(dims) || identical(as.integer(dims), 1:2))) {
+      read_evidence <- attr(mat, "scworkbench_payload_read")
+      df <- data.frame(
+        cell_id = rownames(mat), x = as.numeric(mat[, 1L]), y = as.numeric(mat[, 2L]),
+        stringsAsFactors = FALSE, row.names = rownames(mat)
+      )
+      attr(df, "scworkbench_payload_read") <- read_evidence
+      return(df)
+    }
+    return(mat)
+  }
 
   if (grepl("^wide:space_2d", storage) || (!is.na(dims_total) && dims_total == 2 && .wb_table_exists(con, "space_2d"))) {
     df <- DBI::dbGetQuery(

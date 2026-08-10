@@ -17,7 +17,20 @@
 .wb_space_2d_safe <- function(bundle, space_id, cells = NULL) {
   con <- bundle$con
 
-  # Pull all coords for this space (fast enough for 50k; and avoids IN(...) limits)
+  info <- .wb_get_spaces_row(con, space_id)
+  if (identical(as.character(info$storage[[1L]]), .wb_space_payload_storage())) {
+    .wb_assert(identical(as.integer(info$dims[[1L]]), 2L),
+               "Requested plotting space is not two-dimensional.")
+    mat <- .wb_space_payload_read(bundle, space_id, cells = cells, dims = 1:2,
+                                  drop_missing = TRUE)
+    df <- data.frame(cell_id = rownames(mat), x = as.numeric(mat[, 1L]),
+                     y = as.numeric(mat[, 2L]), stringsAsFactors = FALSE,
+                     row.names = rownames(mat))
+    attr(df, "scworkbench_payload_read") <- attr(mat, "scworkbench_payload_read")
+    return(df)
+  }
+
+  # Read-only compatibility for development-era relational bundles.
   df <- DBI::dbGetQuery(
     con,
     "SELECT cell_id, x, y FROM space_2d WHERE space_id = ?;",

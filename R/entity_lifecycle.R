@@ -882,6 +882,12 @@ wb_unsafe_purge_ephemeral_entity <- function(bundle, entity_kind, entity_id, con
   .wb_assert(nrow(row) == 1L && identical(row$lifecycle_state[1], "ephemeral"), "Only explicitly marked ephemeral entities can be purged.")
   .wb_assert(!.wb_entity_has_references(bundle, z$kind, z$id), "Ephemeral entity is referenced and cannot be purged.")
   con <- bundle$con
+  retired_space_path <- ""
+  if (identical(z$kind, "space") && .wb_table_exists(con, "space_payloads")) {
+    payload <- DBI::dbGetQuery(con, "SELECT path FROM space_payloads WHERE space_id = ?;",
+                               params = list(z$id))
+    if (nrow(payload)) retired_space_path <- as.character(payload$path[[1L]])
+  }
   DBI::dbWithTransaction(con, {
     if (identical(z$kind, "artifact")) {
       a <- DBI::dbGetQuery(con, "SELECT type FROM artifacts WHERE artifact_id = ?;", params = list(z$id))
@@ -895,8 +901,7 @@ wb_unsafe_purge_ephemeral_entity <- function(bundle, entity_kind, entity_id, con
       DBI::dbExecute(con, "DELETE FROM feature_set_membership WHERE matrix_id = ? AND feature_set = ?;", params = list(matrix_id, feature_set))
       DBI::dbExecute(con, "DELETE FROM feature_sets WHERE matrix_id = ? AND feature_set = ?;", params = list(matrix_id, feature_set))
     } else if (identical(z$kind, "space")) {
-      DBI::dbExecute(con, "DELETE FROM space_2d WHERE space_id = ?;", params = list(z$id))
-      DBI::dbExecute(con, "DELETE FROM space_coords WHERE space_id = ?;", params = list(z$id))
+      DBI::dbExecute(con, "DELETE FROM space_payloads WHERE space_id = ?;", params = list(z$id))
       DBI::dbExecute(con, "DELETE FROM spaces WHERE space_id = ?;", params = list(z$id))
     } else if (identical(z$kind, "model")) {
       DBI::dbExecute(con, "DELETE FROM space_models WHERE space_id = ?;", params = list(z$id))
@@ -907,5 +912,10 @@ wb_unsafe_purge_ephemeral_entity <- function(bundle, entity_kind, entity_id, con
     }
     DBI::dbExecute(con, "DELETE FROM entity_lifecycle WHERE entity_kind = ? AND entity_id = ?;", params = list(z$kind, z$id))
   })
+  if (nzchar(retired_space_path)) {
+    status <- .wb_path_status(bundle$dir, retired_space_path, expected_type = "file",
+                              must_exist = FALSE, purpose = "purged dense-space payload")
+    if (isTRUE(status$ok) && file.exists(status$absolute)) unlink(status$absolute, force = TRUE)
+  }
   invisible(TRUE)
 }

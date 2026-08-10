@@ -159,10 +159,16 @@ test_deep_bundle_integrity_validation_contract <- function() {
   })
   stopifnot(any(c("MATRIX_PAYLOAD_FEATURE_ORDER_MISMATCH","MATRIX_PAYLOAD_UNREADABLE","MATRIX_CONTENT_IDENTITY_MISMATCH") %in% altered_matrix))
 
-  altered_space <- .deep_validation_mutant(base, root, "altered_space", function(p) .deep_validation_db(p,"UPDATE space_2d SET x=x+100 WHERE space_id='pca' AND cell_id='pbmc_cell_1';"))
-  expect("SPACE_CONTENT_IDENTITY_MISMATCH", altered_space)
-  missing_space <- .deep_validation_mutant(base, root, "missing_space", function(p) .deep_validation_db(p,"DELETE FROM space_2d WHERE space_id='pca';"))
-  expect("SPACE_PAYLOAD_INVALID", missing_space)
+  altered_space <- .deep_validation_mutant(base, root, "altered_space", function(p) {
+    con <- DBI::dbConnect(RSQLite::SQLite(), file.path(p,"db","app.sqlite")); rel <- DBI::dbGetQuery(con,"SELECT path FROM space_payloads WHERE space_id='pca';")$path[1]; DBI::dbDisconnect(con)
+    value <- rhdf5::h5read(file.path(p, rel), "coordinates", index=list(1L,1L))
+    rhdf5::h5write(as.numeric(value)+1, file.path(p, rel), "coordinates", index=list(1L,1L))
+  })
+  expect("SPACE_PAYLOAD_CONTENT_HASH_MISMATCH", altered_space)
+  missing_space <- .deep_validation_mutant(base, root, "missing_space", function(p) {
+    con <- DBI::dbConnect(RSQLite::SQLite(), file.path(p,"db","app.sqlite")); rel <- DBI::dbGetQuery(con,"SELECT path FROM space_payloads WHERE space_id='pca';")$path[1]; DBI::dbDisconnect(con); unlink(file.path(p,rel))
+  })
+  expect("SPACE_PAYLOAD_MISSING", missing_space)
 
   missing_model <- .deep_validation_mutant(base, root, "missing_model", function(p) file.rename(file.path(p,"models","fixture.rds"),file.path(p,"models","fixture.removed")))
   expect("PAYLOAD_MISSING", missing_model)

@@ -145,7 +145,7 @@
     pseudotime = c("artifact_pseudotime"),
     path_2d_family = c("artifact_curves_2d"),
     space_path = c("artifact_space_path_meta", "artifact_space_path_rows"),
-    space_2d = c("artifact_space_2d"),
+    space_2d = character(),
     obs_table = c("artifact_tables", "artifact_table_rows"),
     feature_table = c("artifact_tables", "artifact_table_rows"),
     model_ref = c("artifact_model_ref")
@@ -158,7 +158,8 @@
     kind <- as.character(spec$type %||% "")[1]
     if (identical(kind, "space")) next
     tables <- table_map[[kind]] %||% character()
-    .wb_assert(length(tables) > 0L, paste0("PYBENCH_CAPABILITY_MISMATCH: no v2 mutation mapping for output kind '", kind, "'"))
+    .wb_assert(length(tables) > 0L || identical(kind, "space_2d"),
+               paste0("PYBENCH_CAPABILITY_MISMATCH: no v2 mutation mapping for output kind '", kind, "'"))
     for (table in tables) add(list(
       output_name = nm, output_id = id, output_kind = kind, mutation_class = "sqlite_rows",
       table = table, key_scope = list(column = "artifact_id", values = list(id))
@@ -175,9 +176,12 @@
     space_name <- if ("space_registry" %in% names(outputs)) "space_registry" else if ("space" %in% names(outputs)) "space" else names(outputs)[1]
     if (!length(space_name) || !nzchar(space_name)) space_name <- "space"
     synthetic <- list(output_name = space_name, output_id = space_id, output_kind = "space")
-    for (table in c("spaces", "space_2d", "space_coords")) add(c(synthetic, list(
+    for (table in c("spaces", "space_payloads")) add(c(synthetic, list(
       mutation_class = "sqlite_rows", table = table,
       key_scope = list(column = "space_id", values = list(space_id))
+    )))
+    add(c(synthetic, list(
+      mutation_class = "payload_tree", path = "space_payloads"
     )))
   }
   out

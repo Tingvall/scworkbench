@@ -40,7 +40,8 @@
 #' Fit UMAP from a high-D space and persist model for later transform
 #'
 #' Fits a 2D UMAP embedding from a high-dimensional space (e.g. LSI/PeakVI latent),
-#' writes the 2D coordinates to `space_2d`, and saves a uwot model to disk,
+#' writes the 2D coordinates through the file-backed space payload contract,
+#' and saves a uwot model to disk,
 #' registered in `space_models` for later `wb_op_umap_transform()`.
 #'
 #' Session contract:
@@ -177,39 +178,13 @@ wb_op_umap_fit <- function(bundle,
     stringsAsFactors = FALSE
   )
 
-  # ---- Persist embedding to bundle ----
-  .wb_upsert_space_row(
-    con,
-    space_id = space_id_out,
+  # ---- Persist embedding through the one canonical dense-space writer ----
+  wb_add_space(
+    bundle, space_id_out, df2,
     source = paste0("uwot_fit:", source_space_id),
-    dims = 2L,
-    storage = "wide:space_2d",
-    description = paste0("UMAP fit from ", source_space_id, " (uwot)")
+    description = paste0("UMAP fit from ", source_space_id, " (uwot)"),
+    overwrite = FALSE
   )
-
-  # overwrite semantics: deterministic rerun
-  DBI::dbWithTransaction(con, {
-    DBI::dbExecute(con, "DELETE FROM space_2d WHERE space_id = ?;", params = list(space_id_out))
-
-    stmt <- DBI::dbSendStatement(
-      con,
-      "INSERT INTO space_2d(space_id, cell_id, x, y) VALUES(?, ?, ?, ?);"
-    )
-    tryCatch(
-      {
-        # row-bind (good enough for now; can chunk like transform if needed)
-        for (i in seq_len(nrow(df2))) {
-          DBI::dbBind(stmt, params = list(
-            space_id_out,
-            df2$cell_id[i],
-            df2$x[i],
-            df2$y[i]
-          ))
-        }
-      },
-      finally = DBI::dbClearResult(stmt)
-    )
-  })
 
   # ---- Persist model to disk + register in space_models ----
   .wb_ensure_space_models_table(con)

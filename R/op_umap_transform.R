@@ -95,43 +95,12 @@ wb_op_umap_transform <- function(bundle,
     .wb_entity_assert_replaceable(bundle, "space", space_id_out, action = "project into")
   }
 
-  DBI::dbWithTransaction(con, {
-    if (!nrow(existing_output)) {
-      DBI::dbExecute(con, "INSERT INTO spaces(space_id, source, dims, storage, description) VALUES(?, ?, 2, 'wide:space_2d', ?);",
-        params = list(space_id_out, paste0("uwot_transform:", model_space_id), paste0("UMAP projection using model ", model_space_id)))
-    }
-    if (isTRUE(overwrite)) {
-      DBI::dbExecute(
-        con,
-        "DELETE FROM space_2d WHERE space_id = ? AND cell_id IN (SELECT value FROM json_each(?));",
-        params = list(space_id_out, jsonlite::toJSON(as.list(cells), auto_unbox = TRUE))
-      )
-    }
-
-    stmt <- DBI::dbSendStatement(
-      con,
-      "INSERT INTO space_2d(space_id, cell_id, x, y) VALUES(?, ?, ?, ?);"
-    )
-    tryCatch(
-      {
-        chunk_size <- 5000L
-        for (i in seq(1, nrow(df2), by = chunk_size)) {
-          j <- min(i + chunk_size - 1L, nrow(df2))
-          sub <- df2[i:j, , drop = FALSE]
-
-          for (k in seq_len(nrow(sub))) {
-            DBI::dbBind(stmt, list(
-              space_id_out,
-              sub$cell_id[k],
-              sub$x[k],
-              sub$y[k]
-            ))
-          }
-        }
-      },
-      finally = DBI::dbClearResult(stmt)
-    )
-  })
+  .wb_space_payload_merge_write(
+    bundle, space_id_out, df2,
+    source = paste0("uwot_transform:", model_space_id),
+    description = paste0("UMAP projection using model ", model_space_id),
+    overwrite_cells = isTRUE(overwrite)
+  )
 
   out_space_2d <- list(
     space_id = space_id_out,

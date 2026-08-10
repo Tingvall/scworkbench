@@ -30,7 +30,8 @@ Imports:
     fs,
     RSQLite,
     jsonlite,
-    Matrix
+    Matrix,
+    rhdf5
 Suggests:
     BPCells,
     BiocParallel,
@@ -53,7 +54,6 @@ Suggests:
     SummarizedExperiment,
     S4Vectors,
     zellkonverter,
-    rhdf5,
     irlba,
     uwot,
     rnndescent,

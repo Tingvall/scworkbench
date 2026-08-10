@@ -78,7 +78,9 @@ wb_bundle_validation_plan <- function(level=c("content","structural","recipient"
     relation_family = "artifact_relation_rows",
     path_2d_family = "artifact_curves_2d",
     space_path_family = "artifact_space_path_rows",
-    space_2d = "artifact_space_2d",
+    # space_2d artifacts reference the canonical spaces/space_payloads owner;
+    # they never duplicate coordinate rows in an artifact table.
+    space_2d = NA_character_,
     model_ref = "artifact_model_ref",
     feature_table = "artifact_tables",
     obs_table = "artifact_tables",
@@ -355,7 +357,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         message = "Durable registry row violates the centrally declared referential-integrity contract."
       )
     }
-    required <- c("cells", "metadata_fields", "datasets", "features", "matrices", "spaces", "space_coords", "space_2d")
+    required <- c("cells", "metadata_fields", "datasets", "features", "matrices", "spaces", "space_payloads")
     for (table in setdiff(required, tables)) {
       add("REQUIRED_TABLE_MISSING", table = table, observed = "missing", message = paste0("Required table is missing: ", table))
     }
@@ -503,6 +505,7 @@ wb_bundle_validation_report <- function(bundle_dir,
     specifications <- list(
       list(table = "matrices", id = "matrix_id", column = "path", type = "directory", kind = "matrix"),
       list(table = "matrix_fragments", id = "fragment_id", column = "path", type = "directory", kind = "matrix_fragment"),
+      list(table = "space_payloads", id = "space_id", column = "path", type = "file", kind = "space"),
       list(table = "space_models", id = "space_id", column = "model_path", type = "either", kind = "model"),
       list(table = "artifact_umap_model", id = "artifact_id", column = "model_path", type = "either", kind = "artifact"),
       list(table = "artifact_model_ref", id = "artifact_id", column = "model_path", type = "either", kind = "artifact"),
@@ -614,9 +617,53 @@ wb_bundle_validation_report <- function(bundle_dir,
     timed("spaces_and_models", {
       if (.wb_table_exists(con, "spaces")) {
         spaces <- DBI::dbGetQuery(con, "SELECT * FROM spaces ORDER BY space_id;")
+        canonical_cells <- as.character(DBI::dbGetQuery(con, "SELECT cell_id FROM cells ORDER BY rowid;")$cell_id)
         for (i in seq_len(nrow(spaces))) {
           id <- as.character(spaces$space_id[i]); dims <- as.integer(spaces$dims[i]); storage <- as.character(spaces$storage[i] %||% "")
-          if (grepl("wide:space_2d", storage, fixed = TRUE) || identical(dims, 2L)) {
+          if (identical(storage, .wb_space_payload_storage())) {
+            registry <- DBI::dbGetQuery(con, "SELECT * FROM space_payloads WHERE space_id = ?;",
+                                        params = list(id))
+            if (nrow(registry) != 1L) {
+              add("SPACE_PAYLOAD_REGISTRY_MISSING", check_class = "spaces_and_models",
+                  entity_kind = "space", entity_id = id, table = "space_payloads",
+                  observed = nrow(registry), message = "File-backed space has no unique payload registry row.")
+              next
+            }
+            checked <- .wb_path_status(root, as.character(registry$path[[1L]]), expected_type = "file",
+                                       must_exist = TRUE, purpose = "dense-space validation payload")
+            if (!isTRUE(checked$ok)) {
+              path_code <- if (identical(checked$code, "PAYLOAD_MISSING")) {
+                "SPACE_PAYLOAD_MISSING"
+              } else if (checked$code %in% c("PATH_ESCAPE", "PATH_SYMLINK_ESCAPE", "PATH_ABSOLUTE", "PATH_TYPE_MISMATCH")) {
+                paste0("SPACE_PAYLOAD_", checked$code)
+              } else "SPACE_PAYLOAD_PATH_INVALID"
+              add(path_code,
+                  check_class = "spaces_and_models", entity_kind = "space", entity_id = id,
+                  table = "space_payloads", path = as.character(registry$path[[1L]]),
+                  observed = checked$code, message = "Dense-space payload path is missing, escaped, or invalid.")
+              next
+            }
+            failure <- tryCatch({
+              meta <- .wb_space_payload_validate_file(checked$absolute, expected = registry,
+                                                       verify_hash = TRUE, validate_values = TRUE)
+              .wb_assert(identical(as.integer(dims), as.integer(meta$n_dims)),
+                         "SPACE_PAYLOAD_REGISTRY_MISMATCH: spaces.dims differs from payload.")
+              dangling <- setdiff(meta$cell_ids, canonical_cells)
+              .wb_assert(!length(dangling),
+                         "SPACE_DANGLING_CELL_REFERENCE: payload contains unknown cells.")
+              NULL
+            }, error = function(e) e)
+            if (inherits(failure, "error")) {
+              message <- conditionMessage(failure)
+              code <- regmatches(message, regexpr("^[A-Z][A-Z0-9_]+", message))
+              if (!length(code) || !nzchar(code)) code <- "SPACE_PAYLOAD_CORRUPT"
+              add(code, check_class = "spaces_and_models", entity_kind = "space", entity_id = id,
+                  table = "space_payloads", path = as.character(registry$path[[1L]]),
+                  observed = message, message = "Dense-space payload failed closed validation.")
+            }
+            next
+          } else if (grepl("wide:space_2d", storage, fixed = TRUE) ||
+                     (identical(dims, 2L) && .wb_table_exists(con, "space_2d"))) {
             rows <- DBI::dbGetQuery(con, "SELECT cell_id,x,y FROM space_2d WHERE space_id=? ORDER BY rowid;", params = list(id))
             bad <- anyDuplicated(rows$cell_id) || nrow(rows) == 0L || anyNA(rows[, c("cell_id", "x", "y"), drop = FALSE])
             if (bad) add("SPACE_PAYLOAD_INVALID", check_class = "spaces_and_models", entity_kind = "space", entity_id = id, table = "space_2d", observed = "empty, duplicate, or missing coordinate", message = "Wide space payload is incomplete or invalid.")
@@ -629,6 +676,13 @@ wb_bundle_validation_report <- function(bundle_dir,
           space_cells <- unique(as.character(rows$cell_id))
           dangling <- setdiff(space_cells, as.character(DBI::dbGetQuery(con, "SELECT cell_id FROM cells;")$cell_id))
           if (length(dangling)) add("SPACE_DANGLING_CELL_REFERENCE", check_class = "spaces_and_models", entity_kind = "space", entity_id = id, table = if (dims == 2L) "space_2d" else "space_coords", observed = paste(head(dangling, 10L), collapse = ","), message = "Space payload references cells outside the canonical bundle universe.")
+        }
+        for (legacy in intersect(c("space_coords", "space_2d"), DBI::dbListTables(con))) {
+          n_legacy <- as.integer(DBI::dbGetQuery(con, paste0("SELECT COUNT(*) AS n FROM ", legacy, ";"))$n[[1L]])
+          if (n_legacy > 0L) add("LEGACY_SPACE_COORDINATE_ROWS_PRESENT", check_class = "spaces_and_models",
+                                  entity_kind = "registry", entity_id = legacy, table = legacy,
+                                  observed = n_legacy,
+                                  message = "Coordinate-value rows are forbidden in current dense-space bundles.")
         }
       }
       if (.wb_table_exists(con, "space_models")) {
@@ -683,6 +737,19 @@ wb_bundle_validation_report <- function(bundle_dir,
         }
         for (i in seq_len(nrow(arts))) {
           id <- as.character(arts$artifact_id[i]); type <- as.character(arts$type[i]); table <- .wb_validation_artifact_payload_table(type)
+          if (identical(type, "space_2d")) {
+            referenced_space <- as.character(arts$input_space_id[i] %||% "")[1L]
+            n_ref <- if (nzchar(referenced_space)) DBI::dbGetQuery(
+              con, "SELECT COUNT(*) AS n FROM space_payloads WHERE space_id = ?;",
+              params = list(referenced_space)
+            )$n[[1L]] else 0L
+            if (as.integer(n_ref) != 1L) add(
+              "ARTIFACT_SPACE_PAYLOAD_MISSING", check_class = "artifacts",
+              entity_kind = "artifact", entity_id = id, table = "space_payloads",
+              expected = referenced_space, observed = n_ref,
+              message = "space_2d artifact does not reference one durable file-backed space payload."
+            )
+          }
           if (!is.na(table)) {
             n <- if (.wb_table_exists(con, table)) DBI::dbGetQuery(con, paste0("SELECT COUNT(*) n FROM ", table, " WHERE artifact_id=?;"), params = list(id))$n[1] else 0L
             # Empty tabular artifacts are legitimate but still require their header row.

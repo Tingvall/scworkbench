@@ -43,7 +43,7 @@
 
 .wb_ensure_schema_app_bundle <- function(con) {
   if (.wb_schema_component_is_current(con, c(
-    "datasets", "cells", "cell_set_membership", "spaces", "space_coords", "space_2d",
+    "datasets", "cells", "cell_set_membership", "spaces", "space_payloads",
     "features", "matrices", "matrix_cells", "cell_set_styles", "matrix_fragments",
     "matrix_fragment_cells", "matrix_fragment_features"
   ))) return(invisible(TRUE))
@@ -76,29 +76,7 @@
     );
   ")
 
-  DBI::dbExecute(con, "
-    CREATE TABLE IF NOT EXISTS space_coords (
-      space_id TEXT,
-      cell_id TEXT,
-      dim INTEGER,
-      value REAL,
-      PRIMARY KEY (space_id, cell_id, dim)
-    );
-  ")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_coords_space ON space_coords(space_id);")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_coords_cell ON space_coords(cell_id);")
-
-  DBI::dbExecute(con, "
-    CREATE TABLE IF NOT EXISTS space_2d (
-      space_id TEXT,
-      cell_id TEXT,
-      x REAL,
-      y REAL,
-      PRIMARY KEY (space_id, cell_id)
-    );
-  ")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_2d_space ON space_2d(space_id);")
-  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_space_2d_cell ON space_2d(cell_id);")
+  .wb_ensure_space_payloads_table(con)
 
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS features (

@@ -99,7 +99,7 @@
 
     roots <- list.files(bundle$dir, all.files = TRUE, no.. = TRUE)
     roots <- setdiff(roots, c("manifest.json", dirname(db_rel), ".git"))
-    mutable <- c("mat", "models", "artifact_models")
+    mutable <- c("mat", "models", "artifact_models", "space_payloads")
     for (nm in roots) {
       status <- if (nm %in% mutable && dir.exists(file.path(bundle$dir,nm))) {
         .wb_path_tree_status(bundle$dir,nm,purpose="session staging payload tree")

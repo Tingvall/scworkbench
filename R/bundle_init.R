@@ -37,6 +37,7 @@ wb_init_bundle <- function(out_dir,
 
   dir.create(file.path(out_dir, "db"), recursive = TRUE, showWarnings = FALSE)
   dir.create(file.path(out_dir, "mat"), recursive = TRUE, showWarnings = FALSE)
+  dir.create(file.path(out_dir, "space_payloads", ".pending"), recursive = TRUE, showWarnings = FALSE)
 
   db_path <- file.path(out_dir, "db", "app.sqlite")
   con <- DBI::dbConnect(RSQLite::SQLite(), db_path)
@@ -376,7 +377,7 @@ wb_refresh_manifest <- function(bundle) {
   c(
     "bundle_schema_migrations", "cells", "metadata_fields", "datasets", "features", "matrices", "matrix_cells",
     "matrix_fragments", "matrix_fragment_cells", "matrix_fragment_features",
-    "spaces", "space_models", "artifacts", "artifact_tables",
+    "spaces", "space_payloads", "space_models", "artifacts", "artifact_tables",
     "cell_set_membership", "cell_set_recipes", "cell_set_styles",
     "feature_sets", "feature_set_membership", "cell_vectors",
     "motif_libraries", "motifs", "motif_match_sets", "motif_match_membership",

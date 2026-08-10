@@ -20,8 +20,7 @@ wb_bundle_schema <- function(bundle) {
     tables = tabs,
     cells = info("cells"),
     spaces = info("spaces"),
-    space_2d = info("space_2d"),
-    space_coords = info("space_coords"),
+    space_payloads = info("space_payloads"),
     matrices = info("matrices"),
     matrix_cells = info("matrix_cells"),
     artifacts = info("artifacts"),
@@ -55,7 +54,7 @@ wb_status <- function(bundle) {
   core <- c(
     "cells",
     "spaces",
-    "space_2d",
+    "space_payloads",
     "matrices",
     "features",
     "cell_sets",
@@ -82,15 +81,9 @@ wb_status <- function(bundle) {
     cat("\nspaces (", nrow(sp), "):\n", sep = "")
     if (nrow(sp) > 0) print(sp)
 
-    # 2D coverage info if available
-    if ("space_2d" %in% tabs) {
-      cov <- DBI::dbGetQuery(con, "
-        SELECT space_id, COUNT(*) AS n_cells
-        FROM space_2d
-        GROUP BY space_id
-        ORDER BY space_id;
-      ")
-      cat("\nspace_2d coverage:\n")
+    if ("space_payloads" %in% tabs) {
+      cov <- DBI::dbGetQuery(con, "SELECT space_id,n_cells,n_dims,path FROM space_payloads ORDER BY space_id;")
+      cat("\nfile-backed space payloads:\n")
       if (nrow(cov) > 0) print(cov) else cat("  <no rows>\n")
     }
   }

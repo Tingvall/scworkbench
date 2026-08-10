@@ -342,7 +342,8 @@ wb_promote_analysis <- function(bundle,
           if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) {
             space_id <- as.character(prim$space_id)[1]
             if (space_id %in% committed_space_ids || !space_id %in% copied_new_space_ids) {
-              .wb_stage_commit_space(staging_bundle, bundle, space_id, prim = prim)
+              .wb_stage_commit_space(staging_bundle, bundle, space_id, prim = prim,
+                                     workspace = workspace)
               if (!space_id %in% committed_space_ids) copied_new_space_ids <- c(copied_new_space_ids, space_id)
             }
           }
@@ -503,6 +504,7 @@ wb_promote_analysis <- function(bundle,
   .wb_promotion_workspace_publish(workspace)
   DBI::dbCommit(bundle$con)
   transaction_open <- FALSE
+  .wb_promotion_workspace_retire(workspace)
   if (dir.exists(workspace$pending_root)) unlink(workspace$pending_root, recursive = TRUE, force = TRUE)
   # Publish authoritative current state only after the scientific-state
   # transaction and payload workspace have both committed.
@@ -959,16 +961,9 @@ wb_promote_analysis <- function(bundle,
   space_id <- prim$space_id
   .wb_assert(!is.null(space_id) && nzchar(space_id), "space_2d missing space_id")
 
-  # Here you can either:
-  # A) snapshot coords into artifact_space_2d (like your old .wb_promote_space_2d)
-  # B) store only a reference "space_2d_ref"
-  #
-  # I’m choosing A because you already have artifact_space_2d and it’s robust.
-  df <- DBI::dbGetQuery(con,
-                        "SELECT cell_id, x, y FROM space_2d WHERE space_id = ?;",
-                        params = list(space_id)
-  )
-  .wb_assert(nrow(df) > 0, paste0("No coordinates found in space_2d for space_id=", space_id))
+  payload <- .wb_space_payload_registry_row(bundle, space_id)
+  .wb_assert(as.integer(payload$n_dims[[1L]]) == 2L,
+             paste0("space_2d artifact requires a two-dimensional payload: ", space_id))
 
   artifact_id <- .wb_new_artifact_id("space2d")
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
@@ -995,11 +990,6 @@ wb_promote_analysis <- function(bundle,
     prov_json,
     as.character(utils::packageVersion("scworkbench"))
   ))
-
-  out <- df
-  out$artifact_id <- artifact_id
-  out <- out[, c("artifact_id", "cell_id", "x", "y")]
-  .wb_db_append_chunked(con, "artifact_space_2d", out, chunk_size = 1000L)
 
   artifact_id
 }

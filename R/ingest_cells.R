@@ -117,8 +117,7 @@ wb_ingest_cells <- function(
     for (space_id in names(spaces)) {
       coords <- spaces[[space_id]]
       .wb_ingest_space_coords(
-        con        = con,
-        bundle_dir = bundle$dir,
+        bundle     = bundle,
         space_id   = space_id,
         coords     = coords,
         cell_ids   = cell_ids,
@@ -160,149 +159,41 @@ wb_ingest_cells <- function(
 
 
 # -------------------------
-# Space ingestion (2D wide -> space_2d ; otherwise -> long space_coords)
-# First column ALWAYS treated as cell_id, no explicit names required.
+# Space ingestion normalizes supported tabular shapes into the one canonical
+# file-backed dense-space writer. First column is always treated as cell_id.
 # -------------------------
-.wb_ingest_space_coords <- function(con, bundle_dir, space_id, coords, cell_ids, source = "ingest") {
+.wb_ingest_space_coords <- function(bundle, space_id, coords, cell_ids, source = "ingest") {
   .wb_assert(is.character(space_id) && length(space_id) == 1 && nzchar(space_id), "space_id invalid")
-
-  # Helper: normalize df where first col is cell_id
-  normalize_df_first_col_id <- function(df) {
-    df <- as.data.frame(df, stringsAsFactors = FALSE, check.names = FALSE)
-    .wb_assert(ncol(df) >= 1, "coords data.frame must have at least 1 column")
-    cell <- as.character(df[[1]])
-    .wb_assert(all(nzchar(cell)), "coords first column (cell_id) has empty values")
-    df$..cell_id <- cell
-    df
-  }
-
-  # -------------------------
-  # Case 1: data.frame with >= 3 columns could be:
-  #   - 2D wide: [cell_id, x, y]
-  #   - long:    [cell_id, dim, value]
-  # We decide by column 2 type: if integer-ish and column3 numeric -> long.
-  # Otherwise treat as 2D if exactly 3 columns, else treat as wide high-D.
-  # -------------------------
   if (is.data.frame(coords)) {
-    df <- normalize_df_first_col_id(coords)
-    df <- df[df$..cell_id %in% cell_ids, , drop = FALSE]
+    df <- as.data.frame(coords, stringsAsFactors = FALSE, check.names = FALSE)
+    .wb_assert(ncol(df) >= 3L, "coords data.frame must contain cell_id and coordinate columns")
+    ids <- as.character(df[[1L]])
+    df <- df[ids %in% cell_ids, , drop = FALSE]
+    ids <- ids[ids %in% cell_ids]
     if (!nrow(df)) return(invisible(TRUE))
-
-    if (ncol(df) >= 3) {
-      v2 <- df[[2]]
-      v3 <- df[[3]]
-
-      looks_long <- (is.numeric(v2) || is.integer(v2)) && (is.numeric(v3) || is.integer(v3))
-      if (isTRUE(looks_long)) {
-        # interpret as long: [cell_id, dim, value]
-        out <- data.frame(
-          space_id = space_id,
-          cell_id  = as.character(df$..cell_id),
-          dim      = as.integer(df[[2]]),
-          value    = as.numeric(df[[3]]),
-          stringsAsFactors = FALSE
-        )
-
-        .wb_ensure_space_registered(
-          con, space_id,
-          dims = max(out$dim, na.rm = TRUE),
-          storage = "long:space_coords",
-          source = source,
-          description = space_id
-        )
-
-        DBI::dbWriteTable(con, "space_coords", out, append = TRUE)
-        return(invisible(TRUE))
-      }
-
-      # If exactly 3 cols -> treat as 2D wide [cell_id, x, y]
-      if (ncol(df) == 3) {
-        out <- data.frame(
-          space_id = space_id,
-          cell_id  = as.character(df$..cell_id),
-          x        = as.numeric(df[[2]]),
-          y        = as.numeric(df[[3]]),
-          stringsAsFactors = FALSE
-        )
-
-        .wb_ensure_space_registered(
-          con, space_id,
-          dims = 2L,
-          storage = "wide:space_2d",
-          source = source,
-          description = space_id
-        )
-
-        DBI::dbWriteTable(con, "space_2d", out, append = TRUE)
-        return(invisible(TRUE))
-      }
-
-      # Otherwise: wide high-D stored in remaining columns 2:n
-      m <- as.matrix(df[, 2:(ncol(df)-1), drop = FALSE])  # exclude ..cell_id tail
-      rownames(m) <- as.character(df$..cell_id)
-      return(.wb_ingest_space_matrix_long(con, space_id, m, source = source))
+    looks_long <- ncol(df) == 3L &&
+      all(suppressWarnings(!is.na(as.integer(df[[2L]])))) &&
+      !anyDuplicated(paste(ids, as.integer(df[[2L]]), sep = "\r")) &&
+      anyDuplicated(ids)
+    if (looks_long) {
+      dim_index <- as.integer(df[[2L]])
+      n_dims <- max(dim_index)
+      ordered_cells <- unique(ids)
+      mat <- matrix(NA_real_, nrow = length(ordered_cells), ncol = n_dims,
+                    dimnames = list(ordered_cells, paste0("dim", seq_len(n_dims))))
+      mat[cbind(match(ids, ordered_cells), dim_index)] <- as.numeric(df[[3L]])
+      .wb_assert(!anyNA(mat), "Long dense-space input is incomplete.")
+    } else {
+      mat <- as.matrix(df[, -1L, drop = FALSE])
+      rownames(mat) <- ids
     }
-
-    stop("coords data.frame must have at least 3 columns: [cell_id,x,y] or [cell_id,dim,value].", call. = FALSE)
+  } else {
+    mat <- as.matrix(coords)
+    .wb_assert(!is.null(rownames(mat)), "High-D coordinates require rownames=cell_id.")
+    mat <- mat[rownames(mat) %in% cell_ids, , drop = FALSE]
   }
-
-  # -------------------------
-  # Case 2: matrix-like high-D (rownames = cell_id OR first col is cell_id)
-  # -------------------------
-  m <- coords
-  if (is.data.frame(m)) m <- as.matrix(m)
-  .wb_assert(is.matrix(m), "space coords must be a data.frame or matrix-like object")
-
-  if (is.null(rownames(m)) || !all(nzchar(rownames(m)))) {
-    stop("High-D coords matrix must have rownames=cell_id (or provide as data.frame with first col=cell_id).",
-         call. = FALSE)
-  }
-
-  m <- m[intersect(cell_ids, rownames(m)), , drop = FALSE]
-  if (!nrow(m)) return(invisible(TRUE))
-
-  .wb_ingest_space_matrix_long(con, space_id, m, source = source)
-}
-
-
-# Write a wide matrix (cells x dims) into space_coords long format
-.wb_ingest_space_matrix_long <- function(con, space_id, m, source = "ingest") {
-  if (is.data.frame(m)) m <- as.matrix(m)
-  .wb_assert(is.matrix(m), "m must be a matrix")
-  .wb_assert(!is.null(rownames(m)) && all(nzchar(rownames(m))), "m must have rownames (cell_id)")
-
-  dims <- ncol(m)
-  .wb_assert(dims >= 1, "m has 0 columns")
-
-  .wb_ensure_space_registered(
-    con, space_id,
-    dims = dims,
-    storage = "long:space_coords",
-    source = source,
-    description = space_id
-  )
-
-  # Chunk by cells (safe, simple)
-  chunk <- 2000L
-  r <- seq_len(nrow(m))
-  for (s in seq(1, length(r), by = chunk)) {
-    ii <- r[s:min(s + chunk - 1L, length(r))]
-    sub <- m[ii, , drop = FALSE]
-
-    df_long <- do.call(rbind, lapply(seq_len(dims), function(d) {
-      data.frame(
-        space_id = space_id,
-        cell_id  = rownames(sub),
-        dim      = d,
-        value    = as.numeric(sub[, d]),
-        stringsAsFactors = FALSE
-      )
-    }))
-
-    DBI::dbWriteTable(con, "space_coords", df_long, append = TRUE)
-  }
-
-  invisible(TRUE)
+  if (!nrow(mat)) return(invisible(TRUE))
+  wb_add_space(bundle, space_id, mat, source = source, description = space_id)
 }
 
 

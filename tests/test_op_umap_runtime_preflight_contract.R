@@ -86,7 +86,7 @@ test_op_umap_runtime_preflight_contract <- function() {
   model_artifact_id <- as.character(promoted$promoted$artifact_id[
     as.character(promoted$promoted$output) == "model" & as.character(promoted$promoted$status) == "ok"
   ][1])
-  before_n <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM space_2d WHERE space_id = 'rna.umap';")$n[1]
+  before_n <- nrow(wb_space(b, "rna.umap"))
   stopifnot(identical(as.integer(before_n), 8L))
 
   bound_projection <- try(wb_session_run_op(
@@ -115,10 +115,11 @@ test_op_umap_runtime_preflight_contract <- function() {
     b, projected$session, outputs = "space_2d", created_by = "test"
   )
   wb_close_bundle(b); b <- wb_open_bundle(tmp)
-  after_n <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM space_2d WHERE space_id = 'rna.umap';")$n[1]
-  projected_n <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM space_2d WHERE space_id = ?;", params = list(projected_id))$n[1]
+  after_n <- nrow(wb_space(b, "rna.umap"))
+  projected_coords <- wb_space(b, projected_id)
+  projected_n <- nrow(projected_coords)
   stopifnot(identical(as.integer(after_n), 8L), identical(as.integer(projected_n), 4L))
-  stopifnot(setequal(cells[9:12], DBI::dbGetQuery(b$con, "SELECT cell_id FROM space_2d WHERE space_id = ?;", params = list(projected_id))$cell_id))
+  stopifnot(setequal(cells[9:12], projected_coords$cell_id))
   stopifnot(all(as.character(projected_promotion$promoted$lineage_status[projected_promotion$promoted$status == "ok"]) == "complete"))
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 
