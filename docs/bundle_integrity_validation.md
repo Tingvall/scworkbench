@@ -81,7 +81,7 @@ completed levels, explicitly skipped checks, elapsed time per check class, and
 peak R memory evidence. `ok = TRUE` means every requested check completed
 without an error; warnings remain visible in `status = "ok_with_warnings"`.
 
-Fresh manifests use schema 2.2 and identify the atomic publication protocol and
+Fresh manifests use schema 2.3 and identify the atomic publication protocol and
 durable state source. `MANIFEST_REGISTRY_MISMATCH` is recoverable: it means a
 committed registry change exists but the previous complete manifest was
 preserved because publication did not reach its atomic rename. Validation is

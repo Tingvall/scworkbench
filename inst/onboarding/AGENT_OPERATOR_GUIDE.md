@@ -156,6 +156,12 @@ wb_feature_sets(b)
 wb_art_list(b)
 ```
 
+In manifest schema 2.3, inspect
+`wb_manifest(b)$counts$feature_counts_by_matrix` for matrix feature universes.
+`feature_registry_records` counts matrix-scoped registry rows and is not a
+biological unique-feature count; `bundle_unique_feature_count` is explicitly
+`not_applicable` because cross-matrix namespace equivalence is not declared.
+
 Establish at least:
 
 - available matrices, feature identifiers, and cell coverage;

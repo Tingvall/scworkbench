@@ -18,7 +18,15 @@ read-only view is rebuilt from SQLite and identifies itself with
 `publication$state_source = "reconstructed_diagnostic"`; its
 `durable_registry_agreement` flag says whether it matches the durable snapshot.
 
-Manifest schema 2.2 uses `scworkbench.manifest.atomic.v1`: the writer lock is
+Manifest schema 2.3 replaces the ambiguous `counts$n_features` field with
+`counts$feature_registry_records` and a deterministic
+`counts$feature_counts_by_matrix` map. Feature identities are matrix-scoped, so
+`counts$bundle_unique_feature_count` is explicitly `not_applicable` with a
+reason; clients must not sum registry rows and label the result as a biological
+feature universe. These values come from the matrix and feature registries and
+never require payload scans.
+
+Schema 2.3 uses `scworkbench.manifest.atomic.v1`: the writer lock is
 acquired before mutation, payload and SQLite work commits first, a complete
 same-directory temporary JSON file is written/flushed/closed and parsed, and a
 single portable filesystem rename publishes it. If staging, validation, or replacement fails, the

@@ -151,7 +151,7 @@ ownership of the matching bundle lock.
 
 ## Authoritative manifest tail step
 
-The outermost successful writer scope publishes manifest schema 2.2 before it
+The outermost successful writer scope publishes manifest schema 2.3 before it
 releases the lock. Nested writers never publish because their coordinator may
 still own an open SQLite transaction. The temporary manifest is created in the
 bundle root, written and flushed through an explicit binary connection, closed,

@@ -266,8 +266,8 @@ wb_bundle_validation_report <- function(bundle_dir,
 
   if (!is.null(manifest)) timed("manifest", {
     manifest_version <- as.character(manifest$scworkbench_manifest_version %||% manifest$manifest_version %||% "")[1]
-    if (!manifest_version %in% c("2.0.0", "2.1.0", "2.2.0")) {
-      add("SCHEMA_VERSION_UNSUPPORTED", table = "manifest.json", expected = "2.0.0, 2.1.0, or 2.2.0",
+    if (!identical(manifest_version, "2.3.0")) {
+      add("SCHEMA_VERSION_UNSUPPORTED", table = "manifest.json", expected = "2.3.0",
           observed = manifest_version, message = "Bundle manifest schema version is unsupported; validation never migrates it.")
     }
     for (field in c("bundle_id", "bundle_name", "created_at", "storage")) {
@@ -285,11 +285,11 @@ wb_bundle_validation_report <- function(bundle_dir,
               message = paste0("Immutable creation metadata disagrees with the manifest field: ", field))
         }
       }
-    } else if (manifest_version %in% c("2.1.0", "2.2.0")) {
+    } else if (identical(manifest_version, "2.3.0")) {
       add("MANIFEST_CREATION_METADATA_INVALID", entity_kind = "manifest", entity_id = "creation",
-          table = "manifest.json", observed = "missing", message = "Manifest 2.1.0 and later require immutable creation metadata.")
+          table = "manifest.json", observed = "missing", message = "Manifest 2.3.0 requires immutable creation metadata.")
     }
-    if (identical(manifest_version, "2.2.0")) {
+    if (identical(manifest_version, "2.3.0")) {
       protocol <- as.character(manifest$publication$protocol %||% "")[1]
       state_source <- as.character(manifest$publication$state_source %||% "")[1]
       registry_fingerprint <- as.character(manifest$current_state$fingerprint %||% "")[1]
@@ -373,7 +373,6 @@ wb_bundle_validation_report <- function(bundle_dir,
         n_cells = DBI::dbGetQuery(con, "SELECT COUNT(*) n FROM cells;")$n[1],
         n_datasets = DBI::dbGetQuery(con, "SELECT COUNT(*) n FROM datasets;")$n[1],
         n_spaces = DBI::dbGetQuery(con, "SELECT COUNT(*) n FROM spaces;")$n[1],
-        n_features = DBI::dbGetQuery(con, "SELECT COUNT(*) n FROM features;")$n[1],
         n_matrices = DBI::dbGetQuery(con, "SELECT COUNT(*) n FROM matrices;")$n[1],
         n_artifacts = if ("artifacts" %in% tables) DBI::dbGetQuery(con, "SELECT COUNT(*) n FROM artifacts;")$n[1] else 0L
       )
@@ -385,6 +384,50 @@ wb_bundle_validation_report <- function(bundle_dir,
               table = "manifest.json", expected = observed, observed = cached,
               message = paste0("Cached manifest count disagrees with authoritative registry: ", nm))
         }
+      }
+      feature_counts <- .wb_manifest_feature_counts(con)
+      cached_feature_records <- suppressWarnings(as.integer(
+        manifest$counts$feature_registry_records %||% NA_integer_
+      )[1])
+      if (!is.null(manifest$counts$n_features) ||
+          is.na(cached_feature_records) ||
+          cached_feature_records != feature_counts$feature_registry_records) {
+        add(
+          "MANIFEST_FEATURE_COUNT_SCHEMA_INVALID", check_class = "manifest",
+          entity_kind = "registry", entity_id = "feature_registry_records",
+          table = "manifest.json", expected = feature_counts$feature_registry_records,
+          observed = cached_feature_records,
+          message = "Manifest feature records must use the unambiguous 2.3 feature_registry_records field and must not publish counts$n_features."
+        )
+      }
+      cached_by_matrix <- manifest$counts$feature_counts_by_matrix %||% list()
+      cached_by_matrix <- if (length(cached_by_matrix)) {
+        stats::setNames(
+          as.list(suppressWarnings(as.integer(unlist(cached_by_matrix, use.names = FALSE)))),
+          names(cached_by_matrix)
+        )
+      } else list()
+      if (!identical(cached_by_matrix, feature_counts$feature_counts_by_matrix)) {
+        add(
+          "MANIFEST_FEATURE_COUNTS_BY_MATRIX_MISMATCH", check_class = "manifest",
+          entity_kind = "registry", entity_id = "feature_counts_by_matrix",
+          table = "manifest.json",
+          expected = .wb_prov_sha256_object(feature_counts$feature_counts_by_matrix),
+          observed = .wb_prov_sha256_object(cached_by_matrix),
+          message = "Manifest matrix-scoped feature counts disagree with the authoritative matrix/feature registries."
+        )
+      }
+      unique_count <- manifest$counts$bundle_unique_feature_count %||% list()
+      expected_unique_count <- feature_counts$bundle_unique_feature_count
+      if (!identical(as.character(unique_count$status %||% "")[1], expected_unique_count$status) ||
+          !identical(as.character(unique_count$reason %||% "")[1], expected_unique_count$reason)) {
+        add(
+          "MANIFEST_BUNDLE_UNIQUE_FEATURE_COUNT_INVALID", check_class = "manifest",
+          entity_kind = "registry", entity_id = "bundle_unique_feature_count",
+          table = "manifest.json", expected = paste(expected_unique_count$status, expected_unique_count$reason),
+          observed = paste(unique_count$status %||% "missing", unique_count$reason %||% "missing"),
+          message = "A bundle-level unique feature count is not applicable without declared cross-matrix namespace equivalence."
+        )
       }
       collect_manifest_ids <- function(x, field) {
         if (is.null(x) || !length(x)) return(character())
@@ -408,7 +451,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         authoritative_ids <- sort(unique(registry_ids[[kind]]))
         if (!identical(cached_ids,authoritative_ids)) add("MANIFEST_REGISTRY_MISMATCH",check_class="manifest",entity_kind=kind,entity_id="registry_ids",table="manifest.json",expected=.wb_prov_sha256_object(authoritative_ids),observed=.wb_prov_sha256_object(cached_ids),message=paste0("Manifest ",kind," inventory disagrees with the authoritative registry."))
       }
-      if (identical(manifest_version, "2.2.0")) {
+      if (identical(manifest_version, "2.3.0")) {
         authoritative_state <- .wb_manifest_registry_snapshot(con)
         cached_state <- manifest$current_state %||% list()
         cached_tables <- cached_state$tables %||% list()

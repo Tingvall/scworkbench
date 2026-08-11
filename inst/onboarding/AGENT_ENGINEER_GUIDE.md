@@ -99,11 +99,15 @@ Use `wb_op_interface()` to select valid terminal `outputs=` values. Promotion
 commits the required provenance closure; staged session state is ephemeral if
 the R process exits.
 
-Manifest schema 2.2 separates immutable `creation` identity from authoritative
+Manifest schema 2.3 separates immutable `creation` identity from authoritative
 `current_state`. Successful outermost writer scopes publish a flushed,
 validated same-filesystem temporary JSON file with one atomic rename before
 releasing the writer lock. `wb_manifest(bundle)` is the durable view;
 `wb_manifest(bundle, view = "reconstructed")` is explicitly diagnostic.
+Feature summaries use `counts$feature_registry_records` and the deterministic
+`counts$feature_counts_by_matrix` map. There is no bundle-level biological
+`n_features`; `counts$bundle_unique_feature_count` explains why cross-matrix
+identities cannot be deduplicated safely.
 
 Before distributing a bundle, call
 `wb_bundle_validation_report(path, level = "recipient")`. Content validation

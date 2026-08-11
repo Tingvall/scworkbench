@@ -14,7 +14,12 @@ authoritative file. \code{"reconstructed"} builds an explicitly diagnostic
 view from the open SQLite registry without writing or repairing the file.}
 }
 \value{
-Manifest list. \code{publication$state_source} is
+Manifest list. Manifest schema 2.3 reports matrix-scoped feature
+registry size as \code{counts$feature_registry_records}, with the deterministic
+\code{counts$feature_counts_by_matrix} mapping. It deliberately reports
+\code{counts$bundle_unique_feature_count$status = "not_applicable"} because
+cross-matrix feature namespace equivalence is not declared.
+\code{publication$state_source} is
 \code{"durable_manifest"} for the default direct-file view and
 \code{"reconstructed_diagnostic"} for the diagnostic registry view.
 }

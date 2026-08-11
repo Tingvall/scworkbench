@@ -431,6 +431,40 @@ wb_refresh_manifest <- function(bundle) {
   )
 }
 
+.wb_manifest_feature_counts <- function(con) {
+  by_matrix <- DBI::dbGetQuery(con, "
+    WITH matrix_ids AS (
+      SELECT matrix_id FROM matrices
+      UNION
+      SELECT matrix_id FROM features
+    )
+    SELECT ids.matrix_id, COUNT(features.feature_id) AS feature_count
+      FROM matrix_ids AS ids
+      LEFT JOIN features ON features.matrix_id = ids.matrix_id
+     GROUP BY ids.matrix_id
+     ORDER BY ids.matrix_id;
+  ")
+  counts <- if (nrow(by_matrix)) {
+    stats::setNames(
+      as.list(as.integer(by_matrix$feature_count)),
+      as.character(by_matrix$matrix_id)
+    )
+  } else list()
+  list(
+    feature_registry_records = as.integer(DBI::dbGetQuery(
+      con, "SELECT COUNT(*) AS n FROM features;"
+    )$n[1] %||% 0L),
+    feature_counts_by_matrix = counts,
+    bundle_unique_feature_count = list(
+      status = "not_applicable",
+      reason = paste(
+        "Feature identity is matrix-scoped; the bundle does not declare",
+        "cross-matrix identifier or feature-namespace equivalence."
+      )
+    )
+  )
+}
+
 .wb_bundle_build_manifest <- function(bundle_dir,
                                       con,
                                       bundle_id,
@@ -440,7 +474,7 @@ wb_refresh_manifest <- function(bundle) {
   n_cells <- suppressWarnings(as.integer(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM cells;")$n[1]))
   n_datasets <- suppressWarnings(as.integer(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM datasets;")$n[1]))
   n_spaces <- suppressWarnings(as.integer(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM spaces;")$n[1]))
-  n_features <- suppressWarnings(as.integer(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM features;")$n[1]))
+  feature_counts <- .wb_manifest_feature_counts(con)
 
   mat_tbl <- try(DBI::dbReadTable(con, "matrices"), silent = TRUE)
   if (inherits(mat_tbl, "try-error") || !is.data.frame(mat_tbl)) mat_tbl <- data.frame()
@@ -449,7 +483,7 @@ wb_refresh_manifest <- function(bundle) {
 
   registry_state <- .wb_manifest_registry_snapshot(con)
   list(
-    scworkbench_manifest_version = "2.2.0",
+    scworkbench_manifest_version = "2.3.0",
     bundle_id = as.character(bundle_id)[1],
     bundle_name = as.character(bundle_name)[1],
     created_at = as.character(created_at)[1],
@@ -463,7 +497,9 @@ wb_refresh_manifest <- function(bundle) {
       n_cells = as.integer(n_cells %||% 0L),
       n_datasets = as.integer(n_datasets %||% 0L),
       n_spaces = as.integer(n_spaces %||% 0L),
-      n_features = as.integer(n_features %||% 0L),
+      feature_registry_records = feature_counts$feature_registry_records,
+      feature_counts_by_matrix = feature_counts$feature_counts_by_matrix,
+      bundle_unique_feature_count = feature_counts$bundle_unique_feature_count,
       n_matrices = as.integer(if (nrow(mat_tbl)) nrow(mat_tbl) else 0L),
       n_artifacts = as.integer(if (.wb_table_exists(con, "artifacts")) DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM artifacts;")$n[1] else 0L)
     ),

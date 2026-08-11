@@ -123,6 +123,13 @@ durable snapshot; use `wb_manifest(bundle, view = "reconstructed")` only to
 diagnose a recoverable publication disagreement. Every committed writer route
 publishes while retaining the exclusive bundle-writer lock.
 
+Manifest schema 2.3 never presents matrix-scoped feature registry rows as a
+biological `n_features`. Read `counts$feature_registry_records` for physical
+registry rows and `counts$feature_counts_by_matrix` for each matrix's feature
+universe. `counts$bundle_unique_feature_count` is `not_applicable` because the
+engine does not declare cross-matrix identifier or modality namespaces
+equivalent.
+
 Use `wb_bundle_validation_report()` when a structured integrity result is
 needed. `structural`, `content`, and `recipient` are cumulative proof levels;
 only content/recipient verify tagged payload identities and the complete

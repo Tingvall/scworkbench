@@ -135,7 +135,12 @@
 #' @param view Manifest view. `"durable"` reads the atomically published
 #'   authoritative file. `"reconstructed"` builds an explicitly diagnostic
 #'   view from the open SQLite registry without writing or repairing the file.
-#' @return Manifest list. `publication$state_source` is
+#' @return Manifest list. Manifest schema 2.3 reports matrix-scoped feature
+#'   registry size as `counts$feature_registry_records`, with the deterministic
+#'   `counts$feature_counts_by_matrix` mapping. It deliberately reports
+#'   `counts$bundle_unique_feature_count$status = "not_applicable"` because
+#'   cross-matrix feature namespace equivalence is not declared.
+#'   `publication$state_source` is
 #'   `"durable_manifest"` for the default direct-file view and
 #'   `"reconstructed_diagnostic"` for the diagnostic registry view.
 #' @export
