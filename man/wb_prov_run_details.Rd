@@ -11,8 +11,9 @@ wb_prov_run_details(bundle, run_id, snapshot_id = NULL)
 
 \item{run_id}{Run id inside the snapshot.}
 
-\item{snapshot_id}{Optional snapshot id. When omitted, the latest snapshot
-is used.}
+\item{snapshot_id}{Optional snapshot id. When omitted, all snapshots are
+searched and the run is returned only when exactly one snapshot contains
+it. Ambiguous run-only lookup fails explicitly.}
 }
 \value{
 A named list with \code{run}, \code{parents}, \code{children}, and \code{outputs}.

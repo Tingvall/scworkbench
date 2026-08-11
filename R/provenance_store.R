@@ -1508,8 +1508,9 @@ wb_prov_dag <- function(bundle, snapshot_id = NULL) {
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param run_id Run id inside the snapshot.
-#' @param snapshot_id Optional snapshot id. When omitted, the latest snapshot
-#'   is used.
+#' @param snapshot_id Optional snapshot id. When omitted, all snapshots are
+#'   searched and the run is returned only when exactly one snapshot contains
+#'   it. Ambiguous run-only lookup fails explicitly.
 #'
 #' @return A named list with `run`, `parents`, `children`, and `outputs`.
 #'   The run and output records expose their explicit persisted identity schemes.
@@ -1526,9 +1527,27 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
 
   sid <- as.character(snapshot_id %||% "")[1]
   if (!nzchar(sid)) {
-    h <- DBI::dbGetQuery(con, "SELECT snapshot_id FROM prov_heads ORDER BY created_at DESC LIMIT 1;")
-    .wb_assert(nrow(h) == 1, "No provenance snapshots available.")
-    sid <- as.character(h$snapshot_id[1])
+    matches <- DBI::dbGetQuery(
+      con,
+      "SELECT DISTINCT snapshot_id FROM prov_runs WHERE run_id = ? ORDER BY snapshot_id;",
+      params = list(rid)
+    )
+    if (!nrow(matches)) {
+      .wb_prov_lookup_abort(
+        "PROVENANCE_RUN_NOT_FOUND",
+        paste0("Run not found in any provenance snapshot: ", rid),
+        list(run_id = rid, snapshot_ids = character(0))
+      )
+    }
+    if (nrow(matches) > 1L) {
+      candidates <- as.character(matches$snapshot_id)
+      .wb_prov_lookup_abort(
+        "PROVENANCE_RUN_AMBIGUOUS",
+        paste0("Run appears in multiple provenance snapshots; supply snapshot_id: ", rid),
+        list(run_id = rid, snapshot_ids = candidates)
+      )
+    }
+    sid <- as.character(matches$snapshot_id[[1L]])
   }
 
   has_sym <- .wb_db_has_column(con, "prov_runs", "symbolic_inputs_json")
@@ -1548,7 +1567,13 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
     ),
     params = list(sid, rid)
   )
-  .wb_assert(nrow(rr) == 1, paste0("Run not found in snapshot: ", rid))
+  if (nrow(rr) != 1L) {
+    .wb_prov_lookup_abort(
+      "PROVENANCE_RUN_NOT_FOUND",
+      paste0("Run not found in snapshot: ", rid, " / ", sid),
+      list(run_id = rid, snapshot_ids = sid)
+    )
+  }
 
   parents <- DBI::dbGetQuery(
     con,

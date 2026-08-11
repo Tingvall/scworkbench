@@ -832,7 +832,7 @@ Description: Read one snapshot-local persisted provenance DAG.
 
 Title: Bundle-Level Composed Provenance DAG
 
-Description: Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.
+Description: Compose one canonical-ID, semantic-edge-keyed DAG across snapshots, with deterministic snapshot evidence aggregation and typed conflict rejection.
 
 ### `getter:wb_target_reproduction_plan`
 
@@ -862,7 +862,7 @@ Description: Return an upstream, downstream, or bidirectional composed provenanc
 
 Title: Provenance Run Details
 
-Description: Inspect one persisted run from provenance.
+Description: Inspect one persisted run in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity.
 
 ### `getter:wb_run_history`
 

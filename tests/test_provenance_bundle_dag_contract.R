@@ -70,14 +70,14 @@ test_provenance_bundle_dag_contract <- function(bundle_dir) {
   stopifnot(nzchar(a2))
 
   dag <- wb_prov_bundle_dag(b)
-  stopifnot(is.list(dag), identical(as.character(dag$schema), "scworkbench.provenance.bundle_dag.v1"))
+  stopifnot(is.list(dag), identical(as.character(dag$schema), "scworkbench.provenance.bundle_dag.v2"))
   stopifnot(is.data.frame(dag$nodes), is.data.frame(dag$edges))
   expected_node_cols <- c(
-    "id", "node_type", "label", "title", "artifact_id", "run_id", "snapshot_id",
+    "id", "node_type", "label", "title", "artifact_id", "run_id", "snapshot_id", "snapshot_ids",
     "artifact_type", "primitive_kind", "op_name", "created_at", "status",
     "lineage_status", "canonical", "superseded"
   )
-  expected_edge_cols <- c("from", "to", "edge_type", "label", "run_id", "snapshot_id", "artifact_id")
+  expected_edge_cols <- c("from", "to", "edge_type", "label", "binding", "run_id", "snapshot_id", "snapshot_ids", "artifact_id", "semantic_key")
   stopifnot(all(expected_node_cols %in% colnames(dag$nodes)))
   stopifnot(all(expected_edge_cols %in% colnames(dag$edges)))
   stopifnot(any(dag$nodes$id == paste0("artifact:", a1)))
@@ -85,6 +85,7 @@ test_provenance_bundle_dag_contract <- function(bundle_dir) {
   stopifnot(any(dag$nodes$id == paste0("run:", r1$run_id)))
   stopifnot(any(dag$nodes$id == paste0("run:", r2$run_id)))
   stopifnot(any(dag$nodes$node_type == "snapshot"))
+  stopifnot(!anyDuplicated(dag$nodes$id), !anyDuplicated(dag$edges$semantic_key))
 
   edge_key <- paste(dag$edges$from, dag$edges$to, dag$edges$edge_type, sep = "|")
   stopifnot(any(edge_key == paste(paste0("run:", r1$run_id), paste0("artifact:", a1), "PRODUCES", sep = "|")))

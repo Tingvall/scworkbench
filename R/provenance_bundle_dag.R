@@ -9,6 +9,7 @@
     artifact_id = character(0),
     run_id = character(0),
     snapshot_id = character(0),
+    snapshot_ids = character(0),
     artifact_type = character(0),
     primitive_kind = character(0),
     op_name = character(0),
@@ -27,8 +28,10 @@
     to = character(0),
     edge_type = character(0),
     label = character(0),
+    binding = character(0),
     run_id = character(0),
     snapshot_id = character(0),
+    snapshot_ids = character(0),
     artifact_id = character(0),
     stringsAsFactors = FALSE
   )
@@ -49,6 +52,7 @@
                                  lineage_status = NA_character_,
                                  canonical = NA,
                                  superseded = NA) {
+  snapshot_id <- as.character(snapshot_id %||% NA_character_)[1]
   data.frame(
     id = as.character(id)[1],
     node_type = as.character(node_type)[1],
@@ -56,7 +60,8 @@
     title = as.character(title %||% NA_character_)[1],
     artifact_id = as.character(artifact_id %||% NA_character_)[1],
     run_id = as.character(run_id %||% NA_character_)[1],
-    snapshot_id = as.character(snapshot_id %||% NA_character_)[1],
+    snapshot_id = snapshot_id,
+    snapshot_ids = .wb_prov_snapshot_ids_json(snapshot_id),
     artifact_type = as.character(artifact_type %||% NA_character_)[1],
     primitive_kind = as.character(primitive_kind %||% NA_character_)[1],
     op_name = as.character(op_name %||% NA_character_)[1],
@@ -75,17 +80,167 @@
                                  label = NA_character_,
                                  run_id = NA_character_,
                                  snapshot_id = NA_character_,
-                                 artifact_id = NA_character_) {
+                                 artifact_id = NA_character_,
+                                 binding = NA_character_) {
+  snapshot_id <- as.character(snapshot_id %||% NA_character_)[1]
   data.frame(
     from = as.character(from)[1],
     to = as.character(to)[1],
     edge_type = as.character(edge_type)[1],
     label = as.character(label %||% NA_character_)[1],
+    binding = as.character(binding %||% NA_character_)[1],
     run_id = as.character(run_id %||% NA_character_)[1],
-    snapshot_id = as.character(snapshot_id %||% NA_character_)[1],
+    snapshot_id = snapshot_id,
+    snapshot_ids = .wb_prov_snapshot_ids_json(snapshot_id),
     artifact_id = as.character(artifact_id %||% NA_character_)[1],
     stringsAsFactors = FALSE
   )
+}
+
+.wb_prov_snapshot_ids <- function(snapshot_id = NULL, snapshot_ids = NULL) {
+  out <- as.character(unlist(snapshot_id %||% character(0), recursive = TRUE, use.names = FALSE))
+  encoded <- as.character(unlist(snapshot_ids %||% character(0), recursive = TRUE, use.names = FALSE))
+  for (txt in encoded[!is.na(encoded) & nzchar(encoded)]) {
+    parsed <- try(jsonlite::fromJSON(txt, simplifyVector = TRUE), silent = TRUE)
+    if (!inherits(parsed, "try-error")) out <- c(out, as.character(parsed %||% character(0)))
+    else out <- c(out, txt)
+  }
+  sort(unique(out[!is.na(out) & nzchar(out)]))
+}
+
+.wb_prov_snapshot_ids_json <- function(snapshot_ids) {
+  ids <- .wb_prov_snapshot_ids(snapshot_id = snapshot_ids)
+  as.character(jsonlite::toJSON(ids, auto_unbox = FALSE, null = "null"))
+}
+
+.wb_prov_composition_abort <- function(code, message, evidence = list()) {
+  stop(structure(
+    c(list(message = as.character(message)[1], call = NULL, code = as.character(code)[1]), evidence),
+    class = c("scworkbench_provenance_composition_error", "scworkbench_provenance_error", "error", "condition")
+  ))
+}
+
+.wb_prov_lookup_abort <- function(code, message, evidence = list()) {
+  stop(structure(
+    c(list(message = as.character(message)[1], call = NULL, code = as.character(code)[1]), evidence),
+    class = c("scworkbench_provenance_lookup_error", "scworkbench_provenance_error", "error", "condition")
+  ))
+}
+
+.wb_prov_evidence_values <- function(x) {
+  if (is.logical(x)) return(unique(x[!is.na(x)]))
+  x <- as.character(x)
+  unique(x[!is.na(x) & nzchar(x)])
+}
+
+.wb_prov_canonicalize_nodes <- function(nodes) {
+  if (!nrow(nodes)) return(nodes)
+  stable <- setdiff(names(nodes), c("snapshot_id", "snapshot_ids"))
+  out <- vector("list", length(unique(as.character(nodes$id))))
+  ids <- sort(unique(as.character(nodes$id)))
+  for (i in seq_along(ids)) {
+    id <- ids[[i]]
+    rows <- nodes[as.character(nodes$id) == id, , drop = FALSE]
+    row <- rows[1L, , drop = FALSE]
+    for (field in stable) {
+      values <- .wb_prov_evidence_values(rows[[field]])
+      if (length(values) > 1L) {
+        .wb_prov_composition_abort(
+          "PROVENANCE_NODE_CONFLICT",
+          paste0("Conflicting canonical provenance node evidence for '", id,
+                 "' field '", field, "'."),
+          list(entity_id = id, field = field, values = values)
+        )
+      }
+      if (length(values) == 1L) row[[field]] <- values[[1L]]
+    }
+    snapshots <- .wb_prov_snapshot_ids(rows$snapshot_id, rows$snapshot_ids)
+    row$snapshot_id <- if (length(snapshots) == 1L) snapshots else NA_character_
+    row$snapshot_ids <- .wb_prov_snapshot_ids_json(snapshots)
+    out[[i]] <- row
+  }
+  ans <- do.call(rbind, out)
+  rownames(ans) <- NULL
+  ans[order(ans$node_type, ans$id), , drop = FALSE]
+}
+
+.wb_prov_edge_semantic_key <- function(from, to, edge_type, label, binding) {
+  fields <- c(as.character(from), as.character(to), as.character(edge_type),
+              as.character(label), as.character(binding))
+  fields[is.na(fields)] <- ""
+  .wb_identifier_sha256(fields, "provenance_semantic_edge")
+}
+
+.wb_prov_canonicalize_edges <- function(edges) {
+  if (!nrow(edges)) {
+    edges$semantic_key <- character(0)
+    return(edges)
+  }
+  edges$semantic_key <- vapply(seq_len(nrow(edges)), function(i) {
+    .wb_prov_edge_semantic_key(edges$from[i], edges$to[i], edges$edge_type[i],
+                               edges$label[i], edges$binding[i])
+  }, character(1))
+  stable <- setdiff(names(edges), c("snapshot_id", "snapshot_ids", "semantic_key"))
+  keys <- sort(unique(as.character(edges$semantic_key)))
+  out <- vector("list", length(keys))
+  for (i in seq_along(keys)) {
+    key <- keys[[i]]
+    rows <- edges[as.character(edges$semantic_key) == key, , drop = FALSE]
+    row <- rows[1L, , drop = FALSE]
+    for (field in stable) {
+      values <- .wb_prov_evidence_values(rows[[field]])
+      if (length(values) > 1L) {
+        .wb_prov_composition_abort(
+          "PROVENANCE_EDGE_CONFLICT",
+          paste0("Conflicting canonical provenance edge evidence for semantic key '",
+                 key, "' field '", field, "'."),
+          list(semantic_key = key, field = field, values = values)
+        )
+      }
+      if (length(values) == 1L) row[[field]] <- values[[1L]]
+    }
+    snapshots <- .wb_prov_snapshot_ids(rows$snapshot_id, rows$snapshot_ids)
+    row$snapshot_id <- if (length(snapshots) == 1L) snapshots else NA_character_
+    row$snapshot_ids <- .wb_prov_snapshot_ids_json(snapshots)
+    out[[i]] <- row
+  }
+  ans <- do.call(rbind, out)
+  rownames(ans) <- NULL
+  ans[order(ans$from, ans$to, ans$edge_type, ans$label, ans$binding,
+            ans$semantic_key, na.last = TRUE), , drop = FALSE]
+}
+
+.wb_prov_assert_record_consistency <- function(rows, id_columns, fields, code) {
+  if (!nrow(rows)) return(invisible(TRUE))
+  id_columns <- intersect(as.character(id_columns), names(rows))
+  fields <- intersect(as.character(fields), names(rows))
+  key <- do.call(paste, c(lapply(rows[id_columns], function(x) {
+    out <- as.character(x)
+    out[is.na(out)] <- ""
+    out
+  }), sep = "\034"))
+  for (record_key in unique(key)) {
+    group <- rows[key == record_key, , drop = FALSE]
+    if (nrow(group) < 2L) next
+    for (field in fields) {
+      values <- .wb_prov_evidence_values(group[[field]])
+      if (length(values) > 1L) {
+        display_key <- paste(vapply(id_columns, function(column) {
+          paste0(column, "=", as.character(group[[column]][[1L]]))
+        }, character(1)), collapse = ", ")
+        .wb_prov_composition_abort(
+          code,
+          paste0("Conflicting canonical provenance record evidence for ",
+                 display_key, " field '", field, "'."),
+          list(
+            entity_id = display_key, field = field, values = values,
+            records = group[, intersect(unique(c(id_columns, "snapshot_id", fields)), names(group)), drop = FALSE]
+          )
+        )
+      }
+    }
+  }
+  invisible(TRUE)
 }
 
 .wb_prov_bundle_bind <- function(rows, empty) {
@@ -319,7 +474,7 @@
         label = cs,
         title = paste0("Cell set ", cs),
         snapshot_id = rows$snapshot_id[i],
-        status = if (identical(rows$action[i], "remove")) "removed" else "registered"
+        status = NA_character_
       )
       ei <- ei + 1L
       edges[[ei]] <- .wb_prov_bundle_edge(
@@ -340,7 +495,7 @@
     ns <- as.character(meta$namespace %||% "")[1]
     label <- paste(c(ns, fs, mid)[nzchar(c(ns, fs, mid))], collapse = "/")
     node_id <- paste0("feature_set:", if (nzchar(ns)) paste0(ns, ":") else "", fs, if (nzchar(mid)) paste0("@", mid) else "")
-    ni <- ni + 1L; nodes[[ni]] <- .wb_prov_bundle_node(id = node_id, node_type = "feature_set", label = label, title = paste0("Feature set ", label), snapshot_id = rows$snapshot_id[i], status = if (identical(rows$action[i], "delete")) "deleted" else "registered")
+    ni <- ni + 1L; nodes[[ni]] <- .wb_prov_bundle_node(id = node_id, node_type = "feature_set", label = label, title = paste0("Feature set ", label), snapshot_id = rows$snapshot_id[i], status = NA_character_)
     ei <- ei + 1L; edges[[ei]] <- .wb_prov_bundle_edge(from = paste0("run:", rows$run_id[i]), to = node_id, edge_type = "MUTATES_REGISTRY", label = as.character(rows$action[i]), run_id = rows$run_id[i], snapshot_id = rows$snapshot_id[i])
   }
   list(nodes = .wb_prov_bundle_bind(nodes, .wb_prov_bundle_empty_nodes), edges = .wb_prov_bundle_bind(edges, .wb_prov_bundle_empty_edges))
@@ -402,10 +557,13 @@
 
 #' Build A Bundle-Level Composed Provenance DAG
 #'
-#' Composes all persisted provenance snapshots in a bundle into one graph using
-#' stable artifact IDs as the bridge between separately promoted sessions. This
-#' is the engine-owned graph contract for clients that need a connected view of
-#' promoted analyses without reverse-engineering SQLite or provenance JSON.
+#' Composes all persisted provenance snapshots into one canonical graph. A
+#' durable entity or globally unique run has one stable node `id` across
+#' snapshots. Repeated evidence is merged into the deterministic JSON array
+#' `snapshot_ids`; `snapshot_id` is populated only for single-snapshot evidence.
+#' Edges are unique by `semantic_key`, whose identity tuple is `from`, `to`,
+#' `edge_type`, `label`, and `binding`. Conflicting canonical evidence fails
+#' with a typed `scworkbench_provenance_composition_error`.
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param snapshot_id Optional snapshot filter.
@@ -420,7 +578,7 @@
 #'   and retracted durable-entity identities from the returned current-claim
 #'   view. Ordinary run and snapshot nodes remain present.
 #'
-#' @return A list with stable `nodes` and `edges` data.frames.
+#' @return A list with canonical `nodes` and semantic-keyed `edges` data.frames.
 #' @export
 wb_prov_bundle_dag <- function(bundle,
                                snapshot_id = NULL,
@@ -453,12 +611,20 @@ wb_prov_bundle_dag <- function(bundle,
 
   runs <- DBI::dbGetQuery(
     con,
-    paste0("SELECT snapshot_id, run_id, op_name, created_at, notes, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, ",
+    paste0("SELECT snapshot_id, run_id, op_name, created_at, notes, params_json, inputs_json, symbolic_inputs_json, execution_inputs_json, run_hash, op_version, runtime_fingerprint_json, contract_json, contract_hash, ",
            .wb_prov_run_identity_select(con)," FROM prov_runs ORDER BY created_at, snapshot_id, run_id;")
   )
   if (has_sid_filter && nrow(runs)) {
     runs <- runs[as.character(runs$snapshot_id) %in% sid_filter, , drop = FALSE]
   }
+  .wb_prov_assert_record_consistency(
+    runs, "run_id",
+    c("op_name", "created_at", "notes", "params_json", "inputs_json",
+      "symbolic_inputs_json", "execution_inputs_json", "run_hash", "op_version",
+      "runtime_fingerprint_json", "contract_json", "contract_hash",
+      "run_hash_scheme", "contract_hash_scheme"),
+    "PROVENANCE_NODE_CONFLICT"
+  )
 
   outputs <- DBI::dbGetQuery(
     con,
@@ -468,6 +634,22 @@ wb_prov_bundle_dag <- function(bundle,
   if (has_sid_filter && nrow(outputs)) {
     outputs <- outputs[as.character(outputs$snapshot_id) %in% sid_filter, , drop = FALSE]
   }
+  .wb_prov_assert_record_consistency(
+    outputs, c("run_id", "output_name"),
+    c("primitive_kind", "output_hash", "structural_fingerprint", "content_sha256",
+      "verification_level", "verification_status", "replay_equivalence_policy",
+      "replay_equivalence_reference", "replay_equivalence_status",
+      "content_identity_scheme", "output_hash_scheme", "structural_fingerprint_scheme"),
+    "PROVENANCE_EDGE_CONFLICT"
+  )
+  artifact_outputs <- outputs[
+    !is.na(outputs$artifact_id) & nzchar(as.character(outputs$artifact_id)),
+    , drop = FALSE
+  ]
+  .wb_prov_assert_record_consistency(
+    artifact_outputs, "artifact_id", c("run_id", "output_name", "primitive_kind"),
+    "PROVENANCE_NODE_CONFLICT"
+  )
 
   run_edges_src <- DBI::dbGetQuery(
     con,
@@ -487,10 +669,20 @@ wb_prov_bundle_dag <- function(bundle,
     arts <- arts[keep_sid, , drop = FALSE]
   }
 
-  artifact_kind <- stats::setNames(
-    as.character(outputs$primitive_kind %||% character(0)),
-    as.character(outputs$artifact_id %||% character(0))
-  )
+  artifact_kind <- character(0)
+  output_artifact_ids <- unique(as.character(outputs$artifact_id %||% character(0)))
+  output_artifact_ids <- output_artifact_ids[!is.na(output_artifact_ids) & nzchar(output_artifact_ids)]
+  for (aid in output_artifact_ids) {
+    kinds <- .wb_prov_evidence_values(outputs$primitive_kind[as.character(outputs$artifact_id) == aid])
+    if (length(kinds) > 1L) {
+      .wb_prov_composition_abort(
+        "PROVENANCE_NODE_CONFLICT",
+        paste0("Conflicting canonical provenance artifact kind for '", aid, "'."),
+        list(entity_id = paste0("artifact:", aid), field = "primitive_kind", values = kinds)
+      )
+    }
+    artifact_kind[[aid]] <- if (length(kinds)) kinds[[1L]] else NA_character_
+  }
 
   nodes <- list()
   edges <- list()
@@ -514,19 +706,18 @@ wb_prov_bundle_dag <- function(bundle,
   }
 
   if (nrow(runs)) {
-    runs_unique <- runs[!duplicated(as.character(runs$run_id)), , drop = FALSE]
-    for (i in seq_len(nrow(runs_unique))) {
-      rid <- as.character(runs_unique$run_id[i])
+    for (i in seq_len(nrow(runs))) {
+      rid <- as.character(runs$run_id[i])
       ni <- ni + 1L
       nodes[[ni]] <- .wb_prov_bundle_node(
         id = paste0("run:", rid),
         node_type = "run",
-        label = as.character(runs_unique$op_name[i] %||% rid)[1],
-        title = paste0(as.character(runs_unique$op_name[i] %||% "run")[1], " / ", rid),
+        label = as.character(runs$op_name[i] %||% rid)[1],
+        title = paste0(as.character(runs$op_name[i] %||% "run")[1], " / ", rid),
         run_id = rid,
-        snapshot_id = as.character(runs_unique$snapshot_id[i] %||% NA_character_)[1],
-        op_name = as.character(runs_unique$op_name[i] %||% NA_character_)[1],
-        created_at = as.character(runs_unique$created_at[i] %||% NA_character_)[1],
+        snapshot_id = as.character(runs$snapshot_id[i] %||% NA_character_)[1],
+        op_name = as.character(runs$op_name[i] %||% NA_character_)[1],
+        created_at = as.character(runs$created_at[i] %||% NA_character_)[1],
         status = "persisted"
       )
     }
@@ -617,7 +808,8 @@ wb_prov_bundle_dag <- function(bundle,
         edge_type = "DERIVED_FROM",
         label = as.character(run_edges_src$edge_label[i] %||% run_edges_src$edge_type[i])[1],
         run_id = child,
-        snapshot_id = sid
+        snapshot_id = sid,
+        binding = as.character(run_edges_src$edge_type[i])
       )
     }
 
@@ -712,7 +904,18 @@ wb_prov_bundle_dag <- function(bundle,
     if (nrow(bindings)) for (i in seq_len(nrow(bindings))) {
       kind <- as.character(bindings$entity_kind[i]); id <- as.character(bindings$entity_id[i])
       node_id <- paste0(kind, ":", id)
-      nodes_df <- unique(rbind(nodes_df, .wb_prov_bundle_node(id = node_id, node_type = kind, label = id, title = paste(kind, id), snapshot_id = bindings$snapshot_id[i], status = "durable")))
+      idx <- which(as.character(nodes_df$id) == node_id)
+      binding_node <- if (length(idx)) {
+        row <- nodes_df[idx[[1L]], , drop = FALSE]
+        row$snapshot_id <- as.character(bindings$snapshot_id[i])
+        row$snapshot_ids <- .wb_prov_snapshot_ids_json(bindings$snapshot_id[i])
+        row
+      } else {
+        .wb_prov_bundle_node(id = node_id, node_type = kind, label = id,
+                             title = paste(kind, id), snapshot_id = bindings$snapshot_id[i],
+                             status = "durable")
+      }
+      nodes_df <- rbind(nodes_df, binding_node)
       consumes <- identical(as.character(bindings$relationship_type[i]), "CONSUMES")
       edges_df <- unique(rbind(edges_df, .wb_prov_bundle_edge(
         from = if (consumes) node_id else paste0("run:", bindings$run_id[i]),
@@ -776,22 +979,26 @@ wb_prov_bundle_dag <- function(bundle,
     }
   }
 
+  nodes_df <- .wb_prov_canonicalize_nodes(nodes_df)
+  edges_df <- .wb_prov_canonicalize_edges(edges_df)
+
   if (nrow(edges_df)) {
     node_ids <- as.character(nodes_df$id)
     keep <- as.character(edges_df$from) %in% node_ids & as.character(edges_df$to) %in% node_ids
     edges_df <- edges_df[keep, , drop = FALSE]
-    edges_df <- unique(edges_df[order(edges_df$from, edges_df$to, edges_df$edge_type), , drop = FALSE])
+    edges_df <- edges_df[order(edges_df$from, edges_df$to, edges_df$edge_type,
+                               edges_df$label, edges_df$binding, na.last = TRUE), , drop = FALSE]
     rownames(edges_df) <- NULL
   }
   if (nrow(nodes_df)) {
-    nodes_df <- unique(nodes_df[order(nodes_df$node_type, nodes_df$id), , drop = FALSE])
+    nodes_df <- nodes_df[order(nodes_df$node_type, nodes_df$id), , drop = FALSE]
     rownames(nodes_df) <- NULL
   }
 
   graph <- list(
     nodes = nodes_df,
     edges = edges_df,
-    schema = "scworkbench.provenance.bundle_dag.v1",
+    schema = "scworkbench.provenance.bundle_dag.v2",
     filters = list(
       snapshot_id = sid_filter,
       run_id = run_id %||% NULL,

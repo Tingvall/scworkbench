@@ -39,11 +39,14 @@ and retracted durable-entity identities from the returned current-claim
 view. Ordinary run and snapshot nodes remain present.}
 }
 \value{
-A list with stable \code{nodes} and \code{edges} data.frames.
+A list with canonical \code{nodes} and semantic-keyed \code{edges} data.frames.
 }
 \description{
-Composes all persisted provenance snapshots in a bundle into one graph using
-stable artifact IDs as the bridge between separately promoted sessions. This
-is the engine-owned graph contract for clients that need a connected view of
-promoted analyses without reverse-engineering SQLite or provenance JSON.
+Composes all persisted provenance snapshots into one canonical graph. A
+durable entity or globally unique run has one stable node \code{id} across
+snapshots. Repeated evidence is merged into the deterministic JSON array
+\code{snapshot_ids}; \code{snapshot_id} is populated only for single-snapshot evidence.
+Edges are unique by \code{semantic_key}, whose identity tuple is \code{from}, \code{to},
+\code{edge_type}, \code{label}, and \code{binding}. Conflicting canonical evidence fails
+with a typed \code{scworkbench_provenance_composition_error}.
 }

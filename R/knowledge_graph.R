@@ -65,14 +65,15 @@
   )
 }
 
-.wb_kg_edge_id <- function(source_id, target_id, edge_type, source = "scworkbench") {
-  .wb_identifier_sha256(c(source_id, target_id, edge_type, source), "edge")
+.wb_kg_edge_id <- function(source_id, target_id, edge_type, source = "scworkbench",
+                           semantic_label = "") {
+  .wb_identifier_sha256(c(source_id, target_id, edge_type, source, semantic_label), "edge")
 }
 
 .wb_kg_edge <- function(source_id, target_id, edge_type, source,
-                        confidence = 1, payload = list()) {
+                        confidence = 1, payload = list(), semantic_label = "") {
   data.frame(
-    id = .wb_kg_edge_id(source_id, target_id, edge_type, source),
+    id = .wb_kg_edge_id(source_id, target_id, edge_type, source, semantic_label),
     source_id = as.character(source_id)[1],
     target_id = as.character(target_id)[1],
     edge_type = as.character(edge_type)[1],
@@ -107,7 +108,66 @@
   edges
 }
 
-.wb_kg_normalize_graph <- function(nodes, edges) {
+.wb_kg_payload_evidence <- function(payload_json) {
+  payload <- try(jsonlite::fromJSON(as.character(payload_json %||% "{}")[1], simplifyVector = FALSE), silent = TRUE)
+  if (inherits(payload, "try-error") || is.null(payload) || !is.list(payload)) payload <- list()
+  snapshots <- .wb_prov_snapshot_ids(payload$snapshot_id %||% NULL, payload$snapshot_ids %||% NULL)
+  payload$snapshot_id <- NULL
+  payload$snapshot_ids <- NULL
+  list(
+    payload = payload,
+    canonical = .wb_kg_json(payload),
+    snapshot_ids = snapshots
+  )
+}
+
+.wb_kg_canonicalize_rows <- function(rows, kind = c("node", "edge")) {
+  kind <- match.arg(kind)
+  if (!nrow(rows)) return(rows)
+  ids <- sort(unique(as.character(rows$id)))
+  out <- vector("list", length(ids))
+  stable <- setdiff(names(rows), c("payload_json"))
+  for (i in seq_along(ids)) {
+    id <- ids[[i]]
+    group <- rows[as.character(rows$id) == id, , drop = FALSE]
+    row <- group[1L, , drop = FALSE]
+    for (field in stable) {
+      values <- .wb_prov_evidence_values(group[[field]])
+      if (length(values) > 1L) {
+        .wb_prov_composition_abort(
+          if (identical(kind, "node")) "PROVENANCE_KG_NODE_CONFLICT" else "PROVENANCE_KG_EDGE_CONFLICT",
+          paste0("Conflicting canonical provenance KG ", kind, " evidence for '",
+                 id, "' field '", field, "'."),
+          list(entity_id = id, field = field, values = values)
+        )
+      }
+      if (length(values) == 1L) row[[field]] <- values[[1L]]
+    }
+    evidence <- lapply(group$payload_json, .wb_kg_payload_evidence)
+    payloads <- unique(vapply(evidence, `[[`, character(1), "canonical"))
+    if (length(payloads) > 1L) {
+      .wb_prov_composition_abort(
+        if (identical(kind, "node")) "PROVENANCE_KG_NODE_CONFLICT" else "PROVENANCE_KG_EDGE_CONFLICT",
+        paste0("Conflicting canonical provenance KG ", kind, " payload evidence for '", id, "'."),
+        list(entity_id = id, field = "payload_json", values = payloads)
+      )
+    }
+    payload <- evidence[[1L]]$payload
+    snapshots <- sort(unique(unlist(lapply(evidence, `[[`, "snapshot_ids"), use.names = FALSE)))
+    if (length(snapshots)) payload$snapshot_ids <- as.list(snapshots)
+    row$payload_json <- .wb_kg_json(payload)
+    out[[i]] <- row
+  }
+  ans <- do.call(rbind, out)
+  rownames(ans) <- NULL
+  ans
+}
+
+.wb_kg_normalize_graph <- function(nodes, edges, strict_provenance = FALSE) {
+  if (isTRUE(strict_provenance)) {
+    nodes <- .wb_kg_canonicalize_rows(nodes, "node")
+    edges <- .wb_kg_canonicalize_rows(edges, "edge")
+  }
   list(
     schema_version = .wb_kg_schema_version(),
     generated_at = .wb_kg_now(),
@@ -399,7 +459,9 @@ wb_kg_bundle_graph <- function(bundle) {
           paste0("run:", .wb_kg_slug(ee$child_run_id[i])),
           "USED_INPUT",
           "provenance_store",
-          payload = as.list(ee[i, , drop = FALSE])
+          payload = as.list(ee[i, , drop = FALSE]),
+          semantic_label = paste(as.character(ee$edge_type[i]),
+                                 as.character(ee$edge_label[i] %||% ""), sep = ":")
         )
       }
     }
@@ -413,7 +475,8 @@ wb_kg_bundle_graph <- function(bundle) {
       prefix <- if (identical(scope,"in_memory")) "in_memory_source:" else "external_source:"
       node_type <- if (identical(scope,"in_memory")) "InMemorySource" else "ExternalSource"
       snid <- paste0(prefix, .wb_kg_slug(src$source_id[i]))
-      nodes[[length(nodes) + 1L]] <- .wb_kg_node(snid, as.character(src$source_id[i]), node_type, "declared_ingestion_input", payload=c(as.list(src[i, , drop=FALSE]), list(scope=scope)))
+      source_payload <- as.list(src[i, setdiff(names(src), c("snapshot_id", "run_id")), drop = FALSE])
+      nodes[[length(nodes) + 1L]] <- .wb_kg_node(snid, as.character(src$source_id[i]), node_type, "declared_ingestion_input", payload=c(source_payload, list(scope=scope, snapshot_id=src$snapshot_id[i])))
       edges[[length(edges) + 1L]] <- .wb_kg_edge(snid, paste0("run:", .wb_kg_slug(src$run_id[i])), "SUPPLIED_TO", "declared_ingestion_input", payload=as.list(src[i, , drop=FALSE]))
     }
   }
@@ -453,11 +516,11 @@ wb_kg_bundle_graph <- function(bundle) {
         rid <- paste0("run:", .wb_kg_slug(outs$run_id[i]))
         if (!is.na(outs$artifact_id[i]) && nzchar(as.character(outs$artifact_id[i]))) {
           aid <- paste0("artifact:", .wb_kg_slug(outs$artifact_id[i]))
-          edges[[length(edges) + 1L]] <- .wb_kg_edge(rid, aid, "PRODUCED_ARTIFACT", "provenance_store", payload = as.list(outs[i, , drop = FALSE]))
+          edges[[length(edges) + 1L]] <- .wb_kg_edge(rid, aid, "PRODUCED_ARTIFACT", "provenance_store", payload = as.list(outs[i, , drop = FALSE]), semantic_label = as.character(outs$output_name[i]))
         }
         pk <- as.character(outs$primitive_kind[i] %||% "")
         if (nzchar(pk)) {
-          edges[[length(edges) + 1L]] <- .wb_kg_edge(rid, paste0("primitive:", .wb_kg_slug(pk)), "PRODUCES", "provenance_store", payload = as.list(outs[i, , drop = FALSE]))
+          edges[[length(edges) + 1L]] <- .wb_kg_edge(rid, paste0("primitive:", .wb_kg_slug(pk)), "PRODUCES", "provenance_store", payload = as.list(outs[i, , drop = FALSE]), semantic_label = as.character(outs$output_name[i]))
         }
       }
     }
@@ -493,7 +556,7 @@ wb_kg_bundle_graph <- function(bundle) {
 #' @export
 wb_kg_provenance_graph <- function(bundle) {
   pe <- .wb_kg_provenance_nodes_edges(bundle)
-  .wb_kg_normalize_graph(pe$nodes, pe$edges)
+  .wb_kg_normalize_graph(pe$nodes, pe$edges, strict_provenance = TRUE)
 }
 
 .wb_kg_combined_graph <- function(bundle = NULL) {

@@ -917,13 +917,13 @@ Use when:
 
 Title: Bundle-Level Composed Provenance DAG
 
-Description: Compose persisted runs, artifacts, snapshots, artifact inputs, outputs, and registry mutations across all bundle provenance snapshots.
+Description: Compose one canonical-ID, semantic-edge-keyed DAG across snapshots, with deterministic snapshot evidence aggregation and typed conflict rejection.
 
 Returns: list/data.frame
 
 Payload level: metadata
 
-Arguments: bundle, snapshot_id, run_id, artifact_id, direction, max_depth, include_snapshots, include_registry_mutations
+Arguments: bundle, snapshot_id, run_id, artifact_id, direction, max_depth, include_snapshots, include_registry_mutations, include_superseded
 
 Use when:
 - render a connected artifact/run lineage across promotions
@@ -996,13 +996,13 @@ Use when:
 
 Title: Provenance Run Details
 
-Description: Inspect one persisted run from provenance.
+Description: Inspect one persisted run in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity.
 
 Returns: list
 
 Payload level: metadata
 
-Arguments: bundle, run_id
+Arguments: bundle, run_id, snapshot_id
 
 Use when:
 - explain exact inputs and params for one run

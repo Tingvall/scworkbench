@@ -43,10 +43,25 @@ and `edge_type == "CONSUMES"` to inspect source-to-ingestion edges.
 Automatic assembly events have no external-source node. Genuine object inputs
 use the distinct `in_memory_source` node type and remain explicitly nonportable.
 
+The composed DAG is canonical across provenance snapshots: each durable entity
+or globally unique run appears once by `nodes$id`. Repeated snapshot evidence is
+the ordered JSON array `snapshot_ids`; `snapshot_id` is present only when the
+evidence belongs to one snapshot. Edges are unique by `semantic_key`, defined
+over `from`, `to`, `edge_type`, semantic `label`, and typed `binding`. Conflicting labels,
+kinds, producers, lifecycle states, or edge bindings fail closed. Focused
+lineage and provenance KG views use the same stable identities.
+
+For a historical run, pass the `snapshot_id` returned with its public
+provenance record, for example each unique `snapshot_id`/`run_id` pair from
+`wb_prov_source_inputs()`. A run-only `wb_prov_run_details()` lookup searches
+all snapshots and succeeds only when the match is unique; ambiguity is an
+explicit error rather than an implicit current-head lookup.
+
 Before transferring a writable bundle, run `wb_finalize_recipient_bundle(b)`
 and confirm `wb_recipient_readiness(path)$ready`. The supported container audit
 is `containers/apptainer/recipient_readonly_audit.sh IMAGE BUNDLE_DIR`; it
-uses `singularity --bind BUNDLE_DIR:/bundle:ro` and never clones the bundle.
+uses `singularity --bind BUNDLE_DIR:/audit_bundle:ro`, obtains historical
+run/snapshot pairs from public provenance getters, and never clones the bundle.
 
 For writable container work, bind the directory that contains the bundle and
 open the bundle below that mount. The exclusive writer lock is a sibling of
