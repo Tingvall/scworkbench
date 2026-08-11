@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "record_count": 149,
-  "meaningful_public_transformation_count": 61,
+  "record_count": 150,
+  "meaningful_public_transformation_count": 62,
   "exported_guarded_function_count": 26,
   "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_matrix_log_normalize", "wb_op_palantir_fit", "wb_op_palantir_project", "wb_op_pca_fit", "wb_op_peakvi_project", "wb_op_umap_fit", "wb_op_umap_transform", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
   "invariant": {
@@ -1646,6 +1646,18 @@
     {
       "interface_id": "primitive_payload_writer:wb_client_promote",
       "function_name": "wb_client_promote",
+      "category": "primitive_payload_writer",
+      "exported": true,
+      "implemented": true,
+      "durable_mutation": true,
+      "supported_route": "provenance_promotion",
+      "supported_route_count": 1,
+      "boundary": "public_transaction",
+      "direct_committed_write": false
+    },
+    {
+      "interface_id": "primitive_payload_writer:wb_target_execute_plan",
+      "function_name": "wb_target_execute_plan",
       "category": "primitive_payload_writer",
       "exported": true,
       "implemented": true,

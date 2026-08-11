@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 149
+Record count: 150
 
-Meaningful public transformations: 61
+Meaningful public transformations: 62
 
 Exported directly guarded functions: 26
 
@@ -1915,6 +1915,20 @@ Boundary: `public_transaction`
 Supported route: `provenance_promotion`
 
 ## `wb_client_promote`
+
+Category: primitive_payload_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `provenance_promotion`
+
+## `wb_target_execute_plan`
 
 Category: primitive_payload_writer
 

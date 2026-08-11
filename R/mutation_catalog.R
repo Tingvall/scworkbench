@@ -45,6 +45,7 @@
   provenance_binding_writer = c(".wb_entity_bind_provenance"),
   primitive_payload_writer = c(
     "wb_promote_analysis", "wb_session_promote_current", "wb_client_promote",
+    "wb_target_execute_plan",
     "wb_write_cell_vector", "wb_register_cell_vector",
     ".wb_promote_cell_vector", ".wb_promote_cell_vector_family",
     ".wb_promote_feature_table", ".wb_promote_obs_table",
@@ -69,7 +70,10 @@
     "wb_feature_set_import_table", "wb_feature_set_import_list",
     "wb_motif_library_import_jaspar", "wb_repair_model_ref_paths"
   )
-  promotion <- c("wb_promote_analysis", "wb_session_promote_current", "wb_client_promote")
+  promotion <- c(
+    "wb_promote_analysis", "wb_session_promote_current", "wb_client_promote",
+    "wb_target_execute_plan"
+  )
   administrative <- character()
   schema_migration <- c("wb_migrate_artifacts", "wb_migrate_bundle")
   recipient_finalization <- c("wb_finalize_recipient_bundle")

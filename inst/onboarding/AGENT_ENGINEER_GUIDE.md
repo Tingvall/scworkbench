@@ -99,6 +99,13 @@ Use `wb_op_interface()` to select valid terminal `outputs=` values. Promotion
 commits the required provenance closure; staged session state is ephemeral if
 the R process exits.
 
+Targeted reproduction uses a narrower public executor. Generate a plan with
+`wb_target_reproduction_plan()`, emit it with `wb_target_emit_r_script()`, and
+run the script against a separate source-only writable clone. Generated code
+must contain no private namespace access. `wb_target_execute_plan()` owns
+preflight, topological staged execution, pre-promotion semantic/loadability
+verification, selected promotion, and durable replay-equivalence receipts.
+
 Manifest schema 2.3 separates immutable `creation` identity from authoritative
 `current_state`. Successful outermost writer scopes publish a flushed,
 validated same-filesystem temporary JSON file with one atomic rename before

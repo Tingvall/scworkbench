@@ -123,6 +123,16 @@ wb_target_reproduction_plan <- function(bundle, target) {
   # A fitted UMAP is a map plus its model reference: include both outputs.
   terminal <- terminal[!duplicated(paste(terminal$run_id, terminal$output_name)),,drop=FALSE]
   prereq <- unique(boundary)
+  if (nrow(prereq)) for (i in seq_len(nrow(prereq))) {
+    recorded <- as.character(prereq$content_hash[i] %||% "")[1]
+    if (!grepl("^[0-9a-f]{64}$", recorded)) {
+      identity <- .wb_target_boundary_identity(
+        bundle, as.character(prereq$entity_kind[i]),
+        as.character(prereq$entity_id[i])
+      )
+      prereq$content_hash[i] <- as.character(identity$content_sha256 %||% "")[1]
+    }
+  }
   graph <- wb_prov_bundle_dag(bundle, include_snapshots=FALSE, include_registry_mutations=FALSE)
   focus_runs <- paste0("run:", closure)
   from_run <- as.character(graph$edges$from) %in% focus_runs
@@ -146,59 +156,28 @@ wb_target_reproduction_plan <- function(bundle, target) {
 
 #' Emit an executable target-reproduction script
 #'
-#' The script opens a writable ingestion-ready execution clone, never the
-#' inspected source bundle, replays only the planned closure, promotes the
-#' selected terminal outputs, and checks recorded content identities.
+#' The emitted text contains a self-contained plan and calls only the exported
+#' [wb_target_execute_plan()] boundary. The plan's inspected-source path is
+#' retained solely for the executor's explicit non-mutation identity check;
+#' all scientific execution is relative to `execution_bundle_dir`.
 #'
 #' @param plan A successful target reproduction plan.
 #' @param execution_bundle_dir Literal path placeholder for a writable clone.
-#' @return Length-one R script string.
+#' @return Length-one R script string using only public scworkbench APIs.
 #' @export
 wb_target_emit_r_script <- function(plan, execution_bundle_dir = "<WRITABLE_INGESTION_READY_CLONE>") {
-  .wb_assert(inherits(plan,"wb_target_reproduction_plan") && isTRUE(plan$reproducible), "plan is not reproducible")
-  .wb_assert(identical(plan$status,"ok"), "plan has diagnostics that prevent script emission")
-  runs <- plan$runs; core <- .wb_prov_emit_r_script_core(runs, plan$run_order, "target-plan", execution_bundle_dir, TRUE, "symbolic", style="bench_pretty", target=list(run_id=plan$target$producing_run_id,output_name=plan$target$output_name))
-  dest <- .wb_r_single_quote_escape(execution_bundle_dir); src <- .wb_r_single_quote_escape(plan$source_bundle_dir %||% "")
-  preflight <- c(
-    paste0("if (!dir.exists('", dest, "') || file.access('", dest, "', 2L) != 0L) stop('Destination must be an existing writable ingestion-ready clone.')"),
-    paste0("if (nzchar('", src, "') && identical(normalizePath('", dest, "', winslash='/', mustWork=FALSE), normalizePath('", src, "', winslash='/', mustWork=FALSE))) stop('Refusing to mutate the inspected source bundle.')")
-  )
-  boundary_checks <- character(0)
-  if (nrow(plan$boundary_prerequisites %||% data.frame())) for (i in seq_len(nrow(plan$boundary_prerequisites))) {
-    b <- plan$boundary_prerequisites[i,,drop=FALSE]; id <- .wb_r_single_quote_escape(as.character(b$entity_id[1])); k <- as.character(b$entity_kind[1])
-    present <- if (k == "matrix") paste0("'",id,"' %in% wb_matrices(bundle, include_history=TRUE)$matrix_id") else if (k == "space") paste0("'",id,"' %in% wb_spaces(bundle, include_history=TRUE)$space_id") else if (k == "artifact") paste0("'",id,"' %in% wb_art_list(bundle, include_history=TRUE)$artifact_id") else "TRUE"
-    boundary_checks <- c(boundary_checks, paste0("if (!(",present,")) stop('Missing immutable boundary ",k,":",id,"')"))
-  }
-  collision_checks <- character(0)
-  if (nrow(plan$durable_outputs %||% data.frame())) for (i in seq_len(nrow(plan$durable_outputs))) {
-    d <- plan$durable_outputs[i,,drop=FALSE]; id <- .wb_r_single_quote_escape(as.character(d$entity_id[1])); k <- as.character(d$entity_kind[1])
-    exists <- if (k == "matrix") paste0("'",id,"' %in% wb_matrices(bundle)$matrix_id") else if (k == "space") paste0("'",id,"' %in% wb_spaces(bundle)$space_id") else "FALSE"
-    collision_checks <- c(collision_checks, paste0("if (",exists,") stop('Durable output collision: ",k,":",id,"')"))
-  }
-  artifact_lines <- character(0)
-  if (nrow(plan$artifact_sources %||% data.frame())) for (i in seq_len(nrow(plan$artifact_sources))) artifact_lines <- c(artifact_lines, paste0("artifact_replay_map[['",.wb_r_single_quote_escape(as.character(plan$artifact_sources$artifact_id[i])),"']] <- list(run_id='",.wb_r_single_quote_escape(as.character(plan$artifact_sources$run_id[i])),"', output='",.wb_r_single_quote_escape(as.character(plan$artifact_sources$output_name[i])),"')"))
-  rewrite <- c("artifact_replay_map <- list()", artifact_lines, "rewrite_artifact_refs <- function(x) { if (!is.list(x)) return(x); if (identical(as.character(x$ref_type %||% '')[1], 'artifact')) { a <- artifact_replay_map[[as.character(x$artifact_id %||% '')[1]]]; if (!is.null(a) && !is.null(replay_map[[a$run_id]])) return(wb_ref_run(replay_map[[a$run_id]], a$output)); return(x) }; y <- lapply(x, rewrite_artifact_refs); if (!is.null(names(x))) names(y) <- names(x); y }")
-  core <- sub("sess <- wb_session_new()", paste(c(boundary_checks, collision_checks, "sess <- wb_session_new()", rewrite), collapse="\n"), core, fixed=TRUE)
-  core <- gsub("execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)", "execution_inputs <- rewrite_artifact_refs(rewrite_run_refs(execution_inputs, replay_map = replay_map))", core, fixed=TRUE)
-  .wb_assert(nrow(plan$promotion_outputs %||% data.frame()) > 0L, "plan has no promotable terminal outputs")
-  sels <- paste(vapply(seq_len(nrow(plan$promotion_outputs)), function(i) paste0("wb_ref_run(replay_map[['", .wb_r_single_quote_escape(as.character(plan$promotion_outputs$run_id[i])), "']], '", .wb_r_single_quote_escape(as.character(plan$promotion_outputs$output_name[i])), "')"), character(1)), collapse=", ")
-  verifies <- vapply(seq_len(nrow(plan$terminal_outputs)), function(i) {
-    z <- plan$terminal_outputs[i,,drop=FALSE]
-    nm <- .wb_r_single_quote_escape(as.character(z$output_name[1]))
-    paste0(
-      "replayed_artifact_id <- promotion$promoted$artifact_id[promotion$promoted$run_id == replay_map[['",
-      .wb_r_single_quote_escape(as.character(z$run_id[1])), "']] & promotion$promoted$output == '", nm,
-      "'][1]; if (length(replayed_artifact_id) == 0L) replayed_artifact_id <- NA_character_; ",
-      "verification <- scworkbench:::.wb_prov_verify_replay_output(bundle = bundle, original_run_id = '",
-      .wb_r_single_quote_escape(as.character(z$run_id[1])), "', original_output_name = '", nm,
-      "', expected_kind = '", .wb_r_single_quote_escape(as.character(z$primitive_kind[1])),
-      "', expected_content_sha256 = '", .wb_r_single_quote_escape(as.character(z$content_sha256[1] %||% "")),
-      "', expected_content_identity_scheme = '", .wb_r_single_quote_escape(as.character(z$content_identity_scheme[1] %||% "")),
-      "', replay_equivalence_policy = '", .wb_r_single_quote_escape(as.character(z$replay_equivalence_policy[1] %||% "not_comparable")),
-      "', expected_reference = '", .wb_r_single_quote_escape(as.character(z$replay_equivalence_reference[1] %||% "")),
-      "', replayed_prim = target_res$run$outputs[['", nm, "']], replay_run_id = replay_map[['",
-      .wb_r_single_quote_escape(as.character(z$run_id[1])), "']], replay_snapshot_id = promotion$provenance_snapshot_id, replay_artifact_id = replayed_artifact_id); print(verification)"
-    )
-  }, character(1))
-  paste(c("# IMPORTANT: this is a writable ingestion-ready execution clone, never the inspected source bundle.", preflight, core, "if (is.null(target_res)) stop('Target run was not replayed.')", paste0("promotion <- wb_session_promote_current(bundle, sess, outputs = list(",sels,"))"), verifies, "cat('target reproduction promoted and verified\\n')", "wb_close_bundle(bundle)"), collapse="\n")
+  .wb_target_plan_assert_executable(plan)
+  plan_lines <- .wb_emit_r_object_assign("plan", plan)
+  destination <- .wb_r_single_quote_escape(as.character(execution_bundle_dir)[1])
+  paste(c(
+    "# scworkbench public target-reproduction script",
+    "# The source path inside plan is used only for the non-mutation preflight.",
+    "library(scworkbench)",
+    plan_lines,
+    paste0("result <- wb_target_execute_plan(plan, '", destination, "')"),
+    "stopifnot(identical(result$status, 'promoted_and_verified'))",
+    "print(result$run_map)",
+    "print(result$verification)",
+    "cat('target reproduction promoted and verified\\n')"
+  ), collapse = "\n")
 }

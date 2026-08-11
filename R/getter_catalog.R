@@ -653,6 +653,16 @@
       use_when = c("hand off a target-specific reproducible analysis path")
     ),
     list(
+      function_name = "wb_target_execute_plan",
+      title = "Target Reproduction Executor",
+      category = "provenance",
+      description = "Execute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts.",
+      returns = "wb_target_reproduction_result",
+      payload_level = "metadata",
+      arguments = c("plan", "execution_bundle_dir"),
+      use_when = c("execute an emitted target-reproduction script through the installed public API")
+    ),
+    list(
       function_name = "wb_prov_replay_equivalence_results",
       title = "Replay Equivalence Results",
       category = "provenance",

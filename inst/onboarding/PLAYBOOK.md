@@ -43,6 +43,24 @@ and `edge_type == "CONSUMES"` to inspect source-to-ingestion edges.
 Automatic assembly events have no external-source node. Genuine object inputs
 use the distinct `in_memory_source` node type and remain explicitly nonportable.
 
+## Executable target reproduction
+
+Build a minimal replay closure with `wb_target_reproduction_plan()` and emit a
+portable installed-package script with `wb_target_emit_r_script()`. Emitted
+scripts call only `wb_target_execute_plan()`, the public mutation boundary that
+requires one existing source-only writable clone. It rejects the inspected
+source, filesystem-read-only recipients, missing or changed immutable source
+boundaries, analytical state or durable output collisions, and ambiguous
+plans before replay or promotion. Runs execute in their declared topological
+order inside a private session overlay; terminal semantic/loadable equivalence
+is checked before selected outputs are promoted, then durable verification
+receipts are recorded. A failed check discards staging and creates no promoted
+claim.
+
+Do not edit generated scripts to call package internals. Supply the destination
+clone when emitting the script and execute it in a fresh process with the
+installed package.
+
 The composed DAG is canonical across provenance snapshots: each durable entity
 or globally unique run appears once by `nodes$id`. Repeated snapshot evidence is
 the ordered JSON array `snapshot_ids`; `snapshot_id` is present only when the

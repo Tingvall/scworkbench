@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Record count: 317
+Record count: 318
 
 Graph edges: 906
 
@@ -845,6 +845,12 @@ Description: Resolve an artifact, matrix, space, model, or run DAG node into its
 Title: Target Reproduction Script
 
 Description: Emit a replay-and-promotion script for a target reproduction plan and writable execution clone.
+
+### `getter:wb_target_execute_plan`
+
+Title: Target Reproduction Executor
+
+Description: Execute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts.
 
 ### `getter:wb_prov_replay_equivalence_results`
 

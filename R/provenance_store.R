@@ -656,7 +656,8 @@
                                           replay_run_id,
                                           replay_snapshot_id,
                                           replay_artifact_id = NA_character_,
-                                          expected_content_identity_scheme = NA_character_) {
+                                          expected_content_identity_scheme = NA_character_,
+                                          persist = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_migrate_provenance_tables(bundle$con)
   policy <- as.character(replay_equivalence_policy %||% "not_comparable")[1]
@@ -748,7 +749,9 @@
     created_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
     stringsAsFactors = FALSE
   )
-  .wb_db_append_chunked(bundle$con, "prov_replay_equivalence_results", row, chunk_size = 1L)
+  if (isTRUE(persist)) {
+    .wb_db_append_chunked(bundle$con, "prov_replay_equivalence_results", row, chunk_size = 1L)
+  }
   if (identical(status, "failed")) stop(message, call. = FALSE)
   row
 }

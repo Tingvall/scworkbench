@@ -16,7 +16,15 @@ test_targeted_reproduction_plan_contract <- function() {
   model_id <- paste("uwot", "umap_target", "pca_source", sep="|")
   stopifnot(identical(wb_target_reproduction_plan(b, paste0("model:",model_id))$status,"ok"))
   script <- wb_target_emit_r_script(plan)
-  stopifnot(length(script)==1L, grepl("wb_session_promote_current",script,fixed=TRUE), grepl("writable ingestion-ready",script,fixed=TRUE))
+  emitted_symbols <- unique(all.names(parse(text = script), functions = TRUE))
+  wb_symbols <- emitted_symbols[grepl("^wb_", emitted_symbols)]
+  stopifnot(
+    length(script) == 1L,
+    grepl("wb_target_execute_plan", script, fixed = TRUE),
+    !grepl(":::", script, fixed = TRUE),
+    !grepl("devtools", script, fixed = TRUE),
+    all(wb_symbols %in% getNamespaceExports("scworkbench"))
+  )
   stopifnot(nrow(promoted$promoted) >= 2L,
             !"wb_target_reproduction_branch_template" %in% getNamespaceExports("scworkbench"))
   TRUE
@@ -43,12 +51,36 @@ test_targeted_reproduction_execute_contract <- function() {
     cleanup <<- c(cleanup, parent)
     file.path(parent, basename(source))
   }
-  run_emitted <- function(script) {
+  installed_library <- tempfile("scwb_target_installed_library_")
+  dir.create(installed_library)
+  cleanup <- c(cleanup, installed_library)
+  install_output <- system2(
+    "R", c("CMD", "INSTALL", "-l", installed_library, normalizePath(".")),
+    stdout = TRUE, stderr = TRUE
+  )
+  install_status <- as.integer(attr(install_output, "status") %||% 0L)
+  if (install_status != 0L) stop(paste(install_output, collapse = "\n"))
+  run_emitted <- function(script, prelude = character()) {
     path <- tempfile(fileext=".R"); wrapper <- tempfile(fileext=".R")
     writeLines(script,path)
-    writeLines(c("options(error = function() { traceback(2); q(status = 1) })", paste0("devtools::load_all('",normalizePath(getwd(),winslash="/"),"', quiet=TRUE)"),paste0("source('",path,"')")),wrapper)
-    out <- suppressWarnings(system2(file.path(R.home("bin"),"Rscript"),wrapper,stdout=TRUE,stderr=TRUE))
+    writeLines(c(
+      "options(error = function() { traceback(2); q(status = 1) })",
+      paste0(".libPaths(c('", normalizePath(installed_library, winslash = "/"), "', .libPaths()))"),
+      "library(scworkbench)", prelude, paste0("source('",path,"')")
+    ),wrapper)
+    out <- suppressWarnings(system2(
+      file.path(R.home("bin"),"Rscript"), c("--vanilla", wrapper),
+      stdout=TRUE, stderr=TRUE,
+      env = paste0("R_LIBS=", installed_library)
+    ))
     list(status=as.integer(attr(out,"status") %||% 0L), output=out)
+  }
+  expect_failure <- function(result, pattern) {
+    text <- paste(result$output, collapse = "\n")
+    if (result$status == 0L || !grepl(pattern, text, fixed = TRUE)) {
+      stop("Expected failure containing '", pattern, "':\n", text, call. = FALSE)
+    }
+    invisible(result)
   }
   # Copy only a checkpointed immutable/source boundary; copying SQLite while
   # its writer is open can omit WAL frames and is not a valid execution clone.
@@ -97,6 +129,16 @@ test_targeted_reproduction_execute_contract <- function() {
   policy <- setNames(plan$terminal_outputs$replay_equivalence_policy,plan$terminal_outputs$output_name)
   stopifnot(identical(policy[["space_2d"]],"cell_aligned_embedding"),identical(policy[["model"]],"loadable_reference"))
   source_umap <- wb_space(b,"rna_umap")
+  emitted <- wb_target_emit_r_script(plan, clone)
+  emitted_symbols <- unique(all.names(parse(text = emitted), functions = TRUE))
+  emitted_wb_symbols <- emitted_symbols[grepl("^wb_", emitted_symbols)]
+  stopifnot(
+    !grepl(":::", emitted, fixed = TRUE),
+    !grepl("devtools", emitted, fixed = TRUE),
+    all(emitted_wb_symbols %in% getNamespaceExports("scworkbench")),
+    identical(emitted_wb_symbols, "wb_target_execute_plan"),
+    length(gregexpr(normalizePath(root, winslash = "/"), emitted, fixed = TRUE)[[1]]) == 1L
+  )
 
   # Every preflight rejection executes the real emitted script and must fail
   # before any analytical replay begins.
@@ -108,7 +150,57 @@ test_targeted_reproduction_execute_contract <- function() {
   boundary_reject <- run_emitted(wb_target_emit_r_script(plan,missing_boundary))
   wb_close_bundle(b); collision <- copy_bundle(root,"target_collision"); b <- wb_open_bundle(root)
   collision_reject <- run_emitted(wb_target_emit_r_script(plan,collision))
-  stopifnot(source_reject$status!=0L,grepl("Refusing to mutate",paste(source_reject$output,collapse="\n")),nonexistent_reject$status!=0L,grepl("existing writable",paste(nonexistent_reject$output,collapse="\n")),boundary_reject$status!=0L,grepl("Missing immutable boundary",paste(boundary_reject$output,collapse="\n")),collision_reject$status!=0L,grepl("Durable output collision",paste(collision_reject$output,collapse="\n")))
+  expect_failure(source_reject, "Refusing to mutate")
+  expect_failure(nonexistent_reject, "existing writable")
+  expect_failure(boundary_reject, "Missing immutable boundary")
+  expect_failure(collision_reject, "Durable output collision")
+
+  read_only_clone <- copy_bundle(clone, "target_read_only_recipient")
+  read_only_bundle <- wb_open_bundle(read_only_clone)
+  stopifnot(isTRUE(wb_finalize_recipient_bundle(read_only_bundle)$ready))
+  wb_close_bundle(read_only_bundle)
+  read_only_manifest <- jsonlite::read_json(
+    file.path(read_only_clone, "manifest.json"), simplifyVector = TRUE
+  )
+  read_only_db <- file.path(
+    read_only_clone, as.character(read_only_manifest$storage$sqlite$path)
+  )
+  Sys.chmod(read_only_db, mode = "0444")
+  Sys.chmod(read_only_clone, mode = "0555")
+  read_only_reject <- run_emitted(wb_target_emit_r_script(plan, read_only_clone))
+  expect_failure(read_only_reject, "read-only recipient bundle")
+
+  tampered_clone <- copy_bundle(clone, "target_tampered_output")
+  tamper_hook <- paste(
+    "options(scworkbench.target_reproduction_test_hook = function(event, ...) {",
+    "args <- list(...);",
+    "if (identical(event, 'before_terminal_verification')) {",
+    "stage <- wb_session_view(args$session);",
+    "unlink(file.path(stage$dir, 'models', 'umap', 'rna_umap.uwot'), force = TRUE);",
+    "};",
+    "args$target_result",
+    "})"
+  )
+  tampered_reject <- run_emitted(
+    wb_target_emit_r_script(plan, tampered_clone), prelude = tamper_hook
+  )
+  expect_failure(tampered_reject, "Missing model reference payload")
+  tampered_bundle <- wb_open_bundle(tampered_clone)
+  stopifnot(
+    isTRUE(wb_validate_bundle(tampered_clone)),
+    !"RNA_log_norm" %in% wb_matrices(tampered_bundle, include_history = TRUE)$matrix_id,
+    !any(c("rna_pca", "rna_umap") %in%
+           wb_spaces(tampered_bundle, include_history = TRUE)$space_id),
+    nrow(wb_art_list(tampered_bundle, include_history = TRUE)) == 0L,
+    !nrow(DBI::dbGetQuery(tampered_bundle$con, "
+      SELECT r.run_id FROM prov_runs AS r
+       WHERE NOT EXISTS (
+         SELECT 1 FROM prov_heads AS h
+          WHERE h.snapshot_id=r.snapshot_id AND h.name_prefix='ingestion'
+       );
+    "))
+  )
+  wb_close_bundle(tampered_bundle)
 
   success <- run_emitted(wb_target_emit_r_script(plan,clone))
   if (success$status!=0L) stop(paste(success$output,collapse="\n"))
@@ -116,8 +208,27 @@ test_targeted_reproduction_execute_contract <- function() {
   eq <- wb_prov_replay_equivalence_results(cb)
   eq_policy <- setNames(eq$replay_equivalence_policy,eq$original_output_name)
   replayed_umap <- wb_space(cb,"rna_umap")
-  replayed_umap_matrix <- scworkbench:::.wb_as_coord_matrix(replayed_umap)
-  source_umap_matrix <- scworkbench:::.wb_as_coord_matrix(source_umap)
+  replayed_umap_matrix <- as.matrix(replayed_umap[, c("x", "y"), drop = FALSE])
+  rownames(replayed_umap_matrix) <- replayed_umap$cell_id
+  source_umap_matrix <- as.matrix(source_umap[, c("x", "y"), drop = FALSE])
+  rownames(source_umap_matrix) <- source_umap$cell_id
+  replay_snapshot_id <- unique(as.character(eq$replay_snapshot_id))
+  replay_runs <- DBI::dbGetQuery(
+    cb$con,
+    "SELECT run_id, op_name FROM prov_runs WHERE snapshot_id=? ORDER BY rowid;",
+    params = list(replay_snapshot_id)
+  )
+  replay_edges <- DBI::dbGetQuery(
+    cb$con,
+    "SELECT parent_run_id, child_run_id, edge_type FROM prov_run_edges WHERE snapshot_id=? ORDER BY rowid;",
+    params = list(replay_snapshot_id)
+  )
+  payload_rows <- DBI::dbGetQuery(
+    cb$con,
+    "SELECT p.space_id, s.storage, p.path
+       FROM space_payloads AS p JOIN spaces AS s USING(space_id)
+      WHERE p.space_id IN ('rna_pca','rna_umap') ORDER BY p.space_id;"
+  )
   stopifnot(isTRUE(wb_validate_bundle(clone)),"rna_umap" %in% wb_spaces(cb)$space_id,
             identical(sort(rownames(replayed_umap_matrix)),sort(rownames(source_umap_matrix))),
             identical(dim(replayed_umap_matrix),dim(source_umap_matrix)),
@@ -130,20 +241,17 @@ test_targeted_reproduction_execute_contract <- function() {
                       eq$replayed_reference[eq$original_output_name=="space_2d"]),
             all(grepl("^[0-9a-f]{64}$",eq$original_content_sha256)),
             all(grepl("^[0-9a-f]{64}$",eq$replayed_content_sha256)),
-            !is.null(wb_load_space_model(cb,"rna_umap")))
+            !is.null(wb_load_space_model(cb,"rna_umap")),
+            identical(as.character(replay_runs$op_name),
+                      c("matrix_log_normalize", "hvg_select", "pca_fit", "umap_fit")),
+            nrow(replay_edges) >= 3L,
+            all(c("depends_on_run", "input_run_ref") %in% replay_edges$edge_type),
+            identical(as.character(payload_rows$space_id), c("rna_pca", "rna_umap")),
+            all(payload_rows$storage == "hdf5:dense-space:v1"),
+            all(file.exists(file.path(clone, payload_rows$path))))
   model_art <- eq$replay_artifact_id[eq$original_output_name=="model"]
   model_link <- wb_art_birth_certificate(cb,model_art)$persisted_provenance$links
   stopifnot(identical(as.character(model_link$verification_status[model_link$output_name=="model"]),"content_verified"))
-  bad_path <- tempfile("unloadable_uwot_",tmpdir=clone,fileext=".uwot"); saveRDS(list(not_a_uwot_model=TRUE),bad_path)
-  bad_model <- wb_prim_model_ref("rna_umap","rna_pca",engine="uwot"); bad_model$model_path <- basename(bad_path)
-  bad_identity <- scworkbench:::.wb_prov_payload_identity(cb,bad_model)
-  bad_verification <- try(scworkbench:::.wb_prov_verify_replay_output(
-    cb,"original_bad_model","model","model_ref",bad_identity$content_sha256,
-    "loadable_reference",scworkbench:::.wb_replay_model_reference(bad_model),bad_model,
-    "replay_bad_model",eq$replay_snapshot_id[1],NA_character_
-  ),silent=TRUE)
-  failed_result <- wb_prov_replay_equivalence_results(cb,eq$replay_snapshot_id[1])
-  stopifnot(inherits(bad_verification,"try-error"),any(failed_result$verification_status=="failed"))
 
   # A second producer for the same durable entity is rejected structurally and
   # cannot be emitted. This deliberately models a malformed/legacy bundle.

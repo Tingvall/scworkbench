@@ -15,10 +15,11 @@ wb_target_emit_r_script(
 \item{execution_bundle_dir}{Literal path placeholder for a writable clone.}
 }
 \value{
-Length-one R script string.
+Length-one R script string using only public scworkbench APIs.
 }
 \description{
-The script opens a writable ingestion-ready execution clone, never the
-inspected source bundle, replays only the planned closure, promotes the
-selected terminal outputs, and checks recorded content identities.
+The emitted text contains a self-contained plan and calls only the exported
+\code{\link[=wb_target_execute_plan]{wb_target_execute_plan()}} boundary. The plan's inspected-source path is
+retained solely for the executor's explicit non-mutation identity check;
+all scientific execution is relative to \code{execution_bundle_dir}.
 }
