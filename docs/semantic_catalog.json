@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 318,
+  "record_count": 317,
   "record_type_counts": {
     "artifact_type": 74,
-    "getter": 80,
+    "getter": 79,
     "op": 57,
     "parameter": 59,
     "plot": 12,
@@ -12530,26 +12530,6 @@
       }
     },
     {
-      "record_id": "getter:wb_target_execute_plan",
-      "record_type": "getter",
-      "name": "wb_target_execute_plan",
-      "title": "Target Reproduction Executor",
-      "description": "Execute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts.",
-      "search_text": "Target Reproduction Executor\nExecute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts.\nprovenance\nwb_target_reproduction_result\nplan\nexecution_bundle_dir\nexecute an emitted target-reproduction script through the installed public API",
-      "tags": ["getter", "provenance"],
-      "payload": {
-        "function_name": "wb_target_execute_plan",
-        "title": "Target Reproduction Executor",
-        "category": "provenance",
-        "description": "Execute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts.",
-        "returns": "wb_target_reproduction_result",
-        "payload_level": "metadata",
-        "arguments": ["plan", "execution_bundle_dir"],
-        "use_when": "execute an emitted target-reproduction script through the installed public API",
-        "mutates": false
-      }
-    },
-    {
       "record_id": "getter:wb_prov_replay_equivalence_results",
       "record_type": "getter",
       "name": "wb_prov_replay_equivalence_results",
@@ -16780,7 +16760,7 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 318,
+    "node_count": 317,
     "edge_count": 906,
     "nodes": [
       {
@@ -17514,12 +17494,6 @@
         "record_type": "getter",
         "name": "wb_target_emit_r_script",
         "title": "Target Reproduction Script"
-      },
-      {
-        "record_id": "getter:wb_target_execute_plan",
-        "record_type": "getter",
-        "name": "wb_target_execute_plan",
-        "title": "Target Reproduction Executor"
       },
       {
         "record_id": "getter:wb_prov_replay_equivalence_results",

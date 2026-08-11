@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 318,
+  "node_count": 317,
   "edge_count": 906,
   "nodes": [
     {
@@ -735,12 +735,6 @@
       "record_type": "getter",
       "name": "wb_target_emit_r_script",
       "title": "Target Reproduction Script"
-    },
-    {
-      "record_id": "getter:wb_target_execute_plan",
-      "record_type": "getter",
-      "name": "wb_target_execute_plan",
-      "title": "Target Reproduction Executor"
     },
     {
       "record_id": "getter:wb_prov_replay_equivalence_results",

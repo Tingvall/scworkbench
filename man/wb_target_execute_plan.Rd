@@ -15,8 +15,9 @@ wb_target_execute_plan(plan, execution_bundle_dir)
 A \code{wb_target_reproduction_result} list with \code{schema_version},
 \code{status}, \code{execution_bundle_dir}, \code{original_run_order}, \code{run_map},
 \code{promotion}, and durable \code{verification} rows. The function stops before
-promotion on any invalid input, preflight failure, replay error, or failed
-equivalence/loadability policy.
+publication on any invalid input, preflight failure, replay error, failed
+equivalence/loadability policy, receipt error, or payload publication
+failure.
 }
 \description{
 This is the sole public mutation boundary used by target-reproduction
@@ -26,5 +27,7 @@ filesystem-read-only recipient bundles, missing or changed immutable
 boundaries, pre-existing analytical runs, ambiguous plans, and durable
 output collisions. Runs execute in a private session overlay.
 Terminal replay-equivalence and model-loadability checks complete before
-promotion, so a failed replay cannot create partial promoted claims.
+promotion. The verified receipt set is then inserted inside the same private
+promotion transaction and payload workspace as every output, artifact,
+snapshot, binding, and materialization, so none can become visible alone.
 }

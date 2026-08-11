@@ -203,6 +203,64 @@
   out
 }
 
+.wb_target_reproduction_atomicity_hook <- function(event, ...) {
+  hook <- getOption("scworkbench.target_reproduction_atomicity_test_hook")
+  if (is.function(hook)) hook(event = event, ...)
+  invisible(TRUE)
+}
+
+.wb_target_reproduction_receipts_persist <- function(bundle, receipts,
+                                                       promoted_df,
+                                                       snapshot_id) {
+  .wb_assert(is.data.frame(receipts) && nrow(receipts) > 0L,
+             "Target reproduction requires terminal verification receipts.")
+  .wb_assert(
+    all(as.character(receipts$verification_status) == "verified") &&
+      all(as.integer(receipts$equivalence_verified) == 1L),
+    "Target reproduction receipts must be verified before promotion."
+  )
+  receipt_keys <- paste(
+    as.character(receipts$replay_run_id),
+    as.character(receipts$original_output_name), sep = "\r"
+  )
+  promoted_keys <- paste(
+    as.character(promoted_df$run_id), as.character(promoted_df$output), sep = "\r"
+  )
+  match_index <- match(receipt_keys, promoted_keys)
+  .wb_assert(
+    !anyNA(match_index) && !anyDuplicated(receipt_keys) &&
+      !anyDuplicated(promoted_keys[match_index]),
+    "Every terminal verification receipt must resolve to exactly one promoted output."
+  )
+  receipts$replay_snapshot_id <- as.character(snapshot_id)[1]
+  receipts$replay_artifact_id <- as.character(
+    promoted_df$artifact_id[match_index]
+  )
+  .wb_assert(
+    all(nzchar(receipts$replay_artifact_id)) &&
+      !anyNA(receipts$replay_artifact_id),
+    "Every terminal verification receipt requires a promoted artifact."
+  )
+
+  for (i in seq_len(nrow(receipts))) {
+    if (i == 1L) {
+      .wb_target_reproduction_atomicity_hook(
+        "before_first_receipt_insertion", snapshot_id = snapshot_id
+      )
+    } else {
+      .wb_target_reproduction_atomicity_hook(
+        "between_terminal_receipt_insertions", snapshot_id = snapshot_id,
+        receipt_index = i
+      )
+    }
+    .wb_db_append_chunked(
+      bundle$con, "prov_replay_equivalence_results",
+      receipts[i, , drop = FALSE], chunk_size = 1L
+    )
+  }
+  receipts
+}
+
 #' Execute and verify a target reproduction plan
 #'
 #' This is the sole public mutation boundary used by target-reproduction
@@ -212,15 +270,18 @@
 #' boundaries, pre-existing analytical runs, ambiguous plans, and durable
 #' output collisions. Runs execute in a private session overlay.
 #' Terminal replay-equivalence and model-loadability checks complete before
-#' promotion, so a failed replay cannot create partial promoted claims.
+#' promotion. The verified receipt set is then inserted inside the same private
+#' promotion transaction and payload workspace as every output, artifact,
+#' snapshot, binding, and materialization, so none can become visible alone.
 #'
 #' @param plan A successful `wb_target_reproduction_plan`.
 #' @param execution_bundle_dir Existing writable ingestion-ready source clone.
 #' @return A `wb_target_reproduction_result` list with `schema_version`,
 #'   `status`, `execution_bundle_dir`, `original_run_order`, `run_map`,
 #'   `promotion`, and durable `verification` rows. The function stops before
-#'   promotion on any invalid input, preflight failure, replay error, or failed
-#'   equivalence/loadability policy.
+#'   publication on any invalid input, preflight failure, replay error, failed
+#'   equivalence/loadability policy, receipt error, or payload publication
+#'   failure.
 #' @export
 wb_target_execute_plan <- function(plan, execution_bundle_dir) {
   .wb_target_plan_assert_executable(plan)
@@ -320,51 +381,27 @@ wb_target_execute_plan <- function(plan, execution_bundle_dir) {
       as.character(row$output_name[1])
     )
   })
-  promotion <- wb_session_promote_current(bundle, session, outputs = selections)
-
-  verification <- .wb_with_bundle_writer_lock(
-    bundle, operation = "target reproduction verification receipts", code = {
-      DBI::dbWithTransaction(bundle$con, {
-        do.call(rbind, lapply(
-          seq_len(nrow(plan$terminal_outputs)), function(i) {
-            row <- plan$terminal_outputs[i, , drop = FALSE]
-            output_name <- as.character(row$output_name[1])
-            replay_run_id <- replay_map[[as.character(row$run_id[1])]]
-            promoted_rows <- promotion$promoted[
-              as.character(promotion$promoted$run_id) == replay_run_id &
-                as.character(promotion$promoted$output) == output_name,
-              , drop = FALSE
-            ]
-            replay_artifact_id <- if (nrow(promoted_rows)) {
-              as.character(promoted_rows$artifact_id[1])
-            } else NA_character_
-            .wb_prov_verify_replay_output(
-              bundle = bundle,
-              original_run_id = as.character(row$run_id[1]),
-              original_output_name = output_name,
-              expected_kind = as.character(row$primitive_kind[1]),
-              expected_content_sha256 = as.character(
-                row$content_sha256[1] %||% NA_character_
-              ),
-              expected_content_identity_scheme = as.character(
-                row$content_identity_scheme[1] %||% NA_character_
-              ),
-              replay_equivalence_policy = as.character(
-                row$replay_equivalence_policy[1]
-              ),
-              expected_reference = as.character(
-                row$replay_equivalence_reference[1] %||% NA_character_
-              ),
-              replayed_prim = target_result$run$outputs[[output_name]],
-              replay_run_id = replay_run_id,
-              replay_snapshot_id = promotion$provenance_snapshot_id,
-              replay_artifact_id = replay_artifact_id, persist = TRUE
-            )
-          }
-        ))
-      })
+  selected_by_run <- list()
+  for (i in seq_along(selections)) {
+    run_id <- as.character(selections[[i]]$run_id)
+    selected_by_run[[run_id]] <- unique(c(
+      selected_by_run[[run_id]] %||% character(),
+      as.character(selections[[i]]$output)
+    ))
+  }
+  output_heads <- names(selected_by_run)
+  selected_outputs <- unique(unlist(selected_by_run, use.names = FALSE))
+  promotion <- .wb_with_bundle_writer_lock(
+    bundle, operation = "atomic target reproduction promotion", code = {
+      .wb_promote_analysis_locked(
+        bundle = bundle, runs = session$runs, head_run_id = output_heads,
+        outputs = selected_outputs, selected_by_run = selected_by_run,
+        staging_bundle = session$staging_bundle %||% NULL,
+        target_reproduction_receipts = do.call(rbind, preverified)
+      )
     }
   )
+  verification <- promotion$target_reproduction_verification
   session <- wb_session_discard(session)
   completed <- TRUE
   structure(list(

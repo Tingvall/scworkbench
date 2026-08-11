@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "getter_count": 80,
+  "getter_count": 79,
   "getters": [
     {
       "function_name": "wb_status",
@@ -716,17 +716,6 @@
       "payload_level": "metadata",
       "arguments": ["plan", "execution_bundle_dir"],
       "use_when": "hand off a target-specific reproducible analysis path",
-      "mutates": false
-    },
-    {
-      "function_name": "wb_target_execute_plan",
-      "title": "Target Reproduction Executor",
-      "category": "provenance",
-      "description": "Execute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts.",
-      "returns": "wb_target_reproduction_result",
-      "payload_level": "metadata",
-      "arguments": ["plan", "execution_bundle_dir"],
-      "use_when": "execute an emitted target-reproduction script through the installed public API",
       "mutates": false
     },
     {

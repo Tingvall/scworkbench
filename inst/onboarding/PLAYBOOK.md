@@ -53,9 +53,11 @@ source, filesystem-read-only recipients, missing or changed immutable source
 boundaries, analytical state or durable output collisions, and ambiguous
 plans before replay or promotion. Runs execute in their declared topological
 order inside a private session overlay; terminal semantic/loadable equivalence
-is checked before selected outputs are promoted, then durable verification
-receipts are recorded. A failed check discards staging and creates no promoted
-claim.
+is checked before selected outputs are promoted. The complete verified receipt
+set is inserted inside the same private promotion transaction and payload
+workspace as outputs, artifacts, snapshots, bindings, and materializations. A
+failed check, receipt write, SQLite commit, or payload publication discards the
+whole attempt and creates no promoted claim.
 
 Do not edit generated scripts to call package internals. Supply the destination
 clone when emitting the script and execute it in a fresh process with the

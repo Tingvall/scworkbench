@@ -253,7 +253,8 @@ wb_promote_analysis <- function(bundle,
                                         allow_detached = FALSE,
                                         outputs = NULL,
                                         selected_by_run = NULL,
-                                        staging_bundle = NULL) {
+                                        staging_bundle = NULL,
+                                        target_reproduction_receipts = NULL) {
   .wb_assert_bundle_writable(bundle, "promotion")
   wb_migrate_artifacts(bundle)
 
@@ -300,6 +301,8 @@ wb_promote_analysis <- function(bundle,
   runtime_fingerprint <- .wb_promotion_runtime_fingerprint()
   .wb_migrate_provenance_tables(bundle$con)
   workspace <- .wb_promotion_workspace_new(bundle, commit_id)
+  workspace$target_reproduction_atomicity <-
+    !is.null(target_reproduction_receipts)
   materializations <- tryCatch({
     if (!is.null(staging_bundle)) {
       .wb_stage_prepare_materializations(staging_bundle, bundle, workspace, runs, topo, commit_id)
@@ -501,7 +504,21 @@ wb_promote_analysis <- function(bundle,
     }
   }
 
+  atomic_verification <- NULL
+  if (!is.null(target_reproduction_receipts)) {
+    atomic_verification <- .wb_target_reproduction_receipts_persist(
+      bundle = bundle, receipts = target_reproduction_receipts,
+      promoted_df = promoted_df, snapshot_id = snapshot_id
+    )
+  }
+
   .wb_promotion_workspace_publish(workspace)
+  if (!is.null(target_reproduction_receipts)) {
+    .wb_target_reproduction_atomicity_hook(
+      "after_receipt_insertions_before_sqlite_commit",
+      snapshot_id = snapshot_id, workspace = workspace
+    )
+  }
   DBI::dbCommit(bundle$con)
   transaction_open <- FALSE
   .wb_promotion_workspace_retire(workspace)
@@ -513,7 +530,8 @@ wb_promote_analysis <- function(bundle,
   list(
     artifact_pool = artifact_pool,
     promoted = promoted_df,
-    provenance_snapshot_id = snapshot_id
+    provenance_snapshot_id = snapshot_id,
+    target_reproduction_verification = atomic_verification
   )
   }, error = function(e) {
     promotion_error <<- e

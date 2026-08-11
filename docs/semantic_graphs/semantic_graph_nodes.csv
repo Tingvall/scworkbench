@@ -147,7 +147,6 @@
 "getter:wb_spaces_with_model","getter","wb_spaces_with_model","Spaces With Model","List space IDs that have a stored projection model."
 "getter:wb_status","getter","wb_status","Bundle Status","Summarize bundle health and high-level registry counts."
 "getter:wb_target_emit_r_script","getter","wb_target_emit_r_script","Target Reproduction Script","Emit a replay-and-promotion script for a target reproduction plan and writable execution clone."
-"getter:wb_target_execute_plan","getter","wb_target_execute_plan","Target Reproduction Executor","Execute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts."
 "getter:wb_target_reproduction_plan","getter","wb_target_reproduction_plan","Target Reproduction Plan","Resolve an artifact, matrix, space, model, or run DAG node into its minimal cross-snapshot replay closure."
 "getter:wb_trajectory_assert_fit_compatible","getter","wb_trajectory_assert_fit_compatible","Trajectory Fit Compatibility Assertion","Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence."
 "getter:wb_trajectory_fit_info","getter","wb_trajectory_fit_info","Trajectory Fit Identity","Inspect the trajectory_fit_id, engine, lineage keys, and available cell universe metadata for a trajectory primitive or promoted artifact."

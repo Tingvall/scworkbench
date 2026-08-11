@@ -104,7 +104,8 @@ Targeted reproduction uses a narrower public executor. Generate a plan with
 run the script against a separate source-only writable clone. Generated code
 must contain no private namespace access. `wb_target_execute_plan()` owns
 preflight, topological staged execution, pre-promotion semantic/loadability
-verification, selected promotion, and durable replay-equivalence receipts.
+verification, and one observable-atomic promotion commit containing the
+selected outputs and complete durable replay-equivalence receipt set.
 
 Manifest schema 2.3 separates immutable `creation` identity from authoritative
 `current_state`. Successful outermost writer scopes publish a flushed,

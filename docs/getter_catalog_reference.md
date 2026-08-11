@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Getter count: 80
+Getter count: 79
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -960,21 +960,6 @@ Arguments: plan, execution_bundle_dir
 
 Use when:
 - hand off a target-specific reproducible analysis path
-
-### `wb_target_execute_plan`
-
-Title: Target Reproduction Executor
-
-Description: Execute a target plan against one source-only writable clone, verify terminal equivalence before promotion, and persist replay receipts.
-
-Returns: wb_target_reproduction_result
-
-Payload level: metadata
-
-Arguments: plan, execution_bundle_dir
-
-Use when:
-- execute an emitted target-reproduction script through the installed public API
 
 ### `wb_prov_replay_equivalence_results`
 

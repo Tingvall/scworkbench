@@ -25,6 +25,20 @@ test_targeted_reproduction_plan_contract <- function() {
     !grepl("devtools", script, fixed = TRUE),
     all(wb_symbols %in% getNamespaceExports("scworkbench"))
   )
+  getter_catalog <- wb_getter_catalog_semantic()
+  mutation_catalog <- wb_mutation_catalog_semantic()
+  stopifnot(
+    !any(vapply(
+      getter_catalog$getters,
+      function(entry) identical(entry$function_name, "wb_target_execute_plan"),
+      logical(1)
+    )),
+    any(vapply(
+      mutation_catalog$records,
+      function(entry) identical(entry$function_name, "wb_target_execute_plan"),
+      logical(1)
+    ))
+  )
   stopifnot(nrow(promoted$promoted) >= 2L,
             !"wb_target_reproduction_branch_template" %in% getNamespaceExports("scworkbench"))
   TRUE
@@ -64,7 +78,6 @@ test_targeted_reproduction_execute_contract <- function() {
     path <- tempfile(fileext=".R"); wrapper <- tempfile(fileext=".R")
     writeLines(script,path)
     writeLines(c(
-      "options(error = function() { traceback(2); q(status = 1) })",
       paste0(".libPaths(c('", normalizePath(installed_library, winslash = "/"), "', .libPaths()))"),
       "library(scworkbench)", prelude, paste0("source('",path,"')")
     ),wrapper)
@@ -201,6 +214,108 @@ test_targeted_reproduction_execute_contract <- function() {
     "))
   )
   wb_close_bundle(tampered_bundle)
+
+  assert_source_only_after_atomic_failure <- function(path) {
+    failed_bundle <- wb_open_bundle(path)
+    on.exit(wb_close_bundle(failed_bundle), add = TRUE)
+    analytical_runs <- DBI::dbGetQuery(failed_bundle$con, "
+      SELECT r.run_id FROM prov_runs AS r
+       WHERE NOT EXISTS (
+         SELECT 1 FROM prov_heads AS h
+          WHERE h.snapshot_id=r.snapshot_id AND h.name_prefix='ingestion'
+       );
+    ")
+    analytical_heads <- DBI::dbGetQuery(failed_bundle$con, "
+      SELECT snapshot_id FROM prov_heads WHERE name_prefix <> 'ingestion';
+    ")
+    analytical_bindings <- DBI::dbGetQuery(failed_bundle$con, "
+      SELECT b.run_id FROM prov_run_entity_bindings AS b
+       WHERE b.snapshot_id NOT IN (
+         SELECT snapshot_id FROM prov_heads WHERE name_prefix='ingestion'
+       );
+    ")
+    pending_commits <- DBI::dbGetQuery(
+      failed_bundle$con, "SELECT commit_id FROM prov_commits WHERE state <> 'complete';"
+    )
+    files <- list.files(path, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+    stopifnot(
+      isTRUE(wb_validate_bundle(path)),
+      !"RNA_log_norm" %in%
+        wb_matrices(failed_bundle, include_history = TRUE)$matrix_id,
+      !any(c("rna_pca", "rna_umap") %in%
+             wb_spaces(failed_bundle, include_history = TRUE)$space_id),
+      nrow(wb_art_list(failed_bundle, include_history = TRUE)) == 0L,
+      !nrow(analytical_runs), !nrow(analytical_heads),
+      !nrow(analytical_bindings), !nrow(pending_commits),
+      DBI::dbGetQuery(
+        failed_bundle$con, "SELECT COUNT(*) AS n FROM prov_materializations;"
+      )$n[1] == 0L,
+      DBI::dbGetQuery(
+        failed_bundle$con,
+        "SELECT COUNT(*) AS n FROM prov_replay_equivalence_results;"
+      )$n[1] == 0L,
+      !any(grepl("rna_(pca|umap)|RNA_log_norm", files, perl = TRUE))
+    )
+    invisible(TRUE)
+  }
+  assert_atomic_failure_and_retry <- function(label, prelude) {
+    path <- copy_bundle(clone, paste0("target_atomic_", label))
+    script <- wb_target_emit_r_script(plan, path)
+    failed <- run_emitted(script, prelude = prelude)
+    expect_failure(failed, paste0("forced target atomicity fault: ", label))
+    assert_source_only_after_atomic_failure(path)
+    retried <- run_emitted(script)
+    if (retried$status != 0L) stop(paste(retried$output, collapse = "\n"))
+    retried_bundle <- wb_open_bundle(path)
+    on.exit(wb_close_bundle(retried_bundle), add = TRUE)
+    retried_receipts <- wb_prov_replay_equivalence_results(retried_bundle)
+    stopifnot(
+      isTRUE(wb_validate_bundle(path)),
+      "RNA_log_norm" %in% wb_matrices(retried_bundle)$matrix_id,
+      all(c("rna_pca", "rna_umap") %in% wb_spaces(retried_bundle)$space_id),
+      nrow(retried_receipts) == nrow(plan$terminal_outputs),
+      length(unique(retried_receipts$replay_snapshot_id)) == 1L,
+      all(retried_receipts$verification_status == "verified"),
+      all(nzchar(retried_receipts$replay_artifact_id))
+    )
+    invisible(TRUE)
+  }
+  atomic_fault <- function(label, event, condition = "TRUE") paste(
+    "options(scworkbench.target_reproduction_atomicity_test_hook = function(event, ...) {",
+    "args <- list(...);",
+    paste0(
+      "if (identical(event, '", event, "') && (", condition,
+      ")) stop('forced target atomicity fault: ", label, "', call. = FALSE)"
+    ),
+    "})"
+  )
+  assert_atomic_failure_and_retry(
+    "before_first_receipt_insertion",
+    atomic_fault(
+      "before_first_receipt_insertion", "before_first_receipt_insertion"
+    )
+  )
+  assert_atomic_failure_and_retry(
+    "between_terminal_receipt_insertions",
+    atomic_fault(
+      "between_terminal_receipt_insertions",
+      "between_terminal_receipt_insertions"
+    )
+  )
+  assert_atomic_failure_and_retry(
+    "after_receipt_insertion_before_sqlite_commit",
+    atomic_fault(
+      "after_receipt_insertion_before_sqlite_commit",
+      "after_receipt_insertions_before_sqlite_commit"
+    )
+  )
+  assert_atomic_failure_and_retry(
+    "during_payload_publication",
+    atomic_fault(
+      "during_payload_publication", "during_payload_publication",
+      "identical(as.integer(args$publication_index), 2L)"
+    )
+  )
 
   success <- run_emitted(wb_target_emit_r_script(plan,clone))
   if (success$status!=0L) stop(paste(success$output,collapse="\n"))

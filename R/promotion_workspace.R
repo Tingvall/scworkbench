@@ -47,11 +47,19 @@
 }
 
 .wb_promotion_workspace_publish <- function(workspace) {
-  for (final_rel in names(workspace$mappings)) {
+  final_paths <- names(workspace$mappings)
+  for (i in seq_along(final_paths)) {
+    final_rel <- final_paths[i]
     m <- workspace$mappings[[final_rel]]
     .wb_assert(file.exists(m$pending) || dir.exists(m$pending), paste0("Missing pending payload: ", m$pending))
     dir.create(dirname(m$final), recursive = TRUE, showWarnings = FALSE)
     .wb_assert(!file.exists(m$final) && !dir.exists(m$final), paste0("Promotion final path already exists: ", m$final))
+    if (isTRUE(workspace$target_reproduction_atomicity)) {
+      .wb_target_reproduction_atomicity_hook(
+        "during_payload_publication", workspace = workspace,
+        final_rel = final_rel, publication_index = i
+      )
+    }
     hook <- getOption("scworkbench.promotion_workspace_publish_hook", NULL)
     if (is.function(hook)) hook(workspace, final_rel)
     ok <- file.rename(m$pending, m$final)
