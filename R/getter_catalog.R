@@ -473,24 +473,14 @@
       use_when = c("enumerate lineage IDs", "find feature sets in an artifact")
     ),
     list(
-      function_name = "wb_art_identity_card",
-      title = "Artifact Identity Card",
-      category = "artifacts",
-      description = "Summarize artifact identity, provenance, labels, and display hints.",
+      function_name = "wb_entity_certificate",
+      title = "Entity Provenance Certificate",
+      category = "provenance",
+      description = "Project deterministic identity and lineage metadata for any durable scientific entity.",
       returns = "list",
       payload_level = "metadata",
-      arguments = c("bundle", "artifact_id"),
-      use_when = c("explain an artifact to an agent or user")
-    ),
-    list(
-      function_name = "wb_art_birth_certificate",
-      title = "Artifact Birth Certificate",
-      category = "artifacts",
-      description = "Read provenance/birth metadata for a promoted artifact.",
-      returns = "list",
-      payload_level = "metadata",
-      arguments = c("bundle", "artifact_id"),
-      use_when = c("trace artifact provenance")
+      arguments = c("bundle", "entity_kind", "entity_id"),
+      use_when = c("explain or audit a durable entity without loading its scientific payload")
     ),
     list(
       function_name = "wb_art_dependencies",

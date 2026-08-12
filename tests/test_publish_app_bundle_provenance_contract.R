@@ -103,11 +103,11 @@ test_publish_app_bundle_provenance_contract <- function() {
           run_bindings$entity_id == "pca"),
     nrow(report) == 1L
   )
-  birth <- wb_art_birth_certificate(bundle, as.character(report$artifact_id[1]))
+  birth <- wb_entity_certificate(bundle, "artifact", as.character(report$artifact_id[1]))
   stopifnot(
-    nrow(birth$persisted_provenance$links) >= 1L,
+    identical(birth$producer$status, "available"),
     identical(
-      as.character(birth$persisted_provenance$run_details$run$op_name),
+      as.character(birth$producer$operation$name),
       "bundle_ingest_seurat"
     )
   )

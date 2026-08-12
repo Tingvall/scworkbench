@@ -22,7 +22,7 @@ Steps:
 - Return candidates with provenance caveats.
 
 Uses:
-- `getter:wb_art_identity_card`
+- `getter:wb_entity_certificate`
 - `getter:wb_art_load`
 - `artifact_type:cell_vector`
 - `primitive:cell_vector`
@@ -45,15 +45,14 @@ Description: Use artifact getters to inspect identity, provenance, table shape, 
 
 Steps:
 - List artifacts with wb_art_list().
-- Read identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().
+- Read identity/provenance using wb_entity_certificate().
 - If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().
 - Load as primitive with wb_art_load() only when payload access is needed.
 - Use semantic_compatibility_graph to find compatible wranglers/plots.
 
 Uses:
 - `getter:wb_art_list`
-- `getter:wb_art_identity_card`
-- `getter:wb_art_birth_certificate`
+- `getter:wb_entity_certificate`
 - `getter:wb_art_table_info`
 - `getter:wb_art_table_slice`
 - `getter:wb_art_load`

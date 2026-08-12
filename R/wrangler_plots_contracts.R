@@ -625,19 +625,12 @@ wb_write_plot_catalog_reference <- function(path_md = "docs/plot_catalog_referen
   if (!identical(as.character(info$source_op[1] %||% "")[1], "ucell")) return(NULL)
   if (!identical(as.character(info$table_type[1] %||% "")[1], "ucell_signature_summary")) return(NULL)
 
-  bc <- try(
-    wb_art_birth_certificate(
-      bundle,
-      artifact_id = aid,
-      include_parents = FALSE,
-      include_children = FALSE,
-      include_snapshot_run = TRUE
-    ),
-    silent = TRUE
-  )
-  if (inherits(bc, "try-error") || !is.list(bc)) return(NULL)
-
-  link <- bc$persisted_provenance$selected_link %||% data.frame(stringsAsFactors = FALSE)
+  link <- try(DBI::dbGetQuery(
+    bundle$con,
+    "SELECT snapshot_id, run_id, output_name FROM prov_run_outputs
+     WHERE artifact_id = ? ORDER BY snapshot_id, run_id, output_name;",
+    params = list(aid)
+  ), silent = TRUE)
   if (!is.data.frame(link) || nrow(link) < 1L) return(NULL)
   sid <- as.character(link$snapshot_id[1] %||% "")[1]
   rid <- as.character(link$run_id[1] %||% "")[1]
@@ -693,16 +686,10 @@ wb_plot_min_inputs <- function(plot_type, ref, bundle = NULL, runs = NULL) {
     if (!inherits(bundle, "scworkbench_bundle")) return(NULL)
     aid <- .wb_plot_ref_artifact_id(ref)
     if (nzchar(aid)) {
-      mid_bc <- try({
-        bc <- wb_art_birth_certificate(
-          bundle,
-          artifact_id = aid,
-          include_parents = FALSE,
-          include_children = FALSE,
-          include_snapshot_run = FALSE
-        )
-        as.character(bc$identity$input_matrix_id %||% "")[1]
-      }, silent = TRUE)
+      mid_bc <- try(as.character(DBI::dbGetQuery(
+        bundle$con, "SELECT input_matrix_id FROM artifacts WHERE artifact_id = ?;",
+        params = list(aid)
+      )$input_matrix_id[[1]] %||% ""), silent = TRUE)
       if (!inherits(mid_bc, "try-error") && nzchar(as.character(mid_bc)[1])) return(as.character(mid_bc)[1])
     }
 
@@ -751,16 +738,10 @@ wb_plot_min_inputs <- function(plot_type, ref, bundle = NULL, runs = NULL) {
 
     aid <- .wb_plot_ref_artifact_id(ref)
     if (nzchar(aid)) {
-      sid_bc <- try({
-        bc <- wb_art_birth_certificate(
-          bundle,
-          artifact_id = aid,
-          include_parents = FALSE,
-          include_children = FALSE,
-          include_snapshot_run = FALSE
-        )
-        as.character(bc$identity$input_space_id %||% "")[1]
-      }, silent = TRUE)
+      sid_bc <- try(as.character(DBI::dbGetQuery(
+        bundle$con, "SELECT space_id FROM artifact_umap_model WHERE artifact_id = ?;",
+        params = list(aid)
+      )$space_id[[1]] %||% ""), silent = TRUE)
       sid_bc <- as.character(sid_bc %||% "")[1]
       if (!inherits(sid_bc, "try-error") && nzchar(sid_bc)) {
         xy <- try(.wb_space_2d_safe(bundle, sid_bc, cells = NULL), silent = TRUE)
@@ -1908,16 +1889,10 @@ wb_plot_compatibility_report <- function(ref, bundle, runs = NULL, plot_types = 
   if (!is.null(tx)) {
     aid <- .wb_plot_ref_artifact_id(tx)
     if (nzchar(aid)) {
-      mid_bc <- try({
-        bc <- wb_art_birth_certificate(
-          bundle,
-          artifact_id = aid,
-          include_parents = FALSE,
-          include_children = FALSE,
-          include_snapshot_run = FALSE
-        )
-        as.character(bc$identity$input_matrix_id %||% "")[1]
-      }, silent = TRUE)
+      mid_bc <- try(as.character(DBI::dbGetQuery(
+        bundle$con, "SELECT input_matrix_id FROM artifacts WHERE artifact_id = ?;",
+        params = list(aid)
+      )$input_matrix_id[[1]] %||% ""), silent = TRUE)
       if (!inherits(mid_bc, "try-error") && nzchar(as.character(mid_bc)[1])) return(as.character(mid_bc)[1])
     }
 

@@ -259,10 +259,10 @@ test_immutable_history_state_machine_closure_contract <- function(bundle_dir) {
   # Artifact discovery now defaults to current. Retraction preserves direct
   # payload and birth-certificate content evidence.
   artifact_before <- wb_art_load(b, promoted_ephemeral_artifact)
-  birth_before <- wb_art_birth_certificate(b, promoted_ephemeral_artifact)
+  birth_before <- wb_entity_certificate(b, "artifact", promoted_ephemeral_artifact)
   wb_art_delete(b, promoted_ephemeral_artifact)
   artifact_after <- wb_art_load(b, promoted_ephemeral_artifact)
-  birth_after <- wb_art_birth_certificate(b, promoted_ephemeral_artifact)
+  birth_after <- wb_entity_certificate(b, "artifact", promoted_ephemeral_artifact)
 
   # The matrix registry follows the same current/history rule. Perform this
   # last so no later operation depends on the now-historical source claim.
@@ -289,8 +289,8 @@ test_immutable_history_state_machine_closure_contract <- function(bundle_dir) {
     promoted_ephemeral_artifact %in% wb_art_list(b, include_history = TRUE)$artifact_id,
     identical(artifact_before$kind, artifact_after$kind),
     identical(
-      as.character(birth_before$persisted_provenance$links$content_sha256[1]),
-      as.character(birth_after$persisted_provenance$links$content_sha256[1])
+      as.character(birth_before$identity$content_sha256),
+      as.character(birth_after$identity$content_sha256)
     ),
     identical(birth_after$lifecycle$state, "retracted"),
     !(matrix_id %in% wb_matrices(b)$matrix_id),

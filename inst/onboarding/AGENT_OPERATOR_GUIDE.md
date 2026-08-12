@@ -176,8 +176,7 @@ If an existing artifact or map is relevant, inspect its identity and lineage
 before treating it as input:
 
 ```r
-wb_art_identity_card(b, artifact_id)
-wb_art_birth_certificate(b, artifact_id)
+wb_entity_certificate(b, "artifact", artifact_id)
 wb_prov_artifact_lineage(b, artifact_id)
 ```
 

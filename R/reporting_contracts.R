@@ -257,7 +257,7 @@ wb_list_trajectory_models <- function(bundle, inspect_payload = TRUE) {
   if (!.wb_db_has_table(con, "artifact_model_ref")) {
     return(.wb_empty_df(c(
       "artifact_id", "name", "model_type", "engine", "source_op", "cell_set", "input_matrix_id",
-      "input_space_id", "model_space_id", "in_space_id", "fitted_cell_count", "n_lineages",
+      "source_space_id", "output_space_id", "model_space_id", "in_space_id", "fitted_cell_count", "n_lineages",
       "lineage_ids", "finite_pseudotime_cells", "pseudotime_min", "pseudotime_max",
       "root_label", "end_label", "run_id", "snapshot_id", "lineage_status", "warnings"
     )))
@@ -275,7 +275,7 @@ wb_list_trajectory_models <- function(bundle, inspect_payload = TRUE) {
   if (!nrow(rows)) {
     return(.wb_empty_df(c(
       "artifact_id", "name", "model_type", "engine", "source_op", "cell_set", "input_matrix_id",
-      "input_space_id", "model_space_id", "in_space_id", "fitted_cell_count", "n_lineages",
+      "source_space_id", "output_space_id", "model_space_id", "in_space_id", "fitted_cell_count", "n_lineages",
       "lineage_ids", "finite_pseudotime_cells", "pseudotime_min", "pseudotime_max",
       "root_label", "end_label", "run_id", "snapshot_id", "lineage_status", "warnings"
     )))
@@ -327,7 +327,8 @@ wb_list_trajectory_models <- function(bundle, inspect_payload = TRUE) {
       source_op = as.character(r$source_op[[1]] %||% NA_character_),
       cell_set = as.character(r$cell_set[[1]] %||% NA_character_),
       input_matrix_id = as.character(r$input_matrix_id[[1]] %||% NA_character_),
-      input_space_id = as.character(r$input_space_id[[1]] %||% NA_character_),
+      source_space_id = as.character(r$in_space_id[[1]] %||% NA_character_),
+      output_space_id = as.character(r$model_space_id[[1]] %||% NA_character_),
       model_space_id = as.character(r$model_space_id[[1]] %||% NA_character_),
       in_space_id = as.character(r$in_space_id[[1]] %||% NA_character_),
       fitted_cell_count = fitted_cell_count,

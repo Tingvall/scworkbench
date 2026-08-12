@@ -78,9 +78,9 @@ test_durable_session_scvi_recovery_contract <- function() {
     candidate_cells = cells[-1L], k = 2L, include_query = FALSE
   )
   stopifnot(nrow(downstream$outputs$neighbors$table) == 2L)
-  cert <- wb_art_birth_certificate(b, model_art)
-  stopifnot(identical(as.character(cert$artifact$source_op), "scvi_train"),
-            identical(as.character(cert$inline_provenance$parsed$run_id), run_id),
+  cert <- wb_entity_certificate(b, "artifact", model_art)
+  stopifnot(identical(as.character(cert$producer$operation$name), "scvi_train"),
+            identical(as.character(cert$producer$run_id), run_id),
             nrow(DBI::dbGetQuery(b$con, "SELECT run_id FROM prov_runs WHERE run_id = ?;", params = list(run_id))) == 1L)
   wb_session_discard(wb_session_open(workspace))
   TRUE

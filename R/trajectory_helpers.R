@@ -191,7 +191,7 @@ wb_trajectory_keys <- function(bundle, pseudotime, curves, runs = NULL) {
   out
 }
 
-#' Resolve the plotting space for a trajectory curve family (birth-certificate lookup)
+#' Resolve the plotting space for a trajectory curve family (canonical binding lookup)
 #'
 #' Returns the 2D `space_id` a `path_2d_family` trajectory was projected into.
 #' The lookup is provenance-driven for refs (session run params or artifact
@@ -261,7 +261,9 @@ wb_path_2d_family_space_id <- function(bundle, x, runs = NULL) {
   if (identical(tp, "artifact")) {
     aid <- as.character(x$value %||% "")[1]
     if (!nzchar(aid)) return(NA_character_)
-    art <- try(.wb_art_row_one(bundle, aid), silent = TRUE)
+    art <- try(DBI::dbGetQuery(
+      bundle$con, "SELECT * FROM artifacts WHERE artifact_id = ?;", params = list(aid)
+    ), silent = TRUE)
     if (inherits(art, "try-error") || !is.data.frame(art) || nrow(art) != 1L) return(NA_character_)
     if (!identical(as.character(art$type[1] %||% ""), "path_2d_family")) return(NA_character_)
 

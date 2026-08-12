@@ -28,7 +28,7 @@ Mount a bundle read-only and open it explicitly with
 `wb_open_bundle(path, read_only = TRUE, validate = TRUE)`. This mode never
 migrates SQLite or writes WAL/journal/staging state. Use normal getters,
 `wb_prov_bundle_dag()`, `wb_kg_provenance_graph()`,
-`wb_art_birth_certificate()`, `wb_prov_run_details()`, and
+`wb_entity_certificate()`, `wb_prov_run_details()`, and
 `wb_prov_source_inputs()` for the recipient audit. Mutation, session, and
 promotion APIs fail before attempting a write.
 
@@ -42,6 +42,28 @@ classification column is `node_type`; filter `node_type == "external_source"`
 and `edge_type == "CONSUMES"` to inspect source-to-ingestion edges.
 Automatic assembly events have no external-source node. Genuine object inputs
 use the distinct `in_memory_source` node type and remain explicitly nonportable.
+
+### Entity provenance certificates
+
+The composed DAG is authoritative. `wb_entity_certificate()` is a deterministic,
+read-only node-focused projection over that DAG, typed run bindings, output
+identities, lifecycle records, and entity registries; a certificate is never a
+separately persisted source of truth. Generate one for any durable scientific
+entity:
+
+```r
+wb_entity_certificate(b, "matrix", "RNA_counts")
+wb_entity_certificate(b, "space", "rna.pca")
+wb_entity_certificate(b, "artifact", artifact_id)
+wb_entity_certificate(b, "run", run_id)
+```
+
+The common schema is `scworkbench.provenance.entity_certificate.v1`. Missing,
+unverified, corrupt, and not-applicable evidence is stated explicitly. Space
+views distinguish `source_space_id` from `output_space_id`; they never expose
+coordinates. Storage paths are bundle-relative, and certificates never embed
+matrix, coordinate, model, or artifact payloads. Use `wb_matrix()`, `wb_space()`,
+`wb_art_load()`, and the model getters when scientific data are actually needed.
 
 ## Executable target reproduction
 

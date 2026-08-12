@@ -2,7 +2,7 @@
 % Please edit documentation in R/trajectory_helpers.R
 \name{wb_path_2d_family_space_id}
 \alias{wb_path_2d_family_space_id}
-\title{Resolve the plotting space for a trajectory curve family (birth-certificate lookup)}
+\title{Resolve the plotting space for a trajectory curve family (canonical binding lookup)}
 \usage{
 wb_path_2d_family_space_id(bundle, x, runs = NULL)
 }

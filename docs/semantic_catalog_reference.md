@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 317
+Record count: 316
 
-Graph edges: 906
+Graph edges: 904
 
 ## artifact_type
 
@@ -738,17 +738,11 @@ Title: Table Artifact Distinct Values
 
 Description: List distinct values from one promoted table artifact column.
 
-### `getter:wb_art_identity_card`
+### `getter:wb_entity_certificate`
 
-Title: Artifact Identity Card
+Title: Entity Provenance Certificate
 
-Description: Summarize artifact identity, provenance, labels, and display hints.
-
-### `getter:wb_art_birth_certificate`
-
-Title: Artifact Birth Certificate
-
-Description: Read provenance/birth metadata for a promoted artifact.
+Description: Project deterministic identity and lineage metadata for any durable scientific entity.
 
 ### `getter:wb_art_dependencies`
 

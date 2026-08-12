@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Getter count: 79
+Getter count: 78
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -153,36 +153,6 @@ Arguments: bundle, artifact_id, column, filters, limit
 Use when:
 - enumerate lineage IDs
 - find feature sets in an artifact
-
-### `wb_art_identity_card`
-
-Title: Artifact Identity Card
-
-Description: Summarize artifact identity, provenance, labels, and display hints.
-
-Returns: list
-
-Payload level: metadata
-
-Arguments: bundle, artifact_id
-
-Use when:
-- explain an artifact to an agent or user
-
-### `wb_art_birth_certificate`
-
-Title: Artifact Birth Certificate
-
-Description: Read provenance/birth metadata for a promoted artifact.
-
-Returns: list
-
-Payload level: metadata
-
-Arguments: bundle, artifact_id
-
-Use when:
-- trace artifact provenance
 
 ### `wb_art_dependencies`
 
@@ -881,6 +851,21 @@ Arguments: bundle
 Use when:
 - trace claim replacement
 - render historical lifecycle relationships
+
+### `wb_entity_certificate`
+
+Title: Entity Provenance Certificate
+
+Description: Project deterministic identity and lineage metadata for any durable scientific entity.
+
+Returns: list
+
+Payload level: metadata
+
+Arguments: bundle, entity_kind, entity_id
+
+Use when:
+- explain or audit a durable entity without loading its scientific payload
 
 ### `wb_prov_list_heads`
 

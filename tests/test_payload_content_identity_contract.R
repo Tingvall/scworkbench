@@ -63,9 +63,9 @@ test_payload_content_identity_contract <- function() {
   verified <- wb_prov_validate_replay(b, snapshot_id = sid, profile = "strict", strict = TRUE)
   stopifnot(isTRUE(verified$summary$valid), all(verified$per_output$verification_level == "content"))
   summary_artifact <- as.character(promoted$promoted$artifact_id[promoted$promoted$output == "summary"])[1]
-  recipient <- wb_art_birth_certificate(b, summary_artifact)$persisted_provenance$links
-  stopifnot(identical(as.character(recipient$verification_status[recipient$output_name == "summary"]), "content_verified"),
-            identical(as.character(recipient$content_identity_scheme[recipient$output_name == "summary"]), unname(scworkbench:::.wb_content_identity_schemes()[["table"]])))
+  recipient <- wb_entity_certificate(b, "artifact", summary_artifact)
+  stopifnot(identical(as.character(recipient$identity$verification_status), "content_verified"),
+            identical(as.character(recipient$identity$content_identity_scheme), unname(scworkbench:::.wb_content_identity_schemes()[["table"]])))
 
   # Same-kind/same-shape output with a changed SHA must fail strict content validation.
   DBI::dbExecute(b$con, "UPDATE prov_run_outputs SET content_sha256 = ? WHERE snapshot_id = ? AND run_id = ? AND output_name = ?;", params = list(strrep("0", 64L), sid, a$run$run_id, "summary"))

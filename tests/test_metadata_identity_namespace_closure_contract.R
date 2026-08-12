@@ -134,8 +134,8 @@ test_metadata_identity_namespace_closure_contract <- function() {
   b <- wb_open_bundle(root)
   vec <- wb_art_load(b, artifact_id, expected_kind = "cell_vector")
   stopifnot(identical(as.character(vec$value), expected[[group_index]]))
-  cert <- wb_art_birth_certificate(b, artifact_id)
-  stopifnot(identical(cert$inline_provenance$parsed$params$source_field_id, group_ref$field_id))
+  cert <- wb_entity_certificate(b, "artifact", artifact_id)
+  stopifnot(identical(cert$producer$run$parameters$value$source_field_id, group_ref$field_id))
   replay <- wb_prov_validate_replay(b, snapshot_id = snapshot_id, mode = "symbolic", profile = "strict", strict = TRUE)
   stopifnot(isTRUE(replay$summary$valid), all(replay$per_run$status == "ok"))
 

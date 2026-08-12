@@ -170,12 +170,12 @@ test_immutable_history_supersession_tombstones_contract <- function(bundle_dir) 
   # certificate, and reconstruction evidence remain resolvable.
   artifacts <- wb_art_list(b, include_history = FALSE)
   retract_id <- as.character(artifacts$artifact_id[1])
-  birth_before <- wb_art_birth_certificate(b, retract_id)
-  content_before <- as.character(birth_before$persisted_provenance$links$content_sha256[1])
+  birth_before <- wb_entity_certificate(b, "artifact", retract_id)
+  content_before <- as.character(birth_before$identity$content_sha256)
   loaded_before <- wb_art_load(b, retract_id)
   deleted <- wb_art_delete(b, retract_id)
   stopifnot(nrow(deleted) == 1L, identical(deleted$action[1], "retracted"))
-  birth_after <- wb_art_birth_certificate(b, retract_id)
+  birth_after <- wb_entity_certificate(b, "artifact", retract_id)
   loaded_after <- wb_art_load(b, retract_id)
   force_error <- try(wb_art_delete(b, retract_id, force = TRUE), silent = TRUE)
   purge_error <- try({
@@ -185,7 +185,7 @@ test_immutable_history_supersession_tombstones_contract <- function(bundle_dir) 
   }, silent = TRUE)
   stopifnot(
     identical(birth_after$lifecycle$state, "retracted"),
-    identical(content_before, as.character(birth_after$persisted_provenance$links$content_sha256[1])),
+    identical(content_before, as.character(birth_after$identity$content_sha256)),
     identical(loaded_before$kind, loaded_after$kind),
     retract_id %in% wb_art_list(b, include_history = TRUE)$artifact_id,
     !(retract_id %in% wb_art_list(b, include_history = FALSE)$artifact_id),

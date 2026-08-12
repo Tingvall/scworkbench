@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 317,
-  "edge_count": 906,
+  "node_count": 316,
+  "edge_count": 904,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -629,16 +629,10 @@
       "title": "Table Artifact Distinct Values"
     },
     {
-      "record_id": "getter:wb_art_identity_card",
+      "record_id": "getter:wb_entity_certificate",
       "record_type": "getter",
-      "name": "wb_art_identity_card",
-      "title": "Artifact Identity Card"
-    },
-    {
-      "record_id": "getter:wb_art_birth_certificate",
-      "record_type": "getter",
-      "name": "wb_art_birth_certificate",
-      "title": "Artifact Birth Certificate"
+      "name": "wb_entity_certificate",
+      "title": "Entity Provenance Certificate"
     },
     {
       "record_id": "getter:wb_art_dependencies",
@@ -6434,24 +6428,12 @@
     },
     {
       "from": "recipe:inspect_promoted_artifact",
-      "to": "getter:wb_art_identity_card",
+      "to": "getter:wb_entity_certificate",
       "edge_type": "uses",
-      "label": "getter:wb_art_identity_card"
+      "label": "getter:wb_entity_certificate"
     },
     {
-      "from": "getter:wb_art_identity_card",
-      "to": "recipe:inspect_promoted_artifact",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:inspect_promoted_artifact"
-    },
-    {
-      "from": "recipe:inspect_promoted_artifact",
-      "to": "getter:wb_art_birth_certificate",
-      "edge_type": "uses",
-      "label": "getter:wb_art_birth_certificate"
-    },
-    {
-      "from": "getter:wb_art_birth_certificate",
+      "from": "getter:wb_entity_certificate",
       "to": "recipe:inspect_promoted_artifact",
       "edge_type": "used_by_recipe",
       "label": "recipe:inspect_promoted_artifact"
@@ -7238,12 +7220,12 @@
     },
     {
       "from": "recipe:semantic_next_steps_from_artifact",
-      "to": "getter:wb_art_identity_card",
+      "to": "getter:wb_entity_certificate",
       "edge_type": "uses",
-      "label": "getter:wb_art_identity_card"
+      "label": "getter:wb_entity_certificate"
     },
     {
-      "from": "getter:wb_art_identity_card",
+      "from": "getter:wb_entity_certificate",
       "to": "recipe:semantic_next_steps_from_artifact",
       "edge_type": "used_by_recipe",
       "label": "recipe:semantic_next_steps_from_artifact"

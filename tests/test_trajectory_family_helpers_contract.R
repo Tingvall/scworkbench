@@ -103,7 +103,7 @@ test_trajectory_family_helpers_contract <- function(bundle_dir) {
   stopifnot(identical(as.character(parsed_demo$root_id[1]), "Y_1"))
   stopifnot(identical(as.character(parsed_demo$lineage_leaf_id[1]), "Y_10"))
 
-  # Birth-certificate-derived plot space lookup for trajectory curves.
+  # Canonical artifact/run-binding plot-space lookup for trajectory curves.
   cv_space_session <- wb_path_2d_family_space_id(b, cv_ref, runs = s$runs)
   stopifnot(identical(as.character(cv_space_session), "umap.peakvi_space"))
 

@@ -57,8 +57,8 @@
       "category": "artifact_inspection",
       "question": "What is this artifact and how can I use or plot it?",
       "description": "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
-      "steps": ["List artifacts with wb_art_list().", "Read identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."],
-      "uses": ["getter:wb_art_list", "getter:wb_art_identity_card", "getter:wb_art_birth_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"],
+      "steps": ["List artifacts with wb_art_list().", "Read identity/provenance using wb_entity_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."],
+      "uses": ["getter:wb_art_list", "getter:wb_entity_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"],
       "produces": ["primitive:feature_table", "primitive:obs_table", "primitive:cell_vector", "primitive:cell_vector_family"],
       "use_when": ["agent needs to decide next step from artifact id", "human wants provenance before interpretation"],
       "cautions": ["Do not infer biology from artifact type alone; check source op and parameters.", "Prefer bounded table slices before loading large payloads."]
@@ -130,7 +130,7 @@
       "question": "Given an artifact, what can the agent do next?",
       "description": "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
       "steps": ["Inspect artifact_type and primitive_kind.", "Find graph edges from artifact_type to primitive via loads_as.", "Follow primitive to wranglers via wrangled_by and plots via feeds_plot.", "Follow primitive to ops via consumed_by for downstream analysis.", "Return candidates with provenance caveats."],
-      "uses": ["getter:wb_art_identity_card", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"],
+      "uses": ["getter:wb_entity_certificate", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"],
       "produces": ["plot:embedding_overlay", "plot:violin", "plot:ranked_lollipop"],
       "use_when": ["agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"],
       "cautions": ["Compatibility means technically possible, not biologically appropriate.", "Use provenance and parameter semantics before making claims."]

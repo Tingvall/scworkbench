@@ -29,8 +29,8 @@ test_op_metadata_cell_vector_diagnostics_contract <- function() {
   wb_close_bundle(b); b <- wb_open_bundle(root)
   vecs <- lapply(vector_ids, function(id) wb_art_load(b, id, expected_kind = "cell_vector"))
   stopifnot(identical(vecs[[1]]$value_type, "categorical"), identical(vecs[[3]]$value_type, "continuous"))
-  cert <- wb_art_birth_certificate(b, vector_ids[[1]])
-  persisted_params <- cert$inline_provenance$parsed$params
+  cert <- wb_entity_certificate(b, "artifact", vector_ids[[1]])
+  persisted_params <- cert$producer$run$parameters$value
   stopifnot(identical(persisted_params$source_column, "perturbation"), identical(persisted_params$cell_set, "all"), identical(persisted_params$missing_policy, "error"))
   cc_summary <- cc$run$outputs$summary$table
   stopifnot(identical(cc_summary$association_type, "categorical_x_categorical"), identical(cc_summary$effect_size_name, "cramers_v"), "min_expected" %in% names(cc_summary))

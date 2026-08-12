@@ -139,7 +139,7 @@ wb_semantic_plan_artifact_next_steps <- function(bundle, artifact_id, include_re
     drop = FALSE
   ]
 
-  identity <- try(wb_art_identity_card(bundle, artifact_id = info$artifact_id), silent = TRUE)
+  identity <- try(wb_entity_certificate(bundle, "artifact", info$artifact_id), silent = TRUE)
   if (inherits(identity, "try-error")) identity <- NULL
 
   list(
@@ -161,7 +161,7 @@ wb_semantic_plan_artifact_next_steps <- function(bundle, artifact_id, include_re
     downstream_ops = .wb_semantic_plan_record_table(downstream_op_ids, record_map, relation = "primitive_consumed_by"),
     recipes = .wb_semantic_plan_record_table(recipe_ids, record_map, relation = "mentions_artifact_or_compatible_action"),
     graph_edges = action_edges,
-    identity_card = identity,
+    provenance_certificate = identity,
     caveats = c(
       "Graph compatibility means technically possible, not biologically appropriate.",
       "Use artifact provenance, source op, and parameter semantics before making biological claims.",

@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 317,
+  "record_count": 316,
   "record_type_counts": {
     "artifact_type": 74,
-    "getter": 79,
+    "getter": 78,
     "op": 57,
     "parameter": 59,
     "plot": 12,
@@ -12170,42 +12170,22 @@
       }
     },
     {
-      "record_id": "getter:wb_art_identity_card",
+      "record_id": "getter:wb_entity_certificate",
       "record_type": "getter",
-      "name": "wb_art_identity_card",
-      "title": "Artifact Identity Card",
-      "description": "Summarize artifact identity, provenance, labels, and display hints.",
-      "search_text": "Artifact Identity Card\nSummarize artifact identity, provenance, labels, and display hints.\nartifacts\nlist\nbundle\nartifact_id\nexplain an artifact to an agent or user",
-      "tags": ["getter", "artifacts"],
+      "name": "wb_entity_certificate",
+      "title": "Entity Provenance Certificate",
+      "description": "Project deterministic identity and lineage metadata for any durable scientific entity.",
+      "search_text": "Entity Provenance Certificate\nProject deterministic identity and lineage metadata for any durable scientific entity.\nprovenance\nlist\nbundle\nentity_kind\nentity_id\nexplain or audit a durable entity without loading its scientific payload",
+      "tags": ["getter", "provenance"],
       "payload": {
-        "function_name": "wb_art_identity_card",
-        "title": "Artifact Identity Card",
-        "category": "artifacts",
-        "description": "Summarize artifact identity, provenance, labels, and display hints.",
+        "function_name": "wb_entity_certificate",
+        "title": "Entity Provenance Certificate",
+        "category": "provenance",
+        "description": "Project deterministic identity and lineage metadata for any durable scientific entity.",
         "returns": "list",
         "payload_level": "metadata",
-        "arguments": ["bundle", "artifact_id"],
-        "use_when": "explain an artifact to an agent or user",
-        "mutates": false
-      }
-    },
-    {
-      "record_id": "getter:wb_art_birth_certificate",
-      "record_type": "getter",
-      "name": "wb_art_birth_certificate",
-      "title": "Artifact Birth Certificate",
-      "description": "Read provenance/birth metadata for a promoted artifact.",
-      "search_text": "Artifact Birth Certificate\nRead provenance/birth metadata for a promoted artifact.\nartifacts\nlist\nbundle\nartifact_id\ntrace artifact provenance",
-      "tags": ["getter", "artifacts"],
-      "payload": {
-        "function_name": "wb_art_birth_certificate",
-        "title": "Artifact Birth Certificate",
-        "category": "artifacts",
-        "description": "Read provenance/birth metadata for a promoted artifact.",
-        "returns": "list",
-        "payload_level": "metadata",
-        "arguments": ["bundle", "artifact_id"],
-        "use_when": "trace artifact provenance",
+        "arguments": ["bundle", "entity_kind", "entity_id"],
+        "use_when": "explain or audit a durable entity without loading its scientific payload",
         "mutates": false
       }
     },
@@ -16615,7 +16595,7 @@
       "name": "inspect_promoted_artifact",
       "title": "Inspect a promoted artifact",
       "description": "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
-      "search_text": "Inspect a promoted artifact\nWhat is this artifact and how can I use or plot it?\nUse artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.\nartifact_inspection\nList artifacts with wb_art_list().\nRead identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().\nIf table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().\nLoad as primitive with wb_art_load() only when payload access is needed.\nUse semantic_compatibility_graph to find compatible wranglers/plots.\ngetter:wb_art_list\ngetter:wb_art_identity_card\ngetter:wb_art_birth_certificate\ngetter:wb_art_table_info\ngetter:wb_art_table_slice\ngetter:wb_art_load\nwrangler:table:client_load_table\nprimitive:feature_table\nprimitive:obs_table\nprimitive:cell_vector\nprimitive:cell_vector_family\nagent needs to decide next step from artifact id\nhuman wants provenance before interpretation\nDo not infer biology from artifact type alone; check source op and parameters.\nPrefer bounded table slices before loading large payloads.",
+      "search_text": "Inspect a promoted artifact\nWhat is this artifact and how can I use or plot it?\nUse artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.\nartifact_inspection\nList artifacts with wb_art_list().\nRead identity/provenance using wb_entity_certificate().\nIf table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().\nLoad as primitive with wb_art_load() only when payload access is needed.\nUse semantic_compatibility_graph to find compatible wranglers/plots.\ngetter:wb_art_list\ngetter:wb_entity_certificate\ngetter:wb_art_table_info\ngetter:wb_art_table_slice\ngetter:wb_art_load\nwrangler:table:client_load_table\nprimitive:feature_table\nprimitive:obs_table\nprimitive:cell_vector\nprimitive:cell_vector_family\nagent needs to decide next step from artifact id\nhuman wants provenance before interpretation\nDo not infer biology from artifact type alone; check source op and parameters.\nPrefer bounded table slices before loading large payloads.",
       "tags": ["recipe", "artifact_inspection", "agent needs to decide next step from artifact id", "human wants provenance before interpretation"],
       "payload": {
         "recipe_id": "inspect_promoted_artifact",
@@ -16623,8 +16603,8 @@
         "category": "artifact_inspection",
         "question": "What is this artifact and how can I use or plot it?",
         "description": "Use artifact getters to inspect identity, provenance, table shape, dependencies, and compatible downstream actions.",
-        "steps": ["List artifacts with wb_art_list().", "Read identity/provenance using wb_art_identity_card() and wb_art_birth_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."],
-        "uses": ["getter:wb_art_list", "getter:wb_art_identity_card", "getter:wb_art_birth_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"],
+        "steps": ["List artifacts with wb_art_list().", "Read identity/provenance using wb_entity_certificate().", "If table-like, inspect columns with wb_art_table_info() and preview rows with wb_art_table_slice().", "Load as primitive with wb_art_load() only when payload access is needed.", "Use semantic_compatibility_graph to find compatible wranglers/plots."],
+        "uses": ["getter:wb_art_list", "getter:wb_entity_certificate", "getter:wb_art_table_info", "getter:wb_art_table_slice", "getter:wb_art_load", "wrangler:table:client_load_table"],
         "produces": ["primitive:feature_table", "primitive:obs_table", "primitive:cell_vector", "primitive:cell_vector_family"],
         "use_when": ["agent needs to decide next step from artifact id", "human wants provenance before interpretation"],
         "cautions": ["Do not infer biology from artifact type alone; check source op and parameters.", "Prefer bounded table slices before loading large payloads."]
@@ -16741,7 +16721,7 @@
       "name": "semantic_next_steps_from_artifact",
       "title": "Find next steps from an artifact",
       "description": "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
-      "search_text": "Find next steps from an artifact\nGiven an artifact, what can the agent do next?\nUse the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.\nagent_planning\nInspect artifact_type and primitive_kind.\nFind graph edges from artifact_type to primitive via loads_as.\nFollow primitive to wranglers via wrangled_by and plots via feeds_plot.\nFollow primitive to ops via consumed_by for downstream analysis.\nReturn candidates with provenance caveats.\ngetter:wb_art_identity_card\ngetter:wb_art_load\nartifact_type:cell_vector\nprimitive:cell_vector\nwrangler:table:client_load_table\nplot:embedding_overlay\nplot:violin\nplot:ranked_lollipop\nagent receives artifact id and needs actionable options\nsemantic search needs planning, not just text matches\nCompatibility means technically possible, not biologically appropriate.\nUse provenance and parameter semantics before making claims.",
+      "search_text": "Find next steps from an artifact\nGiven an artifact, what can the agent do next?\nUse the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.\nagent_planning\nInspect artifact_type and primitive_kind.\nFind graph edges from artifact_type to primitive via loads_as.\nFollow primitive to wranglers via wrangled_by and plots via feeds_plot.\nFollow primitive to ops via consumed_by for downstream analysis.\nReturn candidates with provenance caveats.\ngetter:wb_entity_certificate\ngetter:wb_art_load\nartifact_type:cell_vector\nprimitive:cell_vector\nwrangler:table:client_load_table\nplot:embedding_overlay\nplot:violin\nplot:ranked_lollipop\nagent receives artifact id and needs actionable options\nsemantic search needs planning, not just text matches\nCompatibility means technically possible, not biologically appropriate.\nUse provenance and parameter semantics before making claims.",
       "tags": ["recipe", "agent_planning", "agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"],
       "payload": {
         "recipe_id": "semantic_next_steps_from_artifact",
@@ -16750,7 +16730,7 @@
         "question": "Given an artifact, what can the agent do next?",
         "description": "Use the semantic catalog and compatibility graph to find downstream getters, wranglers, plots, and ops compatible with the artifact primitive type.",
         "steps": ["Inspect artifact_type and primitive_kind.", "Find graph edges from artifact_type to primitive via loads_as.", "Follow primitive to wranglers via wrangled_by and plots via feeds_plot.", "Follow primitive to ops via consumed_by for downstream analysis.", "Return candidates with provenance caveats."],
-        "uses": ["getter:wb_art_identity_card", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"],
+        "uses": ["getter:wb_entity_certificate", "getter:wb_art_load", "artifact_type:cell_vector", "primitive:cell_vector", "wrangler:table:client_load_table", "plot:embedding_overlay"],
         "produces": ["plot:embedding_overlay", "plot:violin", "plot:ranked_lollipop"],
         "use_when": ["agent receives artifact id and needs actionable options", "semantic search needs planning, not just text matches"],
         "cautions": ["Compatibility means technically possible, not biologically appropriate.", "Use provenance and parameter semantics before making claims."]
@@ -16760,8 +16740,8 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 317,
-    "edge_count": 906,
+    "node_count": 316,
+    "edge_count": 904,
     "nodes": [
       {
         "record_id": "op:leiden",
@@ -17388,16 +17368,10 @@
         "title": "Table Artifact Distinct Values"
       },
       {
-        "record_id": "getter:wb_art_identity_card",
+        "record_id": "getter:wb_entity_certificate",
         "record_type": "getter",
-        "name": "wb_art_identity_card",
-        "title": "Artifact Identity Card"
-      },
-      {
-        "record_id": "getter:wb_art_birth_certificate",
-        "record_type": "getter",
-        "name": "wb_art_birth_certificate",
-        "title": "Artifact Birth Certificate"
+        "name": "wb_entity_certificate",
+        "title": "Entity Provenance Certificate"
       },
       {
         "record_id": "getter:wb_art_dependencies",
@@ -23193,24 +23167,12 @@
       },
       {
         "from": "recipe:inspect_promoted_artifact",
-        "to": "getter:wb_art_identity_card",
+        "to": "getter:wb_entity_certificate",
         "edge_type": "uses",
-        "label": "getter:wb_art_identity_card"
+        "label": "getter:wb_entity_certificate"
       },
       {
-        "from": "getter:wb_art_identity_card",
-        "to": "recipe:inspect_promoted_artifact",
-        "edge_type": "used_by_recipe",
-        "label": "recipe:inspect_promoted_artifact"
-      },
-      {
-        "from": "recipe:inspect_promoted_artifact",
-        "to": "getter:wb_art_birth_certificate",
-        "edge_type": "uses",
-        "label": "getter:wb_art_birth_certificate"
-      },
-      {
-        "from": "getter:wb_art_birth_certificate",
+        "from": "getter:wb_entity_certificate",
         "to": "recipe:inspect_promoted_artifact",
         "edge_type": "used_by_recipe",
         "label": "recipe:inspect_promoted_artifact"
@@ -23997,12 +23959,12 @@
       },
       {
         "from": "recipe:semantic_next_steps_from_artifact",
-        "to": "getter:wb_art_identity_card",
+        "to": "getter:wb_entity_certificate",
         "edge_type": "uses",
-        "label": "getter:wb_art_identity_card"
+        "label": "getter:wb_entity_certificate"
       },
       {
-        "from": "getter:wb_art_identity_card",
+        "from": "getter:wb_entity_certificate",
         "to": "recipe:semantic_next_steps_from_artifact",
         "edge_type": "used_by_recipe",
         "label": "recipe:semantic_next_steps_from_artifact"

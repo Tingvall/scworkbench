@@ -992,17 +992,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_art_birth_certificate.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_art_delete_plan.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -1048,17 +1037,6 @@
     },
     {
       "path": "man/wb_art_get_labels.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_art_identity_card.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",
@@ -1719,6 +1697,17 @@
     },
     {
       "path": "man/wb_define_cells.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_entity_certificate.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

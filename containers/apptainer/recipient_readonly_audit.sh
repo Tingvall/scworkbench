@@ -9,7 +9,7 @@ singularity exec --cleanenv --bind "${bundle}:/audit_bundle:ro" "${image}" Rscri
   stopifnot(isTRUE(wb_recipient_readiness("/audit_bundle")$ready))
   invisible(wb_manifest(b)); invisible(wb_matrices(b)); invisible(wb_spaces(b)); invisible(wb_art_list(b)); invisible(wb_list_trajectory_models(b))
   invisible(wb_prov_list_heads(b)); invisible(wb_prov_bundle_dag(b)); invisible(wb_kg_provenance_graph(b))
-  for (a in wb_art_list(b)$artifact_id) invisible(wb_art_birth_certificate(b, a))
+  for (a in wb_art_list(b)$artifact_id) invisible(wb_entity_certificate(b, "artifact", a))
   for (a in wb_art_list(b)$artifact_id) try(wb_art_load(b, a), silent=TRUE)
   source_runs <- unique(wb_prov_source_inputs(b)[c("snapshot_id", "run_id")])
   if (nrow(source_runs)) for (i in seq_len(nrow(source_runs))) {

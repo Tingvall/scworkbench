@@ -60,8 +60,8 @@ test_metadata_identifier_consumers_contract <- function() {
   b <- wb_open_bundle(root)
   vector <- wb_art_load(b, artifact_id, expected_kind = "cell_vector")
   stopifnot(identical(as.character(vector$value), rep(c("ctrl", "drug"), each = 6L)))
-  cert <- wb_art_birth_certificate(b, artifact_id)
-  stopifnot(identical(cert$inline_provenance$parsed$params$source_column, "batch key"))
+  cert <- wb_entity_certificate(b, "artifact", artifact_id)
+  stopifnot(identical(cert$producer$run$parameters$value$source_column, "batch key"))
   replay <- wb_prov_validate_replay(b, snapshot_id = snapshot_id, mode = "symbolic", profile = "strict", strict = TRUE)
   stopifnot(isTRUE(replay$summary$valid), all(replay$per_run$status == "ok"))
   TRUE

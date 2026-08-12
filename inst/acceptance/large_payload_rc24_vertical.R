@@ -69,8 +69,8 @@ stopifnot(nrow(schemes)==4L,all(grepl("^[0-9a-f]{64}$",schemes$run_hash)),all(gr
 
 artifacts <- wb_art_list(b)
 model_art <- as.character(ok$artifact_id[ok$output=="model"])[1]
-cert <- wb_art_birth_certificate(b,model_art)
-stopifnot(identical(as.character(cert$artifact$artifact_id),model_art),nrow(wb_prov_bundle_dag(b)$nodes)>0L,nrow(wb_kg_provenance_graph(b)$nodes)>0L)
+cert <- wb_entity_certificate(b,"artifact",model_art)
+stopifnot(identical(as.character(cert$subject$id),model_art),nrow(wb_prov_bundle_dag(b)$nodes)>0L,nrow(wb_kg_provenance_graph(b)$nodes)>0L)
 stopifnot(matrix_id %in% wb_matrices(b)$matrix_id,pca_id %in% wb_spaces(b)$space_id,umap_id %in% wb_spaces(b)$space_id)
 
 readiness <- wb_finalize_recipient_bundle(b)

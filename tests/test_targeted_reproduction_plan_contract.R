@@ -365,8 +365,8 @@ test_targeted_reproduction_execute_contract <- function() {
             all(payload_rows$storage == "hdf5:dense-space:v1"),
             all(file.exists(file.path(clone, payload_rows$path))))
   model_art <- eq$replay_artifact_id[eq$original_output_name=="model"]
-  model_link <- wb_art_birth_certificate(cb,model_art)$persisted_provenance$links
-  stopifnot(identical(as.character(model_link$verification_status[model_link$output_name=="model"]),"content_verified"))
+  model_cert <- wb_entity_certificate(cb,"artifact",model_art)
+  stopifnot(identical(as.character(model_cert$identity$verification_status),"content_verified"))
 
   # A second producer for the same durable entity is rejected structurally and
   # cannot be emitted. This deliberately models a malformed/legacy bundle.

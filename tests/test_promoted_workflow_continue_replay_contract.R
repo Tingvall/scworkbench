@@ -111,19 +111,12 @@ test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
   stopifnot(is.data.frame(deps))
   stopifnot(any(as.character(deps$artifact_id %||% character(0)) == de_art_id))
 
-  # Birth certificate should provide persisted provenance link for the leaf.
-  bc <- wb_art_birth_certificate(
-    b,
-    artifact_id = leaf_art_id,
-    include_parents = TRUE,
-    include_children = FALSE,
-    include_snapshot_run = TRUE
-  )
+  # The generic certificate provides the exact durable producer for the leaf.
+  bc <- wb_entity_certificate(b, "artifact", leaf_art_id)
   stopifnot(is.list(bc))
-  link <- bc$persisted_provenance$selected_link
-  stopifnot(is.data.frame(link), nrow(link) == 1)
-  stopifnot(nzchar(as.character(link$snapshot_id[1])))
-  stopifnot(nzchar(as.character(link$run_id[1])))
+  stopifnot(identical(bc$producer$status, "available"))
+  stopifnot(nzchar(as.character(bc$producer$snapshot_id)))
+  stopifnot(nzchar(as.character(bc$producer$run_id)))
 
   # Minimal replay script for the leaf artifact should be emitted and target the leaf.
   txt <- wb_art_emit_r_script(

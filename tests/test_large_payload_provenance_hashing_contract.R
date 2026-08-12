@@ -169,8 +169,8 @@ test_mixed_legacy_new_provenance_identity_contract <- function() {
   stopifnot(any(all_runs$run_hash_scheme==legacy),any(all_runs$run_hash_scheme==schemes[["run"]]),all(nchar(all_runs$run_hash[all_runs$run_hash_scheme==schemes[["run"]]])==64L))
   replay <- wb_prov_validate_replay(b,snapshot_id=sid,profile="strict",strict=TRUE)
   stopifnot(isTRUE(replay$summary$valid))
-  cert <- wb_art_birth_certificate(b,artifact_id)
-  stopifnot(identical(as.character(cert$artifact$artifact_id),artifact_id))
+  cert <- wb_entity_certificate(b,"artifact",artifact_id)
+  stopifnot(identical(as.character(cert$subject$id),artifact_id))
   stopifnot(nrow(wb_prov_bundle_dag(b)$nodes)>0L,nrow(wb_kg_provenance_graph(b)$nodes)>0L)
   wb_finalize_recipient_bundle(b); wb_close_bundle(b); b <- NULL
   deep <- wb_bundle_validation_report(root,"content")

@@ -2104,15 +2104,13 @@ wb_prov_emit_r_script <- function(bundle,
   aid <- as.character(artifact_id)[1]
   .wb_assert(nzchar(aid), "artifact_id must be a non-empty string")
 
-  bc <- wb_art_birth_certificate(
-    bundle,
-    artifact_id = aid,
-    include_parents = FALSE,
-    include_children = FALSE,
-    include_snapshot_run = TRUE
+  link <- DBI::dbGetQuery(
+    bundle$con,
+    "SELECT snapshot_id, run_id, output_name, primitive_kind, artifact_id
+     FROM prov_run_outputs WHERE artifact_id = ?
+     ORDER BY snapshot_id, run_id, output_name;",
+    params = list(aid)
   )
-
-  link <- bc$persisted_provenance$selected_link %||% data.frame(stringsAsFactors = FALSE)
   .wb_assert(is.data.frame(link) && nrow(link) >= 1, paste0("No persisted provenance link for artifact: ", aid))
 
   row <- link[1, , drop = FALSE]
@@ -2126,8 +2124,7 @@ wb_prov_emit_r_script <- function(bundle,
     artifact_id = aid,
     snapshot_id = sid,
     run_id = rid,
-    output_name = out_nm,
-    birth_certificate = bc
+    output_name = out_nm
   )
 }
 
