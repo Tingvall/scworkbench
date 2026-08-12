@@ -148,8 +148,7 @@ Artifacts and provenance:
 
 - `wb_art_list()`
 - `wb_art_load()`
-- `wb_art_identity_card()`
-- `wb_art_birth_certificate()`
+- `wb_entity_certificate()`
 - `wb_prov_bundle_dag()`
 - `wb_prov_artifact_lineage()`
 

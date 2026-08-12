@@ -32,5 +32,38 @@ test_documentation_source_package_curation_contract <- function() {
     resolved <- file.path(dirname(path), targets)
     stopifnot(all(file.exists(file.path(root, resolved))))
   }
+
+  # Removed provenance APIs must not survive in either the shipped source
+  # documentation or searchable repository archives. Construct the names in
+  # pieces so this regression does not itself become a stale search hit.
+  obsolete <- c(
+    paste0("wb_art_", "birth_certificate"),
+    paste0("wb_art_", "identity_card"),
+    paste0("artifact_", "birth_certificate_v1")
+  )
+  documentation_roots <- c(
+    "README.md", "NEWS.md", "DESCRIPTION", "NAMESPACE",
+    "R", "docs", "inst", "man", "tests", "vignettes", "archive"
+  )
+  documentation_roots <- file.path(root, documentation_roots)
+  documentation_roots <- documentation_roots[file.exists(documentation_roots)]
+  searchable <- unlist(lapply(documentation_roots, function(path) {
+    if (!dir.exists(path)) return(path)
+    list.files(path, recursive = TRUE, full.names = TRUE, all.files = TRUE)
+  }), use.names = FALSE)
+  searchable <- searchable[file.info(searchable)$isdir %in% FALSE]
+  searchable <- searchable[
+    basename(searchable) %in% c("DESCRIPTION", "NAMESPACE") |
+      grepl("[.](R|Rd|Rmd|md|json|csv|dot|svg|txt|sh|yml|yaml)$", searchable)
+  ]
+  stale <- unlist(lapply(searchable, function(path) {
+    text <- paste(readLines(path, warn = FALSE), collapse = "\n")
+    found <- obsolete[vapply(obsolete, grepl, logical(1), x = text, fixed = TRUE)]
+    if (!length(found)) return(character())
+    paste0(sub(paste0("^", root, "/"), "", path), ": ", found)
+  }), use.names = FALSE)
+  if (length(stale)) {
+    stop("obsolete provenance API references remain:\n", paste(stale, collapse = "\n"))
+  }
   TRUE
 }

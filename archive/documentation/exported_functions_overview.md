@@ -161,7 +161,7 @@ Note:
 ## Primitives, Artifacts, Provenance & Reporting
 
 - `wb_art_get_labels`: Read label rows for a label-like artifact
-- `wb_art_identity_card`: Artifact identity card (compact provenance view)
+- `wb_entity_certificate`: Read a generic provenance certificate for an entity
 - `wb_art_list`: List promoted artifacts
 - `wb_art_load`: Load a promoted artifact as a primitive
 - `wb_art_table_distinct`: List distinct values from a table artifact column
