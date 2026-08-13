@@ -277,8 +277,15 @@
     .wb_pyproto_assert_scalar_chr(type, paste0("outputs_spec$", nm, "$type"))
     artifact_id <- as.character(spec$artifact_id %||% "")[1]
     if (!nzchar(artifact_id)) {
-      artifact_id <- paste0(type, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-                            paste0(sample(c(0:9, letters), 8, TRUE), collapse = ""))
+      artifact_id <- .wb_allocate_db_identifier(
+        con, "artifacts", "artifact_id",
+        paste0(type, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_"),
+        n = 8L, purpose = "PyBench artifact"
+      )
+    } else {
+      .wb_assert_preallocated_identifier_available(
+        con, "artifacts", "artifact_id", artifact_id, "PyBench artifact"
+      )
     }
 
     DBI::dbExecute(con, "

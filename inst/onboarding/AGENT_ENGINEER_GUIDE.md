@@ -174,3 +174,12 @@ provenance-producing route for each meaningful public transformation.
 - Provenance/DAG remain valid.
 - Semantic catalog audit passes via `wb_refresh_semantic_catalogs()`.
 - No thin-client violations introduced.
+# RNG and administrative identifiers
+
+Scientific RNG parameters control numerical methods only. Administrative
+identifiers and ownership tokens use operating-system cryptographic entropy,
+do not touch `.Random.seed`, and are collision-checked with bounded retries.
+Never call `set.seed()` merely to obtain a different run, artifact, snapshot,
+commit, payload, or lock identity. Entropy failure, collision exhaustion, and
+conflicting explicit identities fail with the typed diagnostics documented in
+`docs/sessions_and_ops.md` and leave the operation retryable.

@@ -35,7 +35,10 @@
     bundle$con,
     "INSERT INTO registry_mutation_events(event_id, run_id, registry_type, action, registry_key_json, payload_json, created_at) VALUES(?, ?, ?, ?, ?, ?, ?);",
     params = list(
-      paste0("registry_event_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")),
+      .wb_allocate_db_identifier(
+        bundle$con, "registry_mutation_events", "event_id",
+        "registry_event_", n = 12L, purpose = "registry mutation event"
+      ),
       as.character(ctx$run_id)[1],
       as.character(registry_type)[1],
       as.character(action)[1],

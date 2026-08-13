@@ -74,12 +74,12 @@ wb_register_matrix_fragment <- function(
   source <- if (is.null(source) || !length(source)) NA_character_ else as.character(source)[1]
   description <- if (is.null(description) || !length(description)) NA_character_ else as.character(description)[1]
 
-  fragment_id <- .wb_new_fragment_id(matrix_id)
+  fragment_id <- .wb_new_fragment_id(matrix_id, con)
 
   feature_ids_json <- as.character(jsonlite::toJSON(as.list(feature_ids), auto_unbox = TRUE))
   cell_ids_json <- as.character(jsonlite::toJSON(as.list(cell_ids), auto_unbox = TRUE))
 
-  savepoint <- paste0("scwb_fragment_", paste(sample(c(letters, 0:9), 12L, TRUE), collapse = ""))
+  savepoint <- .wb_allocate_identifier("scwb_fragment_", 12L, purpose = "SQLite savepoint")
   DBI::dbExecute(con, paste("SAVEPOINT", savepoint, ";"))
   released <- FALSE
   on.exit({
@@ -134,11 +134,11 @@ wb_register_matrix_fragment <- function(
   invisible(fragment_id)
 }
 
-.wb_new_fragment_id <- function(matrix_id) {
-  paste0(
-    "mf_", matrix_id, "_",
-    format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-    paste0(sample(c(0:9, letters), 8L, TRUE), collapse = "")
+.wb_new_fragment_id <- function(matrix_id, con = NULL) {
+  .wb_allocate_db_identifier(
+    con, "matrix_fragments", "fragment_id",
+    paste0("mf_", matrix_id, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_"),
+    n = 8L, purpose = "matrix fragment"
   )
 }
 

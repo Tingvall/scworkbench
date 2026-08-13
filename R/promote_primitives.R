@@ -297,7 +297,7 @@ wb_promote_analysis <- function(bundle,
              paste0("Requested outputs are not promotable terminal outputs: ",
                     paste(setdiff(selected_outputs, available), collapse = ", ")))
 
-  commit_id <- .wb_promotion_commit_id()
+  commit_id <- .wb_promotion_commit_id(bundle$con)
   runtime_fingerprint <- .wb_promotion_runtime_fingerprint()
   .wb_migrate_provenance_tables(bundle$con)
   workspace <- .wb_promotion_workspace_new(bundle, commit_id)
@@ -543,9 +543,13 @@ wb_promote_analysis <- function(bundle,
 # Primitive promoters
 # ------------------------------------------------------------------
 
-.wb_new_artifact_id <- function(prefix) {
-  paste0(prefix, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-         paste0(sample(c(0:9, letters), 8, TRUE), collapse=""))
+.wb_new_artifact_id <- function(prefix, bundle = NULL) {
+  con <- if (is.null(bundle)) NULL else bundle$con
+  .wb_allocate_db_identifier(
+    con, "artifacts", "artifact_id",
+    paste0(prefix, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_"),
+    n = 8L, purpose = "artifact"
+  )
 }
 
 .wb_name_nonempty <- function(x) {
@@ -690,7 +694,7 @@ wb_promote_analysis <- function(bundle,
   .wb_assert(!is.null(prim$cell_id) && !is.null(prim$value), "cell_vector missing fields")
   .wb_assert(length(prim$cell_id) == length(prim$value), "cell_vector: cell_id/value length mismatch")
 
-  artifact_id <- .wb_new_artifact_id("cell_vector")
+  artifact_id <- .wb_new_artifact_id("cell_vector", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 
@@ -752,7 +756,7 @@ wb_promote_analysis <- function(bundle,
   if (!is.null(prim$value)) .wb_assert(length(prim$value) == n, "relation_family: key/value length mismatch")
   if (!is.null(prim$distance)) .wb_assert(length(prim$distance) == n, "relation_family: key/distance length mismatch")
 
-  artifact_id <- .wb_new_artifact_id("relation_family")
+  artifact_id <- .wb_new_artifact_id("relation_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 
@@ -805,7 +809,7 @@ wb_promote_analysis <- function(bundle,
   .wb_assert(length(prim$key) == length(prim$cell_id) && length(prim$key) == length(prim$value),
              "cell_vector_family: key/cell_id/value length mismatch")
 
-  artifact_id <- .wb_new_artifact_id("cell_vector_family")
+  artifact_id <- .wb_new_artifact_id("cell_vector_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 
@@ -862,7 +866,7 @@ wb_promote_analysis <- function(bundle,
                length(prim$key) == length(prim$y),
              "path_2d_family: length mismatch")
 
-  artifact_id <- .wb_new_artifact_id("path_2d_family")
+  artifact_id <- .wb_new_artifact_id("path_2d_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 
@@ -921,7 +925,7 @@ wb_promote_analysis <- function(bundle,
                length(prim$value) == n,
              "space_path_family: length mismatch")
 
-  artifact_id <- .wb_new_artifact_id("space_path_family")
+  artifact_id <- .wb_new_artifact_id("space_path_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
   meta_json <- jsonlite::toJSON(.wb_json_sanitize(prim$meta %||% list()), auto_unbox = TRUE, null = "null")
@@ -983,7 +987,7 @@ wb_promote_analysis <- function(bundle,
   .wb_assert(as.integer(payload$n_dims[[1L]]) == 2L,
              paste0("space_2d artifact requires a two-dimensional payload: ", space_id))
 
-  artifact_id <- .wb_new_artifact_id("space2d")
+  artifact_id <- .wb_new_artifact_id("space2d", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 
@@ -1029,7 +1033,7 @@ wb_promote_analysis <- function(bundle,
   in_space_id <- as.character(prim$in_space_id %||% "")[1]
   model_type <- as.character(prim$model_type %||% "")[1]
 
-  artifact_id <- .wb_new_artifact_id("model_ref")
+  artifact_id <- .wb_new_artifact_id("model_ref", bundle)
   model_path <- as.character(prim$model_path %||% "")[1]
   if (!is.null(prim$model_obj)) {
     .wb_assert(inherits(workspace, "wb_promotion_workspace"), "In-memory model_ref promotion requires a promotion workspace.")
@@ -1158,7 +1162,7 @@ wb_promote_analysis <- function(bundle,
   con <- bundle$con
   wb_migrate_artifacts(bundle)
 
-  artifact_id <- .wb_new_artifact_id(artifact_type)
+  artifact_id <- .wb_new_artifact_id(artifact_type, bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
   prov_json <- .wb_prov_json(run, parent_artifacts)
 

@@ -73,7 +73,7 @@ wb_ref_artifact <- function(artifact_id, output_name) {
 #' @export
 wb_session_new <- function() {
   s <- list(
-    session_id = paste0("session_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")),
+    session_id = .wb_allocate_identifier("session_", 12L, purpose = "session"),
     runs = list(),         # run_id -> wb_run
     active = list(),       # output_name -> ref
     head_run_id = NULL,
@@ -129,6 +129,11 @@ wb_session_add_run <- function(session, run) {
   .wb_assert(wb_is_session(session), "session must be a wb_session.")
   .wb_assert(wb_is_run(run), "run must be a wb_run.")
   if (!is.null(session$durable)) stop("DURABLE_SESSION_DIRECT_MUTATION: durable session graph changes must be made by wb_session_run_op().", call. = FALSE)
+  if (run$run_id %in% names(session$runs %||% list()) &&
+      !identical(session$runs[[run$run_id]], run)) {
+    .wb_identifier_error("SCWORKBENCH_IDENTIFIER_CONFLICT",
+                         paste0("preallocated run identifier already exists: ", run$run_id), "run")
+  }
   session$runs[[run$run_id]] <- run
   session$head_run_id <- run$run_id
   session
@@ -389,6 +394,19 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   validated <- .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs, session = session)
   inputs <- validated$inputs
 
+  # Allocate administrative identity before staging or runner execution. A
+  # collision or entropy failure is therefore a strict zero-write failure.
+  planned_run_id <- .wb_allocate_identifier(
+    "run_", 12L, purpose = "run",
+    occupied = function(candidate) {
+      staged_con <- if (!is.null(session$staging_bundle)) session$staging_bundle$con else NULL
+      candidate %in% names(session$runs %||% list()) ||
+        .wb_db_identifier_exists(bundle$con, "prov_runs", "run_id", candidate) ||
+        .wb_db_identifier_exists(staged_con, "prov_runs", "run_id", candidate) ||
+        .wb_db_identifier_exists(staged_con, "registry_mutation_events", "run_id", candidate)
+    }
+  )
+
   staged <- .wb_session_stage_bundle(bundle, session)
   session <- staged$session
   work_bundle <- staged$bundle
@@ -440,7 +458,6 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
 
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
-  planned_run_id <- paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = ""))
   work_bundle$pybench_session_binding <- list(
     session_id = as.character(session$session_id)[1],
     source_attestation = list(

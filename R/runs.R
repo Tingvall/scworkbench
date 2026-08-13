@@ -17,7 +17,7 @@
 #' @export
 wb_new_run <- function(op_name, inputs = list(), params = list(), outputs = list(), notes = NULL, run_id = NULL) {
   run <- list(
-    run_id = as.character(run_id %||% paste0("run_", paste(sample(c(letters, 0:9), 12, TRUE), collapse = "")))[1],
+    run_id = as.character(run_id %||% .wb_allocate_identifier("run_", 12L, purpose = "run"))[1],
     op_name = op_name,
     created_at = format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z"),
     inputs = inputs,

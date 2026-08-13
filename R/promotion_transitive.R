@@ -1,8 +1,11 @@
 # Internal materialization and staged-overlay transfer for transitive promotion.
 
-.wb_promotion_commit_id <- function() {
-  paste0("commit_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_",
-         paste0(sample(c(0:9, letters), 8, TRUE), collapse = ""))
+.wb_promotion_commit_id <- function(con = NULL) {
+  .wb_allocate_db_identifier(
+    con, "prov_commits", "commit_id",
+    paste0("commit_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_"),
+    n = 8L, purpose = "promotion commit"
+  )
 }
 
 .wb_promotion_runtime_fingerprint <- function() {

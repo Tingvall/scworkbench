@@ -2,13 +2,9 @@
   safe <- gsub("[^A-Za-z0-9_]+", "_", as.character(label %||% "composite")[1])
   safe <- gsub("^_+|_+$", "", safe)
   if (!nzchar(safe)) safe <- "composite"
-  paste0(
-    "trajcomp_",
-    safe,
-    "_",
-    format(Sys.time(), "%Y%m%d_%H%M%S"),
-    "_",
-    paste0(sample(c(0:9, letters), 8, TRUE), collapse = "")
+  .wb_allocate_identifier(
+    paste0("trajcomp_", safe, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_"),
+    8L, purpose = "trajectory composite"
   )
 }
 

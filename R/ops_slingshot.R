@@ -5,13 +5,10 @@
 }
 
 .wb_new_trajectory_fit_id <- function(engine = "trajectory") {
-  paste0(
-    "trajfit_",
-    as.character(engine %||% "trajectory")[1],
-    "_",
-    format(Sys.time(), "%Y%m%d_%H%M%S"),
-    "_",
-    paste0(sample(c(0:9, letters), 8, TRUE), collapse = "")
+  .wb_allocate_identifier(
+    paste0("trajfit_", as.character(engine %||% "trajectory")[1], "_",
+           format(Sys.time(), "%Y%m%d_%H%M%S"), "_"),
+    8L, purpose = "trajectory fit"
   )
 }
 

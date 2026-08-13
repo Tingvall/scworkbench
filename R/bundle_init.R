@@ -526,7 +526,9 @@ wb_refresh_manifest <- function(bundle) {
   .wb_assert(.wb_writer_lock_held(bundle_dir),
              "Manifest publication requires the exclusive bundle-writer lock.")
   final <- file.path(bundle_dir, "manifest.json")
-  token <- paste0(Sys.getpid(), "-", paste(sample(c(letters, 0:9), 16L, TRUE), collapse = ""))
+  token <- .wb_allocate_identifier(
+    paste0(Sys.getpid(), "-"), 16L, purpose = "manifest pending publication"
+  )
   staged <- file.path(bundle_dir, paste0(".manifest.json.staging-", token))
   on.exit({
     if (file.exists(staged)) unlink(staged, force = TRUE)

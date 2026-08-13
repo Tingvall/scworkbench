@@ -76,10 +76,18 @@
   mat
 }
 
-.wb_space_payload_file_name <- function(space_id) {
-  token <- paste0(format(Sys.time(), "%Y%m%d%H%M%OS6"), "-", Sys.getpid(), "-",
-                  paste0(sample(c(letters, 0:9), 12L, TRUE), collapse = ""))
-  paste0("space_", substr(.wb_prov_sha256_object(list(space_id = space_id, token = token)), 1L, 24L), ".h5")
+.wb_space_payload_file_name <- function(bundle, space_id) {
+  root <- file.path(bundle$dir, "space_payloads")
+  pending <- file.path(root, ".pending")
+  .wb_allocate_identifier(
+    prefix = "space_", n = 24L, purpose = "dense-space payload path",
+    occupied = function(candidate) {
+      file.exists(file.path(root, paste0(candidate, ".h5"))) ||
+        file.exists(file.path(pending, paste0(candidate, ".h5"))) ||
+        .wb_db_identifier_exists(bundle$con, "space_payloads", "path",
+                                 file.path("space_payloads", paste0(candidate, ".h5")))
+    }
+  ) |> paste0(".h5")
 }
 
 .wb_space_payload_h5_metadata <- function(path) {
@@ -216,7 +224,7 @@
   pending_root <- file.path(root, ".pending")
   dir.create(pending_root, recursive = TRUE, showWarnings = FALSE)
   .wb_assert(dir.exists(pending_root), "Failed to create dense-space pending directory.")
-  file_name <- .wb_space_payload_file_name(space_id)
+  file_name <- .wb_space_payload_file_name(bundle, space_id)
   pending <- file.path(pending_root, file_name)
   final_rel <- file.path("space_payloads", file_name)
   final <- file.path(bundle$dir, final_rel)

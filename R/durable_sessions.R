@@ -255,9 +255,23 @@ wb_session_create <- function(bundle, workspace_root = .wb_session_workspace_roo
   root <- normalizePath(as.character(workspace_root)[1], winslash = "/", mustWork = FALSE)
   dir.create(root, recursive = TRUE, showWarnings = FALSE)
   s <- wb_session_new()
-  s$session_id <- .wb_session_safe_id(session_id %||% s$session_id)
+  if (is.null(session_id)) {
+    s$session_id <- .wb_allocate_identifier(
+      "session_", 12L, purpose = "durable session",
+      occupied = function(candidate) dir.exists(file.path(root, candidate)) ||
+        file.exists(file.path(root, candidate))
+    )
+  } else {
+    s$session_id <- .wb_session_safe_id(session_id)
+    if (dir.exists(file.path(root, s$session_id)) || file.exists(file.path(root, s$session_id))) {
+      .wb_identifier_error(
+        "SCWORKBENCH_IDENTIFIER_CONFLICT",
+        paste0("preallocated durable session identifier already exists: ", s$session_id),
+        "durable session"
+      )
+    }
+  }
   workspace <- .wb_session_contained_path(root, file.path(root, s$session_id), "workspace")
-  .wb_assert(!dir.exists(workspace), paste0("Durable session workspace already exists: ", workspace))
   dir.create(workspace, recursive = TRUE, showWarnings = FALSE)
   s$staging_dir <- .wb_session_contained_path(root, file.path(workspace, "stage"), "stage")
   s$durable <- list(workspace = normalizePath(workspace, winslash = "/", mustWork = TRUE),

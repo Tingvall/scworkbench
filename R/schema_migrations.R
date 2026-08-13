@@ -472,7 +472,10 @@
     dirname(bundle_dir), paste0(".", basename(bundle_dir), ".schema-backups")
   )
   dir.create(root, recursive = TRUE, showWarnings = FALSE)
-  token <- paste0(format(Sys.time(), "%Y%m%dT%H%M%OS6"), "-", Sys.getpid(), "-", sample.int(1e9, 1L))
+  token <- .wb_allocate_identifier(
+    paste0(format(Sys.time(), "%Y%m%dT%H%M%OS6"), "-", Sys.getpid(), "-"),
+    12L, purpose = "schema migration backup"
+  )
   path <- file.path(root, paste0("app.sqlite.v", from_version, "-to-v", to_version, ".", token, ".bak"))
   destination <- DBI::dbConnect(RSQLite::SQLite(), path)
   on.exit(try(DBI::dbDisconnect(destination), silent = TRUE), add = TRUE)

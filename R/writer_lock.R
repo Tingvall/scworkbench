@@ -86,9 +86,9 @@
 }
 
 .wb_writer_lock_token <- function() {
-  paste0(
-    Sys.getpid(), "-", format(Sys.time(), "%Y%m%d%H%M%OS6"), "-",
-    paste(sample(c(letters, LETTERS, 0:9), 24L, replace = TRUE), collapse = "")
+  .wb_allocate_identifier(
+    paste0(Sys.getpid(), "-", format(Sys.time(), "%Y%m%d%H%M%OS6"), "-"),
+    24L, alphabet = c(letters, LETTERS, 0:9), purpose = "writer-lock ownership token"
   )
 }
 

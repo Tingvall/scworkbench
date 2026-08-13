@@ -70,11 +70,11 @@
   invisible(TRUE)
 }
 
-.wb_feature_set_make_id <- function(feature_set, matrix_id) {
-  seed <- paste0(as.character(feature_set), "::", as.character(matrix_id), "::", format(Sys.time(), "%Y%m%d%H%M%S"), "::", sample.int(1e9, 1))
-  raw <- try(digest::digest(seed, algo = "xxhash64"), silent = TRUE)
-  if (inherits(raw, "try-error")) raw <- paste0(as.integer(Sys.time()), "_", sample.int(1e9, 1))
-  paste0("fset_", as.character(raw))
+.wb_feature_set_make_id <- function(feature_set, matrix_id, con = NULL) {
+  .wb_allocate_db_identifier(
+    con, "feature_sets", "set_id", "fset_", n = 16L,
+    purpose = "feature-set registry identifier"
+  )
 }
 
 .wb_feature_set_recipe_json <- function(recipe) {
@@ -336,7 +336,7 @@ wb_feature_set_replace <- function(bundle,
     as.integer(default)
   }
 
-  set_id <- one_or(set_id, "set_id", .wb_feature_set_make_id(feature_set, matrix_id))
+  set_id <- one_or(set_id, "set_id", .wb_feature_set_make_id(feature_set, matrix_id, con))
   namespace <- one_or(namespace, "namespace", "user")
   organism <- one_or(organism, "organism", NULL)
   source_id <- one_or(source_id, "source_id", NULL)

@@ -1,11 +1,10 @@
 # R/provenance_store.R
 
-.wb_prov_new_snapshot_id <- function() {
-  paste0(
-    "prov_",
-    format(Sys.time(), "%Y%m%d_%H%M%S"),
-    "_",
-    paste0(sample(c(0:9, letters), 8, TRUE), collapse = "")
+.wb_prov_new_snapshot_id <- function(con = NULL) {
+  .wb_allocate_db_identifier(
+    con, "prov_heads", "snapshot_id",
+    paste0("prov_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_"),
+    n = 8L, purpose = "provenance snapshot"
   )
 }
 
@@ -728,7 +727,11 @@
   }
 
   row <- data.frame(
-    result_id = paste0("replayeq_", format(Sys.time(), "%Y%m%d%H%M%OS6"), "_", paste(sample(c(letters, 0:9), 8L, TRUE), collapse = "")),
+    result_id = .wb_allocate_db_identifier(
+      bundle$con, "prov_replay_equivalence_results", "result_id",
+      paste0("replayeq_", format(Sys.time(), "%Y%m%d%H%M%OS6"), "_"),
+      n = 8L, purpose = "replay-equivalence result"
+    ),
     original_run_id = as.character(original_run_id)[1],
     original_output_name = as.character(original_output_name)[1],
     replay_run_id = as.character(replay_run_id)[1],
@@ -1186,7 +1189,7 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   con <- bundle$con
   .wb_migrate_provenance_tables(con)
 
-  sid <- .wb_prov_new_snapshot_id()
+  sid <- .wb_prov_new_snapshot_id(con)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
 
   head_json <- jsonlite::toJSON(as.character(heads), auto_unbox = FALSE, null = "null")

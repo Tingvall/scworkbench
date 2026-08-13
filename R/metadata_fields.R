@@ -280,7 +280,10 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
     nzchar(source_names) & !input_ambiguous &
       !(source_names %in% .wb_metadata_core_fields())
   ])
-  import_id <- paste0("metadata:", format(Sys.time(), "%Y%m%dT%H%M%OS6"), ":", Sys.getpid(), ":", sample.int(1e9, 1L))
+  import_id <- .wb_allocate_identifier(
+    paste0("metadata:", format(Sys.time(), "%Y%m%dT%H%M%OS6"), ":", Sys.getpid(), ":"),
+    12L, purpose = "metadata import"
+  )
   now <- format(Sys.time(), "%Y-%m-%dT%H:%M:%OS6%z")
   report <- NULL
 
@@ -377,7 +380,10 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
     }
     .wb_metadata_writer_hook("after_schema_and_registry", con, report)
 
-    tmp <- paste0("__wb_metadata_stage_", Sys.getpid(), "_", sample.int(1e9, 1L))
+    tmp <- .wb_allocate_identifier(
+      paste0("__wb_metadata_stage_", Sys.getpid(), "_"), 12L,
+      purpose = "metadata temporary table"
+    )
     tmp_q <- .wb_quote_identifier(con, tmp)
     stage <- data.frame(cell_id = ids, stringsAsFactors = FALSE, check.names = FALSE)
     value_types <- character(length(mappings))
