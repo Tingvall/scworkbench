@@ -141,3 +141,45 @@ The bridge requires a pybench environment with the `scvi` extra, including
 `anndata`, `scvi-tools`, and the staged-matrix dependencies. The R contract
 test validates the interface, count/covariate checks, staging manifest, and
 R-side model-reference loading without requiring a real scVI training runtime.
+
+## Durable sample-aware sibling
+
+Long fits belong in a durable session. The example below reads replay-ready
+typed inputs from an existing unbatched scVI-to-UMAP snapshot, changes only the
+scientific branch axis and output identifiers, and checkpoints the new scVI
+before UMAP starts. In particular, `umap_inputs$dims` is already an integer
+vector; do not repair provenance with `unlist()` or `as.integer()`.
+
+```r
+scvi_inputs <- wb_prov_run_replay_inputs(
+  b, unbatched_scvi_run_id, snapshot_id = source_snapshot_id
+)$inputs
+umap_inputs <- wb_prov_run_replay_inputs(
+  b, unbatched_umap_run_id, snapshot_id = source_snapshot_id
+)$inputs
+
+s <- wb_session_create(
+  b, workspace_root = "/machine-persistent/scworkbench_sessions",
+  session_id = "sample-aware-scvi"
+)
+scvi_inputs$batch_key <- "sample_id"
+scvi_inputs$output_space_id <- "rna.scvi.sample_aware"
+fit <- wb_session_run_op(s, b, "scvi_train", inputs = scvi_inputs)
+
+# The completed fit is now checkpointed. If this downstream step or the R
+# process fails, reopen the bundle and resume instead of training again.
+s <- wb_session_resume(b, fit$session$durable$workspace)
+umap_inputs$space <- wb_ref_run(fit$run$run_id, "space")
+umap_inputs$space_id_out <- "rna.umap.sample_aware"
+umap <- wb_session_run_op(s, b, "umap_fit", inputs = umap_inputs)
+
+promotion <- wb_session_promote_current(
+  b, umap$session,
+  outputs = list(
+    wb_ref_run(fit$run$run_id, "model"),
+    wb_ref_run(fit$run$run_id, "fit_summary"),
+    wb_ref_run(umap$run$run_id, "model"),
+    wb_ref_run(umap$run$run_id, "space_2d")
+  )
+)
+```

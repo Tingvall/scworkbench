@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Record count: 316
+Record count: 317
 
 Graph edges: 904
 
@@ -857,6 +857,12 @@ Description: Return an upstream, downstream, or bidirectional composed provenanc
 Title: Provenance Run Details
 
 Description: Inspect one persisted run in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity.
+
+### `getter:wb_prov_run_replay_inputs`
+
+Title: Typed Provenance Run Replay Inputs
+
+Description: Rehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics.
 
 ### `getter:wb_run_history`
 

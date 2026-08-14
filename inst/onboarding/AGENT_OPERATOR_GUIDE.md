@@ -203,6 +203,14 @@ Supply every operation input and parameter exclusively through the named
 `inputs = list(..., top_n = 3)` so the complete execution contract is visible
 and recorded with the run.
 
+When branching from a persisted run, use
+`wb_prov_run_replay_inputs(bundle, run_id, snapshot_id)` for executable typed
+inputs. `wb_prov_run_details()` intentionally returns the exact nested stored
+representation for inspection; JSON arrays there are not an execution
+contract. The typed getter applies the registered operation contract, preserves
+`wb_ref_run()`/`wb_ref_artifact()` structures, detects input/parameter
+conflicts, and fails closed on historical ambiguity or contract mismatch.
+
 ## From Scientific Question to Computation
 
 Decompose a question into explicit, evidence-bearing subquestions. For
@@ -221,6 +229,15 @@ coverage, and provenance. When biology is ambiguous, state the ambiguity and
 propose a bounded analysis or request human judgment.
 
 ## Execution Loop
+
+Use `wb_session_new()` only for bounded, cheaply repeatable work. For scVI,
+PeakVI, large embeddings, and any chain that is expensive to repeat, use
+`wb_session_create()` with machine-persistent storage. Every successful
+operation checkpoints before the next one. A detached service is useful
+process protection but is not a substitute for a durable session. After a
+downstream failure or terminal closure, use `wb_session_resume()` and continue
+from the last complete operation. Promotion and terminal reopening follow the
+documented durable-session lifecycle.
 
 ### 1. Define the analysis universe
 

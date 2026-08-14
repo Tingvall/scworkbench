@@ -16,9 +16,18 @@ s <- result$session
 wb_session_dag(s, bundle = b, include_active = TRUE)
 ```
 
-For interruption-safe work, create a durable session with `wb_session_create()`
-and resume it with `wb_session_resume()`. Durable state validates its source
-identity before continuing.
+Use `wb_session_new()` only when the chain is bounded and cheaply repeatable.
+For scVI, PeakVI, large embeddings, and other expensive or long-running work,
+create a durable session with `wb_session_create()` in a machine-persistent
+workspace and resume it with `wb_session_resume()`. Every successful operation
+is checkpointed before the next operation. Durable state validates its source
+and staged payload identities before continuing. A detached service protects a
+process from terminal closure, but is not a durable scworkbench checkpoint.
+
+`wb_prov_run_details()` is the exact stored JSON-shaped inspection view.
+`wb_prov_run_replay_inputs()` is the operation-aware typed view for executing a
+recorded run or constructing a sibling. It preserves symbolic references and
+reports historical ambiguity or installed-contract incompatibility explicitly.
 
 ## Scientific RNG and administrative identity
 

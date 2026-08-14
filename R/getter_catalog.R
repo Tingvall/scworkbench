@@ -673,6 +673,16 @@
       use_when = c("explain exact inputs and params for one run")
     ),
     list(
+      function_name = "wb_prov_run_replay_inputs",
+      title = "Typed Provenance Run Replay Inputs",
+      category = "provenance",
+      description = "Rehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics.",
+      returns = "wb_prov_run_replay_inputs",
+      payload_level = "metadata",
+      arguments = c("bundle", "run_id", "snapshot_id"),
+      use_when = c("branch safely from one recorded run", "recover integer vectors and symbolic references from exact JSON provenance")
+    ),
+    list(
       function_name = "wb_run_history",
       title = "Run History",
       category = "provenance",

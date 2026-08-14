@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 316,
+  "record_count": 317,
   "record_type_counts": {
     "artifact_type": 74,
-    "getter": 78,
+    "getter": 79,
     "op": 57,
     "parameter": 59,
     "plot": 12,
@@ -12570,6 +12570,26 @@
       }
     },
     {
+      "record_id": "getter:wb_prov_run_replay_inputs",
+      "record_type": "getter",
+      "name": "wb_prov_run_replay_inputs",
+      "title": "Typed Provenance Run Replay Inputs",
+      "description": "Rehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics.",
+      "search_text": "Typed Provenance Run Replay Inputs\nRehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics.\nprovenance\nwb_prov_run_replay_inputs\nbundle\nrun_id\nsnapshot_id\nbranch safely from one recorded run\nrecover integer vectors and symbolic references from exact JSON provenance",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_prov_run_replay_inputs",
+        "title": "Typed Provenance Run Replay Inputs",
+        "category": "provenance",
+        "description": "Rehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics.",
+        "returns": "wb_prov_run_replay_inputs",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "run_id", "snapshot_id"],
+        "use_when": ["branch safely from one recorded run", "recover integer vectors and symbolic references from exact JSON provenance"],
+        "mutates": false
+      }
+    },
+    {
       "record_id": "getter:wb_run_history",
       "record_type": "getter",
       "name": "wb_run_history",
@@ -16740,7 +16760,7 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 316,
+    "node_count": 317,
     "edge_count": 904,
     "nodes": [
       {
@@ -17486,6 +17506,12 @@
         "record_type": "getter",
         "name": "wb_prov_run_details",
         "title": "Provenance Run Details"
+      },
+      {
+        "record_id": "getter:wb_prov_run_replay_inputs",
+        "record_type": "getter",
+        "name": "wb_prov_run_replay_inputs",
+        "title": "Typed Provenance Run Replay Inputs"
       },
       {
         "record_id": "getter:wb_run_history",

@@ -129,6 +129,7 @@
 "getter:wb_prov_list_heads","getter","wb_prov_list_heads","Provenance Heads","List persisted provenance snapshot heads."
 "getter:wb_prov_replay_equivalence_results","getter","wb_prov_replay_equivalence_results","Replay Equivalence Results","List target-reproduction equivalence results with separate original and replayed payload SHA-256 identities."
 "getter:wb_prov_run_details","getter","wb_prov_run_details","Provenance Run Details","Inspect one persisted run in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity."
+"getter:wb_prov_run_replay_inputs","getter","wb_prov_run_replay_inputs","Typed Provenance Run Replay Inputs","Rehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics."
 "getter:wb_read_cell_vector","getter","wb_read_cell_vector","Read Cell Vector","Read a scalar cell vector for a requested set of cells."
 "getter:wb_read_cell_vector_family","getter","wb_read_cell_vector_family","Read Cell Vector Family Member","Read one key/member from a cell_vector_family for requested cells."
 "getter:wb_resolve_cell_set","getter","wb_resolve_cell_set","Resolve Cell Set","Resolve a cell-set selector into concrete cell IDs."

@@ -95,6 +95,16 @@ artifacts <- wb_art_list(bundle)
 run_details <- wb_prov_run_details(bundle, result$run$run_id)
 ```
 
+`wb_prov_run_details()` preserves exact nested storage shapes. Use the public
+`wb_prov_run_replay_inputs()` getter when values will be supplied to
+`wb_session_run_op()` or changed to create a sibling branch; it performs typed
+contract rehydration and compatibility diagnostics without bundle mutation.
+
+Use ephemeral `wb_session_new()` only for bounded, cheaply repeatable chains.
+Expensive PyBench training and large embeddings require
+`wb_session_create()` on machine-persistent storage, checkpoint after each
+successful operation, and `wb_session_resume()` after process replacement.
+
 Use `wb_op_interface()` to select valid terminal `outputs=` values. Promotion
 commits the required provenance closure; staged session state is ephemeral if
 the R process exits.

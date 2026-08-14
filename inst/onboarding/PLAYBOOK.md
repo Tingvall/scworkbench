@@ -137,6 +137,18 @@ Current phase note:
 
 ### Long-running operation safety
 
+Use `wb_session_new()` only for bounded work that is cheap to repeat. scVI,
+PeakVI, large embeddings, and other long-running chains belong in a
+machine-persistent `wb_session_create()` workspace. Each successful operation
+is checkpointed before the next; a detached service does not replace that
+checkpoint. After a downstream input/script failure or process replacement,
+call `wb_session_resume()` and continue from the last complete operation.
+
+For a sibling branch from bundle provenance, use
+`wb_prov_run_replay_inputs()` to obtain operation-aware typed inputs.
+`wb_prov_run_details()` remains the exact stored inspection representation and
+must not be manually coerced into an execution contract.
+
 `wb_session_run_op()` returns `session`, `run`, and `result`. Its `run` value
 is a structured `wb_run`, not a `data.frame`/`data.table`; never coerce or
 serialize it wholesale between execution and promotion. For expensive runs,

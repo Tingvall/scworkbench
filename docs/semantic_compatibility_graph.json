@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 316,
+  "node_count": 317,
   "edge_count": 904,
   "nodes": [
     {
@@ -747,6 +747,12 @@
       "record_type": "getter",
       "name": "wb_prov_run_details",
       "title": "Provenance Run Details"
+    },
+    {
+      "record_id": "getter:wb_prov_run_replay_inputs",
+      "record_type": "getter",
+      "name": "wb_prov_run_replay_inputs",
+      "title": "Typed Provenance Run Replay Inputs"
     },
     {
       "record_id": "getter:wb_run_history",

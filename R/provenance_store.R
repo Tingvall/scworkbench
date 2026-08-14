@@ -877,16 +877,30 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   )
 }
 
-.wb_prov_contract_snapshot <- function(run) {
-  op <- .wb_op_catalog()[[as.character(run$op_name)[1]]] %||% list()
-  interface <- list(
-    op_name = as.character(run$op_name)[1],
+.wb_prov_current_contract_interface <- function(op_name) {
+  op_name <- as.character(op_name)[1]
+  op <- .wb_op_catalog()[[op_name]] %||% list()
+  list(
+    op_name = op_name,
     title = op$title %||% NA_character_, description = op$description %||% NA_character_,
     inputs = op$inputs %||% list(), params = op$params %||% list(),
-    produces = .wb_op_interface_registry()[[as.character(run$op_name)[1]]]$produces %||% op$interface_produces %||% op$produces %||% list(),
+    produces = .wb_op_interface_registry()[[op_name]]$produces %||% op$interface_produces %||% op$produces %||% list(),
     promotion_terminals = as.character(op$promotable %||% character(0)),
     semantics = op$semantics %||% list()
   )
+}
+
+.wb_prov_contract_interface_identity <- function(x) {
+  normalized <- jsonlite::fromJSON(
+    jsonlite::toJSON(.wb_json_sanitize(x), auto_unbox = TRUE, null = "null"),
+    simplifyVector = TRUE, simplifyDataFrame = FALSE
+  )
+  .wb_prov_sha256_object(normalized)
+}
+
+.wb_prov_contract_snapshot <- function(run) {
+  op_name <- as.character(run$op_name)[1]
+  interface <- .wb_prov_current_contract_interface(op_name)
   list(version = "1", interface = interface,
        resolved_inputs = run$inputs$execution_inputs %||% list(),
        parameters = run$params %||% list())
@@ -1642,6 +1656,188 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
   )
 }
 
+.wb_prov_replay_diagnostic <- function(code, message, action,
+                                       severity = "error", path = NULL) {
+  out <- list(
+    code = as.character(code)[1], severity = as.character(severity)[1],
+    message = as.character(message)[1], action = as.character(action)[1]
+  )
+  if (!is.null(path)) out$path <- as.character(path)[1]
+  out
+}
+
+.wb_prov_collect_replay_run_refs <- function(x, path = "inputs") {
+  if (!is.list(x)) return(list())
+  if (identical(as.character(x$ref_type %||% "")[1], "run")) {
+    return(list(list(
+      path = path, run_id = as.character(x$run_id %||% "")[1],
+      output = as.character(x$output %||% "")[1],
+      status = "requires_matching_session_run"
+    )))
+  }
+  nms <- names(x)
+  out <- list()
+  for (i in seq_along(x)) {
+    child <- if (!is.null(nms) && nzchar(nms[[i]])) paste0(path, "$", nms[[i]]) else paste0(path, "[[", i, "]]")
+    out <- c(out, .wb_prov_collect_replay_run_refs(x[[i]], child))
+  }
+  out
+}
+
+.wb_prov_replay_result <- function(snapshot_id, run_id, op_name, op_version,
+                                   contract_hash, inputs = list(), issues = list(),
+                                   run_references = list()) {
+  compatible <- !any(vapply(issues, function(x) identical(x$severity, "error"), logical(1)))
+  structure(list(
+    schema_version = "scworkbench.provenance.run_replay_inputs.v1",
+    snapshot_id = as.character(snapshot_id)[1],
+    run_id = as.character(run_id)[1],
+    op_name = as.character(op_name)[1],
+    op_version = as.character(op_version)[1],
+    contract_hash = as.character(contract_hash)[1],
+    inputs = if (compatible) inputs else list(),
+    diagnostics = list(
+      status = if (compatible) "compatible" else "incompatible",
+      compatible = compatible,
+      issues = issues,
+      run_references = run_references
+    )
+  ), class = c("wb_prov_run_replay_inputs", "list"))
+}
+
+#' Get Typed Replay Inputs For One Persisted Run
+#'
+#' Rehydrates the exact persisted symbolic inputs and operation parameters
+#' through the installed operation contract. Unlike [wb_prov_run_details()],
+#' which deliberately preserves the nested JSON inspection representation,
+#' this getter returns values ready for `wb_session_run_op(inputs = ...)`.
+#' It is read-only and reports unavailable or changed operation contracts as an
+#' explicit incompatible diagnostic with an empty `inputs` list.
+#'
+#' @param bundle Open `scworkbench_bundle`.
+#' @param run_id Persisted run identifier.
+#' @param snapshot_id Optional provenance snapshot. It is required when the run
+#'   identifier occurs in more than one snapshot.
+#' @return A `wb_prov_run_replay_inputs` list with schema, resolved run and
+#'   operation identities, replay-ready `inputs`, and compatibility diagnostics.
+#'   Run-reference diagnostics identify references that are executable only in
+#'   a session containing the corresponding recorded dependency.
+#' @export
+wb_prov_run_replay_inputs <- function(bundle, run_id, snapshot_id = NULL) {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  .wb_require_pkg("jsonlite", "typed provenance replay inputs")
+  con <- bundle$con
+  .wb_assert(.wb_table_exists(con, "prov_runs"), "Bundle has no persisted provenance runs.")
+  rid <- as.character(run_id)[1]
+  .wb_assert(nzchar(rid), "run_id must be non-empty")
+  sid <- as.character(snapshot_id %||% "")[1]
+  if (!nzchar(sid)) {
+    matches <- DBI::dbGetQuery(
+      con, "SELECT DISTINCT snapshot_id FROM prov_runs WHERE run_id = ? ORDER BY snapshot_id;",
+      params = list(rid)
+    )
+    if (!nrow(matches)) {
+      .wb_prov_lookup_abort("PROVENANCE_RUN_NOT_FOUND",
+        paste0("Run not found in any provenance snapshot: ", rid),
+        list(run_id = rid, snapshot_ids = character(0)))
+    }
+    if (nrow(matches) > 1L) {
+      .wb_prov_lookup_abort("PROVENANCE_RUN_AMBIGUOUS",
+        paste0("Run appears in multiple provenance snapshots; supply snapshot_id: ", rid),
+        list(run_id = rid, snapshot_ids = as.character(matches$snapshot_id)))
+    }
+    sid <- as.character(matches$snapshot_id[[1L]])
+  }
+  required <- c("op_name", "op_version", "contract_json", "contract_hash",
+                "contract_hash_scheme", "inputs_json", "symbolic_inputs_json", "params_json")
+  available <- DBI::dbListFields(con, "prov_runs")
+  missing <- setdiff(required, available)
+  .wb_assert(!length(missing), paste0(
+    "Persisted provenance schema cannot provide typed replay inputs; missing: ",
+    paste(missing, collapse = ", "), "."))
+  rr <- DBI::dbGetQuery(con, paste0(
+    "SELECT ", paste(required, collapse = ", "),
+    " FROM prov_runs WHERE snapshot_id = ? AND run_id = ?;"
+  ), params = list(sid, rid))
+  if (nrow(rr) != 1L) {
+    .wb_prov_lookup_abort("PROVENANCE_RUN_NOT_FOUND",
+      paste0("Run not found in snapshot: ", rid, " / ", sid),
+      list(run_id = rid, snapshot_ids = sid))
+  }
+
+  op_name <- as.character(rr$op_name[[1L]] %||% "")
+  op_version <- as.character(rr$op_version[[1L]] %||% "")
+  contract_hash <- as.character(rr$contract_hash[[1L]] %||% "")
+  contract_json <- as.character(rr$contract_json[[1L]] %||% "")
+  issues <- list()
+  add_issue <- function(code, message, action) {
+    issues[[length(issues) + 1L]] <<- .wb_prov_replay_diagnostic(code, message, action)
+  }
+  if (!op_name %in% names(.wb_op_catalog())) {
+    add_issue("OPERATION_UNAVAILABLE", paste0("Installed catalog has no operation '", op_name, "'."),
+              "Install a scworkbench release that provides the recorded operation.")
+  }
+  if (!identical(op_version, "1")) {
+    add_issue("OPERATION_VERSION_INCOMPATIBLE",
+              paste0("Recorded operation version is '", op_version, "'; installed version is '1'."),
+              "Use a scworkbench release with the recorded operation-contract version.")
+  }
+  contract <- tryCatch(jsonlite::fromJSON(contract_json, simplifyVector = TRUE,
+                                           simplifyDataFrame = FALSE), error = identity)
+  if (inherits(contract, "error") || !is.list(contract)) {
+    add_issue("CONTRACT_INVALID", "Recorded operation contract JSON is invalid.",
+              "Repair or reproduce the bundle from an intact provenance source.")
+  } else {
+    scheme <- as.character(rr$contract_hash_scheme[[1L]] %||% "")
+    observed <- tryCatch(.wb_prov_contract_hash(contract_json, scheme = scheme), error = identity)
+    if (inherits(observed, "error") || !nzchar(contract_hash) ||
+        !identical(tolower(as.character(observed)), tolower(contract_hash))) {
+      add_issue("CONTRACT_IDENTITY_INVALID", "Recorded contract hash does not authenticate contract_json.",
+                "Validate bundle provenance integrity before replay.")
+    }
+    if (op_name %in% names(.wb_op_catalog())) {
+      recorded_interface <- contract$interface %||% list()
+      current_interface <- .wb_prov_current_contract_interface(op_name)
+      if (!identical(.wb_prov_contract_interface_identity(recorded_interface),
+                     .wb_prov_contract_interface_identity(current_interface))) {
+        add_issue("OPERATION_CONTRACT_INCOMPATIBLE",
+                  paste0("Installed contract for '", op_name, "' differs from the recorded contract."),
+                  "Use the recorded scworkbench release or explicitly reconstruct inputs against the installed interface.")
+      }
+    }
+  }
+  if (length(issues)) {
+    return(.wb_prov_replay_result(sid, rid, op_name, op_version, contract_hash,
+                                  issues = issues))
+  }
+
+  symbolic_text <- as.character(rr$symbolic_inputs_json[[1L]] %||% "")
+  if (nzchar(symbolic_text) && !identical(symbolic_text, "null")) {
+    recorded_inputs <- jsonlite::fromJSON(symbolic_text, simplifyVector = FALSE)
+    if (is.null(recorded_inputs)) recorded_inputs <- list()
+  } else {
+    stored <- jsonlite::fromJSON(as.character(rr$inputs_json[[1L]] %||% "{}"),
+                                 simplifyVector = FALSE)
+    recorded_inputs <- .wb_prov_compact_inputs(stored)
+  }
+  recorded_params <- jsonlite::fromJSON(as.character(rr$params_json[[1L]] %||% "{}"),
+                                        simplifyVector = FALSE)
+  inputs <- .wb_prov_replay_execution_inputs(
+    recorded_inputs, recorded_params, run_id = rid, op_name = op_name
+  )
+  refs <- .wb_prov_collect_replay_run_refs(inputs)
+  if (length(refs)) {
+    issues[[1L]] <- .wb_prov_replay_diagnostic(
+      "RUN_REFERENCE_REQUIRES_SESSION_CONTEXT",
+      "One or more wb_ref_run() inputs require matching recorded dependencies in the new session.",
+      "Replay or otherwise make the recorded dependency runs available before executing this input set.",
+      severity = "info"
+    )
+  }
+  .wb_prov_replay_result(sid, rid, op_name, op_version, contract_hash,
+                         inputs = inputs, issues = issues, run_references = refs)
+}
+
 #' Get Immutable Ingestion Source Identity
 #' @param bundle Open bundle.
 #' @param matrix_id Optional matrix identifier.
@@ -1740,6 +1936,78 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   c(paste0(var_name, " <- ", txt[[1]]), txt[-1])
 }
 
+.wb_prov_rehydrate_reference <- function(x) {
+  if (!is.list(x) || is.null(x$ref_type)) return(x)
+  ref_type <- as.character(unlist(x$ref_type, recursive = TRUE, use.names = FALSE))[1]
+  if (identical(ref_type, "run")) {
+    return(wb_ref_run(
+      as.character(unlist(x$run_id, recursive = TRUE, use.names = FALSE))[1],
+      as.character(unlist(x$output, recursive = TRUE, use.names = FALSE))[1]
+    ))
+  }
+  if (identical(ref_type, "artifact")) {
+    return(wb_ref_artifact(
+      as.character(unlist(x$artifact_id, recursive = TRUE, use.names = FALSE))[1],
+      as.character(unlist(x$output, recursive = TRUE, use.names = FALSE))[1]
+    ))
+  }
+  if (identical(ref_type, "metadata_field")) {
+    return(wb_ref_metadata_field(
+      as.character(unlist(x$field_id, recursive = TRUE, use.names = FALSE))[1]
+    ))
+  }
+  x
+}
+
+.wb_prov_rehydrate_value <- function(value, type) {
+  if (is.null(value)) return(NULL)
+  if (is.list(value) && !is.null(value$ref_type)) {
+    return(.wb_prov_rehydrate_reference(value))
+  }
+  type <- as.character(type %||% "")[1]
+  flat <- function(x) unlist(x, recursive = TRUE, use.names = FALSE)
+  if (type %in% c("int", "int_range", "int_vec")) return(as.integer(flat(value)))
+  if (type %in% c("dbl", "number")) return(as.numeric(flat(value)))
+  if (type %in% c("bool", "logical")) return(as.logical(flat(value)))
+  if (type %in% c("string", "path", "cell_set", "choice")) return(as.character(flat(value))[1])
+  if (type %in% c("string_vec", "string_array", "cell_ids")) return(as.character(flat(value)))
+  if (identical(type, "metadata_field")) {
+    return(if (is.list(value)) .wb_prov_rehydrate_reference(value) else as.character(flat(value))[1])
+  }
+  if (identical(type, "metadata_field_array")) {
+    if (is.character(value)) return(as.character(value))
+    values <- lapply(value, function(x) {
+      if (is.list(x) && !is.null(x$ref_type)) .wb_prov_rehydrate_reference(x)
+      else as.character(flat(x))[1]
+    })
+    if (all(vapply(values, is.character, logical(1)))) return(unlist(values, use.names = FALSE))
+    return(values)
+  }
+  if (identical(type, "cell_ids_or_set") && !is.list(value)) return(as.character(flat(value)))
+  if (identical(type, "string_vec_or_list")) {
+    if (!is.list(value) || is.null(names(value))) return(as.character(flat(value)))
+    out <- lapply(value, function(x) as.character(flat(x)))
+    names(out) <- names(value)
+    return(out)
+  }
+  value
+}
+
+.wb_prov_rehydrate_named_inputs <- function(x, op_name) {
+  x <- x %||% list()
+  .wb_assert(is.list(x), "Persisted replay values must be a list.")
+  params <- .wb_op_param_records(op_name)
+  controls <- .wb_op_engine_input_specs()
+  for (nm in names(x)) {
+    spec <- params[[nm]] %||% controls[[nm]]
+    if (!is.null(spec)) x[[nm]] <- .wb_prov_rehydrate_value(x[[nm]], spec$type)
+    else if (is.list(x[[nm]]) && !is.null(x[[nm]]$ref_type)) {
+      x[[nm]] <- .wb_prov_rehydrate_reference(x[[nm]])
+    }
+  }
+  x
+}
+
 # Merge persisted user/symbolic inputs with the recorded run parameters into
 # the sole public execution surface accepted by wb_session_run_op().  A run can
 # legitimately record a parameter both in inputs and in params (for example an
@@ -1758,10 +2026,16 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   if (length(params)) .wb_assert(!is.null(names(params)) && all(nzchar(names(params))),
                                  "Persisted replay params must be named.")
 
+  op_name <- as.character(op_name %||% "")[1]
+  if (nzchar(op_name) && op_name %in% names(.wb_op_catalog())) {
+    inputs <- .wb_prov_rehydrate_named_inputs(inputs, op_name)
+    params <- .wb_prov_rehydrate_named_inputs(params, op_name)
+  }
+
   # JSON/R deparsing of optional NULL parameters in older snapshots can leave
   # the literal string "NA" in runner diagnostics.  It is not an executable
   # value for a catalog parameter whose public default is NULL.
-  op_spec <- .wb_op_catalog()[[as.character(op_name %||% "")[1]]]
+  op_spec <- .wb_op_catalog()[[op_name]]
   if (!is.null(op_spec)) {
     op_params <- op_spec$params %||% list()
     # Runner parameter records include output diagnostics (for example PCA's
@@ -1774,7 +2048,10 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
     names(null_optional) <- vapply(op_params, function(p) as.character(p$name %||% "")[1], character(1))
     for (nm in intersect(names(params), names(null_optional)[null_optional])) {
       val <- params[[nm]]
-      if (is.null(val) || (length(val) == 1L && (is.na(val) || identical(as.character(val), "NA")))) params[[nm]] <- NULL
+      if (!(nm %in% names(inputs)) || is.null(val) ||
+          (length(val) == 1L && (is.na(val) || identical(as.character(val), "NA")))) {
+        params[[nm]] <- NULL
+      }
     }
   }
 
@@ -1802,6 +2079,14 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
       next
     }
     merged[[nm]] <- params[[nm]]
+  }
+  required_names <- if (!is.null(op_spec)) names(.wb_op(op_name)$requires %||% list()) else character()
+  has_required <- all(vapply(required_names, function(nm) {
+    alias <- .wb_op_input_alias(nm)
+    any(c(nm, alias, paste0(nm, "_ref"), if (!is.null(alias)) paste0(alias, "_ref") else NULL) %in% names(merged))
+  }, logical(1)))
+  if (!is.null(op_spec) && has_required) {
+    merged <- .wb_validate_op_inputs_contract(op_name, merged)$inputs
   }
   merged
 }

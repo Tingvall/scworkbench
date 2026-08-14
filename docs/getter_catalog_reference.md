@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Getter count: 78
+Getter count: 79
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -991,6 +991,22 @@ Arguments: bundle, run_id, snapshot_id
 
 Use when:
 - explain exact inputs and params for one run
+
+### `wb_prov_run_replay_inputs`
+
+Title: Typed Provenance Run Replay Inputs
+
+Description: Rehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics.
+
+Returns: wb_prov_run_replay_inputs
+
+Payload level: metadata
+
+Arguments: bundle, run_id, snapshot_id
+
+Use when:
+- branch safely from one recorded run
+- recover integer vectors and symbolic references from exact JSON provenance
 
 ### `wb_run_history`
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "getter_count": 78,
+  "getter_count": 79,
   "getters": [
     {
       "function_name": "wb_status",
@@ -738,6 +738,17 @@
       "payload_level": "metadata",
       "arguments": ["bundle", "run_id", "snapshot_id"],
       "use_when": "explain exact inputs and params for one run",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_prov_run_replay_inputs",
+      "title": "Typed Provenance Run Replay Inputs",
+      "category": "provenance",
+      "description": "Rehydrate one persisted run through its registered operation contract into replay-ready typed R inputs, with historical and compatibility diagnostics.",
+      "returns": "wb_prov_run_replay_inputs",
+      "payload_level": "metadata",
+      "arguments": ["bundle", "run_id", "snapshot_id"],
+      "use_when": ["branch safely from one recorded run", "recover integer vectors and symbolic references from exact JSON provenance"],
       "mutates": false
     },
     {
