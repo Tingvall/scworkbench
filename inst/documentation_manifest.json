@@ -442,6 +442,17 @@
       "installed_relative_path": "onboarding/ANALYSIS_CAPSULES.md"
     },
     {
+      "path": "inst/onboarding/METADATA_IMPORT.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/METADATA_IMPORT.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "onboarding/METADATA_IMPORT.md"
+    },
+    {
       "path": "inst/onboarding/PLAYBOOK.md",
       "class": "public_canonical",
       "audience": "operator",
@@ -2478,6 +2489,17 @@
     },
     {
       "path": "man/wb_metadata_fields.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_metadata_import.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

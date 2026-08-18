@@ -1,5 +1,8 @@
 # Agent Shared Foundation
 
+For externally supplied per-cell tables, use the checksummed public boundary in
+`METADATA_IMPORT.md`; do not mutate SQLite directly.
+
 ## Durable custom analysis
 
 Ad hoc analysis is permitted; unrecorded durable evidence is not. Registered

@@ -130,6 +130,14 @@
       "SELECT snapshot_id, run_id, binding_name AS output_name, entity_kind AS primitive_kind, content_hash, content_identity_scheme FROM prov_run_entity_bindings WHERE entity_kind = ? AND entity_id = ? AND relationship_type IN ('PRODUCES','MATERIALIZES') ORDER BY snapshot_id, run_id, binding_name;", list(db_kind, id))
   }
   if (!nrow(rows)) return(.wb_certificate_state("unavailable", "no_canonical_producer_binding"))
+  producer_history <- NULL
+  if (identical(kind, "metadata_field") && nrow(rows) > 1L) {
+    # Stable metadata fields intentionally support explicit compatible updates.
+    # Each import remains a producer event; the newest snapshot is the current
+    # value authority and prior producer bindings are inspectable history.
+    producer_history <- .wb_certificate_rows(rows)
+    rows <- rows[nrow(rows), , drop = FALSE]
+  }
   if (nrow(rows) != 1L) return(.wb_certificate_state("corrupt", "producer_binding_is_not_unique", candidates = .wb_certificate_rows(rows)))
   rid <- as.character(rows$run_id[[1]]); sid <- as.character(rows$snapshot_id[[1]])
   if (!identical(kind, "artifact")) {
@@ -141,6 +149,7 @@
   run <- .wb_certificate_query(con, "prov_runs", "SELECT op_name, op_version, contract_json, contract_hash, contract_hash_scheme FROM prov_runs WHERE snapshot_id = ? AND run_id = ?;", list(sid, rid))
   .wb_certificate_state("available", run_id = rid, snapshot_id = sid,
     output = .wb_certificate_rows(rows)[[1]],
+    history = producer_history,
     operation = if (nrow(run)) list(name = .wb_certificate_scalar(run$op_name), version = .wb_certificate_scalar(run$op_version), contract = .wb_certificate_json(run$contract_json), contract_hash = .wb_certificate_scalar(run$contract_hash), contract_hash_scheme = .wb_certificate_scalar(run$contract_hash_scheme)) else .wb_certificate_state("corrupt", "producer_run_missing"),
     run = if (nrow(run)) .wb_certificate_run(con, rid) else .wb_certificate_state("corrupt", "producer_run_missing"))
 }
@@ -179,6 +188,20 @@
     uri <- .wb_certificate_scalar(val$uri)
     uri_identity <- if (is.null(uri)) .wb_certificate_state("not_applicable") else if (grepl("^file:", uri, ignore.case = TRUE)) .wb_certificate_state("redacted", "host_file_uri") else .wb_certificate_state("available", value = uri)
     return(list(source = list(uri = uri_identity, path_identity = if (is.null(raw_path)) .wb_certificate_state("not_applicable") else list(status = "available", basename = basename(raw_path)), accession = .wb_certificate_scalar(val$accession), role = .wb_certificate_scalar(val$role %||% val$file_kind), format = .wb_certificate_scalar(val$format)), checksum = list(status = as.character(row$checksum_status[[1]]), algorithm = .wb_certificate_scalar(val$checksum_algorithm %||% if (!is.null(val$sha256)) "sha256" else NULL), value = .wb_certificate_scalar(val$sha256 %||% val$checksum)), consuming_ingestion_runs = sort(unique(as.character(row$run_id)))))
+  }
+  if (identical(kind, "metadata_field")) {
+    row <- .wb_certificate_query(
+      con, "metadata_fields", "SELECT * FROM metadata_fields WHERE field_id = ?;", list(id)
+    )
+    if (!nrow(row)) return(NULL)
+    return(list(
+      registry = .wb_certificate_rows(row)[[1L]],
+      storage = list(table = "cells", column = as.character(row$storage_name[[1L]])),
+      assurance = list(
+        values = "externally_supplied",
+        upstream_derivation = "not_engine_observed"
+      )
+    ))
   }
   if (identical(kind, "matrix")) {
     row <- .wb_certificate_query(con, "matrices", "SELECT * FROM matrices WHERE matrix_id = ?;", list(id)); if (!nrow(row)) return(NULL)
@@ -291,15 +314,15 @@
 #' use typed getters to load matrices, coordinates, models, or artifacts.
 #'
 #' @param bundle Open `scworkbench_bundle`.
-#' @param entity_kind One of `external_source`, `matrix`, `space`, `model`,
-#'   `artifact`, `run`, `capsule`, or `capsule_output`.
+#' @param entity_kind One of `external_source`, `metadata_field`, `matrix`,
+#'   `space`, `model`, `artifact`, `run`, `capsule`, or `capsule_output`.
 #' @param entity_id Durable entity identifier.
 #' @return A JSON-serializable `scworkbench.provenance.entity_certificate.v1` list.
 #' @export
 wb_entity_certificate <- function(bundle, entity_kind, entity_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_require_pkg("jsonlite", "entity provenance certificates")
-  kind <- match.arg(as.character(entity_kind)[1], c("external_source", "matrix", "space", "model", "artifact", "run", "capsule", "capsule_output"))
+  kind <- match.arg(as.character(entity_kind)[1], c("external_source", "metadata_field", "matrix", "space", "model", "artifact", "run", "capsule", "capsule_output"))
   id <- as.character(entity_id)[1]
   .wb_assert(!is.na(id) && nzchar(id), "entity_id must be a non-empty string")
 
@@ -336,6 +359,7 @@ wb_entity_certificate <- function(bundle, entity_kind, entity_id) {
 
   exists <- node_id %in% as.character(graph$nodes$id)
   if (!exists && identical(kind, "external_source")) exists <- nrow(.wb_certificate_query(con, "prov_source_inputs", "SELECT source_id FROM prov_source_inputs WHERE source_id = ?;", list(id))) > 0L
+  if (!exists && identical(kind, "metadata_field")) exists <- nrow(.wb_certificate_query(con, "metadata_fields", "SELECT field_id FROM metadata_fields WHERE field_id = ?;", list(id))) > 0L
   if (!exists && identical(kind, "matrix")) exists <- nrow(.wb_certificate_query(con, "matrices", "SELECT matrix_id FROM matrices WHERE matrix_id = ?;", list(id))) > 0L
   if (!exists && identical(kind, "space")) exists <- nrow(.wb_certificate_query(con, "spaces", "SELECT space_id FROM spaces WHERE space_id = ?;", list(id))) > 0L
   if (!exists && identical(kind, "artifact")) exists <- nrow(.wb_certificate_query(con, "artifacts", "SELECT artifact_id FROM artifacts WHERE artifact_id = ?;", list(id))) > 0L

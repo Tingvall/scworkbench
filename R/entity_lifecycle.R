@@ -3,7 +3,7 @@
 .wb_entity_lifecycle_schema <- function() "scworkbench.entity_lifecycle.v1"
 
 .wb_entity_kinds <- function() {
-  c("matrix", "space", "model", "model_ref", "artifact", "cell_set", "feature_set", "external_source", "in_memory_source", "registry")
+  c("matrix", "space", "model", "model_ref", "artifact", "cell_set", "feature_set", "metadata_field", "external_source", "in_memory_source", "registry")
 }
 
 .wb_entity_normalize <- function(entity_kind, entity_id) {
@@ -554,6 +554,11 @@
   if (.wb_table_exists(con, "feature_sets")) {
     x <- DBI::dbGetQuery(con, "SELECT feature_set, matrix_id FROM feature_sets;")
     if (nrow(x)) add("feature_set", mapply(.wb_feature_set_entity_id, x$feature_set, x$matrix_id, USE.NAMES = FALSE))
+  }
+  if (.wb_table_exists(con, "metadata_fields")) {
+    add("metadata_field", DBI::dbGetQuery(
+      con, "SELECT field_id FROM metadata_fields WHERE is_core=0;"
+    )$field_id)
   }
   if (.wb_table_exists(con, "prov_source_inputs")) {
     sources <- DBI::dbGetQuery(con, "SELECT DISTINCT source_id, source_json FROM prov_source_inputs;")

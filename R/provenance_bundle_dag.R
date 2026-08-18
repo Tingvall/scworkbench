@@ -317,8 +317,8 @@
   info <- DBI::dbGetQuery(
     con,
     paste0(
-      "SELECT artifact_id, table_type FROM artifact_tables ",
-      "WHERE table_type IN ('winner_cell_set_manifest', 'derived_cell_set_manifest', 'feature_set_import_manifest', 'feature_set_transfer_manifest') ",
+      "SELECT artifact_id, table_type, meta_json FROM artifact_tables ",
+      "WHERE table_type IN ('winner_cell_set_manifest', 'derived_cell_set_manifest', 'derived_cell_set_rules', 'feature_set_import_manifest', 'feature_set_transfer_manifest') ",
       "AND artifact_id ", cl$sql, ";"
     ),
     params = cl$params
@@ -333,6 +333,7 @@
   ei <- 0L
   for (aid in unique(as.character(info$artifact_id))) {
     table_type <- as.character(info$table_type[as.character(info$artifact_id) == aid][1])
+    table_meta <- .wb_prov_json_read(as.character(info$meta_json[as.character(info$artifact_id) == aid][1] %||% "{}"))
     rows <- DBI::dbGetQuery(
       con,
       "SELECT row_json FROM artifact_table_rows WHERE artifact_id = ? ORDER BY row_idx;",
@@ -364,6 +365,22 @@
           to = node_id,
           edge_type = "MUTATES_REGISTRY",
           label = if (identical(table_type, "derived_cell_set_manifest")) "derives cell set" else "registers cell set",
+          artifact_id = aid
+        )
+      } else if (identical(table_type, "derived_cell_set_rules")) {
+        cs <- as.character(table_meta$cell_set %||% "")[1]
+        source_kind <- as.character(obj$source_kind %||% "")[1]
+        source_id <- sub("^artifact:", "", as.character(obj$source_id %||% "")[1])
+        if (!nzchar(cs) || !identical(source_kind, "cell_vector") || !nzchar(source_id)) next
+        ni <- ni + 1L
+        nodes[[ni]] <- .wb_prov_bundle_node(
+          id = paste0("cell_set:", cs), node_type = "cell_set", label = cs,
+          title = paste0("Cell set ", cs), status = "registered"
+        )
+        ei <- ei + 1L
+        edges[[ei]] <- .wb_prov_bundle_edge(
+          from = paste0("artifact:", source_id), to = paste0("cell_set:", cs),
+          edge_type = "SELECTS_FOR", label = as.character(obj$rule_type %||% "vector selector")[1],
           artifact_id = aid
         )
       } else if (identical(table_type, "feature_set_import_manifest")) {

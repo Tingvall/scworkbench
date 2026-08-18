@@ -229,12 +229,52 @@ wb_ref_entity <- function(entity_kind, entity_id) {
   ""
 }
 
+.wb_capsule_source_abort <- function(code, message) {
+  stop(structure(
+    list(message = paste0(code, ": ", message), call = NULL, code = code),
+    class = c("scworkbench_capsule_source_review_error", "scworkbench_error", "error", "condition")
+  ))
+}
+
+.wb_capsule_language <- function(language, entrypoint) {
+  raw <- language %||% ""
+  if (length(raw) != 1L || is.na(raw)) .wb_capsule_source_abort(
+    "CAPSULE_SOURCE_LANGUAGE_UNSUPPORTED", "language must be one non-missing scalar spelling."
+  )
+  declared <- trimws(as.character(raw)[1L])
+  extension <- tolower(tools::file_ext(entrypoint))
+  aliases <- c(r = "R", rscript = "R", r_source = "R")
+  key <- tolower(declared)
+  detected <- if (identical(extension, "r")) "R" else if (identical(extension, "py")) "Python" else NULL
+  canonical <- if (!nzchar(declared)) detected %||% "declared_external" else if (key %in% names(aliases)) {
+    unname(aliases[[key]])
+  } else if (key %in% c("python", "python3")) {
+    "Python"
+  } else if (identical(key, "declared_external")) {
+    "declared_external"
+  } else {
+    .wb_capsule_source_abort(
+      "CAPSULE_SOURCE_LANGUAGE_UNSUPPORTED",
+      paste0("unsupported source language '", declared,
+             "'. Use R, Rscript, R_source, Python, or declared_external.")
+    )
+  }
+  if (!is.null(detected) && !identical(canonical, detected)) {
+    .wb_capsule_source_abort(
+      "CAPSULE_SOURCE_LANGUAGE_CONTRADICTION",
+      paste0("entrypoint '", entrypoint, "' requires ", detected,
+             " review but language was declared as '", declared, "'.")
+    )
+  }
+  canonical
+}
+
 .wb_capsule_r_registered_ops <- function(path, registered_ops) {
   expressions <- tryCatch(
     parse(file = path, keep.source = FALSE),
-    error = function(e) stop(
-      "CAPSULE_R_SOURCE_PARSE_FAILED: bounded operation review requires parseable R source: ",
-      conditionMessage(e), call. = FALSE
+    error = function(e) .wb_capsule_source_abort(
+      "CAPSULE_R_SOURCE_PARSE_FAILED",
+      paste0("bounded operation review requires parseable R source: ", conditionMessage(e))
     )
   )
   registered_ops <- unique(as.character(registered_ops))
@@ -260,9 +300,18 @@ wb_ref_entity <- function(entity_kind, entity_id) {
           hits <<- c(hits, literal)
         }
       }
-      for (child in as.list(node)[-1L]) walk(child)
+      if (length(node) > 1L) for (i in 2L:length(node)) {
+        # R's blank subscripts are the R_MissingArg symbol. Binding that symbol
+        # as a function argument turns it back into a missing argument, so it
+        # must be recognized before recursion.
+        if (identical(node[[i]], quote(expr = ))) next
+        walk(node[[i]])
+      }
     } else if (is.expression(node) || is.pairlist(node) || is.list(node)) {
-      for (child in as.list(node)) walk(child)
+      if (length(node)) for (i in seq_along(node)) {
+        if (identical(node[[i]], quote(expr = ))) next
+        walk(node[[i]])
+      }
     }
     invisible(NULL)
   }
@@ -394,7 +443,7 @@ wb_capsule_register <- function(bundle, name, description = NULL, inputs, script
   if(!is.null(family_hint)) .wb_assert(nchar(family_hint)<=120L&&!grepl("[[:cntrl:]]",family_hint),"family_hint must be at most 120 printable characters.")
   script <- .wb_capsule_assert_external_file(bundle, script, "script")
   entrypoint <- basename(script)
-  language <- as.character(language %||% if (grepl("[.]R$", entrypoint, ignore.case=TRUE)) "R" else if (grepl("[.]py$", entrypoint, ignore.case=TRUE)) "Python" else "declared_external")
+  language <- .wb_capsule_language(language, entrypoint)
   in_rows <- .wb_capsule_inputs_prepare(bundle, inputs)
   out_rows <- .wb_capsule_outputs_prepare(bundle, outputs)
   observed_parameters <- .wb_capsule_parameters(parameters)
@@ -404,7 +453,7 @@ wb_capsule_register <- function(bundle, name, description = NULL, inputs, script
   .wb_assert(is.list(runtime), "runtime must be a list declaration.")
 
   op_names <- tryCatch({z<-wb_list_ops();if(is.data.frame(z))as.character(z$op_name) else as.character(z)}, error=function(e) character())
-  explicit <- if (identical(tolower(language), "r")) .wb_capsule_r_registered_ops(script, op_names) else character()
+  explicit <- if (identical(language, "R")) .wb_capsule_r_registered_ops(script, op_names) else character()
   .wb_assert(!length(explicit), paste0("CAPSULE_MINIMUM_CUSTOM_SURFACE: source explicitly calls registered operation(s): ", paste(explicit, collapse=", "), ". Execute standard transformations as ops and register only the terminal custom surface."))
 
   input_shape <- lapply(in_rows, function(x) list(name=x$name, entity_kind=x$entity_kind))

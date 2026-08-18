@@ -142,6 +142,14 @@
 .wb_prov_collect_entity_bindings <- function(x, name = "input") {
   out <- list()
   walk <- function(v, path) {
+    if (.wb_is_metadata_field_ref(v)) {
+      ref <- .wb_validate_metadata_field_ref(v, path)
+      out[[length(out) + 1L]] <<- list(
+        binding_name = path, entity_kind = "metadata_field",
+        entity_id = ref$field_id, path = NA_character_
+      )
+      return(invisible(NULL))
+    }
     b <- .wb_prov_primitive_entity_binding(v)
     if (!is.null(b)) out[[length(out) + 1L]] <<- c(list(binding_name = path), b)
     if (is.list(v) && !inherits(v, "wb_primitive")) for (nm in names(v) %||% seq_along(v)) walk(v[[nm]], paste0(path, ".", nm))

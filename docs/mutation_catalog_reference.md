@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 151
+Record count: 152
 
-Meaningful public transformations: 63
+Meaningful public transformations: 64
 
 Exported directly guarded functions: 26
 
@@ -1457,6 +1457,20 @@ Supported route: `declared_ingestion_transaction`
 Category: attachment_ingestion
 
 Exported: false
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `declared_ingestion_transaction`
+
+## `wb_metadata_import`
+
+Category: attachment_ingestion
+
+Exported: true
 
 Implemented: true
 
