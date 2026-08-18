@@ -431,6 +431,17 @@
       "installed_relative_path": "onboarding/AGENT_OPERATOR_GUIDE.md"
     },
     {
+      "path": "inst/onboarding/ANALYSIS_CAPSULES.md",
+      "class": "public_canonical",
+      "audience": "operator",
+      "status": "current",
+      "canonical_source": "inst/onboarding/ANALYSIS_CAPSULES.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "onboarding/ANALYSIS_CAPSULES.md"
+    },
+    {
       "path": "inst/onboarding/PLAYBOOK.md",
       "class": "public_canonical",
       "audience": "operator",
@@ -1422,6 +1433,105 @@
     },
     {
       "path": "man/wb_bundle_writer_lock_info.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule_emit_reproduction.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule_inputs.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule_output_path.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule_outputs.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule_register.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule_scaffold.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule_script_path.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsule.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_capsules.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",
@@ -3831,6 +3941,17 @@
     },
     {
       "path": "man/wb_ref_artifact.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_ref_entity.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

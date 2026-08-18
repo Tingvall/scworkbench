@@ -14,7 +14,8 @@
     "wb_feature_set_import_table", "wb_feature_set_import_list",
     "wb_feature_set_namespace_transfer", "wb_register_winner_cell_sets",
     "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_register",
-    "wb_motif_library_import_jaspar", "wb_motif_match_replace"
+    "wb_motif_library_import_jaspar", "wb_motif_match_replace",
+    "wb_capsule_register"
   ),
   matrix_space_model_writer = c(
     "wb_add_space", "wb_register_matrix_fragment", "wb_attach_cell_vector",
@@ -90,6 +91,9 @@
 
   if (function_name %in% pure_attachment) {
     return(list(durable = FALSE, route = "direct_pure_validation", boundary = "pure"))
+  }
+  if (identical(function_name, "wb_capsule_register")) {
+    return(list(durable = TRUE, route = "exclusive_atomic_capsule_publication", boundary = "public_transaction"))
   }
   if (function_name %in% administrative) {
     return(list(durable = FALSE, route = "explicit_administrative_repair", boundary = "administrative_non_scientific"))

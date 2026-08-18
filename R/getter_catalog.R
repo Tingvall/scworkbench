@@ -791,6 +791,42 @@
       payload_level = "payload",
       arguments = c("bundle", "ref", "session", "key"),
       use_when = c("preview primitive data in a table")
+    ),
+    list(
+      function_name = "wb_capsules", title = "Analysis Capsules", category = "provenance",
+      description = "List externally executed terminal evidence registrations without implying operation or replay verification.",
+      returns = "data.frame", payload_level = "metadata", arguments = c("bundle"),
+      use_when = c("discover registered question-specific terminal evidence")
+    ),
+    list(
+      function_name = "wb_capsule", title = "Analysis Capsule", category = "provenance",
+      description = "Inspect normalized capsule source, inputs, parameters, outputs, signatures, assurance, and declarations.",
+      returns = "wb_analysis_capsule", payload_level = "metadata", arguments = c("bundle", "capsule_id"),
+      use_when = c("audit externally executed terminal evidence")
+    ),
+    list(
+      function_name = "wb_capsule_inputs", title = "Capsule Inputs", category = "provenance",
+      description = "List ordered typed accepted entity bindings for a capsule.",
+      returns = "data.frame", payload_level = "metadata", arguments = c("bundle", "capsule_id"),
+      use_when = c("trace capsule ancestry")
+    ),
+    list(
+      function_name = "wb_capsule_outputs", title = "Capsule Outputs", category = "provenance",
+      description = "List immutable named terminal output registrations and full SHA-256 identities.",
+      returns = "data.frame", payload_level = "metadata", arguments = c("bundle", "capsule_id"),
+      use_when = c("inspect capsule evidence identities")
+    ),
+    list(
+      function_name = "wb_capsule_script_path", title = "Capsule Source Path", category = "provenance",
+      description = "Resolve and content-verify a relocatable bundle-owned capsule source path.",
+      returns = "character", payload_level = "path", arguments = c("bundle", "capsule_id"),
+      use_when = c("inspect exact registered source bytes")
+    ),
+    list(
+      function_name = "wb_capsule_output_path", title = "Capsule Output Path", category = "provenance",
+      description = "Resolve and content-verify one relocatable bundle-owned capsule output path.",
+      returns = "character", payload_level = "path", arguments = c("bundle", "capsule_id", "output_name"),
+      use_when = c("open exact registered terminal evidence bytes")
     )
   )
 }

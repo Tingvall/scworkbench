@@ -139,7 +139,7 @@ test_large_materialization_promotion_rollback_contract <- function() {
     contract_hash <- if(!is.na(rows$contract_json[i]) && nzchar(rows$contract_json[i])) scworkbench:::.wb_prov_contract_hash(rows$contract_json[i],scheme=schemes[["legacy"]]) else NA_character_
     DBI::dbExecute(bundle$con,"UPDATE prov_runs SET run_hash=?,contract_hash=?,run_hash_scheme=NULL,contract_hash_scheme=NULL WHERE rowid=?;",params=list(run_hash,contract_hash,rows$rowid[i]))
   }
-  DBI::dbExecute(bundle$con,"DELETE FROM bundle_schema_migrations WHERE version=6;")
+  DBI::dbExecute(bundle$con,"DELETE FROM bundle_schema_migrations WHERE version>=6;")
   invisible(TRUE)
 }
 

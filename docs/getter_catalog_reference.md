@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Getter count: 79
+Getter count: 85
 
 This document summarizes safe bundle getter and inspection functions for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/getter_catalog_semantic.json`.
@@ -1023,6 +1023,96 @@ Arguments: bundle, snapshot_id
 Use when:
 - build run history timeline
 - inspect promoted analysis steps
+
+### `wb_capsules`
+
+Title: Analysis Capsules
+
+Description: List externally executed terminal evidence registrations without implying operation or replay verification.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle
+
+Use when:
+- discover registered question-specific terminal evidence
+
+### `wb_capsule`
+
+Title: Analysis Capsule
+
+Description: Inspect normalized capsule source, inputs, parameters, outputs, signatures, assurance, and declarations.
+
+Returns: wb_analysis_capsule
+
+Payload level: metadata
+
+Arguments: bundle, capsule_id
+
+Use when:
+- audit externally executed terminal evidence
+
+### `wb_capsule_inputs`
+
+Title: Capsule Inputs
+
+Description: List ordered typed accepted entity bindings for a capsule.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, capsule_id
+
+Use when:
+- trace capsule ancestry
+
+### `wb_capsule_outputs`
+
+Title: Capsule Outputs
+
+Description: List immutable named terminal output registrations and full SHA-256 identities.
+
+Returns: data.frame
+
+Payload level: metadata
+
+Arguments: bundle, capsule_id
+
+Use when:
+- inspect capsule evidence identities
+
+### `wb_capsule_script_path`
+
+Title: Capsule Source Path
+
+Description: Resolve and content-verify a relocatable bundle-owned capsule source path.
+
+Returns: character
+
+Payload level: path
+
+Arguments: bundle, capsule_id
+
+Use when:
+- inspect exact registered source bytes
+
+### `wb_capsule_output_path`
+
+Title: Capsule Output Path
+
+Description: Resolve and content-verify one relocatable bundle-owned capsule output path.
+
+Returns: character
+
+Payload level: path
+
+Arguments: bundle, capsule_id, output_name
+
+Use when:
+- open exact registered terminal evidence bytes
 
 ## session
 

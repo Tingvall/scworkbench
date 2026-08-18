@@ -1,5 +1,10 @@
 # scworkbench
 
+For externally executed, dataset-specific terminal figures and reports, use
+provenance-bound analysis capsules only after applying the installed op-first
+decision law in `inst/onboarding/ANALYSIS_CAPSULES.md`. Ad hoc analysis is
+permitted; unrecorded durable evidence is not.
+
 `scworkbench` is an R engine for reproducible, disk-backed single-cell analysis.
 
 The package is designed around portable analysis bundles, typed primitives,

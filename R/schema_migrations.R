@@ -2,7 +2,7 @@
 # Component schema helpers remain compatibility shims for callers inside the
 # package, but only this file orchestrates schema creation and upgrades.
 
-.wb_bundle_schema_version <- function() 6L
+.wb_bundle_schema_version <- function() 7L
 
 .wb_bundle_schema_migrations <- function() {
   list(
@@ -11,7 +11,8 @@
     list(version = 3L, id = "003_lifecycle_backfill", apply = .wb_schema_migration_003),
     list(version = 4L, id = "004_complete_space_foreign_keys", apply = .wb_schema_migration_004),
     list(version = 5L, id = "005_metadata_field_registry", apply = .wb_schema_migration_005),
-    list(version = 6L, id = "006_provenance_identity_schemes", apply = .wb_schema_migration_006)
+    list(version = 6L, id = "006_provenance_identity_schemes", apply = .wb_schema_migration_006),
+    list(version = 7L, id = "007_analysis_capsules", apply = .wb_schema_migration_007)
   )
 }
 
@@ -130,6 +131,7 @@
 
 .wb_schema_migration_001 <- function(con, bundle_dir = NULL) {
   .wb_ensure_schema_app_bundle(con)
+  .wb_ensure_analysis_capsule_tables(con)
   .wb_create_artifacts_schema(con)
   .wb_migrate_provenance_tables_locked(con)
   .wb_ensure_feature_set_tables(con)
@@ -275,7 +277,13 @@
       fk("replay_artifact_id", "artifacts", "artifact_id")
     ),
     prov_materializations = list(fk("commit_id", "prov_commits", "commit_id")),
-    prov_registry_mutations = list(fk("commit_id", "prov_commits", "commit_id"))
+    prov_registry_mutations = list(fk("commit_id", "prov_commits", "commit_id")),
+    analysis_capsule_inputs = list(fk("capsule_id", "analysis_capsules")),
+    analysis_capsule_outputs = list(fk("capsule_id", "analysis_capsules")),
+    analysis_capsule_relationships = list(
+      fk("capsule_id", "analysis_capsules"),
+      fk("related_capsule_id", "analysis_capsules", "capsule_id")
+    )
   )
 }
 
@@ -369,6 +377,7 @@
     list("prov_registry_mutations", "run_id", "prov_runs(run_id), snapshot-independent materialization key", "registry/provenance deep validation"),
     list("prov_replay_equivalence_results", "original_run_id, replay_run_id", "prov_runs(run_id), cross-snapshot replay identities", "replay-equivalence deep validation"),
     list("prov_run_entity_bindings", "entity_kind, entity_id", "polymorphic durable registry", "PROVENANCE_DANGLING_ENTITY_BINDING"),
+    list("analysis_capsule_inputs", "entity_id", "polymorphic accepted durable registry", "CAPSULE_INPUT_BINDINGS_INVALID / capsule deep validation"),
     list("entity_lifecycle", "entity_kind, entity_id", "polymorphic durable registry", "lifecycle/deep-validation state binding"),
     list("registry_mutation_events", "run_id", "session staging run", "promotion transaction validates selected run topology")
   )
@@ -464,6 +473,11 @@
 
 .wb_schema_migration_005 <- function(con, bundle_dir = NULL) {
   .wb_metadata_backfill_registry(con)
+  invisible(TRUE)
+}
+
+.wb_schema_migration_007 <- function(con, bundle_dir = NULL) {
+  .wb_ensure_analysis_capsule_tables(con)
   invisible(TRUE)
 }
 

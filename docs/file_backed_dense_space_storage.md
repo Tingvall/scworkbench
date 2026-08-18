@@ -28,7 +28,7 @@ payload-preserving registry mutation is not invisible.
 R/Python array order is an explicit portability boundary. R exposes and writes
 `n_cells x n_dims`. PyBench/h5py reverses HDF5 C-order dimensions and chunks
 and transposes values so `rhdf5` reads the same canonical R shape; its Python
-getter reverses the representation on read. This is verified at Quill commit
+getter reverses the representation on read. This is verified at PyBench commit
 `8418ca81601558dda3784039e7bf18440c8dac3c`. The qualified platform is
 little-endian Linux with h5py 3.15.1 and `rhdf5`.
 
@@ -53,7 +53,7 @@ Run the retained honeybee-scale benchmark with:
 
 ```bash
 SCWORKBENCH_SOURCE_ROOT=. \
-SCWORKBENCH_PYBENCH_PYTHON=/home/dirk/Projects/pybench/.venv/bin/python \
+SCWORKBENCH_PYBENCH_PYTHON="$PYBENCH_ROOT/.venv/bin/python" \
 Rscript inst/acceptance/file_backed_dense_space_benchmark.R \
   --output=inst/acceptance/file_backed_dense_space_benchmark.json
 ```

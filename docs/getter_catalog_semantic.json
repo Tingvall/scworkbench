@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "getter_count": 79,
+  "getter_count": 85,
   "getters": [
     {
       "function_name": "wb_status",
@@ -870,6 +870,72 @@
       "payload_level": "payload",
       "arguments": ["bundle", "ref", "session", "key"],
       "use_when": "preview primitive data in a table",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_capsules",
+      "title": "Analysis Capsules",
+      "category": "provenance",
+      "description": "List externally executed terminal evidence registrations without implying operation or replay verification.",
+      "returns": "data.frame",
+      "payload_level": "metadata",
+      "arguments": "bundle",
+      "use_when": "discover registered question-specific terminal evidence",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_capsule",
+      "title": "Analysis Capsule",
+      "category": "provenance",
+      "description": "Inspect normalized capsule source, inputs, parameters, outputs, signatures, assurance, and declarations.",
+      "returns": "wb_analysis_capsule",
+      "payload_level": "metadata",
+      "arguments": ["bundle", "capsule_id"],
+      "use_when": "audit externally executed terminal evidence",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_capsule_inputs",
+      "title": "Capsule Inputs",
+      "category": "provenance",
+      "description": "List ordered typed accepted entity bindings for a capsule.",
+      "returns": "data.frame",
+      "payload_level": "metadata",
+      "arguments": ["bundle", "capsule_id"],
+      "use_when": "trace capsule ancestry",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_capsule_outputs",
+      "title": "Capsule Outputs",
+      "category": "provenance",
+      "description": "List immutable named terminal output registrations and full SHA-256 identities.",
+      "returns": "data.frame",
+      "payload_level": "metadata",
+      "arguments": ["bundle", "capsule_id"],
+      "use_when": "inspect capsule evidence identities",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_capsule_script_path",
+      "title": "Capsule Source Path",
+      "category": "provenance",
+      "description": "Resolve and content-verify a relocatable bundle-owned capsule source path.",
+      "returns": "character",
+      "payload_level": "path",
+      "arguments": ["bundle", "capsule_id"],
+      "use_when": "inspect exact registered source bytes",
+      "mutates": false
+    },
+    {
+      "function_name": "wb_capsule_output_path",
+      "title": "Capsule Output Path",
+      "category": "provenance",
+      "description": "Resolve and content-verify one relocatable bundle-owned capsule output path.",
+      "returns": "character",
+      "payload_level": "path",
+      "arguments": ["bundle", "capsule_id", "output_name"],
+      "use_when": "open exact registered terminal evidence bytes",
       "mutates": false
     }
   ]

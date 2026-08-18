@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Record count: 317
+Record count: 323
 
 Graph edges: 904
 
@@ -929,6 +929,42 @@ Description: Client facade for loading primitives by reference.
 Title: Client Load Table
 
 Description: Client facade for loading and wrangling references into normalized tables.
+
+### `getter:wb_capsules`
+
+Title: Analysis Capsules
+
+Description: List externally executed terminal evidence registrations without implying operation or replay verification.
+
+### `getter:wb_capsule`
+
+Title: Analysis Capsule
+
+Description: Inspect normalized capsule source, inputs, parameters, outputs, signatures, assurance, and declarations.
+
+### `getter:wb_capsule_inputs`
+
+Title: Capsule Inputs
+
+Description: List ordered typed accepted entity bindings for a capsule.
+
+### `getter:wb_capsule_outputs`
+
+Title: Capsule Outputs
+
+Description: List immutable named terminal output registrations and full SHA-256 identities.
+
+### `getter:wb_capsule_script_path`
+
+Title: Capsule Source Path
+
+Description: Resolve and content-verify a relocatable bundle-owned capsule source path.
+
+### `getter:wb_capsule_output_path`
+
+Title: Capsule Output Path
+
+Description: Resolve and content-verify one relocatable bundle-owned capsule output path.
 
 ## op
 

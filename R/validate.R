@@ -1285,12 +1285,16 @@ wb_bundle_validation_report <- function(bundle_dir,
     for (x in c("sqlite_integrity", "matrix_content", "spaces_and_models", "artifacts", "provenance", "source_inputs", "lifecycle")) skip(x, "content", "requested structural validation does not read or hash payload content")
   }
 
+  if (!is.null(con) && .wb_table_exists(con,"analysis_capsules")) timed("analysis_capsules", {
+    .wb_validate_analysis_capsules(root,con,add,content=has_level("content"))
+  })
+
   if (has_level("recipient")) timed("recipient", {
     pending_abs <- if (dir.exists(root)) {
       as.character(fs::dir_ls(root, recurse = TRUE, type = "any", all = TRUE, follow = FALSE))
     } else character()
     pending_paths <- substring(pending_abs, nchar(root) + 2L)
-    pending_paths <- pending_paths[grepl("(^|/)\\.pending(/|$)|^\\.manifest[.]json[.](staging|backup)-|INGEST_FAILED[.]json$", pending_paths)]
+    pending_paths <- pending_paths[grepl("(^|/)\\.pending(/|$)|(^|/)\\.pending-[^/]+(/|$)|^\\.manifest[.]json[.](staging|backup)-|INGEST_FAILED[.]json$", pending_paths)]
     # The empty, pre-created .pending container is part of the normal bundle
     # layout. Only entries beneath it represent unfinished publication work.
     pending_paths <- pending_paths[!grepl("(^|/)\\.pending$", pending_paths)]

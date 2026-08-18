@@ -10,7 +10,7 @@ wb_entity_certificate(bundle, entity_kind, entity_id)
 \item{bundle}{Open \code{scworkbench_bundle}.}
 
 \item{entity_kind}{One of \code{external_source}, \code{matrix}, \code{space}, \code{model},
-\code{artifact}, or \code{run}.}
+\code{artifact}, \code{run}, \code{capsule}, or \code{capsule_output}.}
 
 \item{entity_id}{Durable entity identifier.}
 }

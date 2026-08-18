@@ -307,8 +307,8 @@ wb_kg_static_graph <- function() {
     label = .wb_kg_bundle_id(bundle),
     node_type = "Bundle",
     source = "bundle_manifest",
-    text = .wb_kg_text(bundle$manifest$bundle_name, bundle$dir),
-    payload = list(bundle_id = .wb_kg_bundle_id(bundle), bundle_path = normalizePath(bundle$dir, winslash = "/", mustWork = FALSE))
+    text = .wb_kg_text(bundle$manifest$bundle_name, .wb_kg_bundle_id(bundle)),
+    payload = list(bundle_id = .wb_kg_bundle_id(bundle))
   ))
   edges <- list()
 
@@ -408,8 +408,8 @@ wb_kg_bundle_graph <- function(bundle) {
     label = .wb_kg_bundle_id(bundle),
     node_type = "Bundle",
     source = "bundle_manifest_ref",
-    text = .wb_kg_text(bundle$manifest$bundle_name, bundle$dir),
-    payload = list(bundle_id = .wb_kg_bundle_id(bundle), bundle_path = normalizePath(bundle$dir, winslash = "/", mustWork = FALSE))
+    text = .wb_kg_text(bundle$manifest$bundle_name, .wb_kg_bundle_id(bundle)),
+    payload = list(bundle_id = .wb_kg_bundle_id(bundle))
   ))
   edges <- list()
 
@@ -543,6 +543,27 @@ wb_kg_bundle_graph <- function(bundle) {
     edges[[length(edges) + 1L]] <- .wb_kg_edge(from, to, "SUPERSEDES", "entity_lifecycle", payload = as.list(supersessions[i, , drop = FALSE]))
   }
 
+  if (.wb_table_exists(con,"analysis_capsules")) {
+    caps <- wb_capsules(bundle)
+    if (nrow(caps)) for (i in seq_len(nrow(caps))) {
+      cap <- wb_capsule(bundle,caps$capsule_id[i]); cid <- paste0("capsule:",cap$capsule_id)
+      payload <- list(capsule_id=cap$capsule_id,name=cap$name,purpose=cap$purpose,assurance_level=cap$assurance_level,replay_status=cap$replay_status,script_sha256=cap$script_sha256,family_hint=cap$family_hint,catalog_review=cap$catalog_review,relationships=cap$relationships)
+      nodes[[length(nodes)+1L]] <- .wb_kg_node(cid,cap$name,"AnalysisCapsule","analysis_capsule",text=.wb_kg_text(cap$name,cap$purpose,"externally executed terminal evidence"),payload=payload)
+      for (j in seq_len(nrow(cap$inputs))) {
+        iid <- paste0(cap$inputs$entity_kind[j],":",.wb_kg_slug(cap$inputs$entity_id[j]))
+        existing_ids <- vapply(nodes,function(x)as.character(x$id[[1L]]),character(1))
+        if(!iid%in%existing_ids) nodes[[length(nodes)+1L]] <- .wb_kg_node(iid,cap$inputs$entity_id[j],paste0("Durable",tools::toTitleCase(gsub("_"," ",cap$inputs$entity_kind[j]))),"analysis_capsule_input",payload=as.list(cap$inputs[j,setdiff(names(cap$inputs),"observed_identity_json"),drop=FALSE]))
+        edges[[length(edges)+1L]] <- .wb_kg_edge(iid,cid,"CONSUMES","analysis_capsule",semantic_label=cap$inputs$input_name[j],payload=list(binding=cap$inputs$input_name[j]))
+      }
+      for (j in seq_len(nrow(cap$outputs))) {
+        oid <- paste0("capsule_output:",cap$outputs$output_id[j])
+        nodes[[length(nodes)+1L]] <- .wb_kg_node(oid,cap$outputs$output_name[j],"AnalysisCapsuleOutput","analysis_capsule",payload=as.list(cap$outputs[j,,drop=FALSE]))
+        edges[[length(edges)+1L]] <- .wb_kg_edge(cid,oid,"PRODUCES","analysis_capsule",semantic_label=cap$outputs$output_name[j],payload=list(binding=cap$outputs$output_name[j]))
+      }
+      if (is.data.frame(cap$relationships) && nrow(cap$relationships)) for(j in seq_len(nrow(cap$relationships))) if(!is.na(cap$relationships$related_capsule_id[j])&&nzchar(cap$relationships$related_capsule_id[j])) edges[[length(edges)+1L]] <- .wb_kg_edge(cid,paste0("capsule:",cap$relationships$related_capsule_id[j]),toupper(cap$relationships$relationship_type[j]),"analysis_capsule",payload=list(assurance="operator_declared_not_engine_proven"))
+    }
+  }
+
   list(nodes = .wb_kg_bind(nodes, .wb_kg_node_df()), edges = .wb_kg_bind(edges, .wb_kg_edge_df()))
 }
 
@@ -598,7 +619,6 @@ wb_kg_provenance_graph <- function(bundle) {
     schema_version = .wb_kg_schema_version(),
     scworkbench_version = version,
     bundle_id = if (is.null(bundle)) NULL else .wb_kg_bundle_id(bundle),
-    bundle_path = if (is.null(bundle)) NULL else normalizePath(bundle$dir, winslash = "/", mustWork = FALSE),
     created_at = .wb_kg_now(),
     node_count = nrow(graph$nodes),
     edge_count = nrow(graph$edges),

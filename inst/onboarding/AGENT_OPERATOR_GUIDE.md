@@ -1,5 +1,14 @@
 # scworkbench Agent Operator Guide
 
+## Op-first durable evidence policy
+
+Ad hoc analysis is permitted; unrecorded durable evidence is not. Follow the
+five-step op-first decision law and minimum-custom-surface rule in
+`ANALYSIS_CAPSULES.md` before writing a custom terminal script. Standard
+normalization, PCA, UMAP, scVI, differential expression, and other catalogued
+methods remain registered operations; capsules are only externally executed,
+question-specific terminal evidence and registration is never replay proof.
+
 ## Purpose
 
 This guide onboards any capable AI agent, script-driven assistant, or

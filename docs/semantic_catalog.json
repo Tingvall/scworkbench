@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 317,
+  "record_count": 323,
   "record_type_counts": {
     "artifact_type": 74,
-    "getter": 79,
+    "getter": 85,
     "op": 57,
     "parameter": 59,
     "plot": 12,
@@ -12810,6 +12810,126 @@
       }
     },
     {
+      "record_id": "getter:wb_capsules",
+      "record_type": "getter",
+      "name": "wb_capsules",
+      "title": "Analysis Capsules",
+      "description": "List externally executed terminal evidence registrations without implying operation or replay verification.",
+      "search_text": "Analysis Capsules\nList externally executed terminal evidence registrations without implying operation or replay verification.\nprovenance\ndata.frame\nbundle\ndiscover registered question-specific terminal evidence",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_capsules",
+        "title": "Analysis Capsules",
+        "category": "provenance",
+        "description": "List externally executed terminal evidence registrations without implying operation or replay verification.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": "bundle",
+        "use_when": "discover registered question-specific terminal evidence",
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_capsule",
+      "record_type": "getter",
+      "name": "wb_capsule",
+      "title": "Analysis Capsule",
+      "description": "Inspect normalized capsule source, inputs, parameters, outputs, signatures, assurance, and declarations.",
+      "search_text": "Analysis Capsule\nInspect normalized capsule source, inputs, parameters, outputs, signatures, assurance, and declarations.\nprovenance\nwb_analysis_capsule\nbundle\ncapsule_id\naudit externally executed terminal evidence",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_capsule",
+        "title": "Analysis Capsule",
+        "category": "provenance",
+        "description": "Inspect normalized capsule source, inputs, parameters, outputs, signatures, assurance, and declarations.",
+        "returns": "wb_analysis_capsule",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "capsule_id"],
+        "use_when": "audit externally executed terminal evidence",
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_capsule_inputs",
+      "record_type": "getter",
+      "name": "wb_capsule_inputs",
+      "title": "Capsule Inputs",
+      "description": "List ordered typed accepted entity bindings for a capsule.",
+      "search_text": "Capsule Inputs\nList ordered typed accepted entity bindings for a capsule.\nprovenance\ndata.frame\nbundle\ncapsule_id\ntrace capsule ancestry",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_capsule_inputs",
+        "title": "Capsule Inputs",
+        "category": "provenance",
+        "description": "List ordered typed accepted entity bindings for a capsule.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "capsule_id"],
+        "use_when": "trace capsule ancestry",
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_capsule_outputs",
+      "record_type": "getter",
+      "name": "wb_capsule_outputs",
+      "title": "Capsule Outputs",
+      "description": "List immutable named terminal output registrations and full SHA-256 identities.",
+      "search_text": "Capsule Outputs\nList immutable named terminal output registrations and full SHA-256 identities.\nprovenance\ndata.frame\nbundle\ncapsule_id\ninspect capsule evidence identities",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_capsule_outputs",
+        "title": "Capsule Outputs",
+        "category": "provenance",
+        "description": "List immutable named terminal output registrations and full SHA-256 identities.",
+        "returns": "data.frame",
+        "payload_level": "metadata",
+        "arguments": ["bundle", "capsule_id"],
+        "use_when": "inspect capsule evidence identities",
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_capsule_script_path",
+      "record_type": "getter",
+      "name": "wb_capsule_script_path",
+      "title": "Capsule Source Path",
+      "description": "Resolve and content-verify a relocatable bundle-owned capsule source path.",
+      "search_text": "Capsule Source Path\nResolve and content-verify a relocatable bundle-owned capsule source path.\nprovenance\ncharacter\nbundle\ncapsule_id\ninspect exact registered source bytes",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_capsule_script_path",
+        "title": "Capsule Source Path",
+        "category": "provenance",
+        "description": "Resolve and content-verify a relocatable bundle-owned capsule source path.",
+        "returns": "character",
+        "payload_level": "path",
+        "arguments": ["bundle", "capsule_id"],
+        "use_when": "inspect exact registered source bytes",
+        "mutates": false
+      }
+    },
+    {
+      "record_id": "getter:wb_capsule_output_path",
+      "record_type": "getter",
+      "name": "wb_capsule_output_path",
+      "title": "Capsule Output Path",
+      "description": "Resolve and content-verify one relocatable bundle-owned capsule output path.",
+      "search_text": "Capsule Output Path\nResolve and content-verify one relocatable bundle-owned capsule output path.\nprovenance\ncharacter\nbundle\ncapsule_id\noutput_name\nopen exact registered terminal evidence bytes",
+      "tags": ["getter", "provenance"],
+      "payload": {
+        "function_name": "wb_capsule_output_path",
+        "title": "Capsule Output Path",
+        "category": "provenance",
+        "description": "Resolve and content-verify one relocatable bundle-owned capsule output path.",
+        "returns": "character",
+        "payload_level": "path",
+        "arguments": ["bundle", "capsule_id", "output_name"],
+        "use_when": "open exact registered terminal evidence bytes",
+        "mutates": false
+      }
+    },
+    {
       "record_id": "plot:embedding_overlay",
       "record_type": "plot",
       "name": "embedding_overlay",
@@ -16760,7 +16880,7 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 317,
+    "node_count": 323,
     "edge_count": 904,
     "nodes": [
       {
@@ -17578,6 +17698,42 @@
         "record_type": "getter",
         "name": "wb_client_load_table",
         "title": "Client Load Table"
+      },
+      {
+        "record_id": "getter:wb_capsules",
+        "record_type": "getter",
+        "name": "wb_capsules",
+        "title": "Analysis Capsules"
+      },
+      {
+        "record_id": "getter:wb_capsule",
+        "record_type": "getter",
+        "name": "wb_capsule",
+        "title": "Analysis Capsule"
+      },
+      {
+        "record_id": "getter:wb_capsule_inputs",
+        "record_type": "getter",
+        "name": "wb_capsule_inputs",
+        "title": "Capsule Inputs"
+      },
+      {
+        "record_id": "getter:wb_capsule_outputs",
+        "record_type": "getter",
+        "name": "wb_capsule_outputs",
+        "title": "Capsule Outputs"
+      },
+      {
+        "record_id": "getter:wb_capsule_script_path",
+        "record_type": "getter",
+        "name": "wb_capsule_script_path",
+        "title": "Capsule Source Path"
+      },
+      {
+        "record_id": "getter:wb_capsule_output_path",
+        "record_type": "getter",
+        "name": "wb_capsule_output_path",
+        "title": "Capsule Output Path"
       },
       {
         "record_id": "plot:embedding_overlay",

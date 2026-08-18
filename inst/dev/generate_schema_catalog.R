@@ -66,7 +66,8 @@ generate_schema_catalog <- function(root = ".", output = file.path(root, "docs",
     "matrix_fragments.fragment_id", "metadata_fields.field_id", "motif_libraries.motif_library",
     "motif_match_sets.motif_match_set", "motifs.motif_key",
     "prov_commits.commit_id", "prov_heads.snapshot_id", "prov_runs.run_id",
-    "spaces.space_id"
+    "spaces.space_id", "analysis_capsules.capsule_id",
+    "analysis_capsule_outputs.output_id"
   )
   unclassified <- setdiff(candidates, c(classified, row_owned))
   stopifnot(!length(unclassified), all(row_owned %in% candidates))
@@ -102,7 +103,7 @@ generate_schema_catalog <- function(root = ".", output = file.path(root, "docs",
     "",
     "## Identifier relationship classification",
     "",
-    "Every identifier-bearing child relationship in the 52-table durable schema is classified below. Generation discovers identifier-shaped columns from a fresh current schema and fails if a column is neither classified nor one of the explicit row-owned primary identities. `sqlite_foreign_key` relationships are compared by exact normalized child columns, parent table/columns, actions, match mode, and canonical deferred declaration. `application_validated` relationships cannot be represented faithfully as ordinary foreign keys because their parent identity is composite, polymorphic, JSON-encoded, or historically snapshot-independent; the named deep-validation boundary is executable. `symbolic_or_external` values are intentionally not required to name a durable registry row.",
+    paste0("Every identifier-bearing child relationship in the ", nrow(inventory), "-table durable schema is classified below. Generation discovers identifier-shaped columns from a fresh current schema and fails if a column is neither classified nor one of the explicit row-owned primary identities. `sqlite_foreign_key` relationships are compared by exact normalized child columns, parent table/columns, actions, match mode, and canonical deferred declaration. `application_validated` relationships cannot be represented faithfully as ordinary foreign keys because their parent identity is composite, polymorphic, JSON-encoded, or historically snapshot-independent; the named deep-validation boundary is executable. `symbolic_or_external` values are intentionally not required to name a durable registry row."),
     "",
     "| Child table | Child column(s) | Target/meaning | Classification | Enforcement or rationale |",
     "|---|---|---|---|---|",

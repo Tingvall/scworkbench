@@ -1,5 +1,13 @@
 # Agent Shared Foundation
 
+## Durable custom analysis
+
+Ad hoc analysis is permitted; unrecorded durable evidence is not. Registered
+ops remain the normal path. A provenance-bound analysis capsule is the narrow
+exception for externally executed, dataset-specific terminal figures, reports,
+or summaries. A capsule should contain only the irreducibly dataset- or
+question-specific terminal portion; see `ANALYSIS_CAPSULES.md`.
+
 Shared concepts for all agent roles in `scworkbench`.
 
 ## System Identity

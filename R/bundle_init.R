@@ -385,7 +385,9 @@ wb_refresh_manifest <- function(bundle) {
     "prov_commits", "prov_heads", "prov_materializations",
     "prov_registry_mutations", "prov_replay_equivalence_results",
     "prov_run_edges", "prov_run_entity_bindings", "prov_run_outputs",
-    "prov_runs", "prov_source_identities", "prov_source_inputs"
+    "prov_runs", "prov_source_identities", "prov_source_inputs",
+    "analysis_capsules", "analysis_capsule_inputs", "analysis_capsule_outputs",
+    "analysis_capsule_relationships"
   )
 }
 
@@ -501,7 +503,8 @@ wb_refresh_manifest <- function(bundle) {
       feature_counts_by_matrix = feature_counts$feature_counts_by_matrix,
       bundle_unique_feature_count = feature_counts$bundle_unique_feature_count,
       n_matrices = as.integer(if (nrow(mat_tbl)) nrow(mat_tbl) else 0L),
-      n_artifacts = as.integer(if (.wb_table_exists(con, "artifacts")) DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM artifacts;")$n[1] else 0L)
+      n_artifacts = as.integer(if (.wb_table_exists(con, "artifacts")) DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM artifacts;")$n[1] else 0L),
+      n_analysis_capsules = as.integer(if (.wb_table_exists(con, "analysis_capsules")) DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM analysis_capsules;")$n[1] else 0L)
     ),
     storage = list(
       sqlite = list(path = "db/app.sqlite"),
@@ -518,6 +521,10 @@ wb_refresh_manifest <- function(bundle) {
     artifacts = if (.wb_table_exists(con, "artifacts")) {
       art_tbl <- DBI::dbGetQuery(con, "SELECT artifact_id, type, name, created_at, source_op FROM artifacts ORDER BY created_at, artifact_id;")
       if (nrow(art_tbl)) as.list(art_tbl) else list()
+    } else list(),
+    analysis_capsules = if (.wb_table_exists(con,"analysis_capsules")) {
+      cap_tbl <- DBI::dbGetQuery(con,"SELECT capsule_id,name,purpose,assurance_level,replay_status,manifest_path,manifest_sha256 FROM analysis_capsules ORDER BY capsule_id;")
+      if(nrow(cap_tbl)) as.list(cap_tbl) else list()
     } else list()
   )
 }

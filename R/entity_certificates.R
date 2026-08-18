@@ -292,14 +292,14 @@
 #'
 #' @param bundle Open `scworkbench_bundle`.
 #' @param entity_kind One of `external_source`, `matrix`, `space`, `model`,
-#'   `artifact`, or `run`.
+#'   `artifact`, `run`, `capsule`, or `capsule_output`.
 #' @param entity_id Durable entity identifier.
 #' @return A JSON-serializable `scworkbench.provenance.entity_certificate.v1` list.
 #' @export
 wb_entity_certificate <- function(bundle, entity_kind, entity_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_require_pkg("jsonlite", "entity provenance certificates")
-  kind <- match.arg(as.character(entity_kind)[1], c("external_source", "matrix", "space", "model", "artifact", "run"))
+  kind <- match.arg(as.character(entity_kind)[1], c("external_source", "matrix", "space", "model", "artifact", "run", "capsule", "capsule_output"))
   id <- as.character(entity_id)[1]
   .wb_assert(!is.na(id) && nzchar(id), "entity_id must be a non-empty string")
 
@@ -312,6 +312,27 @@ wb_entity_certificate <- function(bundle, entity_kind, entity_id) {
   con <- reader$con
   graph <- wb_prov_bundle_dag(reader, include_snapshots = TRUE, include_registry_mutations = TRUE, include_superseded = TRUE)
   node_id <- .wb_certificate_node_id(kind, id)
+
+  if (kind %in% c("capsule", "capsule_output")) {
+    .wb_assert(.wb_table_exists(con,"analysis_capsules"),paste0("ENTITY_CERTIFICATE_NOT_FOUND: no durable ",kind," entity '",id,"'."))
+    if (identical(kind,"capsule")) {
+      cap <- wb_capsule(reader,id); output <- NULL
+    } else {
+      row <- DBI::dbGetQuery(con,"SELECT * FROM analysis_capsule_outputs WHERE output_id=?;",params=list(id))
+      .wb_assert(nrow(row)==1L,paste0("ENTITY_CERTIFICATE_NOT_FOUND: no durable capsule_output entity '",id,"'."))
+      cap <- wb_capsule(reader,as.character(row$capsule_id[[1L]])); output <- as.list(row[1L,,drop=FALSE])
+    }
+    return(list(
+      schema=.wb_certificate_schema(),
+      subject=list(kind=kind,id=id,node_id=node_id,display_name=if(is.null(output)) cap$name else output$output_name,created_at=cap$registered_at,lifecycle_state="immutable"),
+      lifecycle=list(state="immutable",record=.wb_certificate_state("available",value=list(append_only=TRUE)),supersessions=.wb_certificate_state("not_applicable"),tombstone=.wb_certificate_state("not_applicable")),
+      producer=if(is.null(output)) .wb_certificate_state("not_applicable",reason="capsules_are_registration_records_not_operation_runs") else .wb_certificate_state("available",capsule_id=cap$capsule_id,execution_mode=cap$execution_mode),
+      relationships=.wb_certificate_relationships(graph,node_id),
+      identity=if(is.null(output)) list(content_sha256=cap$manifest_sha256,content_identity_scheme="scworkbench.analysis_capsule.manifest-file.sha256.v1",script_sha256=cap$script_sha256) else list(content_sha256=output$content_sha256,content_identity_scheme=output$content_identity_scheme),
+      promotion=list(status="not_applicable",reason="capsule registration is not operation promotion"),
+      details=list(assurance_level=cap$assurance_level,execution_mode=cap$execution_mode,replay_status=cap$replay_status,script=list(path=.wb_certificate_relative_path(cap$script_path),content_sha256=cap$script_sha256),inputs=cap$inputs,parameters=cap$parameters,runtime_declaration=cap$runtime,output=output,catalog_review=cap$catalog_review,family_hint=cap$family_hint,declared_relationships=cap$relationships,limitations=cap$limitations)
+    ))
+  }
 
   exists <- node_id %in% as.character(graph$nodes$id)
   if (!exists && identical(kind, "external_source")) exists <- nrow(.wb_certificate_query(con, "prov_source_inputs", "SELECT source_id FROM prov_source_inputs WHERE source_id = ?;", list(id))) > 0L

@@ -1,8 +1,8 @@
 # File-backed dense-space R/PyBench interface
 
-Status: **implemented composite interface**. R integration is based on Forge
+Status: **implemented composite interface**. R integration is based on
 checkpoint `a62803cdf369cad05d749963dcaeec5f4c22a4c7`; the compatible PyBench
-writer is Quill commit `8418ca81601558dda3784039e7bf18440c8dac3c`.
+writer is commit `8418ca81601558dda3784039e7bf18440c8dac3c`.
 
 This note freezes the shared interface. It does not authorize either runtime
 to write legacy `space_coords`, `space_2d`,
@@ -114,7 +114,7 @@ stage payload through its own private promotion workspace and commit boundary.
 The formerly blocked focused command is now:
 
 ```bash
-SCWORKBENCH_PYBENCH_PYTHON=/home/dirk/Projects/pybench/.venv/bin/python \
+SCWORKBENCH_PYBENCH_PYTHON="$PYBENCH_ROOT/.venv/bin/python" \
 Rscript - <<'RS'
 devtools::load_all('.', quiet=TRUE)
 contract_test_skip <- function(x) stop(x)
@@ -123,7 +123,7 @@ test_pybench_durable_peakvi_fit_v2_contract()
 RS
 ```
 
-It passes against the pinned Quill commit. PeakVI fit/project, scVI durable
+It passes against the pinned PyBench commit. PeakVI fit/project, scVI durable
 recovery, staging capability, corruption, and dense-storage contracts exercise
 the same shared registry/payload interface. The remaining PyBench performance
 boundary is explicit: its complete-tree pre/post audit and mutable-tree clone

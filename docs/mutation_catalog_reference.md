@@ -2,9 +2,9 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 150
+Record count: 151
 
-Meaningful public transformations: 62
+Meaningful public transformations: 63
 
 Exported directly guarded functions: 26
 
@@ -1269,6 +1269,20 @@ Durable mutation: true
 Boundary: `guarded_low_level`
 
 Supported route: `active_bundle_assembly_transaction`
+
+## `wb_capsule_register`
+
+Category: registry_writer
+
+Exported: true
+
+Implemented: true
+
+Durable mutation: true
+
+Boundary: `public_transaction`
+
+Supported route: `exclusive_atomic_capsule_publication`
 
 ## `wb_add_space`
 

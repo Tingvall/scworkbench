@@ -74,10 +74,15 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
   )
   class(bundle) <- "scworkbench_bundle"
 
+  if (!isTRUE(read_only)) {
+    wb_migrate_bundle(bundle)
+    .wb_capsule_recover_residue(bundle)
+  } else {
+    .wb_capsule_assert_no_residue(bundle, "recipient read-only open")
+  }
   if (isTRUE(validate)) {
     wb_validate_bundle(bundle_dir, read_only = read_only)
   }
-  if (!isTRUE(read_only)) wb_migrate_bundle(bundle)
 
   opened <- TRUE
   bundle
@@ -154,6 +159,7 @@ wb_recipient_readiness <- function(bundle_dir) {
 wb_finalize_recipient_bundle <- function(bundle) {
   .wb_assert_bundle_writable(bundle, "recipient finalization")
   .wb_with_bundle_writer_lock(bundle, operation = "recipient finalization", code = {
+    .wb_capsule_assert_no_residue(bundle, "recipient finalization")
     DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")
     DBI::dbGetQuery(bundle$con, "PRAGMA journal_mode=DELETE;")
     DBI::dbExecute(bundle$con, "PRAGMA wal_checkpoint(TRUNCATE);")

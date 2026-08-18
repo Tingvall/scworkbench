@@ -1,5 +1,13 @@
 # Agent Engineer Onboarding
 
+## Op-first durable evidence policy
+
+Ad hoc analysis is permitted; unrecorded durable evidence is not. A capsule
+contains only the irreducibly dataset- or question-specific terminal portion.
+Inspect registered ops, wranglers, and plots first; authoritative or reusable
+state requires a typed operation or adoption boundary. See
+`ANALYSIS_CAPSULES.md` for the five-step law and trust model.
+
 Role: extend and stabilize engine + thin clients.
 
 ## Responsibilities

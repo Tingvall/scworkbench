@@ -939,6 +939,32 @@ wb_prov_bundle_dag <- function(bundle,
     if (nrow(reg$edges)) edges_df <- unique(rbind(edges_df, reg$edges))
   }
 
+  # Registration-only analysis capsules are first-class terminal provenance
+  # entities. They are deliberately not represented as operation runs or
+  # ordinary promoted artifacts.
+  if (.wb_table_exists(con, "analysis_capsules")) {
+    caps <- DBI::dbGetQuery(con, "SELECT capsule_id,name,purpose,registered_at,assurance_level,replay_status FROM analysis_capsules ORDER BY capsule_id;")
+    cin <- DBI::dbGetQuery(con, "SELECT capsule_id,input_order,input_name,entity_kind,entity_id FROM analysis_capsule_inputs ORDER BY capsule_id,input_order;")
+    cout <- DBI::dbGetQuery(con, "SELECT output_id,capsule_id,output_order,output_name,role FROM analysis_capsule_outputs ORDER BY capsule_id,output_order;")
+    crel <- DBI::dbGetQuery(con, "SELECT capsule_id,relationship_order,relationship_type,related_capsule_id FROM analysis_capsule_relationships ORDER BY capsule_id,relationship_order;")
+    if (nrow(caps)) for (i in seq_len(nrow(caps))) nodes_df <- rbind(nodes_df, .wb_prov_bundle_node(
+      id=paste0("capsule:",caps$capsule_id[i]), node_type="capsule", label=caps$name[i],
+      title=paste0(caps$name[i]," / externally executed terminal evidence"), created_at=caps$registered_at[i],
+      status=caps$assurance_level[i], lineage_status=paste0("replay_",caps$replay_status[i]), canonical=TRUE, superseded=FALSE
+    ))
+    if (nrow(cin)) for (i in seq_len(nrow(cin))) {
+      input_node <- paste0(cin$entity_kind[i],":",cin$entity_id[i])
+      if (!input_node %in% nodes_df$id) nodes_df <- rbind(nodes_df,.wb_prov_bundle_node(id=input_node,node_type=cin$entity_kind[i],label=cin$entity_id[i],title=paste(cin$entity_kind[i],cin$entity_id[i]),status="accepted"))
+      edges_df <- rbind(edges_df,.wb_prov_bundle_edge(from=input_node,to=paste0("capsule:",cin$capsule_id[i]),edge_type="CONSUMES",label=cin$input_name[i],binding=cin$input_name[i]))
+    }
+    if (nrow(cout)) for (i in seq_len(nrow(cout))) {
+      output_node <- paste0("capsule_output:",cout$output_id[i])
+      nodes_df <- rbind(nodes_df,.wb_prov_bundle_node(id=output_node,node_type="capsule_output",label=cout$output_name[i],title=paste0(cout$role[i]," / ",cout$output_name[i]),status="content_registered",canonical=TRUE,superseded=FALSE))
+      edges_df <- rbind(edges_df,.wb_prov_bundle_edge(from=paste0("capsule:",cout$capsule_id[i]),to=output_node,edge_type="PRODUCES",label=cout$output_name[i],binding=cout$output_name[i]))
+    }
+    if (nrow(crel)) for (i in seq_len(nrow(crel))) if (!is.na(crel$related_capsule_id[i]) && nzchar(crel$related_capsule_id[i])) edges_df <- rbind(edges_df,.wb_prov_bundle_edge(from=paste0("capsule:",crel$capsule_id[i]),to=paste0("capsule:",crel$related_capsule_id[i]),edge_type=toupper(crel$relationship_type[i]),label="operator-declared; not engine-proven"))
+  }
+
   lifecycle <- wb_entity_lifecycle(bundle, include_history = TRUE)
   if (nrow(lifecycle)) for (i in seq_len(nrow(lifecycle))) {
     kind <- as.character(lifecycle$entity_kind[i]); entity_id <- as.character(lifecycle$entity_id[i])

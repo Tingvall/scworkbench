@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 317,
+  "node_count": 323,
   "edge_count": 904,
   "nodes": [
     {
@@ -819,6 +819,42 @@
       "record_type": "getter",
       "name": "wb_client_load_table",
       "title": "Client Load Table"
+    },
+    {
+      "record_id": "getter:wb_capsules",
+      "record_type": "getter",
+      "name": "wb_capsules",
+      "title": "Analysis Capsules"
+    },
+    {
+      "record_id": "getter:wb_capsule",
+      "record_type": "getter",
+      "name": "wb_capsule",
+      "title": "Analysis Capsule"
+    },
+    {
+      "record_id": "getter:wb_capsule_inputs",
+      "record_type": "getter",
+      "name": "wb_capsule_inputs",
+      "title": "Capsule Inputs"
+    },
+    {
+      "record_id": "getter:wb_capsule_outputs",
+      "record_type": "getter",
+      "name": "wb_capsule_outputs",
+      "title": "Capsule Outputs"
+    },
+    {
+      "record_id": "getter:wb_capsule_script_path",
+      "record_type": "getter",
+      "name": "wb_capsule_script_path",
+      "title": "Capsule Source Path"
+    },
+    {
+      "record_id": "getter:wb_capsule_output_path",
+      "record_type": "getter",
+      "name": "wb_capsule_output_path",
+      "title": "Capsule Output Path"
     },
     {
       "record_id": "plot:embedding_overlay",
