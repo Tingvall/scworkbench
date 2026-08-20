@@ -188,7 +188,8 @@
                                           created_by = NULL,
                                           source_identity = NULL,
                                           additional_outputs = list(),
-                                          transaction_open = FALSE) {
+                                          transaction_open = FALSE,
+                                          metadata_fields = NULL) {
   matrix_ids <- unique(as.character(matrix_ids %||% character(0)))
   matrix_ids <- matrix_ids[nzchar(matrix_ids)]
   space_ids <- unique(as.character(space_ids %||% character(0)))
@@ -222,6 +223,6 @@
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, matrix_ids = matrix_ids,
     created_by = created_by, transaction_open = transaction_open,
-    source_identity = source_identity
+    source_identity = source_identity, metadata_fields = metadata_fields
   )
 }

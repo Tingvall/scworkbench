@@ -62,7 +62,7 @@ test_source_scope_ingest_dag_recipient_contract <- function() {
   memory_identity <- list(source_type="fixture",inputs=list(wb_source_input(uri="scworkbench-ingestion://test/object",source_id="memory_object",role="source_object",format="R_object",scope="in_memory")))
   .wb_record_declared_ingestion(b,"in_memory_fixture",source="fixture",source_identity=memory_identity)
   inputs <- wb_prov_source_inputs(b)
-  stopifnot(sum(inputs$scope=="public_file")==29L,sum(inputs$scope=="in_memory")==1L,
+  stopifnot(sum(inputs$scope=="public_file")==58L,length(unique(inputs$source_id[inputs$scope=="public_file"]))==29L,sum(inputs$scope=="in_memory")==1L,
             all(inputs$checksum_status[inputs$scope=="public_file"]=="checksummed"),
             identical(inputs$checksum_status[inputs$scope=="in_memory"],"nonportable_in_memory"))
   dag <- wb_prov_bundle_dag(b); kg <- wb_kg_provenance_graph(b)
@@ -78,7 +78,7 @@ test_source_scope_ingest_dag_recipient_contract <- function() {
             !"EXTERNAL_SOURCE_UNVERIFIABLE" %in% report$diagnostics$code[report$diagnostics$entity_kind=="in_memory_source"])
   ro <- wb_open_bundle(root,read_only=TRUE,validate=TRUE)
   ro_inputs <- wb_prov_source_inputs(ro); ro_dag <- wb_prov_bundle_dag(ro); ro_kg <- wb_kg_provenance_graph(ro)
-  stopifnot(sum(ro_inputs$scope=="public_file")==29L,any(ro_inputs$scope=="in_memory"),
+  stopifnot(sum(ro_inputs$scope=="public_file")==58L,length(unique(ro_inputs$source_id[ro_inputs$scope=="public_file"]))==29L,any(ro_inputs$scope=="in_memory"),
             sum(grepl("^external_source:",ro_dag$nodes$id))==29L,any(ro_kg$nodes$node_type=="InMemorySource"))
   wb_close_bundle(ro)
   TRUE

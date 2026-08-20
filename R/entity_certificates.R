@@ -115,13 +115,41 @@
 }
 
 .wb_certificate_producer <- function(con, kind, id) {
+  producer_history <- NULL
   if (identical(kind, "run")) return(.wb_certificate_state("not_applicable"))
   if (identical(kind, "external_source")) {
     rows <- .wb_certificate_query(con, "prov_run_entity_bindings",
       "SELECT snapshot_id, run_id, binding_name, relationship_type FROM prov_run_entity_bindings WHERE entity_kind = 'external_source' AND entity_id = ? AND relationship_type = 'CONSUMES' ORDER BY snapshot_id, run_id, binding_name;", list(id))
     return(if (nrow(rows)) .wb_certificate_state("not_applicable", reason = "external_sources_are_consumed_not_produced", consuming_runs = .wb_certificate_rows(rows)) else .wb_certificate_state("unavailable", "no_consuming_ingestion_run"))
   }
-  if (identical(kind, "artifact")) {
+  if (identical(kind, "metadata_field")) {
+    history <- .wb_certificate_query(con, "metadata_field_identities", paste(
+      "SELECT i.identity_id,i.identity_version,i.content_sha256 AS content_hash,",
+      "i.content_identity_scheme,i.registry_sha256,i.n_cells,i.snapshot_id,i.run_id,",
+      "b.binding_name AS output_name,'metadata_field' AS primitive_kind",
+      "FROM metadata_field_identities i LEFT JOIN prov_run_entity_bindings b",
+      "ON b.snapshot_id=i.snapshot_id AND b.run_id=i.run_id",
+      "AND b.entity_kind='metadata_field' AND b.entity_id=i.field_id",
+      "AND b.relationship_type IN ('PRODUCES','MATERIALIZES')",
+      "AND b.content_hash=i.content_sha256 AND b.content_identity_scheme=i.content_identity_scheme",
+      "WHERE i.field_id=? ORDER BY i.identity_version;"
+    ), list(id))
+    current <- .wb_certificate_query(con, "metadata_field_identities", paste(
+      "SELECT i.identity_id,i.identity_version,i.content_sha256 AS content_hash,",
+      "i.content_identity_scheme,i.registry_sha256,i.n_cells,i.snapshot_id,i.run_id,",
+      "b.binding_name AS output_name,'metadata_field' AS primitive_kind",
+      "FROM metadata_field_identities i JOIN prov_run_entity_bindings b",
+      "ON b.snapshot_id=i.snapshot_id AND b.run_id=i.run_id",
+      "AND b.entity_kind='metadata_field' AND b.entity_id=i.field_id",
+      "AND b.relationship_type IN ('PRODUCES','MATERIALIZES')",
+      "AND b.content_hash=i.content_sha256 AND b.content_identity_scheme=i.content_identity_scheme",
+      "WHERE i.field_id=? AND i.is_current=1;"
+    ), list(id))
+    if (!nrow(current)) return(.wb_certificate_state("unavailable", "no_current_metadata_identity_producer"))
+    if (nrow(current) != 1L) return(.wb_certificate_state("corrupt", "current_metadata_producer_is_not_unique", candidates = .wb_certificate_rows(current)))
+    rows <- current
+    producer_history <- .wb_certificate_rows(history)
+  } else if (identical(kind, "artifact")) {
     rows <- .wb_certificate_query(con, "prov_run_outputs",
       paste0("SELECT snapshot_id, run_id, output_name, primitive_kind, output_hash, ", .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con), " FROM prov_run_outputs WHERE artifact_id = ? ORDER BY snapshot_id, run_id, output_name;"), list(id))
   } else {
@@ -130,14 +158,6 @@
       "SELECT snapshot_id, run_id, binding_name AS output_name, entity_kind AS primitive_kind, content_hash, content_identity_scheme FROM prov_run_entity_bindings WHERE entity_kind = ? AND entity_id = ? AND relationship_type IN ('PRODUCES','MATERIALIZES') ORDER BY snapshot_id, run_id, binding_name;", list(db_kind, id))
   }
   if (!nrow(rows)) return(.wb_certificate_state("unavailable", "no_canonical_producer_binding"))
-  producer_history <- NULL
-  if (identical(kind, "metadata_field") && nrow(rows) > 1L) {
-    # Stable metadata fields intentionally support explicit compatible updates.
-    # Each import remains a producer event; the newest snapshot is the current
-    # value authority and prior producer bindings are inspectable history.
-    producer_history <- .wb_certificate_rows(rows)
-    rows <- rows[nrow(rows), , drop = FALSE]
-  }
   if (nrow(rows) != 1L) return(.wb_certificate_state("corrupt", "producer_binding_is_not_unique", candidates = .wb_certificate_rows(rows)))
   rid <- as.character(rows$run_id[[1]]); sid <- as.character(rows$snapshot_id[[1]])
   if (!identical(kind, "artifact")) {
@@ -194,9 +214,12 @@
       con, "metadata_fields", "SELECT * FROM metadata_fields WHERE field_id = ?;", list(id)
     )
     if (!nrow(row)) return(NULL)
+    identities <- .wb_certificate_query(con, "metadata_field_identities",
+      "SELECT * FROM metadata_field_identities WHERE field_id=? ORDER BY identity_version;", list(id))
     return(list(
       registry = .wb_certificate_rows(row)[[1L]],
       storage = list(table = "cells", column = as.character(row$storage_name[[1L]])),
+      identities = if (nrow(identities)) .wb_certificate_state("available", current = .wb_certificate_rows(identities[identities$is_current == 1L, , drop = FALSE]), history = .wb_certificate_rows(identities)) else .wb_certificate_state("unavailable", "identity_not_recorded"),
       assurance = list(
         values = "externally_supplied",
         upstream_derivation = "not_engine_observed"
@@ -269,6 +292,8 @@
   observed <- tryCatch({
     if (identical(kind, "matrix")) {
       .wb_prov_payload_identity(bundle, wb_prim_matrix(id))
+    } else if (identical(kind, "metadata_field")) {
+      .wb_metadata_field_content_identity(con, id)
     } else if (identical(kind, "space")) {
       payload <- .wb_certificate_query(con, "space_payloads", "SELECT * FROM space_payloads WHERE space_id = ?;", list(id))
       .wb_assert(nrow(payload) == 1L, "space payload registry is unavailable")

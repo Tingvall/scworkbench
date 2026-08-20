@@ -26,6 +26,18 @@ identities use domain separation and fixed-width byte-length framing. File
 content continues through the streaming file identity path. Production
 identity calculation has no R per-byte loop or integer-position arithmetic.
 
+Imported non-core metadata uses
+`scworkbench.content.metadata-field.cell-id-fold.v1`. It hashes stable field and
+registry/type identity first, then folds bounded, `cell_id`-ordered chunks of
+explicit missingness and typed stored values. Its current baseline and producer
+binding publish atomically; prior compatible-update versions remain certificate
+history rather than competing current producers.
+
+Container import orchestration remains an inspectable run and report artifact.
+Matrices and spaces are produced only by their concrete assembly runs; the
+declared external source is connected directly to those runs, so aggregate
+orchestration never creates a second authoritative producer.
+
 ## Migration and mixed history
 
 Bundle schema migration 6 adds `run_hash_scheme`, `contract_hash_scheme`,

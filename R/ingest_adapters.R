@@ -51,6 +51,7 @@
                                        created_by = NULL,
                                        source = "ingest",
                                        matrix_ids = character(0),
+                                       space_ids = character(0),
                                        transaction_open = FALSE,
                                        source_identity = NULL) {
   .wb_require_pkg("jsonlite", "ingest report artifact")
@@ -112,7 +113,12 @@
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, artifact_id = artifact_id,
     matrix_ids = matrix_ids, created_by = created_by,
-    transaction_open = transaction_open, source_identity = source_identity
+    transaction_open = transaction_open, source_identity = source_identity,
+    authoritative_entity_outputs = FALSE
+  )
+  .wb_prov_link_source_to_existing_producers(
+    bundle, matrix_ids = matrix_ids, space_ids = space_ids,
+    source_identity = source_identity
   )
   if (!isTRUE(transaction_open)) .wb_refresh_manifest_committed(bundle)
   artifact_id
@@ -405,6 +411,8 @@ wb_ingest_apply <- function(bundle,
   if (!is.null(source_identity)) source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
   .wb_assert_bundle_writable(bundle, "ingestion")
   apply_mode <- match.arg(apply_mode)
+  .wb_assert(is.null(metadata) || identical(apply_mode, "atomic"),
+             "Metadata ingestion requires apply_mode='atomic' so values, identity, and provenance publish together.")
   chk <- wb_ingest_validate(
     bundle = bundle,
     set_name = set_name,
@@ -436,7 +444,10 @@ wb_ingest_apply <- function(bundle,
   }
 
   .wb_with_mutation_context(bundle = bundle, route = "ingestion", code = {
-  run_ingest <- function() {
+  run_ingest <- function(transaction_open = FALSE) {
+    old_transaction <- getOption("scworkbench.ingest_transaction_open", FALSE)
+    options(scworkbench.ingest_transaction_open = isTRUE(transaction_open))
+    on.exit(options(scworkbench.ingest_transaction_open = old_transaction), add = TRUE)
     wb_ingest_cells(
       bundle = bundle,
       set_name = set_name,
@@ -452,7 +463,7 @@ wb_ingest_apply <- function(bundle,
   res <- NULL
   artifact_id <- NA_character_
   if (identical(apply_mode, "best_effort")) {
-    res <- run_ingest()
+    res <- run_ingest(FALSE)
     if (isTRUE(emit_report_artifact)) {
       artifact_id <- .wb_ingest_report_artifact(
         bundle = bundle,
@@ -463,7 +474,8 @@ wb_ingest_apply <- function(bundle,
         result = res %||% list(),
         created_by = created_by,
         source = source,
-        matrix_ids = names(norm$matrices %||% list()), source_identity = source_identity
+        matrix_ids = names(norm$matrices %||% list()),
+        space_ids = names(norm$spaces %||% list()), source_identity = source_identity
       )
     }
     if (!isTRUE(emit_report_artifact)) {
@@ -485,7 +497,7 @@ wb_ingest_apply <- function(bundle,
     err <- NULL
     res <- try(
       DBI::dbWithTransaction(con, {
-        r0 <- run_ingest()
+        r0 <- run_ingest(TRUE)
         a0 <- NA_character_
         if (isTRUE(emit_report_artifact)) {
           a0 <- .wb_ingest_report_artifact(
@@ -498,6 +510,7 @@ wb_ingest_apply <- function(bundle,
             created_by = created_by,
             source = source,
             matrix_ids = names(norm$matrices %||% list()),
+            space_ids = names(norm$spaces %||% list()),
             transaction_open = TRUE, source_identity = source_identity
           )
         }

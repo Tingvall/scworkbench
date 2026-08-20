@@ -112,7 +112,16 @@ test_canonical_composed_dag_snapshot_lookup_contract <- function() {
     source_identity = source_identity
   )
   source_pair <- unique(wb_prov_source_inputs(b)[c("snapshot_id", "run_id")])
-  stopifnot(nrow(source_pair) == 1L)
+  matrix_producer <- DBI::dbGetQuery(b$con, paste(
+    "SELECT snapshot_id,run_id FROM prov_run_entity_bindings WHERE entity_kind='matrix'",
+    "AND entity_id='RNA_counts' AND relationship_type IN ('PRODUCES','MATERIALIZES');"
+  ))
+  aggregate_run <- DBI::dbGetQuery(b$con,
+    "SELECT snapshot_id,run_id FROM prov_runs WHERE op_name='ingest_apply';")
+  stopifnot(nrow(source_pair) == 2L, nrow(matrix_producer) == 1L, nrow(aggregate_run) == 1L,
+            all(paste(source_pair$snapshot_id, source_pair$run_id) %in%
+                  paste(rbind(matrix_producer, aggregate_run)$snapshot_id,
+                        rbind(matrix_producer, aggregate_run)$run_id)))
 
   norm <- wb_session_run_op(wb_session_new(), b, "matrix_log_normalize", inputs = list(
     matrix = "RNA_counts", cell_set = "all", min_cells = 2L,

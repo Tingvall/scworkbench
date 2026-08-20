@@ -361,7 +361,8 @@
     dense_space = "scworkbench.content.dense-space-hdf5.sha256.v1",
     raw_file = "scworkbench.content.raw-file.sha256.v1",
     file_tree = "scworkbench.content.file-tree.canonical-json.v1",
-    registry = "scworkbench.content.registry.canonical-json.v1"
+    registry = "scworkbench.content.registry.canonical-json.v1",
+    metadata_field = "scworkbench.content.metadata-field.cell-id-fold.v1"
   )
 }
 
@@ -944,11 +945,13 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
 
 .wb_prov_record_ingestion <- function(bundle, run, artifact_id = NA_character_,
                                       matrix_ids = character(0), created_by = NULL,
-                                      transaction_open = FALSE, source_identity = NULL) {
+                                      transaction_open = FALSE, source_identity = NULL,
+                                      authoritative_entity_outputs = TRUE,
+                                      metadata_fields = NULL) {
   .wb_assert(wb_is_run(run), "run must be a wb_run")
   matrix_ids <- unique(as.character(matrix_ids %||% character(0)))
   matrix_ids <- matrix_ids[nzchar(matrix_ids)]
-  matrix_outputs <- if (length(matrix_ids)) {
+  matrix_outputs <- if (isTRUE(authoritative_entity_outputs) && length(matrix_ids)) {
     stats::setNames(lapply(matrix_ids, wb_prim_matrix), paste0("matrix_", matrix_ids))
   } else list()
   run$outputs <- c(run$outputs %||% list(), matrix_outputs)
@@ -965,9 +968,68 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
     description = "Durable ingestion entity bindings", created_by = created_by,
     transaction_open = transaction_open
   )
-  .wb_prov_record_source_identity(bundle, sid, run$run_id, matrix_ids, source_identity)
+  if (isTRUE(authoritative_entity_outputs)) {
+    .wb_prov_record_source_identity(bundle, sid, run$run_id, matrix_ids, source_identity)
+  }
   .wb_prov_record_source_inputs(bundle, sid, run$run_id, source_identity %||% list())
+  if (!is.null(metadata_fields) && nrow(metadata_fields)) {
+    .wb_metadata_identity_bind_producer(
+      bundle$con, metadata_fields, sid, run$run_id,
+      DBI::dbGetQuery(bundle$con, "SELECT commit_id FROM prov_heads WHERE snapshot_id=?;",
+                      params = list(sid))$commit_id[[1L]],
+      source = "declared_ingestion"
+    )
+  }
   sid
+}
+
+.wb_prov_link_source_to_existing_producers <- function(bundle, matrix_ids, space_ids,
+                                                        source_identity) {
+  entity_rows <- function(kind, ids) {
+    ids <- unique(as.character(ids %||% character()))
+    data.frame(entity_kind = rep(kind, length(ids)), entity_id = ids, stringsAsFactors = FALSE)
+  }
+  entities <- rbind(entity_rows("matrix", matrix_ids), entity_rows("space", space_ids))
+  entities <- entities[!is.na(entities$entity_id) & nzchar(entities$entity_id), , drop = FALSE]
+  if (!nrow(entities) || is.null(source_identity)) return(invisible(FALSE))
+  producers <- do.call(rbind, lapply(seq_len(nrow(entities)), function(i) {
+    rows <- DBI::dbGetQuery(
+      bundle$con,
+      "SELECT snapshot_id,run_id FROM prov_run_entity_bindings
+       WHERE entity_kind=? AND entity_id=? AND relationship_type IN ('PRODUCES','MATERIALIZES')
+       ORDER BY snapshot_id,run_id;",
+      params = unname(as.list(entities[i, c("entity_kind", "entity_id")]))
+    )
+    if (nrow(rows)) cbind(rows, entities[rep(i, nrow(rows)), , drop = FALSE]) else NULL
+  }))
+  if (is.null(producers) || !nrow(producers)) return(invisible(FALSE))
+  for (i in seq_len(nrow(producers))) {
+    sid <- as.character(producers$snapshot_id[[i]])
+    rid <- as.character(producers$run_id[[i]])
+    .wb_prov_record_source_inputs(bundle, sid, rid, source_identity)
+    if (identical(as.character(producers$entity_kind[[i]]), "matrix")) {
+      mid <- as.character(producers$entity_id[[i]])
+      existing <- DBI::dbGetQuery(
+        bundle$con,
+        "SELECT source_identity_json FROM prov_source_identities WHERE snapshot_id=? AND run_id=? AND matrix_id=?;",
+        params = list(sid, rid, mid)
+      )
+      if (nrow(existing)) {
+        parsed <- tryCatch(jsonlite::fromJSON(existing$source_identity_json[[1L]], simplifyVector = FALSE), error = function(e) NULL)
+        inputs <- parsed$inputs %||% list()
+        replaceable <- length(inputs) > 0L && all(vapply(inputs, function(x) {
+          identical(as.character(x$scope %||% x$source_scope %||% ""), "internal_assembly")
+        }, logical(1)))
+        if (isTRUE(replaceable)) DBI::dbExecute(
+          bundle$con,
+          "DELETE FROM prov_source_identities WHERE snapshot_id=? AND run_id=? AND matrix_id=?;",
+          params = list(sid, rid, mid)
+        )
+      }
+      .wb_prov_record_source_identity(bundle, sid, rid, mid, source_identity)
+    }
+  }
+  invisible(TRUE)
 }
 
 .wb_prov_record_ingestion_substep <- function(bundle, run, artifact_id, created_by = NULL) {

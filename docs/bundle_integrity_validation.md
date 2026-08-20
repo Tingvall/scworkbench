@@ -51,12 +51,17 @@ materialization, replay-equivalence verification, lifecycle bindings, and
 validation carry the same scheme. A 64-character digest without a scheme is a
 legacy/unverifiable claim, never silently interpreted as a current hash. The
 report's `content_coverage` table accounts for every bundle-owned durable
-matrix, space, model, artifact, and provenance-bound registry entity as
+matrix, space, model, artifact, non-core metadata field, and provenance-bound registry entity as
 `content_verified`, `structurally_checked_only`, `legacy_unverifiable`, or
 `content_mismatch`; declared non-bundled sources can be
 `externally_unavailable`. Missing baselines produce
 `DURABLE_CONTENT_IDENTITY_MISSING`; unavailable non-bundled source inputs retain
 their separate warning-only exception.
+
+Metadata-field coverage is independently recomputed from the registry and
+`cells` table in bounded `cell_id` order. Value, missingness, storage type, or
+registry rebinding corruption reports `DURABLE_CONTENT_IDENTITY_MISMATCH`;
+validation never consults the original metadata source.
 
 Run/contract integrity, structural fingerprints, materialization compatibility,
 and graph/display identifiers use separate explicit schemes documented in

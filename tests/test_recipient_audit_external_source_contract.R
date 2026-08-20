@@ -13,8 +13,9 @@ test_recipient_audit_external_source_contract <- function() {
     matrix_ids="RNA_counts", source_identity=identity)
   inputs_all <- wb_prov_source_inputs(b)
   inputs <- inputs_all[as.character(inputs_all$checksum_status) == "checksummed", , drop = FALSE]
-  stopifnot(nrow(inputs)==27L, all(as.character(inputs$checksum_status) == "checksummed"), all(as.character(inputs$checksum_algorithm) == "sha256"))
-  dag <- wb_prov_bundle_dag(b); run <- as.character(inputs$run_id[1]); art <- wb_ingest_reports(b)$artifact_id[1]
+  stopifnot(nrow(inputs)==54L, length(unique(inputs$source_id))==27L, all(as.character(inputs$checksum_status) == "checksummed"), all(as.character(inputs$checksum_algorithm) == "sha256"))
+  dag <- wb_prov_bundle_dag(b); art <- wb_ingest_reports(b)$artifact_id[1]
+  run <- DBI::dbGetQuery(b$con,"SELECT run_id FROM prov_run_outputs WHERE artifact_id=?;",params=list(art))$run_id[[1L]]
   key <- paste(dag$edges$from, dag$edges$to, sep="|")
   stopifnot(all(paste0("external_source:", inputs$source_id, "|run:", run) %in% key), any(paste0("run:", run, "|artifact:", art) == key))
   stopifnot(any(grepl("^external_source:", wb_kg_provenance_graph(b)$nodes$id)))
@@ -25,7 +26,7 @@ test_recipient_audit_external_source_contract <- function() {
   on.exit(try(wb_close_bundle(ro), silent=TRUE), add=TRUE)
   ro_inputs <- wb_prov_source_inputs(ro)
   stopifnot(isTRUE(ro$read_only), nrow(wb_matrices(ro))==1L, nrow(wb_art_list(ro))>=1L,
-            sum(as.character(ro_inputs$checksum_status) == "checksummed") == 27L,
+            sum(as.character(ro_inputs$checksum_status) == "checksummed") == 54L,
             nrow(wb_prov_bundle_dag(ro)$nodes)>0L, !inherits(try(wb_art_load(ro, art), silent=TRUE), "try-error"),
             inherits(try(wb_session_run_op(wb_session_new(), ro, "hvg_select", inputs=list(matrix="RNA_counts", n_features=2L)), silent=TRUE), "try-error"))
   wb_close_bundle(ro); stopifnot(identical(before, file.info(file.path(root, "db", "app.sqlite"))$mtime))

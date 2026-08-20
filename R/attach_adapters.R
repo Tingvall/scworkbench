@@ -380,6 +380,8 @@ wb_attach_apply <- function(bundle,
                             emit_report_artifact = FALSE,
                             metadata_field_refs = NULL) {
   apply_mode <- match.arg(apply_mode)
+  .wb_assert(is.null(metadata) || identical(apply_mode, "atomic"),
+             "Metadata attachment requires apply_mode='atomic' so values, identity, and provenance publish together.")
   chk <- wb_attach_validate(
     bundle = bundle,
     cell_ids = cell_ids,
@@ -437,7 +439,8 @@ wb_attach_apply <- function(bundle,
       bundle = bundle, transaction_name = "attach_apply",
       matrix_ids = names(norm$matrices %||% list()),
       space_ids = names(norm$spaces %||% list()),
-      source = source, created_by = created_by
+      source = source, created_by = created_by,
+      metadata_fields = res$metadata$fields %||% NULL
     )
   } else {
     con <- bundle$con
@@ -467,7 +470,8 @@ wb_attach_apply <- function(bundle,
           matrix_ids = names(norm$matrices %||% list()),
           space_ids = names(norm$spaces %||% list()),
           source = source, created_by = created_by,
-          transaction_open = TRUE
+          transaction_open = TRUE,
+          metadata_fields = r0$metadata$fields %||% NULL
         )
         list(result = r0, artifact_id = a0)
       }),

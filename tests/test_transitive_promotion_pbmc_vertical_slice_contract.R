@@ -102,8 +102,13 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
   edges <- dag$edges
   key <- paste(edges$from, edges$to, edges$edge_type, sep = "|")
   bindings <- DBI::dbGetQuery(b$con, "SELECT run_id, entity_kind, entity_id, relationship_type FROM prov_run_entity_bindings;")
-  ingest_run <- DBI::dbGetQuery(b$con, "SELECT run_id FROM prov_runs WHERE op_name = 'ingest_apply';")$run_id[1]
+  ingest_run <- DBI::dbGetQuery(b$con, paste(
+    "SELECT run_id FROM prov_run_entity_bindings WHERE entity_kind='matrix' AND entity_id='RNA_counts'",
+    "AND relationship_type IN ('PRODUCES','MATERIALIZES');"
+  ))$run_id[1]
+  aggregate_run <- DBI::dbGetQuery(b$con, "SELECT run_id FROM prov_runs WHERE op_name = 'ingest_apply';")$run_id[1]
   stopifnot(any(bindings$run_id == ingest_run & bindings$entity_kind == "matrix" & bindings$entity_id == "RNA_counts" & bindings$relationship_type == "MATERIALIZES"))
+  stopifnot(!any(bindings$run_id == aggregate_run & bindings$entity_kind == "matrix" & bindings$entity_id == "RNA_counts" & bindings$relationship_type %in% c("PRODUCES","MATERIALIZES")))
   stopifnot(any(key == paste("matrix:RNA_counts", paste0("run:", r_norm$run$run_id), "CONSUMES", sep = "|")))
   stopifnot(any(key == paste(paste0("run:", ingest_run), "matrix:RNA_counts", "MATERIALIZES", sep = "|")))
   umap_model <- .wb_prov_primitive_entity_binding(r_umap$run$outputs$model)$entity_id

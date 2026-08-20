@@ -2,7 +2,7 @@
 # Component schema helpers remain compatibility shims for callers inside the
 # package, but only this file orchestrates schema creation and upgrades.
 
-.wb_bundle_schema_version <- function() 7L
+.wb_bundle_schema_version <- function() 8L
 
 .wb_bundle_schema_migrations <- function() {
   list(
@@ -12,7 +12,8 @@
     list(version = 4L, id = "004_complete_space_foreign_keys", apply = .wb_schema_migration_004),
     list(version = 5L, id = "005_metadata_field_registry", apply = .wb_schema_migration_005),
     list(version = 6L, id = "006_provenance_identity_schemes", apply = .wb_schema_migration_006),
-    list(version = 7L, id = "007_analysis_capsules", apply = .wb_schema_migration_007)
+    list(version = 7L, id = "007_analysis_capsules", apply = .wb_schema_migration_007),
+    list(version = 8L, id = "008_metadata_field_content_identity", apply = .wb_schema_migration_008)
   )
 }
 
@@ -131,6 +132,8 @@
 
 .wb_schema_migration_001 <- function(con, bundle_dir = NULL) {
   .wb_ensure_schema_app_bundle(con)
+  .wb_ensure_metadata_fields_table(con)
+  .wb_ensure_metadata_field_identities_table(con)
   .wb_ensure_analysis_capsule_tables(con)
   .wb_create_artifacts_schema(con)
   .wb_migrate_provenance_tables_locked(con)
@@ -283,6 +286,10 @@
     analysis_capsule_relationships = list(
       fk("capsule_id", "analysis_capsules"),
       fk("related_capsule_id", "analysis_capsules", "capsule_id")
+    ),
+    metadata_field_identities = list(
+      fk("field_id", "metadata_fields", "field_id"),
+      fk(c("snapshot_id", "run_id"), "prov_runs", c("snapshot_id", "run_id"))
     )
   )
 }
@@ -404,6 +411,7 @@
     list("motif_libraries", "source_id", "external motif-library source identity"),
     list("motifs", "motif_id", "source-library motif identity"),
     list("metadata_fields", "import_id", "ingestion or attachment transaction identity"),
+    list("metadata_field_identities", "import_id", "metadata publication transaction identity"),
     list("space_models", "cell_set", "symbolic fitted-cell selector"),
     list("prov_source_inputs", "source_id", "external source identity"),
     list("registry_mutation_events", "event_id", "session-local event identity"),
@@ -478,6 +486,11 @@
 
 .wb_schema_migration_007 <- function(con, bundle_dir = NULL) {
   .wb_ensure_analysis_capsule_tables(con)
+  invisible(TRUE)
+}
+
+.wb_schema_migration_008 <- function(con, bundle_dir = NULL) {
+  .wb_ensure_metadata_field_identities_table(con)
   invisible(TRUE)
 }
 

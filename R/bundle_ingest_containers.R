@@ -278,12 +278,6 @@
     entity_kind = "ingest",
     meta = list(source_type = source_type, importer_version = .wb_ingest_version())
   )
-  space_outputs <- if (length(spaces_imported)) {
-    stats::setNames(
-      lapply(as.character(spaces_imported), wb_prim_space),
-      paste0("space_", as.character(spaces_imported))
-    )
-  } else list()
   run <- wb_new_run(
     op_name = paste0("bundle_ingest_", tolower(gsub("[^A-Za-z0-9]+", "_", source_type))),
     inputs = list(
@@ -292,7 +286,7 @@
       user_inputs = list(source_path = source_path)
     ),
     params = list(importer_version = .wb_ingest_version(), cell_id_policy = cell_id_policy, feature_id_policy = feature_id_policy, status = status, phase = phase),
-    outputs = c(list(ingest_report = prim), space_outputs),
+    outputs = list(ingest_report = prim),
     notes = "Container ingestion report"
   )
   artifact_id <- .wb_promote_obs_table(
@@ -307,7 +301,12 @@
   )
   .wb_prov_record_ingestion(
     bundle = bundle, run = run, artifact_id = artifact_id,
-    matrix_ids = matrix_ids, created_by = created_by, source_identity = source_identity
+    matrix_ids = matrix_ids, created_by = created_by, source_identity = source_identity,
+    authoritative_entity_outputs = FALSE
+  )
+  .wb_prov_link_source_to_existing_producers(
+    bundle, matrix_ids = matrix_ids, space_ids = spaces_imported,
+    source_identity = source_identity
   )
   wb_refresh_manifest(bundle)
   artifact_id

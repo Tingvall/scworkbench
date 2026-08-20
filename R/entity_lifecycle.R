@@ -387,6 +387,14 @@
     )
   }
   old_hash <- .wb_entity_nonmissing_hash(row$identity_hash[1])
+  if (identical(kind, "metadata_field") && !is.na(hash)) {
+    DBI::dbExecute(
+      con,
+      "UPDATE entity_lifecycle SET lifecycle_state='current',identity_hash=?,identity_scheme=?,provenance_bound=1,updated_at=?,actor=COALESCE(?,actor) WHERE entity_kind=? AND entity_id=?;",
+      params = list(hash, identity_scheme, now, actor, kind, id)
+    )
+    return(invisible(TRUE))
+  }
   if (!is.na(old_hash) && !is.na(hash) && !identical(old_hash, hash)) {
     stop(
       "Conflicting immutable identity hash for ", kind, " '", id,
@@ -442,6 +450,14 @@
       next
     }
     old_hash <- .wb_entity_nonmissing_hash(row$identity_hash[1])
+    if (identical(target$kind, "metadata_field") && !is.na(hash)) {
+      DBI::dbExecute(
+        con,
+        "UPDATE entity_lifecycle SET identity_hash=?,identity_scheme=?,provenance_bound=1 WHERE entity_kind=? AND entity_id=?;",
+        params = list(hash, identity_scheme, target$kind, target$id)
+      )
+      next
+    }
     if (!is.na(old_hash) && !is.na(hash) && !identical(old_hash, hash)) {
       stop(
         "Conflicting immutable identity hashes in persisted provenance for ",

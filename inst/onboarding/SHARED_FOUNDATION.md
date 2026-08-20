@@ -108,7 +108,8 @@ string. Input column names remain source names even when they look like
 position-aligned `field_refs` channel of `wb_attach_metadata()`. Default
 `wb_meta()` always exposes literal core aliases `cell_id` and `dataset_id`.
 See `docs/metadata_field_identity.md` for namespace, type, update, rollback,
-and set-based ingestion rules.
+bounded content identity, current producer, historical update, and set-based
+ingestion rules.
 
 # Provenance-only mutation boundary
 

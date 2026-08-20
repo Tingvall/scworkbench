@@ -37,6 +37,145 @@
   invisible(TRUE)
 }
 
+.wb_ensure_metadata_field_identities_table <- function(con) {
+  DBI::dbExecute(con, paste(
+    "CREATE TABLE IF NOT EXISTS metadata_field_identities (",
+    "identity_id TEXT PRIMARY KEY,",
+    "field_id TEXT NOT NULL,",
+    "identity_version INTEGER NOT NULL,",
+    "content_sha256 TEXT NOT NULL,",
+    "content_identity_scheme TEXT NOT NULL,",
+    "registry_sha256 TEXT NOT NULL,",
+    "n_cells INTEGER NOT NULL,",
+    "import_id TEXT NOT NULL,",
+    "source TEXT,",
+    "snapshot_id TEXT,",
+    "run_id TEXT,",
+    "is_current INTEGER NOT NULL CHECK(is_current IN (0,1)),",
+    "created_at TEXT NOT NULL,",
+    "UNIQUE(field_id, identity_version),",
+    "FOREIGN KEY(field_id) REFERENCES metadata_fields(field_id) DEFERRABLE INITIALLY DEFERRED,",
+    "FOREIGN KEY(snapshot_id,run_id) REFERENCES prov_runs(snapshot_id,run_id) DEFERRABLE INITIALLY DEFERRED",
+    ");"
+  ))
+  DBI::dbExecute(con, "CREATE UNIQUE INDEX IF NOT EXISTS idx_metadata_field_identity_current ON metadata_field_identities(field_id) WHERE is_current=1;")
+  DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_metadata_field_identity_producer ON metadata_field_identities(snapshot_id,run_id);")
+  invisible(TRUE)
+}
+
+.wb_metadata_field_registry_identity <- function(row) {
+  keep <- c("field_id", "source_name", "display_name", "storage_name", "source_position",
+            "storage_type", "source_type", "coercion_type", "collision_status",
+            "resolution", "is_core")
+  .wb_prov_sha256_object(as.list(row[1L, keep, drop = FALSE]))
+}
+
+.wb_metadata_field_content_identity <- function(con, field_id, chunk_size = 5000L) {
+  .wb_assert("metadata_field_identities" %in% DBI::dbListTables(con),
+             "Metadata field identities are unavailable in this bundle schema.")
+  row <- DBI::dbGetQuery(con, "SELECT * FROM metadata_fields WHERE field_id=?;", params = list(field_id))
+  .wb_assert(nrow(row) == 1L, paste0("Unknown metadata field identity: ", field_id))
+  registry_sha <- .wb_metadata_field_registry_identity(row)
+  scheme <- unname(.wb_content_identity_schemes()[["metadata_field"]])
+  state <- .wb_prov_sha256_object(list(
+    schema = scheme, field_id = as.character(field_id), registry_sha256 = registry_sha
+  ))
+  last <- NULL
+  n_cells <- 0L
+  repeat {
+    sql <- paste0(
+      "SELECT cell_id, ", .wb_quote_identifier(con, as.character(row$storage_name[[1L]])),
+      " AS value FROM cells ",
+      if (is.null(last)) "" else "WHERE cell_id > ? ",
+      "ORDER BY cell_id LIMIT ?;"
+    )
+    params <- if (is.null(last)) list(as.integer(chunk_size)) else list(last, as.integer(chunk_size))
+    chunk <- DBI::dbGetQuery(con, sql, params = params)
+    if (!nrow(chunk)) break
+    storage_type <- as.character(row$storage_type[[1L]])
+    missing <- is.na(chunk$value)
+    values <- switch(
+      storage_type,
+      INTEGER = as.character(as.integer(chunk$value)),
+      REAL = sprintf("%.17g", suppressWarnings(as.numeric(chunk$value))),
+      TEXT = enc2utf8(as.character(chunk$value)),
+      stop("Unsupported metadata storage type: ", storage_type, call. = FALSE)
+    )
+    values[missing] <- ""
+    state <- .wb_prov_sha256_object(list(
+      previous = state,
+      cell_id = enc2utf8(as.character(chunk$cell_id)),
+      missing = as.integer(missing),
+      value = values
+    ))
+    n_cells <- n_cells + nrow(chunk)
+    last <- as.character(chunk$cell_id[[nrow(chunk)]])
+  }
+  list(content_sha256 = state, content_identity_scheme = scheme,
+       registry_sha256 = registry_sha, n_cells = as.integer(n_cells))
+}
+
+.wb_metadata_identity_publish <- function(con, fields, import_id, source, now) {
+  .wb_ensure_metadata_field_identities_table(con)
+  out <- fields
+  out$identity_id <- NA_character_
+  out$content_sha256 <- NA_character_
+  out$content_identity_scheme <- NA_character_
+  out$registry_sha256 <- NA_character_
+  out$identity_version <- NA_integer_
+  out$n_identity_cells <- NA_integer_
+  for (i in seq_len(nrow(out))) {
+    fid <- as.character(out$field_id[[i]])
+    identity <- .wb_metadata_field_content_identity(con, fid)
+    version <- as.integer(DBI::dbGetQuery(
+      con, "SELECT COALESCE(MAX(identity_version),0)+1 AS version FROM metadata_field_identities WHERE field_id=?;",
+      params = list(fid)
+    )$version[[1L]])
+    iid <- paste0(fid, "@", import_id)
+    DBI::dbExecute(con, "UPDATE metadata_field_identities SET is_current=0 WHERE field_id=? AND is_current=1;", params = list(fid))
+    DBI::dbExecute(con, paste(
+      "INSERT INTO metadata_field_identities(identity_id,field_id,identity_version,content_sha256,",
+      "content_identity_scheme,registry_sha256,n_cells,import_id,source,snapshot_id,run_id,is_current,created_at)",
+      "VALUES(?,?,?,?,?,?,?,?,?,?,?,1,?);"
+    ), params = list(iid, fid, version, identity$content_sha256,
+                     identity$content_identity_scheme, identity$registry_sha256,
+                     identity$n_cells, import_id, source, NA_character_, NA_character_, now))
+    out$identity_id[[i]] <- iid
+    out$content_sha256[[i]] <- identity$content_sha256
+    out$content_identity_scheme[[i]] <- identity$content_identity_scheme
+    out$registry_sha256[[i]] <- identity$registry_sha256
+    out$identity_version[[i]] <- version
+    out$n_identity_cells[[i]] <- identity$n_cells
+  }
+  out
+}
+
+.wb_metadata_identity_bind_producer <- function(con, fields, snapshot_id, run_id,
+                                                 commit_id, source) {
+  if (is.null(fields) || !nrow(fields)) return(invisible(FALSE))
+  .wb_ensure_metadata_field_identities_table(con)
+  for (i in seq_len(nrow(fields))) {
+    iid <- as.character(fields$identity_id[[i]] %||% "")
+    .wb_assert(nzchar(iid), "Metadata provenance publication requires a staged identity_id.")
+    DBI::dbExecute(
+      con,
+      "UPDATE metadata_field_identities SET snapshot_id=?,run_id=? WHERE identity_id=? AND snapshot_id IS NULL AND run_id IS NULL;",
+      params = list(snapshot_id, run_id, iid)
+    )
+    .wb_assert(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM metadata_field_identities WHERE identity_id=? AND snapshot_id=? AND run_id=?;", params = list(iid, snapshot_id, run_id))$n[[1L]] == 1L,
+               "Metadata identity producer binding was not published atomically.")
+    .wb_prov_insert_entity_binding(
+      con, snapshot_id, commit_id, run_id, "output",
+      paste0("metadata_field.", as.integer(i)), "metadata_field",
+      as.character(fields$field_id[[i]]), "PRODUCES",
+      content_hash = as.character(fields$content_sha256[[i]]),
+      content_identity_scheme = as.character(fields$content_identity_scheme[[i]]),
+      source = source
+    )
+  }
+  invisible(TRUE)
+}
+
 .wb_metadata_backfill_registry <- function(con) {
   .wb_ensure_metadata_fields_table(con)
   info <- DBI::dbGetQuery(con, paste0("PRAGMA table_info(", .wb_quote_identifier(con, "cells"), ");"))
@@ -422,6 +561,8 @@ wb_metadata_field_resolve <- function(bundle, field, include_core = TRUE) {
       x$values <- NULL
       x
     }))
+    fields <- .wb_metadata_identity_publish(con, fields, import_id, source, now)
+    .wb_metadata_writer_hook("after_identity_publication", con, fields)
     report <- list(
       n_rows = nrow(md), fields = fields,
       statement_count = as.integer(3L * sum(fields$created_at == now) +

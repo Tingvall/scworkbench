@@ -534,6 +534,33 @@ wb_bundle_validation_report <- function(bundle_dir,
             message = "Metadata field storage type disagrees with physical SQLite storage."
           )
         }
+        if ("metadata_field_identities" %in% tables) {
+          identities <- DBI::dbGetQuery(con, "SELECT * FROM metadata_field_identities ORDER BY field_id,identity_version;")
+          non_core <- as.character(fields$field_id[fields$is_core == 0L])
+          for (fid in non_core) {
+            current <- identities$identity_id[identities$field_id == fid & identities$is_current == 1L]
+            if (length(current) != 1L) add(
+              "METADATA_FIELD_CURRENT_IDENTITY_INVALID", check_class = "provenance",
+              entity_kind = "metadata_field", entity_id = fid, table = "metadata_field_identities",
+              expected = "exactly one", observed = length(current),
+              message = "Every non-core metadata field must have one authoritative current identity."
+            )
+          }
+          for (i in seq_len(nrow(identities))) if (identities$is_current[[i]] == 1L) {
+            hit <- DBI::dbGetQuery(con, paste(
+              "SELECT COUNT(*) AS n FROM prov_run_entity_bindings WHERE snapshot_id=? AND run_id=?",
+              "AND entity_kind='metadata_field' AND entity_id=? AND relationship_type IN ('PRODUCES','MATERIALIZES')",
+              "AND content_hash=? AND content_identity_scheme=?;"
+            ), params = list(identities$snapshot_id[[i]], identities$run_id[[i]], identities$field_id[[i]],
+                             identities$content_sha256[[i]], identities$content_identity_scheme[[i]]))$n[[1L]]
+            if (is.na(hit) || hit != 1L) add(
+              "METADATA_FIELD_PRODUCER_BINDING_INVALID", check_class = "provenance",
+              entity_kind = "metadata_field", entity_id = identities$field_id[[i]],
+              table = "metadata_field_identities", expected = "one matching current producer", observed = hit,
+              message = "Current metadata content identity and producer binding must be published together."
+            )
+          }
+        }
       }
       datasets <- DBI::dbGetQuery(con, "SELECT dataset_id, n_cells FROM datasets ORDER BY rowid;")
       actual_ds <- table(as.character(cells$dataset_id), useNA = "ifany")
@@ -1218,7 +1245,7 @@ wb_bundle_validation_report <- function(bundle_dir,
       physical <- .wb_entity_physical_inventory(bundle)
       if (nrow(physical)) {
         life <- if (.wb_table_exists(con,"entity_lifecycle")) DBI::dbGetQuery(con,"SELECT * FROM entity_lifecycle;") else data.frame()
-        keep <- physical$entity_kind %in% c("matrix","space","model","artifact")
+        keep <- physical$entity_kind %in% c("matrix","space","model","artifact","metadata_field")
         if (nrow(life)) keep <- keep | vapply(seq_len(nrow(physical)),function(i) any(life$entity_kind==physical$entity_kind[i] & life$entity_id==physical$entity_id[i] & life$provenance_bound==1L),logical(1))
         keep <- keep & !physical$entity_kind %in% c("external_source", "in_memory_source")
         physical <- unique(physical[keep,,drop=FALSE])
@@ -1241,6 +1268,10 @@ wb_bundle_validation_report <- function(bundle_dir,
             hit <- vapply(entities,function(x)!is.null(x)&&identical(x$kind,kind)&&identical(x$id,id),logical(1))
             if(any(hit)){ n<-n+1L; rows[[n]]<-data.frame(hash=as.character(registry$content_hash[hit]),scheme=if("content_identity_scheme" %in% names(registry)) as.character(registry$content_identity_scheme[hit]) else NA_character_,source="prov_registry_mutations",stringsAsFactors=FALSE) }
           }
+          if (kind == "metadata_field" && .wb_table_exists(con, "metadata_field_identities")) {
+            mi <- DBI::dbGetQuery(con, "SELECT content_sha256,content_identity_scheme FROM metadata_field_identities WHERE field_id=? AND is_current=1;", params=list(id))
+            if (nrow(mi)) { n<-n+1L; rows[[n]]<-data.frame(hash=as.character(mi$content_sha256),scheme=as.character(mi$content_identity_scheme),source="metadata_field_identities",stringsAsFactors=FALSE) }
+          }
           if (nrow(life) && all(c("identity_hash","identity_scheme") %in% names(life))) {
             hit <- life$entity_kind==kind & life$entity_id==id
             if (any(hit)) { n<-n+1L; rows[[n]]<-data.frame(hash=as.character(life$identity_hash[hit]),scheme=as.character(life$identity_scheme[hit]),source="entity_lifecycle",stringsAsFactors=FALSE) }
@@ -1255,6 +1286,7 @@ wb_bundle_validation_report <- function(bundle_dir,
             else if(kind=="model") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM space_models WHERE space_id=?;",params=list(id)); if(nrow(mr)){ checked<-.wb_validation_path(root,mr$model_path[1],"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list() }
             else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]]))) else if(as.character(at)=="model_ref") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked<-if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
             else if(kind%in%c("cell_set","feature_set")) list(list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]])))
+            else if(kind=="metadata_field") list(.wb_metadata_field_content_identity(con,id))
             else list()
           },error=function(e)list())
           if(!length(identities)) return(data.frame(hash=character(),scheme=character(),stringsAsFactors=FALSE))

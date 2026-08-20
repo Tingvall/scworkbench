@@ -72,7 +72,7 @@ test_publish_app_bundle_provenance_contract <- function() {
   ]
   run_bindings <- DBI::dbGetQuery(
     bundle$con,
-    "SELECT direction, binding_name, entity_kind, entity_id, relationship_type
+    "SELECT run_id, direction, binding_name, entity_kind, entity_id, relationship_type
        FROM prov_run_entity_bindings ORDER BY direction, binding_name, entity_kind, entity_id;"
   )
   ingest_runs <- DBI::dbGetQuery(
@@ -86,21 +86,21 @@ test_publish_app_bundle_provenance_contract <- function() {
     , drop = FALSE
   ]
   stopifnot(
-    nrow(publisher_inputs) == 1L,
-    identical(as.character(publisher_inputs$scope), "in_memory"),
-    identical(as.character(publisher_inputs$checksum_status), "nonportable_in_memory"),
-    identical(
-      as.character(publisher_inputs$uri),
-      "scworkbench-ingestion://wb_publish_app_bundle/in-memory-seurat"
-    ),
+    nrow(publisher_inputs) == 3L,
+    all(as.character(publisher_inputs$scope) == "in_memory"),
+    all(as.character(publisher_inputs$checksum_status) == "nonportable_in_memory"),
+    all(as.character(publisher_inputs$uri) ==
+      "scworkbench-ingestion://wb_publish_app_bundle/in-memory-seurat"),
     nrow(publisher_identity) == 1L,
     nrow(ingest_runs) == 1L,
     any(run_bindings$direction == "input" & run_bindings$entity_kind == "in_memory_source" &
           run_bindings$relationship_type == "CONSUMES"),
-    any(run_bindings$direction == "output" & run_bindings$entity_kind == "matrix" &
-          run_bindings$entity_id == "RNA_counts"),
-    any(run_bindings$direction == "output" & run_bindings$entity_kind == "space" &
-          run_bindings$entity_id == "pca"),
+    sum(run_bindings$direction == "output" & run_bindings$entity_kind == "matrix" &
+          run_bindings$entity_id == "RNA_counts") == 1L,
+    sum(run_bindings$direction == "output" & run_bindings$entity_kind == "space" &
+          run_bindings$entity_id == "pca") == 1L,
+    !any(run_bindings$direction == "output" & run_bindings$run_id %in% ingest_runs$run_id &
+           run_bindings$entity_kind %in% c("matrix", "space")),
     nrow(report) == 1L
   )
   birth <- wb_entity_certificate(bundle, "artifact", as.character(report$artifact_id[1]))

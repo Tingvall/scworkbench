@@ -455,24 +455,19 @@ wb_metadata_import <- function(bundle, input, cell_id_col, source_identity,
         snapshot_id <- .wb_prov_record_ingestion(
           bundle, run, artifact_id = artifact_id, matrix_ids = character(),
           created_by = created_by, transaction_open = TRUE,
-          source_identity = locked$source$source_identity
-        )
-        commit_id <- DBI::dbGetQuery(
-          bundle$con, "SELECT commit_id FROM prov_heads WHERE snapshot_id=?;",
-          params = list(snapshot_id)
-        )$commit_id[[1L]]
-        for (i in seq_len(nrow(locked$fields))) .wb_prov_insert_entity_binding(
-          bundle$con, snapshot_id, commit_id, run$run_id,
-          "output", paste0("metadata_field.", i), "metadata_field",
-          locked$fields$field_id[[i]], "PRODUCES", source = "metadata_import"
+          source_identity = locked$source$source_identity,
+          metadata_fields = actual_fields[ordered, , drop = FALSE]
         )
         .wb_metadata_import_fault("before_commit", run_id = run$run_id)
+        result_fields <- locked$fields
+        identity_cols <- setdiff(names(actual_fields), names(result_fields))
+        for (nm in identity_cols) result_fields[[nm]] <- actual_fields[[nm]][ordered]
         list(
           schema = "scworkbench.metadata_import.result.v1", imported = TRUE,
           run_id = run$run_id, snapshot_id = snapshot_id,
           report_artifact_id = artifact_id, source_id = locked$source$source_id,
           source_sha256 = locked$source$actual_sha256,
-          counts = locked$counts, fields = locked$fields,
+          counts = locked$counts, fields = result_fields,
           assurance = list(values = "externally_supplied", upstream_derivation = "not_engine_observed")
         )
       })

@@ -74,8 +74,25 @@ Cell definition, generic ingestion, container ingestion, and metadata attachment
 all use `.wb_write_cell_metadata()`. It validates the whole input, stages values
 under private safe aliases, quotes every identifier with
 `DBI::dbQuoteIdentifier()`, binds values, and performs one set-based update per
-field. Schema additions, registry rows, and values share one SQLite transaction;
-failure leaves none of them visible.
+field. Schema additions, registry rows, values, canonical content identity, and
+the producer binding share one SQLite transaction; failure leaves none of them
+visible. Metadata attachment therefore requires atomic apply mode.
+
+Every non-core field version has one row in `metadata_field_identities`. Its
+tagged SHA-256 scheme is
+`scworkbench.content.metadata-field.cell-id-fold.v1`. The identity commits to
+the stable field ID, canonical registry and storage type, and every stored row
+ordered by `cell_id`, including explicit missingness and typed values. Input
+row order is irrelevant after cell alignment; renaming or rebinding the field,
+changing its type/coercion contract, missingness, or any cell value changes the
+digest. Compatible updates retain older identity and producer rows as history,
+while exactly one identity is current and drives the public certificate.
+
+Hashing reads the canonical column in bounded cell-ID chunks and folds each
+chunk into the prior digest state. Peak hashing memory is `O(chunk_size)` and
+does not require materializing the bundle-wide metadata table. Content and
+recipient validation recompute this identity from the bundle alone; external
+source files are not reopened.
 
 SQL statement count is `O(n_fields)` and independent of cell count. Data work is
 `O(n_rows * n_fields * log(bundle_cells))`: values are staged once in a temporary
@@ -88,6 +105,7 @@ mechanical ingestion and does not create an unprovenanced scientific primitive;
 use `metadata_cell_vector` when a metadata field becomes a reusable scientific
 vector.
 
-Existing development bundles migrate to schema version 5 by backfilling exact
-current column names. A bundle whose ledger claims version 5 but lacks a complete,
-non-conflicting registry is corrupt and deep validation rejects it.
+Fresh bundles use schema version 8. This pre-release schema break does not claim
+content baselines for older development bundles. A bundle whose ledger claims
+the current schema but lacks complete, non-conflicting registry and current
+identity rows is corrupt and validation rejects it.

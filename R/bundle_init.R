@@ -175,16 +175,17 @@ wb_define_cells <- function(bundle,
         bundle$con, md, target_cell_ids = ids, source = source, created_by = created_by
       )
     }
+    .wb_record_declared_ingestion(
+      bundle = bundle, transaction_name = "assembly_define_cells",
+      source = source, created_by = created_by, transaction_open = TRUE,
+      metadata_fields = metadata_report$fields %||% NULL
+    )
   })
 
   if (identical(set_name, "core")) {
     .wb_bundle_ensure_default_cell_set_style(bundle$con, "core", created_by = created_by %||% source)
   }
 
-  .wb_record_declared_ingestion(
-    bundle = bundle, transaction_name = "assembly_define_cells",
-    source = source, created_by = created_by
-  )
   wb_refresh_manifest(bundle)
   invisible(list(
     set_name = set_name,
@@ -375,7 +376,7 @@ wb_refresh_manifest <- function(bundle) {
 
 .wb_manifest_registry_table_names <- function() {
   c(
-    "bundle_schema_migrations", "cells", "metadata_fields", "datasets", "features", "matrices", "matrix_cells",
+    "bundle_schema_migrations", "cells", "metadata_fields", "metadata_field_identities", "datasets", "features", "matrices", "matrix_cells",
     "matrix_fragments", "matrix_fragment_cells", "matrix_fragment_features",
     "spaces", "space_payloads", "space_models", "artifacts", "artifact_tables",
     "cell_set_membership", "cell_set_recipes", "cell_set_styles",

@@ -43,6 +43,7 @@ wb_ingest_cells <- function(
              "cell_ids must be a non-empty character vector")
 
   con <- bundle$con
+  transaction_open <- isTRUE(getOption("scworkbench.ingest_transaction_open", FALSE))
   cell_ids <- as.character(cell_ids)
   cell_ids <- cell_ids[nzchar(cell_ids)]
   .wb_assert(length(cell_ids) > 0, "cell_ids empty after cleaning")
@@ -108,6 +109,11 @@ wb_ingest_cells <- function(
         con, metadata, target_cell_ids = cell_ids, source = source, created_by = created_by
       )
     }
+    .wb_record_declared_ingestion(
+      bundle, transaction_name = "ingest_cells", source = source,
+      created_by = created_by, transaction_open = TRUE,
+      metadata_fields = metadata_report$fields %||% NULL
+    )
   })
 
   # -------------------------
@@ -136,6 +142,15 @@ wb_ingest_cells <- function(
       cell_ids = cell_ids,     # restrict to these new cells
       source   = source,
       created_by = created_by
+    )
+  }
+
+  if (length(matrices) || length(spaces)) {
+    .wb_record_declared_ingestion(
+      bundle, transaction_name = "ingest_cells_payloads",
+      matrix_ids = names(matrices), space_ids = names(spaces),
+      source = source, created_by = created_by,
+      transaction_open = transaction_open
     )
   }
 
