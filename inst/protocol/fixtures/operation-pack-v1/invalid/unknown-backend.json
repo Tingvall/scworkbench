@@ -1,0 +1,10 @@
+{
+  "schema_version": "scworkbench.operation_pack.v1",
+  "protocol_version": "1",
+  "namespace": "scwbinvalid",
+  "package": {"name": "scworkbench-invalid-pack", "version": "1.0.0"},
+  "backend": "JavaScript",
+  "compatibility": {"scworkbench": ">=0.1.0 <0.2.0", "protocol": "1"},
+  "entry_point": "invalid-pack",
+  "operations": []
+}

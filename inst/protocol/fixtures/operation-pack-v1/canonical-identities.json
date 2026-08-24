@@ -1,0 +1,45 @@
+{
+  "schema": "scworkbench.operation_pack_fixture_identities.v1",
+  "protocol_version": "1",
+  "authoritative_schema_sha256": "01248103dc8527062eda8732a2dc8e3ad9227579c457b65b013606e348e8fe5f",
+  "invalidated_r_only_schema_sha256": "1ad99dfdbe13fb7693e615f5b1368be3c638d4e9c1cc01d52996a7109ae68767",
+  "r_reference": {
+    "manifest_sha256": "c1e9b1d20dd60566b131212c7e6476fc549257573f60578da42098533378e167",
+    "operation_definition_sha256": "90aa8653e0e489af92988d42f19fa849c4859ffc7e7187922095414466050925",
+    "pack_sha256": "4f9212e127ef49c4386b4411cb786811e10b8cd04861828aedb8abf286ef1192"
+  },
+  "python_reference": {
+    "operation_definition_sha256": "27da0c9063b4e589e8d2b9c1170286accb3770096bea8765079d48e01acb609a",
+    "normalized_distribution_name": "scworkbench-python-pack",
+    "entry_point_group": "scworkbench.operation_packs.v1",
+    "entry_point_name": "reference-pack",
+    "declared_name_variants": {
+      "scworkbench-python-pack": {
+        "fixture_sha256": "1e8986747fd068d1b2518f60435f56d9ef4ce1e067458f4a41f032c8a704722d",
+        "manifest_sha256": "80648679e249bcf67a5e76619b799797ed85ffbcf2bcd65c814f7040ae721410",
+        "pack_sha256": "0108d2e3efde24763fe20ae785ff1ec8eb08e868c8bc5ff23da17ceaefcf396a"
+      },
+      "scworkbench_python_pack": {
+        "fixture_sha256": "49ca68b59efb2bc417f0c8061e05a0d676dcb093d660a97cd01830211616a364",
+        "manifest_sha256": "df90a65e69e0d0a1db1d77097fd371a46a79b8df93e993d0950c70918a31ccfd",
+        "pack_sha256": "6f54ebfb43d5b28ee47abe15dcd28c729e2c5d9301bbaa289d9c86892237783a"
+      },
+      "scworkbench.python.pack": {
+        "fixture_sha256": "cb1467f8207cf89c8c0c65a8b40f830aa105a6226faf7a7ae5a7294265c843a1",
+        "manifest_sha256": "0943da52865b5a170b0b9ca64740d3d16c73ac58b19210c35f3e959ea275e43b",
+        "pack_sha256": "385055c61878ce13ba4fffff2cfc5165f4e23227bb95e94d7ad22ae2e2fbe338"
+      }
+    }
+  },
+  "r_python_structural_set_sha256": "d45519cdd5dc9923d6e304b3776e01a57a60f73efad5e4544445f60344fe7b9a",
+  "runtime_fixture_sha256": {
+    "python-valid.json": "42d184aa52b33e1308608a0709e977299f8749479e5ee6c5b75d226b39e4aae2",
+    "python-ambiguous-entry-point.json": "712861e5a1ae106958c8088fa0a0d2260ed90dbff58dc4d24d74dbba64632c3a",
+    "python-cross-dist-entry.json": "a6462e1cd9aff4283b8f581b85d2435a96cd9fa9c8b02dd6f587fc831272a14f",
+    "python-operation-pack-runtime.json": "5f5041c282b37150bd7e68ec6bbd0a4cff9fd4c1b644b94aea1c63d6a7204507"
+  },
+  "invalid_fixture_sha256": {
+    "unknown-backend.json": "868ae4ae033849b5393d6b42bc318365d6c740925faf21ae32f90b21bf18932a"
+  },
+  "no_pack_core_catalog_sha256": "80a340f5845968061fdb8d725b5bc83c7111325c224c5afd326ea08e1d1e99ce"
+}

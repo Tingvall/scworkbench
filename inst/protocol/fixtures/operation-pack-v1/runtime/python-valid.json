@@ -1,0 +1,12 @@
+{
+  "backend": "Python",
+  "distribution": {"name": "scworkbench_python_pack", "version": "1.0rc1"},
+  "entry_points": [
+    {
+      "group": "scworkbench.operation_packs.v1",
+      "name": "reference-pack",
+      "value": "scworkbench_python_pack.entrypoint:register",
+      "distribution": {"name": "scworkbench.python.pack", "version": "1.0.0RC01"}
+    }
+  ]
+}

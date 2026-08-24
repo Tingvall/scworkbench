@@ -77,13 +77,22 @@ Role: extend and stabilize engine + thin clients.
 6. Update semantic catalogs and docs.
 7. Run `wb_refresh_semantic_catalogs()` and fix any audit failure.
 
-For pack work, validate without activation using
-`wb_operation_pack_validate()`, activate by exact installed package name with
-`wb_operation_pack_load()`, and inspect `wb_operation_packs()` plus
-`wb_operation_pack_inspect()`. Treat both validation and activation as execution
-of trusted package code. Conformance is not scientific validation and does not
-provide host-code sandboxing. Operation-pack v1 cannot add primitive kinds,
+For pack work, use `wb_operation_pack_manifest_validate()` for backend-neutral,
+non-executing structural validation. Installed R packages use
+`wb_operation_pack_validate()` and activate by exact installed package name with
+`wb_operation_pack_load()`; these two R-package APIs execute trusted package
+code. Inspect activated state with `wb_operation_packs()` and
+`wb_operation_pack_inspect()`. Protocol v1 admits `R` and `Python`, but runtime
+support is separate: this checkpoint activates R only, and valid Python
+activation fails with `OPERATION_PACK_RUNTIME_UNAVAILABLE` until the PyBench
+integration is installed. Python uses distribution metadata, PEP 503 name
+normalization, PEP 440 version comparison, and entry-point group
+`scworkbench.operation_packs.v1`; manifest `entry_point` is the entry-point
+name, not an import target. Conformance is not scientific validation and does
+not provide host-code sandboxing. Operation-pack v1 cannot add primitive kinds,
 storage, getters, promoters, or validation hooks.
+The backend-neutral activation seam is `wb_operation_pack_activate()`; do not
+bypass it with an import-string runner or an alternate catalog.
 
 ## Long-running operation safety
 

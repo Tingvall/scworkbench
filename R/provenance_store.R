@@ -920,6 +920,21 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   .wb_prov_sha256_object(normalized)
 }
 
+.wb_prov_operation_contract_incompatibility <- function(recorded_interface,
+                                                         current_interface,
+                                                         op_name) {
+  if (identical(.wb_prov_contract_interface_identity(recorded_interface),
+                .wb_prov_contract_interface_identity(current_interface))) {
+    return(NULL)
+  }
+  .wb_prov_replay_diagnostic(
+    "OPERATION_CONTRACT_INCOMPATIBLE",
+    paste0("Installed contract for '", as.character(op_name)[1],
+           "' differs from the recorded contract."),
+    "Use the recorded scworkbench release or explicitly reconstruct inputs against the installed interface."
+  )
+}
+
 .wb_prov_contract_snapshot <- function(run) {
   op_name <- as.character(run$op_name)[1]
   interface <- .wb_prov_current_contract_interface(op_name)
@@ -1865,11 +1880,20 @@ wb_prov_run_replay_inputs <- function(bundle, run_id, snapshot_id = NULL) {
       package_name <- as.character(recorded_pack$package$name %||% "the producing package")[1]
       package_version <- as.character(recorded_pack$package$version %||% "recorded version")[1]
       pack_sha256 <- as.character(recorded_pack$pack_sha256 %||% "")[1]
+      backend <- as.character(recorded_pack$backend %||% "R")[1]
       add_issue("OPERATION_PACK_REQUIRED",
         paste0("Operation '", op_name, "' requires absent operation pack '", package_name,
-               "' version '", package_version, "' (pack_sha256=", pack_sha256, ")."),
-        paste0("Install the exact compatible package and explicitly call wb_operation_pack_load('",
-               package_name, "')."))
+               "' version '", package_version, "' with backend '", backend,
+               "' (pack_sha256=", pack_sha256, ")."),
+        if (identical(backend, "Python")) {
+          paste0("Install the exact Python distribution and explicitly activate entry point '",
+                 as.character(recorded_pack$entry_point %||% "")[1], "' from group '",
+                 as.character(recorded_pack$entry_point_group %||% "scworkbench.operation_packs.v1")[1],
+                 "' through the compatible Python operation-pack runtime.")
+        } else {
+          paste0("Install the exact compatible R package and explicitly call wb_operation_pack_load('",
+                 package_name, "').")
+        })
     } else {
       add_issue("OPERATION_UNAVAILABLE", paste0("Installed catalog has no operation '", op_name, "'."),
                 "Install a scworkbench release that provides the recorded operation.")
@@ -1896,12 +1920,9 @@ wb_prov_run_replay_inputs <- function(bundle, run_id, snapshot_id = NULL) {
     if (op_name %in% names(installed_catalog)) {
       recorded_interface <- contract$interface %||% list()
       current_interface <- .wb_prov_current_contract_interface(op_name)
-      if (!identical(.wb_prov_contract_interface_identity(recorded_interface),
-                     .wb_prov_contract_interface_identity(current_interface))) {
-        add_issue("OPERATION_CONTRACT_INCOMPATIBLE",
-                  paste0("Installed contract for '", op_name, "' differs from the recorded contract."),
-                  "Use the recorded scworkbench release or explicitly reconstruct inputs against the installed interface.")
-      }
+      issue <- .wb_prov_operation_contract_incompatibility(
+        recorded_interface, current_interface, op_name)
+      if (!is.null(issue)) issues[[length(issues) + 1L]] <- issue
     }
   }
   if (length(issues)) {

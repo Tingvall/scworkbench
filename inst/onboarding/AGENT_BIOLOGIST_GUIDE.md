@@ -36,6 +36,12 @@ terminal capsule only for irreducibly question-specific output, and use adoption
 for externally computed authoritative state. Repeated reusable capsule compute
 is a candidate for a pack operation.
 
+The protocol can recognize an R or Python pack even when the corresponding
+execution runtime is not installed. Structural manifest acceptance is not
+activation: a valid Python declaration remains non-executable until the audited
+PyBench backend is available, and this never authorizes an external script or
+direct bundle write.
+
 ## Analysis Workflow
 
 1. Verify inputs

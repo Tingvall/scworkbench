@@ -420,6 +420,105 @@
       "installed_relative_path": "protocol/pybench-op-v2.schema.json"
     },
     {
+      "path": "inst/protocol/fixtures/operation-pack-v1/canonical-identities.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/canonical-identities.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/canonical-identities.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/invalid/unknown-backend.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/invalid/unknown-backend.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/invalid/unknown-backend.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/runtime/python-ambiguous-entry-point.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/runtime/python-ambiguous-entry-point.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/runtime/python-ambiguous-entry-point.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/runtime/python-cross-dist-entry.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/runtime/python-cross-dist-entry.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/runtime/python-cross-dist-entry.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/runtime/python-operation-pack-runtime.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/runtime/python-operation-pack-runtime.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/runtime/python-operation-pack-runtime.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/runtime/python-valid.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/runtime/python-valid.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/runtime/python-valid.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/valid/python-dot.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/valid/python-dot.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/valid/python-dot.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/valid/python-hyphen.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/valid/python-hyphen.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/valid/python-hyphen.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v1/valid/python-underscore.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v1/valid/python-underscore.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v1/valid/python-underscore.json"
+    },
+    {
       "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
       "class": "public_canonical",
       "audience": "operator",
@@ -3500,6 +3599,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "man/wb_operation_pack_activate.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "man/wb_operation_pack_inspect.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -3512,6 +3622,17 @@
     },
     {
       "path": "man/wb_operation_pack_load.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_pack_manifest_validate.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

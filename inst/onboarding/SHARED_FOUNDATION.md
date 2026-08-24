@@ -19,6 +19,11 @@ then executes through the same engine-owned session, staging, promotion, and
 provenance path. Installation alone is inert and no installed-package scan is
 performed. Pack code is trusted executable code, not a host sandbox; passing
 conformance establishes engine compatibility, not scientific validity.
+Protocol support does not imply that a backend runtime is installed. Protocol
+v1 admits R and Python; the current checkpoint activates R and structurally
+validates Python manifests without importing or executing them. A valid Python
+pack therefore reports runtime unavailable, not unsupported backend, until the
+audited PyBench integration is present.
 
 Use a terminal capsule only for the irreducibly dataset/question-specific end of
 an analysis. Use the adoption boundary for externally computed state that must

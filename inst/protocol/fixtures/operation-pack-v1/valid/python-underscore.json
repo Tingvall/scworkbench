@@ -1,0 +1,32 @@
+{
+  "schema_version": "scworkbench.operation_pack.v1",
+  "protocol_version": "1",
+  "namespace": "scwbpython",
+  "package": {"name": "scworkbench_python_pack", "version": "1.0.0rc1"},
+  "backend": "Python",
+  "compatibility": {"scworkbench": ">=0.1.0 <0.2.0", "protocol": "1"},
+  "entry_point": "reference-pack",
+  "operations": [
+    {
+      "name": "scwbpython::affine_cell_vector",
+      "title": "Python Affine Continuous Cell-Vector Transform",
+      "description": "Canonical Python-backend fixture for operation-pack structural admission.",
+      "intent": ["cell_vector", "transform", "python_fixture"],
+      "requires": {"signal": "cell_vector"},
+      "optional_requires": {},
+      "inputs": {"signal": {"required": true, "kind": "cell_vector", "description": "Continuous input aligned to canonical bundle cells."}},
+      "params": [{"name": "scale", "type": "dbl", "default": 1, "min": -1000000, "max": 1000000, "help": "Finite multiplicative scale."}],
+      "produces": {"vector": "cell_vector", "summary": "obs_table"},
+      "interface_produces": {
+        "vector": {"kind": "cell_vector", "value_type": "continuous"},
+        "summary": {"kind": "obs_table", "table_type": "scwbpython_affine_summary", "entity_kind": "operation_run"}
+      },
+      "promotable": ["vector", "summary"],
+      "replay_equivalence": {"vector": "exact_canonical_value", "summary": "exact_canonical_value"},
+      "coverage": {"signal": "cell_indexed"},
+      "determinism": {"deterministic": true, "seed_parameter": null},
+      "resources": {"profile": "pybench_v2"},
+      "software": {"runtime": "Python", "bridge": "PyBench v2"}
+    }
+  ]
+}

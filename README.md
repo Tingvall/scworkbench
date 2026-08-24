@@ -185,6 +185,9 @@ Independently distributed scientific operations can be explicitly activated
 through the operation-pack v1 ABI. Installation is inert; see
 [docs/operation_packs.md](docs/operation_packs.md) for trust, authoring,
 provenance, recipient, and conformance semantics.
+Protocol v1 structurally admits R packages and Python distributions. The
+current runtime activates R packs; Python activation remains a typed
+runtime-unavailable boundary until the audited PyBench integration is present.
 
 Contribution, support, and composite-release policies are documented in
 [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md),

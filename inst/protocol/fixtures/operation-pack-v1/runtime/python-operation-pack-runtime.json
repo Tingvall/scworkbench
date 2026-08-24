@@ -1,0 +1,46 @@
+{
+  "schema": "scworkbench.operation_pack_runtime.python.v1",
+  "backend": "Python",
+  "distribution": {
+    "declared_name": "scworkbench-python-pack",
+    "normalized_name": "scworkbench-python-pack",
+    "version": "1.0.0rc1",
+    "metadata_name": "scworkbench_python_pack",
+    "metadata_normalized_name": "scworkbench-python-pack",
+    "metadata_version": "1.0rc1",
+    "artifact_identity": {
+      "kind": "wheel",
+      "scheme": "sha256",
+      "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+    }
+  },
+  "entry_point": {
+    "group": "scworkbench.operation_packs.v1",
+    "name": "reference-pack",
+    "value": "scworkbench_python_pack.entrypoint:register"
+  },
+  "interpreter": {
+    "implementation": "CPython",
+    "version": "3.12.4",
+    "abi": "cp312",
+    "platform": "linux-x86_64",
+    "executable": "/qualified/runtime/bin/python",
+    "executable_sha256": "123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0"
+  },
+  "dependencies": {
+    "scheme": "python-distribution-set-v1",
+    "sha256": "23456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef01",
+    "distributions": [
+      {"name": "numpy", "normalized_name": "numpy", "version": "2.0.1"},
+      {"name": "scworkbench-python-pack", "normalized_name": "scworkbench-python-pack", "version": "1.0.0rc1"}
+    ]
+  },
+  "pybench": {
+    "protocol": "pybench-op-v2",
+    "distribution_name": "scworkbench-pybench",
+    "distribution_version": "0.1.0",
+    "source_revision": "3456789abcdef0123456789abcdef0123456789"
+  },
+  "device": {"type": "cpu", "descriptor": "qualified runtime CPU"},
+  "seed": {"status": "not_declared", "value": null}
+}

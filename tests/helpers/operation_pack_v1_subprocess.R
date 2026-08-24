@@ -40,7 +40,7 @@ validate_bad <- function(change, code) {
 validate_bad(function(x) { x$namespace <- "core"; x }, "OPERATION_PACK_NAMESPACE_RESERVED")
 validate_bad(function(x) { x$operations[[1]]$name <- "affine_cell_vector"; x }, "OPERATION_PACK_MANIFEST_INVALID")
 validate_bad(function(x) { x$operations <- c(x$operations, x$operations); x }, "OPERATION_PACK_OPERATION_DUPLICATE")
-validate_bad(function(x) { x$backend <- "Python"; x }, "OPERATION_PACK_BACKEND_UNSUPPORTED")
+validate_bad(function(x) { x$backend <- "JavaScript"; x }, "OPERATION_PACK_BACKEND_UNSUPPORTED")
 validate_bad(function(x) { x$compatibility$scworkbench <- ">=99.0.0"; x }, "OPERATION_PACK_SCWORKBENCH_INCOMPATIBLE")
 validate_bad(function(x) { x$protocol_version <- "2"; x }, "OPERATION_PACK_PROTOCOL_INCOMPATIBLE")
 validate_bad(function(x) { x$package$version <- "9.9.9"; x }, "OPERATION_PACK_PACKAGE_IDENTITY_MISMATCH")

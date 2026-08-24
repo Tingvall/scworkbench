@@ -2,6 +2,90 @@
 
 .wb_operation_pack_protocol_version <- function() "1"
 
+.wb_operation_pack_supported_backends <- function() c("R", "Python")
+
+.wb_operation_pack_python_entry_point_group <- function() {
+  "scworkbench.operation_packs.v1"
+}
+
+.wb_operation_pack_python_normalize_name <- function(name) {
+  name <- .wb_operation_pack_scalar(name, "Python distribution name")
+  tolower(gsub("[-_.]+", "-", name, perl = TRUE))
+}
+
+.wb_operation_pack_python_version_pattern <- function() {
+  paste0(
+    "^[vV]?(?:[0-9]+!)?[0-9]+(?:[.][0-9]+)*",
+    "(?:[-_.]?(?:alpha|a|beta|b|preview|pre|c|rc)[-_.]?[0-9]*)?",
+    "(?:(?:-[0-9]+)|(?:[-_.]?(?:post|rev|r)[-_.]?[0-9]*))?",
+    "(?:[-_.]?dev[-_.]?[0-9]*)?",
+    "(?:[+][A-Za-z0-9]+(?:[-_.][A-Za-z0-9]+)*)?\\z"
+  )
+}
+
+.wb_operation_pack_integer_token <- function(x) {
+  out <- sub("^0+", "", as.character(x), perl = TRUE)
+  if (nzchar(out)) out else "0"
+}
+
+.wb_operation_pack_python_version_key <- function(version) {
+  version <- .wb_operation_pack_scalar(version, "Python distribution version")
+  .wb_operation_pack_assert(
+    grepl(.wb_operation_pack_python_version_pattern(), version, perl = TRUE, ignore.case = TRUE),
+    "OPERATION_PACK_MANIFEST_INVALID",
+    paste0("Python distribution version is not valid PEP 440 syntax: ", version, "."),
+    version = version
+  )
+  value <- tolower(sub("^[vV]", "", version, perl = TRUE))
+  local <- ""
+  if (grepl("[+]", value, perl = TRUE)) {
+    parts <- strsplit(value, "+", fixed = TRUE)[[1]]
+    value <- parts[[1]]
+    local_parts <- strsplit(gsub("[-_]", ".", parts[[2]], perl = TRUE), ".", fixed = TRUE)[[1]]
+    local <- paste(vapply(local_parts, function(x) {
+      if (grepl("^[0-9]+$", x, perl = TRUE)) .wb_operation_pack_integer_token(x) else x
+    }, character(1)), collapse = ".")
+  }
+  epoch <- "0"
+  if (grepl("!", value, fixed = TRUE)) {
+    parts <- strsplit(value, "!", fixed = TRUE)[[1]]
+    epoch <- .wb_operation_pack_integer_token(parts[[1]])
+    value <- parts[[2]]
+  }
+  dev <- ""
+  dev_hit <- regexec("[-_.]?dev[-_.]?([0-9]*)$", value, perl = TRUE)
+  dev_match <- regmatches(value, dev_hit)[[1]]
+  if (length(dev_match)) {
+    dev <- if (nzchar(dev_match[[2]])) .wb_operation_pack_integer_token(dev_match[[2]]) else "0"
+    value <- substr(value, 1L, nchar(value) - nchar(dev_match[[1]]))
+  }
+  post <- ""
+  post_hit <- regexec("(?:-([0-9]+)|[-_.]?(?:post|rev|r)[-_.]?([0-9]*))$", value, perl = TRUE)
+  post_match <- regmatches(value, post_hit)[[1]]
+  if (length(post_match)) {
+    number <- post_match[[2]]
+    if (!nzchar(number) && length(post_match) >= 3L) number <- post_match[[3]]
+    post <- if (nzchar(number)) .wb_operation_pack_integer_token(number) else "0"
+    value <- substr(value, 1L, nchar(value) - nchar(post_match[[1]]))
+  }
+  pre <- ""
+  pre_hit <- regexec("[-_.]?(alpha|a|beta|b|preview|pre|c|rc)[-_.]?([0-9]*)$", value, perl = TRUE)
+  pre_match <- regmatches(value, pre_hit)[[1]]
+  if (length(pre_match)) {
+    label <- switch(pre_match[[2]], alpha = "a", a = "a", beta = "b", b = "b",
+                    preview = "rc", pre = "rc", c = "rc", rc = "rc")
+    number <- if (nzchar(pre_match[[3]])) .wb_operation_pack_integer_token(pre_match[[3]]) else "0"
+    pre <- paste0(label, number)
+    value <- substr(value, 1L, nchar(value) - nchar(pre_match[[1]]))
+  }
+  release <- strsplit(value, ".", fixed = TRUE)[[1]]
+  release <- vapply(release, .wb_operation_pack_integer_token, character(1))
+  while (length(release) > 1L && identical(unname(release[[length(release)]]), "0")) {
+    release <- release[-length(release)]
+  }
+  paste(epoch, paste(release, collapse = "."), pre, post, dev, local, sep = "|")
+}
+
 .wb_operation_pack_registry <- local({
   e <- new.env(parent = emptyenv())
   e$packs <- list()
@@ -298,7 +382,8 @@
   definition
 }
 
-.wb_operation_pack_validate_manifest <- function(manifest, package = NULL, package_description = NULL) {
+.wb_operation_pack_validate_manifest <- function(manifest, package = NULL, package_description = NULL,
+                                                 expected_backend = NULL) {
   .wb_operation_pack_named_object(manifest, "manifest", allow_empty = FALSE)
   allowed <- c("schema_version", "protocol_version", "namespace", "package", "backend",
                "compatibility", "entry_point", "operations")
@@ -318,23 +403,60 @@
   namespace <- .wb_operation_pack_scalar(manifest$namespace, "namespace", "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$")
   .wb_operation_pack_assert(!namespace %in% .wb_operation_pack_reserved_namespaces(),
     "OPERATION_PACK_NAMESPACE_RESERVED", paste0("Operation-pack namespace '", namespace, "' is reserved."), namespace = namespace)
+  backend <- .wb_operation_pack_scalar(manifest$backend, "backend")
+  .wb_operation_pack_assert(backend %in% .wb_operation_pack_supported_backends(),
+    "OPERATION_PACK_BACKEND_UNSUPPORTED",
+    paste0("Unsupported operation-pack backend '", backend,
+           "'; protocol v1 supports exactly 'R' and 'Python'."), backend = backend)
+  if (!is.null(expected_backend) && !identical(backend, as.character(expected_backend)[1])) {
+    if (identical(backend, "Python") && identical(as.character(expected_backend)[1], "R")) {
+      .wb_operation_pack_abort(
+        "OPERATION_PACK_RUNTIME_UNAVAILABLE",
+        paste0("Python operation pack '", namespace,
+               "' is structurally supported, but Python runtime activation is unavailable in this checkpoint."),
+        backend = backend, namespace = namespace,
+        class = "wb_operation_pack_runtime_unavailable"
+      )
+    }
+    .wb_operation_pack_abort(
+      "OPERATION_PACK_BACKEND_MISMATCH",
+      paste0("Operation-pack backend '", backend, "' cannot be admitted by runtime '",
+             as.character(expected_backend)[1], "'."),
+      backend = backend, expected_backend = as.character(expected_backend)[1],
+      class = "wb_operation_pack_validation_error"
+    )
+  }
   package_rec <- .wb_operation_pack_named_object(manifest$package, "package", allow_empty = FALSE)
   .wb_operation_pack_assert(setequal(names(package_rec), c("name", "version")), "OPERATION_PACK_MANIFEST_INVALID",
                             "Manifest package must contain exactly name and version.")
-  package_name <- .wb_operation_pack_scalar(package_rec$name, "package$name", "^[A-Za-z][A-Za-z0-9.]*$")
-  package_version <- .wb_operation_pack_scalar(package_rec$version, "package$version", "^[0-9]+(?:[.-][0-9A-Za-z]+)*$")
-  if (!is.null(package)) .wb_operation_pack_assert(identical(package_name, as.character(package)[1]),
-    "OPERATION_PACK_PACKAGE_IDENTITY_MISMATCH", paste0("Manifest package '", package_name,
-      "' does not match installed package '", package, "'."), package = package)
+  if (identical(backend, "R")) {
+    package_name <- .wb_operation_pack_scalar(package_rec$name, "package$name", "^[A-Za-z][A-Za-z0-9.]*$")
+    package_version <- .wb_operation_pack_scalar(package_rec$version, "package$version", "^[0-9]+(?:[.-][0-9A-Za-z]+)*$")
+  } else {
+    package_name <- .wb_operation_pack_scalar(
+      package_rec$name, "package$name",
+      "^(?:[A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9._-]*[A-Za-z0-9])\\z"
+    )
+    package_version <- .wb_operation_pack_scalar(package_rec$version, "package$version")
+    .wb_operation_pack_python_version_key(package_version)
+  }
+  if (!is.null(package)) {
+    .wb_operation_pack_assert(identical(backend, "R"), "OPERATION_PACK_BACKEND_MISMATCH",
+      "Installed-R-package identity may be supplied only for backend 'R'.",
+      backend = backend, class = "wb_operation_pack_validation_error")
+    .wb_operation_pack_assert(identical(package_name, as.character(package)[1]),
+      "OPERATION_PACK_PACKAGE_IDENTITY_MISMATCH", paste0("Manifest package '", package_name,
+        "' does not match installed package '", package, "'."), package = package)
+  }
   if (!is.null(package_description)) {
+    .wb_operation_pack_assert(identical(backend, "R"), "OPERATION_PACK_BACKEND_MISMATCH",
+      "R package metadata may be supplied only for backend 'R'.",
+      backend = backend, class = "wb_operation_pack_validation_error")
     installed_version <- as.character(package_description$Version %||% "")[1]
     .wb_operation_pack_assert(identical(package_version, installed_version),
       "OPERATION_PACK_PACKAGE_IDENTITY_MISMATCH", paste0("Manifest version '", package_version,
       "' does not match installed package version '", installed_version, "'."), package = package_name)
   }
-  backend <- .wb_operation_pack_scalar(manifest$backend, "backend")
-  .wb_operation_pack_assert(identical(backend, "R"), "OPERATION_PACK_BACKEND_UNSUPPORTED",
-                            paste0("Phase 1 supports only backend 'R'; found '", backend, "'."), backend = backend)
   compatibility <- .wb_operation_pack_named_object(manifest$compatibility, "compatibility", allow_empty = FALSE)
   .wb_operation_pack_assert(setequal(names(compatibility), c("scworkbench", "protocol")),
                             "OPERATION_PACK_MANIFEST_INVALID",
@@ -348,7 +470,12 @@
   .wb_operation_pack_assert(identical(required_protocol, .wb_operation_pack_protocol_version()),
     "OPERATION_PACK_PROTOCOL_INCOMPATIBLE", paste0("Pack compatibility requires protocol '",
     required_protocol, "'; current protocol is '", .wb_operation_pack_protocol_version(), "'."))
-  entry_point <- .wb_operation_pack_scalar(manifest$entry_point, "entry_point", "^[A-Za-z][A-Za-z0-9._]*$")
+  entry_point_pattern <- if (identical(backend, "R")) {
+    "^[A-Za-z][A-Za-z0-9._]*$"
+  } else {
+    "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+  }
+  entry_point <- .wb_operation_pack_scalar(manifest$entry_point, "entry_point", entry_point_pattern)
   operations <- manifest$operations
   .wb_operation_pack_assert(is.list(operations) && length(operations), "OPERATION_PACK_DEFINITION_INVALID",
                             "Manifest operations must be a non-empty array.")
@@ -368,21 +495,8 @@
   manifest
 }
 
-.wb_operation_pack_registration <- function(manifest, runners, package_description = NULL,
-                                            installed_path = NULL) {
+.wb_operation_pack_identity <- function(manifest) {
   operation_names <- vapply(manifest$operations, function(x) x$name, character(1))
-  .wb_operation_pack_named_object(runners, "operations", allow_empty = FALSE)
-  .wb_operation_pack_assert(setequal(names(runners), operation_names), "OPERATION_PACK_ENTRY_POINT_INVALID",
-    paste0("Entry point runners must exactly match manifest operations; expected [",
-           paste(operation_names, collapse = ", "), "]."), namespace = manifest$namespace)
-  for (name in names(runners)) {
-    runner <- runners[[name]]
-    .wb_operation_pack_assert(is.function(runner), "OPERATION_PACK_ENTRY_POINT_INVALID",
-                              paste0("Entry point for operation '", name, "' is not a function."), operation = name)
-    expected <- c("bundle", "resolved", "effective_cells", "inputs", "...")
-    .wb_operation_pack_assert(identical(names(formals(runner)), expected), "OPERATION_PACK_ENTRY_POINT_INVALID",
-      paste0("Runner '", name, "' must have formals: ", paste(expected, collapse = ", "), "."), operation = name)
-  }
   definition_hashes <- stats::setNames(
     vapply(manifest$operations, function(x) x$definition_sha256, character(1)), operation_names)
   manifest_identity_input <- manifest
@@ -399,7 +513,40 @@
     entry_point = manifest$entry_point,
     operation_definition_sha256 = as.list(definition_hashes)
   )
+  if (identical(manifest$backend, "Python")) {
+    pack_identity$distribution <- list(
+      declared_name = manifest$package$name,
+      normalized_name = .wb_operation_pack_python_normalize_name(manifest$package$name),
+      version = manifest$package$version
+    )
+    pack_identity$entry_point_group <- .wb_operation_pack_python_entry_point_group()
+  }
   pack_identity$pack_sha256 <- .wb_operation_pack_sha256(pack_identity)
+  pack_identity
+}
+
+.wb_operation_pack_registration <- function(manifest, runners, package_description = NULL,
+                                            installed_path = NULL) {
+  operation_names <- vapply(manifest$operations, function(x) x$name, character(1))
+  .wb_operation_pack_assert(identical(manifest$backend, "R"),
+    "OPERATION_PACK_RUNTIME_UNAVAILABLE",
+    paste0("Backend '", manifest$backend,
+           "' cannot register R runner functions in this runtime checkpoint."),
+    backend = manifest$backend, namespace = manifest$namespace,
+    class = "wb_operation_pack_runtime_unavailable")
+  .wb_operation_pack_named_object(runners, "operations", allow_empty = FALSE)
+  .wb_operation_pack_assert(setequal(names(runners), operation_names), "OPERATION_PACK_ENTRY_POINT_INVALID",
+    paste0("Entry point runners must exactly match manifest operations; expected [",
+           paste(operation_names, collapse = ", "), "]."), namespace = manifest$namespace)
+  for (name in names(runners)) {
+    runner <- runners[[name]]
+    .wb_operation_pack_assert(is.function(runner), "OPERATION_PACK_ENTRY_POINT_INVALID",
+                              paste0("Entry point for operation '", name, "' is not a function."), operation = name)
+    expected <- c("bundle", "resolved", "effective_cells", "inputs", "...")
+    .wb_operation_pack_assert(identical(names(formals(runner)), expected), "OPERATION_PACK_ENTRY_POINT_INVALID",
+      paste0("Runner '", name, "' must have formals: ", paste(expected, collapse = ", "), "."), operation = name)
+  }
+  pack_identity <- .wb_operation_pack_identity(manifest)
   attestation <- list(
     package = manifest$package,
     installed_path = as.character(installed_path %||% NA_character_)[1],
@@ -409,6 +556,229 @@
   structure(list(manifest = manifest, runners = runners, identity = pack_identity,
                  runtime_attestation = attestation),
             class = c("wb_operation_pack_registration", "list"))
+}
+
+.wb_operation_pack_manifest_input <- function(manifest) {
+  if (is.character(manifest) && length(manifest) == 1L && !is.na(manifest)) {
+    return(.wb_operation_pack_read_manifest(manifest))
+  }
+  .wb_operation_pack_assert(is.list(manifest), "OPERATION_PACK_MANIFEST_INVALID",
+                            "manifest must be a parsed JSON object or a path to one.")
+  manifest
+}
+
+.wb_operation_pack_python_runtime_identity_validate <- function(manifest, runtime_identity) {
+  .wb_operation_pack_named_object(runtime_identity, "runtime_identity", allow_empty = FALSE)
+  .wb_operation_pack_assert(identical(as.character(runtime_identity$backend %||% "")[1], "Python"),
+    "OPERATION_PACK_BACKEND_MISMATCH",
+    "Python runtime identity must declare backend 'Python'.",
+    backend = runtime_identity$backend %||% NULL,
+    class = "wb_operation_pack_validation_error")
+  distribution <- runtime_identity$distribution %||% NULL
+  .wb_operation_pack_assert(is.list(distribution), "OPERATION_PACK_DISTRIBUTION_UNAVAILABLE",
+    paste0("Python distribution '", manifest$package$name, "' is not installed or could not be resolved."),
+    distribution = manifest$package$name,
+    class = "wb_operation_pack_runtime_unavailable")
+  observed_name <- .wb_operation_pack_scalar(distribution$name, "runtime_identity$distribution$name")
+  observed_version <- .wb_operation_pack_scalar(distribution$version, "runtime_identity$distribution$version")
+  expected_normalized <- .wb_operation_pack_python_normalize_name(manifest$package$name)
+  observed_normalized <- .wb_operation_pack_python_normalize_name(observed_name)
+  .wb_operation_pack_assert(identical(expected_normalized, observed_normalized),
+    "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH",
+    paste0("Manifest distribution '", manifest$package$name, "' normalizes to '", expected_normalized,
+           "', but installed metadata name '", observed_name, "' normalizes to '", observed_normalized, "'."),
+    expected_distribution = manifest$package$name, observed_distribution = observed_name,
+    class = "wb_operation_pack_validation_error")
+  .wb_operation_pack_assert(
+    identical(.wb_operation_pack_python_version_key(manifest$package$version),
+              .wb_operation_pack_python_version_key(observed_version)),
+    "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH",
+    paste0("Manifest distribution version '", manifest$package$version,
+           "' is not PEP 440-equivalent to installed version '", observed_version, "'."),
+    expected_version = manifest$package$version, observed_version = observed_version,
+    class = "wb_operation_pack_validation_error"
+  )
+  entry_points <- runtime_identity$entry_points %||% list()
+  .wb_operation_pack_assert(is.list(entry_points), "OPERATION_PACK_ENTRY_POINT_INVALID",
+                            "Python runtime entry_points must be an array.")
+  group <- .wb_operation_pack_python_entry_point_group()
+  candidates <- Filter(function(x) {
+    is.list(x) && identical(as.character(x$group %||% "")[1], group) &&
+      identical(as.character(x$name %||% "")[1], manifest$entry_point)
+  }, entry_points)
+  matches <- Filter(function(x) {
+    owner <- x$distribution %||% distribution
+    if (!is.list(owner)) return(FALSE)
+    owner_name <- as.character(owner$name %||% "")[1]
+    owner_version <- as.character(owner$version %||% "")[1]
+    if (!nzchar(owner_name) || !nzchar(owner_version)) return(FALSE)
+    identical(.wb_operation_pack_python_normalize_name(owner_name), expected_normalized) &&
+      identical(.wb_operation_pack_python_version_key(owner_version),
+                .wb_operation_pack_python_version_key(manifest$package$version))
+  }, candidates)
+  if (!length(matches)) {
+    .wb_operation_pack_abort(
+      "OPERATION_PACK_ENTRY_POINT_UNAVAILABLE",
+      paste0("Distribution '", manifest$package$name, "' does not provide entry point '",
+             manifest$entry_point, "' in group '", group, "'."),
+      distribution = manifest$package$name, entry_point_group = group,
+      entry_point = manifest$entry_point,
+      class = "wb_operation_pack_runtime_unavailable"
+    )
+  }
+  if (length(matches) != 1L) {
+    .wb_operation_pack_abort(
+      "OPERATION_PACK_ENTRY_POINT_AMBIGUOUS",
+      paste0("Distribution '", manifest$package$name, "' provides ", length(matches),
+             " matching entry points named '", manifest$entry_point, "' in group '", group, "'."),
+      distribution = manifest$package$name, entry_point_group = group,
+      entry_point = manifest$entry_point, matches = length(matches),
+      class = "wb_operation_pack_validation_error"
+    )
+  }
+  match <- matches[[1]]
+  value <- .wb_operation_pack_scalar(match$value, "runtime_identity$entry_points$value",
+    "^[A-Za-z_][A-Za-z0-9_]*(?:[.][A-Za-z_][A-Za-z0-9_]*)*(?::[A-Za-z_][A-Za-z0-9_]*(?:[.][A-Za-z_][A-Za-z0-9_]*)*)?$")
+  match_distribution <- match$distribution %||% distribution
+  match_name <- .wb_operation_pack_scalar(match_distribution$name, "entry point distribution name")
+  match_version <- .wb_operation_pack_scalar(match_distribution$version, "entry point distribution version")
+  .wb_operation_pack_assert(
+    identical(.wb_operation_pack_python_normalize_name(match_name), expected_normalized) &&
+      identical(.wb_operation_pack_python_version_key(match_version),
+                .wb_operation_pack_python_version_key(manifest$package$version)),
+    "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH",
+    "Resolved Python entry point belongs to a different distribution identity.",
+    expected_distribution = manifest$package, observed_distribution = match_distribution,
+    class = "wb_operation_pack_validation_error"
+  )
+  list(
+    backend = "Python",
+    distribution = list(
+      declared_name = manifest$package$name,
+      normalized_name = expected_normalized,
+      version = manifest$package$version,
+      metadata_name = observed_name,
+      metadata_normalized_name = observed_normalized,
+      metadata_version = observed_version
+    ),
+    entry_point = list(group = group, name = manifest$entry_point, value = value)
+  )
+}
+
+.wb_operation_pack_require_runtime <- function(manifest, runtime_identity = NULL) {
+  if (identical(manifest$backend, "R")) return(invisible(TRUE))
+  if (!is.null(runtime_identity)) {
+    .wb_operation_pack_python_runtime_identity_validate(manifest, runtime_identity)
+  }
+  .wb_operation_pack_abort(
+    "OPERATION_PACK_RUNTIME_UNAVAILABLE",
+    paste0("Python operation pack '", manifest$namespace,
+           "' is structurally supported, but Python runtime activation is unavailable in this checkpoint."),
+    backend = "Python", namespace = manifest$namespace,
+    distribution = manifest$package, entry_point_group = .wb_operation_pack_python_entry_point_group(),
+    entry_point = manifest$entry_point,
+    class = "wb_operation_pack_runtime_unavailable"
+  )
+}
+
+.wb_operation_pack_distribution_key <- function(identity) {
+  backend <- as.character(identity$backend %||% "")[1]
+  name <- as.character(identity$package$name %||% "")[1]
+  if (identical(backend, "Python")) {
+    name <- .wb_operation_pack_python_normalize_name(name)
+  }
+  paste(backend, name, sep = ":")
+}
+
+#' Structurally Validate an Operation-Pack Manifest
+#'
+#' This backend-neutral, non-activating boundary validates a parsed manifest or
+#' JSON file without loading package code, discovering installed distributions,
+#' or mutating a bundle. For Python, optional runtime metadata must already have
+#' been obtained for the explicitly named distribution; this function never
+#' scans the environment or imports the entry-point target. Structural and
+#' runtime conformance are not scientific validation or host sandboxing.
+#'
+#' @param manifest Parsed manifest list or path to an operation-pack JSON file.
+#' @param runtime_identity Optional backend runtime/distribution metadata. The
+#'   v1 R checkpoint accepts this only for structurally checking Python
+#'   distribution and entry-point identity; it does not activate Python.
+#' @return A machine-readable structural conformance report with canonical
+#'   manifest, operation definitions, and pack identity.
+#' @export
+wb_operation_pack_manifest_validate <- function(manifest, runtime_identity = NULL) {
+  validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_manifest_input(manifest))
+  observed_runtime <- NULL
+  if (!is.null(runtime_identity)) {
+    .wb_operation_pack_assert(identical(validated$backend, "Python"),
+      "OPERATION_PACK_BACKEND_MISMATCH",
+      "runtime_identity is accepted only for a Python manifest at this checkpoint.",
+      backend = validated$backend, class = "wb_operation_pack_validation_error")
+    observed_runtime <- .wb_operation_pack_python_runtime_identity_validate(validated, runtime_identity)
+  }
+  identity <- .wb_operation_pack_identity(validated)
+  structure(list(
+    schema_version = "scworkbench.operation_pack.manifest_conformance.v1",
+    ok = TRUE,
+    activated = FALSE,
+    structural_only = is.null(observed_runtime),
+    backend = validated$backend,
+    identity = identity,
+    manifest = validated,
+    runtime_identity = observed_runtime,
+    entry_point_contract = if (identical(validated$backend, "Python")) list(
+      group = .wb_operation_pack_python_entry_point_group(),
+      name = validated$entry_point,
+      target_source = "installed_distribution_metadata"
+    ) else list(name = validated$entry_point, target_source = "R_namespace_export"),
+    claims = list(structurally_validated = TRUE, runtime_activated = FALSE,
+                  scientifically_validated = FALSE, host_sandboxed = FALSE,
+                  bundle_mutated = FALSE)
+  ), class = c("wb_operation_pack_manifest_conformance", "list"))
+}
+
+#' Explicitly Activate an Operation Pack From Its Manifest
+#'
+#' This is the backend-neutral activation dispatcher. For an R manifest it
+#' authenticates the supplied definition against the installed R package and
+#' delegates to [wb_operation_pack_load()]. For a Python manifest it validates
+#' optional explicitly resolved distribution metadata, then raises the typed
+#' runtime-unavailable condition until the audited PyBench integration owns
+#' execution. It never scans installed packages or imports a Python target.
+#'
+#' @param manifest Parsed manifest list or path to an operation-pack JSON file.
+#' @param runtime_identity Optional backend runtime/distribution identity. It is
+#'   forbidden for R and structurally checked for Python.
+#' @param lib.loc Optional R library location used only for backend `R`.
+#' @return For R, the activated pack inspection record invisibly. Python is not
+#'   executable in this checkpoint and raises an error before activation.
+#' @export
+wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.loc = NULL) {
+  validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_manifest_input(manifest))
+  if (identical(validated$backend, "Python")) {
+    .wb_operation_pack_require_runtime(validated, runtime_identity = runtime_identity)
+  }
+  .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_BACKEND_MISMATCH",
+    "runtime_identity must not be supplied when activating an installed R package.",
+    backend = "R", class = "wb_operation_pack_validation_error")
+  package <- validated$package$name
+  installed_path <- .wb_operation_pack_manifest_path(package, lib.loc = lib.loc)
+  description <- utils::packageDescription(package, lib.loc = lib.loc)
+  installed <- .wb_operation_pack_validate_manifest(
+    .wb_operation_pack_read_manifest(installed_path), package = package,
+    package_description = description, expected_backend = "R"
+  )
+  expected_identity <- .wb_operation_pack_identity(validated)
+  installed_identity <- .wb_operation_pack_identity(installed)
+  .wb_operation_pack_assert(
+    identical(expected_identity$pack_sha256, installed_identity$pack_sha256),
+    "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
+    paste0("Supplied R manifest identity does not match installed package '", package, "'."),
+    expected_pack_sha256 = expected_identity$pack_sha256,
+    installed_pack_sha256 = installed_identity$pack_sha256,
+    class = "wb_operation_pack_validation_error"
+  )
+  wb_operation_pack_load(package, lib.loc = lib.loc)
 }
 
 #' Register an R Operation-Pack Definition
@@ -434,7 +804,8 @@ wb_operation_pack_register <- function(manifest, operations) {
   .wb_operation_pack_assert(identical(path, context$manifest_path), "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
                             "Entry point attempted to register a manifest other than the installed manifest.")
   validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_read_manifest(path),
-    package = context$package, package_description = context$package_description)
+    package = context$package, package_description = context$package_description,
+    expected_backend = "R")
   registration <- .wb_operation_pack_registration(validated, operations,
     package_description = context$package_description, installed_path = context$installed_path)
   .wb_operation_pack_assert(is.null(context$result), "OPERATION_PACK_ENTRY_POINT_INVALID",
@@ -448,7 +819,7 @@ wb_operation_pack_register <- function(manifest, operations) {
   manifest_path <- .wb_operation_pack_manifest_path(package, lib.loc = lib.loc)
   description <- utils::packageDescription(package, lib.loc = lib.loc)
   manifest <- .wb_operation_pack_validate_manifest(.wb_operation_pack_read_manifest(manifest_path),
-    package = package, package_description = description)
+    package = package, package_description = description, expected_backend = "R")
   .wb_operation_pack_assert(requireNamespace(package, quietly = TRUE, lib.loc = lib.loc),
                             "OPERATION_PACK_PACKAGE_UNAVAILABLE",
                             paste0("Installed package '", package, "' could not be loaded."), package = package)
@@ -557,8 +928,9 @@ wb_operation_pack_load <- function(package, lib.loc = NULL) {
   .wb_operation_pack_assert(!namespace %in% names(.wb_operation_pack_registry$packs),
     "OPERATION_PACK_NAMESPACE_DUPLICATE", paste0("Operation-pack namespace '", namespace, "' is already loaded."),
     namespace = namespace)
-  loaded_packages <- vapply(.wb_operation_pack_registry$packs, function(x) x$identity$package$name, character(1))
-  .wb_operation_pack_assert(!identity$package$name %in% loaded_packages,
+  loaded_packages <- vapply(.wb_operation_pack_registry$packs,
+    function(x) .wb_operation_pack_distribution_key(x$identity), character(1))
+  .wb_operation_pack_assert(!.wb_operation_pack_distribution_key(identity) %in% loaded_packages,
     "OPERATION_PACK_PACKAGE_DUPLICATE", paste0("Operation-pack package '", identity$package$name, "' is already loaded."),
     package = identity$package$name)
   .wb_operation_pack_assert(!length(intersect(op_names, core_names)), "OPERATION_PACK_CORE_SHADOW",

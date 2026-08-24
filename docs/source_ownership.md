@@ -18,6 +18,11 @@ are authoritative for their stated topics.
 v1 ABI. The authoritative installed schema is
 `inst/protocol/operation-pack-v1.schema.json`; external packages extend the
 runtime overlay and never patch the core `.wb_op_catalog()` owner.
+The schema and canonical fixtures under
+`inst/protocol/fixtures/operation-pack-v1/` own the cross-language backend,
+Python distribution normalization, entry-point group/name, and runtime
+attestation checkpoint. PyBench mirrors them byte-for-byte; it does not redefine
+their R semantics.
 
 ## Generated public reference
 
