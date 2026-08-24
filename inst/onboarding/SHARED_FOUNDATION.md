@@ -11,6 +11,27 @@ exception for externally executed, dataset-specific terminal figures, reports,
 or summaries. A capsule should contain only the irreducibly dataset- or
 question-specific terminal portion; see `ANALYSIS_CAPSULES.md`.
 
+## Core operations, packs, capsules, and adopted state
+
+A core operation is shipped and supported by scworkbench. An operation-pack
+operation is independently installed, explicitly trusted and activated, and
+then executes through the same engine-owned session, staging, promotion, and
+provenance path. Installation alone is inert and no installed-package scan is
+performed. Pack code is trusted executable code, not a host sandbox; passing
+conformance establishes engine compatibility, not scientific validity.
+
+Use a terminal capsule only for the irreducibly dataset/question-specific end of
+an analysis. Use the adoption boundary for externally computed state that must
+become authoritative. When the reusable compute in recurring capsules stabilizes,
+extract that portion into a core or namespaced pack operation rather than making
+the capsule claim replay equivalence.
+
+Recipient bundles retain the complete historical pack and operation definition.
+Core getters can load promoted primitives and read-only validation/provenance
+navigation remain available without the pack. Replay or continuation that needs
+the operation reports `OPERATION_PACK_REQUIRED` until the exact compatible pack
+is installed and explicitly activated. See `docs/operation_packs.md`.
+
 Shared concepts for all agent roles in `scworkbench`.
 
 ## System Identity

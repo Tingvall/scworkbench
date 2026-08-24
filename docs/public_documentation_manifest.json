@@ -156,6 +156,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "docs/operation_packs.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/operation_packs.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "docs/source_ownership.md",
       "class": "public_canonical",
       "audience": "public",
@@ -385,6 +396,17 @@
       "source_tarball": true,
       "installed_package": false,
       "installed_relative_path": null
+    },
+    {
+      "path": "inst/protocol/operation-pack-v1.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-v1.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-v1.schema.json"
     },
     {
       "path": "inst/protocol/pybench-op-v2.schema.json",
@@ -3457,6 +3479,83 @@
     },
     {
       "path": "man/wb_open_bundle.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_catalog_identity.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_pack_inspect.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_pack_load.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_pack_register.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_pack_unload.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_pack_validate.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_operation_packs.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

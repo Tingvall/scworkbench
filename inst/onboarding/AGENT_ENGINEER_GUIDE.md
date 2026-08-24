@@ -24,6 +24,9 @@ Role: extend and stabilize engine + thin clients.
 1. Contract-first changes
 - Define primitive IO and op interface before implementation.
 - Register ops in one canonical place.
+- For independently distributed reusable methods, use the public operation-pack
+  ABI rather than patching the core catalog. Packs are explicitly activated and
+  feed the same canonical catalog and executor; see `docs/operation_packs.md`.
 
 2. One-path policy
 - There should be one canonical way to add ops/wranglers.
@@ -73,6 +76,14 @@ Role: extend and stabilize engine + thin clients.
 5. Update client only if needed (thin adapter only).
 6. Update semantic catalogs and docs.
 7. Run `wb_refresh_semantic_catalogs()` and fix any audit failure.
+
+For pack work, validate without activation using
+`wb_operation_pack_validate()`, activate by exact installed package name with
+`wb_operation_pack_load()`, and inspect `wb_operation_packs()` plus
+`wb_operation_pack_inspect()`. Treat both validation and activation as execution
+of trusted package code. Conformance is not scientific validation and does not
+provide host-code sandboxing. Operation-pack v1 cannot add primitive kinds,
+storage, getters, promoters, or validation hooks.
 
 ## Long-running operation safety
 

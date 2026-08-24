@@ -1,0 +1,29 @@
+{
+  "schema_version": "scworkbench.operation_pack.v1",
+  "protocol_version": "1",
+  "namespace": "scwbfixture",
+  "package": {"name": "scworkbenchOperationPackFixture", "version": "0.1.0"},
+  "backend": "R",
+  "compatibility": {"scworkbench": ">=0.1.0 <0.2.0", "protocol": "1"},
+  "entry_point": "register_fixture_operation_pack",
+  "operations": [
+    {
+      "name": "scwbfixture::identity_cell_vector",
+      "title": "Identity Cell Vector Fixture",
+      "description": "Return an exact continuous copy for deterministic multi-pack ordering tests.",
+      "intent": ["test_fixture"],
+      "requires": {"signal": "cell_vector"},
+      "optional_requires": {},
+      "inputs": {"signal": {"required": true, "kind": "cell_vector"}},
+      "params": [],
+      "produces": {"vector": "cell_vector"},
+      "interface_produces": {"vector": {"kind": "cell_vector", "description": "Exact continuous copy."}},
+      "promotable": ["vector"],
+      "replay_equivalence": {"vector": "exact_canonical_value"},
+      "coverage": {"signal": "cell_indexed"},
+      "determinism": {"deterministic": true},
+      "resources": {"profile": "in_process"},
+      "software": {"runtime": "R", "packages": ["scworkbench"]}
+    }
+  ]
+}

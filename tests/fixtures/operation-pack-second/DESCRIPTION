@@ -1,0 +1,10 @@
+Package: scworkbenchOperationPackFixture
+Type: Package
+Title: Test Fixture for Operation Pack Ordering
+Version: 0.1.0
+Authors@R: person("scworkbench", "Tests", role = c("aut", "cre"), email = "tests@example.org")
+Description: Internal fixture used only to verify deterministic composition of
+    multiple explicitly loaded operation packs.
+License: MIT
+Encoding: UTF-8
+Imports: scworkbench

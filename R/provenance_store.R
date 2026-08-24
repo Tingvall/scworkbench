@@ -867,7 +867,7 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
     tryCatch(as.character(utils::packageVersion(pkg)), error = function(e) NA_character_)
   }, character(1))
   image_sha <- Sys.getenv("SCWORKBENCH_RUNTIME_IMAGE_SHA256", unset = "")
-  list(
+  out <- list(
     schema = "scworkbench.runtime_attestation.v1",
     r_version = R.version.string,
     platform = R.version$platform,
@@ -884,12 +884,19 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
       container_digest = Sys.getenv("SCWORKBENCH_CONTAINER_DIGEST", unset = NA_character_)
     )
   )
+  pack <- .wb_operation_pack_identity_for_op(op_name)
+  if (!is.null(pack)) {
+    out$operation_pack <- pack
+    rec <- .wb_operation_pack_registry$packs[[pack$namespace]]
+    out$operation_pack_runtime <- rec$runtime_attestation %||% list(status = "unavailable")
+  }
+  out
 }
 
 .wb_prov_current_contract_interface <- function(op_name) {
   op_name <- as.character(op_name)[1]
-  op <- .wb_op_catalog()[[op_name]] %||% list()
-  list(
+  op <- .wb_operation_catalog()[[op_name]] %||% list()
+  out <- list(
     op_name = op_name,
     title = op$title %||% NA_character_, description = op$description %||% NA_character_,
     inputs = op$inputs %||% list(), params = op$params %||% list(),
@@ -897,6 +904,12 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
     promotion_terminals = as.character(op$promotable %||% character(0)),
     semantics = op$semantics %||% list()
   )
+  if (!is.null(op$source_pack)) {
+    out$source_pack <- op$source_pack
+    out$operation_definition_sha256 <- as.character(op$definition_sha256 %||%
+      op$source_pack$operation_definition_sha256[[op_name]] %||% NA_character_)[1]
+  }
+  out
 }
 
 .wb_prov_contract_interface_identity <- function(x) {
@@ -1843,9 +1856,24 @@ wb_prov_run_replay_inputs <- function(bundle, run_id, snapshot_id = NULL) {
   add_issue <- function(code, message, action) {
     issues[[length(issues) + 1L]] <<- .wb_prov_replay_diagnostic(code, message, action)
   }
-  if (!op_name %in% names(.wb_op_catalog())) {
-    add_issue("OPERATION_UNAVAILABLE", paste0("Installed catalog has no operation '", op_name, "'."),
-              "Install a scworkbench release that provides the recorded operation.")
+  installed_catalog <- .wb_operation_catalog()
+  if (!op_name %in% names(installed_catalog)) {
+    recorded_contract <- tryCatch(jsonlite::fromJSON(contract_json, simplifyVector = TRUE,
+      simplifyDataFrame = FALSE), error = function(e) list())
+    recorded_pack <- recorded_contract$interface$source_pack %||% NULL
+    if (!is.null(recorded_pack)) {
+      package_name <- as.character(recorded_pack$package$name %||% "the producing package")[1]
+      package_version <- as.character(recorded_pack$package$version %||% "recorded version")[1]
+      pack_sha256 <- as.character(recorded_pack$pack_sha256 %||% "")[1]
+      add_issue("OPERATION_PACK_REQUIRED",
+        paste0("Operation '", op_name, "' requires absent operation pack '", package_name,
+               "' version '", package_version, "' (pack_sha256=", pack_sha256, ")."),
+        paste0("Install the exact compatible package and explicitly call wb_operation_pack_load('",
+               package_name, "')."))
+    } else {
+      add_issue("OPERATION_UNAVAILABLE", paste0("Installed catalog has no operation '", op_name, "'."),
+                "Install a scworkbench release that provides the recorded operation.")
+    }
   }
   if (!identical(op_version, "1")) {
     add_issue("OPERATION_VERSION_INCOMPATIBLE",
@@ -1865,7 +1893,7 @@ wb_prov_run_replay_inputs <- function(bundle, run_id, snapshot_id = NULL) {
       add_issue("CONTRACT_IDENTITY_INVALID", "Recorded contract hash does not authenticate contract_json.",
                 "Validate bundle provenance integrity before replay.")
     }
-    if (op_name %in% names(.wb_op_catalog())) {
+    if (op_name %in% names(installed_catalog)) {
       recorded_interface <- contract$interface %||% list()
       current_interface <- .wb_prov_current_contract_interface(op_name)
       if (!identical(.wb_prov_contract_interface_identity(recorded_interface),
@@ -2097,7 +2125,7 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
                                  "Persisted replay params must be named.")
 
   op_name <- as.character(op_name %||% "")[1]
-  if (nzchar(op_name) && op_name %in% names(.wb_op_catalog())) {
+  if (nzchar(op_name) && op_name %in% names(.wb_operation_catalog())) {
     inputs <- .wb_prov_rehydrate_named_inputs(inputs, op_name)
     params <- .wb_prov_rehydrate_named_inputs(params, op_name)
   }
@@ -2105,7 +2133,7 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   # JSON/R deparsing of optional NULL parameters in older snapshots can leave
   # the literal string "NA" in runner diagnostics.  It is not an executable
   # value for a catalog parameter whose public default is NULL.
-  op_spec <- .wb_op_catalog()[[op_name]]
+  op_spec <- .wb_operation_catalog()[[op_name]]
   if (!is.null(op_spec)) {
     op_params <- op_spec$params %||% list()
     # Runner parameter records include output diagnostics (for example PCA's

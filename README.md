@@ -181,6 +181,11 @@ The shipped, platform-agnostic onboarding library is available in a checkout
 at [inst/onboarding](inst/onboarding), or after installation through
 `system.file("onboarding", package = "scworkbench")`.
 
+Independently distributed scientific operations can be explicitly activated
+through the operation-pack v1 ABI. Installation is inert; see
+[docs/operation_packs.md](docs/operation_packs.md) for trust, authoring,
+provenance, recipient, and conformance semantics.
+
 Contribution, support, and composite-release policies are documented in
 [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md),
 [docs/SUPPORT.md](docs/SUPPORT.md), and
