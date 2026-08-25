@@ -27,6 +27,20 @@ if [[ "${OBSERVED_PYBENCH_COMMIT}" != "${EXPECTED_PYBENCH_COMMIT}" ]]; then
   exit 1
 fi
 
+SCWORKBENCH_REPO_ROOT="${REPO_ROOT}" Rscript -e '
+  root <- Sys.getenv("SCWORKBENCH_REPO_ROOT")
+  source(file.path(root, "inst/ci/fullstack_r_dependency_lock.R"))
+  lock_path <- file.path(root, "containers/apptainer/fullstack_r_dependencies.dcf")
+  lock <- read_fullstack_r_dependency_lock(lock_path)
+  classes <- fullstack_source_classes(lock, file.path(root, "DESCRIPTION"))
+  versions <- fullstack_read_version_lock(lock, lock_path)
+  missing <- setdiff(names(classes), versions$package)
+  if (length(missing)) {
+    stop("Product dependencies missing from R version lock: ", paste(missing, collapse = ", "))
+  }
+  cat("Fullstack R dependency metadata preflight: OK\n")
+'
+
 echo "Repo root: ${REPO_ROOT}"
 echo "Definition: ${DEF_FILE}"
 echo "Sandbox: ${SANDBOX_PATH}"

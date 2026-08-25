@@ -190,7 +190,7 @@
 "preprocessCore","Bioconductor release","Bioconductor 3.21","1.70.0"
 "prettyunits","qualified base image","pinned OCI base image","1.2.0"
 "princurve","qualified base image","pinned OCI base image","2.1.6"
-"processx","qualified base image","pinned OCI base image","3.8.6"
+"processx","CRAN","https://cloud.r-project.org","3.8.6"
 "profvis","qualified base image","pinned OCI base image","0.4.0"
 "progress","CRAN","https://cloud.r-project.org","1.2.3"
 "progressr","CRAN","https://cloud.r-project.org","1.0.0"
