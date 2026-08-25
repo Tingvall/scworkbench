@@ -38,15 +38,27 @@
                                    env = character(0),
                                    request_path = tempfile("pybench_req_", fileext = ".json"),
                                    receipt_path = tempfile("pybench_rec_", fileext = ".json"),
-                                   isolated = TRUE) {
+                                   isolated = TRUE,
+                                   command_args = NULL,
+                                   timeout_seconds = 0,
+                                   prepare_transition = NULL,
+                                   finalize_transition = NULL,
+                                   validate_transition = NULL) {
   .wb_pyproto_validate_request(request)
   if (isTRUE(isolated)) {
     return(.wb_pybench_execute_isolated(
       module = module, request = request, bundle = bundle, python_bin = python_bin,
-      env = env, request_path = request_path, receipt_path = receipt_path
+      env = env, request_path = request_path, receipt_path = receipt_path,
+      command_args = command_args, timeout_seconds = timeout_seconds,
+      prepare_transition = prepare_transition, finalize_transition = finalize_transition,
+      validate_transition = validate_transition
     ))
   }
-  .wb_pyproto_assert_scalar_chr(as.character(module %||% ""), "module")
+  if (is.null(command_args)) {
+    .wb_pyproto_assert_scalar_chr(as.character(module %||% ""), "module")
+  } else {
+    .wb_assert(is.function(command_args), "PyBench command_args must be a function")
+  }
   py <- as.character(python_bin %||% "")[1]
   if (!nzchar(py) || !file.exists(py)) {
     stop(
@@ -79,9 +91,50 @@
     env_extra <- c(env_extra, paste0("XDG_CACHE_HOME=", xdg_dir))
   }
 
-  args <- c("-m", module, "--request", request_path, "--receipt", receipt_path)
-  out <- system2(py, args = args, stdout = TRUE, stderr = TRUE, env = c(env_extra, env))
-  status <- attr(out, "status") %||% 0L
+  args <- if (is.null(command_args)) {
+    c("-m", module, "--request", request_path, "--receipt", receipt_path)
+  } else {
+    as.character(command_args(request_path = request_path, receipt_path = receipt_path))
+  }
+  .wb_assert(length(args) > 0L && !anyNA(args), "PyBench command_args returned invalid arguments")
+  timeout_seconds <- suppressWarnings(as.numeric(timeout_seconds)[1])
+  .wb_assert(is.finite(timeout_seconds) && timeout_seconds >= 0,
+             "PyBench timeout_seconds must be a finite non-negative number")
+  env_values <- c(env_extra, env)
+  env_split <- strsplit(env_values, "=", fixed = TRUE)
+  env_named <- if (length(env_split)) stats::setNames(
+    vapply(env_split, function(x) paste(x[-1L], collapse = "="), character(1)),
+    vapply(env_split, function(x) x[[1L]], character(1))
+  ) else character(0)
+  process <- tryCatch(
+    processx::run(
+      py, args = args, env = c("current", env_named), echo = FALSE,
+      error_on_status = FALSE,
+      timeout = if (timeout_seconds > 0) timeout_seconds else Inf
+    ),
+    error = identity
+  )
+  if (inherits(process, "error")) {
+    condition <- structure(list(
+      message = paste0("PyBench subprocess failed: ", conditionMessage(process)), call = NULL,
+      parent = process, timed_out = inherits(process, c(
+        "processx_timeout", "system_command_timeout_error")),
+      status = NA_integer_, stdout_stderr = conditionMessage(process), receipt = NULL
+    ), class = c("wb_pybench_process_error", "error", "condition"))
+    stop(condition)
+  }
+  if (isTRUE(process$timeout)) {
+    condition <- structure(list(
+      message = "PyBench subprocess exceeded its execution timeout", call = NULL,
+      timed_out = TRUE, status = NA_integer_,
+      stdout_stderr = c(process$stdout %||% "", process$stderr %||% ""), receipt = NULL
+    ), class = c("wb_pybench_process_error", "error", "condition"))
+    stop(condition)
+  }
+  out <- c(strsplit(process$stdout %||% "", "\n", fixed = TRUE)[[1]],
+           strsplit(process$stderr %||% "", "\n", fixed = TRUE)[[1]])
+  out <- out[nzchar(out)]
+  status <- as.integer(process$status %||% 0L)
 
   if (!identical(as.integer(status), 0L)) {
     msg <- paste(c(
@@ -93,10 +146,18 @@
     if (file.exists(receipt_path)) {
       rec_try <- try(jsonlite::read_json(receipt_path, simplifyVector = FALSE), silent = TRUE)
       if (!inherits(rec_try, "try-error") && is.list(rec_try)) {
-        return(list(status = as.integer(status), stdout_stderr = out, request = request, receipt = rec_try))
+        condition <- structure(list(
+          message = msg, call = NULL, timed_out = FALSE, status = as.integer(status),
+          stdout_stderr = out, receipt = rec_try
+        ), class = c("wb_pybench_process_error", "error", "condition"))
+        stop(condition)
       }
     }
-    stop(msg, call. = FALSE)
+    condition <- structure(list(
+      message = msg, call = NULL, timed_out = FALSE, status = as.integer(status),
+      stdout_stderr = out, receipt = NULL
+    ), class = c("wb_pybench_process_error", "error", "condition"))
+    stop(condition)
   }
 
   receipt <- .wb_pyproto_read_receipt_json(receipt_path, request = request)

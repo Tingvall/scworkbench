@@ -4,25 +4,39 @@
 \alias{wb_operation_pack_activate}
 \title{Explicitly Activate an Operation Pack From Its Manifest}
 \usage{
-wb_operation_pack_activate(manifest, runtime_identity = NULL, lib.loc = NULL)
+wb_operation_pack_activate(
+  manifest,
+  runtime_identity = NULL,
+  lib.loc = NULL,
+  python = NULL,
+  timeout_seconds = getOption("scworkbench.operation_pack_python_timeout_seconds", 300)
+)
 }
 \arguments{
 \item{manifest}{Parsed manifest list or path to an operation-pack JSON file.}
 
-\item{runtime_identity}{Optional backend runtime/distribution identity. It is
-forbidden for R and structurally checked for Python.}
+\item{runtime_identity}{Reserved for backend-neutral structural conformance.
+Activation does not accept caller-supplied runtime claims; pass such claims
+to \code{\link[=wb_operation_pack_manifest_validate]{wb_operation_pack_manifest_validate()}} instead.}
 
 \item{lib.loc}{Optional R library location used only for backend \code{R}.}
+
+\item{python}{Exact PyBench Python interpreter used only for backend
+\code{Python}. When omitted, the normal PyBench interpreter configuration is
+used (\code{SCWORKBENCH_PYBENCH_PYTHON}, then the R option).}
+
+\item{timeout_seconds}{Positive discovery/execution subprocess timeout used
+only for backend \code{Python}.}
 }
 \value{
-For R, the activated pack inspection record invisibly. Python is not
-executable in this checkpoint and raises an error before activation.
+The activated pack inspection record invisibly.
 }
 \description{
 This is the backend-neutral activation dispatcher. For an R manifest it
 authenticates the supplied definition against the installed R package and
-delegates to \code{\link[=wb_operation_pack_load]{wb_operation_pack_load()}}. For a Python manifest it validates
-optional explicitly resolved distribution metadata, then raises the typed
-runtime-unavailable condition until the audited PyBench integration owns
-execution. It never scans installed packages or imports a Python target.
+delegates to \code{\link[=wb_operation_pack_load]{wb_operation_pack_load()}}. For a Python manifest it asks the
+explicitly configured PyBench interpreter to discover the exact declared
+distribution and standard entry point, independently audits all identities,
+and activates an audited subprocess adapter. It never scans unrelated
+distributions or executes an arbitrary import string.
 }

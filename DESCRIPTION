@@ -31,6 +31,7 @@ Imports:
     RSQLite,
     jsonlite,
     Matrix,
+    processx,
     rhdf5
 Suggests:
     BPCells,

@@ -533,6 +533,9 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     run$operation_definition_sha256 <- as.character(
       pack_identity$operation_definition_sha256[[op_name]] %||% NA_character_
     )[1]
+    if (!is.null(res$operation_pack_runtime)) {
+      run$operation_pack_runtime <- res$operation_pack_runtime
+    }
   }
 
   session <- if (is.null(session$durable)) wb_session_add_run(session, run) else .wb_session_add_run_checkpointable(session, run)
@@ -543,7 +546,8 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   }
 
   if (!is.null(session$durable)) {
-    session$durable$runtime_attestations[[run$run_id]] <- .wb_prov_runtime_fingerprint(op_name)
+    session$durable$runtime_attestations[[run$run_id]] <- .wb_prov_runtime_fingerprint(
+      op_name, operation_pack_runtime = run$operation_pack_runtime %||% NULL)
     session <- .wb_session_record_payload_identities(session, run)
     session <- .wb_session_checkpoint(session, "active", allow_uncheckpointed_state = TRUE)
     .wb_session_operation_marker(session, clear = TRUE)

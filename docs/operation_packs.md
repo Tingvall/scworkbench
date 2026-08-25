@@ -1,10 +1,10 @@
 # Operation packs
 
 Operation-pack protocol v1 admits independently installed R packages and Python
-distributions. Protocol support and installed runtime support are different:
-this checkpoint fully activates R packs and structurally admits Python packs;
-Python execution remains unavailable until the audited PyBench integration is
-installed. A pack operation is never a parallel runner: after backend-specific
+distributions. Protocol support and installed runtime support remain different:
+this checkpoint activates R packs in-process and Python packs through the
+audited PyBench operation-pack CLI. A pack operation is never a parallel runner:
+after backend-specific
 activation it uses the same `wb_session_run_op()` path, typed inputs,
 effective-cell coverage, private staging, promotion, provenance, replay,
 validation, and reproduction contracts as a core operation.
@@ -44,12 +44,19 @@ importing the target. It still does not activate Python.
 The explicit backend-neutral activation dispatcher is:
 
 ```r
-wb_operation_pack_activate("operation-pack.json", runtime_identity = NULL)
+wb_operation_pack_activate(
+  "operation-pack.json",
+  python = Sys.getenv("SCWORKBENCH_PYBENCH_PYTHON")
+)
 ```
 
 For R it authenticates the supplied manifest against the installed package and
-delegates to `wb_operation_pack_load()`. For Python it is the frozen PyBench
-integration seam and currently raises `OPERATION_PACK_RUNTIME_UNAVAILABLE`.
+delegates to `wb_operation_pack_load()`. For Python, caller-supplied runtime
+claims are rejected: PyBench discovers only the manifest's exact distribution
+and fixed-group entry point in the explicitly configured interpreter. R audits
+the returned canonical identity and runtime attestation before publishing the
+process-local catalog overlay. A missing PyBench interpreter reports
+`OPERATION_PACK_RUNTIME_UNAVAILABLE`; it is not an unsupported backend.
 
 Pack code is executable R or Python. scworkbench owns scientific-state
 transitions and checks the operation contract, but does not claim to sandbox
@@ -62,13 +69,49 @@ pack operation has executed. Once execution has occurred, the conservative
 in-use guard keeps the definition available for any staged ephemeral or durable
 session that may still require promotion.
 
+## Installed R, Python, and mixed lifecycle
+
+The two reference packages compose through the same public catalog and session
+API. This minimal chain assumes `signal` is continuous cell metadata and that
+`python_manifest` names the manifest inside the installed Python distribution:
+
+```r
+wb_operation_pack_load("scworkbenchOperationPackTemplate")
+wb_operation_pack_activate(
+  python_manifest,
+  python = "/path/to/accepted/pybench/environment/bin/python"
+)
+
+s <- wb_session_new()
+core <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(
+  source_column = "signal", vector_name = "signal",
+  value_type = "continuous", missing_policy = "error", min_cells = 1L
+))
+r_step <- wb_session_run_op(core$session, b,
+  "scwbexample::affine_cell_vector", inputs = list(
+    signal = wb_ref_run(core$run$run_id, "vector"),
+    scale = 2, shift = 1, min_cells = 1L
+  ))
+python_step <- wb_session_run_op(r_step$session, b,
+  "scwbpython::affine_cell_vector", inputs = list(
+    signal = wb_ref_run(r_step$run$run_id, "vector"),
+    scale = 3, min_cells = 1L
+  ))
+```
+
+The R and Python steps are ordinary session runs: durable sessions, selective
+promotion, reopen, certificates, strict replay, and targeted reproduction use
+the same APIs as core operations. Installation alone remains inert, and each
+backend must be activated explicitly in every process that executes or replays
+its operations.
+
 ## Backends and package identity
 
 Protocol v1 supports exactly `R` and `Python`. Any other token fails with
-`OPERATION_PACK_BACKEND_UNSUPPORTED` before mutation. A structurally valid
-Python pack presented to this R-only activation checkpoint fails with class
-`wb_operation_pack_runtime_unavailable` and code
-`OPERATION_PACK_RUNTIME_UNAVAILABLE`; it is not reported as an unknown backend.
+`OPERATION_PACK_BACKEND_UNSUPPORTED` before mutation. Runtime availability is
+checked only at explicit activation: a valid Python manifest remains
+structurally conformant even when its configured interpreter, distribution, or
+entry point is absent.
 
 For backend `R`, `package.name` is an R package name, `package.version` must
 equal installed `DESCRIPTION` metadata exactly, and manifest `entry_point` is
@@ -159,10 +202,15 @@ getters, promotion functions, or validation hooks. It must not write bundle
 SQLite, manifests, registries, or payload paths directly.
 
 Python does not use `wb_operation_pack_register()`. That public function remains
-the R pack-author boundary and accepts R runner functions only. Python Phase 2
-must discover the declared distribution entry point and execute through PyBench
-v2 capabilities and receipts; it may not build an import-string runner or
-direct writer.
+the R pack-author boundary and accepts R runner functions only. Python authors
+return PyBench's public `operation_pack_handlers()` object from the declared
+entry point. At execution, scworkbench creates the private transition and exact
+input/output capability, invokes `pybench.operation_pack_cli execute` once,
+then independently verifies the receipt, runtime sidecar, observed SQLite and
+payload mutations, and distribution/interpreter identity before atomic
+publication. Timeout, signal, nonzero exit, incomplete or forged receipt,
+runtime drift, undeclared mutation, or publication failure discards the private
+transition. Packs never receive a direct committed-bundle writer.
 
 Every operation name is fully qualified as `<namespace>::<operation>`. Reserved
 namespaces, duplicate packs or operations, core shadowing, incompatible package
@@ -200,7 +248,7 @@ runtime_fingerprint$operation_pack_runtime
 ```
 
 For R, `operation_pack_runtime` remains
-`package{name,version}, installed_path, built, remote_sha`. For Python it is
+`package{name,version}, built, remote_sha`. For Python it is
 frozen as `scworkbench.operation_pack_runtime.python.v1` and contains:
 
 ```text
@@ -211,7 +259,7 @@ distribution{
   artifact_identity{kind,scheme,sha256}
 }
 entry_point{group,name,value}
-interpreter{implementation,version,abi,platform,executable,executable_sha256}
+interpreter{implementation,version,abi,platform,executable_sha256}
 dependencies{scheme,sha256,distributions[{name,normalized_name,version}]}
 pybench{protocol,distribution_name,distribution_version,source_revision}
 device{type,descriptor}
@@ -222,6 +270,8 @@ Interpreter, dependency, artifact, PyBench, device, and seed observations enter
 runtime provenance and replay attestation. They do not alter canonical manifest
 or scientific operation-definition identity. The canonical example is
 `runtime/python-operation-pack-runtime.json` in the fixture directory.
+Absolute interpreter, distribution-install, manifest, request, receipt, bundle,
+and library paths are deliberately removed before inspection or persistence.
 
 A recipient without the pack can open and content-validate the bundle, navigate
 provenance and certificates, and load retained core primitives. Typed replay
@@ -231,6 +281,9 @@ guidance; execution or target reproduction fails with a
 explicitly activated. A same-named pack with a different definition,
 distribution identity, entry point, or backend produces
 `OPERATION_CONTRACT_INCOMPATIBLE` and never satisfies contract comparison.
+After exact activation, strict replay and targeted reproduction use the same
+ordinary catalog/session path. Emitted replay scripts call only exported
+scworkbench APIs.
 
 ## Operation, capsule, or adopted state
 

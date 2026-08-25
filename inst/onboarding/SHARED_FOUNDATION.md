@@ -20,10 +20,14 @@ provenance path. Installation alone is inert and no installed-package scan is
 performed. Pack code is trusted executable code, not a host sandbox; passing
 conformance establishes engine compatibility, not scientific validity.
 Protocol support does not imply that a backend runtime is installed. Protocol
-v1 admits R and Python; the current checkpoint activates R and structurally
-validates Python manifests without importing or executing them. A valid Python
-pack therefore reports runtime unavailable, not unsupported backend, until the
-audited PyBench integration is present.
+v1 admits R and Python. R activation authenticates an installed R package;
+Python activation uses the explicitly configured PyBench interpreter to
+discover the exact distribution and fixed-group entry point. A valid Python
+manifest remains structurally conformant when that interpreter or distribution
+is absent, while activation reports runtime unavailable rather than unsupported
+backend. Python execution still enters the ordinary engine session path: R
+creates and audits the private transition and publishes it only after receipt,
+runtime, and mutation verification.
 
 Use a terminal capsule only for the irreducibly dataset/question-specific end of
 an analysis. Use the adoption boundary for externally computed state that must

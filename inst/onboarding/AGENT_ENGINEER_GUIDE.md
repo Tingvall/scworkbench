@@ -83,16 +83,22 @@ non-executing structural validation. Installed R packages use
 `wb_operation_pack_load()`; these two R-package APIs execute trusted package
 code. Inspect activated state with `wb_operation_packs()` and
 `wb_operation_pack_inspect()`. Protocol v1 admits `R` and `Python`, but runtime
-support is separate: this checkpoint activates R only, and valid Python
-activation fails with `OPERATION_PACK_RUNTIME_UNAVAILABLE` until the PyBench
-integration is installed. Python uses distribution metadata, PEP 503 name
+support is separate. Activate Python explicitly with
+`wb_operation_pack_activate(manifest, python=...)`; PyBench discovers the exact
+installed distribution and entry point and scworkbench independently audits its
+identity, runtime sidecar, receipt, and private-transition mutations. A missing
+configured runtime reports `OPERATION_PACK_RUNTIME_UNAVAILABLE`. Python uses
+distribution metadata, PEP 503 name
 normalization, PEP 440 version comparison, and entry-point group
 `scworkbench.operation_packs.v1`; manifest `entry_point` is the entry-point
 name, not an import target. Conformance is not scientific validation and does
 not provide host-code sandboxing. Operation-pack v1 cannot add primitive kinds,
 storage, getters, promoters, or validation hooks.
 The backend-neutral activation seam is `wb_operation_pack_activate()`; do not
-bypass it with an import-string runner or an alternate catalog.
+bypass it with an import-string runner, direct bundle writer, or alternate
+catalog. Timeout, signal, nonzero exit, receipt/runtime forgery, undeclared
+mutation, and publication failure must leave both committed and durable staged
+state unchanged. Host absolute paths are never persisted.
 
 ## Long-running operation safety
 

@@ -861,7 +861,7 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   invisible(TRUE)
 }
 
-.wb_prov_runtime_fingerprint <- function(op_name) {
+.wb_prov_runtime_fingerprint <- function(op_name, operation_pack_runtime = NULL) {
   loaded <- sort(loadedNamespaces())
   package_versions <- vapply(loaded, function(pkg) {
     tryCatch(as.character(utils::packageVersion(pkg)), error = function(e) NA_character_)
@@ -888,7 +888,8 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   if (!is.null(pack)) {
     out$operation_pack <- pack
     rec <- .wb_operation_pack_registry$packs[[pack$namespace]]
-    out$operation_pack_runtime <- rec$runtime_attestation %||% list(status = "unavailable")
+    out$operation_pack_runtime <- operation_pack_runtime %||%
+      rec$runtime_attestation %||% list(status = "unavailable")
   }
   out
 }
@@ -1373,7 +1374,10 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           as.character(execution_inputs_json),
           as.character(run_hash),
           "1",
-          as.character(jsonlite::toJSON(utils::modifyList(.wb_prov_runtime_fingerprint(run$op_name), runtime_fingerprint %||% list()), auto_unbox = TRUE, null = "null")),
+          as.character(jsonlite::toJSON(utils::modifyList(
+            .wb_prov_runtime_fingerprint(
+              run$op_name, operation_pack_runtime = run$operation_pack_runtime %||% NULL),
+            runtime_fingerprint %||% list()), auto_unbox = TRUE, null = "null")),
           as.character(contract_json),
           as.character(.wb_prov_contract_hash(contract_json)),
           unname(.wb_identity_schemes()[["run"]]),
@@ -2210,6 +2214,23 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   merged
 }
 
+#' Rehydrate Persisted Operation Inputs for Public Replay Scripts
+#'
+#' Merges persisted symbolic inputs and validated operation parameters using
+#' the same duplicate/conflict rules as strict replay. This is the public
+#' boundary used by scripts emitted by [wb_prov_emit_r_script()] and
+#' [wb_art_emit_r_script()]; it performs no execution or bundle mutation.
+#'
+#' @param inputs Persisted named symbolic input list.
+#' @param params Persisted named operation parameter list.
+#' @param run_id Optional historical run identifier used in diagnostics.
+#' @param op_name Optional operation name used for current-contract validation.
+#' @return A named input list suitable for [wb_session_run_op()].
+#' @export
+wb_prov_replay_execution_inputs <- function(inputs, params, run_id = NULL, op_name = NULL) {
+  .wb_prov_replay_execution_inputs(inputs, params, run_id = run_id, op_name = op_name)
+}
+
 #' Emit an R replay script from persisted provenance
 #'
 #' The generated script replays the persisted run order using the sole public
@@ -2314,11 +2335,12 @@ wb_prov_emit_r_script <- function(bundle,
       "sess <- wb_session_new()",
       "replay_map <- list()",
       "target_res <- NULL",
+      "`%or%` <- function(x, y) if (is.null(x)) y else x",
       "",
       "rewrite_run_refs <- function(x, replay_map) {",
       "  if (!is.list(x)) return(x)",
-      "  if (identical(as.character(x$ref_type %||% '')[1], 'run')) {",
-      "    old <- as.character(x$run_id %||% '')[1]",
+      "  if (identical(as.character(x$ref_type %or% '')[1], 'run')) {",
+      "    old <- as.character(x$run_id %or% '')[1]",
       "    if (nzchar(old) && !is.null(replay_map[[old]])) x$run_id <- replay_map[[old]]",
       "    return(x)",
       "  }",
@@ -2346,9 +2368,9 @@ wb_prov_emit_r_script <- function(bundle,
         lines,
         paste0("# run_id: ", rid, " op: ", op_name),
         paste0("entry <- replay_payload[['", .wb_r_single_quote_escape(rid), "']]"),
-        "recorded_params <- entry$params %||% list()",
-        "recorded_inputs <- entry$inputs %||% list()",
-        paste0("execution_inputs <- scworkbench:::.wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
+        "recorded_params <- entry$params %or% list()",
+        "recorded_inputs <- entry$inputs %or% list()",
+        paste0("execution_inputs <- wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
         "execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)",
         paste0("res <- wb_session_run_op(session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
                "inputs = execution_inputs, notes = '", .wb_r_single_quote_escape(notes), "')"),
@@ -2363,7 +2385,7 @@ wb_prov_emit_r_script <- function(bundle,
         paste0("# run_id: ", rid, " op: ", op_name),
         .wb_emit_r_object_assign("recorded_params", payload[[rid]]$params %||% list()),
         .wb_emit_r_object_assign("recorded_inputs", payload[[rid]]$inputs %||% list()),
-        paste0("execution_inputs <- scworkbench:::.wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
+        paste0("execution_inputs <- wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
         "execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)",
         paste0("res <- wb_session_run_op(session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
                "inputs = execution_inputs, notes = '", .wb_r_single_quote_escape(notes), "')"),
@@ -2382,7 +2404,7 @@ wb_prov_emit_r_script <- function(bundle,
         .wb_emit_r_paste0_chunks("inputs_json_txt", inputs_json),
         "recorded_params <- jsonlite::fromJSON(params_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
         "recorded_inputs <- jsonlite::fromJSON(inputs_json_txt, simplifyVector = TRUE, simplifyDataFrame = FALSE)",
-        paste0("execution_inputs <- scworkbench:::.wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
+        paste0("execution_inputs <- wb_prov_replay_execution_inputs(recorded_inputs, recorded_params, run_id = '", .wb_r_single_quote_escape(rid), "', op_name = '", .wb_r_single_quote_escape(op_name), "')"),
         "execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)",
         paste0("res <- wb_session_run_op(session = sess, bundle = bundle, op_name = '", .wb_r_single_quote_escape(op_name), "', ",
                "inputs = execution_inputs, notes = '", .wb_r_single_quote_escape(notes), "')"),

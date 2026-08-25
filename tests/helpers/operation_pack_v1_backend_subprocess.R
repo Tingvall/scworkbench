@@ -116,7 +116,7 @@ stopifnot(!python_with_runtime$structural_only,
           identical(version_key("1.0-post1"), version_key("1.0.post01")))
 
 invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], runtime_valid),
-  "OPERATION_PACK_RUNTIME_UNAVAILABLE", "wb_operation_pack_runtime_unavailable"))
+  "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED"))
 
 # Every runtime/discovery rejection is typed and leaves process registry and
 # committed scientific state byte-identical.
@@ -134,7 +134,8 @@ check_unchanged <- function() {
             identical(catalog_before, wb_operation_catalog_identity()))
 }
 
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]]),
+invisible(expect_pack_error(wb_operation_pack_activate(
+  python_paths[[1]], python = file.path(tempdir(), "absent-python")),
   "OPERATION_PACK_RUNTIME_UNAVAILABLE", "wb_operation_pack_runtime_unavailable"))
 check_unchanged()
 
@@ -145,30 +146,30 @@ check_unchanged()
 
 missing_distribution <- runtime_valid
 missing_distribution$distribution <- NULL
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], missing_distribution),
+invisible(expect_pack_error(wb_operation_pack_manifest_validate(python_paths[[1]], missing_distribution),
   "OPERATION_PACK_DISTRIBUTION_UNAVAILABLE", "wb_operation_pack_runtime_unavailable"))
 check_unchanged()
 
 wrong_name <- runtime_valid
 wrong_name$distribution$name <- "unrelated-distribution"
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], wrong_name),
+invisible(expect_pack_error(wb_operation_pack_manifest_validate(python_paths[[1]], wrong_name),
   "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH"))
 check_unchanged()
 
 wrong_version <- runtime_valid
 wrong_version$distribution$version <- "2.0.0"
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], wrong_version),
+invisible(expect_pack_error(wb_operation_pack_manifest_validate(python_paths[[1]], wrong_version),
   "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH"))
 check_unchanged()
 
 missing_entry_point <- runtime_valid
 missing_entry_point$entry_points <- list()
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], missing_entry_point),
+invisible(expect_pack_error(wb_operation_pack_manifest_validate(python_paths[[1]], missing_entry_point),
   "OPERATION_PACK_ENTRY_POINT_UNAVAILABLE", "wb_operation_pack_runtime_unavailable"))
 check_unchanged()
 
 ambiguous_entry_point <- jsonlite::read_json(runtime_ambiguous_path, simplifyVector = FALSE)
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], ambiguous_entry_point),
+invisible(expect_pack_error(wb_operation_pack_manifest_validate(python_paths[[1]], ambiguous_entry_point),
   "OPERATION_PACK_ENTRY_POINT_AMBIGUOUS"))
 check_unchanged()
 
@@ -179,18 +180,18 @@ stopifnot(identical(cross_distribution_report$runtime_identity$entry_point$value
                     "scworkbench_python_pack.entrypoint:register"))
 invisible(expect_pack_error(
   wb_operation_pack_activate(python_paths[[1]], cross_distribution_entry_point),
-  "OPERATION_PACK_RUNTIME_UNAVAILABLE", "wb_operation_pack_runtime_unavailable"))
+  "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED"))
 check_unchanged()
 
 wrong_entry_distribution <- runtime_valid
 wrong_entry_distribution$entry_points[[1]]$distribution$name <- "other-pack"
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], wrong_entry_distribution),
+invisible(expect_pack_error(wb_operation_pack_manifest_validate(python_paths[[1]], wrong_entry_distribution),
   "OPERATION_PACK_ENTRY_POINT_UNAVAILABLE", "wb_operation_pack_runtime_unavailable"))
 check_unchanged()
 
 backend_mismatch <- runtime_valid
 backend_mismatch$backend <- "R"
-invisible(expect_pack_error(wb_operation_pack_activate(python_paths[[1]], backend_mismatch),
+invisible(expect_pack_error(wb_operation_pack_manifest_validate(python_paths[[1]], backend_mismatch),
   "OPERATION_PACK_BACKEND_MISMATCH"))
 check_unchanged()
 
@@ -245,7 +246,8 @@ stopifnot(
 check_unchanged()
 
 # Cross-process and R/Python structural admission identity is independent of
-# validation order. Python remains absent from the runtime catalog.
+# validation order. Structural validation alone leaves Python absent from the
+# runtime catalog.
 identity_script <- tempfile("operation_pack_backend_identity_", fileext = ".R")
 on.exit(unlink(identity_script), add = TRUE)
 writeLines(c(

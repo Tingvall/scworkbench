@@ -549,7 +549,6 @@
   pack_identity <- .wb_operation_pack_identity(manifest)
   attestation <- list(
     package = manifest$package,
-    installed_path = as.character(installed_path %||% NA_character_)[1],
     built = as.character(package_description$Built %||% NA_character_)[1],
     remote_sha = as.character(package_description$RemoteSha %||% NA_character_)[1]
   )
@@ -741,26 +740,62 @@ wb_operation_pack_manifest_validate <- function(manifest, runtime_identity = NUL
 #'
 #' This is the backend-neutral activation dispatcher. For an R manifest it
 #' authenticates the supplied definition against the installed R package and
-#' delegates to [wb_operation_pack_load()]. For a Python manifest it validates
-#' optional explicitly resolved distribution metadata, then raises the typed
-#' runtime-unavailable condition until the audited PyBench integration owns
-#' execution. It never scans installed packages or imports a Python target.
+#' delegates to [wb_operation_pack_load()]. For a Python manifest it asks the
+#' explicitly configured PyBench interpreter to discover the exact declared
+#' distribution and standard entry point, independently audits all identities,
+#' and activates an audited subprocess adapter. It never scans unrelated
+#' distributions or executes an arbitrary import string.
 #'
 #' @param manifest Parsed manifest list or path to an operation-pack JSON file.
-#' @param runtime_identity Optional backend runtime/distribution identity. It is
-#'   forbidden for R and structurally checked for Python.
+#' @param runtime_identity Reserved for backend-neutral structural conformance.
+#'   Activation does not accept caller-supplied runtime claims; pass such claims
+#'   to [wb_operation_pack_manifest_validate()] instead.
 #' @param lib.loc Optional R library location used only for backend `R`.
-#' @return For R, the activated pack inspection record invisibly. Python is not
-#'   executable in this checkpoint and raises an error before activation.
+#' @param python Exact PyBench Python interpreter used only for backend
+#'   `Python`. When omitted, the normal PyBench interpreter configuration is
+#'   used (`SCWORKBENCH_PYBENCH_PYTHON`, then the R option).
+#' @param timeout_seconds Positive discovery/execution subprocess timeout used
+#'   only for backend `Python`.
+#' @return The activated pack inspection record invisibly.
 #' @export
-wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.loc = NULL) {
+wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.loc = NULL,
+                                       python = NULL,
+                                       timeout_seconds = getOption(
+                                         "scworkbench.operation_pack_python_timeout_seconds", 300)) {
   validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_manifest_input(manifest))
   if (identical(validated$backend, "Python")) {
-    .wb_operation_pack_require_runtime(validated, runtime_identity = runtime_identity)
+    .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
+      paste0("Python activation discovers runtime identity from the explicitly configured ",
+             "interpreter; caller-supplied runtime_identity is accepted only by ",
+             "wb_operation_pack_manifest_validate()."),
+      backend = "Python", class = "wb_operation_pack_validation_error")
+    .wb_operation_pack_assert(is.null(lib.loc), "OPERATION_PACK_BACKEND_MISMATCH",
+      "lib.loc applies only to installed R operation packs.", backend = "Python",
+      class = "wb_operation_pack_validation_error")
+    python <- .wb_operation_pack_python_binary(python)
+    identity <- .wb_operation_pack_identity(validated)
+    snapshot <- tempfile("operation_pack_manifest_", fileext = ".json")
+    canonical_manifest <- validated
+    canonical_manifest$operations <- lapply(canonical_manifest$operations, function(x) {
+      x[setdiff(names(x), c("op_name", "definition_sha256"))]
+    })
+    writeLines(.wb_operation_pack_canonical_json(canonical_manifest), snapshot, useBytes = TRUE)
+    published <- FALSE
+    on.exit(if (!isTRUE(published)) unlink(snapshot, force = TRUE), add = TRUE)
+    discovery <- .wb_operation_pack_python_discover(
+      snapshot, validated, identity, python, timeout_seconds)
+    registration <- .wb_operation_pack_python_registration(
+      validated, identity, discovery, snapshot, python, timeout_seconds)
+    result <- .wb_operation_pack_publish(registration)
+    published <- TRUE
+    return(result)
   }
   .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_BACKEND_MISMATCH",
     "runtime_identity must not be supplied when activating an installed R package.",
     backend = "R", class = "wb_operation_pack_validation_error")
+  .wb_operation_pack_assert(is.null(python), "OPERATION_PACK_BACKEND_MISMATCH",
+    "python applies only to backend 'Python'.", backend = "R",
+    class = "wb_operation_pack_validation_error")
   package <- validated$package$name
   installed_path <- .wb_operation_pack_manifest_path(package, lib.loc = lib.loc)
   description <- utils::packageDescription(package, lib.loc = lib.loc)
@@ -910,17 +945,7 @@ wb_operation_pack_validate <- function(package, lib.loc = NULL) {
   }
 }
 
-#' Explicitly Load and Activate an Installed R Operation Pack
-#'
-#' Installing a package is inert. This function is the explicit process-local
-#' trust and activation boundary; no installed-package scan is performed.
-#'
-#' @param package Installed R package name.
-#' @param lib.loc Optional R library location.
-#' @return The inspected activated pack record, invisibly.
-#' @export
-wb_operation_pack_load <- function(package, lib.loc = NULL) {
-  registration <- .wb_operation_pack_invoke(package, lib.loc = lib.loc)
+.wb_operation_pack_publish <- function(registration) {
   identity <- registration$identity
   namespace <- identity$namespace
   op_names <- names(identity$operation_definition_sha256)
@@ -950,11 +975,25 @@ wb_operation_pack_load <- function(package, lib.loc = NULL) {
   }
   pack <- list(identity = identity, manifest = registration$manifest,
                runtime_attestation = registration$runtime_attestation,
+               runtime_config = registration$runtime_config %||% NULL,
                operation_names = sort(op_names, method = "radix"), used = FALSE)
-  # Publish only after the complete pack has validated and staged in memory.
   .wb_operation_pack_registry$packs[[namespace]] <- pack
   for (op_name in names(operations)) .wb_operation_pack_registry$operations[[op_name]] <- operations[[op_name]]
   invisible(wb_operation_pack_inspect(namespace))
+}
+
+#' Explicitly Load and Activate an Installed R Operation Pack
+#'
+#' Installing a package is inert. This function is the explicit process-local
+#' trust and activation boundary; no installed-package scan is performed.
+#'
+#' @param package Installed R package name.
+#' @param lib.loc Optional R library location.
+#' @return The inspected activated pack record, invisibly.
+#' @export
+wb_operation_pack_load <- function(package, lib.loc = NULL) {
+  registration <- .wb_operation_pack_invoke(package, lib.loc = lib.loc)
+  .wb_operation_pack_publish(registration)
 }
 
 #' List Explicitly Loaded Operation Packs
@@ -1024,6 +1063,10 @@ wb_operation_pack_unload <- function(pack) {
     paste0("Operation pack '", namespace, "' cannot be unloaded after execution because active or staged session state may depend on it."),
     namespace = namespace, class = "wb_operation_pack_in_use")
   for (op in current$operation_names) .wb_operation_pack_registry$operations[[op]] <- NULL
+  manifest_path <- as.character(current$runtime_config$manifest_path %||% "")[1]
+  if (identical(current$identity$backend, "Python") && nzchar(manifest_path)) {
+    unlink(manifest_path, force = TRUE)
+  }
   .wb_operation_pack_registry$packs[[namespace]] <- NULL
   invisible(TRUE)
 }

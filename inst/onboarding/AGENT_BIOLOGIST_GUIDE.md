@@ -38,9 +38,10 @@ is a candidate for a pack operation.
 
 The protocol can recognize an R or Python pack even when the corresponding
 execution runtime is not installed. Structural manifest acceptance is not
-activation: a valid Python declaration remains non-executable until the audited
-PyBench backend is available, and this never authorizes an external script or
-direct bundle write.
+activation: Python must be explicitly activated against the exact installed
+distribution in the configured PyBench interpreter. Its operations then use the
+ordinary engine session path and an R-audited private transition. Missing
+runtime support never authorizes an external script or direct bundle write.
 
 ## Analysis Workflow
 
