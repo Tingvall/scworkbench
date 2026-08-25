@@ -86,7 +86,7 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
     requires <- exec$requires %||% list()
     consumes <- .wb_op_catalog_field_summary(iface$inputs %||% list(), include_description = TRUE, kind_fallback = requires)
     produces <- .wb_op_catalog_field_summary(iface$produces %||% list(), include_description = TRUE)
-    list(
+    rec <- list(
       op_name = as.character(iface$op_name %||% op_name)[1],
       title = as.character(iface$title %||% "")[1],
       description = as.character(iface$description %||% "")[1],
@@ -100,6 +100,9 @@ wb_op_catalog_semantic <- function(bundle = NULL) {
       replay_equivalence = exec$replay_equivalence %||% list(),
       chunking = iface$chunking %||% NULL
     )
+    source_pack <- .wb_operation_pack_identity_for_op(op_name)
+    if (!is.null(source_pack)) rec$source_pack <- source_pack
+    rec
   })
   names(ops) <- NULL
   .wb_op_catalog_semantic_clean(list(

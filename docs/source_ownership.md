@@ -14,6 +14,22 @@ This file is the public ownership map. The executable policy is
 library in `inst/onboarding/` is installed package documentation. These files
 are authoritative for their stated topics.
 
+`docs/operation_packs.md` and `R/operation_packs.R` own the public operation-pack
+v1 ABI. The authoritative installed schema is
+`inst/protocol/operation-pack-v1.schema.json`; external packages extend the
+runtime overlay and never patch the core `.wb_op_catalog()` owner.
+The schema and canonical fixtures under
+`inst/protocol/fixtures/operation-pack-v1/` own the cross-language backend,
+Python distribution normalization, entry-point group/name, and runtime
+attestation checkpoint. PyBench mirrors them byte-for-byte; it does not redefine
+their R semantics.
+`R/operation_pack_python.R` owns the R-side Python adapter: explicit discovery,
+identity/runtime audit, capability construction, transition preparation, and
+typed failure mapping. `R/pybench_transition.R` remains the sole isolation,
+mutation-audit, and atomic-publication owner. PyBench owns distribution entry
+point activation and capability-bound payload writes; neither side creates a
+parallel catalog or committed-bundle writer.
+
 ## Generated public reference
 
 `man/` is generated from roxygen comments beside canonical R implementations.
@@ -46,7 +62,8 @@ processes produce byte-identical output.
 
 The source-tarball policy is also executable: it keeps code, metadata, MIT
 license files, the package-native `inst/CITATION`, public docs, installed
-onboarding, and the v2 protocol schema. Repository-level `CITATION.cff` remains
+onboarding, and the operation-pack v1 and PyBench v2 protocol schemas.
+Repository-level `CITATION.cff` remains
 the canonical software citation for hosting services but is excluded from the
 R source tarball because R treats that top-level filename as non-standard. The
 policy also excludes archives, coordination, editor state, caches, build

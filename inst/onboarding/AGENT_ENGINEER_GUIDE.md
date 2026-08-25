@@ -24,6 +24,9 @@ Role: extend and stabilize engine + thin clients.
 1. Contract-first changes
 - Define primitive IO and op interface before implementation.
 - Register ops in one canonical place.
+- For independently distributed reusable methods, use the public operation-pack
+  ABI rather than patching the core catalog. Packs are explicitly activated and
+  feed the same canonical catalog and executor; see `docs/operation_packs.md`.
 
 2. One-path policy
 - There should be one canonical way to add ops/wranglers.
@@ -73,6 +76,29 @@ Role: extend and stabilize engine + thin clients.
 5. Update client only if needed (thin adapter only).
 6. Update semantic catalogs and docs.
 7. Run `wb_refresh_semantic_catalogs()` and fix any audit failure.
+
+For pack work, use `wb_operation_pack_manifest_validate()` for backend-neutral,
+non-executing structural validation. Installed R packages use
+`wb_operation_pack_validate()` and activate by exact installed package name with
+`wb_operation_pack_load()`; these two R-package APIs execute trusted package
+code. Inspect activated state with `wb_operation_packs()` and
+`wb_operation_pack_inspect()`. Protocol v1 admits `R` and `Python`, but runtime
+support is separate. Activate Python explicitly with
+`wb_operation_pack_activate(manifest, python=...)`; PyBench discovers the exact
+installed distribution and entry point and scworkbench independently audits its
+identity, runtime sidecar, receipt, and private-transition mutations. A missing
+configured runtime reports `OPERATION_PACK_RUNTIME_UNAVAILABLE`. Python uses
+distribution metadata, PEP 503 name
+normalization, PEP 440 version comparison, and entry-point group
+`scworkbench.operation_packs.v1`; manifest `entry_point` is the entry-point
+name, not an import target. Conformance is not scientific validation and does
+not provide host-code sandboxing. Operation-pack v1 cannot add primitive kinds,
+storage, getters, promoters, or validation hooks.
+The backend-neutral activation seam is `wb_operation_pack_activate()`; do not
+bypass it with an import-string runner, direct bundle writer, or alternate
+catalog. Timeout, signal, nonzero exit, receipt/runtime forgery, undeclared
+mutation, and publication failure must leave both committed and durable staged
+state unchanged. Host absolute paths are never persisted.
 
 ## Long-running operation safety
 

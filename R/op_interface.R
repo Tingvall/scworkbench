@@ -1,7 +1,7 @@
 # R/op_interface.R
 
 .wb_op_interface_registry <- function() {
-  cat <- .wb_op_catalog()
+  cat <- .wb_operation_catalog()
   execution_ops <- .wb_ops()
   lapply(cat, function(x) {
     inputs <- x$inputs %||% list()
@@ -51,7 +51,7 @@
       )
       p
     })
-    list(
+    rec <- list(
       op_name = as.character(x$op_name),
       title = as.character(x$title %||% ""),
       description = as.character(x$description %||% ""),
@@ -63,6 +63,9 @@
       replay_equivalence = replay_equivalence,
       chunking = x$chunking %||% NULL
     )
+    if (!is.null(x$source_pack)) rec$source_pack <- x$source_pack
+    if (!is.null(x$definition_sha256)) rec$operation_definition_sha256 <- x$definition_sha256
+    rec
   })
 }
 

@@ -431,7 +431,10 @@
   })
 }
 
-.wb_pybench_execute_isolated <- function(module, request, bundle, python_bin, env, request_path, receipt_path) {
+.wb_pybench_execute_isolated <- function(module, request, bundle, python_bin, env, request_path, receipt_path,
+                                         command_args = NULL, timeout_seconds = 0,
+                                         prepare_transition = NULL, finalize_transition = NULL,
+                                         validate_transition = NULL) {
   mode <- as.character(request$execution_capability$mode)[1]
   .wb_assert(!is.null(bundle) && inherits(bundle, "scworkbench_bundle"), "PyBench v2 execution requires an engine bundle handle")
   if (identical(mode, "read_only")) {
@@ -446,7 +449,8 @@
     pre_payload <- .wb_pybench_payload_snapshot(cloned$root)
     request$bundle_dir <- normalizePath(cloned$root, winslash = "/", mustWork = TRUE)
     result <- .wb_pybench_run_module(module, request, bundle = NULL, python_bin = python_bin, env = env,
-                                     request_path = request_path, receipt_path = receipt_path, isolated = FALSE)
+                                     request_path = request_path, receipt_path = receipt_path, isolated = FALSE,
+                                     command_args = command_args, timeout_seconds = timeout_seconds)
     post_db <- .wb_pybench_db_snapshot(cloned$bundle$con)
     post_payload <- .wb_pybench_payload_snapshot(cloned$root)
     .wb_assert(identical(pre_db$schema_sha256, post_db$schema_sha256) && identical(pre_db$tables, post_db$tables) && identical(pre_payload, post_payload),
@@ -466,25 +470,41 @@
                identical(as.character(cap$staging_identity$checkpoint_generation), as.character(binding$checkpoint_generation)),
              "PYBENCH_STALE_STAGING_IDENTITY: request is not bound to the current session stage generation")
   source_before <- .wb_pybench_source_snapshot(bundle)
-  pre_db <- .wb_pybench_db_snapshot(bundle$con)
   cloned <- .wb_pybench_clone_bundle(bundle)
   on.exit({
     try(wb_close_bundle(cloned$bundle), silent = TRUE)
     unlink(cloned$root, recursive = TRUE, force = TRUE)
   }, add = TRUE)
+  if (!is.null(prepare_transition)) {
+    .wb_assert(is.function(prepare_transition), "PyBench prepare_transition must be a function")
+    prepare_transition(cloned$bundle, request)
+  }
+  pre_db <- .wb_pybench_db_snapshot(cloned$bundle$con)
   pre_payload <- .wb_pybench_payload_snapshot(cloned$root)
   request$bundle_dir <- normalizePath(cloned$root, winslash = "/", mustWork = TRUE)
   .wb_pybench_write_stage_marker(cloned$root, request)
   result <- .wb_pybench_run_module(module, request, bundle = cloned$bundle, python_bin = python_bin, env = env,
-                                   request_path = request_path, receipt_path = receipt_path, isolated = FALSE)
+                                   request_path = request_path, receipt_path = receipt_path, isolated = FALSE,
+                                   command_args = command_args, timeout_seconds = timeout_seconds)
   .wb_pyproto_validate_receipt(result$receipt, request)
   post_db <- .wb_pybench_db_snapshot(cloned$bundle$con)
   post_payload <- .wb_pybench_payload_snapshot(cloned$root)
   observed <- .wb_pybench_audit_mutations(pre_db, post_db, pre_payload, post_payload, request)
   .wb_pybench_verify_receipt_audit(result$receipt, observed)
+  if (!is.null(validate_transition)) {
+    .wb_assert(is.function(validate_transition), "PyBench validate_transition must be a function")
+    validate_transition(cloned$bundle, request, result, observed)
+  }
+  if (!is.null(finalize_transition)) {
+    .wb_assert(is.function(finalize_transition), "PyBench finalize_transition must be a function")
+    finalize_transition(cloned$bundle, request, result)
+  }
   .wb_assert(identical(source_before, .wb_pybench_source_snapshot(bundle)),
              "PYBENCH_SOURCE_WRITE_ATTEMPT: committed source changed during subprocess execution")
-  .wb_pybench_publication_fault("after_receipt_before_publication")
+  tryCatch(
+    .wb_pybench_publication_fault("after_receipt_before_publication"),
+    error = function(e) stop(.wb_pybench_publication_condition(e))
+  )
   .wb_pybench_publish_transition(cloned$bundle, bundle, pre_payload, post_payload)
   result$request <- request
   result$observed_write_manifest <- observed

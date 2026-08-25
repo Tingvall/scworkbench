@@ -1,5 +1,5 @@
 .wb_validate_promotion_output_contract <- function() {
-  for (op in names(.wb_op_catalog())) {
+  for (op in names(.wb_operation_catalog())) {
     x <- wb_op_interface(op)$produces; declared_terminals <- as.character(.wb_get_op(op)$promotable %||% character())
     .wb_assert(all(declared_terminals %in% names(x)), paste0(op, ": declared terminal absent from outputs"))
     for (nm in names(x)) {

@@ -8,7 +8,7 @@
 # - Dependencies ("parents") are inferred ONLY when a required input is satisfied by a run ref.
 
 .wb_ops <- function() {
-  cat <- .wb_op_catalog()
+  cat <- .wb_operation_catalog()
   lapply(cat, function(x) {
     produces <- x$produces %||% list()
     replay_equivalence <- x$replay_equivalence %||% list()
@@ -36,6 +36,15 @@
 
 .wb_op <- function(op_name) {
   reg <- .wb_ops()
+  if (!op_name %in% names(reg) && grepl("::", as.character(op_name)[1], fixed = TRUE)) {
+    namespace <- strsplit(as.character(op_name)[1], "::", fixed = TRUE)[[1]][1]
+    .wb_operation_pack_abort(
+      "OPERATION_PACK_REQUIRED",
+      paste0("Operation '", op_name, "' requires its exact compatible operation pack. Install and explicitly activate namespace '", namespace, "' with wb_operation_pack_load()."),
+      operation = as.character(op_name)[1], namespace = namespace,
+      class = "wb_operation_pack_unavailable"
+    )
+  }
   .wb_assert(op_name %in% names(reg), paste0("Unknown op: ", op_name))
   reg[[op_name]]
 }
@@ -518,6 +527,16 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     notes   = notes,
     run_id = planned_run_id
   )
+  pack_identity <- .wb_operation_pack_identity_for_op(op_name)
+  if (!is.null(pack_identity)) {
+    run$operation_pack <- pack_identity
+    run$operation_definition_sha256 <- as.character(
+      pack_identity$operation_definition_sha256[[op_name]] %||% NA_character_
+    )[1]
+    if (!is.null(res$operation_pack_runtime)) {
+      run$operation_pack_runtime <- res$operation_pack_runtime
+    }
+  }
 
   session <- if (is.null(session$durable)) wb_session_add_run(session, run) else .wb_session_add_run_checkpointable(session, run)
 
@@ -527,7 +546,8 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
   }
 
   if (!is.null(session$durable)) {
-    session$durable$runtime_attestations[[run$run_id]] <- .wb_prov_runtime_fingerprint(op_name)
+    session$durable$runtime_attestations[[run$run_id]] <- .wb_prov_runtime_fingerprint(
+      op_name, operation_pack_runtime = run$operation_pack_runtime %||% NULL)
     session <- .wb_session_record_payload_identities(session, run)
     session <- .wb_session_checkpoint(session, "active", allow_uncheckpointed_state = TRUE)
     .wb_session_operation_marker(session, clear = TRUE)
@@ -592,7 +612,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
 }
 
 .wb_symbolic_param_types <- function(op_name) {
-  cat <- .wb_op_catalog()
+  cat <- .wb_operation_catalog()
   op <- cat[[op_name]] %||% list()
   p <- op$params %||% list()
   if (!length(p)) return(stats::setNames(character(0), character(0)))

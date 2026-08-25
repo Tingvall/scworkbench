@@ -21,13 +21,15 @@
   )
 }
 
-.wb_semantic_edge <- function(from, to, edge_type, label = NULL) {
-  list(
+.wb_semantic_edge <- function(from, to, edge_type, label = NULL, source_pack = NULL) {
+  out <- list(
     from = as.character(from)[1],
     to = as.character(to)[1],
     edge_type = as.character(edge_type)[1],
     label = as.character(label %||% edge_type)[1]
   )
+  if (!is.null(source_pack)) out$source_pack <- source_pack
+  out
 }
 
 .wb_semantic_kind <- function(x) {
@@ -388,7 +390,7 @@ wb_write_recipe_semantics_reference <- function(path_md = "docs/recipe_semantics
 
   for (op in ops) {
     nm <- as.character(op$op_name %||% "")[1]
-    add(.wb_semantic_record(
+    rec <- .wb_semantic_record(
       record_id = paste0("op:", nm),
       record_type = "op",
       name = nm,
@@ -397,7 +399,9 @@ wb_write_recipe_semantics_reference <- function(path_md = "docs/recipe_semantics
       search_text = list(op$title, op$description, op$intent, op$consumes, op$produces, op$params),
       tags = c("op", as.character(op$intent %||% character(0))),
       payload = op
-    ))
+    )
+    if (!is.null(op$source_pack)) rec$source_pack <- op$source_pack
+    add(rec)
   }
   for (g in getters) {
     nm <- as.character(g$function_name %||% "")[1]
@@ -532,34 +536,35 @@ wb_semantic_compatibility_graph <- function(bundle = NULL) {
   }
 
   edges <- list()
-  add_edge <- function(from, to, edge_type, label = NULL) {
+  add_edge <- function(from, to, edge_type, label = NULL, source_pack = NULL) {
     if (from %in% node_ids && to %in% node_ids) {
-      edges[[length(edges) + 1L]] <<- .wb_semantic_edge(from, to, edge_type, label)
+      edges[[length(edges) + 1L]] <<- .wb_semantic_edge(from, to, edge_type, label, source_pack = source_pack)
     }
   }
 
   for (op in ops) {
     op_id <- paste0("op:", as.character(op$op_name %||% "")[1])
+    source_pack <- op$source_pack %||% NULL
     for (x in op$consumes %||% list()) {
       k <- .wb_semantic_kind(x$kind)
-      if (k %in% primitive_kinds) add_edge(paste0("primitive:", k), op_id, "consumed_by", paste0("input:", x$name %||% ""))
+      if (k %in% primitive_kinds) add_edge(paste0("primitive:", k), op_id, "consumed_by", paste0("input:", x$name %||% ""), source_pack)
       pn <- parameter_aliases[[as.character(x$name %||% "")[1]]] %||% NULL
-      if (!is.null(pn) && pn %in% parameter_names) add_edge(op_id, paste0("parameter:", pn), "has_parameter_semantics", paste0("input:", x$name %||% ""))
+      if (!is.null(pn) && pn %in% parameter_names) add_edge(op_id, paste0("parameter:", pn), "has_parameter_semantics", paste0("input:", x$name %||% ""), source_pack)
     }
     for (p in op$params %||% list()) {
       pn <- parameter_aliases[[as.character(p$name %||% "")[1]]] %||% NULL
-      if (!is.null(pn) && pn %in% parameter_names) add_edge(op_id, paste0("parameter:", pn), "has_parameter_semantics", paste0("param:", p$name %||% ""))
+      if (!is.null(pn) && pn %in% parameter_names) add_edge(op_id, paste0("parameter:", pn), "has_parameter_semantics", paste0("param:", p$name %||% ""), source_pack)
     }
     for (x in op$produces %||% list()) {
       k <- .wb_semantic_kind(x$kind)
-      if (k %in% primitive_kinds) add_edge(op_id, paste0("primitive:", k), "produces", paste0("output:", x$name %||% ""))
+      if (k %in% primitive_kinds) add_edge(op_id, paste0("primitive:", k), "produces", paste0("output:", x$name %||% ""), source_pack)
     }
     for (out_name in as.character(op$promotable %||% character(0))) {
       produced <- op$produces %||% list()
       hit <- NULL
       for (x in produced) if (identical(as.character(x$name %||% "")[1], out_name)) hit <- x
       k <- .wb_semantic_kind(hit$kind %||% "")
-      if (nzchar(k)) add_edge(op_id, paste0("artifact_type:", k), "promotes_as", paste0("promotable:", out_name))
+      if (nzchar(k)) add_edge(op_id, paste0("artifact_type:", k), "promotes_as", paste0("promotable:", out_name), source_pack)
     }
   }
 
@@ -643,7 +648,7 @@ wb_semantic_catalog <- function(bundle = NULL) {
   type_counts <- table(vapply(records, function(x) as.character(x$record_type), character(1)))
   type_count_list <- as.list(as.integer(type_counts))
   names(type_count_list) <- names(type_counts)
-  .wb_semantic_catalog_clean(list(
+  out <- .wb_semantic_catalog_clean(list(
     schema_version = "scworkbench.semantic_catalog.v1",
     generated_at = .wb_catalog_generated_at(),
     record_count = length(records),
@@ -651,6 +656,18 @@ wb_semantic_catalog <- function(bundle = NULL) {
     records = records,
     graph = graph
   ))
+  if (nrow(wb_operation_packs()) > 0L) {
+    out$operation_catalog_identity <- wb_operation_catalog_identity()
+    graph_identity <- graph
+    graph_identity$generated_at <- NULL
+    out$catalog_sha256 <- .wb_operation_pack_sha256(list(
+      schema_version = out$schema_version,
+      records = out$records,
+      graph = graph_identity,
+      operation_catalog_identity = out$operation_catalog_identity
+    ))
+  }
+  out
 }
 
 #' Audit Semantic Catalog Coverage

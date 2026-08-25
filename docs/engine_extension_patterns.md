@@ -27,7 +27,8 @@ Canonical path:
 
 - `wb_op_*()` implementation
 - runner in `R/op_catalog.R`
-- entry in `.wb_op_catalog()`
+- a core entry in `.wb_op_catalog()`, or an independently distributed operation
+  pack through the public ABI in `docs/operation_packs.md`
 - contract test
 
 Read:

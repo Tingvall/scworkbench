@@ -27,6 +27,22 @@ that changes a scientific value, membership, test, or summary is not.
 If the engine lacks a generic capability, stop and report the gap. An
 unsupported capability never authorizes an external unrecorded script.
 
+Core operations and explicitly activated operation-pack operations are both
+registered engine paths. Installing a pack is inert; validation/loading is a
+trust decision and conformance does not prove scientific validity. A recipient
+can inspect and load retained promoted outputs without the pack, but replay or
+continuation requires the exact compatible pack recorded by provenance. Use a
+terminal capsule only for irreducibly question-specific output, and use adoption
+for externally computed authoritative state. Repeated reusable capsule compute
+is a candidate for a pack operation.
+
+The protocol can recognize an R or Python pack even when the corresponding
+execution runtime is not installed. Structural manifest acceptance is not
+activation: Python must be explicitly activated against the exact installed
+distribution in the configured PyBench interpreter. Its operations then use the
+ordinary engine session path and an R-audited private transition. Missing
+runtime support never authorizes an external script or direct bundle write.
+
 ## Analysis Workflow
 
 1. Verify inputs
