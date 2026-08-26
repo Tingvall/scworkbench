@@ -856,7 +856,7 @@ Use when:
 
 Title: Entity Provenance Certificate
 
-Description: Project deterministic identity and lineage metadata for any durable scientific entity.
+Description: Project deterministic identity and lineage metadata for any durable scientific entity, including exact cell-set membership and consuming-run roles.
 
 Returns: list
 
@@ -981,7 +981,7 @@ Use when:
 
 Title: Provenance Run Details
 
-Description: Inspect one persisted run in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity.
+Description: Inspect one persisted run, its typed entity bindings, and exact named-cell-set membership evidence in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity.
 
 Returns: list
 

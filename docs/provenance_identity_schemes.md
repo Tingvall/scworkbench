@@ -12,6 +12,7 @@ declared scheme.
 | Structural primitive fingerprint | `scworkbench.structural.primitive-summary.sha256.v2` | Full SHA-256 over the primitive kind and canonical structural summary |
 | Promotion materialization compatibility | `scworkbench.materialization.r-serialize-v3.sha256.v2` | Full SHA-256 over raw R serialization bytes; separate from the materialization file's content SHA-256 |
 | Graph/display/reference identifier | `scworkbench.identifier.framed-utf8.sha256.v1` | Domain-separated full SHA-256 identifier with an explicit namespace |
+| Named cell-set membership | `scworkbench.cell-set-membership.sorted-cell-id.canonical-json.v1` | SHA-256 over sorted unique cell IDs; source and operation-effective counts are recorded separately |
 | Historical compatibility | `scworkbench.identity.legacy-hash-text16.v1` | Validation-only interpretation of persisted pre-1.9 16-hex values |
 
 New persisted run, contract, output, structural, and materialization identities

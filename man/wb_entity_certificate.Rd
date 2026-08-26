@@ -9,7 +9,7 @@ wb_entity_certificate(bundle, entity_kind, entity_id)
 \arguments{
 \item{bundle}{Open \code{scworkbench_bundle}.}
 
-\item{entity_kind}{One of \code{external_source}, \code{metadata_field}, \code{matrix},
+\item{entity_kind}{One of \code{external_source}, \code{metadata_field}, \code{cell_set}, \code{matrix},
 \code{space}, \code{model}, \code{artifact}, \code{run}, \code{capsule}, or \code{capsule_output}.}
 
 \item{entity_id}{Durable entity identifier.}

@@ -27,6 +27,9 @@ Role: extend and stabilize engine + thin clients.
 - For independently distributed reusable methods, use the public operation-pack
   ABI rather than patching the core catalog. Packs are explicitly activated and
   feed the same canonical catalog and executor; see `docs/operation_packs.md`.
+- Treat named cell-set parameters as typed scientific dependencies. The central
+  executor owns their role, membership identity, graph binding, and replay
+  preflight; operation runners must not write or infer provenance separately.
 
 2. One-path policy
 - There should be one canonical way to add ops/wranglers.

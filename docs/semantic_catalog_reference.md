@@ -742,7 +742,7 @@ Description: List distinct values from one promoted table artifact column.
 
 Title: Entity Provenance Certificate
 
-Description: Project deterministic identity and lineage metadata for any durable scientific entity.
+Description: Project deterministic identity and lineage metadata for any durable scientific entity, including exact cell-set membership and consuming-run roles.
 
 ### `getter:wb_art_dependencies`
 
@@ -856,7 +856,7 @@ Description: Return an upstream, downstream, or bidirectional composed provenanc
 
 Title: Provenance Run Details
 
-Description: Inspect one persisted run in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity.
+Description: Inspect one persisted run, its typed entity bindings, and exact named-cell-set membership evidence in an explicit snapshot, or resolve a run-only lookup uniquely across all snapshots while rejecting ambiguity.
 
 ### `getter:wb_prov_run_replay_inputs`
 
@@ -1316,7 +1316,7 @@ Description: Project Palantir branch trajectories into a 2D display space using 
 
 Title: Cell Set / Analysis Universe
 
-Description: Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.
+Description: Restricts the cells considered by an op. A durable named set is a typed scientific input with role-specific source/effective membership identity, not a cosmetic filter.
 
 ### `parameter:target_cell_set`
 

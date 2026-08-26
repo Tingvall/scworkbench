@@ -105,7 +105,7 @@ mechanical ingestion and does not create an unprovenanced scientific primitive;
 use `metadata_cell_vector` when a metadata field becomes a reusable scientific
 vector.
 
-Fresh bundles use schema version 8. This pre-release schema break does not claim
+Fresh bundles use schema version 9. This pre-release schema break does not claim
 content baselines for older development bundles. A bundle whose ledger claims
 the current schema but lacks complete, non-conflicting registry and current
 identity rows is corrupt and validation rejects it.

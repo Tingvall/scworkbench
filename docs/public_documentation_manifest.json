@@ -123,6 +123,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "docs/typed_cell_set_consumption.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/typed_cell_set_consumption.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "docs/recipient_audit.md",
       "class": "public_canonical",
       "audience": "public",

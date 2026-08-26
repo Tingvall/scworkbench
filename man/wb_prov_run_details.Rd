@@ -16,8 +16,10 @@ searched and the run is returned only when exactly one snapshot contains
 it. Ambiguous run-only lookup fails explicitly.}
 }
 \value{
-A named list with \code{run}, \code{parents}, \code{children}, and \code{outputs}.
-The run and output records expose their explicit persisted identity schemes.
+A named list with \code{run}, \code{parents}, \code{children}, \code{entity_bindings},
+and \code{outputs}. Named cell-set bindings include their source and effective
+membership SHA-256/count evidence. The run and output records expose their
+explicit persisted identity schemes.
 }
 \description{
 Read one persisted run plus its local lineage and outputs from a provenance

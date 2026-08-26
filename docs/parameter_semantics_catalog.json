@@ -7,10 +7,10 @@
       "parameter_name": "cell_set",
       "title": "Cell Set / Analysis Universe",
       "category": "selection",
-      "description": "Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.",
+      "description": "Restricts the cells considered by an op. A durable named set is a typed scientific input with role-specific source/effective membership identity, not a cosmetic filter.",
       "applies_to": "op inputs",
-      "affects": ["cell inclusion", "statistics", "plots", "runtime"],
-      "guidance": ["Use a biologically justified set for focused analysis.", "Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment."],
+      "affects": ["cell inclusion", "statistics", "plots", "runtime", "provenance", "replay"],
+      "guidance": ["Use a biologically justified set for focused analysis.", "Use all/core intentionally; changing the set can change effect sizes, trajectory curves, enrichment, and replay compatibility."],
       "aliases": ["cells", "cell_ids"]
     },
     {

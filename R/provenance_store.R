@@ -157,7 +157,7 @@
   walk(x, name); out
 }
 
-.wb_prov_schema_version <- function() "1.9"
+.wb_prov_schema_version <- function() "1.10"
 
 .wb_replay_equivalence_policies <- function() {
   c(
@@ -362,7 +362,8 @@
     raw_file = "scworkbench.content.raw-file.sha256.v1",
     file_tree = "scworkbench.content.file-tree.canonical-json.v1",
     registry = "scworkbench.content.registry.canonical-json.v1",
-    metadata_field = "scworkbench.content.metadata-field.cell-id-fold.v1"
+    metadata_field = "scworkbench.content.metadata-field.cell-id-fold.v1",
+    cell_set_membership = "scworkbench.cell-set-membership.sorted-cell-id.canonical-json.v1"
   )
 }
 
@@ -948,7 +949,14 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
                                            direction, binding_name, entity_kind,
                                            entity_id, relationship_type, path = NA_character_,
                                            content_hash = NA_character_,
-                                           content_identity_scheme = NA_character_, source) {
+                                           content_identity_scheme = NA_character_, source,
+                                           resolution_json = NA_character_,
+                                           source_membership_sha256 = NA_character_,
+                                           source_membership_identity_scheme = NA_character_,
+                                           source_member_count = NA_integer_,
+                                           effective_membership_sha256 = NA_character_,
+                                           effective_membership_identity_scheme = NA_character_,
+                                           effective_member_count = NA_integer_) {
   bind_lifecycle <- TRUE
   if (identical(direction, "input") && identical(entity_kind, "in_memory_source")) bind_lifecycle <- FALSE
   if (identical(direction,"input") && identical(entity_kind,"model_ref")) {
@@ -965,10 +973,14 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   )
   DBI::dbExecute(
     con,
-    "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, content_identity_scheme, source) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+    "INSERT OR IGNORE INTO prov_run_entity_bindings(snapshot_id, commit_id, run_id, direction, binding_name, entity_kind, entity_id, relationship_type, path, content_hash, content_identity_scheme, source, resolution_json, source_membership_sha256, source_membership_identity_scheme, source_member_count, effective_membership_sha256, effective_membership_identity_scheme, effective_member_count) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
     params = list(snapshot_id, commit_id %||% NA_character_, run_id, direction,
                   binding_name, entity_kind, entity_id, relationship_type,
-                  path, content_hash, content_identity_scheme, source)
+                  path, content_hash, content_identity_scheme, source,
+                  resolution_json, source_membership_sha256,
+                  source_membership_identity_scheme, source_member_count,
+                  effective_membership_sha256,
+                  effective_membership_identity_scheme, effective_member_count)
   )
 }
 
@@ -1186,6 +1198,23 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_prov_entity_bindings_snapshot ON prov_run_entity_bindings(snapshot_id, run_id);")
   if (!.wb_db_has_column(con, "prov_run_entity_bindings", "content_identity_scheme")) {
     DBI::dbExecute(con, "ALTER TABLE prov_run_entity_bindings ADD COLUMN content_identity_scheme TEXT;")
+  }
+  cell_set_binding_columns <- c(
+    resolution_json = "TEXT",
+    source_membership_sha256 = "TEXT",
+    source_membership_identity_scheme = "TEXT",
+    source_member_count = "INTEGER",
+    effective_membership_sha256 = "TEXT",
+    effective_membership_identity_scheme = "TEXT",
+    effective_member_count = "INTEGER"
+  )
+  for (column in names(cell_set_binding_columns)) {
+    if (!.wb_db_has_column(con, "prov_run_entity_bindings", column)) {
+      DBI::dbExecute(con, paste0(
+        "ALTER TABLE prov_run_entity_bindings ADD COLUMN ", column, " ",
+        unname(cell_set_binding_columns[[column]]), ";"
+      ))
+    }
   }
   if (!.wb_db_has_column(con, "prov_run_outputs", "materialization_class")) {
     DBI::dbExecute(con, "ALTER TABLE prov_run_outputs ADD COLUMN materialization_class TEXT;")
@@ -1430,6 +1459,29 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
         } else list(content_sha256=NA_character_,content_identity_scheme=NA_character_)
         .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "input", binding$binding_name, binding$entity_kind, binding$entity_id, "CONSUMES", path=binding_path, content_hash=binding_identity$content_sha256, content_identity_scheme=binding_identity$content_identity_scheme, source = "resolved_operation_input")
       }
+      cell_set_resolutions <- .wb_cell_set_resolution_records(
+        run$inputs$cell_set_resolutions %||% list()
+      )
+      if (length(cell_set_resolutions)) for (resolution in cell_set_resolutions) {
+        resolution_json <- jsonlite::toJSON(
+          .wb_json_sanitize(resolution), auto_unbox = TRUE, null = "null"
+        )
+        .wb_prov_insert_entity_binding(
+          con, sid, commit_id, rid, "input",
+          as.character(resolution$binding_name)[1], "cell_set",
+          as.character(resolution$entity_id)[1], "CONSUMES",
+          content_hash = as.character(resolution$entity_content_sha256)[1],
+          content_identity_scheme = as.character(resolution$entity_content_identity_scheme)[1],
+          source = "resolved_named_cell_set",
+          resolution_json = as.character(resolution_json),
+          source_membership_sha256 = as.character(resolution$source_membership_sha256)[1],
+          source_membership_identity_scheme = as.character(resolution$source_membership_identity_scheme)[1],
+          source_member_count = as.integer(resolution$source_member_count)[1],
+          effective_membership_sha256 = as.character(resolution$effective_membership_sha256)[1],
+          effective_membership_identity_scheme = as.character(resolution$effective_membership_identity_scheme)[1],
+          effective_member_count = as.integer(resolution$effective_member_count)[1]
+        )
+      }
       artifact_refs <- .wb_dag_collect_refs(run$inputs$provenance_refs %||% list(), path = "provenance_refs")
       artifact_refs <- artifact_refs[
         artifact_refs$ref_type == "artifact" &
@@ -1634,8 +1686,10 @@ wb_prov_dag <- function(bundle, snapshot_id = NULL) {
 #'   searched and the run is returned only when exactly one snapshot contains
 #'   it. Ambiguous run-only lookup fails explicitly.
 #'
-#' @return A named list with `run`, `parents`, `children`, and `outputs`.
-#'   The run and output records expose their explicit persisted identity schemes.
+#' @return A named list with `run`, `parents`, `children`, `entity_bindings`,
+#'   and `outputs`. Named cell-set bindings include their source and effective
+#'   membership SHA-256/count evidence. The run and output records expose their
+#'   explicit persisted identity schemes.
 #'
 #' @export
 wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
@@ -1732,6 +1786,11 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
       stringsAsFactors = FALSE
     )
   }
+  bindings <- if (.wb_table_exists(con, "prov_run_entity_bindings")) DBI::dbGetQuery(
+    con,
+    "SELECT * FROM prov_run_entity_bindings WHERE snapshot_id=? AND run_id=? ORDER BY direction,binding_name,entity_kind,entity_id;",
+    params = list(sid,rid)
+  ) else data.frame()
 
   list(
     snapshot_id = sid,
@@ -1754,6 +1813,7 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
     ),
     parents = parents,
     children = children,
+    entity_bindings = bindings,
     outputs = outs
   )
 }
@@ -1928,6 +1988,24 @@ wb_prov_run_replay_inputs <- function(bundle, run_id, snapshot_id = NULL) {
         recorded_interface, current_interface, op_name)
       if (!is.null(issue)) issues[[length(issues) + 1L]] <- issue
     }
+  }
+  stored_run_inputs <- tryCatch(
+    jsonlite::fromJSON(as.character(rr$inputs_json[[1L]] %||% "{}"), simplifyVector = FALSE),
+    error = function(e) list()
+  )
+  resolution_issue <- tryCatch({
+    .wb_verify_cell_set_resolution_records(
+      bundle, stored_run_inputs$cell_set_resolutions %||% list(),
+      context = "replay planning"
+    )
+    NULL
+  }, wb_cell_set_resolution_error = function(e) e)
+  if (!is.null(resolution_issue)) {
+    add_issue(
+      as.character(resolution_issue$code %||% "CELL_SET_RESOLUTION_MISMATCH")[1],
+      conditionMessage(resolution_issue),
+      "Restore the exact durable named-set membership recorded by the historical run before replay."
+    )
   }
   if (length(issues)) {
     return(.wb_prov_replay_result(sid, rid, op_name, op_version, contract_hash,
@@ -2735,6 +2813,30 @@ wb_prov_validate_replay <- function(bundle,
     notes <- as.character(runs$notes[idx] %||% "")[1]
     params <- payload[[rid]]$params %||% list()
     inputs <- payload[[rid]]$inputs %||% list()
+    recorded_run_inputs <- jsonlite::fromJSON(
+      as.character(runs$inputs_json[idx] %||% "{}"), simplifyVector = FALSE
+    )
+    selection_error <- tryCatch({
+      .wb_verify_cell_set_resolution_records(
+        execution_bundle,
+        recorded_run_inputs$cell_set_resolutions %||% list(),
+        context = "replay"
+      )
+      NULL
+    }, wb_cell_set_resolution_error = function(e) e)
+    if (!is.null(selection_error)) {
+      if (isTRUE(strict)) stop(selection_error)
+      ri <- ri + 1L
+      per_run[[ri]] <- data.frame(
+        run_id = rid,
+        replay_run_id = NA_character_,
+        op_name = op_name,
+        status = "error",
+        error = conditionMessage(selection_error),
+        stringsAsFactors = FALSE
+      )
+      next
+    }
     execution_inputs <- .wb_prov_replay_execution_inputs(inputs, params, run_id = rid, op_name = op_name)
     execution_inputs <- rewrite_run_refs(execution_inputs, replay_map = replay_map)
 

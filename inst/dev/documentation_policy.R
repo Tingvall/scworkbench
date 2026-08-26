@@ -26,6 +26,7 @@ scwb_documentation_policy <- function(root = ".") {
     "README.md", "NEWS.md", "LICENSE", "LICENSE.md", "CITATION.cff", "inst/CITATION",
     "docs/getting_started.md", "docs/bundle_concepts.md", "docs/ingestion.md",
     "docs/sessions_and_ops.md", "docs/promotion_and_provenance.md",
+    "docs/typed_cell_set_consumption.md",
     "docs/recipient_audit.md", "docs/python_bridge.md",
     "docs/extension_engineering.md", "docs/operation_packs.md", "docs/source_ownership.md",
     "docs/CONTRIBUTING.md", "docs/SUPPORT.md", "docs/release_process.md",

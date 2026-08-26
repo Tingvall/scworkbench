@@ -851,7 +851,7 @@ wb_bundle_validation_report <- function(bundle_dir,
       head_schemas <- if (has("prov_heads")) DBI::dbGetQuery(con,"SELECT snapshot_id,schema_version FROM prov_heads;") else data.frame()
       edges <- if (has("prov_run_edges")) DBI::dbGetQuery(con, "SELECT * FROM prov_run_edges;") else data.frame()
       output_index <- if (has("prov_run_outputs")) DBI::dbGetQuery(con, "SELECT * FROM prov_run_outputs;") else data.frame()
-      binding_index <- if (has("prov_run_entity_bindings")) DBI::dbGetQuery(con, "SELECT snapshot_id,run_id,direction,binding_name,entity_kind,entity_id FROM prov_run_entity_bindings;") else data.frame()
+      binding_index <- if (has("prov_run_entity_bindings")) DBI::dbGetQuery(con, "SELECT * FROM prov_run_entity_bindings;") else data.frame()
       artifact_ids <- if (has("artifacts")) as.character(DBI::dbGetQuery(con,"SELECT artifact_id FROM artifacts;")$artifact_id) else character()
       json_fields <- c(
         params_json = "RUN_PARAMS_JSON_MALFORMED",
@@ -865,7 +865,7 @@ wb_bundle_validation_report <- function(bundle_dir,
         sid <- as.character(runs$snapshot_id[i]); rid <- as.character(runs$run_id[i]); run_entity <- paste(sid,rid,sep="/")
         schema_version <- if (nrow(head_schemas) && any(head_schemas$snapshot_id==sid)) as.character(head_schemas$schema_version[match(sid,head_schemas$snapshot_id)]) else NA_character_
         current_contract <- identical(schema_version,.wb_prov_schema_version())
-        typed_contract <- schema_version %in% c("1.7","1.8","1.9")
+        typed_contract <- schema_version %in% c("1.7","1.8","1.9","1.10")
         parsed <- list(); malformed <- character()
         for (field in names(json_fields)) {
           txt <- if (field %in% names(runs)) as.character(runs[[field]][i] %||% "")[1] else ""
@@ -926,6 +926,75 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (!hit) {
             if (typed_contract) add("RUN_TYPED_INPUT_BINDING_MISSING",check_class="provenance",entity_kind=binding$entity_kind,entity_id=binding$entity_id,table="prov_run_entity_bindings",expected=binding$binding_name,observed=run_entity,message="Resolved typed run input lacks its exact persisted entity binding.")
             else add("RUN_TYPED_INPUT_BINDING_LEGACY_UNVERIFIABLE",severity="warning",check_class="provenance",entity_kind=binding$entity_kind,entity_id=binding$entity_id,table="prov_run_entity_bindings",expected=binding$binding_name,observed=run_entity,message="Legacy run predates exact typed input bindings and remains ancestry-unverifiable.")
+          }
+        }
+        if (identical(schema_version, "1.10")) {
+          resolutions <- .wb_cell_set_resolution_records(
+            parsed$inputs_json$cell_set_resolutions %||% list()
+          )
+          run_cell_bindings <- if (nrow(binding_index)) binding_index[
+            binding_index$snapshot_id==sid & binding_index$run_id==rid &
+              binding_index$direction=="input" & binding_index$entity_kind=="cell_set" &
+              binding_index$relationship_type=="CONSUMES",,drop=FALSE
+          ] else data.frame()
+          declared_keys <- character(0)
+          if (length(resolutions)) for (resolution in resolutions) {
+            role <- as.character(resolution$binding_name %||% "")[1]
+            set_id <- as.character(resolution$entity_id %||% "")[1]
+            declared_keys <- c(declared_keys,paste(role,set_id,sep="\r"))
+            exact <- if (nrow(run_cell_bindings))
+              run_cell_bindings$binding_name==role & run_cell_bindings$entity_id==set_id else logical(0)
+            same_role <- if (nrow(run_cell_bindings)) run_cell_bindings$binding_name==role else logical(0)
+            same_set <- if (nrow(run_cell_bindings)) run_cell_bindings$entity_id==set_id else logical(0)
+            if (!any(exact)) {
+              if (any(same_set)) add("RUN_NAMED_CELL_SET_BINDING_ROLE_MISMATCH",check_class="provenance",entity_kind="cell_set",entity_id=set_id,table="prov_run_entity_bindings",expected=role,observed=paste(unique(run_cell_bindings$binding_name[same_set]),collapse=","),message="Named cell-set consumption is persisted under the wrong scientific binding role.")
+              else if (any(same_role)) add("RUN_NAMED_CELL_SET_BINDING_SET_MISMATCH",check_class="provenance",entity_kind="cell_set",entity_id=set_id,table="prov_run_entity_bindings",expected=set_id,observed=paste(unique(run_cell_bindings$entity_id[same_role]),collapse=","),message="Named cell-set consumption binding identifies the wrong durable set.")
+              else add("RUN_NAMED_CELL_SET_BINDING_MISSING",check_class="provenance",entity_kind="cell_set",entity_id=set_id,table="prov_run_entity_bindings",expected=role,observed=run_entity,message="A new typed run resolved a durable named cell set but lacks its exact persisted CONSUMES binding.")
+              next
+            }
+            row <- run_cell_bindings[which(exact)[1],,drop=FALSE]
+            expected_source_sha <- as.character(resolution$source_membership_sha256 %||% "")[1]
+            expected_effective_sha <- as.character(resolution$effective_membership_sha256 %||% "")[1]
+            expected_source_n <- suppressWarnings(as.integer(resolution$source_member_count %||% NA_integer_)[1])
+            expected_effective_n <- suppressWarnings(as.integer(resolution$effective_member_count %||% NA_integer_)[1])
+            recorded_source_sha <- as.character(row$source_membership_sha256 %||% "")[1]
+            recorded_effective_sha <- as.character(row$effective_membership_sha256 %||% "")[1]
+            recorded_source_scheme <- as.character(row$source_membership_identity_scheme %||% "")[1]
+            recorded_effective_scheme <- as.character(row$effective_membership_identity_scheme %||% "")[1]
+            recorded_source_n <- suppressWarnings(as.integer(row$source_member_count %||% NA_integer_)[1])
+            recorded_effective_n <- suppressWarnings(as.integer(row$effective_member_count %||% NA_integer_)[1])
+            resolution_json <- tryCatch(jsonlite::fromJSON(as.character(row$resolution_json %||% ""),simplifyVector=FALSE),error=function(e) NULL)
+            record_matches <- identical(as.character(resolution$schema %||% "")[1],.wb_cell_set_resolution_schema()) &&
+              grepl("^[0-9a-f]{64}$",expected_source_sha) && grepl("^[0-9a-f]{64}$",expected_effective_sha) &&
+              identical(tolower(expected_source_sha),tolower(recorded_source_sha)) &&
+              identical(tolower(expected_effective_sha),tolower(recorded_effective_sha)) &&
+              identical(recorded_source_scheme,.wb_cell_set_membership_scheme()) &&
+              identical(recorded_effective_scheme,.wb_cell_set_membership_scheme()) &&
+              identical(expected_source_n,recorded_source_n) && identical(expected_effective_n,recorded_effective_n) &&
+              !is.null(resolution_json) && identical(.wb_prov_sha256_object(resolution_json),.wb_prov_sha256_object(resolution))
+            if (!record_matches) add("RUN_NAMED_CELL_SET_MEMBERSHIP_IDENTITY_MISMATCH",check_class="provenance",entity_kind="cell_set",entity_id=set_id,table="prov_run_entity_bindings",expected=paste(expected_source_sha,expected_source_n,expected_effective_sha,expected_effective_n,sep="/"),observed=paste(recorded_source_sha,recorded_source_n,recorded_effective_sha,recorded_effective_n,sep="/"),message="Named cell-set binding does not authenticate the persisted source and effective membership resolution.")
+            present <- has("cell_set_membership") && nrow(DBI::dbGetQuery(con,"SELECT 1 FROM cell_set_membership WHERE cell_set=? LIMIT 1;",params=list(set_id)))==1L
+            if (!present) {
+              add("RUN_NAMED_CELL_SET_BINDING_DANGLING",check_class="provenance",entity_kind="cell_set",entity_id=set_id,table="cell_set_membership",expected=role,observed="membership absent",message="Named cell-set consumption points to a missing or fabricated durable membership.")
+            } else {
+              observed_cells <- DBI::dbGetQuery(
+                con,"SELECT cell_id FROM cell_set_membership WHERE cell_set=? ORDER BY cell_id;",
+                params=list(set_id)
+              )$cell_id
+              observed_membership <- .wb_cell_set_membership_identity(observed_cells)
+              if (!identical(tolower(expected_source_sha),tolower(observed_membership$content_sha256)) || !identical(expected_source_n,observed_membership$count)) add("RUN_NAMED_CELL_SET_MEMBERSHIP_CONTENT_MISMATCH",check_class="provenance",entity_kind="cell_set",entity_id=set_id,table="cell_set_membership",expected=paste(expected_source_sha,expected_source_n,sep="/"),observed=paste(observed_membership$content_sha256,observed_membership$count,sep="/"),message="Durable named-set membership no longer matches the exact source membership consumed by the run.")
+              expected_entity_hash <- as.character(resolution$entity_content_sha256 %||% "")[1]
+              observed_entity_hash <- tryCatch(.wb_registry_entity_content_hash(bundle,"cell_set",set_id),error=function(e) NA_character_)
+              bound_entity_hash <- as.character(row$content_hash %||% "")[1]
+              if (.wb_validation_nonempty(expected_entity_hash) && .wb_validation_nonempty(observed_entity_hash) &&
+                  (!identical(tolower(expected_entity_hash),tolower(observed_entity_hash)) ||
+                   !identical(tolower(expected_entity_hash),tolower(bound_entity_hash)))) add("RUN_NAMED_CELL_SET_STALE_RESOLUTION",check_class="provenance",entity_kind="cell_set",entity_id=set_id,table="prov_run_entity_bindings",expected=expected_entity_hash,observed=paste(bound_entity_hash,observed_entity_hash,sep="/"),message="A current or replacement set was incorrectly attributed to a historical named-set resolution.")
+            }
+          }
+          if (nrow(run_cell_bindings)) {
+            actual_keys <- paste(run_cell_bindings$binding_name,run_cell_bindings$entity_id,sep="\r")
+            fabricated <- !(actual_keys %in% declared_keys)
+            if (any(fabricated)) for (j in which(fabricated)) add("RUN_NAMED_CELL_SET_BINDING_FABRICATED",check_class="provenance",entity_kind="cell_set",entity_id=as.character(run_cell_bindings$entity_id[j]),table="prov_run_entity_bindings",expected="binding declared by run resolution record",observed=as.character(run_cell_bindings$binding_name[j]),message="Cell-set CONSUMES binding has no matching typed resolution record in the run contract.")
           }
         }
         parents <- unique(as.character(parsed$inputs_json$parents %||% character()))

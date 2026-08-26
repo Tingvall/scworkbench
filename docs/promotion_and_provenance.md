@@ -15,6 +15,11 @@ wb_prov_artifact_lineage(reopened, receipt$artifact_ids[[1]])
 
 Use `wb_session_discard()` for staged work that should not be published.
 
+Named cell sets consumed by an operation are durable scientific dependencies.
+Promotion records their binding role plus source and effective membership
+SHA-256/count evidence; explicit cell-ID vectors are not mislabeled as durable
+sets. See `docs/typed_cell_set_consumption.md`.
+
 ## Replay equivalence
 
 Content identity and replay equivalence are separate claims. Deterministic

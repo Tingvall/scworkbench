@@ -88,13 +88,19 @@ wb_target_reproduction_plan <- function(bundle, target) {
   # producers as explicit immutable/source boundaries and fail on ambiguity.
   parents <- split(as.character(edges$parent_run_id), as.character(edges$child_run_id)); closure <- character(0); stack <- target_run
   typed_edges <- data.frame(parent_run_id=character(), child_run_id=character(), edge_type=character(), edge_label=character(), stringsAsFactors=FALSE)
-  bind_all <- DBI::dbGetQuery(con, "SELECT snapshot_id, run_id, direction, binding_name, entity_kind, entity_id, content_hash FROM prov_run_entity_bindings ORDER BY snapshot_id, run_id, direction, binding_name;")
-  boundary <- data.frame(run_id=character(), entity_kind=character(), entity_id=character(), binding_name=character(), content_hash=character(), reason=character(), stringsAsFactors=FALSE)
+  cell_set_binding_select <- paste(
+    if (.wb_db_has_column(con,"prov_run_entity_bindings","source_membership_sha256")) "source_membership_sha256" else "NULL AS source_membership_sha256",
+    if (.wb_db_has_column(con,"prov_run_entity_bindings","source_membership_identity_scheme")) "source_membership_identity_scheme" else "NULL AS source_membership_identity_scheme",
+    if (.wb_db_has_column(con,"prov_run_entity_bindings","source_member_count")) "source_member_count" else "NULL AS source_member_count",
+    sep=", "
+  )
+  bind_all <- DBI::dbGetQuery(con, paste0("SELECT snapshot_id, run_id, direction, binding_name, entity_kind, entity_id, content_hash, ", cell_set_binding_select, " FROM prov_run_entity_bindings ORDER BY snapshot_id, run_id, direction, binding_name;"))
+  boundary <- data.frame(run_id=character(), entity_kind=character(), entity_id=character(), binding_name=character(), content_hash=character(), content_identity_scheme=character(), member_count=integer(), reason=character(), stringsAsFactors=FALSE)
   ambiguous <- list()
   while(length(stack)) {
     cur <- stack[1]; stack <- stack[-1]; if (cur %in% closure) next; closure <- c(closure,cur)
     typed <- character(0)
-    ins <- bind_all[as.character(bind_all$direction) == "input" & as.character(bind_all$run_id) == cur & as.character(bind_all$entity_kind) %in% c("matrix","space","model_ref","artifact"),,drop=FALSE]
+    ins <- bind_all[as.character(bind_all$direction) == "input" & as.character(bind_all$run_id) == cur & as.character(bind_all$entity_kind) %in% c("matrix","space","model_ref","artifact","cell_set"),,drop=FALSE]
     if (nrow(ins)) for (j in seq_len(nrow(ins))) {
       pp <- bind_all[as.character(bind_all$direction) == "output" & as.character(bind_all$entity_kind) == as.character(ins$entity_kind[j]) & as.character(bind_all$entity_id) == as.character(ins$entity_id[j]) & as.character(bind_all$run_id) != cur & !(as.character(bind_all$run_id) %in% ingestion_runs),,drop=FALSE]
       pp <- pp[!duplicated(as.character(pp$run_id)),,drop=FALSE]
@@ -109,7 +115,18 @@ wb_target_reproduction_plan <- function(bundle, target) {
           stringsAsFactors=FALSE
         ))
       }
-      else boundary <- rbind(boundary, data.frame(run_id=cur, entity_kind=as.character(ins$entity_kind[j]), entity_id=as.character(ins$entity_id[j]), binding_name=as.character(ins$binding_name[j]), content_hash=as.character(ins$content_hash[j] %||% ""), reason="immutable_or_external_source", stringsAsFactors=FALSE))
+      else {
+        is_cell_set <- identical(as.character(ins$entity_kind[j]), "cell_set")
+        boundary <- rbind(boundary, data.frame(
+          run_id=cur, entity_kind=as.character(ins$entity_kind[j]),
+          entity_id=as.character(ins$entity_id[j]), binding_name=as.character(ins$binding_name[j]),
+          content_hash=as.character(if (is_cell_set) ins$source_membership_sha256[j] else ins$content_hash[j] %||% ""),
+          content_identity_scheme=as.character(if (is_cell_set) ins$source_membership_identity_scheme[j] else NA_character_),
+          member_count=as.integer(if (is_cell_set) ins$source_member_count[j] else NA_integer_),
+          reason=if (is_cell_set) "immutable_named_cell_set_membership" else "immutable_or_external_source",
+          stringsAsFactors=FALSE
+        ))
+      }
     }
     stack <- c(stack, setdiff(unique(c(parents[[cur]] %||% character(), typed)),closure))
   }

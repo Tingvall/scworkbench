@@ -508,15 +508,15 @@ Aliases: random_seed, bootstrap_seed
 
 Title: Cell Set / Analysis Universe
 
-Description: Restricts the cells considered by an op. This is a biological and computational universe choice, not a cosmetic filter.
+Description: Restricts the cells considered by an op. A durable named set is a typed scientific input with role-specific source/effective membership identity, not a cosmetic filter.
 
 Applies to: op inputs
 
-Affects: cell inclusion, statistics, plots, runtime
+Affects: cell inclusion, statistics, plots, runtime, provenance, replay
 
 Guidance:
 - Use a biologically justified set for focused analysis.
-- Use all/core intentionally; changing the set can change effect sizes, trajectory curves, and enrichment.
+- Use all/core intentionally; changing the set can change effect sizes, trajectory curves, enrichment, and replay compatibility.
 
 Aliases: cells, cell_ids
 

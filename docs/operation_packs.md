@@ -9,6 +9,12 @@ activation it uses the same `wb_session_run_op()` path, typed inputs,
 effective-cell coverage, private staging, promotion, provenance, replay,
 validation, and reproduction contracts as a core operation.
 
+Pack parameter definitions using `cell_set`, `cell_ids_or_set`, or
+`list_or_cell_set` enter the engine's central named-set resolver. A named set is
+persisted as a role-specific scientific `CONSUMES` dependency with exact
+source/effective membership identity; a literal cell-ID vector is not. Pack
+runners must not create their own provenance bindings.
+
 The authoritative machine-readable manifest schema is installed at
 `inst/protocol/operation-pack-v1.schema.json`.
 

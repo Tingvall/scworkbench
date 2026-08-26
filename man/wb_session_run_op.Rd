@@ -20,7 +20,10 @@ the named \code{inputs} list.}
 inputs for the operation. After resolving all required and present optional
 typed inputs, the engine intersects their cell coverage once in canonical
 requested order. Structured input-by-input coverage is stored in
-\code{run$inputs$coverage}.}
+\code{run$inputs$coverage}. Durable named cell-set selectors are centrally
+recorded in \code{run$inputs$cell_set_resolutions} with role-specific source
+and effective membership SHA-256/count identities; explicit cell IDs do
+not create durable set bindings.}
 
 \item{notes}{Optional run notes.}
 }

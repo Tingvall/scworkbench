@@ -67,6 +67,9 @@
 }
 
 .wb_target_boundary_identity <- function(bundle, kind, id) {
+  if (identical(kind, "cell_set")) {
+    return(.wb_cell_set_membership_identity(wb_cells(bundle, cell_set = id)))
+  }
   if (identical(kind, "matrix")) {
     return(.wb_prov_payload_identity(bundle, wb_prim_matrix(id)))
   }
@@ -120,6 +123,18 @@
   inspection <- wb_open_bundle(destination, read_only = TRUE)
   on.exit(wb_close_bundle(inspection), add = TRUE)
 
+  # Typed historical selection checks run before generic boundary checks so a
+  # missing, superseded, or changed named set retains its actionable condition.
+  for (i in seq_len(nrow(plan$runs))) {
+    recorded <- jsonlite::fromJSON(
+      as.character(plan$runs$inputs_json[i] %||% "{}"), simplifyVector = FALSE
+    )
+    .wb_verify_cell_set_resolution_records(
+      inspection, recorded$cell_set_resolutions %||% list(),
+      context = "target reproduction"
+    )
+  }
+
   if (nrow(plan$boundary_prerequisites)) {
     for (i in seq_len(nrow(plan$boundary_prerequisites))) {
       row <- plan$boundary_prerequisites[i, , drop = FALSE]
@@ -136,14 +151,22 @@
         parts <- strsplit(id, "|", fixed = TRUE)[[1L]]
         length(parts) >= 2L &&
           parts[2L] %in% wb_spaces(inspection, include_history = TRUE)$space_id
+      } else if (kind == "cell_set") {
+        id %in% wb_cell_sets(inspection)
       } else FALSE
       .wb_assert(isTRUE(present),
                  paste0("Missing immutable boundary ", kind, ":", id))
       .wb_assert(grepl("^[0-9a-f]{64}$", expected),
                  paste0("Missing immutable boundary identity ", kind, ":", id))
-      observed <- .wb_target_boundary_identity(inspection, kind, id)$content_sha256
+      observed_identity <- .wb_target_boundary_identity(inspection, kind, id)
+      observed <- observed_identity$content_sha256
       .wb_assert(identical(tolower(expected), tolower(as.character(observed))),
                  paste0("Immutable boundary identity mismatch ", kind, ":", id))
+      expected_count <- if ("member_count" %in% names(row)) suppressWarnings(as.integer(row$member_count[1])) else NA_integer_
+      if (identical(kind,"cell_set") && !is.na(expected_count)) {
+        .wb_assert(identical(expected_count,as.integer(observed_identity$count)),
+                   paste0("Immutable boundary membership count mismatch ",kind,":",id))
+      }
     }
   }
 

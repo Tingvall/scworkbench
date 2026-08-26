@@ -41,6 +41,12 @@ navigation remain available without the pack. Replay or continuation that needs
 the operation reports `OPERATION_PACK_REQUIRED` until the exact compatible pack
 is installed and explicitly activated. See `docs/operation_packs.md`.
 
+A named analysis cell set is a scientific input. New promoted runs preserve a
+role-specific typed dependency and exact source/effective membership identity,
+so later replay cannot silently reuse a same-named set with different members.
+Literal cell IDs remain literal inputs rather than fabricated durable-set
+ancestry. See `docs/typed_cell_set_consumption.md`.
+
 Shared concepts for all agent roles in `scworkbench`.
 
 ## System Identity

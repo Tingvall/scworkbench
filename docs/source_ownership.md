@@ -23,6 +23,10 @@ The schema and canonical fixtures under
 Python distribution normalization, entry-point group/name, and runtime
 attestation checkpoint. PyBench mirrors them byte-for-byte; it does not redefine
 their R semantics.
+
+`R/cell_set_consumption.R` owns catalog-driven durable named-cell-set
+resolution, membership identity, and replay preflight for both core and pack
+operations. Individual runners do not own cell-set provenance bindings.
 `R/operation_pack_python.R` owns the R-side Python adapter: explicit discovery,
 identity/runtime audit, capability construction, transition preparation, and
 typed failure mapping. `R/pybench_transition.R` remains the sole isolation,

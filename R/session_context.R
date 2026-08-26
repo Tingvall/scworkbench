@@ -352,7 +352,10 @@ wb_session_add_run <- function(session, run) {
 #'   inputs for the operation. After resolving all required and present optional
 #'   typed inputs, the engine intersects their cell coverage once in canonical
 #'   requested order. Structured input-by-input coverage is stored in
-#'   `run$inputs$coverage`.
+#'   `run$inputs$coverage`. Durable named cell-set selectors are centrally
+#'   recorded in `run$inputs$cell_set_resolutions` with role-specific source
+#'   and effective membership SHA-256/count identities; explicit cell IDs do
+#'   not create durable set bindings.
 #' @param notes Optional run notes.
 #' @return A list with `session` (the updated `wb_session`), `run` (the
 #'   completed `wb_run`), and `result` (the operation result). Continue a
@@ -464,6 +467,12 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     coverage_modes = op$coverage %||% list()
   )
   effective_cells <- coverage$cells
+  cell_set_resolutions <- .wb_named_cell_set_resolutions(
+    bundle = work_bundle,
+    op_name = op_name,
+    inputs = inputs,
+    effective_cells = effective_cells
+  )
 
   runner <- op$runner
   .wb_assert(is.function(runner), paste0("No runner registered for op: ", op_name))
@@ -511,6 +520,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     parents = parents,
     provenance_refs = prov_refs,
     coverage = coverage$diagnostics,
+    cell_set_resolutions = cell_set_resolutions,
     user_inputs = inputs,
     symbolic_inputs = .wb_symbolic_inputs_snapshot(op_name = op_name, inputs = inputs),
     execution_inputs = .wb_execution_inputs_snapshot(

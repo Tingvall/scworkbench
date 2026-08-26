@@ -117,6 +117,7 @@
 .wb_certificate_producer <- function(con, kind, id) {
   producer_history <- NULL
   if (identical(kind, "run")) return(.wb_certificate_state("not_applicable"))
+  if (identical(kind, "cell_set")) return(.wb_certificate_state("not_applicable", reason="cell_sets_are_registry_inputs"))
   if (identical(kind, "external_source")) {
     rows <- .wb_certificate_query(con, "prov_run_entity_bindings",
       "SELECT snapshot_id, run_id, binding_name, relationship_type FROM prov_run_entity_bindings WHERE entity_kind = 'external_source' AND entity_id = ? AND relationship_type = 'CONSUMES' ORDER BY snapshot_id, run_id, binding_name;", list(id))
@@ -180,6 +181,7 @@
   # A globally unique run may occur in several snapshots only with identical evidence.
   row <- rows[1, , drop = FALSE]
   outputs <- .wb_certificate_query(con, "prov_run_outputs", paste0("SELECT snapshot_id, output_name, primitive_kind, artifact_id, output_hash, ", .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con), " FROM prov_run_outputs WHERE run_id = ? ORDER BY snapshot_id, output_name;"), list(id))
+  bindings <- .wb_certificate_query(con, "prov_run_entity_bindings", "SELECT * FROM prov_run_entity_bindings WHERE run_id=? ORDER BY snapshot_id,direction,binding_name,entity_kind,entity_id;", list(id))
   edges <- .wb_certificate_query(con, "prov_run_edges", "SELECT snapshot_id, parent_run_id, child_run_id, edge_type, edge_label FROM prov_run_edges WHERE parent_run_id = ? OR child_run_id = ? ORDER BY snapshot_id, parent_run_id, child_run_id, edge_type, edge_label;", list(id, id))
   receipts <- .wb_certificate_query(con, "prov_replay_equivalence_results", "SELECT * FROM prov_replay_equivalence_results WHERE original_run_id = ? OR replay_run_id = ? ORDER BY original_run_id, original_output_name, replay_run_id;", list(id, id))
   list(
@@ -191,6 +193,7 @@
     runtime_attestation = .wb_certificate_json(row$runtime_fingerprint_json),
     identity = list(run_hash = .wb_certificate_scalar(row$run_hash), run_hash_scheme = .wb_certificate_scalar(row$run_hash_scheme)),
     snapshots = sort(unique(as.character(rows$snapshot_id))),
+    entity_bindings = .wb_certificate_state("available", items = .wb_certificate_rows(bindings)),
     outputs = .wb_certificate_state("available", items = .wb_certificate_rows(outputs)),
     parent_runs = sort(unique(as.character(edges$parent_run_id[edges$child_run_id == id]))),
     child_runs = sort(unique(as.character(edges$child_run_id[edges$parent_run_id == id]))),
@@ -208,6 +211,28 @@
     uri <- .wb_certificate_scalar(val$uri)
     uri_identity <- if (is.null(uri)) .wb_certificate_state("not_applicable") else if (grepl("^file:", uri, ignore.case = TRUE)) .wb_certificate_state("redacted", "host_file_uri") else .wb_certificate_state("available", value = uri)
     return(list(source = list(uri = uri_identity, path_identity = if (is.null(raw_path)) .wb_certificate_state("not_applicable") else list(status = "available", basename = basename(raw_path)), accession = .wb_certificate_scalar(val$accession), role = .wb_certificate_scalar(val$role %||% val$file_kind), format = .wb_certificate_scalar(val$format)), checksum = list(status = as.character(row$checksum_status[[1]]), algorithm = .wb_certificate_scalar(val$checksum_algorithm %||% if (!is.null(val$sha256)) "sha256" else NULL), value = .wb_certificate_scalar(val$sha256 %||% val$checksum)), consuming_ingestion_runs = sort(unique(as.character(row$run_id)))))
+  }
+  if (identical(kind, "cell_set")) {
+    rows <- .wb_certificate_query(
+      con, "cell_set_membership",
+      "SELECT cell_id FROM cell_set_membership WHERE cell_set=? ORDER BY cell_id;",
+      list(id)
+    )
+    if (!nrow(rows)) return(NULL)
+    membership <- .wb_cell_set_membership_identity(as.character(rows$cell_id))
+    consuming <- .wb_certificate_query(
+      con, "prov_run_entity_bindings",
+      "SELECT * FROM prov_run_entity_bindings WHERE entity_kind='cell_set' AND entity_id=? AND relationship_type='CONSUMES' ORDER BY snapshot_id,run_id,binding_name;",
+      list(id)
+    )
+    return(list(
+      membership = list(
+        count = membership$count,
+        content_sha256 = membership$content_sha256,
+        content_identity_scheme = membership$content_identity_scheme
+      ),
+      consuming_runs = .wb_certificate_state("available", items=.wb_certificate_rows(consuming))
+    ))
   }
   if (identical(kind, "metadata_field")) {
     row <- .wb_certificate_query(
@@ -282,6 +307,18 @@
     out$verification_status <- as.character(details$checksum$status %||% "unverified")
     return(out)
   }
+  if (identical(kind, "cell_set")) {
+    out$content_sha256 <- details$membership$content_sha256
+    out$content_identity_scheme <- details$membership$content_identity_scheme
+    out$verification_level <- "content"
+    out$verification_status <- "content_verified"
+    out$observed <- .wb_certificate_state(
+      "verified", content_sha256=details$membership$content_sha256,
+      content_identity_scheme=details$membership$content_identity_scheme,
+      count=details$membership$count
+    )
+    return(out)
+  }
   if (identical(kind, "run")) return(out)
   declared_sha <- as.character(out$content_sha256 %||% "")[1]
   if (!grepl("^[0-9a-fA-F]{64}$", declared_sha)) {
@@ -339,7 +376,7 @@
 #' use typed getters to load matrices, coordinates, models, or artifacts.
 #'
 #' @param bundle Open `scworkbench_bundle`.
-#' @param entity_kind One of `external_source`, `metadata_field`, `matrix`,
+#' @param entity_kind One of `external_source`, `metadata_field`, `cell_set`, `matrix`,
 #'   `space`, `model`, `artifact`, `run`, `capsule`, or `capsule_output`.
 #' @param entity_id Durable entity identifier.
 #' @return A JSON-serializable `scworkbench.provenance.entity_certificate.v1` list.
@@ -347,7 +384,7 @@
 wb_entity_certificate <- function(bundle, entity_kind, entity_id) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_require_pkg("jsonlite", "entity provenance certificates")
-  kind <- match.arg(as.character(entity_kind)[1], c("external_source", "metadata_field", "matrix", "space", "model", "artifact", "run", "capsule", "capsule_output"))
+  kind <- match.arg(as.character(entity_kind)[1], c("external_source", "metadata_field", "cell_set", "matrix", "space", "model", "artifact", "run", "capsule", "capsule_output"))
   id <- as.character(entity_id)[1]
   .wb_assert(!is.na(id) && nzchar(id), "entity_id must be a non-empty string")
 
@@ -385,6 +422,7 @@ wb_entity_certificate <- function(bundle, entity_kind, entity_id) {
   exists <- node_id %in% as.character(graph$nodes$id)
   if (!exists && identical(kind, "external_source")) exists <- nrow(.wb_certificate_query(con, "prov_source_inputs", "SELECT source_id FROM prov_source_inputs WHERE source_id = ?;", list(id))) > 0L
   if (!exists && identical(kind, "metadata_field")) exists <- nrow(.wb_certificate_query(con, "metadata_fields", "SELECT field_id FROM metadata_fields WHERE field_id = ?;", list(id))) > 0L
+  if (!exists && identical(kind, "cell_set")) exists <- nrow(.wb_certificate_query(con, "cell_set_membership", "SELECT cell_set FROM cell_set_membership WHERE cell_set = ? LIMIT 1;", list(id))) > 0L
   if (!exists && identical(kind, "matrix")) exists <- nrow(.wb_certificate_query(con, "matrices", "SELECT matrix_id FROM matrices WHERE matrix_id = ?;", list(id))) > 0L
   if (!exists && identical(kind, "space")) exists <- nrow(.wb_certificate_query(con, "spaces", "SELECT space_id FROM spaces WHERE space_id = ?;", list(id))) > 0L
   if (!exists && identical(kind, "artifact")) exists <- nrow(.wb_certificate_query(con, "artifacts", "SELECT artifact_id FROM artifacts WHERE artifact_id = ?;", list(id))) > 0L

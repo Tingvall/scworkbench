@@ -929,7 +929,8 @@ wb_prov_bundle_dag <- function(bundle,
         row
       } else {
         .wb_prov_bundle_node(id = node_id, node_type = kind, label = id,
-                             title = paste(kind, id), snapshot_id = bindings$snapshot_id[i],
+                             title = if (identical(kind, "cell_set")) paste0("Cell set ", id) else paste(kind, id),
+                             snapshot_id = bindings$snapshot_id[i],
                              status = "durable")
       }
       nodes_df <- rbind(nodes_df, binding_node)
