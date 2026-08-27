@@ -234,6 +234,7 @@
                                                 phase = "completed",
                                                 created_by = NULL,
                                                 matrix_ids = character(0),
+                                                metadata_field_ids = character(0),
                                                 source_identity = NULL) {
   .wb_require_pkg("jsonlite", "container ingestion report")
   if (!exists(".wb_promote_obs_table", mode = "function")) return(NA_character_)
@@ -306,10 +307,55 @@
   )
   .wb_prov_link_source_to_existing_producers(
     bundle, matrix_ids = matrix_ids, space_ids = spaces_imported,
+    artifact_ids = rowdata_artifact_id,
+    metadata_field_ids = metadata_field_ids,
     source_identity = source_identity
   )
   wb_refresh_manifest(bundle)
   artifact_id
+}
+
+.wb_h5ad_nested_source_identity <- function(source_identity, input_path) {
+  checked <- wb_source_preflight(source_identity, verify_files = TRUE, strict = TRUE)$source_identity
+  inputs <- checked$inputs %||% list()
+  candidates <- which(vapply(inputs, function(x) {
+    scope <- as.character(x$scope %||% "")[1]
+    path <- as.character(x$path %||% "")[1]
+    format <- tolower(as.character(x$format %||% "")[1])
+    scope %in% c("public_file", "external_file") && nzchar(path) &&
+      identical(normalizePath(path, winslash = "/", mustWork = TRUE), input_path) &&
+      format %in% c("h5ad", "anndata/h5ad")
+  }, logical(1)))
+  .wb_assert(length(candidates) == 1L,
+             "H5AD source_identity must contain exactly one checksummed external H5AD input whose path is the imported file.")
+  parent_id <- as.character(inputs[[candidates[[1L]]]]$source_id)[1]
+  child_id <- paste0(parent_id, "__converted_sce")
+  child <- list(
+    scope = "in_memory",
+    source_id = child_id,
+    uri = paste0("scworkbench-ingestion://bundle_from_h5ad/converted-sce/", parent_id),
+    role = "conversion_intermediate",
+    format = "SingleCellExperiment",
+    bundled = FALSE,
+    parent_source_id = parent_id,
+    source_relation = "CONVERTS_TO",
+    conversion_owner = "wb_bundle_from_h5ad"
+  )
+  checked$inputs <- c(inputs, list(child))
+  checked$nested_ingestion <- list(
+    schema = "scworkbench.nested_ingestion.v1",
+    authoritative_source_id = parent_id,
+    conversion_source_id = child_id,
+    relation = "CONVERTS_TO",
+    importer = "wb_bundle_from_h5ad"
+  )
+  wb_source_preflight(checked, verify_files = TRUE, strict = TRUE)$source_identity
+}
+
+.wb_h5ad_fault <- function(boundary, ...) {
+  hook <- getOption("scworkbench.h5ad_ingestion_fault_hook")
+  if (is.function(hook)) hook(boundary = boundary, ...)
+  invisible(TRUE)
 }
 
 .wb_ingest_failure_marker <- function(bundle_dir,
@@ -1255,6 +1301,16 @@ wb_bundle_from_sce <- function(input,
       ),
       created_by = created_by,
       matrix_ids = imported,
+      metadata_field_ids = wb_metadata_fields(bundle, include_core = TRUE)$field_id,
+      source_identity = source_identity
+    )
+  } else {
+    .wb_prov_link_source_to_existing_producers(
+      bundle,
+      matrix_ids = imported,
+      space_ids = space_ids,
+      artifact_ids = rowdata_artifact,
+      metadata_field_ids = wb_metadata_fields(bundle, include_core = TRUE)$field_id,
       source_identity = source_identity
     )
   }
@@ -1265,7 +1321,10 @@ wb_bundle_from_sce <- function(input,
 #' Initialize a Bundle from an AnnData h5ad File
 #'
 #' Uses `zellkonverter::readH5AD()` and then maps the converted
-#' SingleCellExperiment through [wb_bundle_from_sce()].
+#' SingleCellExperiment through [wb_bundle_from_sce()]. The checksummed H5AD is
+#' retained as the authoritative source and the converted object as its
+#' auditable in-memory `CONVERTS_TO` child. `emit_report_artifact = FALSE`
+#' suppresses only the report artifact, not this source chain.
 #'
 #' @inheritParams wb_bundle_from_sce
 #' @param input Path to an `.h5ad` file.
@@ -1297,6 +1356,7 @@ wb_bundle_from_h5ad <- function(input,
     scope="external_file", source_id="h5ad_source", accession=basename(input_path), path=input_path,
     role="source_object", format="h5ad", sha256=wb_source_sha256(input_path), checksum=wb_source_sha256(input_path), checksum_algorithm="sha256", bundled=FALSE)))
   source_identity <- wb_source_preflight(source_identity, verify_files=TRUE, strict=TRUE)$source_identity
+  source_identity <- .wb_h5ad_nested_source_identity(source_identity, input_path)
   .wb_assert(is.character(bundle_dir) && length(bundle_dir) == 1L && nzchar(bundle_dir), "bundle_dir must be a non-empty string")
   final_dir <- normalizePath(bundle_dir, winslash = "/", mustWork = FALSE)
   if (dir.exists(final_dir) && !isTRUE(overwrite)) {
@@ -1314,7 +1374,9 @@ wb_bundle_from_h5ad <- function(input,
       groups <- tryCatch(as.character(rhdf5::h5ls(input_path, recursive = FALSE)$name), error = function(e) character(0))
     }
     phase <- "h5ad_read"
-    sce <- zellkonverter::readH5AD(input_path)
+    reader <- getOption("scworkbench.h5ad_reader", NULL)
+    sce <- if (is.null(reader)) zellkonverter::readH5AD(input_path) else
+      zellkonverter::readH5AD(input_path, reader = as.character(reader)[1])
     phase <- "identifier_policy"
     h5ad_id_repair <- .wb_ingest_cell_id_repair(
       colnames(sce) %||% paste0("cell_", seq_len(ncol(sce))),
@@ -1342,11 +1404,13 @@ wb_bundle_from_h5ad <- function(input,
       original_feature_id_col = original_feature_id_col,
       overwrite = TRUE,
       created_by = created_by,
-      emit_report_artifact = emit_report_artifact
-      ,source_identity = list(source_type="SingleCellExperiment", inputs=list(list(scope="in_memory", source_id="h5ad_converted_sce", uri="scworkbench-ingestion://bundle_from_h5ad/converted-sce", role="conversion_intermediate", format="SingleCellExperiment", bundled=FALSE)))
+      emit_report_artifact = emit_report_artifact,
+      source_identity = source_identity
     )
+    .wb_h5ad_fault("after_nested_sce_ingestion", bundle = bundle)
     phase <- "h5ad_report"
     if (isTRUE(emit_report_artifact)) {
+      .wb_h5ad_fault("before_outer_report_publication", bundle = bundle)
       .wb_container_ingest_report_artifact(
         bundle,
         source_type = "AnnData/h5ad",
@@ -1383,6 +1447,7 @@ wb_bundle_from_h5ad <- function(input,
         matrix_ids = wb_matrices(bundle)$matrix_id,
         source_identity = source_identity
       )
+      .wb_h5ad_fault("after_outer_report_publication", bundle = bundle)
     }
     phase <- "finalize_staging"
     wb_refresh_manifest(bundle)

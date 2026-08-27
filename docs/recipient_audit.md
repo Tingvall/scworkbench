@@ -11,6 +11,12 @@ wb_recipient_readiness(recipient)
 wb_validate_bundle(recipient)
 ```
 
+For an imported H5AD, call `wb_prov_source_inputs(recipient)` to recover the
+checksummed external source and its `CONVERTS_TO` SingleCellExperiment child.
+The `parent_source_id` and `source_relation` columns reconstruct this ancestry
+without an operator report or original workspace. Matrix and space
+`wb_entity_certificate()` results include both nodes in `relationships$upstream`.
+
 For newly imported bundles, `wb_entity_certificate()` exposes one authoritative
 producer for each imported matrix, space, and metadata field. Aggregate
 container-import runs remain visible in `wb_prov_bundle_dag()` but do not claim

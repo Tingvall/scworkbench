@@ -39,6 +39,12 @@ Matrices and spaces are produced only by their concrete assembly runs; the
 declared external source is connected directly to those runs, so aggregate
 orchestration never creates a second authoritative producer.
 
+H5AD conversion adds `scworkbench.nested_ingestion.v1` composition metadata to
+the immutable source declaration. Its checksummed H5AD parent is authoritative;
+the converted SingleCellExperiment is a `CONVERTS_TO` in-memory child. Both
+source nodes feed the concrete imported-entity producers, while the report run
+remains evidence rather than a competing producer.
+
 ## Migration and mixed history
 
 Bundle schema migration 6 adds `run_hash_scheme`, `contract_hash_scheme`,

@@ -12,7 +12,8 @@ wb_prov_source_inputs(bundle, run_id = NULL)
 \item{run_id}{Optional ingestion run id.}
 }
 \value{
-Durable declared external source records, including checksum status.
+Durable declared source records, including checksum status and, for
+nested conversion inputs, \code{parent_source_id} and \code{source_relation}.
 }
 \description{
 List declared external ingestion inputs

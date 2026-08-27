@@ -117,6 +117,43 @@ wb_source_sha256 <- function(path) {
   }
   duplicate_ids <- unique(ids[nzchar(ids) & (duplicated(ids) | duplicated(ids, fromLast=TRUE))])
   for (id in duplicate_ids) diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_ID_DUPLICATE", match(id, ids), "source_id", paste0("Duplicate source_id: ", id))
+  composition <- normalized$nested_ingestion %||% NULL
+  if (!is.null(composition)) {
+    schema <- as.character(composition$schema %||% "")[1]
+    parent_id <- as.character(composition$authoritative_source_id %||% "")[1]
+    child_id <- as.character(composition$conversion_source_id %||% "")[1]
+    relation <- as.character(composition$relation %||% "")[1]
+    importer <- as.character(composition$importer %||% "")[1]
+    if (!identical(schema, "scworkbench.nested_ingestion.v1")) {
+      diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_NESTED_SCHEMA_UNSUPPORTED", 0L, "nested_ingestion.schema", "Nested ingestion must use scworkbench.nested_ingestion.v1.")
+    }
+    if (!identical(relation, "CONVERTS_TO")) {
+      diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_NESTED_RELATION_INVALID", 0L, "nested_ingestion.relation", "Nested ingestion must declare the CONVERTS_TO relation.")
+    }
+    if (!identical(importer, "wb_bundle_from_h5ad")) {
+      diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_NESTED_IMPORTER_INVALID", 0L, "nested_ingestion.importer", "The supported nested-ingestion owner is wb_bundle_from_h5ad.")
+    }
+    parent_at <- match(parent_id, ids)
+    child_at <- match(child_id, ids)
+    if (is.na(parent_at) || !nzchar(parent_id)) {
+      diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_NESTED_PARENT_MISSING", 0L, "nested_ingestion.authoritative_source_id", "Nested ingestion parent must name an input in the same declaration.")
+    } else {
+      parent_scope <- as.character(normalized$inputs[[parent_at]]$scope %||% "")[1]
+      if (!parent_scope %in% c("public_file", "external_file")) {
+        diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_NESTED_PARENT_NOT_EXTERNAL", parent_at, "scope", "Nested ingestion parent must be a checksummed public_file or external_file input.")
+      }
+    }
+    if (is.na(child_at) || !nzchar(child_id)) {
+      diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_NESTED_CHILD_MISSING", 0L, "nested_ingestion.conversion_source_id", "Nested ingestion child must name an input in the same declaration.")
+    } else {
+      child <- normalized$inputs[[child_at]]
+      if (!identical(as.character(child$scope %||% "")[1], "in_memory") ||
+          !identical(as.character(child$parent_source_id %||% "")[1], parent_id) ||
+          !identical(as.character(child$source_relation %||% "")[1], relation)) {
+        diagnostics[[length(diagnostics)+1L]] <- list("SOURCE_NESTED_CHILD_FORGED", child_at, "parent_source_id/source_relation", "Conversion child must be an in-memory input bound to the declared parent and relation.")
+      }
+    }
+  }
   diag <- .wb_source_diag_df(diagnostics)
   list(valid=!nrow(diag), normalized=normalized, diagnostics=diag)
 }

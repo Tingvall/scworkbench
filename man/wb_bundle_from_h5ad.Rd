@@ -64,5 +64,8 @@ An open scworkbench bundle.
 }
 \description{
 Uses \code{zellkonverter::readH5AD()} and then maps the converted
-SingleCellExperiment through \code{\link[=wb_bundle_from_sce]{wb_bundle_from_sce()}}.
+SingleCellExperiment through \code{\link[=wb_bundle_from_sce]{wb_bundle_from_sce()}}. The checksummed H5AD is
+retained as the authoritative source and the converted object as its
+auditable in-memory \code{CONVERTS_TO} child. \code{emit_report_artifact = FALSE}
+suppresses only the report artifact, not this source chain.
 }

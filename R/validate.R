@@ -1249,6 +1249,28 @@ wb_bundle_validation_report <- function(bundle_dir,
           else if (identical(scope,"in_memory")) source_status <- "nonportable_in_memory_boundary"
           add_source_coverage(id,recorded_scheme,actual_scheme,source_status)
         }
+        parsed_sources <- lapply(src$source_json, .wb_validation_json)
+        for (i in seq_len(nrow(src))) {
+          x <- parsed_sources[[i]] %||% list()
+          parent_id <- as.character(x$parent_source_id %||% "")[1]
+          relation <- as.character(x$source_relation %||% "")[1]
+          if (!nzchar(parent_id) && !nzchar(relation)) next
+          id <- paste(src$snapshot_id[i], src$run_id[i], src$source_id[i], sep = "/")
+          same_run <- as.character(src$snapshot_id) == as.character(src$snapshot_id[i]) &
+            as.character(src$run_id) == as.character(src$run_id[i]) &
+            as.character(src$source_id) == parent_id
+          if (sum(same_run) != 1L) {
+            add("SOURCE_NESTED_PARENT_MISSING", check_class="source_inputs", entity_kind="in_memory_source", entity_id=id, table="prov_source_inputs", expected="one parent source in the same ingestion run", observed=as.character(sum(same_run)), message="Nested conversion source does not resolve one declared parent in the same run.")
+            next
+          }
+          parent <- parsed_sources[[which(same_run)[[1L]]]] %||% list()
+          parent_scope <- as.character(parent$scope %||% parent$source_scope %||% "")[1]
+          if (!identical(relation, "CONVERTS_TO") ||
+              !identical(as.character(x$scope %||% x$source_scope %||% "")[1], "in_memory") ||
+              !parent_scope %in% c("public_file", "external_file")) {
+            add("SOURCE_NESTED_RELATION_INVALID", check_class="source_inputs", entity_kind="in_memory_source", entity_id=id, table="prov_source_inputs", expected="checksummed external parent CONVERTS_TO in-memory child", observed=paste(parent_scope, relation, as.character(x$scope %||% "")), message="Nested conversion relationship is forged or ambiguous.")
+          }
+        }
       }
       if (.wb_table_exists(con,"prov_source_identities")) {
         identities <- DBI::dbGetQuery(con,"SELECT * FROM prov_source_identities ORDER BY snapshot_id,run_id,matrix_id;")
@@ -1262,6 +1284,25 @@ wb_bundle_validation_report <- function(bundle_dir,
           if (inherits(valid,"error") || is.null(valid)) add("SOURCE_IDENTITY_MALFORMED",check_class="source_inputs",entity_kind="source_identity",entity_id=id,table="prov_source_identities",observed=if(inherits(valid,"error")) conditionMessage(valid) else "invalid declaration",message="Persisted source identity is not syntactically valid.")
           if (!paste(sid,rid,sep="\r") %in% run_keys) add("SOURCE_IDENTITY_DANGLING_RUN",check_class="source_inputs",entity_kind="source_identity",entity_id=id,table="prov_source_identities",observed=rid,message="Source identity references a missing run.")
           if (!mid %in% matrices) add("SOURCE_IDENTITY_DANGLING_MATRIX",check_class="source_inputs",entity_kind="source_identity",entity_id=id,table="prov_source_identities",observed=mid,message="Source identity references a missing matrix.")
+          nested <- if (!inherits(valid, "error") && !is.null(valid)) valid$nested_ingestion %||% NULL else NULL
+          if (!is.null(nested)) {
+            required_ids <- c(
+              as.character(nested$authoritative_source_id %||% "")[1],
+              as.character(nested$conversion_source_id %||% "")[1]
+            )
+            linked <- if (.wb_table_exists(con, "prov_source_inputs")) DBI::dbGetQuery(
+              con,
+              "SELECT source_id FROM prov_source_inputs WHERE snapshot_id=? AND run_id=? AND source_id IN (?,?);",
+              params = list(sid, rid, required_ids[[1L]], required_ids[[2L]])
+            ) else data.frame(source_id = character())
+            observed_ids <- as.character(linked$source_id %||% character())
+            if (!setequal(observed_ids, required_ids) || nrow(linked) != 2L) add(
+              "SOURCE_NESTED_ANCESTRY_MISSING", check_class="source_inputs",
+              entity_kind="matrix", entity_id=mid, table="prov_source_inputs",
+              expected=paste(required_ids, collapse=","), observed=paste(observed_ids, collapse=","),
+              message="Imported matrix does not retain one complete authoritative external-to-conversion source chain."
+            )
+          }
         }
       }
     })

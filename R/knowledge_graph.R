@@ -479,6 +479,20 @@ wb_kg_bundle_graph <- function(bundle) {
       nodes[[length(nodes) + 1L]] <- .wb_kg_node(snid, as.character(src$source_id[i]), node_type, "declared_ingestion_input", payload=c(source_payload, list(scope=scope, snapshot_id=src$snapshot_id[i])))
       edges[[length(edges) + 1L]] <- .wb_kg_edge(snid, paste0("run:", .wb_kg_slug(src$run_id[i])), "SUPPLIED_TO", "declared_ingestion_input", payload=as.list(src[i, , drop=FALSE]))
     }
+    if (nrow(src)) for (i in seq_len(nrow(src))) {
+      declaration <- .wb_validation_json(src$source_json[i]) %||% list()
+      parent_id <- as.character(declaration$parent_source_id %||% "")[1]
+      relation <- as.character(declaration$source_relation %||% "")[1]
+      if (nzchar(parent_id) && nzchar(relation)) {
+        edges[[length(edges) + 1L]] <- .wb_kg_edge(
+          paste0("external_source:", .wb_kg_slug(parent_id)),
+          paste0("in_memory_source:", .wb_kg_slug(src$source_id[i])),
+          relation,
+          "declared_nested_ingestion",
+          payload = as.list(src[i, , drop = FALSE])
+        )
+      }
+    }
   }
 
   if (.wb_table_exists(con, "prov_run_outputs")) {
