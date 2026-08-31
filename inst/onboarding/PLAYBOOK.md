@@ -42,6 +42,11 @@ classification column is `node_type`; filter `node_type == "external_source"`
 and `edge_type == "CONSUMES"` to inspect source-to-ingestion edges.
 Automatic assembly events have no external-source node. Genuine object inputs
 use the distinct `in_memory_source` node type and remain explicitly nonportable.
+For H5AD ingestion, the in-memory SingleCellExperiment is a declared conversion
+child of the authoritative checksummed H5AD. Inspect `parent_source_id` and
+`source_relation` in `wb_prov_source_inputs()`, or the external and in-memory
+nodes in a matrix/space certificate's upstream relationships. Omitting an
+ingest report does not omit this chain.
 
 ### Entity provenance certificates
 

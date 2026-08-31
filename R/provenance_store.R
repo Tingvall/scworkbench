@@ -1025,12 +1025,19 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
 }
 
 .wb_prov_link_source_to_existing_producers <- function(bundle, matrix_ids, space_ids,
-                                                        source_identity) {
+                                                        source_identity,
+                                                        artifact_ids = character(0),
+                                                        metadata_field_ids = character(0)) {
   entity_rows <- function(kind, ids) {
     ids <- unique(as.character(ids %||% character()))
     data.frame(entity_kind = rep(kind, length(ids)), entity_id = ids, stringsAsFactors = FALSE)
   }
-  entities <- rbind(entity_rows("matrix", matrix_ids), entity_rows("space", space_ids))
+  entities <- rbind(
+    entity_rows("matrix", matrix_ids),
+    entity_rows("space", space_ids),
+    entity_rows("artifact", artifact_ids),
+    entity_rows("metadata_field", metadata_field_ids)
+  )
   entities <- entities[!is.na(entities$entity_id) & nzchar(entities$entity_id), , drop = FALSE]
   if (!nrow(entities) || is.null(source_identity)) return(invisible(FALSE))
   producers <- do.call(rbind, lapply(seq_len(nrow(entities)), function(i) {
@@ -1044,6 +1051,27 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
     if (nrow(rows)) cbind(rows, entities[rep(i, nrow(rows)), , drop = FALSE]) else NULL
   }))
   if (is.null(producers) || !nrow(producers)) return(invisible(FALSE))
+  normalized_identity <- .wb_prov_source_identity_validate(source_identity)
+  incoming_json <- jsonlite::toJSON(.wb_json_sanitize(normalized_identity), auto_unbox = TRUE, null = "null")
+  matrix_producers <- producers[as.character(producers$entity_kind) == "matrix", , drop = FALSE]
+  if (nrow(matrix_producers)) for (i in seq_len(nrow(matrix_producers))) {
+    existing <- DBI::dbGetQuery(
+      bundle$con,
+      "SELECT source_identity_json FROM prov_source_identities WHERE snapshot_id=? AND run_id=? AND matrix_id=?;",
+      params = unname(as.list(matrix_producers[i, c("snapshot_id", "run_id", "entity_id")]))
+    )
+    if (!nrow(existing) || identical(as.character(existing$source_identity_json[[1L]]), as.character(incoming_json))) next
+    parsed <- tryCatch(jsonlite::fromJSON(existing$source_identity_json[[1L]], simplifyVector = FALSE), error = function(e) NULL)
+    inputs <- parsed$inputs %||% list()
+    replaceable <- length(inputs) > 0L && all(vapply(inputs, function(x) {
+      identical(as.character(x$scope %||% x$source_scope %||% ""), "internal_assembly")
+    }, logical(1)))
+    if (!isTRUE(replaceable)) stop(
+      paste0("Conflicting immutable source identity for snapshot_id=", matrix_producers$snapshot_id[[i]],
+             ", run_id=", matrix_producers$run_id[[i]], ", matrix_id=", matrix_producers$entity_id[[i]]),
+      call. = FALSE
+    )
+  }
   for (i in seq_len(nrow(producers))) {
     sid <- as.character(producers$snapshot_id[[i]])
     rid <- as.character(producers$run_id[[i]])
@@ -2063,12 +2091,13 @@ wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
 #'
 #' @param bundle scworkbench bundle.
 #' @param run_id Optional ingestion run id.
-#' @return Durable declared external source records, including checksum status.
+#' @return Durable declared source records, including checksum status and, for
+#'   nested conversion inputs, `parent_source_id` and `source_relation`.
 #' @export
 wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_migrate_provenance_tables(bundle$con)
-  empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), scope=character(), portable=logical(), path=character(), uri=character(), accession=character(), role=character(), format=character(), checksum_algorithm=character(), checksum_value=character(), checksum_status=character(), stringsAsFactors=FALSE)
+  empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), scope=character(), portable=logical(), path=character(), uri=character(), accession=character(), role=character(), format=character(), parent_source_id=character(), source_relation=character(), checksum_algorithm=character(), checksum_value=character(), checksum_status=character(), stringsAsFactors=FALSE)
   if (!.wb_table_exists(bundle$con, "prov_source_inputs")) return(empty)
   out <- DBI::dbGetQuery(bundle$con, "SELECT snapshot_id, run_id, source_id, source_json, checksum_status FROM prov_source_inputs ORDER BY snapshot_id, run_id, source_id;")
   if (!is.null(run_id)) out <- out[as.character(out$run_id) %in% as.character(run_id), , drop=FALSE]
@@ -2081,7 +2110,7 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
     valid_sha <- identical(alg, "sha256") && grepl("^[A-Fa-f0-9]{64}$", val)
     status <- if (!nzchar(val)) "declared_no_checksum" else if (valid_sha) "checksummed" else if (identical(alg, "sha256") || nzchar(sha)) "malformed_checksum" else "unsupported_checksum"
     scope <- as.character(x$scope %||% x$source_scope %||% "legacy_external")[1]
-    list(scope=scope, portable=scope %in% c("public_file", "external_file") && isTRUE(x$bundled %||% FALSE), path=as.character(x$path %||% NA_character_)[1], uri=as.character(x$uri %||% NA_character_)[1], accession=as.character(x$accession %||% NA_character_)[1], role=as.character(x$role %||% x$file_kind %||% NA_character_)[1], format=as.character(x$format %||% NA_character_)[1], checksum_algorithm=if(nzchar(alg)) alg else NA_character_, checksum_value=if(nzchar(val)) val else NA_character_, checksum_status=if(identical(scope,"in_memory")) "nonportable_in_memory" else status)
+    list(scope=scope, portable=scope %in% c("public_file", "external_file") && isTRUE(x$bundled %||% FALSE), path=as.character(x$path %||% NA_character_)[1], uri=as.character(x$uri %||% NA_character_)[1], accession=as.character(x$accession %||% NA_character_)[1], role=as.character(x$role %||% x$file_kind %||% NA_character_)[1], format=as.character(x$format %||% NA_character_)[1], parent_source_id=as.character(x$parent_source_id %||% NA_character_)[1], source_relation=as.character(x$source_relation %||% NA_character_)[1], checksum_algorithm=if(nzchar(alg)) alg else NA_character_, checksum_value=if(nzchar(val)) val else NA_character_, checksum_status=if(identical(scope,"in_memory")) "nonportable_in_memory" else status)
   })
   extra <- do.call(rbind, lapply(norm, as.data.frame, stringsAsFactors=FALSE))
   cbind(out[, c("snapshot_id", "run_id", "source_id", "source_json"), drop=FALSE], extra, stringsAsFactors=FALSE)

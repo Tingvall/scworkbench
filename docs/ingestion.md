@@ -15,3 +15,9 @@ wb_ingest_apply(plan, bundle = b)
 
 `wb_bundle_from_10x_mtx()`, `wb_bundle_from_h5ad()`, `wb_bundle_from_sce()`,
 and `wb_bundle_from_seurat()` create bundles through the same durable contract.
+
+H5AD ingestion is a nested conversion: the verified H5AD remains the
+authoritative source and the converted SingleCellExperiment is a mediated
+in-memory child in the same declaration. Imported matrices, spaces, metadata,
+and feature metadata retain that ancestry. Ingest reports are evidence only;
+setting `emit_report_artifact = FALSE` omits the report, not source provenance.

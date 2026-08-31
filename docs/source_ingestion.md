@@ -42,3 +42,23 @@ External paths are checked only at ingestion preflight. Recipient validation
 does not access files outside the bundle. Bundled inputs must instead use a
 contained bundle-relative path and are rehashed during content validation.
 
+## Nested H5AD conversion
+
+`wb_bundle_from_h5ad()` records one composed source chain. The checksummed
+external H5AD is the authoritative source; the in-memory
+SingleCellExperiment returned by format conversion is its `CONVERTS_TO` child.
+Both declarations are immutable and the child names its `parent_source_id`.
+The conversion is therefore auditable without treating an arbitrary in-memory
+object as a replacement external source.
+
+Matrix, imported-space, cell-metadata, and feature-metadata producers consume
+that composed chain. The optional ingest report is evidence about the import;
+it is not an authoritative producer of those retained entities.
+`emit_report_artifact = FALSE` suppresses only the report artifact and retains
+the declared source chain.
+
+After transfer, `wb_prov_source_inputs(recipient)` reconstructs the external
+declaration, checksum, conversion child, parent, and relation from the bundle.
+`wb_entity_certificate()` exposes the same external and conversion nodes in an
+imported matrix or space's upstream relationships. Recipient validation fails
+when a declared nested chain is missing, forged, or ambiguous.
