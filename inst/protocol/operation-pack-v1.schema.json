@@ -8,6 +8,7 @@
   "properties": {
     "schema_version": {"const": "scworkbench.operation_pack.v1"},
     "protocol_version": {"const": "1"},
+    "identity_scheme": {"const": "scworkbench.operation_pack.canonical_json.v1"},
     "namespace": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"},
     "package": {
       "type": "object", "additionalProperties": false, "required": ["name", "version"],

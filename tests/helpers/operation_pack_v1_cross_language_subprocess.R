@@ -28,12 +28,12 @@ python_pack <- wb_operation_pack_activate(
   python_manifest, python = python, timeout_seconds = 60)
 stopifnot(
   identical(python_pack$identity$manifest_sha256,
-    "80648679e249bcf67a5e76619b799797ed85ffbcf2bcd65c814f7040ae721410"),
+    "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253"),
   identical(python_pack$identity$operation_definition_sha256[[
     "scwbpython::affine_cell_vector"]],
-    "27da0c9063b4e589e8d2b9c1170286accb3770096bea8765079d48e01acb609a"),
+    "059d06d5c8710958f3ec56fc0977e773cf30499c9d7396dd57778d6e7bd5487b"),
   identical(python_pack$identity$pack_sha256,
-    "0108d2e3efde24763fe20ae785ff1ec8eb08e868c8bc5ff23da17ceaefcf396a"),
+    "864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab"),
   !"executable" %in% names(python_pack$runtime_attestation$interpreter),
   identical(python_pack$runtime_attestation$pybench$source_revision,
     "0f90ad7bd8bc63a73e5d4e23f6a7c39a7bee0f6f")
@@ -106,9 +106,9 @@ terminal <- wb_session_run_op(python_run$session, bundle,
     method = "auto", min_n_per_group = 2L, min_cells = 1L))
 stopifnot(
   identical(r_run$run$operation_pack$pack_sha256,
-    "4f9212e127ef49c4386b4411cb786811e10b8cd04861828aedb8abf286ef1192"),
+    "f8abd3c8dcaa78c9f08494d98ce45adec68c05147fc0a01dbb3d11e20038b361"),
   identical(python_run$run$operation_pack$pack_sha256,
-    "0108d2e3efde24763fe20ae785ff1ec8eb08e868c8bc5ff23da17ceaefcf396a"),
+    "864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab"),
   identical(python_run$run$operation_pack_runtime$schema,
     "scworkbench.operation_pack_runtime.python.v1"),
   identical(as.numeric(python_run$run$outputs$vector$value),
@@ -169,7 +169,7 @@ writeLines(c(
   "codes<-function(x)vapply(x$diagnostics$issues,function(z)z$code,character(1))",
   "stopifnot('OPERATION_PACK_REQUIRED'%in%codes(r),'OPERATION_PACK_REQUIRED'%in%codes(p))",
   "d<-wb_prov_run_details(b,a[[5]],a[[6]])",
-  "stopifnot(identical(d$run$contract$interface$source_pack$pack_sha256,'0108d2e3efde24763fe20ae785ff1ec8eb08e868c8bc5ff23da17ceaefcf396a'))",
+  "stopifnot(identical(d$run$contract$interface$source_pack$pack_sha256,'864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab'))",
   "wb_close_bundle(b)",
   "b<-wb_open_bundle(a[[2]])",
   "e<-tryCatch(wb_session_run_op(wb_session_new(),b,'scwbpython::affine_cell_vector',inputs=list()),error=identity)",
