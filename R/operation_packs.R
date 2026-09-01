@@ -137,14 +137,148 @@
   x
 }
 
-.wb_operation_pack_canonicalize <- function(x) {
+.wb_operation_pack_identity_scheme <- function() {
+  "scworkbench.operation_pack.canonical_json.v1"
+}
+
+.wb_operation_pack_canonical_number <- function(token) {
+  token <- as.character(token)[1]
+  match <- regexec(
+    "^(-)?(0|[1-9][0-9]*)(?:[.]([0-9]+))?(?:[eE]([+-]?[0-9]+))?$",
+    token, perl = TRUE
+  )
+  parts <- regmatches(token, match)[[1]]
+  .wb_operation_pack_assert(length(parts) == 5L,
+    "OPERATION_PACK_CANONICAL_NUMBER_INVALID",
+    paste0("Canonical identity received a malformed JSON number: ", token, "."),
+    number = token, class = "wb_operation_pack_identity_error")
+  negative <- identical(parts[[2]], "-")
+  integer <- parts[[3]]
+  fraction <- parts[[4]]
+  exponent_text <- parts[[5]]
+  exponent <- if (nzchar(exponent_text)) suppressWarnings(as.numeric(exponent_text)) else 0
+  .wb_operation_pack_assert(is.finite(exponent) && abs(exponent) <= 10000,
+    "OPERATION_PACK_CANONICAL_NUMBER_RANGE",
+    paste0("Canonical identity number exponent is outside the parsing boundary: ", token, "."),
+    number = token, class = "wb_operation_pack_identity_error")
+
+  digits <- paste0(integer, fraction)
+  first <- regexpr("[1-9]", digits, perl = TRUE)[1]
+  if (identical(first, -1L)) return("0")
+  last <- max(gregexpr("[1-9]", digits, perl = TRUE)[[1]])
+  significant <- substr(digits, first, last)
+  .wb_operation_pack_assert(nchar(significant, type = "bytes") <= 15L,
+    "OPERATION_PACK_CANONICAL_NUMBER_PRECISION",
+    paste0("Canonical identity numbers may contain at most 15 significant decimal digits: ", token, "."),
+    number = token, class = "wb_operation_pack_identity_error")
+  adjusted <- exponent + nchar(integer, type = "bytes") - first
+  .wb_operation_pack_assert(adjusted >= -307 && adjusted <= 308,
+    "OPERATION_PACK_CANONICAL_NUMBER_RANGE",
+    paste0("Canonical identity number is outside the adjusted exponent range [-307, 308]: ", token, "."),
+    number = token, class = "wb_operation_pack_identity_error")
+  coefficient <- if (nchar(significant, type = "bytes") == 1L) significant else {
+    paste0(substr(significant, 1L, 1L), ".", substr(significant, 2L, nchar(significant)))
+  }
+  paste0(if (negative) "-" else "", coefficient, "e", format(adjusted, scientific = FALSE, trim = TRUE))
+}
+
+.wb_operation_pack_number_token <- function(x) {
+  token <- attr(x, "operation_pack_json_number", exact = TRUE)
+  if (!is.null(token)) return(as.character(token)[1])
+  .wb_operation_pack_assert(length(x) == 1L && !is.na(x) && is.finite(x),
+    "OPERATION_PACK_CANONICAL_NUMBER_INVALID",
+    "Canonical identity numbers must be finite scalar values.",
+    class = "wb_operation_pack_identity_error")
+  if (identical(as.numeric(x), 0)) return("0")
+  if (is.integer(x)) return(as.character(x))
+  trimws(formatC(as.numeric(x), digits = 15L, format = "g", flag = ""))
+}
+
+.wb_operation_pack_canonical_string <- function(x) {
+  .wb_operation_pack_assert(length(x) == 1L && !is.na(x),
+    "OPERATION_PACK_CANONICAL_STRING_INVALID",
+    "Canonical identity strings must be non-missing UTF-8 scalar values.",
+    class = "wb_operation_pack_identity_error")
+  value <- iconv(as.character(x), from = "", to = "UTF-8", sub = NA_character_)
+  .wb_operation_pack_assert(!is.na(value), "OPERATION_PACK_CANONICAL_STRING_INVALID",
+    "Canonical identity strings must be valid UTF-8.",
+    class = "wb_operation_pack_identity_error")
+  points <- utf8ToInt(value)
+  encoded <- vapply(points, function(point) {
+    if (point == 34L) return("\\\"")
+    if (point == 92L) return("\\\\")
+    if (point == 8L) return("\\b")
+    if (point == 9L) return("\\t")
+    if (point == 10L) return("\\n")
+    if (point == 12L) return("\\f")
+    if (point == 13L) return("\\r")
+    if (point < 32L) return(sprintf("\\u%04x", point))
+    intToUtf8(point)
+  }, character(1), USE.NAMES = FALSE)
+  paste0('"', paste0(encoded, collapse = ""), '"')
+}
+
+.wb_operation_pack_canonical_json <- function(x) {
+  encode <- function(value) {
+    if (is.null(value)) return("null")
+    if (is.factor(value)) value <- as.character(value)
+    if (is.data.frame(value)) {
+      value <- lapply(seq_len(nrow(value)), function(i) as.list(value[i, , drop = FALSE]))
+    }
+    if (is.atomic(value) && length(value) != 1L) {
+      return(paste0("[", paste(vapply(seq_along(value), function(i) encode(value[[i]]), character(1)), collapse = ","), "]"))
+    }
+    if (is.atomic(value) && length(value) == 1L && is.na(value)) return("null")
+    if (is.list(value)) {
+      nms <- names(value)
+      if (is.null(nms)) return(paste0("[", paste(vapply(value, encode, character(1)), collapse = ","), "]"))
+      .wb_operation_pack_assert(!anyNA(nms) && !anyDuplicated(nms),
+        "OPERATION_PACK_CANONICAL_OBJECT_INVALID",
+        "Canonical identity objects require unique UTF-8 keys.",
+        class = "wb_operation_pack_identity_error")
+      keys <- iconv(nms, from = "", to = "UTF-8", sub = NA_character_)
+      .wb_operation_pack_assert(!anyNA(keys),
+        "OPERATION_PACK_CANONICAL_STRING_INVALID",
+        "Canonical identity object keys must be valid UTF-8.",
+        class = "wb_operation_pack_identity_error")
+      ord <- order(keys, method = "radix")
+      fields <- vapply(ord, function(i) paste0(.wb_operation_pack_canonical_string(keys[[i]]), ":", encode(value[[i]])), character(1))
+      return(paste0("{", paste(fields, collapse = ","), "}"))
+    }
+    if (is.logical(value)) {
+      .wb_operation_pack_assert(length(value) == 1L && !is.na(value),
+        "OPERATION_PACK_CANONICAL_VALUE_INVALID", "Canonical identity booleans must be scalar and non-missing.",
+        class = "wb_operation_pack_identity_error")
+      return(if (isTRUE(value)) "true" else "false")
+    }
+    if (is.integer(value) || is.numeric(value)) {
+      return(.wb_operation_pack_canonical_number(.wb_operation_pack_number_token(value)))
+    }
+    if (is.character(value) && length(value) == 1L) return(.wb_operation_pack_canonical_string(value))
+    .wb_operation_pack_abort("OPERATION_PACK_CANONICAL_VALUE_INVALID",
+      paste0("Unsupported canonical identity value type: ", paste(class(value), collapse = "/"), "."),
+      class = "wb_operation_pack_identity_error")
+  }
+  enc2utf8(encode(x))
+}
+
+.wb_operation_pack_sha256 <- function(x) {
+  .wb_require_pkg("digest", "operation-pack canonical identity")
+  digest::digest(.wb_operation_pack_canonical_json(x), algo = "sha256", serialize = FALSE)
+}
+
+# The operation/semantic catalogs predate the cross-language pack identity
+# scheme and retain their accepted v1 serializer. Pack identities embedded in
+# those catalogs still carry their new explicit scheme and digests.
+.wb_operation_catalog_canonicalize_v1 <- function(x) {
   if (is.factor(x)) return(as.character(x))
   if (is.data.frame(x)) {
-    rows <- lapply(seq_len(nrow(x)), function(i) .wb_operation_pack_canonicalize(as.list(x[i, , drop = FALSE])))
-    return(rows)
+    return(lapply(seq_len(nrow(x)), function(i) {
+      .wb_operation_catalog_canonicalize_v1(as.list(x[i, , drop = FALSE]))
+    }))
   }
   if (is.list(x)) {
-    out <- lapply(x, .wb_operation_pack_canonicalize)
+    out <- lapply(x, .wb_operation_catalog_canonicalize_v1)
     nms <- names(x)
     if (!is.null(nms)) {
       ord <- order(nms, method = "radix")
@@ -158,17 +292,14 @@
   x
 }
 
-.wb_operation_pack_canonical_json <- function(x) {
-  .wb_require_pkg("jsonlite", "operation-pack canonical identity")
-  as.character(jsonlite::toJSON(
-    .wb_operation_pack_canonicalize(x), auto_unbox = TRUE, null = "null",
+.wb_operation_catalog_sha256_v1 <- function(x) {
+  .wb_require_pkg("jsonlite", "operation catalog identity")
+  .wb_require_pkg("digest", "operation catalog identity")
+  bytes <- as.character(jsonlite::toJSON(
+    .wb_operation_catalog_canonicalize_v1(x), auto_unbox = TRUE, null = "null",
     na = "null", digits = NA, pretty = FALSE
   ))
-}
-
-.wb_operation_pack_sha256 <- function(x) {
-  .wb_require_pkg("digest", "operation-pack canonical identity")
-  digest::digest(.wb_operation_pack_canonical_json(x), algo = "sha256", serialize = FALSE)
+  digest::digest(bytes, algo = "sha256", serialize = FALSE)
 }
 
 .wb_operation_pack_manifest_path <- function(package, lib.loc = NULL) {
@@ -180,15 +311,81 @@
   normalizePath(path, winslash = "/", mustWork = TRUE)
 }
 
+.wb_operation_pack_json_number_tokens <- function(text) {
+  bytes <- charToRaw(enc2utf8(text))
+  masked <- bytes
+  in_string <- FALSE
+  escaped <- FALSE
+  for (i in seq_along(bytes)) {
+    byte <- as.integer(bytes[[i]])
+    if (in_string) {
+      masked[[i]] <- as.raw(32L)
+      if (escaped) {
+        escaped <- FALSE
+      } else if (byte == 92L) {
+        escaped <- TRUE
+      } else if (byte == 34L) {
+        in_string <- FALSE
+      }
+    } else if (byte == 34L) {
+      in_string <- TRUE
+      masked[[i]] <- as.raw(32L)
+    }
+  }
+  outside <- rawToChar(masked)
+  hits <- gregexpr("-?(?:0|[1-9][0-9]*)(?:[.][0-9]+)?(?:[eE][+-]?[0-9]+)?", outside, perl = TRUE)[[1]]
+  if (identical(hits[[1]], -1L)) return(character())
+  lengths <- attr(hits, "match.length")
+  substring(outside, hits, hits + lengths - 1L)
+}
+
+.wb_operation_pack_decorate_numbers <- function(value, tokens) {
+  index <- 0L
+  decorate <- function(x) {
+    if (is.list(x)) return(lapply(x, decorate))
+    if (is.integer(x) || is.numeric(x)) {
+      index <<- index + 1L
+      .wb_operation_pack_assert(index <= length(tokens),
+        "OPERATION_PACK_MANIFEST_INVALID",
+        "Operation-pack JSON numeric token accounting failed.",
+        class = "wb_operation_pack_validation_error")
+      canonical <- .wb_operation_pack_canonical_number(tokens[[index]])
+      attr(x, "operation_pack_json_number") <- tokens[[index]]
+      attr(x, "operation_pack_canonical_number") <- canonical
+    }
+    x
+  }
+  out <- decorate(value)
+  .wb_operation_pack_assert(index == length(tokens),
+    "OPERATION_PACK_MANIFEST_INVALID",
+    "Operation-pack JSON numeric token accounting failed.",
+    class = "wb_operation_pack_validation_error")
+  out
+}
+
+.wb_operation_pack_parse_canonical_json <- function(text) {
+  .wb_require_pkg("jsonlite", "operation-pack manifest")
+  parsed <- tryCatch(jsonlite::fromJSON(text, simplifyVector = FALSE), error = identity)
+  .wb_operation_pack_assert(!inherits(parsed, "error"),
+    "OPERATION_PACK_MANIFEST_INVALID",
+    paste0("Operation-pack input is not valid JSON: ",
+           if (inherits(parsed, "error")) conditionMessage(parsed) else "unknown parse failure"),
+    class = "wb_operation_pack_validation_error")
+  .wb_operation_pack_decorate_numbers(
+    parsed, .wb_operation_pack_json_number_tokens(text))
+}
+
 .wb_operation_pack_read_manifest <- function(path) {
   .wb_require_pkg("jsonlite", "operation-pack manifest")
   path <- .wb_operation_pack_scalar(path, "manifest")
   .wb_operation_pack_assert(file.exists(path), "OPERATION_PACK_MANIFEST_NOT_FOUND",
                             paste0("Operation-pack manifest does not exist: ", path), manifest = path)
-  manifest <- tryCatch(jsonlite::read_json(path, simplifyVector = FALSE), error = identity)
-  .wb_operation_pack_assert(!inherits(manifest, "error") && is.list(manifest),
+  size <- file.info(path)$size
+  text <- readChar(path, nchars = size, useBytes = TRUE)
+  manifest <- .wb_operation_pack_parse_canonical_json(text)
+  .wb_operation_pack_assert(is.list(manifest),
     "OPERATION_PACK_MANIFEST_INVALID",
-    paste0("Operation-pack manifest is not valid JSON: ", if (inherits(manifest, "error")) conditionMessage(manifest) else path),
+    paste0("Operation-pack manifest is not a JSON object: ", path),
     manifest = path)
   manifest
 }
@@ -385,15 +582,25 @@
 .wb_operation_pack_validate_manifest <- function(manifest, package = NULL, package_description = NULL,
                                                  expected_backend = NULL) {
   .wb_operation_pack_named_object(manifest, "manifest", allow_empty = FALSE)
-  allowed <- c("schema_version", "protocol_version", "namespace", "package", "backend",
+  allowed <- c("schema_version", "protocol_version", "identity_scheme", "namespace", "package", "backend",
                "compatibility", "entry_point", "operations")
   extra <- setdiff(names(manifest), allowed)
-  missing <- setdiff(allowed, names(manifest))
+  missing <- setdiff(setdiff(allowed, "identity_scheme"), names(manifest))
   .wb_operation_pack_assert(!length(extra) && !length(missing), "OPERATION_PACK_MANIFEST_INVALID",
     paste0("Manifest fields disagree with v1 schema; missing=[", paste(missing, collapse = ", "),
            "], unknown=[", paste(extra, collapse = ", "), "]."))
   schema_version <- .wb_operation_pack_scalar(manifest$schema_version, "schema_version")
   protocol_version <- .wb_operation_pack_scalar(manifest$protocol_version, "protocol_version")
+  identity_scheme <- if ("identity_scheme" %in% names(manifest)) {
+    .wb_operation_pack_scalar(manifest$identity_scheme, "identity_scheme")
+  } else .wb_operation_pack_identity_scheme()
+  .wb_operation_pack_assert(identical(identity_scheme, .wb_operation_pack_identity_scheme()),
+    "OPERATION_PACK_IDENTITY_SCHEME_MISMATCH",
+    paste0("Operation-pack manifest claims unsupported identity scheme '", identity_scheme,
+           "'; required '", .wb_operation_pack_identity_scheme(), "'."),
+    expected_identity_scheme = .wb_operation_pack_identity_scheme(),
+    observed_identity_scheme = identity_scheme,
+    class = "wb_operation_pack_identity_error")
   .wb_operation_pack_assert(identical(schema_version, "scworkbench.operation_pack.v1"),
     "OPERATION_PACK_SCHEMA_INCOMPATIBLE", paste0("Unsupported operation-pack schema: ", schema_version, "."))
   .wb_operation_pack_assert(identical(protocol_version, .wb_operation_pack_protocol_version()),
@@ -487,6 +694,7 @@
   manifest$operations <- unname(operations)
   manifest$schema_version <- schema_version
   manifest$protocol_version <- protocol_version
+  manifest$identity_scheme <- identity_scheme
   manifest$namespace <- namespace
   manifest$package <- list(name = package_name, version = package_version)
   manifest$backend <- backend
@@ -503,6 +711,7 @@
   manifest_identity_input$operations <- lapply(manifest_identity_input$operations, function(x) x[setdiff(names(x), c("op_name", "definition_sha256"))])
   manifest_sha256 <- .wb_operation_pack_sha256(manifest_identity_input)
   pack_identity <- list(
+    identity_scheme = .wb_operation_pack_identity_scheme(),
     schema_version = manifest$schema_version,
     protocol_version = manifest$protocol_version,
     manifest_sha256 = manifest_sha256,
@@ -747,6 +956,8 @@ wb_operation_pack_manifest_validate <- function(manifest, runtime_identity = NUL
 #' distributions or executes an arbitrary import string.
 #'
 #' @param manifest Parsed manifest list or path to an operation-pack JSON file.
+#'   Python activation requires the original installed-distribution manifest
+#'   path; a parsed list cannot authenticate installed package identity.
 #' @param runtime_identity Reserved for backend-neutral structural conformance.
 #'   Activation does not accept caller-supplied runtime claims; pass such claims
 #'   to [wb_operation_pack_manifest_validate()] instead.
@@ -762,6 +973,10 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
                                        python = NULL,
                                        timeout_seconds = getOption(
                                          "scworkbench.operation_pack_python_timeout_seconds", 300)) {
+  supplied_manifest_path <- if (is.character(manifest) && length(manifest) == 1L &&
+      !is.na(manifest) && file.exists(manifest)) {
+    normalizePath(manifest, winslash = "/", mustWork = TRUE)
+  } else NULL
   validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_manifest_input(manifest))
   if (identical(validated$backend, "Python")) {
     .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
@@ -772,22 +987,18 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
     .wb_operation_pack_assert(is.null(lib.loc), "OPERATION_PACK_BACKEND_MISMATCH",
       "lib.loc applies only to installed R operation packs.", backend = "Python",
       class = "wb_operation_pack_validation_error")
+    .wb_operation_pack_assert(!is.null(supplied_manifest_path),
+      "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
+      paste0("Python activation requires the original installed-distribution manifest path; ",
+             "a parsed or reserialized manifest cannot authenticate package identity."),
+      backend = "Python", class = "wb_operation_pack_identity_error")
     python <- .wb_operation_pack_python_binary(python)
     identity <- .wb_operation_pack_identity(validated)
-    snapshot <- tempfile("operation_pack_manifest_", fileext = ".json")
-    canonical_manifest <- validated
-    canonical_manifest$operations <- lapply(canonical_manifest$operations, function(x) {
-      x[setdiff(names(x), c("op_name", "definition_sha256"))]
-    })
-    writeLines(.wb_operation_pack_canonical_json(canonical_manifest), snapshot, useBytes = TRUE)
-    published <- FALSE
-    on.exit(if (!isTRUE(published)) unlink(snapshot, force = TRUE), add = TRUE)
     discovery <- .wb_operation_pack_python_discover(
-      snapshot, validated, identity, python, timeout_seconds)
+      supplied_manifest_path, validated, identity, python, timeout_seconds)
     registration <- .wb_operation_pack_python_registration(
-      validated, identity, discovery, snapshot, python, timeout_seconds)
+      validated, identity, discovery, supplied_manifest_path, python, timeout_seconds)
     result <- .wb_operation_pack_publish(registration)
-    published <- TRUE
     return(result)
   }
   .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_BACKEND_MISMATCH",
@@ -1063,10 +1274,6 @@ wb_operation_pack_unload <- function(pack) {
     paste0("Operation pack '", namespace, "' cannot be unloaded after execution because active or staged session state may depend on it."),
     namespace = namespace, class = "wb_operation_pack_in_use")
   for (op in current$operation_names) .wb_operation_pack_registry$operations[[op]] <- NULL
-  manifest_path <- as.character(current$runtime_config$manifest_path %||% "")[1]
-  if (identical(current$identity$backend, "Python") && nzchar(manifest_path)) {
-    unlink(manifest_path, force = TRUE)
-  }
   .wb_operation_pack_registry$packs[[namespace]] <- NULL
   invisible(TRUE)
 }
@@ -1118,6 +1325,6 @@ wb_operation_catalog_identity <- function() {
   payload <- list(protocol_version = .wb_operation_pack_protocol_version(),
                   definitions = definitions, loaded_packs = pack_ids)
   list(scheme = "scworkbench-operation-catalog-v1",
-       sha256 = .wb_operation_pack_sha256(payload),
+       sha256 = .wb_operation_catalog_sha256_v1(payload),
        core_operation_count = length(.wb_op_catalog()), loaded_packs = pack_ids)
 }

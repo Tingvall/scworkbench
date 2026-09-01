@@ -1,0 +1,50 @@
+{
+  "schema": "scworkbench.operation_pack.canonical_json.fixtures.v1",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "valid": [
+    {
+      "name": "equivalent_one_spellings_and_key_order",
+      "input_json": "{\"z\":1,\"b\":1.0,\"a\":1e0,\"c\":1.00E+00}",
+      "canonical_json": "{\"a\":1e0,\"b\":1e0,\"c\":1e0,\"z\":1e0}"
+    },
+    {
+      "name": "signed_zero_spellings",
+      "input_json": "[0,0.0,-0,-0.000e+12]",
+      "canonical_json": "[0,0,0,0]"
+    },
+    {
+      "name": "fraction_and_exponent",
+      "input_json": "[-12.50e+2,0.000125,1000000000000.0]",
+      "canonical_json": "[-1.25e3,1.25e-4,1e12]"
+    },
+    {
+      "name": "precision_and_range_boundaries",
+      "input_json": "[123456789012345,1e-307,1.79769313486231e308]",
+      "canonical_json": "[1.23456789012345e14,1e-307,1.79769313486231e308]"
+    },
+    {
+      "name": "nested_empty_null_boolean",
+      "input_json": "{\"nested\":[{},[],{\"false\":false,\"null\":null,\"true\":true}]}",
+      "canonical_json": "{\"nested\":[{},[],{\"false\":false,\"null\":null,\"true\":true}]}"
+    },
+    {
+      "name": "unicode_literal",
+      "input_json": "{\"text\":\"café 東京\"}",
+      "canonical_json": "{\"text\":\"café 東京\"}"
+    },
+    {
+      "name": "unicode_escaped",
+      "input_json": "{\"text\":\"caf\\u00e9 \\u6771\\u4eac\"}",
+      "canonical_json": "{\"text\":\"café 東京\"}"
+    }
+  ],
+  "invalid": [
+    {"name": "leading_zero", "input_json": "01", "code": "OPERATION_PACK_MANIFEST_INVALID"},
+    {"name": "trailing_decimal_point", "input_json": "1.", "code": "OPERATION_PACK_MANIFEST_INVALID"},
+    {"name": "non_finite_nan", "input_json": "NaN", "code": "OPERATION_PACK_MANIFEST_INVALID"},
+    {"name": "non_finite_infinity", "input_json": "Infinity", "code": "OPERATION_PACK_MANIFEST_INVALID"},
+    {"name": "positive_range", "input_json": "1e309", "code": "OPERATION_PACK_CANONICAL_NUMBER_RANGE"},
+    {"name": "negative_range", "input_json": "1e-308", "code": "OPERATION_PACK_CANONICAL_NUMBER_RANGE"},
+    {"name": "unsafe_precision", "input_json": "1234567890123456", "code": "OPERATION_PACK_CANONICAL_NUMBER_PRECISION"}
+  ]
+}

@@ -17,6 +17,9 @@ runners must not create their own provenance bindings.
 
 The authoritative machine-readable manifest schema is installed at
 `inst/protocol/operation-pack-v1.schema.json`.
+The authoritative byte contract is
+`inst/protocol/operation-pack-canonical-json-v1.md`; its scheme identifier is
+`scworkbench.operation_pack.canonical_json.v1`.
 
 ## Trust and activation
 
@@ -45,7 +48,8 @@ For a Python manifest this report retains the exact declared distribution name,
 adds its deterministic PEP 503 normalized name, freezes the pack/definition
 identities, and reports runtime activation as false. Supplying already-observed
 `runtime_identity` can validate distribution and entry-point metadata without
-importing the target. It still does not activate Python.
+importing the target. It still does not activate Python and makes no claim that
+the manifest came from, or matches, an installed distribution.
 
 The explicit backend-neutral activation dispatcher is:
 
@@ -61,7 +65,10 @@ delegates to `wb_operation_pack_load()`. For Python, caller-supplied runtime
 claims are rejected: PyBench discovers only the manifest's exact distribution
 and fixed-group entry point in the explicitly configured interpreter. R audits
 the returned canonical identity and runtime attestation before publishing the
-process-local catalog overlay. A missing PyBench interpreter reports
+process-local catalog overlay. Python activation requires the path to the
+original installed-distribution manifest and passes that exact path to PyBench;
+a parsed list or R-reserialized snapshot cannot authenticate the installed
+package. A missing PyBench interpreter reports
 `OPERATION_PACK_RUNTIME_UNAVAILABLE`; it is not an unsupported backend.
 
 Pack code is executable R or Python. scworkbench owns scientific-state
@@ -159,6 +166,14 @@ dependency, and execution-device versions are runtime attestations, not
 manifest compatibility fields.
 
 Identity is deterministic but deliberately layered:
+
+- every identity declares
+  `scworkbench.operation_pack.canonical_json.v1`. It orders object keys by
+  UTF-8 bytes, preserves array order, emits decoded Unicode deterministically,
+  and normalizes the restricted 15-significant-digit decimal domain (for
+  example, `1`, `1.0`, and `1e0` all become `1e0`, while all signed zero
+  spellings become `0`). The installed protocol document defines the complete
+  escaping, exponent, range, and rejection rules.
 
 - `manifest_sha256` hashes the canonical validated manifest, including the
   exact declared package/distribution name and version, backend, compatibility,

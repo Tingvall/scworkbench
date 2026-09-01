@@ -20,10 +20,14 @@ runtime_ambiguous_path <- file.path(fixture_root, "runtime", "python-ambiguous-e
 runtime_cross_distribution_path <- file.path(fixture_root, "runtime", "python-cross-dist-entry.json")
 schema_path <- file.path(repo, "inst", "protocol", "operation-pack-v1.schema.json")
 canonical_identity_path <- file.path(fixture_root, "canonical-identities.json")
+identity_spec_path <- file.path(repo, "inst", "protocol", "operation-pack-canonical-json-v1.md")
+canonical_cases_path <- file.path(repo, "inst", "protocol", "fixtures",
+                                  "operation-pack-canonical-json-v1", "cases.json")
 unknown_backend_path <- file.path(fixture_root, "invalid", "unknown-backend.json")
 stopifnot(all(file.exists(c(template_manifest, python_paths, runtime_valid_path,
                              runtime_ambiguous_path, runtime_cross_distribution_path,
-                             schema_path, canonical_identity_path, unknown_backend_path))))
+                             schema_path, canonical_identity_path, identity_spec_path,
+                             canonical_cases_path, unknown_backend_path))))
 
 # The machine-readable schema and engine freeze the same two-token backend set.
 schema <- jsonlite::read_json(schema_path, simplifyVector = FALSE)
@@ -32,6 +36,10 @@ stopifnot(identical(unlist(schema$properties$backend$enum, use.names = FALSE), c
           length(schema$allOf) == 2L,
           identical(digest::digest(file = schema_path, algo = "sha256", serialize = FALSE),
                     canonical$authoritative_schema_sha256),
+          identical(digest::digest(file = identity_spec_path, algo = "sha256", serialize = FALSE),
+                    canonical$identity_scheme_spec_sha256),
+          identical(digest::digest(file = canonical_cases_path, algo = "sha256", serialize = FALSE),
+                    canonical$canonical_fixture_corpus_sha256),
           identical(canonical$invalidated_r_only_schema_sha256,
                     "1ad99dfdbe13fb7693e615f5b1368be3c638d4e9c1cc01d52996a7109ae68767"))
 fixture_digest <- function(path) digest::digest(file = path, algo = "sha256", serialize = FALSE)
@@ -58,11 +66,11 @@ r_installed <- wb_operation_pack_validate(template_package)$identity
 r_structural <- wb_operation_pack_manifest_validate(template_manifest)$identity
 stopifnot(
   identical(r_installed$manifest_sha256,
-            "c1e9b1d20dd60566b131212c7e6476fc549257573f60578da42098533378e167"),
+            "d6c5c488e3d7de1506d57c429f5c0bc6ed1e2ea130ca3ecc01d8b7637b5b2d84"),
   identical(r_installed$operation_definition_sha256[["scwbexample::affine_cell_vector"]],
-            "90aa8653e0e489af92988d42f19fa849c4859ffc7e7187922095414466050925"),
+            "ab7313aee61147652226a8ace1a0f844bd43da2b583328bdb119b7f147d2c38c"),
   identical(r_installed$pack_sha256,
-            "4f9212e127ef49c4386b4411cb786811e10b8cd04861828aedb8abf286ef1192"),
+            "f8abd3c8dcaa78c9f08494d98ce45adec68c05147fc0a01dbb3d11e20038b361"),
   identical(r_installed, r_structural),
   !"distribution" %in% names(r_installed),
   !"entry_point_group" %in% names(r_installed)
@@ -85,16 +93,16 @@ stopifnot(
   identical(normalized, rep("scworkbench-python-pack", 3L)),
   length(unique(definition_hashes)) == 1L,
   identical(unique(definition_hashes),
-            "27da0c9063b4e589e8d2b9c1170286accb3770096bea8765079d48e01acb609a"),
+            "059d06d5c8710958f3ec56fc0977e773cf30499c9d7396dd57778d6e7bd5487b"),
   identical(vapply(python_reports, function(x) x$identity$manifest_sha256, character(1)), c(
-    "80648679e249bcf67a5e76619b799797ed85ffbcf2bcd65c814f7040ae721410",
-    "df90a65e69e0d0a1db1d77097fd371a46a79b8df93e993d0950c70918a31ccfd",
-    "0943da52865b5a170b0b9ca64740d3d16c73ac58b19210c35f3e959ea275e43b"
+    "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253",
+    "1234c30806d496738e4a0161cc962b9634ee831faebe305aaa640f6557330f97",
+    "e248ca445967874880ef5f0a0bed994b76a308616c5aca9b947509a3bc0fd263"
   )),
   identical(vapply(python_reports, function(x) x$identity$pack_sha256, character(1)), c(
-    "0108d2e3efde24763fe20ae785ff1ec8eb08e868c8bc5ff23da17ceaefcf396a",
-    "6f54ebfb43d5b28ee47abe15dcd28c729e2c5d9301bbaa289d9c86892237783a",
-    "385055c61878ce13ba4fffff2cfc5165f4e23227bb95e94d7ad22ae2e2fbe338"
+    "864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab",
+    "91cb65e8a1e83ba3c23ac9c55e242925e2409233537af4dd94b80f782a046b7c",
+    "3264ad2ff4cee83ef4b51ff883f1e75403e3b8d6512a5f98f3a5e4a0629ef4ea"
   )),
   all(vapply(python_reports, function(x) identical(x$backend, "Python") &&
     identical(x$entry_point_contract$group, "scworkbench.operation_packs.v1") &&

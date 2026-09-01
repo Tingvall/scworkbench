@@ -13,7 +13,9 @@ wb_operation_pack_activate(
 )
 }
 \arguments{
-\item{manifest}{Parsed manifest list or path to an operation-pack JSON file.}
+\item{manifest}{Parsed manifest list or path to an operation-pack JSON file.
+Python activation requires the original installed-distribution manifest
+path; a parsed list cannot authenticate installed package identity.}
 
 \item{runtime_identity}{Reserved for backend-neutral structural conformance.
 Activation does not accept caller-supplied runtime claims; pass such claims

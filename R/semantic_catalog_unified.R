@@ -660,7 +660,7 @@ wb_semantic_catalog <- function(bundle = NULL) {
     out$operation_catalog_identity <- wb_operation_catalog_identity()
     graph_identity <- graph
     graph_identity$generated_at <- NULL
-    out$catalog_sha256 <- .wb_operation_pack_sha256(list(
+    out$catalog_sha256 <- .wb_operation_catalog_sha256_v1(list(
       schema_version = out$schema_version,
       records = out$records,
       graph = graph_identity,

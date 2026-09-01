@@ -420,6 +420,17 @@
       "installed_relative_path": "protocol/operation-pack-v1.schema.json"
     },
     {
+      "path": "inst/protocol/operation-pack-canonical-json-v1.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-canonical-json-v1.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-canonical-json-v1.md"
+    },
+    {
       "path": "inst/protocol/pybench-op-v2.schema.json",
       "class": "public_canonical",
       "audience": "public",
@@ -528,6 +539,17 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "protocol/fixtures/operation-pack-v1/valid/python-underscore.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-canonical-json-v1/cases.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-canonical-json-v1/cases.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-canonical-json-v1/cases.json"
     },
     {
       "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",

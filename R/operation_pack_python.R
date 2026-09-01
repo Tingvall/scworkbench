@@ -85,6 +85,33 @@
     "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
     "PyBench returned an incompatible operation-pack runtime attestation.",
     class = "wb_operation_pack_validation_error")
+  .wb_operation_pack_assert(
+    identical(as.character(runtime$identity_scheme %||% "")[1],
+              .wb_operation_pack_identity_scheme()),
+    "OPERATION_PACK_IDENTITY_SCHEME_MISMATCH",
+    "PyBench runtime attestation claims an incompatible canonical identity scheme.",
+    expected_identity_scheme = .wb_operation_pack_identity_scheme(),
+    observed_identity_scheme = runtime$identity_scheme %||% NULL,
+    class = "wb_operation_pack_identity_error")
+  manifest_source <- runtime$manifest_source %||% list()
+  .wb_operation_pack_assert(
+    identical(as.character(manifest_source$scheme %||% "")[1],
+              "python-installed-operation-pack-manifest-v1") &&
+      nzchar(as.character(manifest_source$distribution_relative_path %||% "")[1]) &&
+      grepl("^[0-9a-f]{64}$", as.character(manifest_source$bytes_sha256 %||% "")[1]) &&
+      identical(as.character(manifest_source$manifest_sha256 %||% "")[1],
+                identity$manifest_sha256),
+    "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
+    "PyBench runtime did not attest the authenticated installed-distribution manifest.",
+    class = "wb_operation_pack_identity_error")
+  if (!is.null(discovery)) {
+    .wb_operation_pack_assert(
+      identical(.wb_operation_pack_canonical_json(manifest_source),
+                .wb_operation_pack_canonical_json(discovery$manifest_source %||% list())),
+      "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
+      "Installed-distribution manifest identity changed after activation.",
+      class = "wb_operation_pack_identity_error")
+  }
   distribution <- runtime$distribution %||% list()
   expected_normalized <- .wb_operation_pack_python_normalize_name(manifest$package$name)
   .wb_operation_pack_assert(
@@ -99,7 +126,7 @@
         .wb_operation_pack_python_version_key(manifest$package$version)),
     "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH",
     "Python runtime distribution identity differs from the admitted manifest.",
-    class = "wb_operation_pack_validation_error")
+    class = "wb_operation_pack_identity_error")
   artifact <- distribution$artifact_identity %||% list()
   .wb_operation_pack_assert(
     identical(as.character(artifact$scheme %||% "")[1],
@@ -114,7 +141,7 @@
                 as.character(discovery$distribution$artifact_identity$sha256)[1]),
       "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH",
       "Python distribution content changed after explicit activation.",
-      class = "wb_operation_pack_validation_error")
+      class = "wb_operation_pack_identity_error")
   }
   entry <- runtime$entry_point %||% list()
   .wb_operation_pack_assert(
@@ -122,7 +149,7 @@
       identical(as.character(entry$name %||% "")[1], manifest$entry_point),
     "OPERATION_PACK_ENTRY_POINT_INVALID",
     "Python runtime entry-point identity differs from the admitted manifest.",
-    class = "wb_operation_pack_validation_error")
+    class = "wb_operation_pack_identity_error")
   interpreter <- runtime$interpreter %||% list()
   .wb_operation_pack_assert(
     all(vapply(c("implementation", "version", "abi", "platform", "executable_sha256"),
@@ -160,13 +187,38 @@
     class = "wb_operation_pack_validation_error")
   observed <- discovery$manifest_identity %||% list()
   .wb_operation_pack_assert(
+    identical(as.character(observed$identity_scheme %||% "")[1],
+              .wb_operation_pack_identity_scheme()),
+    "OPERATION_PACK_IDENTITY_SCHEME_MISMATCH",
+    "PyBench discovery claims an incompatible canonical identity scheme.",
+    expected_identity_scheme = .wb_operation_pack_identity_scheme(),
+    observed_identity_scheme = observed$identity_scheme %||% NULL,
+    class = "wb_operation_pack_identity_error")
+  .wb_operation_pack_assert(
     identical(.wb_operation_pack_canonical_json(observed),
               .wb_operation_pack_canonical_json(identity)),
     "OPERATION_PACK_IDENTITY_MISMATCH",
     "PyBench and scworkbench disagree on the canonical manifest, definition, or pack identity.",
     expected_pack_sha256 = identity$pack_sha256,
     observed_pack_sha256 = observed$pack_sha256 %||% NULL,
-    class = "wb_operation_pack_validation_error")
+    class = "wb_operation_pack_identity_error")
+  manifest_source <- discovery$manifest_source %||% list()
+  .wb_require_pkg("digest", "installed operation-pack manifest identity")
+  supplied_bytes_sha256 <- digest::digest(
+    file = manifest_path, algo = "sha256", serialize = FALSE)
+  .wb_operation_pack_assert(
+    identical(as.character(manifest_source$scheme %||% "")[1],
+              "python-installed-operation-pack-manifest-v1") &&
+      nzchar(as.character(manifest_source$distribution_relative_path %||% "")[1]) &&
+      identical(as.character(manifest_source$bytes_sha256 %||% "")[1],
+                supplied_bytes_sha256) &&
+      identical(as.character(manifest_source$manifest_sha256 %||% "")[1],
+                identity$manifest_sha256),
+    "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
+    "PyBench did not authenticate the supplied bytes as the original installed-distribution manifest.",
+    expected_bytes_sha256 = supplied_bytes_sha256,
+    observed_bytes_sha256 = manifest_source$bytes_sha256 %||% NULL,
+    class = "wb_operation_pack_identity_error")
   distribution <- discovery$distribution %||% list()
   .wb_operation_pack_assert(
     identical(as.character(distribution$declared_name %||% "")[1], manifest$package$name) &&
@@ -177,14 +229,14 @@
         .wb_operation_pack_python_version_key(manifest$package$version)),
     "OPERATION_PACK_DISTRIBUTION_IDENTITY_MISMATCH",
     "PyBench discovery distribution identity differs from the manifest.",
-    class = "wb_operation_pack_validation_error")
+    class = "wb_operation_pack_identity_error")
   entry <- discovery$entry_point %||% list()
   .wb_operation_pack_assert(
     identical(as.character(entry$group %||% "")[1], .wb_operation_pack_python_entry_point_group()) &&
       identical(as.character(entry$name %||% "")[1], manifest$entry_point),
     "OPERATION_PACK_ENTRY_POINT_INVALID",
     "PyBench discovery entry point differs from the manifest.",
-    class = "wb_operation_pack_validation_error")
+    class = "wb_operation_pack_identity_error")
   discovery$distribution$installed_location <- NULL
   discovery$distribution$build_metadata <- NULL
   discovery$runtime_attestation <- .wb_operation_pack_python_runtime_audit(
