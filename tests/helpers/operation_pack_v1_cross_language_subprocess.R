@@ -36,7 +36,7 @@ stopifnot(
     "864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab"),
   !"executable" %in% names(python_pack$runtime_attestation$interpreter),
   identical(python_pack$runtime_attestation$pybench$source_revision,
-    "0f90ad7bd8bc63a73e5d4e23f6a7c39a7bee0f6f")
+    "0a0809a08a356291a5a331db0a8eac0b3d9bf729")
 )
 forward_catalog <- wb_operation_catalog_identity()$sha256
 forward_semantic <- wb_semantic_catalog()$catalog_sha256
