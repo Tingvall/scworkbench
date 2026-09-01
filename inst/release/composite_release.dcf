@@ -2,7 +2,7 @@ SchemaVersion: scworkbench.composite-release.v1
 ReleaseVersion: 0.1.0
 ScworkbenchVersion: 0.1.0
 PyBenchVersion: 0.1.0
-PyBenchCommit: c45d14b2c6e55f4a865a6f470e862cb50b0c4b42
+PyBenchCommit: e9bcd36a621252be96c70f2430341fd6b1bcea5c
 PyBenchRepository: git@gitlab.liu.se:hende58/pybench.git
 ProtocolVersion: 2
 ProtocolSHA256: d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b
