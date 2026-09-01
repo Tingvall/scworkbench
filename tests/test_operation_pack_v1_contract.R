@@ -39,7 +39,8 @@ test_operation_pack_v1_backend_admission_contract <- function() {
 }
 
 test_operation_pack_v1_cross_language_lifecycle_contract <- function() {
-  if (!requireNamespace("scworkbenchOperationPackTemplate", quietly = TRUE)) {
+  template_package <- "scworkbenchOperationPackTemplate"
+  if (!requireNamespace(template_package, quietly = TRUE)) {
     return(contract_test_skip("The R operation-pack reference package is not installed."))
   }
   python <- Sys.getenv("SCWORKBENCH_PYBENCH_PYTHON", unset = "")
