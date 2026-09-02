@@ -696,7 +696,11 @@ wb_promote_analysis <- function(bundle,
 
   artifact_id <- .wb_new_artifact_id("cell_vector", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
-  prov_json <- .wb_prov_json(run, parent_artifacts)
+  prov_json <- .wb_prov_json(
+    run,
+    parent_artifacts,
+    primitive_payload = .wb_object_primitive_payload_descriptor(prim)
+  )
 
   # Write artifact metadata
   DBI::dbExecute(con, "
@@ -758,7 +762,11 @@ wb_promote_analysis <- function(bundle,
 
   artifact_id <- .wb_new_artifact_id("relation_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
-  prov_json <- .wb_prov_json(run, parent_artifacts)
+  prov_json <- .wb_prov_json(
+    run,
+    parent_artifacts,
+    primitive_payload = .wb_object_primitive_payload_descriptor(prim)
+  )
 
   DBI::dbExecute(con, "
     INSERT INTO artifacts(
@@ -811,7 +819,11 @@ wb_promote_analysis <- function(bundle,
 
   artifact_id <- .wb_new_artifact_id("cell_vector_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
-  prov_json <- .wb_prov_json(run, parent_artifacts)
+  prov_json <- .wb_prov_json(
+    run,
+    parent_artifacts,
+    primitive_payload = .wb_object_primitive_payload_descriptor(prim)
+  )
 
   DBI::dbExecute(con, "
     INSERT INTO artifacts(
@@ -868,7 +880,11 @@ wb_promote_analysis <- function(bundle,
 
   artifact_id <- .wb_new_artifact_id("path_2d_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
-  prov_json <- .wb_prov_json(run, parent_artifacts)
+  prov_json <- .wb_prov_json(
+    run,
+    parent_artifacts,
+    primitive_payload = .wb_object_primitive_payload_descriptor(prim)
+  )
 
   DBI::dbExecute(con, "
     INSERT INTO artifacts(
@@ -927,7 +943,11 @@ wb_promote_analysis <- function(bundle,
 
   artifact_id <- .wb_new_artifact_id("space_path_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")
-  prov_json <- .wb_prov_json(run, parent_artifacts)
+  prov_json <- .wb_prov_json(
+    run,
+    parent_artifacts,
+    primitive_payload = .wb_object_primitive_payload_descriptor(prim)
+  )
   meta_json <- jsonlite::toJSON(.wb_json_sanitize(prim$meta %||% list()), auto_unbox = TRUE, null = "null")
 
   DBI::dbExecute(con, "

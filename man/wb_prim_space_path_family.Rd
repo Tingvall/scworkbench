@@ -17,7 +17,8 @@ wb_prim_space_path_family(space_id, path_id, point, dim, value, meta = list())
 
 \item{value}{Numeric coordinate value.}
 
-\item{meta}{Optional named list of contract metadata.}
+\item{meta}{Optional named list of identity-bearing contract metadata. Its
+exact R representation is restored after durable promotion.}
 }
 \value{
 A \code{wb_primitive} of kind \code{space_path_family}.

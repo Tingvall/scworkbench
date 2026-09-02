@@ -216,9 +216,9 @@ wb_op_leiden <- function(bundle,
   # ---- primitive output ----
   clusters_vec <- wb_prim_cell_vector(
     x = setNames(as.character(clusters), as.character(cell_ids)),
-    value_type = "categorical"
+    value_type = "categorical",
+    meta = list(label = "Leiden clusters")
   )
-  clusters_vec$meta <- list(label = "Leiden clusters")
 
 
   list(
@@ -239,5 +239,4 @@ wb_op_leiden <- function(bundle,
     )
   )
 }
-
 

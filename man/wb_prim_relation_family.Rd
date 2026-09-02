@@ -24,7 +24,8 @@ wb_prim_relation_family(
 
 \item{distance}{Optional numeric relation distance.}
 
-\item{meta}{Optional named list of contract metadata.}
+\item{meta}{Optional named list of identity-bearing contract metadata. Its
+exact R representation is restored after durable promotion.}
 }
 \value{
 A \code{wb_primitive} of kind \code{relation_family}.

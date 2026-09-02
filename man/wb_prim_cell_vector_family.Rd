@@ -21,7 +21,8 @@ wb_prim_cell_vector_family(
 
 \item{value_type}{Semantic value type, usually \code{"continuous"}.}
 
-\item{meta}{Optional named list of contract metadata.}
+\item{meta}{Optional named list of identity-bearing contract metadata. Its
+exact R representation is restored after durable promotion.}
 }
 \value{
 A \code{wb_primitive} of kind \code{cell_vector_family}.

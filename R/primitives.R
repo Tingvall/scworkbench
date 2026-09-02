@@ -18,7 +18,8 @@
 #' @param cell_id Canonical cell id for each row.
 #' @param value Numeric value for each row.
 #' @param value_type Semantic value type, usually `"continuous"`.
-#' @param meta Optional named list of contract metadata.
+#' @param meta Optional named list of identity-bearing contract metadata. Its
+#'   exact R representation is restored after durable promotion.
 #'
 #' @return A `wb_primitive` of kind `cell_vector_family`.
 #' @export
@@ -48,7 +49,8 @@ wb_prim_cell_vector_family <- function(key, cell_id, value, value_type = "contin
 #' @param weight Optional numeric relation weight.
 #' @param value Optional numeric relation value.
 #' @param distance Optional numeric relation distance.
-#' @param meta Optional named list of contract metadata.
+#' @param meta Optional named list of identity-bearing contract metadata. Its
+#'   exact R representation is restored after durable promotion.
 #'
 #' @return A `wb_primitive` of kind `relation_family`.
 #' @export
@@ -107,20 +109,25 @@ wb_prim_space_2d <- function(space_id) {
 #' @param x Named atomic vector. Names must be canonical cell ids.
 #' @param value_type Semantic value type, such as `"categorical"` or
 #'   `"continuous"`.
+#' @param meta Optional named list of identity-bearing metadata. Its exact R
+#'   representation is restored after durable promotion.
 #'
 #' @return A `wb_primitive` of kind `cell_vector`.
 #' @export
-wb_prim_cell_vector <- function(x, value_type = "categorical") {
+wb_prim_cell_vector <- function(x, value_type = "categorical", meta = list()) {
   stopifnot(is.atomic(x), !is.null(names(x)))
-  structure(
-    list(
-      kind = "cell_vector",
-      cell_id = names(x),
-      value = as.character(x),
-      value_type = value_type
-    ),
-    class = "wb_primitive"
+  .wb_assert(is.null(meta) || is.list(meta),
+             "cell_vector meta must be NULL or a named list.")
+  payload <- list(
+    kind = "cell_vector",
+    cell_id = as.character(names(x)),
+    value = as.character(x),
+    value_type = as.character(value_type)
   )
+  # Preserve the historical no-metadata object shape and identity. A non-empty
+  # metadata contract is explicit, durable, and identity-bearing.
+  if (length(meta)) payload$meta <- meta
+  structure(payload, class = "wb_primitive")
 }
 
 #' Create a `path_2d_family` Primitive
@@ -128,7 +135,8 @@ wb_prim_cell_vector <- function(x, value_type = "categorical") {
 #' @param key Path-family key for each point, often a lineage or segment id.
 #' @param point Integer point index along each path.
 #' @param x,y Numeric display coordinates for each path point.
-#' @param meta Optional named list of display and provenance metadata.
+#' @param meta Optional named list of identity-bearing display and provenance
+#'   metadata. Its exact R representation is restored after durable promotion.
 #'
 #' @return A `wb_primitive` of kind `path_2d_family`.
 #' @export
@@ -154,7 +162,8 @@ wb_prim_path_2d_family <- function(key, point, x, y, meta = list()) {
 #' @param point Integer point index along each path.
 #' @param dim Coordinate dimension for each value.
 #' @param value Numeric coordinate value.
-#' @param meta Optional named list of contract metadata.
+#' @param meta Optional named list of identity-bearing contract metadata. Its
+#'   exact R representation is restored after durable promotion.
 #'
 #' @return A `wb_primitive` of kind `space_path_family`.
 #' @export

@@ -121,7 +121,7 @@
 }
 
 # ---- REPLACEMENT ----
-.wb_prov_json <- function(run, parent_artifacts) {
+.wb_prov_json <- function(run, parent_artifacts, primitive_payload = NULL) {
   .wb_require_pkg("jsonlite", "provenance json")
 
   prov <- list(
@@ -136,6 +136,102 @@
     notes  = run$notes %||% NULL,
     parent_artifacts = parent_artifacts %||% list()
   )
+  if (!is.null(primitive_payload)) prov$primitive_payload <- primitive_payload
 
   jsonlite::toJSON(.wb_json_sanitize(prov), auto_unbox = TRUE, null = "null")
+}
+
+.wb_object_primitive_kinds <- function() {
+  c("cell_vector", "cell_vector_family", "relation_family", "path_2d_family", "space_path_family")
+}
+
+.wb_object_primitive_row_keys <- function(prim) {
+  kind <- as.character(prim$kind)[1L]
+  switch(
+    kind,
+    cell_vector = data.frame(cell_id = as.character(prim$cell_id), stringsAsFactors = FALSE),
+    cell_vector_family = data.frame(key = as.character(prim$key), cell_id = as.character(prim$cell_id), stringsAsFactors = FALSE),
+    relation_family = data.frame(key = as.character(prim$key), cell_id = as.character(prim$cell_id), stringsAsFactors = FALSE),
+    path_2d_family = data.frame(key = as.character(prim$key), point = as.integer(prim$point), stringsAsFactors = FALSE),
+    space_path_family = data.frame(space_id = as.character(prim$space_id), path_id = as.character(prim$path_id), point = as.integer(prim$point), dim = as.integer(prim$dim), stringsAsFactors = FALSE),
+    stop("Unsupported object primitive kind: ", kind, call. = FALSE)
+  )
+}
+
+.wb_object_row_key_tokens <- function(keys) {
+  if (!nrow(keys)) return(character())
+  vapply(seq_len(nrow(keys)), function(i) {
+    jsonlite::serializeJSON(as.list(keys[i, , drop = FALSE]), digits = NA)
+  }, character(1))
+}
+
+.wb_object_primitive_payload_descriptor <- function(prim) {
+  kind <- as.character(prim$kind)[1L]
+  .wb_assert(kind %in% .wb_object_primitive_kinds(),
+             paste0("Unsupported durable object primitive kind: ", kind))
+  descriptor <- list(
+    schema = "scworkbench.artifact.object-payload.v1",
+    kind = kind,
+    row_order = as.list(.wb_object_row_key_tokens(.wb_object_primitive_row_keys(prim))),
+    meta_present = "meta" %in% names(unclass(prim))
+  )
+  if (isTRUE(descriptor$meta_present)) {
+    descriptor$meta_r_json <- jsonlite::serializeJSON(prim$meta, digits = NA)
+  }
+  if (kind %in% c("cell_vector", "cell_vector_family")) {
+    descriptor$value_type <- as.character(prim$value_type %||% "categorical")
+  }
+  if (identical(kind, "relation_family")) {
+    descriptor$fields_present <- intersect(
+      c("weight", "value", "distance"),
+      names(unclass(prim))[vapply(unclass(prim), Negate(is.null), logical(1))]
+    )
+  }
+  descriptor
+}
+
+.wb_object_primitive_meta_from_descriptor <- function(descriptor) {
+  if (is.null(descriptor) || !isTRUE(descriptor$meta_present)) return(NULL)
+  text <- as.character(descriptor$meta_r_json %||% "")[1L]
+  .wb_assert(nzchar(text), "Durable object primitive metadata descriptor is empty.")
+  jsonlite::unserializeJSON(text)
+}
+
+.wb_artifact_object_descriptor <- function(provenance_json, expected_kind, artifact_id) {
+  provenance <- tryCatch(
+    jsonlite::fromJSON(as.character(provenance_json), simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  descriptor <- provenance$primitive_payload %||% NULL
+  if (is.null(descriptor)) return(NULL)
+  .wb_assert(
+    identical(as.character(descriptor$schema %||% ""),
+              "scworkbench.artifact.object-payload.v1") &&
+      identical(as.character(descriptor$kind %||% ""), as.character(expected_kind)),
+    paste0("wb_art_load(): invalid durable ", expected_kind,
+           " payload descriptor for ", artifact_id)
+  )
+  descriptor
+}
+
+.wb_artifact_restore_object_row_order <- function(df, descriptor, kind, artifact_id) {
+  if (is.null(descriptor)) return(df)
+  keys <- switch(
+    kind,
+    cell_vector = data.frame(cell_id = as.character(df$cell_id), stringsAsFactors = FALSE),
+    cell_vector_family = data.frame(key = as.character(df$lineage_id), cell_id = as.character(df$cell_id), stringsAsFactors = FALSE),
+    relation_family = data.frame(key = as.character(df$relation_key), cell_id = as.character(df$cell_id), stringsAsFactors = FALSE),
+    path_2d_family = data.frame(key = as.character(df$lineage_id), point = as.integer(df$point), stringsAsFactors = FALSE),
+    space_path_family = data.frame(space_id = as.character(df$space_id), path_id = as.character(df$path_id), point = as.integer(df$point), dim = as.integer(df$dim), stringsAsFactors = FALSE),
+    stop("Unsupported durable object primitive kind: ", kind, call. = FALSE)
+  )
+  observed <- .wb_object_row_key_tokens(keys)
+  expected <- as.character(unlist(descriptor$row_order %||% list(), use.names = FALSE))
+  .wb_assert(
+    length(expected) == nrow(df) && !anyDuplicated(expected) &&
+      !anyDuplicated(observed) && setequal(expected, observed),
+    paste0("wb_art_load(): durable ", kind,
+           " row order does not match payload rows for ", artifact_id)
+  )
+  df[match(expected, observed), , drop = FALSE]
 }

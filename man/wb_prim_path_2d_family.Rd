@@ -13,7 +13,8 @@ wb_prim_path_2d_family(key, point, x, y, meta = list())
 
 \item{x, y}{Numeric display coordinates for each path point.}
 
-\item{meta}{Optional named list of display and provenance metadata.}
+\item{meta}{Optional named list of identity-bearing display and provenance
+metadata. Its exact R representation is restored after durable promotion.}
 }
 \value{
 A \code{wb_primitive} of kind \code{path_2d_family}.

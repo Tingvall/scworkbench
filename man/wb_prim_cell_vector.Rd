@@ -4,13 +4,16 @@
 \alias{wb_prim_cell_vector}
 \title{Create a \code{cell_vector} Primitive}
 \usage{
-wb_prim_cell_vector(x, value_type = "categorical")
+wb_prim_cell_vector(x, value_type = "categorical", meta = list())
 }
 \arguments{
 \item{x}{Named atomic vector. Names must be canonical cell ids.}
 
 \item{value_type}{Semantic value type, such as \code{"categorical"} or
 \code{"continuous"}.}
+
+\item{meta}{Optional named list of identity-bearing metadata. Its exact R
+representation is restored after durable promotion.}
 }
 \value{
 A \code{wb_primitive} of kind \code{cell_vector}.

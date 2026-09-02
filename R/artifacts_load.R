@@ -58,26 +58,38 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
 
     # ---- cell_vector stored as artifact_labels (cell_id, label) ----
     "cell_vector" = {
+      payload_descriptor <- .wb_artifact_object_descriptor(
+        art$provenance_json[[1L]], "cell_vector", artifact_id
+      )
       has_value_type <- .wb_db_has_column(con, "artifact_labels", "value_type")
       has_value_num  <- .wb_db_has_column(con, "artifact_labels", "value_num")
       q <- if (has_value_type || has_value_num) {
         paste0(
-          "SELECT cell_id, label, ",
-          if (has_value_type) "value_type" else "NULL AS value_type", ", ",
-          if (has_value_num) "value_num" else "NULL AS value_num", "
-           FROM artifact_labels
-           WHERE artifact_id = ?;"
+          "SELECT al.cell_id, al.label, ",
+          if (has_value_type) "al.value_type" else "NULL AS value_type", ", ",
+          if (has_value_num) "al.value_num" else "NULL AS value_num", "
+           FROM artifact_labels AS al
+           LEFT JOIN cells AS c ON c.cell_id = al.cell_id
+           WHERE al.artifact_id = ?
+           ORDER BY c.rowid, al.cell_id;"
         )
       } else {
-        "SELECT cell_id, label, NULL AS value_type, NULL AS value_num
-         FROM artifact_labels
-         WHERE artifact_id = ?;"
+        "SELECT al.cell_id, al.label, NULL AS value_type, NULL AS value_num
+         FROM artifact_labels AS al
+         LEFT JOIN cells AS c ON c.cell_id = al.cell_id
+         WHERE al.artifact_id = ?
+         ORDER BY c.rowid, al.cell_id;"
       }
       df <- DBI::dbGetQuery(con, q, params = list(artifact_id))
       .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_labels for ", artifact_id))
+      df <- .wb_artifact_restore_object_row_order(
+        df, payload_descriptor, "cell_vector", artifact_id
+      )
 
       vt <- unique(as.character(stats::na.omit(df$value_type %||% character(0))))
-      inferred_type <- if ("continuous" %in% vt) "continuous" else "categorical"
+      .wb_assert(length(vt) <= 1L,
+                 paste0("wb_art_load(): conflicting cell-vector value types for ", artifact_id))
+      inferred_type <- if (length(vt)) vt[[1L]] else "categorical"
       if (identical(inferred_type, "continuous") && "value_num" %in% names(df)) {
         v <- suppressWarnings(as.numeric(df$value_num))
         bad <- is.na(v) & !is.na(df$label) & nzchar(as.character(df$label))
@@ -86,30 +98,47 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         v <- as.character(df$label)
       }
       names(v) <- as.character(df$cell_id)
-      wb_prim_cell_vector(v, value_type = inferred_type)
+      out <- wb_prim_cell_vector(v, value_type = inferred_type)
+      if (!is.null(payload_descriptor) && isTRUE(payload_descriptor$meta_present)) {
+        out$meta <- .wb_object_primitive_meta_from_descriptor(payload_descriptor)
+      }
+      out
     },
 
     # ---- cell_vector_family stored as artifact_pseudotime (cell_id, lineage_id, pseudotime) ----
     "cell_vector_family" = {
+      payload_descriptor <- .wb_artifact_object_descriptor(
+        art$provenance_json[[1L]], "cell_vector_family", artifact_id
+      )
       df <- DBI::dbGetQuery(
         con,
         "SELECT cell_id, lineage_id, pseudotime
          FROM artifact_pseudotime
-         WHERE artifact_id = ?;",
+         WHERE artifact_id = ?
+         ORDER BY lineage_id, cell_id;",
         params = list(artifact_id)
       )
       .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_pseudotime for ", artifact_id))
+      df <- .wb_artifact_restore_object_row_order(
+        df, payload_descriptor, "cell_vector_family", artifact_id
+      )
 
       wb_prim_cell_vector_family(
         key = df$lineage_id,
         cell_id = df$cell_id,
         value = df$pseudotime,
-        value_type = "continuous"
+        value_type = if (is.null(payload_descriptor)) "continuous" else
+          as.character(payload_descriptor$value_type %||% "continuous"),
+        meta = if (is.null(payload_descriptor)) list() else
+          .wb_object_primitive_meta_from_descriptor(payload_descriptor) %||% list()
       )
     },
 
     # ---- relation_family stored as artifact_relation_rows ----
     "relation_family" = {
+      payload_descriptor <- .wb_artifact_object_descriptor(
+        art$provenance_json[[1L]], "relation_family", artifact_id
+      )
       df <- DBI::dbGetQuery(
         con,
         "SELECT relation_key, cell_id, weight, value, distance
@@ -119,20 +148,35 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         params = list(artifact_id)
       )
       .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_relation_rows for ", artifact_id))
+      df <- .wb_artifact_restore_object_row_order(
+        df, payload_descriptor, "relation_family", artifact_id
+      )
 
       # Preserve optional columns semantically: all-NA columns become NULL.
       all_na <- function(x) all(is.na(x))
+      present <- if (is.null(payload_descriptor)) {
+        c(weight = !all_na(df$weight), value = !all_na(df$value), distance = !all_na(df$distance))
+      } else {
+        fields <- as.character(unlist(payload_descriptor$fields_present %||% list(), use.names = FALSE))
+        stats::setNames(c("weight", "value", "distance") %in% fields,
+                        c("weight", "value", "distance"))
+      }
       wb_prim_relation_family(
         key = df$relation_key,
         cell_id = df$cell_id,
-        weight = if (all_na(df$weight)) NULL else df$weight,
-        value = if (all_na(df$value)) NULL else df$value,
-        distance = if (all_na(df$distance)) NULL else df$distance
+        weight = if (present[["weight"]]) df$weight else NULL,
+        value = if (present[["value"]]) df$value else NULL,
+        distance = if (present[["distance"]]) df$distance else NULL,
+        meta = if (is.null(payload_descriptor)) list() else
+          .wb_object_primitive_meta_from_descriptor(payload_descriptor) %||% list()
       )
     },
 
     # ---- path_2d_family stored as artifact_curves_2d (lineage_id, point, x, y) ----
     "path_2d_family" = {
+      payload_descriptor <- .wb_artifact_object_descriptor(
+        art$provenance_json[[1L]], "path_2d_family", artifact_id
+      )
       df <- DBI::dbGetQuery(
         con,
         "SELECT lineage_id, point, x, y
@@ -142,17 +186,25 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         params = list(artifact_id)
       )
       .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_curves_2d for ", artifact_id))
+      df <- .wb_artifact_restore_object_row_order(
+        df, payload_descriptor, "path_2d_family", artifact_id
+      )
 
       wb_prim_path_2d_family(
         key = df$lineage_id,
         point = df$point,
         x = df$x,
-        y = df$y
+        y = df$y,
+        meta = if (is.null(payload_descriptor)) list() else
+          .wb_object_primitive_meta_from_descriptor(payload_descriptor) %||% list()
       )
     },
 
     # ---- space_path_family stored as artifact_space_path_rows/meta ----
     "space_path_family" = {
+      payload_descriptor <- .wb_artifact_object_descriptor(
+        art$provenance_json[[1L]], "space_path_family", artifact_id
+      )
       df <- DBI::dbGetQuery(
         con,
         "SELECT space_id, path_id, point, dim, value
@@ -162,6 +214,9 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         params = list(artifact_id)
       )
       .wb_assert(nrow(df) > 0, paste0("wb_art_load(): no rows in artifact_space_path_rows for ", artifact_id))
+      df <- .wb_artifact_restore_object_row_order(
+        df, payload_descriptor, "space_path_family", artifact_id
+      )
 
       meta_info <- DBI::dbGetQuery(
         con,
@@ -176,6 +231,16 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         if (nzchar(mj) && !identical(mj, "null")) {
           meta <- tryCatch(jsonlite::fromJSON(mj, simplifyVector = FALSE), error = function(e) list())
         }
+      }
+      if (!is.null(payload_descriptor) && isTRUE(payload_descriptor$meta_present)) {
+        durable_meta <- .wb_object_primitive_meta_from_descriptor(payload_descriptor)
+        durable_json <- jsonlite::toJSON(.wb_json_sanitize(durable_meta), auto_unbox = TRUE, null = "null")
+        stored_json <- jsonlite::toJSON(.wb_json_sanitize(meta), auto_unbox = TRUE, null = "null")
+        .wb_assert(
+          identical(as.character(durable_json), as.character(stored_json)),
+          paste0("wb_art_load(): durable space_path_family metadata does not match payload metadata for ", artifact_id)
+        )
+        meta <- durable_meta
       }
 
       wb_prim_space_path_family(
