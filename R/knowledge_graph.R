@@ -112,13 +112,51 @@
   payload <- try(jsonlite::fromJSON(as.character(payload_json %||% "{}")[1], simplifyVector = FALSE), silent = TRUE)
   if (inherits(payload, "try-error") || is.null(payload) || !is.list(payload)) payload <- list()
   snapshots <- .wb_prov_snapshot_ids(payload$snapshot_id %||% NULL, payload$snapshot_ids %||% NULL)
+  occurrences <- .wb_kg_occurrence_evidence(payload$occurrences %||% NULL)
+  if (length(occurrences)) {
+    occurrence_snapshots <- vapply(occurrences, function(x) {
+      as.character(x$snapshot_id %||% "")[1]
+    }, character(1))
+    snapshots <- sort(unique(c(snapshots, occurrence_snapshots[nzchar(occurrence_snapshots)])))
+  }
   payload$snapshot_id <- NULL
   payload$snapshot_ids <- NULL
+  payload$occurrences <- NULL
   list(
     payload = payload,
     canonical = .wb_kg_json(payload),
-    snapshot_ids = snapshots
+    snapshot_ids = snapshots,
+    occurrences = occurrences
   )
+}
+
+.wb_kg_occurrence_evidence <- function(occurrences) {
+  if (is.null(occurrences) || !length(occurrences)) return(list())
+  if (is.data.frame(occurrences)) {
+    occurrences <- lapply(seq_len(nrow(occurrences)), function(i) {
+      as.list(occurrences[i, , drop = FALSE])
+    })
+  } else if (is.list(occurrences) && !is.null(names(occurrences)) &&
+             any(nzchar(names(occurrences)))) {
+    occurrences <- list(occurrences)
+  }
+  .wb_assert(is.list(occurrences), "Knowledge-graph occurrence evidence must be a list.")
+  records <- lapply(occurrences, function(x) {
+    .wb_assert(is.list(x) && !is.null(names(x)) && all(nzchar(names(x))),
+               "Each knowledge-graph occurrence must be a named record.")
+    x[order(names(x))]
+  })
+  encoded <- vapply(records, .wb_kg_json, character(1))
+  encoded <- sort(unique(encoded))
+  lapply(encoded, function(x) jsonlite::fromJSON(x, simplifyVector = FALSE))
+}
+
+.wb_kg_deterministic_group <- function(group) {
+  if (nrow(group) < 2L) return(group)
+  keys <- vapply(seq_len(nrow(group)), function(i) {
+    .wb_kg_json(as.list(group[i, , drop = FALSE]))
+  }, character(1))
+  group[order(keys), , drop = FALSE]
 }
 
 .wb_kg_canonicalize_rows <- function(rows, kind = c("node", "edge")) {
@@ -130,6 +168,7 @@
   for (i in seq_along(ids)) {
     id <- ids[[i]]
     group <- rows[as.character(rows$id) == id, , drop = FALSE]
+    group <- .wb_kg_deterministic_group(group)
     row <- group[1L, , drop = FALSE]
     for (field in stable) {
       values <- .wb_prov_evidence_values(group[[field]])
@@ -155,6 +194,9 @@
     payload <- evidence[[1L]]$payload
     snapshots <- sort(unique(unlist(lapply(evidence, `[[`, "snapshot_ids"), use.names = FALSE)))
     if (length(snapshots)) payload$snapshot_ids <- as.list(snapshots)
+    occurrences <- do.call(c, lapply(evidence, `[[`, "occurrences"))
+    occurrences <- .wb_kg_occurrence_evidence(occurrences)
+    if (length(occurrences)) payload$occurrences <- occurrences
     row$payload_json <- .wb_kg_json(payload)
     out[[i]] <- row
   }
@@ -484,12 +526,18 @@ wb_kg_bundle_graph <- function(bundle) {
       parent_id <- as.character(declaration$parent_source_id %||% "")[1]
       relation <- as.character(declaration$source_relation %||% "")[1]
       if (nzchar(parent_id) && nzchar(relation)) {
+        occurrence <- list(
+          run_id = as.character(src$run_id[i]),
+          snapshot_id = as.character(src$snapshot_id[i])
+        )
+        edge_payload <- as.list(src[i, setdiff(names(src), c("snapshot_id", "run_id")), drop = FALSE])
+        edge_payload$occurrences <- list(occurrence)
         edges[[length(edges) + 1L]] <- .wb_kg_edge(
           paste0("external_source:", .wb_kg_slug(parent_id)),
           paste0("in_memory_source:", .wb_kg_slug(src$source_id[i])),
           relation,
           "declared_nested_ingestion",
-          payload = as.list(src[i, , drop = FALSE])
+          payload = edge_payload
         )
       }
     }
@@ -534,7 +582,15 @@ wb_kg_bundle_graph <- function(bundle) {
         }
         pk <- as.character(outs$primitive_kind[i] %||% "")
         if (nzchar(pk)) {
-          edges[[length(edges) + 1L]] <- .wb_kg_edge(rid, paste0("primitive:", .wb_kg_slug(pk)), "PRODUCES", "provenance_store", payload = as.list(outs[i, , drop = FALSE]), semantic_label = as.character(outs$output_name[i]))
+          output_payload <- as.list(outs[i, setdiff(names(outs), c("snapshot_id", "artifact_id")), drop = FALSE])
+          output_payload$occurrences <- list(list(
+            artifact_id = as.character(outs$artifact_id[i] %||% NA_character_),
+            snapshot_id = as.character(outs$snapshot_id[i])
+          ))
+          edges[[length(edges) + 1L]] <- .wb_kg_edge(
+            rid, paste0("primitive:", .wb_kg_slug(pk)), "PRODUCES", "provenance_store",
+            payload = output_payload, semantic_label = as.character(outs$output_name[i])
+          )
         }
       }
     }
