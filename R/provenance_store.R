@@ -780,7 +780,10 @@
 #' @export
 wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  .wb_migrate_provenance_tables(bundle$con)
+  .wb_assert_observational_schema(
+    bundle, "prov_replay_equivalence_results",
+    action = "replay-equivalence result inspection"
+  )
   if (is.null(replay_snapshot_id)) {
     return(DBI::dbGetQuery(bundle$con, "SELECT * FROM prov_replay_equivalence_results ORDER BY created_at, result_id;"))
   }
@@ -1578,7 +1581,7 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
 wb_prov_list_heads <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
-  .wb_migrate_provenance_tables(con)
+  .wb_assert_observational_schema(bundle, "prov_heads", action = "provenance-head inspection")
   DBI::dbGetQuery(
     con,
     "SELECT snapshot_id, created_at, created_by, name_prefix, description, schema_version, n_runs, n_artifacts
@@ -1603,7 +1606,10 @@ wb_prov_dag <- function(bundle, snapshot_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_require_pkg("jsonlite", "provenance DAG reconstruction")
   con <- bundle$con
-  .wb_migrate_provenance_tables(con)
+  .wb_assert_observational_schema(
+    bundle, c("prov_heads", "prov_runs", "prov_run_outputs", "prov_run_edges"),
+    action = "provenance DAG inspection"
+  )
 
   sid <- as.character(snapshot_id %||% "")[1]
   if (!nzchar(sid)) {
@@ -1724,7 +1730,10 @@ wb_prov_run_details <- function(bundle, run_id, snapshot_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_require_pkg("jsonlite", "provenance run inspection")
   con <- bundle$con
-  .wb_migrate_provenance_tables(con)
+  .wb_assert_observational_schema(
+    bundle, c("prov_runs", "prov_run_edges", "prov_run_entity_bindings", "prov_run_outputs"),
+    action = "provenance run inspection"
+  )
 
   rid <- as.character(run_id)[1]
   .wb_assert(nzchar(rid), "run_id must be non-empty")
@@ -2075,7 +2084,10 @@ wb_prov_run_replay_inputs <- function(bundle, run_id, snapshot_id = NULL) {
 #' @export
 wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  .wb_migrate_provenance_tables(bundle$con)
+  .wb_assert_observational_schema(
+    bundle, "prov_source_identities",
+    action = "ingestion source-identity inspection"
+  )
   if (!.wb_table_exists(bundle$con, "prov_source_identities")) return(data.frame(snapshot_id=character(), run_id=character(), matrix_id=character(), source_identity_json=character(), status=character(), stringsAsFactors=FALSE))
   q <- "SELECT snapshot_id, run_id, matrix_id, source_identity_json FROM prov_source_identities"
   params <- list()
@@ -2096,7 +2108,10 @@ wb_prov_source_identity <- function(bundle, matrix_id = NULL) {
 #' @export
 wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  .wb_migrate_provenance_tables(bundle$con)
+  .wb_assert_observational_schema(
+    bundle, "prov_source_inputs",
+    action = "ingestion source-input inspection"
+  )
   empty <- data.frame(snapshot_id=character(), run_id=character(), source_id=character(), source_json=character(), scope=character(), portable=logical(), path=character(), uri=character(), accession=character(), role=character(), format=character(), parent_source_id=character(), source_relation=character(), checksum_algorithm=character(), checksum_value=character(), checksum_status=character(), stringsAsFactors=FALSE)
   if (!.wb_table_exists(bundle$con, "prov_source_inputs")) return(empty)
   out <- DBI::dbGetQuery(bundle$con, "SELECT snapshot_id, run_id, source_id, source_json, checksum_status FROM prov_source_inputs ORDER BY snapshot_id, run_id, source_id;")
