@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "source-controlled",
+  "generated_at": "2026-09-02T10:12:29+0200",
   "getter_count": 85,
   "getters": [
     {
@@ -142,7 +142,7 @@
       "description": "Summarize which cells are covered by matrices, spaces, and sets.",
       "returns": "data.frame/list",
       "payload_level": "metadata",
-      "arguments": "bundle",
+      "arguments": ["bundle", "cell_set", "inputs", "resolved", "requirements", "op_name"],
       "use_when": "check data coverage before running ops",
       "mutates": false
     },
@@ -252,7 +252,7 @@
       "description": "Read multiple features across cells from a logical matrix.",
       "returns": "matrix",
       "payload_level": "payload",
-      "arguments": ["bundle", "matrix_id", "features", "cells"],
+      "arguments": ["bundle", "matrix_id", "feature_ids", "cell_ids", "missing", "prefer_newest"],
       "use_when": ["inspect marker panel", "read feature block"],
       "mutates": false
     },
@@ -296,7 +296,7 @@
       "description": "Search feature IDs or feature metadata.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": ["bundle", "query", "matrix_id"],
+      "arguments": ["bundle", "matrix_id", "query", "limit", "mode"],
       "use_when": "find matching genes/features by text",
       "mutates": false
     },
@@ -472,7 +472,7 @@
       "description": "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
       "returns": "invisible data.frame or error",
       "payload_level": "metadata",
-      "arguments": ["bundle", "...", "runs", "allow_legacy"],
+      "arguments": ["bundle", "runs", "allow_legacy"],
       "use_when": ["validate pseudotime, weights, model, and path compatibility", "prevent cross-fit lineage-label mixing"],
       "mutates": false
     },
@@ -483,7 +483,7 @@
       "description": "Load a promoted artifact as a primitive.",
       "returns": "wb_primitive",
       "payload_level": "payload",
-      "arguments": ["bundle", "artifact_id", "expected_kind"],
+      "arguments": ["bundle", "artifact_id", "expected_kind", "allow_untrusted_deserialization"],
       "use_when": "load promoted output for downstream analysis",
       "mutates": false
     },
@@ -538,7 +538,7 @@
       "description": "Get dependency relationships for an artifact.",
       "returns": "data.frame/list",
       "payload_level": "metadata",
-      "arguments": ["bundle", "artifact_id"],
+      "arguments": ["bundle", "artifact_id", "direction", "recursive"],
       "use_when": "inspect downstream/upstream artifact relationships",
       "mutates": false
     },
@@ -615,7 +615,7 @@
       "description": "List registered motif libraries.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": "bundle",
+      "arguments": ["bundle", "organism", "genome_build", "source_type"],
       "use_when": "inspect available motif catalogs",
       "mutates": false
     },
@@ -626,7 +626,7 @@
       "description": "List motifs, optionally filtered by library.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": ["bundle", "library_id"],
+      "arguments": ["bundle", "motif_library", "motif_keys"],
       "use_when": "find motif IDs for regulatory analysis",
       "mutates": false
     },
@@ -637,7 +637,7 @@
       "description": "List motif match sets available for peak features.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": "bundle",
+      "arguments": ["bundle", "matrix_id", "motif_library", "motif_match_set"],
       "use_when": "choose motif-to-peak mapping for chromVAR",
       "mutates": false
     },
@@ -648,7 +648,7 @@
       "description": "Load motif match membership rows for a match set.",
       "returns": "data.frame",
       "payload_level": "payload",
-      "arguments": ["bundle", "match_set_id"],
+      "arguments": ["bundle", "motif_match_set", "motif_keys"],
       "use_when": "inspect motif-feature memberships",
       "mutates": false
     },
@@ -802,7 +802,7 @@
       "description": "List entities that can be navigated from an artifact-backed source.",
       "returns": "data.frame",
       "payload_level": "metadata",
-      "arguments": ["source", "bundle", "entity_kind", "lineage_id"],
+      "arguments": ["source", "bundle", "entity_kind", "lineage_id", "feature_set", "limit", "search", "direction", "order_by"],
       "use_when": "find clickable genes, lineages, or feature sets",
       "mutates": false
     },
@@ -835,7 +835,7 @@
       "description": "Client facade for discovering bundle state and available operations.",
       "returns": "list",
       "payload_level": "metadata",
-      "arguments": "bundle",
+      "arguments": ["bundle", "session", "include_op_interfaces", "include_vectors", "include_feature_sets"],
       "use_when": "initialize UI or agent context",
       "mutates": false
     },
@@ -846,7 +846,7 @@
       "description": "Client facade for inspecting session and bundle runtime state.",
       "returns": "list",
       "payload_level": "metadata",
-      "arguments": ["bundle", "session"],
+      "arguments": ["bundle", "session", "run_id", "include_run_outputs"],
       "use_when": "summarize current analysis state",
       "mutates": false
     },
@@ -857,7 +857,7 @@
       "description": "Client facade for loading primitives by reference.",
       "returns": "wb_primitive",
       "payload_level": "payload",
-      "arguments": ["bundle", "ref", "session"],
+      "arguments": ["bundle", "ref", "session", "runs", "expected_kind"],
       "use_when": "load selected artifact or session output",
       "mutates": false
     },
@@ -868,7 +868,7 @@
       "description": "Client facade for loading and wrangling references into normalized tables.",
       "returns": "data.frame",
       "payload_level": "payload",
-      "arguments": ["bundle", "ref", "session", "key"],
+      "arguments": ["bundle", "ref", "session", "runs", "expected_kind", "key", "include_context"],
       "use_when": "preview primitive data in a table",
       "mutates": false
     },

@@ -854,7 +854,10 @@ wb_art_dependencies <- function(bundle,
   .wb_assert(nzchar(artifact_id), "artifact_id must be a non-empty string")
 
   direction <- match.arg(direction)
-  wb_migrate_artifacts(bundle)
+  .wb_assert_observational_schema(
+    bundle, c("artifacts", "entity_lifecycle"),
+    action = "artifact dependency inspection"
+  )
 
   arts <- wb_art_list(bundle, include_history = TRUE)
   hit <- arts[arts$artifact_id == artifact_id, , drop = FALSE]
@@ -959,7 +962,10 @@ wb_art_delete_plan <- function(bundle, artifact_id, recursive = FALSE) {
   artifact_id <- as.character(artifact_id)[1]
   .wb_assert(nzchar(artifact_id), "artifact_id must be a non-empty string")
 
-  wb_migrate_artifacts(bundle)
+  .wb_assert_observational_schema(
+    bundle, c("artifacts", "entity_lifecycle"),
+    action = "artifact retraction planning"
+  )
   arts <- wb_art_list(bundle, include_history = TRUE)
   hit <- arts[arts$artifact_id == artifact_id, , drop = FALSE]
   .wb_assert(nrow(hit) == 1, paste0("Artifact not found: ", artifact_id))

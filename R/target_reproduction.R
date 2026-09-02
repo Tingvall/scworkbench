@@ -55,7 +55,11 @@
 wb_target_reproduction_plan <- function(bundle, target) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_require_pkg("jsonlite", "target reproduction plan")
-  .wb_migrate_provenance_tables(bundle$con)
+  .wb_assert_observational_schema(
+    bundle,
+    c("prov_heads", "prov_runs", "prov_run_outputs", "prov_run_edges", "prov_run_entity_bindings"),
+    action = "target reproduction planning"
+  )
   x <- .wb_target_parse(target); con <- bundle$con
   out <- DBI::dbGetQuery(con, paste0("SELECT snapshot_id, run_id, output_name, primitive_kind, artifact_id, ",
     .wb_prov_output_identity_select(con), ", ", .wb_prov_output_replay_select(con),

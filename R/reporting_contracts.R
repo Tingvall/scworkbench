@@ -252,7 +252,10 @@ wb_bundle_overview <- function(bundle, validate = FALSE) {
 wb_list_trajectory_models <- function(bundle, inspect_payload = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
-  wb_migrate_artifacts(bundle)
+  .wb_assert_observational_schema(
+    bundle, c("artifacts", "artifact_model_ref"),
+    action = "trajectory model inspection"
+  )
 
   if (!.wb_db_has_table(con, "artifact_model_ref")) {
     return(.wb_empty_df(c(
@@ -364,7 +367,10 @@ wb_list_trajectory_models <- function(bundle, inspect_payload = TRUE) {
 wb_run_history <- function(bundle, snapshot_id = NULL) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   con <- bundle$con
-  .wb_migrate_provenance_tables(con)
+  .wb_assert_observational_schema(
+    bundle, c("prov_runs", "prov_run_outputs", "prov_run_edges"),
+    action = "run-history inspection"
+  )
 
   base_cols <- c(
     "snapshot_id", "run_id", "op_name", "created_at", "notes", "params_json", "inputs_json",

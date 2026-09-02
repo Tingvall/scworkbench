@@ -19,6 +19,10 @@ test_getter_catalog_semantic_contract <- function() {
     stopifnot(identical(as.logical(getter$mutates %||% TRUE), FALSE))
     stopifnot(is.list(getter$arguments) || is.character(getter$arguments))
     stopifnot(is.list(getter$use_when) || is.character(getter$use_when))
+
+    exported <- getExportedValue("scworkbench", as.character(getter$function_name)[1])
+    exported_arguments <- setdiff(names(formals(exported)), "...")
+    stopifnot(identical(as.character(getter$arguments), exported_arguments))
   }
 
   tmp_md <- tempfile("getter_catalog_", fileext = ".md")

@@ -129,7 +129,7 @@
       description = "Summarize which cells are covered by matrices, spaces, and sets.",
       returns = "data.frame/list",
       payload_level = "metadata",
-      arguments = c("bundle"),
+      arguments = c("bundle", "cell_set", "inputs", "resolved", "requirements", "op_name"),
       use_when = c("check data coverage before running ops")
     ),
     list(
@@ -229,7 +229,7 @@
       description = "Read multiple features across cells from a logical matrix.",
       returns = "matrix",
       payload_level = "payload",
-      arguments = c("bundle", "matrix_id", "features", "cells"),
+      arguments = c("bundle", "matrix_id", "feature_ids", "cell_ids", "missing", "prefer_newest"),
       use_when = c("inspect marker panel", "read feature block")
     ),
     list(
@@ -269,7 +269,7 @@
       description = "Search feature IDs or feature metadata.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle", "query", "matrix_id"),
+      arguments = c("bundle", "matrix_id", "query", "limit", "mode"),
       use_when = c("find matching genes/features by text")
     ),
     list(
@@ -429,7 +429,7 @@
       description = "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
       returns = "invisible data.frame or error",
       payload_level = "metadata",
-      arguments = c("bundle", "...", "runs", "allow_legacy"),
+      arguments = c("bundle", "runs", "allow_legacy"),
       use_when = c("validate pseudotime, weights, model, and path compatibility", "prevent cross-fit lineage-label mixing")
     ),
     list(
@@ -439,7 +439,7 @@
       description = "Load a promoted artifact as a primitive.",
       returns = "wb_primitive",
       payload_level = "payload",
-      arguments = c("bundle", "artifact_id", "expected_kind"),
+      arguments = c("bundle", "artifact_id", "expected_kind", "allow_untrusted_deserialization"),
       use_when = c("load promoted output for downstream analysis")
     ),
     list(
@@ -489,7 +489,7 @@
       description = "Get dependency relationships for an artifact.",
       returns = "data.frame/list",
       payload_level = "metadata",
-      arguments = c("bundle", "artifact_id"),
+      arguments = c("bundle", "artifact_id", "direction", "recursive"),
       use_when = c("inspect downstream/upstream artifact relationships")
     ),
     list(
@@ -559,7 +559,7 @@
       description = "List registered motif libraries.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle"),
+      arguments = c("bundle", "organism", "genome_build", "source_type"),
       use_when = c("inspect available motif catalogs")
     ),
     list(
@@ -569,7 +569,7 @@
       description = "List motifs, optionally filtered by library.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle", "library_id"),
+      arguments = c("bundle", "motif_library", "motif_keys"),
       use_when = c("find motif IDs for regulatory analysis")
     ),
     list(
@@ -579,7 +579,7 @@
       description = "List motif match sets available for peak features.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("bundle"),
+      arguments = c("bundle", "matrix_id", "motif_library", "motif_match_set"),
       use_when = c("choose motif-to-peak mapping for chromVAR")
     ),
     list(
@@ -589,7 +589,7 @@
       description = "Load motif match membership rows for a match set.",
       returns = "data.frame",
       payload_level = "payload",
-      arguments = c("bundle", "match_set_id"),
+      arguments = c("bundle", "motif_match_set", "motif_keys"),
       use_when = c("inspect motif-feature memberships")
     ),
     list(
@@ -729,7 +729,7 @@
       description = "List entities that can be navigated from an artifact-backed source.",
       returns = "data.frame",
       payload_level = "metadata",
-      arguments = c("source", "bundle", "entity_kind", "lineage_id"),
+      arguments = c("source", "bundle", "entity_kind", "lineage_id", "feature_set", "limit", "search", "direction", "order_by"),
       use_when = c("find clickable genes, lineages, or feature sets")
     ),
     list(
@@ -759,7 +759,7 @@
       description = "Client facade for discovering bundle state and available operations.",
       returns = "list",
       payload_level = "metadata",
-      arguments = c("bundle"),
+      arguments = c("bundle", "session", "include_op_interfaces", "include_vectors", "include_feature_sets"),
       use_when = c("initialize UI or agent context")
     ),
     list(
@@ -769,7 +769,7 @@
       description = "Client facade for inspecting session and bundle runtime state.",
       returns = "list",
       payload_level = "metadata",
-      arguments = c("bundle", "session"),
+      arguments = c("bundle", "session", "run_id", "include_run_outputs"),
       use_when = c("summarize current analysis state")
     ),
     list(
@@ -779,7 +779,7 @@
       description = "Client facade for loading primitives by reference.",
       returns = "wb_primitive",
       payload_level = "payload",
-      arguments = c("bundle", "ref", "session"),
+      arguments = c("bundle", "ref", "session", "runs", "expected_kind"),
       use_when = c("load selected artifact or session output")
     ),
     list(
@@ -789,7 +789,7 @@
       description = "Client facade for loading and wrangling references into normalized tables.",
       returns = "data.frame",
       payload_level = "payload",
-      arguments = c("bundle", "ref", "session", "key"),
+      arguments = c("bundle", "ref", "session", "runs", "expected_kind", "key", "include_context"),
       use_when = c("preview primitive data in a table")
     ),
     list(

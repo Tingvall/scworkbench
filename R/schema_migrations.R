@@ -62,6 +62,25 @@
   TRUE
 }
 
+.wb_assert_observational_schema <- function(bundle, tables, action = "bundle inspection") {
+  .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
+  status <- .wb_schema_status(bundle$con)
+  if (!identical(status$status, "current")) {
+    code <- if (identical(status$status, "upgrade_required")) {
+      "BUNDLE_SCHEMA_UPGRADE_REQUIRED"
+    } else {
+      "BUNDLE_SCHEMA_CORRUPT"
+    }
+    stop(
+      code, ": ", action, " requires the current bundle schema. ", status$message,
+      " Open the bundle writable with the current scworkbench and run wb_migrate_bundle().",
+      call. = FALSE
+    )
+  }
+  .wb_schema_component_is_current(bundle$con, tables)
+  invisible(TRUE)
+}
+
 .wb_schema_status <- function(con) {
   current <- .wb_bundle_schema_version()
   if (!.wb_schema_ledger_exists(con)) {

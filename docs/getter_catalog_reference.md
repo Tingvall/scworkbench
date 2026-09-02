@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_getter_catalog_semantic(); do not edit getter entries by hand. -->
 
-Generated at: source-controlled
+Generated at: 2026-09-02T10:12:29+0200
 
 Getter count: 85
 
@@ -86,7 +86,7 @@ Returns: invisible data.frame or error
 
 Payload level: metadata
 
-Arguments: bundle, ..., runs, allow_legacy
+Arguments: bundle, runs, allow_legacy
 
 Use when:
 - validate pseudotime, weights, model, and path compatibility
@@ -102,7 +102,7 @@ Returns: wb_primitive
 
 Payload level: payload
 
-Arguments: bundle, artifact_id, expected_kind
+Arguments: bundle, artifact_id, expected_kind, allow_untrusted_deserialization
 
 Use when:
 - load promoted output for downstream analysis
@@ -164,7 +164,7 @@ Returns: data.frame/list
 
 Payload level: metadata
 
-Arguments: bundle, artifact_id
+Arguments: bundle, artifact_id, direction, recursive
 
 Use when:
 - inspect downstream/upstream artifact relationships
@@ -389,7 +389,7 @@ Returns: data.frame/list
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, cell_set, inputs, resolved, requirements, op_name
 
 Use when:
 - check data coverage before running ops
@@ -406,7 +406,7 @@ Returns: list
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, session, include_op_interfaces, include_vectors, include_feature_sets
 
 Use when:
 - initialize UI or agent context
@@ -421,7 +421,7 @@ Returns: list
 
 Payload level: metadata
 
-Arguments: bundle, session
+Arguments: bundle, session, run_id, include_run_outputs
 
 Use when:
 - summarize current analysis state
@@ -436,7 +436,7 @@ Returns: wb_primitive
 
 Payload level: payload
 
-Arguments: bundle, ref, session
+Arguments: bundle, ref, session, runs, expected_kind
 
 Use when:
 - load selected artifact or session output
@@ -451,7 +451,7 @@ Returns: data.frame
 
 Payload level: payload
 
-Arguments: bundle, ref, session, key
+Arguments: bundle, ref, session, runs, expected_kind, key, include_context
 
 Use when:
 - preview primitive data in a table
@@ -549,7 +549,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle, query, matrix_id
+Arguments: bundle, matrix_id, query, limit, mode
 
 Use when:
 - find matching genes/features by text
@@ -687,7 +687,7 @@ Returns: matrix
 
 Payload level: payload
 
-Arguments: bundle, matrix_id, features, cells
+Arguments: bundle, matrix_id, feature_ids, cell_ids, missing, prefer_newest
 
 Use when:
 - inspect marker panel
@@ -721,7 +721,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, organism, genome_build, source_type
 
 Use when:
 - inspect available motif catalogs
@@ -736,7 +736,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle, library_id
+Arguments: bundle, motif_library, motif_keys
 
 Use when:
 - find motif IDs for regulatory analysis
@@ -751,7 +751,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: bundle
+Arguments: bundle, matrix_id, motif_library, motif_match_set
 
 Use when:
 - choose motif-to-peak mapping for chromVAR
@@ -766,7 +766,7 @@ Returns: data.frame
 
 Payload level: payload
 
-Arguments: bundle, match_set_id
+Arguments: bundle, motif_match_set, motif_keys
 
 Use when:
 - inspect motif-feature memberships
@@ -783,7 +783,7 @@ Returns: data.frame
 
 Payload level: metadata
 
-Arguments: source, bundle, entity_kind, lineage_id
+Arguments: source, bundle, entity_kind, lineage_id, feature_set, limit, search, direction, order_by
 
 Use when:
 - find clickable genes, lineages, or feature sets

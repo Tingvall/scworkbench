@@ -610,8 +610,11 @@ wb_prov_bundle_dag <- function(bundle,
   .wb_require_pkg("jsonlite", "bundle-level provenance DAG")
   direction <- match.arg(direction)
   con <- bundle$con
-  .wb_migrate_provenance_tables(con)
-  wb_migrate_artifacts(bundle)
+  .wb_assert_observational_schema(
+    bundle,
+    c("prov_heads", "prov_runs", "prov_run_outputs", "prov_run_edges", "artifacts"),
+    action = "bundle provenance inspection"
+  )
 
   sid_filter <- as.character(snapshot_id %||% character(0))
   sid_filter <- sid_filter[nzchar(sid_filter)]
