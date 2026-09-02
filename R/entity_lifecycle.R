@@ -703,7 +703,6 @@
 wb_entity_lifecycle <- function(bundle, entity_kind = NULL, entity_id = NULL,
                                 lifecycle_state = NULL, include_history = TRUE) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  if (!isTRUE(bundle$read_only)) .wb_entity_lifecycle_migrate(bundle)
   if (!.wb_table_exists(bundle$con, "entity_lifecycle")) {
     return(data.frame(entity_kind = character(), entity_id = character(), lifecycle_state = character(),
       identity_hash = character(), provenance_bound = integer(), created_at = character(), updated_at = character(),
@@ -724,7 +723,6 @@ wb_entity_lifecycle <- function(bundle, entity_kind = NULL, entity_id = NULL,
 #' @export
 wb_entity_supersessions <- function(bundle) {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
-  if (!isTRUE(bundle$read_only)) .wb_entity_lifecycle_migrate(bundle)
   if (!.wb_table_exists(bundle$con, "entity_supersessions")) return(data.frame())
   DBI::dbGetQuery(bundle$con, "SELECT * FROM entity_supersessions ORDER BY created_at, successor_kind, successor_id;")
 }

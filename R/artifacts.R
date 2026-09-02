@@ -18,7 +18,6 @@
 #' @export
 wb_art_list <- function(bundle, type = NULL, include_history = FALSE) {
   con <- bundle$con
-  if (!isTRUE(bundle$read_only)) .wb_entity_lifecycle_migrate(bundle)
   has_lifecycle <- .wb_table_exists(con, "entity_lifecycle")
   select <- if (has_lifecycle) {
     "SELECT a.*, COALESCE(el.lifecycle_state, 'current') AS lifecycle_state, COALESCE(el.provenance_bound, 0) AS provenance_bound FROM artifacts a LEFT JOIN entity_lifecycle el ON el.entity_kind = 'artifact' AND el.entity_id = a.artifact_id"

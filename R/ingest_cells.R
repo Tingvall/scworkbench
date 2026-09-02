@@ -80,7 +80,8 @@ wb_ingest_cells <- function(
   # -------------------------
   # 2) Insert into cells table (NO cell_set column used)
   # -------------------------
-  # minimal row: cell_id + dataset_id. (dataset_id can be set_name for now.)
+  # Low-level ingest uses set_name as its dataset identity. The dataset registry
+  # row is published in the same transaction as the cells that reference it.
   new_cells_df <- data.frame(
     cell_id    = cell_ids,
     dataset_id = set_name,
@@ -103,12 +104,28 @@ wb_ingest_cells <- function(
   metadata_report <- NULL
   .wb_metadata_with_transaction(con, {
     DBI::dbWriteTable(con, "cells", new_cells_df, append = TRUE)
+    dataset_n <- DBI::dbGetQuery(
+      con, "SELECT COUNT(*) AS n FROM cells WHERE dataset_id = ?;",
+      params = list(set_name)
+    )$n[[1L]]
+    DBI::dbExecute(
+      con,
+      paste0(
+        "INSERT INTO datasets(dataset_id, n_cells) VALUES(?, ?) ",
+        "ON CONFLICT(dataset_id) DO UPDATE SET n_cells=excluded.n_cells;"
+      ),
+      params = list(set_name, as.integer(dataset_n))
+    )
     DBI::dbWriteTable(con, "cell_set_membership", ins, append = TRUE)
     if (!is.null(metadata)) {
       metadata_report <- .wb_write_cell_metadata(
         con, metadata, target_cell_ids = cell_ids, source = source, created_by = created_by
       )
     }
+    .wb_entity_lifecycle_upsert(
+      con, "cell_set", cell_set, state = "current", bound = FALSE,
+      actor = created_by %||% source
+    )
     .wb_record_declared_ingestion(
       bundle, transaction_name = "ingest_cells", source = source,
       created_by = created_by, transaction_open = TRUE,

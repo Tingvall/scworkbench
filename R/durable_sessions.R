@@ -2,6 +2,22 @@
 # bundle: it is an owned, lock-coordinated private overlay and is never a
 # second mutation route for committed scientific state.
 
+.wb_durable_session_abort <- function(code, message, evidence = list()) {
+  code <- as.character(code)[1L]
+  class <- if (identical(code, "DURABLE_SESSION_SOURCE_CHANGED")) {
+    "scworkbench_durable_session_source_changed"
+  } else {
+    "scworkbench_durable_session_error"
+  }
+  stop(structure(
+    c(list(message = paste0(code, ": ", message), call = NULL, code = code), evidence),
+    class = unique(c(
+      class, "scworkbench_durable_session_error", "scworkbench_error",
+      "error", "condition"
+    ))
+  ))
+}
+
 .wb_session_workspace_root <- function() {
   root <- getOption("scworkbench.session_workspace", file.path(getwd(), "scworkbench_sessions"))
   root <- normalizePath(as.character(root)[1], winslash = "/", mustWork = FALSE)
@@ -219,7 +235,11 @@
   # source that has not changed scientifically.
   fields <- c("bundle_dir", "scientific_state_fingerprint")
   bad <- fields[!vapply(fields, function(nm) identical(as.character(expected[[nm]]), as.character(observed[[nm]])), logical(1))]
-  .wb_assert(!length(bad), paste0("DURABLE_SESSION_SOURCE_CHANGED: source bundle no longer matches checkpoint (", paste(bad, collapse = ", "), ")."))
+  if (length(bad)) .wb_durable_session_abort(
+    "DURABLE_SESSION_SOURCE_CHANGED",
+    paste0("source bundle no longer matches checkpoint (", paste(bad, collapse = ", "), ")."),
+    evidence = list(changed_fields = bad)
+  )
   invisible(TRUE)
 }
 

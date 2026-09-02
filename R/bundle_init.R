@@ -175,6 +175,10 @@ wb_define_cells <- function(bundle,
         bundle$con, md, target_cell_ids = ids, source = source, created_by = created_by
       )
     }
+    .wb_entity_lifecycle_upsert(
+      bundle$con, "cell_set", cell_set_name, state = "current", bound = FALSE,
+      actor = created_by %||% source
+    )
     .wb_record_declared_ingestion(
       bundle = bundle, transaction_name = "assembly_define_cells",
       source = source, created_by = created_by, transaction_open = TRUE,

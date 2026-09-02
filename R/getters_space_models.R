@@ -99,7 +99,6 @@ wb_spaces_with_model <- function(bundle, model_type = NULL, include_history = FA
   .wb_assert(DBI::dbExistsTable(con, "space_models"),
              "space_models table not found in bundle. Have you run umap_fit?")
 
-  if (!isTRUE(bundle$read_only)) .wb_entity_lifecycle_migrate(bundle)
   where <- character(0)
   params <- list()
   if (!is.null(model_type)) {
