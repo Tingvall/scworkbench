@@ -48,6 +48,9 @@ From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435
 %post
     set -eux
     export DEBIAN_FRONTEND=noninteractive
+    export SCWORKBENCH_RUNTIME_KIND="${SCWORKBENCH_RUNTIME_KIND:-apptainer}"
+    export SCWORKBENCH_RUNTIME_ARCH="${SCWORKBENCH_RUNTIME_ARCH:-amd64}"
+    export SCWORKBENCH_BASE_IMAGE_DIGEST="${SCWORKBENCH_BASE_IMAGE_DIGEST:-sha256:41ed449aa2181f330cdc8d0499a11a7435b04827ff926dc141584a34f65a12cb}"
 
     apt-get update
     apt-get install -y --no-install-recommends \
@@ -136,7 +139,11 @@ From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435
     rm -rf /opt/scworkbench/reports
 
     cat >/tmp/install_scworkbench_stack.R <<'EOF'
-options(Ncpus = max(1L, parallel::detectCores()))
+build_ncpus <- suppressWarnings(as.integer(Sys.getenv("SCWORKBENCH_BUILD_NCPUS", "")))
+if (is.na(build_ncpus) || build_ncpus < 1L) {
+  build_ncpus <- max(1L, parallel::detectCores())
+}
+options(Ncpus = build_ncpus)
 
 options(repos = c(CRAN = "https://cloud.r-project.org"))
 
@@ -336,6 +343,9 @@ write.csv(source_manifest, "/opt/scworkbench_package_sources.csv", row.names = F
 
 runtime_provenance <- c(
   paste0("built_at=", format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")),
+  paste0("runtime_kind=", Sys.getenv("SCWORKBENCH_RUNTIME_KIND")),
+  paste0("runtime_arch=", Sys.getenv("SCWORKBENCH_RUNTIME_ARCH")),
+  paste0("base_image_digest=", Sys.getenv("SCWORKBENCH_BASE_IMAGE_DIGEST")),
   paste0("r_version=", getRversion()),
   paste0("bpcells_version=", as.character(utils::packageVersion("BPCells"))),
   paste0("bpcells_remote_sha=", {
@@ -352,7 +362,6 @@ runtime_provenance <- c(
   paste0("pybench_version=", system("/opt/pyenv/bin/python -c 'import importlib.metadata as m; print(m.version(\"pybench\"))'", intern = TRUE)),
   "pybench_protocol_version=2",
   "pybench_protocol_sha256=d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b",
-  "base_image_digest_amd64=sha256:41ed449aa2181f330cdc8d0499a11a7435b04827ff926dc141584a34f65a12cb",
   paste0("r_version_lock_sha256=", system("sha256sum /opt/scworkbench/containers/apptainer/fullstack_r_versions.lock.csv | awk '{print $1}'", intern = TRUE)),
   paste0("python_version_lock_sha256=", system("sha256sum /opt/scworkbench/containers/apptainer/fullstack_python_requirements.lock | awk '{print $1}'", intern = TRUE)),
   "package_source_manifest=/opt/scworkbench_package_sources.csv",
