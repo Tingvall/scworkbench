@@ -4,7 +4,7 @@ test_docker_release_engineering_contract <- function() {
   required <- c(
     "Dockerfile", "derive_cpu_lock.py", "render_install_script.py",
     "prepare_build_context.sh", "build_fullstack.sh",
-    "qualify_fullstack_release.sh", "runtime.dcf", "README.md"
+    "qualify_fullstack_release.sh", "run_local.sh", "runtime.dcf", "README.md"
   )
   stopifnot(all(file.exists(file.path(docker_root, required))))
 
@@ -70,7 +70,17 @@ test_docker_release_engineering_contract <- function() {
     grepl("runtime_kind", install, fixed = TRUE)
   )
 
-  for (script in c("prepare_build_context.sh", "build_fullstack.sh", "qualify_fullstack_release.sh")) {
+  run_local <- paste(readLines(file.path(docker_root, "run_local.sh"), warn = FALSE), collapse = "\n")
+  stopifnot(
+    grepl('127.0.0.1:${PORT}:3838', run_local, fixed = TRUE),
+    grepl('${PROJECT_DIR}:/work', run_local, fixed = TRUE),
+    grepl("/usr/local/bin/run-scworkbench-shiny", run_local, fixed = TRUE)
+  )
+
+  for (script in c(
+    "prepare_build_context.sh", "build_fullstack.sh",
+    "qualify_fullstack_release.sh", "run_local.sh"
+  )) {
     stopifnot(identical(system2("bash", c("-n", file.path(docker_root, script))), 0L))
   }
   TRUE

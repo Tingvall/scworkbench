@@ -42,3 +42,23 @@ containers/docker/build_fullstack.sh \
 Record and distribute the resulting registry digest. A Docker image and an
 Apptainer SIF are distinct runtime artifacts even when their source revisions
 and scientific package contracts match.
+
+## Local workstation launch
+
+After loading or pulling a qualified image, start the Shiny client with:
+
+```bash
+containers/docker/run_local.sh REGISTRY/OWNER/scworkbench-fullstack:VERSION-cpu
+```
+
+The launcher creates `~/scworkbench-projects`, mounts it at `/work`, and opens
+the container service only on `127.0.0.1:3838`. Open
+<http://127.0.0.1:3838> in a browser. Files written below `/work` persist on
+the host after the container stops. Pass a different host directory as the
+second argument when required:
+
+```bash
+containers/docker/run_local.sh IMAGE_REF /path/to/project-directory
+```
+
+Press `Ctrl-C` in the terminal to stop the local container.
