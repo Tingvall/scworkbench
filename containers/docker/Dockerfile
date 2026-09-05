@@ -29,9 +29,11 @@ COPY scworkbench /opt/scworkbench
 COPY scworkbenchShiny /opt/scworkbenchShiny
 COPY pybench /opt/pybench
 COPY install_fullstack.sh /tmp/install_fullstack.sh
+COPY scworkbench/containers/docker/Makevars /opt/scworkbench-runtime/Makevars
 COPY scworkbench/containers/apptainer/run-scworkbench-shiny /usr/local/bin/run-scworkbench-shiny
 
 RUN chmod +x /tmp/install_fullstack.sh /usr/local/bin/run-scworkbench-shiny \
+    && export R_MAKEVARS_USER=/opt/scworkbench-runtime/Makevars \
     && /tmp/install_fullstack.sh \
     && rm -f /tmp/install_fullstack.sh
 

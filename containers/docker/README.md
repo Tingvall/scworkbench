@@ -13,6 +13,11 @@ The pinned Bioconductor base is an OCI index containing native `linux/amd64`
 and `linux/arm64` manifests. Build and qualify each architecture independently
 before publishing a combined manifest.
 
+The build uses `containers/docker/Makevars` to compile packages declaring the
+legacy `CXX11` slot in GNU C++14 mode. This is required by the locked
+`chromVAR 1.30.1` and `RcppArmadillo 15.4.2.1` source-build combination on
+architectures without compatible binary packages.
+
 ## Local single-platform build
 
 ```bash

@@ -4,7 +4,8 @@ test_docker_release_engineering_contract <- function() {
   required <- c(
     "Dockerfile", "derive_cpu_lock.py", "render_install_script.py",
     "prepare_build_context.sh", "build_fullstack.sh",
-    "qualify_fullstack_release.sh", "run_local.sh", "runtime.dcf", "README.md"
+    "qualify_fullstack_release.sh", "run_local.sh", "Makevars",
+    "runtime.dcf", "README.md"
   )
   stopifnot(all(file.exists(file.path(docker_root, required))))
 
@@ -13,8 +14,12 @@ test_docker_release_engineering_contract <- function() {
     grepl("sha256:359702d482e70e343d2a436731b7c6deffd1ec184a1f1700de5d64b0c97cacba", dockerfile, fixed = TRUE),
     grepl("SCWORKBENCH_RUNTIME_ARCH=${TARGETARCH}", dockerfile, fixed = TRUE),
     grepl("SCWORKBENCH_BUILD_NCPUS=${BUILD_NCPUS}", dockerfile, fixed = TRUE),
+    grepl("R_MAKEVARS_USER=/opt/scworkbench-runtime/Makevars", dockerfile, fixed = TRUE),
     grepl("ENTRYPOINT [\"/bin/bash\"]", dockerfile, fixed = TRUE)
   )
+
+  makevars <- readLines(file.path(docker_root, "Makevars"), warn = FALSE)
+  stopifnot(any(grepl("^CXX11STD = -std=gnu\\+\\+14$", makevars)))
 
   metadata <- read.dcf(file.path(docker_root, "runtime.dcf"))
   field <- function(name) unname(metadata[1L, name])
