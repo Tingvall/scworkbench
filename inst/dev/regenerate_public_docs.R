@@ -38,10 +38,15 @@ check_committed_revision <- function() {
     )
   }
 
-  output <- system2(
-    "Rscript", c("--vanilla", file.path(scratch, "inst/dev/regenerate_public_docs.R")),
-    stdout = TRUE, stderr = TRUE
-  )
+  run_generator <- function(workdir) {
+    old <- setwd(workdir)
+    on.exit(setwd(old), add = TRUE)
+    system2(
+      "Rscript", c("--vanilla", "inst/dev/regenerate_public_docs.R"),
+      stdout = TRUE, stderr = TRUE
+    )
+  }
+  output <- run_generator(scratch)
   status <- attr(output, "status")
   if (is.null(status)) status <- 0L
   if (!identical(as.integer(status), 0L)) stop(paste(output, collapse = "\n"), call. = FALSE)
