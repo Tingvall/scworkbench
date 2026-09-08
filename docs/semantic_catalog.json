@@ -11475,7 +11475,7 @@
       "name": "wb_cell_coverage",
       "title": "Cell Coverage",
       "description": "Summarize which cells are covered by matrices, spaces, and sets.",
-      "search_text": "Cell Coverage\nSummarize which cells are covered by matrices, spaces, and sets.\ncells\ndata.frame/list\nbundle\ncheck data coverage before running ops",
+      "search_text": "Cell Coverage\nSummarize which cells are covered by matrices, spaces, and sets.\ncells\ndata.frame/list\nbundle\ncell_set\ninputs\nresolved\nrequirements\nop_name\ncheck data coverage before running ops",
       "tags": ["getter", "cells"],
       "payload": {
         "function_name": "wb_cell_coverage",
@@ -11484,7 +11484,7 @@
         "description": "Summarize which cells are covered by matrices, spaces, and sets.",
         "returns": "data.frame/list",
         "payload_level": "metadata",
-        "arguments": "bundle",
+        "arguments": ["bundle", "cell_set", "inputs", "resolved", "requirements", "op_name"],
         "use_when": "check data coverage before running ops",
         "mutates": false
       }
@@ -11675,7 +11675,7 @@
       "name": "wb_matrix_read_features",
       "title": "Read Features",
       "description": "Read multiple features across cells from a logical matrix.",
-      "search_text": "Read Features\nRead multiple features across cells from a logical matrix.\nmatrices\nmatrix\nbundle\nmatrix_id\nfeatures\ncells\ninspect marker panel\nread feature block",
+      "search_text": "Read Features\nRead multiple features across cells from a logical matrix.\nmatrices\nmatrix\nbundle\nmatrix_id\nfeature_ids\ncell_ids\nmissing\nprefer_newest\ninspect marker panel\nread feature block",
       "tags": ["getter", "matrices"],
       "payload": {
         "function_name": "wb_matrix_read_features",
@@ -11684,7 +11684,7 @@
         "description": "Read multiple features across cells from a logical matrix.",
         "returns": "matrix",
         "payload_level": "payload",
-        "arguments": ["bundle", "matrix_id", "features", "cells"],
+        "arguments": ["bundle", "matrix_id", "feature_ids", "cell_ids", "missing", "prefer_newest"],
         "use_when": ["inspect marker panel", "read feature block"],
         "mutates": false
       }
@@ -11755,7 +11755,7 @@
       "name": "wb_search_features",
       "title": "Search Features",
       "description": "Search feature IDs or feature metadata.",
-      "search_text": "Search Features\nSearch feature IDs or feature metadata.\nfeatures\ndata.frame\nbundle\nquery\nmatrix_id\nfind matching genes/features by text",
+      "search_text": "Search Features\nSearch feature IDs or feature metadata.\nfeatures\ndata.frame\nbundle\nmatrix_id\nquery\nlimit\nmode\nfind matching genes/features by text",
       "tags": ["getter", "features"],
       "payload": {
         "function_name": "wb_search_features",
@@ -11764,7 +11764,7 @@
         "description": "Search feature IDs or feature metadata.",
         "returns": "data.frame",
         "payload_level": "metadata",
-        "arguments": ["bundle", "query", "matrix_id"],
+        "arguments": ["bundle", "matrix_id", "query", "limit", "mode"],
         "use_when": "find matching genes/features by text",
         "mutates": false
       }
@@ -12075,7 +12075,7 @@
       "name": "wb_trajectory_assert_fit_compatible",
       "title": "Trajectory Fit Compatibility Assertion",
       "description": "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
-      "search_text": "Trajectory Fit Compatibility Assertion\nFail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.\nartifacts\ninvisible data.frame or error\nbundle\n...\nruns\nallow_legacy\nvalidate pseudotime, weights, model, and path compatibility\nprevent cross-fit lineage-label mixing",
+      "search_text": "Trajectory Fit Compatibility Assertion\nFail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.\nartifacts\ninvisible data.frame or error\nbundle\nruns\nallow_legacy\nvalidate pseudotime, weights, model, and path compatibility\nprevent cross-fit lineage-label mixing",
       "tags": ["getter", "artifacts"],
       "payload": {
         "function_name": "wb_trajectory_assert_fit_compatible",
@@ -12084,7 +12084,7 @@
         "description": "Fail loudly when trajectory artifacts come from different trajectory fit families; shared labels such as L1 are not sufficient compatibility evidence.",
         "returns": "invisible data.frame or error",
         "payload_level": "metadata",
-        "arguments": ["bundle", "...", "runs", "allow_legacy"],
+        "arguments": ["bundle", "runs", "allow_legacy"],
         "use_when": ["validate pseudotime, weights, model, and path compatibility", "prevent cross-fit lineage-label mixing"],
         "mutates": false
       }
@@ -12095,7 +12095,7 @@
       "name": "wb_art_load",
       "title": "Load Artifact",
       "description": "Load a promoted artifact as a primitive.",
-      "search_text": "Load Artifact\nLoad a promoted artifact as a primitive.\nartifacts\nwb_primitive\nbundle\nartifact_id\nexpected_kind\nload promoted output for downstream analysis",
+      "search_text": "Load Artifact\nLoad a promoted artifact as a primitive.\nartifacts\nwb_primitive\nbundle\nartifact_id\nexpected_kind\nallow_untrusted_deserialization\nload promoted output for downstream analysis",
       "tags": ["getter", "artifacts"],
       "payload": {
         "function_name": "wb_art_load",
@@ -12104,7 +12104,7 @@
         "description": "Load a promoted artifact as a primitive.",
         "returns": "wb_primitive",
         "payload_level": "payload",
-        "arguments": ["bundle", "artifact_id", "expected_kind"],
+        "arguments": ["bundle", "artifact_id", "expected_kind", "allow_untrusted_deserialization"],
         "use_when": "load promoted output for downstream analysis",
         "mutates": false
       }
@@ -12195,7 +12195,7 @@
       "name": "wb_art_dependencies",
       "title": "Artifact Dependencies",
       "description": "Get dependency relationships for an artifact.",
-      "search_text": "Artifact Dependencies\nGet dependency relationships for an artifact.\nartifacts\ndata.frame/list\nbundle\nartifact_id\ninspect downstream/upstream artifact relationships",
+      "search_text": "Artifact Dependencies\nGet dependency relationships for an artifact.\nartifacts\ndata.frame/list\nbundle\nartifact_id\ndirection\nrecursive\ninspect downstream/upstream artifact relationships",
       "tags": ["getter", "artifacts"],
       "payload": {
         "function_name": "wb_art_dependencies",
@@ -12204,7 +12204,7 @@
         "description": "Get dependency relationships for an artifact.",
         "returns": "data.frame/list",
         "payload_level": "metadata",
-        "arguments": ["bundle", "artifact_id"],
+        "arguments": ["bundle", "artifact_id", "direction", "recursive"],
         "use_when": "inspect downstream/upstream artifact relationships",
         "mutates": false
       }
@@ -12335,7 +12335,7 @@
       "name": "wb_motif_libraries",
       "title": "Motif Libraries",
       "description": "List registered motif libraries.",
-      "search_text": "Motif Libraries\nList registered motif libraries.\nmotifs\ndata.frame\nbundle\ninspect available motif catalogs",
+      "search_text": "Motif Libraries\nList registered motif libraries.\nmotifs\ndata.frame\nbundle\norganism\ngenome_build\nsource_type\ninspect available motif catalogs",
       "tags": ["getter", "motifs"],
       "payload": {
         "function_name": "wb_motif_libraries",
@@ -12344,7 +12344,7 @@
         "description": "List registered motif libraries.",
         "returns": "data.frame",
         "payload_level": "metadata",
-        "arguments": "bundle",
+        "arguments": ["bundle", "organism", "genome_build", "source_type"],
         "use_when": "inspect available motif catalogs",
         "mutates": false
       }
@@ -12355,7 +12355,7 @@
       "name": "wb_motifs",
       "title": "Motifs",
       "description": "List motifs, optionally filtered by library.",
-      "search_text": "Motifs\nList motifs, optionally filtered by library.\nmotifs\ndata.frame\nbundle\nlibrary_id\nfind motif IDs for regulatory analysis",
+      "search_text": "Motifs\nList motifs, optionally filtered by library.\nmotifs\ndata.frame\nbundle\nmotif_library\nmotif_keys\nfind motif IDs for regulatory analysis",
       "tags": ["getter", "motifs"],
       "payload": {
         "function_name": "wb_motifs",
@@ -12364,7 +12364,7 @@
         "description": "List motifs, optionally filtered by library.",
         "returns": "data.frame",
         "payload_level": "metadata",
-        "arguments": ["bundle", "library_id"],
+        "arguments": ["bundle", "motif_library", "motif_keys"],
         "use_when": "find motif IDs for regulatory analysis",
         "mutates": false
       }
@@ -12375,7 +12375,7 @@
       "name": "wb_motif_match_sets",
       "title": "Motif Match Sets",
       "description": "List motif match sets available for peak features.",
-      "search_text": "Motif Match Sets\nList motif match sets available for peak features.\nmotifs\ndata.frame\nbundle\nchoose motif-to-peak mapping for chromVAR",
+      "search_text": "Motif Match Sets\nList motif match sets available for peak features.\nmotifs\ndata.frame\nbundle\nmatrix_id\nmotif_library\nmotif_match_set\nchoose motif-to-peak mapping for chromVAR",
       "tags": ["getter", "motifs"],
       "payload": {
         "function_name": "wb_motif_match_sets",
@@ -12384,7 +12384,7 @@
         "description": "List motif match sets available for peak features.",
         "returns": "data.frame",
         "payload_level": "metadata",
-        "arguments": "bundle",
+        "arguments": ["bundle", "matrix_id", "motif_library", "motif_match_set"],
         "use_when": "choose motif-to-peak mapping for chromVAR",
         "mutates": false
       }
@@ -12395,7 +12395,7 @@
       "name": "wb_motif_match_get",
       "title": "Motif Match Membership",
       "description": "Load motif match membership rows for a match set.",
-      "search_text": "Motif Match Membership\nLoad motif match membership rows for a match set.\nmotifs\ndata.frame\nbundle\nmatch_set_id\ninspect motif-feature memberships",
+      "search_text": "Motif Match Membership\nLoad motif match membership rows for a match set.\nmotifs\ndata.frame\nbundle\nmotif_match_set\nmotif_keys\ninspect motif-feature memberships",
       "tags": ["getter", "motifs"],
       "payload": {
         "function_name": "wb_motif_match_get",
@@ -12404,7 +12404,7 @@
         "description": "Load motif match membership rows for a match set.",
         "returns": "data.frame",
         "payload_level": "payload",
-        "arguments": ["bundle", "match_set_id"],
+        "arguments": ["bundle", "motif_match_set", "motif_keys"],
         "use_when": "inspect motif-feature memberships",
         "mutates": false
       }
@@ -12675,7 +12675,7 @@
       "name": "wb_nav_entities",
       "title": "Navigation Entities",
       "description": "List entities that can be navigated from an artifact-backed source.",
-      "search_text": "Navigation Entities\nList entities that can be navigated from an artifact-backed source.\nnavigation\ndata.frame\nsource\nbundle\nentity_kind\nlineage_id\nfind clickable genes, lineages, or feature sets",
+      "search_text": "Navigation Entities\nList entities that can be navigated from an artifact-backed source.\nnavigation\ndata.frame\nsource\nbundle\nentity_kind\nlineage_id\nfeature_set\nlimit\nsearch\ndirection\norder_by\nfind clickable genes, lineages, or feature sets",
       "tags": ["getter", "navigation"],
       "payload": {
         "function_name": "wb_nav_entities",
@@ -12684,7 +12684,7 @@
         "description": "List entities that can be navigated from an artifact-backed source.",
         "returns": "data.frame",
         "payload_level": "metadata",
-        "arguments": ["source", "bundle", "entity_kind", "lineage_id"],
+        "arguments": ["source", "bundle", "entity_kind", "lineage_id", "feature_set", "limit", "search", "direction", "order_by"],
         "use_when": "find clickable genes, lineages, or feature sets",
         "mutates": false
       }
@@ -12735,7 +12735,7 @@
       "name": "wb_client_discover",
       "title": "Client Discovery",
       "description": "Client facade for discovering bundle state and available operations.",
-      "search_text": "Client Discovery\nClient facade for discovering bundle state and available operations.\nclient\nlist\nbundle\ninitialize UI or agent context",
+      "search_text": "Client Discovery\nClient facade for discovering bundle state and available operations.\nclient\nlist\nbundle\nsession\ninclude_op_interfaces\ninclude_vectors\ninclude_feature_sets\ninitialize UI or agent context",
       "tags": ["getter", "client"],
       "payload": {
         "function_name": "wb_client_discover",
@@ -12744,7 +12744,7 @@
         "description": "Client facade for discovering bundle state and available operations.",
         "returns": "list",
         "payload_level": "metadata",
-        "arguments": "bundle",
+        "arguments": ["bundle", "session", "include_op_interfaces", "include_vectors", "include_feature_sets"],
         "use_when": "initialize UI or agent context",
         "mutates": false
       }
@@ -12755,7 +12755,7 @@
       "name": "wb_client_inspect",
       "title": "Client Inspect",
       "description": "Client facade for inspecting session and bundle runtime state.",
-      "search_text": "Client Inspect\nClient facade for inspecting session and bundle runtime state.\nclient\nlist\nbundle\nsession\nsummarize current analysis state",
+      "search_text": "Client Inspect\nClient facade for inspecting session and bundle runtime state.\nclient\nlist\nbundle\nsession\nrun_id\ninclude_run_outputs\nsummarize current analysis state",
       "tags": ["getter", "client"],
       "payload": {
         "function_name": "wb_client_inspect",
@@ -12764,7 +12764,7 @@
         "description": "Client facade for inspecting session and bundle runtime state.",
         "returns": "list",
         "payload_level": "metadata",
-        "arguments": ["bundle", "session"],
+        "arguments": ["bundle", "session", "run_id", "include_run_outputs"],
         "use_when": "summarize current analysis state",
         "mutates": false
       }
@@ -12775,7 +12775,7 @@
       "name": "wb_client_load",
       "title": "Client Load",
       "description": "Client facade for loading primitives by reference.",
-      "search_text": "Client Load\nClient facade for loading primitives by reference.\nclient\nwb_primitive\nbundle\nref\nsession\nload selected artifact or session output",
+      "search_text": "Client Load\nClient facade for loading primitives by reference.\nclient\nwb_primitive\nbundle\nref\nsession\nruns\nexpected_kind\nload selected artifact or session output",
       "tags": ["getter", "client"],
       "payload": {
         "function_name": "wb_client_load",
@@ -12784,7 +12784,7 @@
         "description": "Client facade for loading primitives by reference.",
         "returns": "wb_primitive",
         "payload_level": "payload",
-        "arguments": ["bundle", "ref", "session"],
+        "arguments": ["bundle", "ref", "session", "runs", "expected_kind"],
         "use_when": "load selected artifact or session output",
         "mutates": false
       }
@@ -12795,7 +12795,7 @@
       "name": "wb_client_load_table",
       "title": "Client Load Table",
       "description": "Client facade for loading and wrangling references into normalized tables.",
-      "search_text": "Client Load Table\nClient facade for loading and wrangling references into normalized tables.\nclient\ndata.frame\nbundle\nref\nsession\nkey\npreview primitive data in a table",
+      "search_text": "Client Load Table\nClient facade for loading and wrangling references into normalized tables.\nclient\ndata.frame\nbundle\nref\nsession\nruns\nexpected_kind\nkey\ninclude_context\npreview primitive data in a table",
       "tags": ["getter", "client"],
       "payload": {
         "function_name": "wb_client_load_table",
@@ -12804,7 +12804,7 @@
         "description": "Client facade for loading and wrangling references into normalized tables.",
         "returns": "data.frame",
         "payload_level": "payload",
-        "arguments": ["bundle", "ref", "session", "key"],
+        "arguments": ["bundle", "ref", "session", "runs", "expected_kind", "key", "include_context"],
         "use_when": "preview primitive data in a table",
         "mutates": false
       }

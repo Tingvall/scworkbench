@@ -1,6 +1,6 @@
 {
   "schema_version": "scworkbench.getter_catalog.semantic.v1",
-  "generated_at": "2026-09-02T10:12:29+0200",
+  "generated_at": "source-controlled",
   "getter_count": 85,
   "getters": [
     {

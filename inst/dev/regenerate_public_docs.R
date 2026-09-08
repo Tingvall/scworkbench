@@ -8,18 +8,49 @@ run <- function(command, arguments) {
   status <- attr(output, "status")
   if (is.null(status)) status <- 0L
   if (!identical(as.integer(status), 0L)) stop(paste(c(output, paste(c(command, arguments), collapse = " ")), collapse = "\n"), call. = FALSE)
+  invisible(output)
 }
-if (check) {
+check_committed_revision <- function() {
+  revision <- trimws(run("git", c("-C", root, "rev-parse", "--verify", "HEAD")))
+  if (length(revision) != 1L || !grepl("^[0-9a-f]{40}$", revision)) {
+    stop("Unable to resolve the exact committed revision for documentation checking.", call. = FALSE)
+  }
+
   scratch <- tempfile("scwb_docs_check_")
-  dir.create(scratch)
-  on.exit(unlink(scratch, recursive = TRUE, force = TRUE), add = TRUE)
-  run("git", c("clone", "--quiet", root, scratch))
-  output <- system2("Rscript", file.path(scratch, "inst/dev/regenerate_public_docs.R"), stdout = TRUE, stderr = TRUE)
+  cleanup <- function() {
+    suppressWarnings(system2(
+      "git", c("-C", root, "worktree", "remove", "--force", scratch),
+      stdout = TRUE, stderr = TRUE
+    ))
+    if (dir.exists(scratch)) unlink(scratch, recursive = TRUE, force = TRUE)
+  }
+  on.exit(cleanup(), add = TRUE)
+  run("git", c(
+    "-C", root, "worktree", "add", "--detach", "--quiet", scratch, revision
+  ))
+  checked_revision <- trimws(run("git", c(
+    "-C", scratch, "rev-parse", "--verify", "HEAD"
+  )))
+  if (!identical(checked_revision, revision)) {
+    stop(
+      "Generated-document check staged a revision other than the invoking checkout HEAD.",
+      call. = FALSE
+    )
+  }
+
+  output <- system2(
+    "Rscript", c("--vanilla", file.path(scratch, "inst/dev/regenerate_public_docs.R")),
+    stdout = TRUE, stderr = TRUE
+  )
   status <- attr(output, "status")
   if (is.null(status)) status <- 0L
   if (!identical(as.integer(status), 0L)) stop(paste(output, collapse = "\n"), call. = FALSE)
-  changed <- system2("git", c("-C", scratch, "status", "--porcelain"), stdout = TRUE)
+  changed <- run("git", c("-C", scratch, "status", "--porcelain"))
   if (length(changed)) stop(paste0("GENERATED_REFERENCE_DRIFT:\n", paste(changed, collapse = "\n")), call. = FALSE)
+  invisible(TRUE)
+}
+if (check) {
+  check_committed_revision()
   quit(status = 0L)
 }
 Sys.setenv(TZ = "UTC", SOURCE_DATE_EPOCH = "1")
