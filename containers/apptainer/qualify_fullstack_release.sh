@@ -20,6 +20,14 @@ Rscript "${CHECKOUT}/inst/ci/validate_release_metadata.R" "${CHECKOUT}"
 
 echo "==> Shipped onboarding path"
 singularity exec --cleanenv "${IMAGE_PATH}" \
+  test -d /opt/scworkbench
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  test -d /opt/pybench
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  test ! -e /opt/scworkbenchShiny
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  test ! -e /usr/local/bin/run-scworkbench-shiny
+singularity exec --cleanenv "${IMAGE_PATH}" \
   test -f /opt/scworkbench/inst/onboarding/AGENT_OPERATOR_GUIDE.md
 singularity exec --cleanenv "${IMAGE_PATH}" \
   Rscript -e 'stopifnot(nzchar(system.file("onboarding", "README.md", package = "scworkbench"))); stopifnot(nzchar(system.file("onboarding", "AGENT_OPERATOR_GUIDE.md", package = "scworkbench")))'

@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat >&2 <<'EOF'
+usage: run_logged_gate [--force] LOG_PATH EXIT_PATH -- COMMAND [ARG ...]
+
+Run COMMAND without string evaluation, write its combined output to LOG_PATH,
+atomically write its numeric status to EXIT_PATH, and return that same status.
+Existing records are rejected unless --force is specified.
+EOF
+}
+
+force=0
+if [[ "${1:-}" == "--force" ]]; then
+  force=1
+  shift
+fi
+
+if [[ $# -lt 4 || -z "${1:-}" || -z "${2:-}" || "${3:-}" != "--" ]]; then
+  usage
+  exit 64
+fi
+
+log_path=$1
+exit_path=$2
+shift 3
+
+if [[ $# -eq 0 || "$log_path" == "$exit_path" ]]; then
+  usage
+  exit 64
+fi
+
+log_dir=$(dirname -- "$log_path")
+exit_dir=$(dirname -- "$exit_path")
+if [[ ! -d "$log_dir" || ! -d "$exit_dir" ]]; then
+  echo "run_logged_gate: output directories must already exist" >&2
+  exit 72
+fi
+if [[ $force -eq 0 && ( -e "$log_path" || -e "$exit_path" ) ]]; then
+  echo "run_logged_gate: retained record exists; use --force to replace it" >&2
+  exit 73
+fi
+
+log_tmp=$(mktemp "${log_path}.tmp.XXXXXX") || exit 74
+exit_tmp=$(mktemp "${exit_path}.tmp.XXXXXX") || {
+  rm -f -- "$log_tmp"
+  exit 74
+}
+cleanup() {
+  rm -f -- "$log_tmp" "$exit_tmp"
+}
+trap cleanup EXIT HUP INT TERM
+
+set +e
+"$@" 2>&1 | tee "$log_tmp"
+pipeline_status=("${PIPESTATUS[@]}")
+set -e
+command_status=${pipeline_status[0]}
+tee_status=${pipeline_status[1]}
+
+if [[ $tee_status -ne 0 ]]; then
+  echo "run_logged_gate: unable to capture command output" >&2
+  exit 74
+fi
+
+printf '%s\n' "$command_status" >"$exit_tmp"
+if [[ $force -eq 1 ]]; then
+  mv -f -- "$log_tmp" "$log_path"
+  mv -f -- "$exit_tmp" "$exit_path"
+else
+  if ! ln -- "$log_tmp" "$log_path"; then
+    echo "run_logged_gate: retained log appeared before publication" >&2
+    exit 73
+  fi
+  rm -f -- "$log_tmp"
+  if ! ln -- "$exit_tmp" "$exit_path"; then
+    rm -f -- "$log_path"
+    echo "run_logged_gate: retained exit sidecar appeared before publication" >&2
+    exit 73
+  fi
+  rm -f -- "$exit_tmp"
+fi
+trap - EXIT HUP INT TERM
+exit "$command_status"

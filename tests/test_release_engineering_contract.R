@@ -5,6 +5,7 @@ test_release_engineering_contract <- function() {
     "docs/release_process.md", "inst/release/composite_release.dcf",
     "inst/release/gate_policy.json", "inst/release/build_source_artifacts.sh",
     "inst/release/assemble_release_evidence.sh",
+    "inst/ci/run_logged_gate",
     "containers/apptainer/fullstack_r_versions.lock.csv",
     "containers/apptainer/fullstack_python_requirements.lock"
   )
@@ -59,16 +60,35 @@ test_release_engineering_contract <- function() {
   )
   stopifnot(any(grepl("^From: .*@sha256:[0-9a-f]{64}$", definition)),
             any(grepl("fullstack_python_requirements[.]lock", definition)),
-            any(grepl("[.][.]/pybench/protocol /opt/pybench/protocol", definition)))
+            any(grepl("[.][.]/pybench/protocol /opt/pybench/protocol", definition)),
+            !any(grepl("^[[:space:]]*[.][.]/scworkbenchShiny[[:space:]]", definition)),
+            !any(grepl("run-scworkbench-shiny[[:space:]]+/usr/local/bin", definition)))
 
   build_script <- paste(readLines(
     file.path(root, "containers/apptainer/build_fullstack.sh"), warn = FALSE
   ), collapse = "\n")
   stopifnot(grepl('"${PYBENCH_ROOT}/protocol/"', build_script, fixed = TRUE),
-            grepl("protocol/pybench-op-v2[.]schema[.]json", build_script))
+            grepl("protocol/pybench-op-v2[.]schema[.]json", build_script),
+            !grepl('"${REPO_ROOT}/../scworkbenchShiny/"', build_script, fixed = TRUE),
+            !grepl('"${BUILD_CONTEXT}/scworkbenchShiny"', build_script, fixed = TRUE),
+            !grepl('"${BUILD_CONTEXT}/scwb-agent"', build_script, fixed = TRUE))
+
+  fullstack <- paste(readLines(
+    file.path(root, "inst/fullstack/check_fullstack_contracts.sh"), warn = FALSE
+  ), collapse = "\n")
+  stopifnot(
+    grepl("scworkbench pybench payload parity", fullstack, fixed = TRUE),
+    grepl("generated semantic catalog freshness", fullstack, fixed = TRUE),
+    grepl("pybench tests", fullstack, fixed = TRUE),
+    grepl('PYBENCH_GOLDEN_BUNDLE="$FULLSTACK_TMP/pybench_golden"', fullstack, fixed = TRUE),
+    grepl('cp -a -- "$GOLDEN_BUNDLE" "$PYBENCH_GOLDEN_BUNDLE"', fullstack, fixed = TRUE),
+    !grepl("scworkbenchShiny", fullstack, fixed = TRUE),
+    !grepl("scwb-agent", fullstack, fixed = TRUE)
+  )
 
   scripts <- c(
-    "inst/ci/run_canonical_gate.sh", "inst/ci/record_manual_gate.sh",
+    "inst/ci/run_canonical_gate.sh", "inst/ci/run_logged_gate",
+    "inst/ci/record_manual_gate.sh",
     "inst/ci/checkout_pinned_pybench.sh", "inst/ci/provision_pinned_pybench.sh",
     "inst/release/build_source_artifacts.sh", "inst/release/assemble_release_evidence.sh"
   )

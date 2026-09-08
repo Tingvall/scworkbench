@@ -60,7 +60,7 @@ fullstack_tripwire:
   timeout: 1h
   script:
     - inst/ci/provision_pinned_pybench.sh .ci/pybench
-    - SCWORKBENCH_PYBENCH_PYTHON=.ci/pybench/.venv/bin/python PYTHONPATH=.ci/pybench/src inst/fullstack/check_fullstack_contracts.sh | tee ci-evidence/fullstack.log
+    - SCWORKBENCH_PYBENCH_ROOT="$CI_PROJECT_DIR/.ci/pybench" SCWORKBENCH_PYBENCH_PYTHON="$CI_PROJECT_DIR/.ci/pybench/.venv/bin/python" PYTHONPATH="$CI_PROJECT_DIR/.ci/pybench/src" inst/fullstack/check_fullstack_contracts.sh | tee ci-evidence/fullstack.log
     - grep -x '\[fullstack\] ok' ci-evidence/fullstack.log
   artifacts:
     when: always

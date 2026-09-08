@@ -1,8 +1,9 @@
 # Composite Release Process
 
 scworkbench releases are composite: an R package, a pinned PyBench source
-revision, a shared protocol schema, and a qualified Apptainer image. The
-authoritative compatibility record is `inst/release/composite_release.dcf`.
+revision, a shared protocol schema, and a qualified core Apptainer runtime.
+Optional client repositories are not part of that runtime. The authoritative
+compatibility record is `inst/release/composite_release.dcf`.
 
 ## Locked Inputs
 
@@ -44,3 +45,17 @@ than silently accepting newly resolved versions.
 
 Release candidates may retain `not_run` manual gates for development. A final
 release cannot.
+
+## Logged gate records
+
+Use the repository-owned wrapper when a release command needs a raw combined
+log and numeric exit sidecar:
+
+```bash
+inst/ci/run_logged_gate path/to/gate.log path/to/gate.exit -- command arg
+```
+
+The wrapper returns the command status and publishes the same status
+atomically in the sidecar. It rejects malformed invocations and existing log
+or sidecar paths. `--force` before the two paths is the explicit, deliberate
+overwrite option; retained evidence must not otherwise be replaced.

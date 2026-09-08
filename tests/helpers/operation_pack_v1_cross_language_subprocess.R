@@ -26,6 +26,8 @@ copy_bundle <- function(source, destination) {
 invisible(wb_operation_pack_load(r_package))
 python_pack <- wb_operation_pack_activate(
   python_manifest, python = python, timeout_seconds = 60)
+composite <- read.dcf(file.path(repo, "inst", "release", "composite_release.dcf"))
+expected_pybench_revision <- as.character(composite[1L, "PyBenchCommit"])
 stopifnot(
   identical(python_pack$identity$manifest_sha256,
     "9f9ed39a8f0506f7d67c43a3a5bb6356715b5f0ba3a0022c1e8113681bfb0253"),
@@ -36,7 +38,7 @@ stopifnot(
     "864bd72926807e55ab465580d2235e39d4512ac6c621070662c67586dc385aab"),
   !"executable" %in% names(python_pack$runtime_attestation$interpreter),
   identical(python_pack$runtime_attestation$pybench$source_revision,
-    "0a0809a08a356291a5a331db0a8eac0b3d9bf729")
+    expected_pybench_revision)
 )
 forward_catalog <- wb_operation_catalog_identity()$sha256
 forward_semantic <- wb_semantic_catalog()$catalog_sha256

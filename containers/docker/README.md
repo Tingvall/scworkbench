@@ -1,9 +1,11 @@
-# Full-stack CPU Docker image
+# Core CPU Docker image
 
 This image is the local-workstation counterpart to the CUDA-capable Apptainer
-runtime. It uses the same scworkbench, Shiny, PyBench, R dependency, and
-operation-contract sources, but derives a CPU-only Python lock by removing the
-CUDA runtime packages and replacing the pinned CUDA PyTorch wheel with the
+runtime. It contains the scworkbench engine, composite-pinned PyBench, and their
+locked R and Python method dependencies. Optional clients such as
+`scworkbenchShiny` and `scwb-agent` are not copied into or launched by this
+runtime. The Docker build derives a CPU-only Python lock by removing the CUDA
+runtime packages and replacing the pinned CUDA PyTorch wheel with the
 corresponding pinned CPU wheel.
 
 `runtime.dcf` records the immutable multi-platform base index, both platform
@@ -50,20 +52,20 @@ and scientific package contracts match.
 
 ## Local workstation launch
 
-After loading or pulling a qualified image, start the Shiny client with:
+After loading or pulling a qualified image, open an interactive shell with:
 
 ```bash
 containers/docker/run_local.sh REGISTRY/OWNER/scworkbench-fullstack:VERSION-cpu
 ```
 
-The launcher creates `~/scworkbench-projects`, mounts it at `/work`, and opens
-the container service only on `127.0.0.1:3838`. Open
-<http://127.0.0.1:3838> in a browser. Files written below `/work` persist on
-the host after the container stops. Pass a different host directory as the
-second argument when required:
+The launcher creates `~/scworkbench-projects`, mounts it at `/work`, and starts
+the shell there. It does not publish a network port or imply that a graphical
+client is bundled. Files written below `/work` persist on the host after the
+container stops. Pass a different host directory as the second argument when
+required:
 
 ```bash
 containers/docker/run_local.sh IMAGE_REF /path/to/project-directory
 ```
 
-Press `Ctrl-C` in the terminal to stop the local container.
+Exit the shell to stop the local container.

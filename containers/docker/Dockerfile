@@ -7,8 +7,8 @@ ARG TARGETARCH
 ARG BASE_IMAGE_INDEX_DIGEST=sha256:359702d482e70e343d2a436731b7c6deffd1ec184a1f1700de5d64b0c97cacba
 ARG BUILD_NCPUS=2
 
-LABEL org.opencontainers.image.title="scworkbench full-stack CPU runtime" \
-      org.opencontainers.image.description="Qualified R/Python scworkbench runtime for local Docker use" \
+LABEL org.opencontainers.image.title="scworkbench core CPU runtime" \
+      org.opencontainers.image.description="scworkbench and PyBench CPU runtime for local Docker use" \
       org.opencontainers.image.source="https://gitlab.liu.se/hende58/scworkbench" \
       org.opencontainers.image.version="0.1.0" \
       scworkbench.runtime="docker" \
@@ -26,13 +26,11 @@ ENV LC_ALL=C.UTF-8 \
     SCWORKBENCH_BUILD_NCPUS=${BUILD_NCPUS}
 
 COPY scworkbench /opt/scworkbench
-COPY scworkbenchShiny /opt/scworkbenchShiny
 COPY pybench /opt/pybench
 COPY install_fullstack.sh /tmp/install_fullstack.sh
 COPY scworkbench/containers/docker/Makevars /opt/scworkbench-runtime/Makevars
-COPY scworkbench/containers/apptainer/run-scworkbench-shiny /usr/local/bin/run-scworkbench-shiny
 
-RUN chmod +x /tmp/install_fullstack.sh /usr/local/bin/run-scworkbench-shiny \
+RUN chmod +x /tmp/install_fullstack.sh \
     && export R_MAKEVARS_USER=/opt/scworkbench-runtime/Makevars \
     && /tmp/install_fullstack.sh \
     && rm -f /tmp/install_fullstack.sh

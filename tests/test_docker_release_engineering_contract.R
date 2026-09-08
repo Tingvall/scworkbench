@@ -15,7 +15,9 @@ test_docker_release_engineering_contract <- function() {
     grepl("SCWORKBENCH_RUNTIME_ARCH=${TARGETARCH}", dockerfile, fixed = TRUE),
     grepl("SCWORKBENCH_BUILD_NCPUS=${BUILD_NCPUS}", dockerfile, fixed = TRUE),
     grepl("R_MAKEVARS_USER=/opt/scworkbench-runtime/Makevars", dockerfile, fixed = TRUE),
-    grepl("ENTRYPOINT [\"/bin/bash\"]", dockerfile, fixed = TRUE)
+    grepl("ENTRYPOINT [\"/bin/bash\"]", dockerfile, fixed = TRUE),
+    !grepl("scworkbenchShiny", dockerfile, fixed = TRUE),
+    !grepl("run-scworkbench-shiny", dockerfile, fixed = TRUE)
   )
 
   makevars <- readLines(file.path(docker_root, "Makevars"), warn = FALSE)
@@ -77,9 +79,20 @@ test_docker_release_engineering_contract <- function() {
 
   run_local <- paste(readLines(file.path(docker_root, "run_local.sh"), warn = FALSE), collapse = "\n")
   stopifnot(
-    grepl('127.0.0.1:${PORT}:3838', run_local, fixed = TRUE),
     grepl('${PROJECT_DIR}:/work', run_local, fixed = TRUE),
-    grepl("/usr/local/bin/run-scworkbench-shiny", run_local, fixed = TRUE)
+    grepl("--workdir /work", run_local, fixed = TRUE),
+    !grepl("--publish", run_local, fixed = TRUE),
+    !grepl("3838", run_local, fixed = TRUE),
+    !grepl("run-scworkbench-shiny", run_local, fixed = TRUE)
+  )
+
+  context_script <- paste(
+    readLines(file.path(docker_root, "prepare_build_context.sh"), warn = FALSE),
+    collapse = "\n"
+  )
+  stopifnot(
+    !grepl("scworkbenchShiny", context_script, fixed = TRUE),
+    !grepl("scwb-agent", context_script, fixed = TRUE)
   )
 
   for (script in c(

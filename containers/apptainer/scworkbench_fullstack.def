@@ -4,28 +4,28 @@ From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435
 %labels
     Maintainer Dirk_de_Weerd
     Package scworkbench
-    Stack full
+    Stack core
     Runtime apptainer
     ScworkbenchVersion 0.1.0
     PyBenchVersion 0.1.0
     PyBenchProtocol 2
 
 %help
-    Full-stack scworkbench Apptainer image.
+    Core scworkbench + PyBench Apptainer image.
 
     Includes:
     - scworkbench engine
-    - scworkbenchShiny app tree
     - pybench Python runtime tree
     - R/Bioconductor method stack used by current ops
     - Python analysis stack for scanpy/palantir/scvi/PeakVI CUDA-capable workloads
+
+    Optional clients such as scworkbenchShiny and scwb-agent are not bundled.
 
     Build from the scworkbench repo root so the %files paths resolve:
       apptainer build --fakeroot scworkbench_fullstack.sif containers/apptainer/scworkbench_fullstack.def
 
 %files
     . /opt/scworkbench
-    ../scworkbenchShiny /opt/scworkbenchShiny
     ../pybench/pyproject.toml /opt/pybench/pyproject.toml
     ../pybench/README.md /opt/pybench/README.md
     ../pybench/CITATION.cff /opt/pybench/CITATION.cff
@@ -35,7 +35,6 @@ From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435
     ../pybench/protocol /opt/pybench/protocol
     scripts/prepare_bpcells_python_fork.sh /opt/scworkbench/scripts/prepare_bpcells_python_fork.sh
     third_party/patches/bpcells-python-noninteger-read.patch /opt/scworkbench/third_party/patches/bpcells-python-noninteger-read.patch
-    containers/apptainer/run-scworkbench-shiny /usr/local/bin/run-scworkbench-shiny
 
 %environment
     export LC_ALL=C.UTF-8
@@ -173,7 +172,7 @@ bpcells_r_ref <- lock$GitHubBPCellsRef
 monocle3_ref <- lock$GitHubMonocle3Ref
 
 # CRAN-managed packages. This includes declared Suggests and runtime support
-# packages needed by the Shiny reference client.
+# packages needed by the declared R method stack.
 cran_pkgs <- version_lock$package[version_lock$source_class == "CRAN"]
 cran_versions <- stats::setNames(version_lock$version[match(cran_pkgs, version_lock$package)], cran_pkgs)
 source("/opt/scworkbench/inst/ci/provision_cran_namespaces.R")
@@ -385,8 +384,6 @@ EOF
       --description /opt/scworkbench/DESCRIPTION \
       --manifest /opt/scworkbench_declared_suggests.csv
     Rscript /opt/scworkbench/inst/ci/check_genomicranges_runtime.R
-
-    chmod +x /usr/local/bin/run-scworkbench-shiny
 
 %runscript
     exec /bin/bash "$@"

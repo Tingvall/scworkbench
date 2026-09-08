@@ -3,11 +3,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-SHINY_ROOT="${REPO_ROOT}/../scworkbenchShiny"
-PYBENCH_ROOT="${REPO_ROOT}/../../pybench"
+PYBENCH_ROOT="${SCWORKBENCH_PYBENCH_ROOT:-${REPO_ROOT}/../../pybench}"
 CONTEXT="${1:-/tmp/scworkbench_fullstack_docker_context}"
 
-test -d "${SHINY_ROOT}"
 test -d "${PYBENCH_ROOT}"
 
 EXPECTED_PYBENCH_COMMIT="$(sed -n 's/^PyBenchCommit:[[:space:]]*//p' "${REPO_ROOT}/inst/release/composite_release.dcf")"
@@ -18,7 +16,7 @@ if [[ "${OBSERVED_PYBENCH_COMMIT}" != "${EXPECTED_PYBENCH_COMMIT}" ]]; then
 fi
 
 rm -rf "${CONTEXT}"
-mkdir -p "${CONTEXT}/scworkbench" "${CONTEXT}/scworkbenchShiny" "${CONTEXT}/pybench"
+mkdir -p "${CONTEXT}/scworkbench" "${CONTEXT}/pybench"
 
 rsync -a \
   --exclude '.git/' \
@@ -30,13 +28,6 @@ rsync -a \
   --exclude '*.sif' \
   --exclude '*.tar.gz' \
   "${REPO_ROOT}/" "${CONTEXT}/scworkbench/"
-
-rsync -a \
-  --exclude '.git/' \
-  --exclude '.Rproj.user/' \
-  --exclude '.agents/' \
-  --exclude '.codex/' \
-  "${SHINY_ROOT}/" "${CONTEXT}/scworkbenchShiny/"
 
 for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md; do
   test -f "${PYBENCH_ROOT}/${required}"

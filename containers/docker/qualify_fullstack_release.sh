@@ -31,10 +31,13 @@ echo "==> Locked runtimes"
 
 echo "==> Product and release gates"
 "${RUN[@]}" '
-  test -x /usr/local/bin/run-scworkbench-shiny
+  test -d /opt/scworkbench
+  test -d /opt/pybench
+  test ! -e /opt/scworkbenchShiny
+  test ! -e /usr/local/bin/run-scworkbench-shiny
   test -f /opt/scworkbench/inst/onboarding/AGENT_OPERATOR_GUIDE.md
   cd /opt/scworkbench
   inst/ci/check_release_package.sh
 '
 
-echo "Docker full-stack qualification: OK"
+echo "Docker core-runtime qualification: OK"

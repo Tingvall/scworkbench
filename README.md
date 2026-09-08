@@ -247,8 +247,9 @@ Rscript inst/golden_bundle/create_golden_bundle.R /tmp/scwb_golden
 ```
 
 The golden bundle is generated, not source-controlled as a mutable working
-bundle. It is used to verify core assumptions across `scworkbench`, `pybench`,
-`scworkbenchShiny`, and `scwb-agent`.
+bundle. The publication fullstack gate uses it to verify the core
+`scworkbench`/`pybench` boundary. Optional clients may consume the same public
+contracts in their own explicitly invoked qualification.
 
 ## Cross-Repo Boundaries
 
@@ -260,7 +261,8 @@ bundle. It is used to verify core assumptions across `scworkbench`, `pybench`,
 - provenance and promotion semantics
 - semantic catalog and KG export semantics
 
-Sibling repositories consume those contracts:
+External repositories may consume those contracts as optional clients or peer
+runtimes:
 
 - `scworkbenchShiny`: thin UI/client.
 - `pybench`: Python peer runtime for bundle-compatible Python-native methods.

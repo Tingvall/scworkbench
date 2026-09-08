@@ -2,12 +2,63 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-GOLDEN_BUNDLE="${SCWB_GOLDEN_BUNDLE:-"$ROOT/fixtures/golden_bundle/scwb_golden"}"
+SCWORKBENCH_ROOT="$ROOT/scworkbench"
+PYBENCH_ROOT="${SCWORKBENCH_PYBENCH_ROOT:-$ROOT/../pybench}"
+FULLSTACK_TMP="$(mktemp -d /tmp/scwb_fullstack.XXXXXX)"
+GOLDEN_BUNDLE="${SCWB_GOLDEN_BUNDLE:-$FULLSTACK_TMP/scwb_golden}"
+cleanup() {
+  rm -rf -- "$FULLSTACK_TMP"
+  [[ -z "${KG_EXPORT_DIR:-}" ]] || rm -rf -- "$KG_EXPORT_DIR"
+}
+trap cleanup EXIT
+
+if [[ ! -d "$SCWORKBENCH_ROOT" ]]; then
+  echo "Missing required scworkbench checkout: $SCWORKBENCH_ROOT" >&2
+  exit 1
+fi
+if [[ ! -d "$PYBENCH_ROOT" ]]; then
+  echo "Missing required PyBench checkout: $PYBENCH_ROOT" >&2
+  exit 1
+fi
 
 echo "[fullstack] root: $ROOT"
+echo "[fullstack] runtime boundary: scworkbench + PyBench"
+
+Rscript "$SCWORKBENCH_ROOT/inst/ci/validate_release_metadata.R" \
+  "$SCWORKBENCH_ROOT" "$PYBENCH_ROOT"
+
+if [[ -n "${SCWORKBENCH_PYBENCH_PYTHON:-}" ]]; then
+  if [[ "$SCWORKBENCH_PYBENCH_PYTHON" == /* ]]; then
+    PYBENCH_PYTHON="$SCWORKBENCH_PYBENCH_PYTHON"
+  else
+    PYBENCH_PYTHON="$(command -v "$SCWORKBENCH_PYBENCH_PYTHON")"
+  fi
+elif [[ -x "$PYBENCH_ROOT/.venv/bin/python" ]]; then
+  PYBENCH_PYTHON="$PYBENCH_ROOT/.venv/bin/python"
+else
+  PYBENCH_PYTHON="$(command -v python3)"
+fi
+if [[ ! -x "$PYBENCH_PYTHON" ]]; then
+  echo "PyBench Python is not executable: $PYBENCH_PYTHON" >&2
+  exit 1
+fi
+export SCWORKBENCH_PYBENCH_PYTHON="$PYBENCH_PYTHON"
 
 echo "[fullstack] generating golden bundle"
-Rscript "$ROOT/scworkbench/inst/golden_bundle/create_golden_bundle.R" "$GOLDEN_BUNDLE"
+Rscript "$SCWORKBENCH_ROOT/inst/golden_bundle/create_golden_bundle.R" "$GOLDEN_BUNDLE"
+export PYBENCH_GOLDEN_BUNDLE="$FULLSTACK_TMP/pybench_golden"
+cp -a -- "$GOLDEN_BUNDLE" "$PYBENCH_GOLDEN_BUNDLE"
+GOLDEN_IDENTITY="$(
+  cd "$PYBENCH_ROOT"
+  PYTHONPATH=tests "$PYBENCH_PYTHON" -m external_contracts "$PYBENCH_GOLDEN_BUNDLE"
+)"
+case "$GOLDEN_IDENTITY" in
+  pybench-external-directory-sha256-v1:*) ;;
+  *) echo "Unexpected PyBench golden-bundle identity: $GOLDEN_IDENTITY" >&2; exit 1 ;;
+esac
+export PYBENCH_GOLDEN_BUNDLE_SHA256="${GOLDEN_IDENTITY#*:}"
+export PYBENCH_SCWORKBENCH_SOURCE_DIR="$(realpath -e "$SCWORKBENCH_ROOT")"
+export PYBENCH_SCWORKBENCH_PROTOCOL_DIR="$PYBENCH_SCWORKBENCH_SOURCE_DIR/inst/protocol"
 
 echo "[fullstack] scworkbench KG JSONL export"
 KG_EXPORT_DIR="$(mktemp -d /tmp/scwb_kg_export.XXXXXX)"
@@ -15,7 +66,7 @@ echo "[fullstack] kg_export_dir: $KG_EXPORT_DIR"
 SCWB_KG_EXPORT_DIR="$KG_EXPORT_DIR" Rscript -e "
 if (!requireNamespace('devtools', quietly = TRUE) && !requireNamespace('pkgload', quietly = TRUE)) stop('devtools or pkgload required')
 if (!requireNamespace('jsonlite', quietly = TRUE)) stop('jsonlite required')
-if (requireNamespace('devtools', quietly = TRUE)) devtools::load_all('$ROOT/scworkbench', quiet = TRUE) else pkgload::load_all('$ROOT/scworkbench', quiet = TRUE)
+if (requireNamespace('devtools', quietly = TRUE)) devtools::load_all('$SCWORKBENCH_ROOT', quiet = TRUE) else pkgload::load_all('$SCWORKBENCH_ROOT', quiet = TRUE)
 b <- wb_open_bundle('$GOLDEN_BUNDLE')
 on.exit(wb_close_bundle(b), add = TRUE)
 out_dir <- Sys.getenv('SCWB_KG_EXPORT_DIR')
@@ -36,25 +87,10 @@ stopifnot(isTRUE(jsonlite::validate(edges_head)))
 cat('scworkbench KG JSONL export ok\n')
 "
 
-echo "[fullstack] scwb-agent KG JSONL tool smokes"
-(
-  cd "$ROOT/scwb-agent"
-  if [ -d ".venv" ]; then
-    SCWB_AGENT_PY=(.venv/bin/python)
-  elif [ -d ".deps" ]; then
-    SCWB_AGENT_PY=(env PYTHONPATH=.deps:. python3)
-  else
-    SCWB_AGENT_PY=(python3)
-  fi
-  "${SCWB_AGENT_PY[@]}" -m harness.cli tool-smoke kg_status "{\"kg_dir\":\"$KG_EXPORT_DIR\"}"
-  "${SCWB_AGENT_PY[@]}" -m harness.cli tool-smoke kg_expand "{\"kg_dir\":\"$KG_EXPORT_DIR\",\"node_id\":\"recipe:trajectory_geneset_dynamics_discovery\",\"direction\":\"out\",\"edge_types\":[\"USES\",\"PRODUCES\"],\"max_depth\":1}"
-  "${SCWB_AGENT_PY[@]}" -m harness.cli tool-smoke kg_explain_path "{\"kg_dir\":\"$KG_EXPORT_DIR\",\"from_node\":\"recipe:trajectory_geneset_dynamics_discovery\",\"to_node\":\"primitive:obs_table\",\"edge_types\":[\"USES\",\"PRODUCES\",\"REQUIRES\"],\"max_depth\":3}"
-)
-
 echo "[fullstack] scworkbench engine smoke"
 Rscript -e "
 if (!requireNamespace('devtools', quietly = TRUE) && !requireNamespace('pkgload', quietly = TRUE)) stop('devtools or pkgload required')
-if (requireNamespace('devtools', quietly = TRUE)) devtools::load_all('$ROOT/scworkbench', quiet = TRUE) else pkgload::load_all('$ROOT/scworkbench', quiet = TRUE)
+if (requireNamespace('devtools', quietly = TRUE)) devtools::load_all('$SCWORKBENCH_ROOT', quiet = TRUE) else pkgload::load_all('$SCWORKBENCH_ROOT', quiet = TRUE)
 b <- wb_open_bundle('$GOLDEN_BUNDLE')
 on.exit(wb_close_bundle(b), add = TRUE)
 stopifnot(inherits(b, 'scworkbench_bundle'))
@@ -91,7 +127,7 @@ cat('scworkbench smoke ok\n')
 
 echo "[fullstack] generated semantic catalog freshness"
 (
-  cd "$ROOT/scworkbench"
+  cd "$SCWORKBENCH_ROOT"
   TMP_DOCS="$(mktemp -d)"
   trap 'rm -rf "$TMP_DOCS"' EXIT
   SCWB_TMP_DOCS="$TMP_DOCS" Rscript -e "
@@ -123,49 +159,13 @@ echo "[fullstack] generated semantic catalog freshness"
 echo "[fullstack] scworkbench pybench payload parity"
 Rscript -e "
 if (!requireNamespace('devtools', quietly = TRUE) && !requireNamespace('pkgload', quietly = TRUE)) stop('devtools or pkgload required')
-if (requireNamespace('devtools', quietly = TRUE)) devtools::load_all('$ROOT/scworkbench', quiet = TRUE) else pkgload::load_all('$ROOT/scworkbench', quiet = TRUE)
-source('$ROOT/scworkbench/tests/test_pybench_payload_parity.R')
+if (requireNamespace('devtools', quietly = TRUE)) devtools::load_all('$SCWORKBENCH_ROOT', quiet = TRUE) else pkgload::load_all('$SCWORKBENCH_ROOT', quiet = TRUE)
+source('$SCWORKBENCH_ROOT/tests/test_pybench_payload_parity.R')
 stopifnot(test_pybench_payload_parity())
 cat('scworkbench pybench payload parity ok\n')
 "
 
-echo "[fullstack] Shiny thin-client tripwire"
-(
-  cd "$ROOT"
-  rg -n 'dbGetQuery|dbExecute|dbWriteTable|SELECT |INSERT |UPDATE |DELETE ' scworkbenchShiny/R | sort > /tmp/scwb_shiny_sql_current.txt || true
-  sort scworkbench/inst/fullstack/shiny_sql_allowlist.txt > /tmp/scwb_shiny_sql_allowlist.txt
-  if ! diff -u /tmp/scwb_shiny_sql_allowlist.txt /tmp/scwb_shiny_sql_current.txt; then
-    echo "Shiny direct storage/SQL access changed. Move semantics behind scworkbench APIs or update scworkbench/inst/fullstack/shiny_sql_allowlist.txt deliberately." >&2
-    exit 1
-  fi
-)
-
 echo "[fullstack] pybench tests"
-if [ -d "$ROOT/../pybench/.venv" ]; then
-  (cd "$ROOT/../pybench" && .venv/bin/python -m pytest -q)
-else
-  (cd "$ROOT/../pybench" && python3 -m pytest -q)
-fi
-
-echo "[fullstack] scwb-agent tests"
-if [ -d "$ROOT/scwb-agent/.venv" ]; then
-  (cd "$ROOT/scwb-agent" && .venv/bin/python -m pytest -q)
-elif [ -d "$ROOT/scwb-agent/.deps" ]; then
-  (cd "$ROOT/scwb-agent" && PYTHONPATH=.deps:. python3 -m pytest -q)
-else
-  (cd "$ROOT/scwb-agent" && python3 -m pytest -q)
-fi
-
-echo "[fullstack] agent tool smoke on golden bundle"
-(
-  cd "$ROOT/scwb-agent"
-  if [ -d ".venv" ]; then
-    .venv/bin/python -m harness.cli tool-smoke summarize_bundle "{\"bundle_dir\":\"$GOLDEN_BUNDLE\",\"include_cell_set_counts\":false}"
-  elif [ -d ".deps" ]; then
-    PYTHONPATH=.deps:. python3 -m harness.cli tool-smoke summarize_bundle "{\"bundle_dir\":\"$GOLDEN_BUNDLE\",\"include_cell_set_counts\":false}"
-  else
-    python3 -m harness.cli tool-smoke summarize_bundle "{\"bundle_dir\":\"$GOLDEN_BUNDLE\",\"include_cell_set_counts\":false}"
-  fi
-)
+(cd "$PYBENCH_ROOT" && "$PYBENCH_PYTHON" -m pytest -q)
 
 echo "[fullstack] ok"

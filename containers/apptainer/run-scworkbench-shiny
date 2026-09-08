@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-HOST="${HOST:-0.0.0.0}"
-PORT="${PORT:-3838}"
-
-exec R -q -e "options(shiny.host='${HOST}', shiny.port=as.integer('${PORT}')); source('/opt/scworkbenchShiny/app.R')"

@@ -1,13 +1,16 @@
-# Apptainer Full-Stack Recipe
+# Apptainer Core-Runtime Recipe
 
 This document describes the cluster/container strategy for `scworkbench`.
 
-The goal is not a minimal image. The goal is that the full stack runs:
+The publication runtime contains:
 
 - `scworkbench`
-- `scworkbenchShiny`
+- composite-pinned `pybench`
 - heavy R/Bioconductor ops
-- Python-side analysis dependencies used around the workbench
+- the locked Python analysis dependencies used by that pair
+
+Optional clients such as `scworkbenchShiny` and `scwb-agent` remain external;
+they are not copied into or required to qualify this image.
 
 The canonical definition file is:
 
@@ -29,7 +32,6 @@ R libraries and ad hoc installs:
 - Bioconductor version coupling
 - `chromVAR`, `motifmatchr`, `BSgenome`
 - trajectory packages such as `slingshot` and `monocle3`
-- Shiny/UI dependencies
 - Python stack for Scanpy/Palantir/scvi/PeakVI workflows, with CUDA-capable PyTorch
 
 If collaborators and cluster jobs are expected to run the same workflows, they
@@ -37,10 +39,11 @@ need the same runtime.
 
 ## Build Assumption
 
-Build from the `scworkbench` repo root so the definition file can copy both:
+Build from the `scworkbench` repo root so the definition file can copy both
+core source trees:
 
 - this repo into `/opt/scworkbench`
-- sibling `../scworkbenchShiny` into `/opt/scworkbenchShiny`
+- the composite-pinned PyBench checkout into `/opt/pybench`
 
 Recommended build entrypoint:
 
@@ -53,7 +56,7 @@ This script uses the two-step workflow that proved reliable in practice:
 
 1. build a writable sandbox
 2. pack the sandbox into a final `.sif`
-3. smoke-test R, Python, and the Shiny launcher
+3. smoke-test R, Python, and the core source boundary
 
 The default outputs are:
 
@@ -86,7 +89,7 @@ runs `inst/ci/check_genomicranges_runtime.R`. This prevents a development
 corrupt `GRanges` S4 method dispatch. Release qualification reruns the same
 preflight before the package gate.
 
-The fullstack image assigns every `DESCRIPTION` `Suggests` package to one
+The core runtime assigns every `DESCRIPTION` `Suggests` package to one
 non-overlapping source class: CRAN, the configured Bioconductor release, pinned
 GitHub, or R base. `UCell` and `zellkonverter` are Bioconductor release-managed;
 `BPCells` and `monocle3` are pinned GitHub-managed. The image writes both
@@ -131,7 +134,7 @@ Direct one-shot `.sif` builds were intermittently unreliable in this
 environment during final SIF assembly. The stable workflow was:
 
 1. `singularity build --fakeroot --sandbox ...`
-2. ensure the launcher is executable in the sandbox
+2. validate the sandbox core runtime
 3. `singularity build --fakeroot image.sif sandbox_dir`
 
 That is what the build script codifies.
@@ -150,7 +153,7 @@ System layer:
 R layer:
 
 - core engine deps
-- Shiny deps
+- declared R method-stack dependencies (including transitive UI packages)
 - geometry/trajectory deps
 - chromVAR/motif deps
 - genome packages for current human/mouse workflows
@@ -254,23 +257,6 @@ Current interpretation:
 - direct Python BPCells read experiments were useful engineering work, but they
   are not the production criterion for this op on the cluster path
 
-## Running The Shiny App
-
-The image provides a helper launcher:
-
-```bash
-apptainer exec --bind /data:/data /tmp/scworkbench_fullstack_full.sif run-scworkbench-shiny
-```
-
-Override host/port:
-
-```bash
-HOST=0.0.0.0 PORT=3838 \
-apptainer exec --bind /data:/data /tmp/scworkbench_fullstack_full.sif run-scworkbench-shiny
-```
-
-If the cluster requires port forwarding, handle that outside the container.
-
 ## Cluster Notes
 
 Recommended usage pattern:
@@ -292,18 +278,17 @@ This is especially important for:
 - long-running provenance-bearing workflows
 - chromVAR runs
 - trajectory fits
-- collaborator-facing Shiny sessions
+- workflows launched by optional clients against the public engine API
 
 ## Scope And Limits
 
-This recipe aims for a practical full stack, but a few realities remain:
+This recipe aims for a practical core runtime, but a few realities remain:
 
 - the bundled PyTorch build is CUDA-capable
 - runtime GPU access still depends on `--nv` and a compatible host NVIDIA driver
 - the build smoke now checks Python availability, `scvi-tools`, and the reported CUDA build
-- Python-side repo-local code outside this repo is not bundled unless added
-  explicitly
+- optional client source trees are deliberately not bundled
 - very large genome/data package installs make the build heavy by design
 
-That tradeoff is intentional. The image is supposed to run the project, not to
-be minimal.
+That tradeoff is intentional. The image is supposed to run the publication's
+engine and PyBench method stack, not optional client applications.

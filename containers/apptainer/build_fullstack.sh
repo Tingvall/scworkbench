@@ -4,16 +4,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 DEF_FILE="${SCRIPT_DIR}/scworkbench_fullstack.def"
-PYBENCH_ROOT="${REPO_ROOT}/../../pybench"
+PYBENCH_ROOT="${SCWORKBENCH_PYBENCH_ROOT:-${REPO_ROOT}/../../pybench}"
 
 SANDBOX_PATH="${1:-/tmp/scworkbench_fullstack_sandbox}"
 SIF_PATH="${2:-/tmp/scworkbench_fullstack_full.sif}"
 BUILD_CONTEXT="${3:-${SANDBOX_PATH}.context}"
-
-if [[ ! -d "${REPO_ROOT}/../scworkbenchShiny" ]]; then
-  echo "Expected sibling repo at ${REPO_ROOT}/../scworkbenchShiny" >&2
-  exit 1
-fi
 
 if [[ ! -d "${PYBENCH_ROOT}" ]]; then
   echo "Expected sibling repo at ${PYBENCH_ROOT}" >&2
@@ -55,7 +50,7 @@ rm -rf "${BUILD_CONTEXT}"
 # %files cannot exclude payloads after it starts copying. Build from a compact
 # sibling context so local reports, old SIFs, and IDE state never inflate a
 # release image build or exhaust temporary storage.
-mkdir -p "${BUILD_CONTEXT}/scworkbench" "${BUILD_CONTEXT}/scworkbenchShiny" "${BUILD_CONTEXT}/pybench"
+mkdir -p "${BUILD_CONTEXT}/scworkbench" "${BUILD_CONTEXT}/pybench"
 rsync -a \
   --exclude '.git/' \
   --exclude '.Rproj.user/' \
@@ -66,8 +61,6 @@ rsync -a \
   --exclude 'containers/*.sif' \
   --exclude '*.tar.gz' \
   "${REPO_ROOT}/" "${BUILD_CONTEXT}/scworkbench/"
-rsync -a --exclude '.git/' --exclude '.Rproj.user/' --exclude '.agents/' --exclude '.codex/' \
-  "${REPO_ROOT}/../scworkbenchShiny/" "${BUILD_CONTEXT}/scworkbenchShiny/"
 for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md; do
   if [[ ! -f "${PYBENCH_ROOT}/${required}" ]]; then
     echo "Missing required pybench packaging input: ${PYBENCH_ROOT}/${required}" >&2
@@ -98,14 +91,12 @@ cd "${BUILD_CONTEXT}/scworkbench"
 echo "==> Building sandbox"
 singularity build --fakeroot --sandbox "${SANDBOX_PATH}" "${DEF_FILE}"
 
-chmod +x "${SANDBOX_PATH}/usr/local/bin/run-scworkbench-shiny"
-
 echo "==> Packing SIF"
 singularity build --fakeroot "${SIF_PATH}" "${SANDBOX_PATH}"
 
 echo "==> Smoke check"
 singularity exec "${SIF_PATH}" bash -lc \
-  'R --version | head -n 1 && /opt/pyenv/bin/python --version && /opt/pyenv/bin/python -c "import pybench, scvi, torch; print(\"pybench\", getattr(pybench, \"__file__\", \"loaded\")); print(\"scvi\", scvi.__version__); print(\"torch\", torch.__version__, \"cuda\", torch.version.cuda)" && test -x /usr/local/bin/run-scworkbench-shiny && echo launcher-ok'
+  'R --version | head -n 1 && /opt/pyenv/bin/python --version && /opt/pyenv/bin/python -c "import pybench, scvi, torch; print(\"pybench\", getattr(pybench, \"__file__\", \"loaded\")); print(\"scvi\", scvi.__version__); print(\"torch\", torch.__version__, \"cuda\", torch.version.cuda)" && test -d /opt/scworkbench && test -d /opt/pybench && test ! -e /opt/scworkbenchShiny && test ! -e /usr/local/bin/run-scworkbench-shiny && echo core-runtime-ok'
 
 echo "Build complete: ${SIF_PATH}"
 
