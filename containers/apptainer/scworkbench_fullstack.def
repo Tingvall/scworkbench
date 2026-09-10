@@ -51,6 +51,13 @@ From: bioconductor/bioconductor_docker@sha256:41ed449aa2181f330cdc8d0499a11a7435
     export SCWORKBENCH_RUNTIME_ARCH="${SCWORKBENCH_RUNTIME_ARCH:-amd64}"
     export SCWORKBENCH_BASE_IMAGE_DIGEST="${SCWORKBENCH_BASE_IMAGE_DIGEST:-sha256:41ed449aa2181f330cdc8d0499a11a7435b04827ff926dc141584a34f65a12cb}"
 
+    chmod +x /opt/scworkbench/inst/ci/check_container_source_hygiene.sh
+    /opt/scworkbench/inst/ci/check_container_source_hygiene.sh /opt/scworkbench /opt/pybench
+    mkdir -p /opt/scworkbench_runtime_licenses
+    cp -a /opt/scworkbench/containers/licenses/. /opt/scworkbench_runtime_licenses/
+    python3 /opt/scworkbench/inst/ci/validate_container_runtime_licenses.py \
+      --license-root /opt/scworkbench_runtime_licenses
+
     apt-get update
     apt-get install -y --no-install-recommends \
         build-essential \
@@ -384,6 +391,11 @@ EOF
       --description /opt/scworkbench/DESCRIPTION \
       --manifest /opt/scworkbench_declared_suggests.csv
     Rscript /opt/scworkbench/inst/ci/check_genomicranges_runtime.R
+    /opt/pyenv/bin/python /opt/scworkbench/inst/ci/validate_container_runtime_licenses.py \
+      --license-root /opt/scworkbench_runtime_licenses \
+      --profile "${SCWORKBENCH_RUNTIME_KIND}" \
+      --runtime \
+      --provenance /opt/scworkbench_runtime_provenance.txt
 
 %runscript
     exec /bin/bash "$@"

@@ -1,0 +1,70 @@
+{
+  "schema": "scworkbench.runtime-license-inventory.v1",
+  "components": [
+    {
+      "name": "BPCells",
+      "license_expression": "Apache-2.0 OR MIT",
+      "installations": [
+        {
+          "ecosystem": "R",
+          "version": "0.3.1",
+          "source_ref": "c293a0a34e653c395c8e9bf9ed3133107324d7b7",
+          "profiles": ["apptainer", "docker"]
+        },
+        {
+          "ecosystem": "Python",
+          "version_prefix": "0.3.2.dev8+g28759cdd5",
+          "source_ref": "28759cdd512578b6cbe549e226e1cd52a2d2308c",
+          "profiles": ["apptainer", "docker"]
+        }
+      ],
+      "files": [
+        {
+          "path": "BPCells/COPYRIGHT",
+          "sha256": "89483770d1447cc19e9a97ee177f6c92632cc5847d494f5844587ff6c8abc6b8",
+          "source_urls": [
+            "https://raw.githubusercontent.com/bnprks/BPCells/c293a0a34e653c395c8e9bf9ed3133107324d7b7/COPYRIGHT",
+            "https://raw.githubusercontent.com/bnprks/BPCells/28759cdd512578b6cbe549e226e1cd52a2d2308c/COPYRIGHT"
+          ]
+        },
+        {
+          "path": "BPCells/LICENSE-APACHE",
+          "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd",
+          "source_urls": [
+            "https://raw.githubusercontent.com/bnprks/BPCells/c293a0a34e653c395c8e9bf9ed3133107324d7b7/LICENSE-APACHE",
+            "https://raw.githubusercontent.com/bnprks/BPCells/28759cdd512578b6cbe549e226e1cd52a2d2308c/LICENSE-APACHE"
+          ]
+        },
+        {
+          "path": "BPCells/LICENSE-MIT",
+          "sha256": "851247b9a1bdefcb7716514fb689f6a6f5708544dfaff02791e0fcf827557931",
+          "source_urls": [
+            "https://raw.githubusercontent.com/bnprks/BPCells/c293a0a34e653c395c8e9bf9ed3133107324d7b7/LICENSE-MIT",
+            "https://raw.githubusercontent.com/bnprks/BPCells/28759cdd512578b6cbe549e226e1cd52a2d2308c/LICENSE-MIT"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Triton",
+      "license_expression": "MIT",
+      "installations": [
+        {
+          "ecosystem": "Python",
+          "version": "3.2.0",
+          "source_ref": "v3.2.0",
+          "profiles": ["apptainer"]
+        }
+      ],
+      "files": [
+        {
+          "path": "Triton/LICENSE",
+          "sha256": "92640fb97222fd0a698ff28ce0c3782c172623f8d6c609b557636a80f28fb946",
+          "source_urls": [
+            "https://raw.githubusercontent.com/triton-lang/triton/v3.2.0/LICENSE"
+          ]
+        }
+      ]
+    }
+  ]
+}

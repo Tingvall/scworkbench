@@ -19,6 +19,7 @@ rm -rf "${CONTEXT}"
 mkdir -p "${CONTEXT}/scworkbench" "${CONTEXT}/pybench"
 
 rsync -a \
+  --exclude '.git' \
   --exclude '.git/' \
   --exclude '.Rproj.user/' \
   --exclude '.agents/' \
@@ -35,6 +36,9 @@ for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md; do
 done
 rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/src/" "${CONTEXT}/pybench/src/"
 rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/protocol/" "${CONTEXT}/pybench/protocol/"
+
+"${CONTEXT}/scworkbench/inst/ci/check_container_source_hygiene.sh" \
+  "${CONTEXT}/scworkbench" "${CONTEXT}/pybench"
 
 python3 "${SCRIPT_DIR}/derive_cpu_lock.py" \
   "${REPO_ROOT}/containers/apptainer/fullstack_python_requirements.lock" \

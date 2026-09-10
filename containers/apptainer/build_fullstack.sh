@@ -52,6 +52,7 @@ rm -rf "${BUILD_CONTEXT}"
 # release image build or exhaust temporary storage.
 mkdir -p "${BUILD_CONTEXT}/scworkbench" "${BUILD_CONTEXT}/pybench"
 rsync -a \
+  --exclude '.git' \
   --exclude '.git/' \
   --exclude '.Rproj.user/' \
   --exclude '.agents/' \
@@ -79,6 +80,9 @@ rsync -a --exclude '.git/' --exclude '.venv/' --exclude '.deps/' --exclude '__py
 rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/src/" "${BUILD_CONTEXT}/pybench/src/"
 rsync -a --exclude '__pycache__/' "${PYBENCH_ROOT}/protocol/" "${BUILD_CONTEXT}/pybench/protocol/"
 
+"${BUILD_CONTEXT}/scworkbench/inst/ci/check_container_source_hygiene.sh" \
+  "${BUILD_CONTEXT}/scworkbench" "${BUILD_CONTEXT}/pybench"
+
 for required in pyproject.toml README.md CITATION.cff LICENSE CHANGELOG.md src/pybench protocol/pybench-op-v2.schema.json; do
   if [[ ! -e "${BUILD_CONTEXT}/pybench/${required}" ]]; then
     echo "Compact context missing required pybench packaging input: ${required}" >&2
@@ -96,7 +100,7 @@ singularity build --fakeroot "${SIF_PATH}" "${SANDBOX_PATH}"
 
 echo "==> Smoke check"
 singularity exec "${SIF_PATH}" bash -lc \
-  'R --version | head -n 1 && /opt/pyenv/bin/python --version && /opt/pyenv/bin/python -c "import pybench, scvi, torch; print(\"pybench\", getattr(pybench, \"__file__\", \"loaded\")); print(\"scvi\", scvi.__version__); print(\"torch\", torch.__version__, \"cuda\", torch.version.cuda)" && test -d /opt/scworkbench && test -d /opt/pybench && test ! -e /opt/scworkbenchShiny && test ! -e /usr/local/bin/run-scworkbench-shiny && echo core-runtime-ok'
+  'R --version | head -n 1 && /opt/pyenv/bin/python --version && /opt/pyenv/bin/python -c "import pybench, scvi, torch; print(\"pybench\", getattr(pybench, \"__file__\", \"loaded\")); print(\"scvi\", scvi.__version__); print(\"torch\", torch.__version__, \"cuda\", torch.version.cuda)" && /opt/scworkbench/inst/ci/check_container_source_hygiene.sh /opt/scworkbench /opt/pybench && /opt/pyenv/bin/python /opt/scworkbench/inst/ci/validate_container_runtime_licenses.py --license-root /opt/scworkbench_runtime_licenses --profile apptainer --runtime --provenance /opt/scworkbench_runtime_provenance.txt && test -d /opt/scworkbench && test -d /opt/pybench && test ! -e /opt/scworkbenchShiny && test ! -e /usr/local/bin/run-scworkbench-shiny && echo core-runtime-ok'
 
 echo "Build complete: ${SIF_PATH}"
 

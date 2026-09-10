@@ -20,6 +20,8 @@ Rscript "${CHECKOUT}/inst/ci/validate_release_metadata.R" "${CHECKOUT}"
 
 echo "==> Shipped onboarding path"
 singularity exec --cleanenv "${IMAGE_PATH}" \
+  /opt/scworkbench/inst/ci/check_container_source_hygiene.sh /opt/scworkbench /opt/pybench
+singularity exec --cleanenv "${IMAGE_PATH}" \
   test -d /opt/scworkbench
 singularity exec --cleanenv "${IMAGE_PATH}" \
   test -d /opt/pybench
@@ -31,6 +33,16 @@ singularity exec --cleanenv "${IMAGE_PATH}" \
   test -f /opt/scworkbench/inst/onboarding/AGENT_OPERATOR_GUIDE.md
 singularity exec --cleanenv "${IMAGE_PATH}" \
   Rscript -e 'stopifnot(nzchar(system.file("onboarding", "README.md", package = "scworkbench"))); stopifnot(nzchar(system.file("onboarding", "AGENT_OPERATOR_GUIDE.md", package = "scworkbench")))'
+
+echo "==> Runtime license evidence"
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  /opt/pyenv/bin/python /opt/scworkbench/inst/ci/validate_container_runtime_licenses.py \
+    --license-root /opt/scworkbench_runtime_licenses \
+    --profile apptainer \
+    --runtime \
+    --provenance /opt/scworkbench_runtime_provenance.txt
+singularity exec --cleanenv "${IMAGE_PATH}" \
+  cat /opt/scworkbench_runtime_licenses/runtime_license_manifest.json
 
 echo "==> Native runtime provenance"
 singularity exec --cleanenv "${IMAGE_PATH}" bash -lc '

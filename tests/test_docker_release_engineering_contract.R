@@ -92,7 +92,10 @@ test_docker_release_engineering_contract <- function() {
   )
   stopifnot(
     !grepl("scworkbenchShiny", context_script, fixed = TRUE),
-    !grepl("scwb-agent", context_script, fixed = TRUE)
+    !grepl("scwb-agent", context_script, fixed = TRUE),
+    grepl("--exclude '.git'", context_script, fixed = TRUE),
+    grepl("check_container_source_hygiene[.]sh", context_script),
+    grepl("validate_container_runtime_licenses[.]py", install)
   )
 
   for (script in c(

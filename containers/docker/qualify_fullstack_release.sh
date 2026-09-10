@@ -31,6 +31,12 @@ echo "==> Locked runtimes"
 
 echo "==> Product and release gates"
 "${RUN[@]}" '
+  /opt/scworkbench/inst/ci/check_container_source_hygiene.sh /opt/scworkbench /opt/pybench
+  /opt/pyenv/bin/python /opt/scworkbench/inst/ci/validate_container_runtime_licenses.py \
+    --license-root /opt/scworkbench_runtime_licenses \
+    --profile docker \
+    --runtime \
+    --provenance /opt/scworkbench_runtime_provenance.txt
   test -d /opt/scworkbench
   test -d /opt/pybench
   test ! -e /opt/scworkbenchShiny
