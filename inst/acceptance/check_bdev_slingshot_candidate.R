@@ -29,10 +29,17 @@ stopifnot(
   ncol(fit_coordinates) >= 2L
 )
 
-# Build a source-derived carrier with no analytical assay. It exists only to
-# import the exact candidate cell universe and fitted coordinates through the
-# public SCE ingestion/source-identity path.
+# Build a source-derived carrier with no imported analytical assay. A one-row
+# placeholder is required because SingleCellExperiment cannot attach a named
+# reducedDim to an object whose row/column partitions are both empty. The
+# placeholder is intentionally excluded by `assays = character(0)` below.
 carrier <- SingleCellExperiment::SingleCellExperiment(
+  assays = list(carrier = matrix(
+    0,
+    nrow = 1L,
+    ncol = nrow(fit_coordinates),
+    dimnames = list("carrier", rownames(fit_coordinates))
+  )),
   colData = S4Vectors::DataFrame(row.names = rownames(fit_coordinates))
 )
 SingleCellExperiment::reducedDim(carrier, "fit_space") <- fit_coordinates
