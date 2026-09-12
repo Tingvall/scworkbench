@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_artifact_type_catalog_semantic(); do not edit entries by hand. -->
 
-Artifact type count: 74
+Artifact type count: 78
 
 ## cell_vector
 
@@ -119,6 +119,20 @@ Entity kind: feature
 
 Use when:
 - inspect local pseudobulk expression
+
+### `feature_table:rna_qc_feature_membership`
+
+Title: RNA QC Feature Membership
+
+Description: Exact mitochondrial or ribosomal feature membership used to calculate per-cell RNA QC metrics.
+
+Table type: rna_qc_feature_membership
+
+Entity kind: feature
+
+Use when:
+- audit mitochondrial feature matching
+- audit ribosomal feature matching
 
 ### `feature_table:cell_vector_assoc`
 
@@ -624,6 +638,48 @@ Entity kind: matrix
 Use when:
 - inspect normalized matrix provenance
 - choose a reusable expression matrix for downstream ops
+
+### `obs_table:rna_qc_metrics_summary`
+
+Title: RNA QC Metric Summary
+
+Description: Per-metric distribution summaries with explicit feature-matching and no-threshold-selection boundaries.
+
+Table type: rna_qc_metrics_summary
+
+Entity kind: qc_metric
+
+Use when:
+- inspect RNA QC distributions
+- choose explicit downstream cell-selection thresholds
+
+### `obs_table:slingshot_adoption_summary`
+
+Title: Slingshot Adoption Summary
+
+Description: Checksummed source identity, fit-subobject identity, coordinate alignment, and external-execution boundary for an adopted Slingshot fit.
+
+Table type: slingshot_adoption_summary
+
+Entity kind: trajectory_fit
+
+Use when:
+- audit source-derived trajectory adoption
+- distinguish adopted Slingshot state from a scworkbench refit
+
+### `obs_table:model_bound_latent_union_summary`
+
+Title: Model-Bound Latent Union Summary
+
+Description: Model identity, fitted and projected source spaces, disjoint cell counts, dimensions, and unchanged row-bind semantics for a combined latent space.
+
+Table type: model_bound_latent_union_summary
+
+Entity kind: space
+
+Use when:
+- audit reference-query latent integration
+- verify PeakVI or scVI projection ancestry before joint UMAP
 
 ### `obs_table:attach_report`
 

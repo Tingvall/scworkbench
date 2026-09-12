@@ -6,6 +6,16 @@ test_peakvi_project_promotion_contract <- function() {
   on.exit({try(wb_close_bundle(b),silent=TRUE);unlink(root,recursive=TRUE,force=TRUE)},add=TRUE)
   ids <- paste0("cell_",letters[1:4]); wb_define_cells(b,ids)
   wb_attach_matrix(b,"ATAC_counts",matrix(seq_len(12),3,dimnames=list(paste0("p",1:3),ids)),feature_type="peak")
+  wb_attach_space(
+    b, "peakvi_model",
+    data.frame(
+      cell_id = ids,
+      z1 = seq_along(ids),
+      z2 = rev(seq_along(ids)),
+      stringsAsFactors = FALSE
+    ),
+    source = "retained fitted-model fixture"
+  )
   op_env <- environment(wb_op_peakvi_project); old <- .wb_palantir_bridge_run_or_stop
   captured_requests <- list()
   unlockBinding(".wb_palantir_bridge_run_or_stop", op_env)

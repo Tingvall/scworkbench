@@ -219,6 +219,8 @@ wb_op_peakvi_fit <- function(bundle,
 #' pybench Python runtime, which loads a saved PeakVI model and emits a new
 #' latent space without refitting.
 #'
+#' @param cell_set Retained identity of the query cell universe. The explicit
+#'   `cells` argument must be the corresponding resolved membership.
 #' @export
 wb_op_peakvi_project <- function(bundle,
                                  peakvi_model,
@@ -227,7 +229,8 @@ wb_op_peakvi_project <- function(bundle,
                                  batch_key = NULL,
                                  use_gpu = FALSE,
                                  space_id_out = "peakvi_project_space",
-                                 python_bin = .wb_pybench_default_python()) {
+                                 python_bin = .wb_pybench_default_python(),
+                                 cell_set = "all") {
   .wb_assert(inherits(bundle, "scworkbench_bundle"), "bundle must be scworkbench_bundle")
   .wb_assert_operation_execution(bundle, "peakvi_project")
   .wb_assert_kind(peakvi_model, "model_ref")
@@ -236,11 +239,21 @@ wb_op_peakvi_project <- function(bundle,
   model_path <- .wb_pybench_model_request_path(
     bundle, peakvi_model, purpose = "PeakVI project model"
   )
+  model_space_id <- as.character(peakvi_model$model_space_id %||% "")[1]
+  model_space_row <- wb_spaces(bundle)
+  model_space_row <- model_space_row[as.character(model_space_row$space_id) == model_space_id, , drop = FALSE]
+  .wb_assert(nrow(model_space_row) == 1L,
+             "peakvi_project requires the retained fitted model space")
+  expected_latent_dims <- as.integer(model_space_row$dims[1])
+  .wb_assert(is.finite(expected_latent_dims) && expected_latent_dims >= 2L,
+             "peakvi_project fitted model space has invalid dimensionality")
   .wb_assert(is.character(matrix_id) && length(matrix_id) == 1L && nzchar(matrix_id),
              "peakvi_project requires matrix_id.")
 
   cells <- unique(as.character(cells %||% character(0)))
   .wb_assert(length(cells) >= 1L, "peakvi_project requires at least one cell.")
+  cell_set <- as.character(cell_set %||% "all")[1]
+  .wb_assert(nzchar(cell_set), "peakvi_project requires a non-empty cell_set identity.")
   batch_key <- as.character(batch_key %||% "")[1]
   if (!nzchar(batch_key)) batch_key <- NULL
   space_id_out <- as.character(space_id_out %||% "peakvi_project_space")[1]
@@ -256,22 +269,26 @@ wb_op_peakvi_project <- function(bundle,
   )
   on.exit(unlink(stage_dir, recursive = TRUE, force = TRUE), add = TRUE)
 
+  request_params <- list(
+    matrix_id = matrix_id,
+    batch_key = batch_key,
+    use_gpu = isTRUE(use_gpu),
+    space_id_out = space_id_out
+  )
+  request_params$n_latent <- expected_latent_dims
+
   req <- .wb_pybench_build_request(
     bundle = bundle,
     op_name = "peakvi_project",
     run_id = .wb_pybench_current_run_id(bundle),
     inputs = list(
       matrix = matrix_id,
+      cell_set = cell_set,
       cell_ids = cells,
       matrix_chunks_dir = stage_dir,
       model_path = model_path
     ),
-    params = list(
-      matrix_id = matrix_id,
-      batch_key = batch_key,
-      use_gpu = isTRUE(use_gpu),
-      space_id_out = space_id_out
-    ),
+    params = request_params,
     outputs = list()
   )
 
@@ -287,6 +304,8 @@ wb_op_peakvi_project <- function(bundle,
   X <- if (is.data.frame(sp)) .wb_as_coord_matrix(sp) else sp
   .wb_assert(is.matrix(X), "peakvi_project: emitted space could not be resolved as a matrix.")
   .wb_assert(nrow(X) == length(cells), "peakvi_project: latent space cell count mismatch.")
+  .wb_assert(ncol(X) == expected_latent_dims,
+             "peakvi_project: projected latent dimensionality does not match the fitted model space.")
 
   list(
     outputs = list(
@@ -294,9 +313,11 @@ wb_op_peakvi_project <- function(bundle,
     ),
     params = list(
       matrix_id = matrix_id,
+      cell_set = cell_set,
       n_cells = length(cells),
       n_features = length(feats),
-      model_space_id = as.character(peakvi_model$model_space_id %||% "")[1],
+      model_space_id = model_space_id,
+      n_latent = expected_latent_dims,
       space_id_out = space_id_out,
       use_gpu = isTRUE(use_gpu),
       pybench_runtime = list(

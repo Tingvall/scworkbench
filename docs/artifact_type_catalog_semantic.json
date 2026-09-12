@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.artifact_type_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "artifact_type_count": 74,
+  "artifact_type_count": 78,
   "artifact_types": [
     {
       "artifact_type": "cell_vector",
@@ -425,6 +425,42 @@
       "table_type": "matrix_log_normalize_summary",
       "entity_kind": "matrix",
       "use_when": ["inspect normalized matrix provenance", "choose a reusable expression matrix for downstream ops"]
+    },
+    {
+      "artifact_type": "obs_table:rna_qc_metrics_summary",
+      "primitive_kind": "obs_table",
+      "title": "RNA QC Metric Summary",
+      "description": "Per-metric distribution summaries with explicit feature-matching and no-threshold-selection boundaries.",
+      "table_type": "rna_qc_metrics_summary",
+      "entity_kind": "qc_metric",
+      "use_when": ["inspect RNA QC distributions", "choose explicit downstream cell-selection thresholds"]
+    },
+    {
+      "artifact_type": "feature_table:rna_qc_feature_membership",
+      "primitive_kind": "feature_table",
+      "title": "RNA QC Feature Membership",
+      "description": "Exact mitochondrial or ribosomal feature membership used to calculate per-cell RNA QC metrics.",
+      "table_type": "rna_qc_feature_membership",
+      "entity_kind": "feature",
+      "use_when": ["audit mitochondrial feature matching", "audit ribosomal feature matching"]
+    },
+    {
+      "artifact_type": "obs_table:slingshot_adoption_summary",
+      "primitive_kind": "obs_table",
+      "title": "Slingshot Adoption Summary",
+      "description": "Checksummed source identity, fit-subobject identity, coordinate alignment, and external-execution boundary for an adopted Slingshot fit.",
+      "table_type": "slingshot_adoption_summary",
+      "entity_kind": "trajectory_fit",
+      "use_when": ["audit source-derived trajectory adoption", "distinguish adopted Slingshot state from a scworkbench refit"]
+    },
+    {
+      "artifact_type": "obs_table:model_bound_latent_union_summary",
+      "primitive_kind": "obs_table",
+      "title": "Model-Bound Latent Union Summary",
+      "description": "Model identity, fitted and projected source spaces, disjoint cell counts, dimensions, and unchanged row-bind semantics for a combined latent space.",
+      "table_type": "model_bound_latent_union_summary",
+      "entity_kind": "space",
+      "use_when": ["audit reference-query latent integration", "verify PeakVI or scVI projection ancestry before joint UMAP"]
     },
     {
       "artifact_type": "obs_table:attach_report",

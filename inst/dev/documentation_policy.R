@@ -25,6 +25,7 @@ scwb_documentation_policy <- function(root = ".") {
   canonical <- c(
     "README.md", "NEWS.md", "LICENSE", "LICENSE.md", "CITATION.cff", "inst/CITATION",
     "docs/getting_started.md", "docs/bundle_concepts.md", "docs/ingestion.md",
+    "docs/bdev_external_user_workflows.md",
     "docs/sessions_and_ops.md", "docs/promotion_and_provenance.md",
     "docs/typed_cell_set_consumption.md",
     "docs/recipient_audit.md", "docs/python_bridge.md",

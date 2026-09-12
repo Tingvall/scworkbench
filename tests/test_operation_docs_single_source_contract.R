@@ -37,6 +37,7 @@ test_operation_docs_single_source_contract <- function() {
     session_only_params <- list(
       de_wilcox = c("group_a", "group_b"),
       matrix_log_normalize = "cell_set",
+      rna_qc_metrics = "cell_set",
       metadata_cell_vector = "cell_set",
       cell_vector_association = "cell_set"
     )

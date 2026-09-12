@@ -16,6 +16,9 @@
 - Adds conventional RNA representation, scVI, PeakVI, Palantir, Monocle3,
   Slingshot, metadata diagnostics, differential testing, enrichment, and
   composite trajectory operations.
+- Adds factual per-cell RNA QC metrics with separately retained threshold
+  recipes, explicit source-derived Slingshot fit adoption without refitting,
+  and model-bound union of fitted and projected PeakVI/scVI latent spaces.
 
 ## Release engineering
 

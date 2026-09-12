@@ -12,7 +12,8 @@ wb_op_peakvi_project(
   batch_key = NULL,
   use_gpu = FALSE,
   space_id_out = "peakvi_project_space",
-  python_bin = .wb_pybench_default_python()
+  python_bin = .wb_pybench_default_python(),
+  cell_set = "all"
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ wb_op_peakvi_project(
 \item{space_id_out}{Space id to write for the projected PeakVI latent embedding.}
 
 \item{python_bin}{Python executable used for an optional pybench-backed runtime.}
+
+\item{cell_set}{Named bundle cell set used to resolve the analysis universe.}
 }
 \description{
 Uses the stable R-side matrix staging bridge to hand query ATAC chunks to the

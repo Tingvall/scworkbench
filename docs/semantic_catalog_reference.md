@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 323
+Record count: 330
 
-Graph edges: 904
+Graph edges: 936
 
 ## artifact_type
 
@@ -291,6 +291,30 @@ Description: Feature summaries over KNN neighborhoods.
 Title: Matrix Log-Normalization Summary
 
 Description: Summary of a persisted log-normalized matrix transform, including source matrix, output matrix, scale factor, dimensions, and library-size diagnostics.
+
+### `artifact_type:obs_table:rna_qc_metrics_summary`
+
+Title: RNA QC Metric Summary
+
+Description: Per-metric distribution summaries with explicit feature-matching and no-threshold-selection boundaries.
+
+### `artifact_type:feature_table:rna_qc_feature_membership`
+
+Title: RNA QC Feature Membership
+
+Description: Exact mitochondrial or ribosomal feature membership used to calculate per-cell RNA QC metrics.
+
+### `artifact_type:obs_table:slingshot_adoption_summary`
+
+Title: Slingshot Adoption Summary
+
+Description: Checksummed source identity, fit-subobject identity, coordinate alignment, and external-execution boundary for an adopted Slingshot fit.
+
+### `artifact_type:obs_table:model_bound_latent_union_summary`
+
+Title: Model-Bound Latent Union Summary
+
+Description: Model identity, fitted and projected source spaces, disjoint cell counts, dimensions, and unchanged row-bind semantics for a combined latent space.
 
 ### `artifact_type:obs_table:attach_report`
 
@@ -974,6 +998,12 @@ Title: Leiden clustering
 
 Description: Graph clustering on a kNN graph derived from an embedding space.
 
+### `op:rna_qc_metrics`
+
+Title: Calculate per-cell RNA QC metrics
+
+Description: Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.
+
 ### `op:matrix_log_normalize`
 
 Title: Log-normalize count matrix
@@ -1208,6 +1238,12 @@ Title: Slingshot fit
 
 Description: Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
 
+### `op:slingshot_adopt`
+
+Title: Adopt an existing Slingshot fit
+
+Description: Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
+
 ### `op:slingshot_lineage_weights`
 
 Title: Slingshot lineage weights
@@ -1279,6 +1315,12 @@ Description: Train an RNA scVI model on a raw/count-like matrix via the pybench 
 Title: PeakVI project (pybench)
 
 Description: Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
+
+### `op:model_bound_latent_union`
+
+Title: Model-Bound Latent-Space Union
+
+Description: Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
 
 ### `op:space_path_define`
 

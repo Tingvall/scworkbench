@@ -116,6 +116,10 @@
   # summaries are an explicit provenance contract and are safe to bind.
   if (!.wb_is_primitive(x) && !(is.list(x) && as.character(x$kind %||% "")[1] %in% c("matrix", "space", "space_2d", "model_ref"))) return(NULL)
   kind <- as.character(x$kind %||% "")[1]
+  scalar_or <- function(value, default = "") {
+    out <- as.character(value %||% default)[1]
+    if (is.na(out) || !length(out)) default else out
+  }
   id <- if (identical(kind, "matrix")) {
     x$matrix_id
   } else if (kind %in% c("space", "space_2d")) {
@@ -125,9 +129,9 @@
     # Keep this identifier opaque and stable across reopen; model_space_id alone
     # is insufficient when different engines share a destination space.
     paste(
-      as.character(x$engine %||% "unknown")[1],
-      as.character(x$model_space_id %||% x$space_id %||% "")[1],
-      as.character(x$in_space_id %||% "")[1],
+      scalar_or(x$engine, "unknown"),
+      scalar_or(x$model_space_id %||% x$space_id, ""),
+      scalar_or(x$in_space_id, ""),
       sep = "|"
     )
   } else NULL
@@ -142,6 +146,15 @@
 .wb_prov_collect_entity_bindings <- function(x, name = "input") {
   out <- list()
   walk <- function(v, path) {
+    if (inherits(v, "wb_entity_ref") ||
+        (is.list(v) && identical(as.character(v$ref_type %||% "")[1L], "bundle_entity"))) {
+      ref <- .wb_capsule_normalize_ref(v, path)
+      out[[length(out) + 1L]] <<- list(
+        binding_name = path, entity_kind = ref$entity_kind,
+        entity_id = ref$entity_id, path = NA_character_
+      )
+      return(invisible(NULL))
+    }
     if (.wb_is_metadata_field_ref(v)) {
       ref <- .wb_validate_metadata_field_ref(v, path)
       out[[length(out) + 1L]] <<- list(

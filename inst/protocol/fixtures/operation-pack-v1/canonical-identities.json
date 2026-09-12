@@ -60,5 +60,5 @@
   "invalid_fixture_sha256": {
     "unknown-backend.json": "868ae4ae033849b5393d6b42bc318365d6c740925faf21ae32f90b21bf18932a"
   },
-  "no_pack_core_catalog_sha256": "80a340f5845968061fdb8d725b5bc83c7111325c224c5afd326ea08e1d1e99ce"
+  "no_pack_core_catalog_sha256": "e6a4e1713d1e8e4a3b044d285e6e510afdef46c6d56966f72a15725eea550445"
 }

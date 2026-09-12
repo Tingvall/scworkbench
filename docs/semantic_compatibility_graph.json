@@ -1,14 +1,20 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 323,
-  "edge_count": 904,
+  "node_count": 330,
+  "edge_count": 936,
   "nodes": [
     {
       "record_id": "op:leiden",
       "record_type": "op",
       "name": "leiden",
       "title": "Leiden clustering"
+    },
+    {
+      "record_id": "op:rna_qc_metrics",
+      "record_type": "op",
+      "name": "rna_qc_metrics",
+      "title": "Calculate per-cell RNA QC metrics"
     },
     {
       "record_id": "op:matrix_log_normalize",
@@ -245,6 +251,12 @@
       "title": "Slingshot fit"
     },
     {
+      "record_id": "op:slingshot_adopt",
+      "record_type": "op",
+      "name": "slingshot_adopt",
+      "title": "Adopt an existing Slingshot fit"
+    },
+    {
       "record_id": "op:slingshot_lineage_weights",
       "record_type": "op",
       "name": "slingshot_lineage_weights",
@@ -315,6 +327,12 @@
       "record_type": "op",
       "name": "peakvi_project",
       "title": "PeakVI project (pybench)"
+    },
+    {
+      "record_id": "op:model_bound_latent_union",
+      "record_type": "op",
+      "name": "model_bound_latent_union",
+      "title": "Model-Bound Latent-Space Union"
     },
     {
       "record_id": "op:space_path_define",
@@ -1361,6 +1379,30 @@
       "title": "Matrix Log-Normalization Summary"
     },
     {
+      "record_id": "artifact_type:obs_table:rna_qc_metrics_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:rna_qc_metrics_summary",
+      "title": "RNA QC Metric Summary"
+    },
+    {
+      "record_id": "artifact_type:feature_table:rna_qc_feature_membership",
+      "record_type": "artifact_type",
+      "name": "feature_table:rna_qc_feature_membership",
+      "title": "RNA QC Feature Membership"
+    },
+    {
+      "record_id": "artifact_type:obs_table:slingshot_adoption_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:slingshot_adoption_summary",
+      "title": "Slingshot Adoption Summary"
+    },
+    {
+      "record_id": "artifact_type:obs_table:model_bound_latent_union_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:model_bound_latent_union_summary",
+      "title": "Model-Bound Latent Union Summary"
+    },
+    {
       "record_id": "artifact_type:obs_table:attach_report",
       "record_type": "artifact_type",
       "name": "obs_table:attach_report",
@@ -1979,6 +2021,54 @@
       "to": "artifact_type:cell_vector",
       "edge_type": "promotes_as",
       "label": "promotable:clusters"
+    },
+    {
+      "from": "primitive:matrix",
+      "to": "op:rna_qc_metrics",
+      "edge_type": "consumed_by",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:rna_qc_metrics",
+      "to": "parameter:matrix",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:matrix"
+    },
+    {
+      "from": "op:rna_qc_metrics",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:rna_qc_metrics",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "param:cell_set"
+    },
+    {
+      "from": "op:rna_qc_metrics",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:metrics"
+    },
+    {
+      "from": "op:rna_qc_metrics",
+      "to": "primitive:feature_table",
+      "edge_type": "produces",
+      "label": "output:qc_features"
+    },
+    {
+      "from": "op:rna_qc_metrics",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:summary"
+    },
+    {
+      "from": "op:rna_qc_metrics",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:metrics"
     },
     {
       "from": "primitive:matrix",
@@ -4214,6 +4304,78 @@
     },
     {
       "from": "primitive:model_ref",
+      "to": "op:slingshot_adopt",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:pseudotime"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "primitive:cell_vector_family",
+      "edge_type": "produces",
+      "label": "output:lineage_weights"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "primitive:path_2d_family",
+      "edge_type": "produces",
+      "label": "output:curves"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "primitive:model_ref",
+      "edge_type": "produces",
+      "label": "output:model"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:adoption_summary"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:pseudotime"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "artifact_type:cell_vector_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:lineage_weights"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "artifact_type:path_2d_family",
+      "edge_type": "promotes_as",
+      "label": "promotable:curves"
+    },
+    {
+      "from": "op:slingshot_adopt",
+      "to": "artifact_type:model_ref",
+      "edge_type": "promotes_as",
+      "label": "promotable:model"
+    },
+    {
+      "from": "primitive:model_ref",
       "to": "op:slingshot_lineage_weights",
       "edge_type": "consumed_by",
       "label": "input:model"
@@ -4862,6 +5024,54 @@
     },
     {
       "from": "primitive:space",
+      "to": "op:model_bound_latent_union",
+      "edge_type": "consumed_by",
+      "label": "input:reference_space"
+    },
+    {
+      "from": "primitive:space",
+      "to": "op:model_bound_latent_union",
+      "edge_type": "consumed_by",
+      "label": "input:query_space"
+    },
+    {
+      "from": "primitive:model_ref",
+      "to": "op:model_bound_latent_union",
+      "edge_type": "consumed_by",
+      "label": "input:model"
+    },
+    {
+      "from": "op:model_bound_latent_union",
+      "to": "parameter:model",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:model"
+    },
+    {
+      "from": "primitive:obs_table",
+      "to": "op:model_bound_latent_union",
+      "edge_type": "consumed_by",
+      "label": "input:projection_summary"
+    },
+    {
+      "from": "op:model_bound_latent_union",
+      "to": "parameter:cell_set",
+      "edge_type": "has_parameter_semantics",
+      "label": "input:cell_set"
+    },
+    {
+      "from": "op:model_bound_latent_union",
+      "to": "primitive:space",
+      "edge_type": "produces",
+      "label": "output:space"
+    },
+    {
+      "from": "op:model_bound_latent_union",
+      "to": "primitive:obs_table",
+      "edge_type": "produces",
+      "label": "output:union_summary"
+    },
+    {
+      "from": "primitive:space",
       "to": "op:space_path_define",
       "edge_type": "consumed_by",
       "label": "input:space"
@@ -5366,6 +5576,30 @@
     },
     {
       "from": "artifact_type:obs_table:matrix_log_normalize_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:rna_qc_metrics_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:feature_table:rna_qc_feature_membership",
+      "to": "primitive:feature_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:slingshot_adoption_summary",
+      "to": "primitive:obs_table",
+      "edge_type": "loads_as",
+      "label": "wb_art_load"
+    },
+    {
+      "from": "artifact_type:obs_table:model_bound_latent_union_summary",
       "to": "primitive:obs_table",
       "edge_type": "loads_as",
       "label": "wb_art_load"

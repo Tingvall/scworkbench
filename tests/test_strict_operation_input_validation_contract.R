@@ -21,6 +21,7 @@ test_strict_operation_input_validation_contract <- function() {
     if (identical(tp, "cell_ids_or_set")) return("set:core")
     if (identical(tp, "list_or_cell_set")) return(list(cells = "x"))
     if (identical(tp, "list")) return(list(x = 1))
+    if (identical(tp, "entity_ref")) return(wb_ref_entity("external_source", "source_x"))
     stop("No generated valid value for type: ", tp)
   }
 
@@ -31,6 +32,7 @@ test_strict_operation_input_validation_contract <- function() {
                     "cell_ids", "metadata_field", "metadata_field_array", "string_vec_or_list",
                     "cell_ids_or_set", "list_or_cell_set")) return(1L)
     if (identical(type, "list")) return("not_a_list")
+    if (identical(type, "entity_ref")) return(1L)
     stop("No generated wrong value for type: ", type)
   }
 

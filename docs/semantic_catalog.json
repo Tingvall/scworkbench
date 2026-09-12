@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 323,
+  "record_count": 330,
   "record_type_counts": {
-    "artifact_type": 74,
+    "artifact_type": 78,
     "getter": 85,
-    "op": 57,
+    "op": 60,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -167,6 +167,228 @@
         "promotable": "clusters",
         "replay_equivalence": {
           "clusters": "exact_canonical_value"
+        },
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:rna_qc_metrics",
+      "record_type": "op",
+      "name": "rna_qc_metrics",
+      "title": "Calculate per-cell RNA QC metrics",
+      "description": "Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.",
+      "search_text": "Calculate per-cell RNA QC metrics\nCalculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.\nmatrix\nrna\nquality_control\ncell_metrics\nTRUE\ncell_set\nselect\nFALSE\nmetrics\ncell_vector_family\nterminal_artifact\nPer-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics.\nqc_features\nfeature_table\nExact feature membership and explicit/pattern selection source for each optional QC feature group.\nsummary\nobs_table\nLong-form metric summaries and recorded feature-matching and no-threshold-selection boundaries.\nmitochondrial_features\nstring_vec\nOptional explicit mitochondrial feature ids.\nmitochondrial_pattern\nstring\nOptional regular expression matched against feature ids, for example ^mt- for mouse gene symbols.\nribosomal_features\nOptional explicit ribosomal feature ids.\nribosomal_pattern\nOptional regular expression matched against feature ids.\npattern_ignore_case\nbool\nWhether feature-id regular-expression matching ignores case.\nmissing_feature_policy\nchoice\nerror\ndrop\nWhether absent explicitly supplied feature ids fail or are recorded and dropped.\nrequire_integer_counts\nRequire non-negative matrix values to be integer-like, guarding against accidental use of normalized expression.\ninteger_tolerance\ndbl\n1e-08\n0\nAbsolute tolerance used for integer-like count validation.\nchunk_size\nint\n2000\n1\n1e+06\nNumber of cells read per backed-matrix chunk.\nall\nNamed bundle cell set defining the cells for which metrics are calculated.",
+      "tags": ["op", "matrix", "rna", "quality_control", "cell_metrics"],
+      "payload": {
+        "op_name": "rna_qc_metrics",
+        "title": "Calculate per-cell RNA QC metrics",
+        "description": "Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.",
+        "intent": ["matrix", "rna", "quality_control", "cell_metrics"],
+        "consumes": [
+          {
+            "name": "matrix",
+            "kind": "matrix",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select",
+            "required": false
+          }
+        ],
+        "produces": [
+          {
+            "name": "metrics",
+            "kind": "cell_vector_family",
+            "output_name": "metrics",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "metrics",
+            "description": "Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics."
+          },
+          {
+            "name": "qc_features",
+            "kind": "feature_table",
+            "output_name": "qc_features",
+            "primitive_kind": "feature_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "qc_features",
+            "description": "Exact feature membership and explicit/pattern selection source for each optional QC feature group."
+          },
+          {
+            "name": "summary",
+            "kind": "obs_table",
+            "output_name": "summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "summary",
+            "description": "Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries."
+          }
+        ],
+        "inputs": {
+          "matrix": {
+            "required": true,
+            "kind": "matrix",
+            "effective_cell_coverage": "cell_indexed"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "all",
+            "value_type": "cell_set",
+            "required": false,
+            "non_empty": true
+          }
+        },
+        "controls": {
+          "cell_set": {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "required": false,
+            "help": "Named bundle cell set defining the requested cell universe."
+          },
+          "cell_ids": {
+            "name": "cell_ids",
+            "type": "cell_ids",
+            "default": null,
+            "required": false,
+            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+          },
+          "min_cells": {
+            "name": "min_cells",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "required": false,
+            "help": "Minimum effective cell count required before runner execution."
+          }
+        },
+        "params": [
+          {
+            "name": "mitochondrial_features",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional explicit mitochondrial feature ids.",
+            "required": false,
+            "nullable": true,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": true
+          },
+          {
+            "name": "mitochondrial_pattern",
+            "type": "string",
+            "default": null,
+            "help": "Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols.",
+            "required": false,
+            "nullable": true,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": true
+          },
+          {
+            "name": "ribosomal_features",
+            "type": "string_vec",
+            "default": null,
+            "help": "Optional explicit ribosomal feature ids.",
+            "required": false,
+            "nullable": true,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": true
+          },
+          {
+            "name": "ribosomal_pattern",
+            "type": "string",
+            "default": null,
+            "help": "Optional regular expression matched against feature ids.",
+            "required": false,
+            "nullable": true,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": true
+          },
+          {
+            "name": "pattern_ignore_case",
+            "type": "bool",
+            "default": false,
+            "help": "Whether feature-id regular-expression matching ignores case.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": false
+          },
+          {
+            "name": "missing_feature_policy",
+            "type": "choice",
+            "default": "error",
+            "choices": ["error", "drop"],
+            "help": "Whether absent explicitly supplied feature ids fail or are recorded and dropped.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": true
+          },
+          {
+            "name": "require_integer_counts",
+            "type": "bool",
+            "default": true,
+            "help": "Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": false
+          },
+          {
+            "name": "integer_tolerance",
+            "type": "dbl",
+            "default": 1e-08,
+            "min": 0,
+            "help": "Absolute tolerance used for integer-like count validation.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": false
+          },
+          {
+            "name": "chunk_size",
+            "type": "int",
+            "default": 2000,
+            "min": 1,
+            "max": 1000000,
+            "help": "Number of cells read per backed-matrix chunk.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": true,
+            "non_empty": false
+          },
+          {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "help": "Named bundle cell set defining the cells for which metrics are calculated.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": true
+          }
+        ],
+        "promotable": ["metrics", "qc_features", "summary"],
+        "replay_equivalence": {
+          "metrics": "exact_canonical_value",
+          "qc_features": "exact_canonical_value",
+          "summary": "exact_canonical_value"
         },
         "chunking": null
       }
@@ -7990,6 +8212,146 @@
       }
     },
     {
+      "record_id": "op:slingshot_adopt",
+      "record_type": "op",
+      "name": "slingshot_adopt",
+      "title": "Adopt an existing Slingshot fit",
+      "description": "Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.",
+      "search_text": "Adopt an existing Slingshot fit\nAdopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.\ntrajectory\nadoption\nprovenance\nsource_derived\nmodel\nmodel_ref\nTRUE\ncell_set\nselect\nFALSE\npseudotime\ncell_vector_family\nterminal_artifact\nSource-derived lineage-specific pseudotime values; no refit is performed.\nlineage_weights\nSource-derived Slingshot lineage membership weights; no refit is performed.\ncurves\npath_2d_family\nSource-derived two-dimensional Slingshot lineage curves.\nContained source-derived Slingshot model bound to the adopted trajectory fit family.\nadoption_summary\nobs_table\nSource checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary.\nsource\nentity_ref\nRegistered external_source reference for the object from which the selected Slingshot fit was extracted.",
+      "tags": ["op", "trajectory", "adoption", "provenance", "source_derived"],
+      "payload": {
+        "op_name": "slingshot_adopt",
+        "title": "Adopt an existing Slingshot fit",
+        "description": "Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.",
+        "intent": ["trajectory", "adoption", "provenance", "source_derived"],
+        "consumes": [
+          {
+            "name": "model",
+            "kind": "model_ref",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select",
+            "required": false
+          }
+        ],
+        "produces": [
+          {
+            "name": "pseudotime",
+            "kind": "cell_vector_family",
+            "output_name": "pseudotime",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "pseudotime",
+            "description": "Source-derived lineage-specific pseudotime values; no refit is performed."
+          },
+          {
+            "name": "lineage_weights",
+            "kind": "cell_vector_family",
+            "output_name": "lineage_weights",
+            "primitive_kind": "cell_vector_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "lineage_weights",
+            "description": "Source-derived Slingshot lineage membership weights; no refit is performed."
+          },
+          {
+            "name": "curves",
+            "kind": "path_2d_family",
+            "output_name": "curves",
+            "primitive_kind": "path_2d_family",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "curves",
+            "description": "Source-derived two-dimensional Slingshot lineage curves."
+          },
+          {
+            "name": "model",
+            "kind": "model_ref",
+            "output_name": "model",
+            "primitive_kind": "model_ref",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "model",
+            "description": "Contained source-derived Slingshot model bound to the adopted trajectory fit family."
+          },
+          {
+            "name": "adoption_summary",
+            "kind": "obs_table",
+            "output_name": "adoption_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "adoption_summary",
+            "description": "Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary."
+          }
+        ],
+        "inputs": {
+          "model": {
+            "required": true,
+            "kind": "model_ref",
+            "effective_cell_coverage": "cell_indexed"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "all",
+            "value_type": "cell_set",
+            "required": false,
+            "non_empty": true
+          }
+        },
+        "controls": {
+          "cell_set": {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "required": false,
+            "help": "Named bundle cell set defining the requested cell universe."
+          },
+          "cell_ids": {
+            "name": "cell_ids",
+            "type": "cell_ids",
+            "default": null,
+            "required": false,
+            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+          },
+          "min_cells": {
+            "name": "min_cells",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "required": false,
+            "help": "Minimum effective cell count required before runner execution."
+          }
+        },
+        "params": [
+          {
+            "name": "source",
+            "type": "entity_ref",
+            "required": true,
+            "help": "Registered external_source reference for the object from which the selected Slingshot fit was extracted.",
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": false
+          }
+        ],
+        "promotable": ["pseudotime", "lineage_weights", "curves", "model", "adoption_summary"],
+        "replay_equivalence": {
+          "pseudotime": "exact_canonical_value",
+          "lineage_weights": "exact_canonical_value",
+          "curves": "exact_canonical_value",
+          "model": "loadable_reference",
+          "adoption_summary": "exact_canonical_value"
+        },
+        "chunking": null
+      }
+    },
+    {
       "record_id": "op:slingshot_lineage_weights",
       "record_type": "op",
       "name": "slingshot_lineage_weights",
@@ -10402,6 +10764,144 @@
         "replay_equivalence": {
           "space": "exact_canonical_value",
           "fit_summary": "exact_canonical_value"
+        },
+        "chunking": null
+      }
+    },
+    {
+      "record_id": "op:model_bound_latent_union",
+      "record_type": "op",
+      "name": "model_bound_latent_union",
+      "title": "Model-Bound Latent-Space Union",
+      "description": "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
+      "search_text": "Model-Bound Latent-Space Union\nCombine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.\nlatent\nintegration\nprojection\nprovenance\nreference_space\nspace\nTRUE\nquery_space\nmodel\nmodel_ref\nprojection_summary\nobs_table\ncell_set\nselect\nFALSE\nmaterialization\nunion_summary\nDurable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.\nterminal_artifact\nModel, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.\nspace_id_out\nstring\nmodel_bound_latent_union\nNew durable space identity for the unchanged row-wise coordinate union.",
+      "tags": ["op", "latent", "integration", "projection", "provenance"],
+      "payload": {
+        "op_name": "model_bound_latent_union",
+        "title": "Model-Bound Latent-Space Union",
+        "description": "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
+        "intent": ["latent", "integration", "projection", "provenance"],
+        "consumes": [
+          {
+            "name": "reference_space",
+            "kind": "space",
+            "required": true
+          },
+          {
+            "name": "query_space",
+            "kind": "space",
+            "required": true
+          },
+          {
+            "name": "model",
+            "kind": "model_ref",
+            "required": true
+          },
+          {
+            "name": "projection_summary",
+            "kind": "obs_table",
+            "required": true
+          },
+          {
+            "name": "cell_set",
+            "kind": "select",
+            "required": false
+          }
+        ],
+        "produces": [
+          {
+            "name": "space",
+            "kind": "space",
+            "output_name": "space",
+            "primitive_kind": "space",
+            "durability_role": "materialization",
+            "promotable_directly": false,
+            "materialized_by_terminals": "union_summary",
+            "description": "Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order."
+          },
+          {
+            "name": "union_summary",
+            "kind": "obs_table",
+            "output_name": "union_summary",
+            "primitive_kind": "obs_table",
+            "durability_role": "terminal_artifact",
+            "promotable_directly": true,
+            "materialized_by_terminals": "union_summary",
+            "description": "Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record."
+          }
+        ],
+        "inputs": {
+          "reference_space": {
+            "required": true,
+            "kind": "space",
+            "effective_cell_coverage": "reference_only"
+          },
+          "query_space": {
+            "required": true,
+            "kind": "space",
+            "effective_cell_coverage": "reference_only"
+          },
+          "model": {
+            "required": true,
+            "kind": "model_ref",
+            "effective_cell_coverage": "reference_only"
+          },
+          "projection_summary": {
+            "required": true,
+            "kind": "obs_table",
+            "effective_cell_coverage": "reference_only"
+          },
+          "cell_set": {
+            "type": "select",
+            "label": "Cell set",
+            "choices": ["core", "all"],
+            "default": "all",
+            "value_type": "cell_set",
+            "required": false,
+            "non_empty": true
+          }
+        },
+        "controls": {
+          "cell_set": {
+            "name": "cell_set",
+            "type": "cell_set",
+            "default": "all",
+            "required": false,
+            "help": "Named bundle cell set defining the requested cell universe."
+          },
+          "cell_ids": {
+            "name": "cell_ids",
+            "type": "cell_ids",
+            "default": null,
+            "required": false,
+            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+          },
+          "min_cells": {
+            "name": "min_cells",
+            "type": "int",
+            "default": 10,
+            "min": 1,
+            "required": false,
+            "help": "Minimum effective cell count required before runner execution."
+          }
+        },
+        "params": [
+          {
+            "name": "space_id_out",
+            "type": "string",
+            "default": "model_bound_latent_union",
+            "help": "New durable space identity for the unchanged row-wise coordinate union.",
+            "required": false,
+            "nullable": false,
+            "allow_non_finite": false,
+            "strict_integer": false,
+            "non_empty": true
+          }
+        ],
+        "promotable": "union_summary",
+        "replay_equivalence": {
+          "space": "exact_canonical_value",
+          "union_summary": "exact_canonical_value"
         },
         "chunking": null
       }
@@ -15039,6 +15539,78 @@
       }
     },
     {
+      "record_id": "artifact_type:obs_table:rna_qc_metrics_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:rna_qc_metrics_summary",
+      "title": "RNA QC Metric Summary",
+      "description": "Per-metric distribution summaries with explicit feature-matching and no-threshold-selection boundaries.",
+      "search_text": "RNA QC Metric Summary\nPer-metric distribution summaries with explicit feature-matching and no-threshold-selection boundaries.\nobs_table\nrna_qc_metrics_summary\nqc_metric\ninspect RNA QC distributions\nchoose explicit downstream cell-selection thresholds",
+      "tags": ["artifact_type", "obs_table", "rna_qc_metrics_summary"],
+      "payload": {
+        "artifact_type": "obs_table:rna_qc_metrics_summary",
+        "primitive_kind": "obs_table",
+        "title": "RNA QC Metric Summary",
+        "description": "Per-metric distribution summaries with explicit feature-matching and no-threshold-selection boundaries.",
+        "table_type": "rna_qc_metrics_summary",
+        "entity_kind": "qc_metric",
+        "use_when": ["inspect RNA QC distributions", "choose explicit downstream cell-selection thresholds"]
+      }
+    },
+    {
+      "record_id": "artifact_type:feature_table:rna_qc_feature_membership",
+      "record_type": "artifact_type",
+      "name": "feature_table:rna_qc_feature_membership",
+      "title": "RNA QC Feature Membership",
+      "description": "Exact mitochondrial or ribosomal feature membership used to calculate per-cell RNA QC metrics.",
+      "search_text": "RNA QC Feature Membership\nExact mitochondrial or ribosomal feature membership used to calculate per-cell RNA QC metrics.\nfeature_table\nrna_qc_feature_membership\nfeature\naudit mitochondrial feature matching\naudit ribosomal feature matching",
+      "tags": ["artifact_type", "feature_table", "rna_qc_feature_membership"],
+      "payload": {
+        "artifact_type": "feature_table:rna_qc_feature_membership",
+        "primitive_kind": "feature_table",
+        "title": "RNA QC Feature Membership",
+        "description": "Exact mitochondrial or ribosomal feature membership used to calculate per-cell RNA QC metrics.",
+        "table_type": "rna_qc_feature_membership",
+        "entity_kind": "feature",
+        "use_when": ["audit mitochondrial feature matching", "audit ribosomal feature matching"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:slingshot_adoption_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:slingshot_adoption_summary",
+      "title": "Slingshot Adoption Summary",
+      "description": "Checksummed source identity, fit-subobject identity, coordinate alignment, and external-execution boundary for an adopted Slingshot fit.",
+      "search_text": "Slingshot Adoption Summary\nChecksummed source identity, fit-subobject identity, coordinate alignment, and external-execution boundary for an adopted Slingshot fit.\nobs_table\nslingshot_adoption_summary\ntrajectory_fit\naudit source-derived trajectory adoption\ndistinguish adopted Slingshot state from a scworkbench refit",
+      "tags": ["artifact_type", "obs_table", "slingshot_adoption_summary"],
+      "payload": {
+        "artifact_type": "obs_table:slingshot_adoption_summary",
+        "primitive_kind": "obs_table",
+        "title": "Slingshot Adoption Summary",
+        "description": "Checksummed source identity, fit-subobject identity, coordinate alignment, and external-execution boundary for an adopted Slingshot fit.",
+        "table_type": "slingshot_adoption_summary",
+        "entity_kind": "trajectory_fit",
+        "use_when": ["audit source-derived trajectory adoption", "distinguish adopted Slingshot state from a scworkbench refit"]
+      }
+    },
+    {
+      "record_id": "artifact_type:obs_table:model_bound_latent_union_summary",
+      "record_type": "artifact_type",
+      "name": "obs_table:model_bound_latent_union_summary",
+      "title": "Model-Bound Latent Union Summary",
+      "description": "Model identity, fitted and projected source spaces, disjoint cell counts, dimensions, and unchanged row-bind semantics for a combined latent space.",
+      "search_text": "Model-Bound Latent Union Summary\nModel identity, fitted and projected source spaces, disjoint cell counts, dimensions, and unchanged row-bind semantics for a combined latent space.\nobs_table\nmodel_bound_latent_union_summary\nspace\naudit reference-query latent integration\nverify PeakVI or scVI projection ancestry before joint UMAP",
+      "tags": ["artifact_type", "obs_table", "model_bound_latent_union_summary"],
+      "payload": {
+        "artifact_type": "obs_table:model_bound_latent_union_summary",
+        "primitive_kind": "obs_table",
+        "title": "Model-Bound Latent Union Summary",
+        "description": "Model identity, fitted and projected source spaces, disjoint cell counts, dimensions, and unchanged row-bind semantics for a combined latent space.",
+        "table_type": "model_bound_latent_union_summary",
+        "entity_kind": "space",
+        "use_when": ["audit reference-query latent integration", "verify PeakVI or scVI projection ancestry before joint UMAP"]
+      }
+    },
+    {
       "record_id": "artifact_type:obs_table:attach_report",
       "record_type": "artifact_type",
       "name": "obs_table:attach_report",
@@ -16880,14 +17452,20 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 323,
-    "edge_count": 904,
+    "node_count": 330,
+    "edge_count": 936,
     "nodes": [
       {
         "record_id": "op:leiden",
         "record_type": "op",
         "name": "leiden",
         "title": "Leiden clustering"
+      },
+      {
+        "record_id": "op:rna_qc_metrics",
+        "record_type": "op",
+        "name": "rna_qc_metrics",
+        "title": "Calculate per-cell RNA QC metrics"
       },
       {
         "record_id": "op:matrix_log_normalize",
@@ -17124,6 +17702,12 @@
         "title": "Slingshot fit"
       },
       {
+        "record_id": "op:slingshot_adopt",
+        "record_type": "op",
+        "name": "slingshot_adopt",
+        "title": "Adopt an existing Slingshot fit"
+      },
+      {
         "record_id": "op:slingshot_lineage_weights",
         "record_type": "op",
         "name": "slingshot_lineage_weights",
@@ -17194,6 +17778,12 @@
         "record_type": "op",
         "name": "peakvi_project",
         "title": "PeakVI project (pybench)"
+      },
+      {
+        "record_id": "op:model_bound_latent_union",
+        "record_type": "op",
+        "name": "model_bound_latent_union",
+        "title": "Model-Bound Latent-Space Union"
       },
       {
         "record_id": "op:space_path_define",
@@ -18240,6 +18830,30 @@
         "title": "Matrix Log-Normalization Summary"
       },
       {
+        "record_id": "artifact_type:obs_table:rna_qc_metrics_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:rna_qc_metrics_summary",
+        "title": "RNA QC Metric Summary"
+      },
+      {
+        "record_id": "artifact_type:feature_table:rna_qc_feature_membership",
+        "record_type": "artifact_type",
+        "name": "feature_table:rna_qc_feature_membership",
+        "title": "RNA QC Feature Membership"
+      },
+      {
+        "record_id": "artifact_type:obs_table:slingshot_adoption_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:slingshot_adoption_summary",
+        "title": "Slingshot Adoption Summary"
+      },
+      {
+        "record_id": "artifact_type:obs_table:model_bound_latent_union_summary",
+        "record_type": "artifact_type",
+        "name": "obs_table:model_bound_latent_union_summary",
+        "title": "Model-Bound Latent Union Summary"
+      },
+      {
         "record_id": "artifact_type:obs_table:attach_report",
         "record_type": "artifact_type",
         "name": "obs_table:attach_report",
@@ -18858,6 +19472,54 @@
         "to": "artifact_type:cell_vector",
         "edge_type": "promotes_as",
         "label": "promotable:clusters"
+      },
+      {
+        "from": "primitive:matrix",
+        "to": "op:rna_qc_metrics",
+        "edge_type": "consumed_by",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:rna_qc_metrics",
+        "to": "parameter:matrix",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:matrix"
+      },
+      {
+        "from": "op:rna_qc_metrics",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:rna_qc_metrics",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "param:cell_set"
+      },
+      {
+        "from": "op:rna_qc_metrics",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:metrics"
+      },
+      {
+        "from": "op:rna_qc_metrics",
+        "to": "primitive:feature_table",
+        "edge_type": "produces",
+        "label": "output:qc_features"
+      },
+      {
+        "from": "op:rna_qc_metrics",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:summary"
+      },
+      {
+        "from": "op:rna_qc_metrics",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:metrics"
       },
       {
         "from": "primitive:matrix",
@@ -21093,6 +21755,78 @@
       },
       {
         "from": "primitive:model_ref",
+        "to": "op:slingshot_adopt",
+        "edge_type": "consumed_by",
+        "label": "input:model"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:pseudotime"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "primitive:cell_vector_family",
+        "edge_type": "produces",
+        "label": "output:lineage_weights"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "primitive:path_2d_family",
+        "edge_type": "produces",
+        "label": "output:curves"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "primitive:model_ref",
+        "edge_type": "produces",
+        "label": "output:model"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:adoption_summary"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:pseudotime"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "artifact_type:cell_vector_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:lineage_weights"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "artifact_type:path_2d_family",
+        "edge_type": "promotes_as",
+        "label": "promotable:curves"
+      },
+      {
+        "from": "op:slingshot_adopt",
+        "to": "artifact_type:model_ref",
+        "edge_type": "promotes_as",
+        "label": "promotable:model"
+      },
+      {
+        "from": "primitive:model_ref",
         "to": "op:slingshot_lineage_weights",
         "edge_type": "consumed_by",
         "label": "input:model"
@@ -21741,6 +22475,54 @@
       },
       {
         "from": "primitive:space",
+        "to": "op:model_bound_latent_union",
+        "edge_type": "consumed_by",
+        "label": "input:reference_space"
+      },
+      {
+        "from": "primitive:space",
+        "to": "op:model_bound_latent_union",
+        "edge_type": "consumed_by",
+        "label": "input:query_space"
+      },
+      {
+        "from": "primitive:model_ref",
+        "to": "op:model_bound_latent_union",
+        "edge_type": "consumed_by",
+        "label": "input:model"
+      },
+      {
+        "from": "op:model_bound_latent_union",
+        "to": "parameter:model",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:model"
+      },
+      {
+        "from": "primitive:obs_table",
+        "to": "op:model_bound_latent_union",
+        "edge_type": "consumed_by",
+        "label": "input:projection_summary"
+      },
+      {
+        "from": "op:model_bound_latent_union",
+        "to": "parameter:cell_set",
+        "edge_type": "has_parameter_semantics",
+        "label": "input:cell_set"
+      },
+      {
+        "from": "op:model_bound_latent_union",
+        "to": "primitive:space",
+        "edge_type": "produces",
+        "label": "output:space"
+      },
+      {
+        "from": "op:model_bound_latent_union",
+        "to": "primitive:obs_table",
+        "edge_type": "produces",
+        "label": "output:union_summary"
+      },
+      {
+        "from": "primitive:space",
         "to": "op:space_path_define",
         "edge_type": "consumed_by",
         "label": "input:space"
@@ -22245,6 +23027,30 @@
       },
       {
         "from": "artifact_type:obs_table:matrix_log_normalize_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:rna_qc_metrics_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:feature_table:rna_qc_feature_membership",
+        "to": "primitive:feature_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:slingshot_adoption_summary",
+        "to": "primitive:obs_table",
+        "edge_type": "loads_as",
+        "label": "wb_art_load"
+      },
+      {
+        "from": "artifact_type:obs_table:model_bound_latent_union_summary",
         "to": "primitive:obs_table",
         "edge_type": "loads_as",
         "label": "wb_art_load"

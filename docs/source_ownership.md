@@ -9,6 +9,7 @@ This file is the public ownership map. The executable policy is
 
 `README.md` is the entry point. The maintained guides in `docs/` are
 `getting_started.md`, `bundle_concepts.md`, `ingestion.md`,
+`bdev_external_user_workflows.md`,
 `sessions_and_ops.md`, `promotion_and_provenance.md`, `recipient_audit.md`,
 `python_bridge.md`, and `extension_engineering.md`. The platform-agnostic
 library in `inst/onboarding/` is installed package documentation. These files

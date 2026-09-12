@@ -330,6 +330,19 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$vector` (`cell_vector`): Typed per-cell vector materialized from imported bundle metadata.. Promotion eligibility is declared by the operation catalog.
 NULL
 
+#' @name wb_op_model_bound_latent_union
+#' @aliases wb_op_model_bound_latent_union
+#' @description Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
+#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
+#' @param reference_space Required `reference_space` input represented as `space`; accepted symbolic references are resolved by the operation interface.
+#' @param query_space Required `query_space` input represented as `space`; accepted symbolic references are resolved by the operation interface.
+#' @param model Required `model` input represented as `model_ref`; accepted symbolic references are resolved by the operation interface.
+#' @param projection_summary Required `projection_summary` input represented as `obs_table`; accepted symbolic references are resolved by the operation interface.
+#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
+#' @param space_id_out New durable space identity for the unchanged row-wise coordinate union.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.; `outputs$union_summary` (`obs_table`): Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.. Promotion eligibility is declared by the operation catalog.
+NULL
+
 #' @name wb_op_monocle3_fit
 #' @aliases wb_op_monocle3_fit
 #' @description Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
@@ -450,7 +463,26 @@ NULL
 #' @param use_gpu If TRUE, request GPU-backed model loading/projection in scvi-tools.
 #' @param space_id_out Space id to write for the projected PeakVI latent embedding.
 #' @param python_bin Python executable used for an optional pybench-backed runtime.
+#' @param cell_set Named bundle cell set used to resolve the analysis universe.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.; `outputs$fit_summary` (`obs_table`): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
+NULL
+
+#' @name wb_op_rna_qc_metrics
+#' @aliases wb_op_rna_qc_metrics
+#' @description Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.
+#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
+#' @param matrix_id Registered logical matrix identifier consumed by this operation.
+#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
+#' @param mitochondrial_features Optional explicit mitochondrial feature ids.
+#' @param mitochondrial_pattern Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols.
+#' @param ribosomal_features Optional explicit ribosomal feature ids.
+#' @param ribosomal_pattern Optional regular expression matched against feature ids.
+#' @param pattern_ignore_case Whether feature-id regular-expression matching ignores case.
+#' @param missing_feature_policy Whether absent explicitly supplied feature ids fail or are recorded and dropped.
+#' @param require_integer_counts Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression.
+#' @param integer_tolerance Absolute tolerance used for integer-like count validation.
+#' @param chunk_size Maximum chunk size used for bounded-memory processing.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$metrics` (`cell_vector_family`): Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics.; `outputs$qc_features` (`feature_table`): Exact feature membership and explicit/pattern selection source for each optional QC feature group.; `outputs$summary` (`obs_table`): Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot
@@ -471,6 +503,16 @@ NULL
 #' @param maxit Maximum engine fitting iterations.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Lineage-specific pseudotime values per cell.; `outputs$curves` (`path_2d_family`): Lineage curve paths in 2D.. Promotion eligibility is declared by the operation catalog.
+NULL
+
+#' @name wb_op_slingshot_adopt
+#' @aliases wb_op_slingshot_adopt
+#' @description Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
+#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
+#' @param model_ref Typed `model_ref` primitive required by this engine-specific helper.
+#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
+#' @param source Registered external_source reference for the object from which the selected Slingshot fit was extracted.
+#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Source-derived lineage-specific pseudotime values; no refit is performed.; `outputs$lineage_weights` (`cell_vector_family`): Source-derived Slingshot lineage membership weights; no refit is performed.; `outputs$curves` (`path_2d_family`): Source-derived two-dimensional Slingshot lineage curves.; `outputs$model` (`model_ref`): Contained source-derived Slingshot model bound to the adopted trajectory fit family.; `outputs$adoption_summary` (`obs_table`): Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot_fit

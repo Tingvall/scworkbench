@@ -46,6 +46,9 @@
   prov <- .wb_trajectory_artifact_provenance(bundle, artifact_id)
   params <- prov$params %||% list()
   out_name <- .wb_trajectory_artifact_output_name(bundle, artifact_id)
+  source_op <- as.character(prov$op_name %||% prov$source_op %||% "")[1]
+  engine <- as.character(params$trajectory_engine %||% params$engine %||% "")[1]
+  if (!nzchar(engine) && grepl("^slingshot(_|$)", source_op)) engine <- "slingshot"
   family_kind <- switch(
     out_name,
     pseudotime = "trajectory_pseudotime",
@@ -62,14 +65,14 @@
   )
   list(
     trajectory_fit_id = as.character(params$trajectory_fit_id %||% "")[1],
-    engine = as.character(params$trajectory_engine %||% params$engine %||% "")[1],
+    engine = engine,
     fit_space_id = as.character(params$fit_space_id %||% "")[1],
     n_lineages = suppressWarnings(as.integer(params$n_lineages %||% NA_integer_))[1],
     family_kind = family_kind,
     value_semantics = value_semantics,
     artifact_id = as.character(artifact_id)[1],
     output_name = out_name,
-    source_op = as.character(prov$op_name %||% prov$source_op %||% "")[1]
+    source_op = source_op
   )
 }
 
@@ -84,6 +87,12 @@
     prim$n_lineages <- meta$n_lineages %||% prim$n_lineages
     return(prim)
   }
+  # Current trajectory payloads persist their complete fit metadata in the
+  # artifact descriptor. Adding artifact-context fields after loading would
+  # change an otherwise identical content hash. Hydration is therefore only a
+  # compatibility backfill for legacy payloads without a retained fit id.
+  retained_fit_id <- as.character((prim$meta %||% list())$trajectory_fit_id %||% "")[1]
+  if (nzchar(retained_fit_id)) return(prim)
   prim$meta <- modifyList(meta, prim$meta %||% list())
   prim
 }

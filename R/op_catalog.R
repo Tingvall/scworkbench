@@ -43,6 +43,30 @@
   raw
 }
 
+.wb_runner_rna_qc_metrics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$matrix), "rna_qc_metrics runner: missing resolved$matrix.")
+  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
+  .wb_assert(nzchar(matrix_id), "rna_qc_metrics runner: resolved matrix primitive missing matrix_id.")
+
+  raw <- wb_op_rna_qc_metrics(
+    bundle = bundle,
+    matrix_id = matrix_id,
+    cells = as.character(effective_cells),
+    mitochondrial_features = inputs$mitochondrial_features %||% NULL,
+    mitochondrial_pattern = inputs$mitochondrial_pattern %||% NULL,
+    ribosomal_features = inputs$ribosomal_features %||% NULL,
+    ribosomal_pattern = inputs$ribosomal_pattern %||% NULL,
+    pattern_ignore_case = inputs$pattern_ignore_case %||% FALSE,
+    missing_feature_policy = inputs$missing_feature_policy %||% "error",
+    require_integer_counts = inputs$require_integer_counts %||% TRUE,
+    integer_tolerance = inputs$integer_tolerance %||% 1e-8,
+    chunk_size = inputs$chunk_size %||% 2000L
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "rna_qc_metrics must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
 .wb_runner_hvg_select <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "hvg_select runner: missing resolved$matrix.")
   matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
@@ -175,6 +199,19 @@
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "slingshot_project must return list(outputs=<list>, params=<list>).")
+  raw
+}
+
+.wb_runner_slingshot_adopt <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$model), "slingshot_adopt runner: missing resolved$model.")
+  raw <- wb_op_slingshot_adopt(
+    bundle = bundle,
+    model_ref = resolved$model,
+    cells = as.character(effective_cells),
+    source = inputs$source
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "slingshot_adopt must return list(outputs=<list>, params=<list>).")
   raw
 }
 
@@ -483,6 +520,7 @@
     peakvi_model = resolved$model,
     matrix_id = matrix_id,
     cells = as.character(effective_cells),
+    cell_set = inputs$cell_set %||% "all",
     batch_key = inputs$batch_key %||% NULL,
     use_gpu = inputs$use_gpu %||% FALSE,
     space_id_out = inputs$space_id_out %||% "peakvi_project_space"
@@ -491,8 +529,10 @@
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "peakvi_project must return list(outputs=<list>, params=<list>).")
   raw$outputs$fit_summary <- wb_prim_obs_table(data.frame(
+    engine="peakvi", projection_mode="transform_without_refit",
     matrix_id=matrix_id, output_space_id=as.character(raw$params$space_id_out %||% inputs$space_id_out),
     n_cells=length(effective_cells), n_features=as.integer(raw$params$n_features %||% NA_integer_),
+    n_latent=as.integer(raw$params$n_latent %||% NA_integer_),
     model_space_id=as.character(raw$params$model_space_id %||% resolved$model$model_space_id %||% NA_character_),
     model_artifact_id=as.character(resolved$model$artifact_id %||% NA_character_),
     batch_key=as.character(inputs$batch_key %||% NA_character_), use_gpu=isTRUE(inputs$use_gpu %||% FALSE),
@@ -500,6 +540,25 @@
     pybench_version=as.character(raw$params$pybench_runtime$pybench_version %||% NA_character_),
     pybench_timings_json=jsonlite::toJSON(raw$params$pybench_runtime$timings %||% list(), auto_unbox=TRUE, null="null"), stringsAsFactors=FALSE),
     table_type="peakvi_project_summary")
+  raw
+}
+
+.wb_runner_model_bound_latent_union <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
+  .wb_assert(!is.null(resolved$reference_space), "model_bound_latent_union runner: missing reference_space.")
+  .wb_assert(!is.null(resolved$query_space), "model_bound_latent_union runner: missing query_space.")
+  .wb_assert(!is.null(resolved$model), "model_bound_latent_union runner: missing model.")
+  .wb_assert(!is.null(resolved$projection_summary), "model_bound_latent_union runner: missing projection_summary.")
+  raw <- wb_op_model_bound_latent_union(
+    bundle = bundle,
+    reference_space = resolved$reference_space,
+    query_space = resolved$query_space,
+    model = resolved$model,
+    projection_summary = resolved$projection_summary,
+    cells = as.character(effective_cells),
+    space_id_out = inputs$space_id_out %||% "model_bound_latent_union"
+  )
+  .wb_assert(is.list(raw) && is.list(raw$outputs),
+             "model_bound_latent_union must return list(outputs=<list>, params=<list>).")
   raw
 }
 
@@ -1666,6 +1725,64 @@
           colorable = TRUE,
           color_type = "categorical",
           label = "Leiden clusters"
+        )
+      )
+    ),
+    rna_qc_metrics = list(
+      op_name = "rna_qc_metrics",
+      title = "Calculate per-cell RNA QC metrics",
+      description = "Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.",
+      semantics = list(
+        scope = "fact calculation only; threshold choice and cell filtering are separate operations",
+        percentages = "100 * feature-group counts / total counts; stored as zero for zero-count cells and disclosed in the summary",
+        feature_groups = "explicit feature ids and/or recorded regular-expression matches"
+      ),
+      intent = c("matrix", "rna", "quality_control", "cell_metrics"),
+      requires = list(matrix = "matrix"),
+      produces = list(
+        metrics = "cell_vector_family",
+        qc_features = "feature_table",
+        summary = "obs_table"
+      ),
+      promotable = c("metrics", "qc_features", "summary"),
+      runner = .wb_runner_rna_qc_metrics,
+      inputs = list(matrix = list(required = TRUE, kind = "matrix")),
+      params = list(
+        list(name = "mitochondrial_features", type = "string_vec", default = NULL,
+             help = "Optional explicit mitochondrial feature ids."),
+        list(name = "mitochondrial_pattern", type = "string", default = NULL,
+             help = "Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols."),
+        list(name = "ribosomal_features", type = "string_vec", default = NULL,
+             help = "Optional explicit ribosomal feature ids."),
+        list(name = "ribosomal_pattern", type = "string", default = NULL,
+             help = "Optional regular expression matched against feature ids."),
+        list(name = "pattern_ignore_case", type = "bool", default = FALSE,
+             help = "Whether feature-id regular-expression matching ignores case."),
+        list(name = "missing_feature_policy", type = "choice", default = "error", choices = c("error", "drop"),
+             help = "Whether absent explicitly supplied feature ids fail or are recorded and dropped."),
+        list(name = "require_integer_counts", type = "bool", default = TRUE,
+             help = "Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression."),
+        list(name = "integer_tolerance", type = "dbl", default = 1e-8, min = 0,
+             help = "Absolute tolerance used for integer-like count validation."),
+        list(name = "chunk_size", type = "int", default = 2000L, min = 1, max = 1000000,
+             help = "Number of cells read per backed-matrix chunk."),
+        list(name = "cell_set", type = "cell_set", default = "all",
+             help = "Named bundle cell set defining the cells for which metrics are calculated.")
+      ),
+      interface_produces = list(
+        metrics = list(
+          kind = "cell_vector_family",
+          description = "Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics."
+        ),
+        qc_features = list(
+          kind = "feature_table",
+          table_type = "rna_qc_feature_membership",
+          description = "Exact feature membership and explicit/pattern selection source for each optional QC feature group."
+        ),
+        summary = list(
+          kind = "obs_table",
+          table_type = "rna_qc_metrics_summary",
+          description = "Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries."
         )
       )
     ),
@@ -3563,6 +3680,50 @@
         )
       )
     ),
+    slingshot_adopt = list(
+      op_name = "slingshot_adopt",
+      title = "Adopt an existing Slingshot fit",
+      description = "Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.",
+      intent = c("trajectory", "adoption", "provenance", "source_derived"),
+      requires = list(model = "model_ref"),
+      produces = list(
+        pseudotime = "cell_vector_family",
+        lineage_weights = "cell_vector_family",
+        curves = "path_2d_family",
+        model = "model_ref",
+        adoption_summary = "obs_table"
+      ),
+      promotable = c("pseudotime", "lineage_weights", "curves", "model", "adoption_summary"),
+      runner = .wb_runner_slingshot_adopt,
+      inputs = list(model = list(required = TRUE, kind = "model_ref")),
+      params = list(
+        list(name = "source", type = "entity_ref", required = TRUE,
+             help = "Registered external_source reference for the object from which the selected Slingshot fit was extracted.")
+      ),
+      interface_produces = list(
+        pseudotime = list(
+          kind = "cell_vector_family", value_kind = "continuous", key = "lineage_id",
+          description = "Source-derived lineage-specific pseudotime values; no refit is performed."
+        ),
+        lineage_weights = list(
+          kind = "cell_vector_family", value_kind = "continuous", key = "lineage_id",
+          family_kind = "trajectory_membership_weight", engine = "slingshot", range = c(0, 1),
+          description = "Source-derived Slingshot lineage membership weights; no refit is performed."
+        ),
+        curves = list(
+          kind = "path_2d_family", key = "lineage_id",
+          description = "Source-derived two-dimensional Slingshot lineage curves."
+        ),
+        model = list(
+          kind = "model_ref",
+          description = "Contained source-derived Slingshot model bound to the adopted trajectory fit family."
+        ),
+        adoption_summary = list(
+          kind = "obs_table", table_type = "slingshot_adoption_summary",
+          description = "Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary."
+        )
+      )
+    ),
     slingshot_lineage_weights = list(
       op_name = "slingshot_lineage_weights",
       title = "Slingshot lineage weights",
@@ -4158,6 +4319,48 @@
           description = "Projected PeakVI latent space written into the bundle spaces registry."
         ),
         fit_summary = list(kind="obs_table", description="Projection receipt and output-space summary.")
+      )
+    ),
+    model_bound_latent_union = list(
+      op_name = "model_bound_latent_union",
+      title = "Model-Bound Latent-Space Union",
+      description = "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
+      intent = c("latent", "integration", "projection", "provenance"),
+      requires = list(
+        reference_space = "space",
+        query_space = "space",
+        model = "model_ref",
+        projection_summary = "obs_table"
+      ),
+      coverage = list(
+        reference_space = "reference_only",
+        query_space = "reference_only",
+        model = "reference_only",
+        projection_summary = "reference_only"
+      ),
+      produces = list(space = "space", union_summary = "obs_table"),
+      promotable = c("union_summary"),
+      runner = .wb_runner_model_bound_latent_union,
+      inputs = list(
+        reference_space = list(required = TRUE, kind = "space"),
+        query_space = list(required = TRUE, kind = "space"),
+        model = list(required = TRUE, kind = "model_ref"),
+        projection_summary = list(required = TRUE, kind = "obs_table")
+      ),
+      params = list(
+        list(name = "space_id_out", type = "string", default = "model_bound_latent_union",
+             help = "New durable space identity for the unchanged row-wise coordinate union.")
+      ),
+      interface_produces = list(
+        space = list(
+          kind = "space",
+          description = "Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order."
+        ),
+        union_summary = list(
+          kind = "obs_table",
+          table_type = "model_bound_latent_union_summary",
+          description = "Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record."
+        )
       )
     ),
     space_path_define = list(

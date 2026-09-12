@@ -60,7 +60,7 @@ stopifnot(
 # No-pack parity and accepted Phase 1 R identities are immutable.
 core_identity_before <- wb_operation_catalog_identity()
 stopifnot(identical(core_identity_before$sha256,
-                    "80a340f5845968061fdb8d725b5bc83c7111325c224c5afd326ea08e1d1e99ce"),
+                    "e6a4e1713d1e8e4a3b044d285e6e510afdef46c6d56966f72a15725eea550445"),
           !nrow(wb_operation_packs()))
 r_installed <- wb_operation_pack_validate(template_package)$identity
 r_structural <- wb_operation_pack_manifest_validate(template_manifest)$identity

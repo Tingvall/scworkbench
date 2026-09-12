@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "op_count": 57,
+  "op_count": 60,
   "ops": [
     {
       "op_name": "leiden",
@@ -149,6 +149,219 @@
       "promotable": "clusters",
       "replay_equivalence": {
         "clusters": "exact_canonical_value"
+      },
+      "chunking": null
+    },
+    {
+      "op_name": "rna_qc_metrics",
+      "title": "Calculate per-cell RNA QC metrics",
+      "description": "Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.",
+      "intent": ["matrix", "rna", "quality_control", "cell_metrics"],
+      "consumes": [
+        {
+          "name": "matrix",
+          "kind": "matrix",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select",
+          "required": false
+        }
+      ],
+      "produces": [
+        {
+          "name": "metrics",
+          "kind": "cell_vector_family",
+          "output_name": "metrics",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "metrics",
+          "description": "Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics."
+        },
+        {
+          "name": "qc_features",
+          "kind": "feature_table",
+          "output_name": "qc_features",
+          "primitive_kind": "feature_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "qc_features",
+          "description": "Exact feature membership and explicit/pattern selection source for each optional QC feature group."
+        },
+        {
+          "name": "summary",
+          "kind": "obs_table",
+          "output_name": "summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "summary",
+          "description": "Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries."
+        }
+      ],
+      "inputs": {
+        "matrix": {
+          "required": true,
+          "kind": "matrix",
+          "effective_cell_coverage": "cell_indexed"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "all",
+          "value_type": "cell_set",
+          "required": false,
+          "non_empty": true
+        }
+      },
+      "controls": {
+        "cell_set": {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "required": false,
+          "help": "Named bundle cell set defining the requested cell universe."
+        },
+        "cell_ids": {
+          "name": "cell_ids",
+          "type": "cell_ids",
+          "default": null,
+          "required": false,
+          "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+        },
+        "min_cells": {
+          "name": "min_cells",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "required": false,
+          "help": "Minimum effective cell count required before runner execution."
+        }
+      },
+      "params": [
+        {
+          "name": "mitochondrial_features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit mitochondrial feature ids.",
+          "required": false,
+          "nullable": true,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        },
+        {
+          "name": "mitochondrial_pattern",
+          "type": "string",
+          "default": null,
+          "help": "Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols.",
+          "required": false,
+          "nullable": true,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        },
+        {
+          "name": "ribosomal_features",
+          "type": "string_vec",
+          "default": null,
+          "help": "Optional explicit ribosomal feature ids.",
+          "required": false,
+          "nullable": true,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        },
+        {
+          "name": "ribosomal_pattern",
+          "type": "string",
+          "default": null,
+          "help": "Optional regular expression matched against feature ids.",
+          "required": false,
+          "nullable": true,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        },
+        {
+          "name": "pattern_ignore_case",
+          "type": "bool",
+          "default": false,
+          "help": "Whether feature-id regular-expression matching ignores case.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": false
+        },
+        {
+          "name": "missing_feature_policy",
+          "type": "choice",
+          "default": "error",
+          "choices": ["error", "drop"],
+          "help": "Whether absent explicitly supplied feature ids fail or are recorded and dropped.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        },
+        {
+          "name": "require_integer_counts",
+          "type": "bool",
+          "default": true,
+          "help": "Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": false
+        },
+        {
+          "name": "integer_tolerance",
+          "type": "dbl",
+          "default": 1e-08,
+          "min": 0,
+          "help": "Absolute tolerance used for integer-like count validation.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": false
+        },
+        {
+          "name": "chunk_size",
+          "type": "int",
+          "default": 2000,
+          "min": 1,
+          "max": 1000000,
+          "help": "Number of cells read per backed-matrix chunk.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": true,
+          "non_empty": false
+        },
+        {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "help": "Named bundle cell set defining the cells for which metrics are calculated.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        }
+      ],
+      "promotable": ["metrics", "qc_features", "summary"],
+      "replay_equivalence": {
+        "metrics": "exact_canonical_value",
+        "qc_features": "exact_canonical_value",
+        "summary": "exact_canonical_value"
       },
       "chunking": null
     },
@@ -7620,6 +7833,137 @@
       "chunking": null
     },
     {
+      "op_name": "slingshot_adopt",
+      "title": "Adopt an existing Slingshot fit",
+      "description": "Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.",
+      "intent": ["trajectory", "adoption", "provenance", "source_derived"],
+      "consumes": [
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select",
+          "required": false
+        }
+      ],
+      "produces": [
+        {
+          "name": "pseudotime",
+          "kind": "cell_vector_family",
+          "output_name": "pseudotime",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "pseudotime",
+          "description": "Source-derived lineage-specific pseudotime values; no refit is performed."
+        },
+        {
+          "name": "lineage_weights",
+          "kind": "cell_vector_family",
+          "output_name": "lineage_weights",
+          "primitive_kind": "cell_vector_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "lineage_weights",
+          "description": "Source-derived Slingshot lineage membership weights; no refit is performed."
+        },
+        {
+          "name": "curves",
+          "kind": "path_2d_family",
+          "output_name": "curves",
+          "primitive_kind": "path_2d_family",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "curves",
+          "description": "Source-derived two-dimensional Slingshot lineage curves."
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "output_name": "model",
+          "primitive_kind": "model_ref",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "model",
+          "description": "Contained source-derived Slingshot model bound to the adopted trajectory fit family."
+        },
+        {
+          "name": "adoption_summary",
+          "kind": "obs_table",
+          "output_name": "adoption_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "adoption_summary",
+          "description": "Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary."
+        }
+      ],
+      "inputs": {
+        "model": {
+          "required": true,
+          "kind": "model_ref",
+          "effective_cell_coverage": "cell_indexed"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "all",
+          "value_type": "cell_set",
+          "required": false,
+          "non_empty": true
+        }
+      },
+      "controls": {
+        "cell_set": {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "required": false,
+          "help": "Named bundle cell set defining the requested cell universe."
+        },
+        "cell_ids": {
+          "name": "cell_ids",
+          "type": "cell_ids",
+          "default": null,
+          "required": false,
+          "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+        },
+        "min_cells": {
+          "name": "min_cells",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "required": false,
+          "help": "Minimum effective cell count required before runner execution."
+        }
+      },
+      "params": [
+        {
+          "name": "source",
+          "type": "entity_ref",
+          "required": true,
+          "help": "Registered external_source reference for the object from which the selected Slingshot fit was extracted.",
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": false
+        }
+      ],
+      "promotable": ["pseudotime", "lineage_weights", "curves", "model", "adoption_summary"],
+      "replay_equivalence": {
+        "pseudotime": "exact_canonical_value",
+        "lineage_weights": "exact_canonical_value",
+        "curves": "exact_canonical_value",
+        "model": "loadable_reference",
+        "adoption_summary": "exact_canonical_value"
+      },
+      "chunking": null
+    },
+    {
       "op_name": "slingshot_lineage_weights",
       "title": "Slingshot lineage weights",
       "description": "Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.",
@@ -9925,6 +10269,135 @@
       "replay_equivalence": {
         "space": "exact_canonical_value",
         "fit_summary": "exact_canonical_value"
+      },
+      "chunking": null
+    },
+    {
+      "op_name": "model_bound_latent_union",
+      "title": "Model-Bound Latent-Space Union",
+      "description": "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
+      "intent": ["latent", "integration", "projection", "provenance"],
+      "consumes": [
+        {
+          "name": "reference_space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "query_space",
+          "kind": "space",
+          "required": true
+        },
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true
+        },
+        {
+          "name": "projection_summary",
+          "kind": "obs_table",
+          "required": true
+        },
+        {
+          "name": "cell_set",
+          "kind": "select",
+          "required": false
+        }
+      ],
+      "produces": [
+        {
+          "name": "space",
+          "kind": "space",
+          "output_name": "space",
+          "primitive_kind": "space",
+          "durability_role": "materialization",
+          "promotable_directly": false,
+          "materialized_by_terminals": "union_summary",
+          "description": "Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order."
+        },
+        {
+          "name": "union_summary",
+          "kind": "obs_table",
+          "output_name": "union_summary",
+          "primitive_kind": "obs_table",
+          "durability_role": "terminal_artifact",
+          "promotable_directly": true,
+          "materialized_by_terminals": "union_summary",
+          "description": "Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record."
+        }
+      ],
+      "inputs": {
+        "reference_space": {
+          "required": true,
+          "kind": "space",
+          "effective_cell_coverage": "reference_only"
+        },
+        "query_space": {
+          "required": true,
+          "kind": "space",
+          "effective_cell_coverage": "reference_only"
+        },
+        "model": {
+          "required": true,
+          "kind": "model_ref",
+          "effective_cell_coverage": "reference_only"
+        },
+        "projection_summary": {
+          "required": true,
+          "kind": "obs_table",
+          "effective_cell_coverage": "reference_only"
+        },
+        "cell_set": {
+          "type": "select",
+          "label": "Cell set",
+          "choices": ["core", "all"],
+          "default": "all",
+          "value_type": "cell_set",
+          "required": false,
+          "non_empty": true
+        }
+      },
+      "controls": {
+        "cell_set": {
+          "name": "cell_set",
+          "type": "cell_set",
+          "default": "all",
+          "required": false,
+          "help": "Named bundle cell set defining the requested cell universe."
+        },
+        "cell_ids": {
+          "name": "cell_ids",
+          "type": "cell_ids",
+          "default": null,
+          "required": false,
+          "help": "Optional explicit non-empty cell-id universe overriding cell_set."
+        },
+        "min_cells": {
+          "name": "min_cells",
+          "type": "int",
+          "default": 10,
+          "min": 1,
+          "required": false,
+          "help": "Minimum effective cell count required before runner execution."
+        }
+      },
+      "params": [
+        {
+          "name": "space_id_out",
+          "type": "string",
+          "default": "model_bound_latent_union",
+          "help": "New durable space identity for the unchanged row-wise coordinate union.",
+          "required": false,
+          "nullable": false,
+          "allow_non_finite": false,
+          "strict_integer": false,
+          "non_empty": true
+        }
+      ],
+      "promotable": "union_summary",
+      "replay_equivalence": {
+        "space": "exact_canonical_value",
+        "union_summary": "exact_canonical_value"
       },
       "chunking": null
     },

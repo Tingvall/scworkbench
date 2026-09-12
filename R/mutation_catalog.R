@@ -3,7 +3,7 @@
 .wb_mutating_op_implementations <- function() c(
   "wb_op_matrix_log_normalize", "wb_op_pca_fit", "wb_op_umap_fit",
   "wb_op_umap_transform", "wb_op_palantir_fit", "wb_op_palantir_project",
-  "wb_op_peakvi_project", "wb_op_py_protocol_hello", "wb_op_feature_set_import"
+  "wb_op_peakvi_project", "wb_op_model_bound_latent_union", "wb_op_py_protocol_hello", "wb_op_feature_set_import"
 )
 
 .wb_mutation_inventory_groups <- function() list(
@@ -19,7 +19,7 @@
   ),
   matrix_space_model_writer = c(
     "wb_add_space", "wb_register_matrix_fragment", "wb_attach_cell_vector",
-    "wb_op_scvi_train", "wb_op_peakvi_fit", "wb_op_peakvi_project", "wb_op_py_protocol_hello",
+    "wb_op_scvi_train", "wb_op_peakvi_fit", "wb_op_peakvi_project", "wb_op_model_bound_latent_union", "wb_op_py_protocol_hello",
     ".wb_pybench_preregister_outputs", ".wb_promote_model_ref",
     "wb_repair_model_ref_paths"
   ),

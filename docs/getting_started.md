@@ -6,6 +6,7 @@ contracts and links only to maintained material.
 - **Getting started:** this page and the shipped [onboarding library](../inst/onboarding/README.md).
 - **Bundle concepts:** [bundle_concepts.md](bundle_concepts.md).
 - **Ingestion:** [ingestion.md](ingestion.md).
+- **Bdev external-user workflows:** [bdev_external_user_workflows.md](bdev_external_user_workflows.md).
 - **Sessions and operations:** [sessions_and_ops.md](sessions_and_ops.md).
 - **Promotion and provenance:** [promotion_and_provenance.md](promotion_and_provenance.md) and [provenance_identity_schemes.md](provenance_identity_schemes.md).
 - **Recipient audit:** [recipient_audit.md](recipient_audit.md).

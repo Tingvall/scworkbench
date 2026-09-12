@@ -166,6 +166,8 @@
     else .wb_assert(is.list(value) && length(value) > 0L, paste0(label, " must be a non-empty list or cell-set string."))
   } else if (identical(type, "list")) {
     .wb_assert(is.list(value) && length(value) > 0L, paste0(label, " must be a non-empty list."))
+  } else if (identical(type, "entity_ref")) {
+    value <- .wb_capsule_normalize_ref(value, label)
   } else {
     stop("Operation '", op_name, "' parameter '", nm, "' has unsupported catalog type '", type, "'.", call. = FALSE)
   }

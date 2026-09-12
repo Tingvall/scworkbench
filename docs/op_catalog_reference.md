@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 57
+Operation count: 60
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -36,6 +36,42 @@ Key parameters:
 - `n_iterations` (int, default=2): Number of Leiden optimization iterations.
 - `seed` (int, default=1): Random seed.
 - `weight` (bool, default=TRUE): Whether to weight graph edges during clustering.
+
+## `rna_qc_metrics`
+
+Title: Calculate per-cell RNA QC metrics
+
+Intent: matrix, rna, quality_control, cell_metrics
+
+Description: Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.
+
+Consumes:
+- `matrix`: matrix
+- `cell_set`: select
+
+Produces:
+- `metrics`: cell_vector_family [terminal artifact] - Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics.
+- `qc_features`: feature_table [terminal artifact] - Exact feature membership and explicit/pattern selection source for each optional QC feature group.
+- `summary`: obs_table [terminal artifact] - Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries.
+
+Promotable outputs: metrics, qc_features, summary
+
+Replay equivalence:
+- `metrics`: `exact_canonical_value`
+- `qc_features`: `exact_canonical_value`
+- `summary`: `exact_canonical_value`
+
+Key parameters:
+- `mitochondrial_features` (string_vec, default=NULL): Optional explicit mitochondrial feature ids.
+- `mitochondrial_pattern` (string, default=NULL): Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols.
+- `ribosomal_features` (string_vec, default=NULL): Optional explicit ribosomal feature ids.
+- `ribosomal_pattern` (string, default=NULL): Optional regular expression matched against feature ids.
+- `pattern_ignore_case` (bool, default=FALSE): Whether feature-id regular-expression matching ignores case.
+- `missing_feature_policy` (choice, default=error): Whether absent explicitly supplied feature ids fail or are recorded and dropped.
+- `require_integer_counts` (bool, default=TRUE): Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression.
+- `integer_tolerance` (dbl, default=1e-08): Absolute tolerance used for integer-like count validation.
+- `chunk_size` (int, default=2000): Number of cells read per backed-matrix chunk.
+- `cell_set` (cell_set, default=all): Named bundle cell set defining the cells for which metrics are calculated.
 
 ## `matrix_log_normalize`
 
@@ -1326,6 +1362,37 @@ Key parameters:
 - `shrink` (dbl, default=1): Curve shrinkage toward shared segments.
 - `maxit` (int, default=10): Maximum fitting iterations.
 
+## `slingshot_adopt`
+
+Title: Adopt an existing Slingshot fit
+
+Intent: trajectory, adoption, provenance, source_derived
+
+Description: Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
+
+Consumes:
+- `model`: model_ref
+- `cell_set`: select
+
+Produces:
+- `pseudotime`: cell_vector_family [terminal artifact] - Source-derived lineage-specific pseudotime values; no refit is performed.
+- `lineage_weights`: cell_vector_family [terminal artifact] - Source-derived Slingshot lineage membership weights; no refit is performed.
+- `curves`: path_2d_family [terminal artifact] - Source-derived two-dimensional Slingshot lineage curves.
+- `model`: model_ref [terminal artifact] - Contained source-derived Slingshot model bound to the adopted trajectory fit family.
+- `adoption_summary`: obs_table [terminal artifact] - Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary.
+
+Promotable outputs: pseudotime, lineage_weights, curves, model, adoption_summary
+
+Replay equivalence:
+- `pseudotime`: `exact_canonical_value`
+- `lineage_weights`: `exact_canonical_value`
+- `curves`: `exact_canonical_value`
+- `model`: `loadable_reference`
+- `adoption_summary`: `exact_canonical_value`
+
+Key parameters:
+- `source` (entity_ref, default=NULL): Registered external_source reference for the object from which the selected Slingshot fit was extracted.
+
 ## `slingshot_lineage_weights`
 
 Title: Slingshot lineage weights
@@ -1733,6 +1800,34 @@ Key parameters:
 - `batch_key` (string, default=NULL): Optional observation field used as the PeakVI batch covariate during projection.
 - `use_gpu` (bool, default=FALSE): If TRUE, request GPU-backed model loading/projection in scvi-tools.
 - `space_id_out` (string, default=peakvi_project_space): Space id to write for the projected PeakVI latent embedding.
+
+## `model_bound_latent_union`
+
+Title: Model-Bound Latent-Space Union
+
+Intent: latent, integration, projection, provenance
+
+Description: Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
+
+Consumes:
+- `reference_space`: space
+- `query_space`: space
+- `model`: model_ref
+- `projection_summary`: obs_table
+- `cell_set`: select
+
+Produces:
+- `space`: space [materialization; committed by: union_summary] - Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.
+- `union_summary`: obs_table [terminal artifact] - Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.
+
+Promotable outputs: union_summary
+
+Replay equivalence:
+- `space`: `exact_canonical_value`
+- `union_summary`: `exact_canonical_value`
+
+Key parameters:
+- `space_id_out` (string, default=model_bound_latent_union): New durable space identity for the unchanged row-wise coordinate union.
 
 ## `space_path_define`
 
