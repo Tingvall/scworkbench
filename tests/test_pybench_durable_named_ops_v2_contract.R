@@ -44,6 +44,17 @@ test_pybench_durable_peakvi_project_v2_contract <- function() {
   env <- .pybench_v2_test_env(); if (is.null(env)) return(contract_test_skip("PyBench interpreter unavailable"))
   x <- .pybench_v2_atac_fixture(); if (is.null(x)) return(contract_test_skip("BPCells/Matrix unavailable"))
   b <- x$b; on.exit({ .pybench_v2_restore_env(env); try(wb_close_bundle(b), silent=TRUE); unlink(x$bundle_dir,recursive=TRUE); unlink(x$workspace,recursive=TRUE) }, add=TRUE)
+  wb_attach_space(
+    b, "peakvi.fixture",
+    data.frame(
+      cell_id = x$cells,
+      z1 = seq_along(x$cells),
+      z2 = rev(seq_along(x$cells)),
+      z3 = seq_along(x$cells) / 10,
+      stringsAsFactors = FALSE
+    ),
+    source = "retained PeakVI model-space fixture"
+  )
   rel <- "artifact_models/peakvi_fixture"; dir.create(file.path(x$bundle_dir,rel),recursive=TRUE); writeLines("fixture",file.path(x$bundle_dir,rel,"model.txt"))
   prim <- wb_prim_model_ref("peakvi.fixture","peakvi.fixture","peakvi"); prim$model_type <- "peakvi"; prim$model_path <- file.path(x$bundle_dir,rel)
   run <- wb_new_run("peakvi_fit",inputs=list(cell_set="all",user_inputs=list()),outputs=list(model=prim))
