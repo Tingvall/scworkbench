@@ -11,7 +11,9 @@ wb_op_slingshot_adopt(bundle, model_ref, cells, source)
 
 \item{model_ref}{Source-derived Slingshot \code{model_ref} primitive.}
 
-\item{cells}{Canonical fitted cell ids resolved by the session engine.}
+\item{cells}{Complete fitted cell universe in the canonical order resolved by
+the session engine. Its identities and order must exactly match the source
+model.}
 
 \item{source}{Registered external-source reference created with
 \code{\link[=wb_ref_entity]{wb_ref_entity()}}.}

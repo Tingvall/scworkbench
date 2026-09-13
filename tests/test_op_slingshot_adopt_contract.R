@@ -1,3 +1,146 @@
+.slingshot_adopt_payload_fingerprint <- function(root) {
+  normalized <- normalizePath(root, winslash = "/", mustWork = TRUE)
+  files <- sort(list.files(
+    normalized, recursive = TRUE, all.files = TRUE, full.names = TRUE,
+    include.dirs = FALSE, no.. = TRUE
+  ))
+  relative <- substring(files, nchar(normalized) + 2L)
+  keep <- !relative %in% "manifest.json" & !startsWith(relative, "db/")
+  files <- files[keep]
+  relative <- relative[keep]
+  data.frame(
+    path = relative,
+    size = as.numeric(file.info(files)$size),
+    sha256 = vapply(files, scworkbench:::.wb_prov_sha256_file, character(1)),
+    stringsAsFactors = FALSE
+  )
+}
+
+.slingshot_adopt_table_counts <- function(bundle) {
+  tables <- DBI::dbGetQuery(
+    bundle$con,
+    "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name;"
+  )$name
+  counts <- vapply(tables, function(table) {
+    sql <- paste0("SELECT COUNT(*) AS n FROM ", DBI::dbQuoteIdentifier(bundle$con, table), ";")
+    as.numeric(DBI::dbGetQuery(bundle$con, sql)$n[[1L]])
+  }, numeric(1))
+  stats::setNames(counts, tables)
+}
+
+test_op_slingshot_adopt_reordered_axis_rejection_contract <- function() {
+  required <- c("BPCells", "slingshot", "SingleCellExperiment", "S4Vectors")
+  missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
+  if (length(missing)) {
+    return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
+  }
+
+  root <- tempfile("scwb_slingshot_adopt_reordered_")
+  source_path <- tempfile("slingshot_adopt_reordered_source_", fileext = ".rds")
+  b <- wb_init_bundle(root, overwrite = TRUE)
+  on.exit({
+    try(wb_close_bundle(b), silent = TRUE)
+    unlink(c(root, source_path), recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+
+  n <- 120L
+  model_cells <- paste0("cell_", seq_len(n))
+  canonical_cells <- rev(model_cells)
+  position <- seq(0, 1, length.out = n)
+  clusters <- factor(rep(c("early", "middle", "late"), each = n / 3L))
+  coordinates <- cbind(
+    UMAP_1 = position * 8,
+    UMAP_2 = sin(position * pi)
+  )
+  rownames(coordinates) <- model_cells
+
+  wb_define_cells(b, canonical_cells)
+  wb_attach_space(b, "published_umap", data.frame(
+    cell_id = model_cells,
+    x = coordinates[, 1L],
+    y = coordinates[, 2L],
+    stringsAsFactors = FALSE
+  ), source = "reordered Slingshot fixture", created_by = "contract test")
+  fitted <- scworkbench:::.wb_slingshot_run_fit(
+    X_fit = coordinates,
+    cells_fit = model_cells,
+    cluster_labels = clusters,
+    start.clus = "early",
+    end.clus = "late"
+  )
+  sds <- slingshot::SlingshotDataSet(fitted)
+  saveRDS(sds, source_path, version = 3)
+  source_sha256 <- wb_source_sha256(source_path)
+  source_id <- "reordered_slingshot_source"
+  source_input <- wb_source_input(
+    path = source_path,
+    source_id = source_id,
+    accession = "fixture",
+    role = "published_fit",
+    format = "rds",
+    scope = "external_file"
+  )
+  scworkbench:::.wb_record_declared_ingestion(
+    b,
+    transaction_name = "reordered_slingshot_source",
+    source = "reordered Slingshot fixture",
+    source_identity = list(
+      source_type = "published_fit",
+      inputs = list(source_input)
+    )
+  )
+  model <- wb_slingshot_adoption_model(
+    b, sds, "published_umap", source_sha256,
+    coordinate_tolerance = 0
+  )
+  stopifnot(
+    setequal(canonical_cells, model$cells),
+    !identical(canonical_cells, model$cells),
+    identical(model$cells, model_cells),
+    identical(model$coordinate_match_max_abs_difference, 0)
+  )
+
+  counts_before <- .slingshot_adopt_table_counts(b)
+  state_before <- scworkbench:::.wb_session_source_identity(b)$scientific_state_fingerprint
+  payload_before <- .slingshot_adopt_payload_fingerprint(root)
+
+  session_error <- try(wb_session_run_op(
+    wb_session_new(), b, "slingshot_adopt",
+    inputs = list(
+      model = model,
+      source = wb_ref_entity("external_source", source_id),
+      cell_set = "all",
+      min_cells = 1L
+    )
+  ), silent = TRUE)
+  stopifnot(
+    inherits(session_error, "try-error"),
+    grepl("complete fitted cell universe and order must match", as.character(session_error), fixed = TRUE)
+  )
+
+  direct_error <- try(wb_op_slingshot_adopt(
+    b,
+    model_ref = model,
+    cells = canonical_cells,
+    source = wb_ref_entity("external_source", source_id)
+  ), silent = TRUE)
+  stopifnot(
+    inherits(direct_error, "try-error"),
+    grepl("complete fitted cell universe and order must match", as.character(direct_error), fixed = TRUE)
+  )
+
+  counts_after <- .slingshot_adopt_table_counts(b)
+  state_after <- scworkbench:::.wb_session_source_identity(b)$scientific_state_fingerprint
+  payload_after <- .slingshot_adopt_payload_fingerprint(root)
+  stopifnot(
+    identical(counts_after, counts_before),
+    identical(state_after, state_before),
+    identical(payload_after, payload_before)
+  )
+
+  TRUE
+}
+
 test_op_slingshot_adopt_contract <- function() {
   required <- c("BPCells", "slingshot", "SingleCellExperiment", "S4Vectors")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]

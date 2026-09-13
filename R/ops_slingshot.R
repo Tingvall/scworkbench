@@ -408,7 +408,9 @@ wb_slingshot_adoption_model <- function(bundle,
 #'
 #' @param bundle Open scworkbench bundle.
 #' @param model_ref Source-derived Slingshot `model_ref` primitive.
-#' @param cells Canonical fitted cell ids resolved by the session engine.
+#' @param cells Complete fitted cell universe in the canonical order resolved by
+#'   the session engine. Its identities and order must exactly match the source
+#'   model.
 #' @param source Registered external-source reference created with
 #'   [wb_ref_entity()].
 #' @return Standard operation result containing pseudotime, lineage weights,
@@ -424,8 +426,8 @@ wb_op_slingshot_adopt <- function(bundle, model_ref, cells, source) {
   source_sha256 <- tolower(as.character(model_ref$source_sha256 %||% "")[1])
   source <- .wb_slingshot_adoption_source(bundle, source, source_sha256)
   model_cells <- as.character(model_ref$cells %||% character(0))
-  .wb_assert(setequal(as.character(cells), model_cells) && length(cells) == length(model_cells),
-             "slingshot_adopt must use the complete fitted cell universe")
+  .wb_assert(identical(as.character(cells), model_cells),
+             "slingshot_adopt complete fitted cell universe and order must match the source model")
   sds <- model_ref$model_obj %||% NULL
   .wb_assert(inherits(sds, "SlingshotDataSet"), "slingshot_adopt model payload is unavailable")
   trajectory_fit_id <- as.character(model_ref$trajectory_fit_id %||% "")[1]
