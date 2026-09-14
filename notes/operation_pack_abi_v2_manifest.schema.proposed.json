@@ -6,6 +6,7 @@
   "x-document-status": "PROPOSED_NON_RUNTIME",
   "x-quill-specification-commit": "eb5334a7bec73490ccfbf106f83ba91b1ab39fb8",
   "x-quill-handoff-commit": "8f73acebe833606e5d733988cb3d253720fcd333",
+  "x-sable-audit-commit": "f05ce0923d2b9bfbd7cfd8447208a674fb21319a",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,244 +18,719 @@
     "backend",
     "compatibility",
     "entry_point",
-    "dependencies",
     "operations"
   ],
   "properties": {
-    "schema_version": {"const": "scworkbench.operation_pack.v2"},
-    "pack_abi_version": {"const": "2"},
-    "identity_scheme": {"const": "scworkbench.operation_pack.canonical_json.v1"},
-    "namespace": {"type": "string", "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"},
+    "schema_version": {
+      "const": "scworkbench.operation_pack.v2"
+    },
+    "pack_abi_version": {
+      "const": "2"
+    },
+    "identity_scheme": {
+      "const": "scworkbench.operation_pack.canonical_json.v1"
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+    },
     "package": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "version"],
+      "required": [
+        "name",
+        "version"
+      ],
       "properties": {
-        "name": {"type": "string", "minLength": 1},
-        "version": {"type": "string", "minLength": 1}
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
-    "backend": {"enum": ["R", "Python"]},
+    "backend": {
+      "enum": [
+        "R",
+        "Python"
+      ]
+    },
     "compatibility": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["scworkbench", "pack_abi"],
+      "required": [
+        "scworkbench",
+        "pack_abi"
+      ],
       "properties": {
         "scworkbench": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["minimum", "maximum_exclusive"],
+          "required": [
+            "minimum",
+            "maximum_exclusive"
+          ],
           "properties": {
-            "minimum": {"type": "string", "minLength": 1},
-            "maximum_exclusive": {"type": "string", "minLength": 1}
+            "minimum": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maximum_exclusive": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "pack_abi": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["minimum", "maximum"],
+          "required": [
+            "minimum",
+            "maximum"
+          ],
           "properties": {
-            "minimum": {"const": "2"},
-            "maximum": {"const": "2"}
+            "minimum": {
+              "const": "2"
+            },
+            "maximum": {
+              "const": "2"
+            }
           }
         },
         "process_protocol": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["minimum", "maximum"],
+          "required": [
+            "minimum",
+            "maximum"
+          ],
           "properties": {
-            "minimum": {"const": "pybench-op-v3"},
-            "maximum": {"const": "pybench-op-v3"}
+            "minimum": {
+              "const": "pybench-op-v3"
+            },
+            "maximum": {
+              "const": "pybench-op-v3"
+            }
           }
         }
       }
     },
-    "entry_point": {"type": "string", "minLength": 1},
-    "dependencies": {
-      "type": "array",
-      "items": {"$ref": "#/$defs/dependency"}
+    "entry_point": {
+      "type": "string",
+      "minLength": 1
     },
     "operations": {
       "type": "array",
       "minItems": 1,
-      "items": {"$ref": "#/$defs/operation"}
+      "items": {
+        "$ref": "#/$defs/operation"
+      }
     }
   },
   "allOf": [
     {
-      "if": {"properties": {"backend": {"const": "Python"}}, "required": ["backend"]},
-      "then": {"properties": {"compatibility": {"required": ["process_protocol"]}}},
-      "else": {"properties": {"compatibility": {"not": {"required": ["process_protocol"]}}}}
+      "if": {
+        "properties": {
+          "backend": {
+            "const": "Python"
+          }
+        },
+        "required": [
+          "backend"
+        ]
+      },
+      "then": {
+        "properties": {
+          "compatibility": {
+            "required": [
+              "process_protocol"
+            ]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "compatibility": {
+            "not": {
+              "required": [
+                "process_protocol"
+              ]
+            }
+          }
+        }
+      }
     }
   ],
   "$defs": {
-    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
     "primitive_kind": {
       "enum": [
-        "matrix", "space", "space_2d", "cell_vector", "cell_vector_family",
-        "feature_table", "obs_table", "model_ref", "relation_family",
-        "path_2d_family", "space_path_family"
+        "matrix",
+        "space",
+        "space_2d",
+        "cell_vector",
+        "cell_vector_family",
+        "feature_table",
+        "obs_table",
+        "model_ref",
+        "relation_family",
+        "path_2d_family",
+        "space_path_family"
       ]
     },
     "storage_profile": {
       "enum": [
-        "matrix_ordinary_v1", "matrix_backed_chunked_v1", "space_dense_v1",
-        "space_file_backed_hdf5_v1", "space_2d_dense_v1",
-        "model_ref_contained_tree_v1", "terminal_primitive_v1",
-        "path_2d_family_v1", "space_path_family_v1", "cell_set_admission_v1"
+        "matrix_ordinary_v1",
+        "matrix_backed_chunked_v1",
+        "space_dense_v1",
+        "space_file_backed_hdf5_v1",
+        "space_2d_dense_v1",
+        "model_ref_contained_tree_v1",
+        "terminal_primitive_v1",
+        "path_2d_family_v1",
+        "space_path_family_v1",
+        "cell_set_admission_v1"
       ]
     },
     "dependency": {
       "oneOf": [
-        {"$ref": "#/$defs/language_dependency"},
-        {"$ref": "#/$defs/system_dependency"},
-        {"$ref": "#/$defs/device_dependency"}
+        {
+          "$ref": "#/$defs/language_dependency"
+        },
+        {
+          "$ref": "#/$defs/system_dependency"
+        },
+        {
+          "$ref": "#/$defs/device_dependency"
+        },
+        {
+          "$ref": "#/$defs/dynamic_input_metadata_dependency"
+        }
       ]
     },
     "selector": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["parameter", "equals"],
+      "required": [
+        "parameter",
+        "equals"
+      ],
       "properties": {
-        "parameter": {"type": "string", "minLength": 1},
-        "equals": {"type": ["string", "number", "integer", "boolean", "null"]}
+        "parameter": {
+          "type": "string",
+          "minLength": 1
+        },
+        "equals": {
+          "type": [
+            "string",
+            "number",
+            "integer",
+            "boolean",
+            "null"
+          ]
+        }
       }
     },
     "language_dependency": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "name", "version", "disposition", "import_probe"],
+      "required": [
+        "requirement_id",
+        "kind",
+        "name",
+        "version",
+        "disposition",
+        "import_probe"
+      ],
       "properties": {
-        "kind": {"enum": ["r_package", "python_distribution"]},
-        "name": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
-        "version": {"$ref": "#/$defs/language_version"},
-        "disposition": {"enum": ["required", "optional"]},
-        "selected_when": {"$ref": "#/$defs/selector"},
-        "import_probe": {"type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_.]*$"},
-        "approved_content_sha256": {"$ref": "#/$defs/sha256"}
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "enum": [
+            "r_package",
+            "python_distribution"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "version": {
+          "$ref": "#/$defs/language_version"
+        },
+        "disposition": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "selected_when": {
+          "$ref": "#/$defs/selector"
+        },
+        "import_probe": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_.]*$"
+        },
+        "approved_content_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
       },
       "allOf": [
         {
-          "if": {"properties": {"disposition": {"const": "optional"}}},
-          "then": {"required": ["selected_when"]}
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "optional"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "selected_when"
+            ]
+          }
         },
         {
-          "if": {"properties": {"kind": {"const": "r_package"}}, "required": ["kind"]},
-          "then": {"properties": {"version": {"properties": {"scheme": {"const": "r_package_version_constraint_v1"}}}}}
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "r_package"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "version": {
+                "properties": {
+                  "scheme": {
+                    "const": "r_package_version_constraint_v1"
+                  }
+                }
+              }
+            }
+          }
         },
         {
-          "if": {"properties": {"kind": {"const": "python_distribution"}}, "required": ["kind"]},
-          "then": {"properties": {"version": {"properties": {"scheme": {"const": "pep440_specifier_v1"}}}}}
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "python_distribution"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "version": {
+                "properties": {
+                  "scheme": {
+                    "const": "pep440_specifier_v1"
+                  }
+                }
+              }
+            }
+          }
         }
       ]
     },
     "language_version": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["scheme", "specifier"],
+      "required": [
+        "scheme",
+        "specifier"
+      ],
       "properties": {
-        "scheme": {"enum": ["r_package_version_constraint_v1", "pep440_specifier_v1"]},
-        "specifier": {"type": "string", "pattern": "^[^\\s,]+(?:,[^\\s,]+)*$"}
+        "scheme": {
+          "enum": [
+            "r_package_version_constraint_v1",
+            "pep440_specifier_v1"
+          ]
+        },
+        "specifier": {
+          "type": "string",
+          "pattern": "^[^\\s,]+(?:,[^\\s,]+)*$"
+        }
       }
     },
     "system_dependency": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "name", "version", "disposition", "probe"],
+      "required": [
+        "requirement_id",
+        "kind",
+        "name",
+        "version",
+        "disposition",
+        "probe"
+      ],
       "properties": {
-        "kind": {"const": "system_library"},
-        "name": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"},
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "const": "system_library"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+        },
         "version": {
-          "type": "object", "additionalProperties": false,
-          "required": ["scheme", "specifier"],
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "specifier"
+          ],
           "properties": {
-            "scheme": {"const": "core_system_version_constraint_v1"},
-            "specifier": {"type": "string", "pattern": "^[^\\s,]+(?:,[^\\s,]+)*$"}
+            "scheme": {
+              "const": "core_system_version_constraint_v1"
+            },
+            "specifier": {
+              "type": "string",
+              "pattern": "^[^\\s,]+(?:,[^\\s,]+)*$"
+            }
           }
         },
-        "disposition": {"enum": ["required", "optional"]},
-        "selected_when": {"$ref": "#/$defs/selector"},
+        "disposition": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "selected_when": {
+          "$ref": "#/$defs/selector"
+        },
         "probe": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["kind", "target"],
+          "required": [
+            "kind",
+            "target"
+          ],
           "properties": {
-            "kind": {"enum": ["dynamic_library_symbol", "executable_version", "pkg_config_version"]},
-            "target": {"type": "string", "minLength": 1}
+            "kind": {
+              "enum": [
+                "dynamic_library_symbol",
+                "executable_version",
+                "pkg_config_version"
+              ]
+            },
+            "target": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         }
       },
       "allOf": [
         {
-          "if": {"properties": {"disposition": {"const": "optional"}}},
-          "then": {"required": ["selected_when"]}
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "optional"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "selected_when"
+            ]
+          }
         }
       ]
     },
     "device_dependency": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind", "name", "disposition", "probe"],
+      "required": [
+        "requirement_id",
+        "kind",
+        "name",
+        "disposition",
+        "probe"
+      ],
       "properties": {
-        "kind": {"const": "device_runtime"},
-        "name": {"enum": ["cpu", "cuda", "metal"]},
-        "disposition": {"enum": ["required", "optional"]},
-        "selected_when": {"$ref": "#/$defs/selector"},
-        "probe": {"enum": ["core_device_availability_v1"]}
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "const": "device_runtime"
+        },
+        "name": {
+          "enum": [
+            "cpu",
+            "cuda",
+            "metal"
+          ]
+        },
+        "disposition": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "selected_when": {
+          "$ref": "#/$defs/selector"
+        },
+        "probe": {
+          "enum": [
+            "core_device_availability_v1"
+          ]
+        }
       },
       "allOf": [
         {
-          "if": {"properties": {"disposition": {"const": "optional"}}},
-          "then": {"required": ["selected_when"]}
+          "if": {
+            "properties": {
+              "disposition": {
+                "const": "optional"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "selected_when"
+            ]
+          }
+        }
+      ]
+    },
+    "dynamic_input_metadata_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "kind",
+        "input_name",
+        "metadata_field",
+        "ecosystem",
+        "package_name_scheme",
+        "probe",
+        "disposition",
+        "version_policy"
+      ],
+      "properties": {
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "const": "dynamic_input_metadata_package"
+        },
+        "input_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "metadata_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]*$"
+        },
+        "ecosystem": {
+          "enum": [
+            "R",
+            "Python"
+          ]
+        },
+        "package_name_scheme": {
+          "enum": [
+            "r_package_name_v1",
+            "python_distribution_name_v1"
+          ]
+        },
+        "probe": {
+          "enum": [
+            "r_namespace_available_v1",
+            "r_namespace_exports_v1",
+            "python_import_spec_v1"
+          ]
+        },
+        "disposition": {
+          "const": "required"
+        },
+        "version_policy": {
+          "const": "record_resolved_installed_version_v1"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ecosystem": {
+                "const": "R"
+              }
+            },
+            "required": [
+              "ecosystem"
+            ]
+          },
+          "then": {
+            "properties": {
+              "package_name_scheme": {
+                "const": "r_package_name_v1"
+              },
+              "probe": {
+                "enum": [
+                  "r_namespace_available_v1",
+                  "r_namespace_exports_v1"
+                ]
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "package_name_scheme": {
+                "const": "python_distribution_name_v1"
+              },
+              "probe": {
+                "const": "python_import_spec_v1"
+              }
+            }
+          }
         }
       ]
     },
     "input": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "kind", "required", "alignment"],
+      "required": [
+        "name",
+        "kind",
+        "required",
+        "alignment"
+      ],
       "properties": {
-        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-        "kind": {"$ref": "#/$defs/primitive_kind"},
-        "required": {"type": "boolean"},
-        "alignment": {"enum": ["none", "cell_ordered", "feature_ordered", "cell_and_feature_ordered", "model_linked", "associated_space"]}
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "$ref": "#/$defs/primitive_kind"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "alignment": {
+          "enum": [
+            "none",
+            "cell_ordered",
+            "feature_ordered",
+            "cell_and_feature_ordered",
+            "model_linked",
+            "associated_space"
+          ]
+        }
       }
     },
     "output": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "category", "kind", "storage_profile", "allocated_id_key", "required", "promotion_group"],
+      "required": [
+        "name",
+        "category",
+        "kind",
+        "storage_profile",
+        "allocated_id_key",
+        "required",
+        "promotion_group"
+      ],
       "properties": {
-        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-        "category": {"enum": ["materialization", "terminal_artifact", "core_registry_request"]},
-        "kind": {
-          "oneOf": [
-            {"$ref": "#/$defs/primitive_kind"},
-            {"const": "cell_set_admission"}
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "category": {
+          "enum": [
+            "materialization",
+            "terminal_artifact",
+            "core_registry_request"
           ]
         },
-        "storage_profile": {"$ref": "#/$defs/storage_profile"},
-        "allocated_id_key": {"type": "string", "pattern": "^[a-z][a-z0-9_]*_id$"},
-        "required": {"const": true},
-        "promotion_group": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-        "table_type": {"type": "string", "minLength": 1},
+        "kind": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/primitive_kind"
+            },
+            {
+              "const": "cell_set_admission"
+            }
+          ]
+        },
+        "storage_profile": {
+          "$ref": "#/$defs/storage_profile"
+        },
+        "allocated_id_key": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*_id$"
+        },
+        "required": {
+          "const": true
+        },
+        "promotion_group": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "table_type": {
+          "type": "string",
+          "minLength": 1
+        },
         "materialized_by_terminals": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          }
         },
-        "value_kind": {"enum": ["categorical", "continuous"]}
+        "value_kind": {
+          "enum": [
+            "categorical",
+            "continuous"
+          ]
+        }
       },
       "allOf": [
         {
-          "if": {"properties": {"category": {"const": "core_registry_request"}}, "required": ["category"]},
+          "if": {
+            "properties": {
+              "category": {
+                "const": "core_registry_request"
+              }
+            },
+            "required": [
+              "category"
+            ]
+          },
           "then": {
             "properties": {
-              "kind": {"const": "cell_set_admission"},
-              "storage_profile": {"const": "cell_set_admission_v1"}
+              "kind": {
+                "const": "cell_set_admission"
+              },
+              "storage_profile": {
+                "const": "cell_set_admission_v1"
+              }
             },
-            "not": {"required": ["materialized_by_terminals"]}
+            "not": {
+              "required": [
+                "materialized_by_terminals"
+              ]
+            }
           }
         }
       ]
@@ -263,20 +739,62 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "name", "qualified_name", "title", "description", "runner",
-        "inputs", "params_schema", "outputs",
-        "dependencies", "promotion_closure", "replay_equivalence"
+        "name",
+        "qualified_name",
+        "title",
+        "description",
+        "runner",
+        "inputs",
+        "params_schema",
+        "outputs",
+        "dependencies",
+        "promotion_closure",
+        "replay_equivalence"
       ],
       "properties": {
-        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-        "qualified_name": {"type": "string", "pattern": "^[a-z][a-z0-9._-]*::[a-z][a-z0-9_]*$"},
-        "title": {"type": "string", "minLength": 1},
-        "description": {"type": "string", "minLength": 1},
-        "runner": {"type": "string", "minLength": 1},
-        "inputs": {"type": "array", "items": {"$ref": "#/$defs/input"}},
-        "params_schema": {"type": "object"},
-        "outputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/output"}},
-        "dependencies": {"type": "array", "items": {"$ref": "#/$defs/dependency"}},
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "qualified_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*::[a-z][a-z0-9_]*$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "runner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/input"
+          }
+        },
+        "params_schema": {
+          "type": "object"
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/output"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/dependency"
+          }
+        },
         "promotion_closure": {
           "type": "object",
           "minProperties": 1,
@@ -284,17 +802,139 @@
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
-            "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
           }
         },
         "replay_equivalence": {
           "type": "object",
           "minProperties": 1,
           "additionalProperties": {
-            "enum": ["exact_canonical_value", "loadable_reference", "cell_aligned_embedding", "not_comparable"]
+            "enum": [
+              "exact_canonical_value",
+              "loadable_reference",
+              "cell_aligned_embedding",
+              "not_comparable"
+            ]
           }
         }
       }
     }
-  }
+  },
+  "examples": [
+    {
+      "schema_version": "scworkbench.operation_pack.v2",
+      "pack_abi_version": "2",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbatac",
+      "package": {
+        "name": "scwbATAC",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "2",
+          "maximum": "2"
+        }
+      },
+      "entry_point": "scwbATAC::register_operation_pack",
+      "operations": [
+        {
+          "name": "chromvar",
+          "qualified_name": "scwbatac::chromvar",
+          "title": "chromVAR deviations",
+          "description": "Computed dynamic-provider manifest example.",
+          "runner": ".run_chromvar",
+          "inputs": [
+            {
+              "name": "matrix",
+              "kind": "matrix",
+              "required": true,
+              "alignment": "cell_and_feature_ordered"
+            }
+          ],
+          "params_schema": {},
+          "outputs": [
+            {
+              "name": "deviation_z",
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "artifact_id",
+              "required": true,
+              "promotion_group": "chromvar"
+            }
+          ],
+          "dependencies": [
+            {
+              "requirement_id": "genome_provider",
+              "kind": "dynamic_input_metadata_package",
+              "input_name": "matrix",
+              "metadata_field": "genome_provider",
+              "ecosystem": "R",
+              "package_name_scheme": "r_package_name_v1",
+              "probe": "r_namespace_exports_v1",
+              "disposition": "required",
+              "version_policy": "record_resolved_installed_version_v1"
+            }
+          ],
+          "promotion_closure": {
+            "deviation_z": [
+              "deviation_z"
+            ]
+          },
+          "replay_equivalence": {
+            "deviation_z": "exact_canonical_value"
+          }
+        }
+      ]
+    }
+  ],
+  "x-negative-fixtures": [
+    {
+      "id": "MAN-ROOT-DEPENDENCIES",
+      "base_example": 0,
+      "action": "add",
+      "pointer": "/dependencies",
+      "value": [],
+      "expected": "reject_unknown_root_field"
+    },
+    {
+      "id": "MAN-DYNAMIC-NO-INPUT",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/operations/0/dependencies/0/input_name",
+      "expected": "reject"
+    },
+    {
+      "id": "MAN-DYNAMIC-R-WRONG-SYNTAX",
+      "base_example": 0,
+      "action": "replace",
+      "pointer": "/operations/0/dependencies/0/package_name_scheme",
+      "value": "python_distribution_name_v1",
+      "expected": "reject"
+    },
+    {
+      "id": "MAN-DYNAMIC-R-WRONG-PROBE",
+      "base_example": 0,
+      "action": "replace",
+      "pointer": "/operations/0/dependencies/0/probe",
+      "value": "python_import_spec_v1",
+      "expected": "reject"
+    },
+    {
+      "id": "MAN-DUPLICATE-IDENTICAL-DEPENDENCY",
+      "base_example": 0,
+      "action": "duplicate",
+      "pointer": "/operations/0/dependencies/0",
+      "expected": "reject"
+    }
+  ]
 }

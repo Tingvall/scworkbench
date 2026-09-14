@@ -4,7 +4,8 @@ Status: **PROPOSED, NON-RUNTIME PLANNING ARTIFACT**.
 
 Inputs: scworkbench `368c864126b2e60880a81fab8dc0abbd34cf27a9`;
 Quill specification `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
-`8f73acebe833606e5d733988cb3d253720fcd333`.
+`8f73acebe833606e5d733988cb3d253720fcd333`; Sable audit
+`f05ce0923d2b9bfbd7cfd8447208a674fb21319a`.
 
 The engine owns this state machine. Packs observe a single request and may
 return a receipt; they cannot advance durable state.
@@ -35,14 +36,21 @@ getter-visible.
    order, ancestry, model linkage, effective parameters, and promotion closure.
    It allocates all output and registry-request IDs. A generation/head change
    invalidates the transition.
-2. **Preflight.** Core performs only allowlisted, read-only dependency probes and
-   hashes the requirement set and result. Missing/incompatible requirements
+2. **Preflight.** Core starts from the operation's complete declared set. It
+   applies parameter selectors and resolves any input-metadata selector from
+   the already resolved retained input, binding its input identity, metadata
+   field/value, ecosystem, installed name/version/artifact and probe evidence.
+   Core performs only allowlisted, read-only dependency probes and hashes the
+   declared set, selected set, dynamic resolutions and result. Pack-level or
+   ambient dependencies cannot participate. Missing/incompatible requirements
    fail before stage allocation or dispatch.
 3. **Stage.** Core creates a private same-filesystem generation, records its
    identity and committed-state preimage, and mints the single-use named
    capability. Relative roots are resolved beneath the generation with
    no-follow containment.
-4. **Dispatch.** The R adapter executes in an isolated staging context; the
+4. **Dispatch.** Core first rereads every dynamic-provider field against the
+   same retained input identity and aborts if it is absent, empty, malformed or
+   changed. The R adapter then executes in an isolated staging context; the
    Python adapter sends canonical `pybench-op-v3`. Each gets identical logical
    readers/writers. The supervisor owns timeouts and process death.
 5. **Receipt.** The adapter returns exactly one closed success or error receipt.

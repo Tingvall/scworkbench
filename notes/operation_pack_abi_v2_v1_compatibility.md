@@ -4,7 +4,8 @@ Status: **PROPOSED, NON-RUNTIME PLANNING ARTIFACT**.
 
 Inputs: scworkbench `368c864126b2e60880a81fab8dc0abbd34cf27a9`;
 Quill specification `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
-`8f73acebe833606e5d733988cb3d253720fcd333`.
+`8f73acebe833606e5d733988cb3d253720fcd333`; Sable audit
+`f05ce0923d2b9bfbd7cfd8447208a674fb21319a`.
 
 ## Coexistence law
 
@@ -70,6 +71,14 @@ The 42 `v1_ready_with_packaging_work` rows need no new writer capability, but
 they still require packaging, explicit operation-level dependencies, runtime
 preflight and equivalence evidence. They may ship first as v1 packs and later
 adopt v2 only through a new v2 manifest/definition identity.
+
+ABI v2 has no root dependency inheritance. Each new operation definition owns
+its complete requirement array. That rule also applies to dynamically named
+providers: for `chromvar`, core resolves `matrix.genome_provider` from the exact
+retained matrix identity, validates and probes the open-ended R package name
+offline, and identity-binds the installed provider evidence before dispatch.
+This new declaration does not reinterpret any retained v1 or unqualified-core
+run.
 
 The 11 atomic multi-output operations, `umap_transform`, and
 `winner_cell_sets` cannot be extracted until the required v2 capability is live

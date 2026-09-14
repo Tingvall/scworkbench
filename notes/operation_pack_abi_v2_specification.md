@@ -6,7 +6,8 @@ activates an ABI, migrates an operation, or changes a retained identity.
 Scworkbench source: `368c864126b2e60880a81fab8dc0abbd34cf27a9`.
 Python source: `d2e0587950973cf7eeacfc46b2829397cf84f079` plus Quill's
 specification commit `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
-commit `8f73acebe833606e5d733988cb3d253720fcd333`.
+commit `8f73acebe833606e5d733988cb3d253720fcd333`. Sable Amendment 01
+responds to audit `f05ce0923d2b9bfbd7cfd8447208a674fb21319a`.
 
 ## 1. Normative vocabulary and authority
 
@@ -98,9 +99,12 @@ handler or catalog row is registered and leaves catalog state unchanged.
 The proposed closed manifest schema is
 `notes/operation_pack_abi_v2_manifest.schema.proposed.json`. Unknown fields are
 rejected at every closed contract object. The operation's fully qualified name,
-definition digest, inputs, JSON parameter schema, operation-level dependencies,
-outputs, promotion closure, and replay comparator are immutable definition
-content.
+inputs, JSON parameter schema, complete operation-level dependencies, outputs,
+promotion closure, and replay comparator are immutable definition content. The
+definition digest is core-derived after normalization and is not a recursive
+manifest member. The manifest has no root dependency array: pack metadata may
+neither override, inherit into, weaken, nor silently augment an operation's
+complete dependency set.
 
 Every declared output has exactly one category:
 
@@ -149,9 +153,13 @@ auditing without inventing a new primitive. The writers must normalize rows by
 the durable primitive's canonical key tuple and preserve original semantic
 order as an explicit order identity where order is scientific.
 
-Readers return immutable typed views plus dimensions, content identity,
-cell/feature order identities, ancestry, payload identity, and (for models)
-matrix/space linkage. The pack cannot replace these descriptors.
+Input and output grants no longer expose independently enumerable
+kind/profile/reader/writer fields. Each grant contains a closed `descriptor`
+selected from type-specific `oneOf` branches. A branch fixes every legal
+category/kind/profile/reader-or-writer combination and requires its applicable
+dimensions, alignment, cell/feature/row order identities, ancestry, linkage,
+payload containment and semantic publication constraints. Readers return the
+corresponding immutable typed view. The pack cannot replace these descriptors.
 
 ## 5. Request, receipt, and independent audit
 
@@ -160,18 +168,22 @@ The proposed request and receipt schemas are respectively:
 - `notes/operation_pack_abi_v2_transition_request.schema.proposed.json`
 - `notes/operation_pack_abi_v2_transition_receipt.schema.proposed.json`
 
-The request binds transition/session/run/checkpoint generation; operation,
-manifest, definition, and pack identities; scientific-state schema; reader and
-writer APIs; preflight; all resolved inputs; effective parameters; the exact
-output grants; and the single-use capability. Each cell- or feature-indexed
-input carries the applicable order digest. Every input carries dimensions,
-content identity, and ancestry; models additionally carry linkage and contained
-payload identity.
+The request binds transition/session/run/checkpoint generation; exact pack,
+distribution artifact, original manifest source, normalized manifest,
+operation definition, entry-point and scientific-state identities; all named
+reader and writer grants; preflight; all resolved inputs; effective parameters;
+the exact output grants; and the single-use capability. The capability repeats
+the exact authentication and selected-requirement identities and binds each
+named grant by its independently computed descriptor identity. Each cell- or
+feature-indexed input carries the applicable order identity. Every input carries
+profile, dimensions, content, payload and ancestry identities; models also
+carry linkage and contained-payload identities.
 
 A successful receipt is an exact set match to declared required outputs and
 registry requests. Each staged output repeats its allocated ID, category, kind,
-profile, content identity, dimensions, applicable order identities, ancestry,
-model linkage, payload-manifest identity, and semantic-metadata identity. It
+profile, sanctioned writer, grant identity, content identity, dimensions,
+applicable order identities, ancestry, model linkage, payload-manifest identity,
+semantic-metadata identity and semantic-validation result. It
 also binds the request, capability, preflight, complete mutation manifest, and
 path-free runtime attestation. The core recomputes all claims from the private
 stage; receipt assertion is never proof by itself.
@@ -181,16 +193,42 @@ code, phase, retryability, redacted diagnostic, and whether runtime attestation
 was established. Process death or a missing receipt is diagnosed by the core;
 the absence of an error receipt never authorizes publication.
 
-R and Python adapters create the same field set, canonical bytes, validation
-sequence, and receipt semantics. The only permitted field-level differences in
-the worked success receipts are `runtime_attestation.backend`,
-`runtime_attestation.entry_point`, and the identities that genuinely derive
-from different installed software. R may execute in-process, but it still uses
-an isolated private stage and returns the same logical receipt before audit.
+R and Python adapters implement the same schema, validation sequence and
+receipt semantics. Backend-specific requests and receipts are not asserted to
+have identical logical identities: backend, entry point, distribution, pack,
+runtime and every enclosing digest correctly differ. The committed computed
+example is explicitly Python `scvi_train`; the R `pca_fit` example below is a
+separately labelled logical coverage example. R may execute in-process, but it
+still uses an isolated private stage and returns the same closed receipt shape
+before audit.
+
+### Normative cross-field validation beyond JSON Schema
+
+Draft 2020-12 closes each descriptor branch. Core additionally enforces these
+relationships over canonical identities; each rule has the named adversarial
+fixture in the conformance ledger:
+
+| Rule | Core validation | Fixture |
+|---|---|---|
+| C01 | Request operation authentication equals the activated manifest, original source bytes, installed distribution, definition and entry point | `operation_authentication_substitution` |
+| C02 | Input names/references equal the resolved manifest inputs exactly once; each descriptor identity recomputes | `input_grant_closure_mismatch` |
+| C03 | Capability reader grants equal request inputs by name, reader and descriptor identity | `reader_grant_binding_mismatch` |
+| C04 | Output names and core-allocated IDs equal manifest declarations exactly once | `output_grant_closure_mismatch` |
+| C05 | Capability writer grants equal request outputs by name, writer and grant identity | `writer_grant_binding_mismatch` |
+| C06 | Actual input dimensions/order/alignment/content/ancestry equal each typed descriptor | `typed_input_semantic_mismatch` |
+| C07 | Expected output dimensions/order/alignment/linkage/constraints are derivable from inputs, parameters and definition | `expected_output_binding_mismatch` |
+| C08 | Model linkage names an existing input/sibling, identities match, and the contained tree satisfies its requirements | `model_linkage_containment_mismatch` |
+| C09 | Selected dependencies are exactly the operation declarations after parameter and input-metadata selection, with unique requirement IDs | `dependency_ownership_mismatch` |
+| C10 | Dynamic resolution binds the named retained input identity and exact metadata value used at preparation; a pre-dispatch reread is identical | `dynamic_provider_changed_after_prepare` |
+| C11 | Receipt outputs and registry requests are a bijection with request grants, including IDs, writers and grant identities | `receipt_exact_output_closure_mismatch` |
+| C12 | Independently observed output values satisfy every expected descriptor field and semantic constraint | `observed_output_binding_mismatch` |
+| C13 | Runtime attestation repeats exact operation, source, distribution, entry-point, selected-dependency, dynamic-resolution and preflight identities | `runtime_attestation_binding_mismatch` |
+| C14 | No undeclared/duplicate/conflicting dependency appears at manifest, request, capability, runtime or receipt level | `undeclared_or_duplicate_dependency` |
 
 ## 6. Dependencies and preflight
 
-Dependencies are operation-level, not inferred from the ambient installation.
+Dependencies are owned completely by each operation, not inferred from the
+ambient installation and not supplied by pack-level metadata.
 R package and normalized Python distribution names carry an explicit closed
 version object, required/optional disposition, and non-mutating import probe.
 Its `scheme` is exactly `r_package_version_constraint_v1` or
@@ -215,6 +253,27 @@ identity. Required missing dependencies yield
 content yield `OPERATION_PACK_DEPENDENCY_INCOMPATIBLE`; failed system/device or
 policy probes yield `OPERATION_PACK_PREFLIGHT_FAILED`. All occur before runner
 dispatch and leave no stage residue.
+
+A `dynamic_input_metadata_package` declaration is the sole dynamic provider
+form. It fixes `requirement_id`, `input_name`, `metadata_field`, ecosystem,
+package-name syntax, allowlisted read-only availability/import/export probe,
+required disposition and the policy to record the installed version. After
+ordinary typed input resolution, core reads the value from the retained input,
+binds that exact input content identity, validates a non-empty ecosystem package
+name, resolves installed package name/version/artifact and probe evidence, and
+hashes the resolution into selected requirements and preflight. The request,
+capability, runtime attestation and receipt all carry those identities/evidence.
+Core rereads the retained field immediately before dispatch; absent, empty,
+malformed, changed or unavailable values fail before analytical execution. The
+runner cannot choose, rewrite or supplement the provider. All resolution is
+offline and network-denied.
+
+`scwbatac::chromvar` declares this selector over input `matrix`, metadata field
+`genome_provider`, ecosystem `R`, syntax `r_package_name_v1`, and
+`r_namespace_exports_v1`, with required pre-dispatch disposition. The provider
+domain is open-ended. `BSgenome.Hsapiens.UCSC.hg19` and
+`BSgenome.Mmusculus.UCSC.mm10`, observed at 1.4.3, are qualification examples
+only—not an allowlist, default, minimum, or general compatibility claim.
 
 ## 7. Atomic transition
 
@@ -251,9 +310,10 @@ pack returns `OPERATION_PACK_INCOMPATIBLE`, both before staging.
 ## 9. Worked catalog coverage
 
 These are non-executable specification fixtures. The schemas contain a complete
-Python `scvi_train` request and matching receipts.
+computed Python `scvi_train` request, complete success receipt, and matching
+error receipt.
 
-### R multi-output: `scwbrepresentation::pca_fit`
+### R multi-output (logical, backend-specific): `scwbrepresentation::pca_fit`
 
 Core grants `write_space(space_pca, space_file_backed_hdf5_v1)` plus terminal
 writers for `loadings`, `variance`, and `fit_summary`, all in one group. The R
@@ -261,13 +321,38 @@ adapter returns four staged descriptors. Audit verifies feature and cell order,
 dimensions, exact terminal values, the space payload, and a mutation manifest;
 publication and reopen expose all four or none.
 
-### Python matrix/space/model: `scwblatent::scvi_train`
+### Python matrix/space/model (canonical computed fixture): `scwblatent::scvi_train`
 
 The request example grants a file-backed latent `space`, contained `model_ref`,
 and `fit_summary`. The input matrix's feature and cell identities are bound.
 PyBench may write only under the three relative roots. Core verifies the model
 tree, latent order, matrix/model/space linkage, training summary, runtime and
 dependency attestation, and exact mutation closure before atomic publication.
+The request grants and success receipt each contain exactly `space`, `model`,
+and `fit_summary`, once each and with matching allocated and grant identities.
+
+Computed with the pinned R/Python canonical JSON v1 bytes:
+
+| Identity | SHA-256 |
+|---|---|
+| transition | `7d6e84475b85cf91e7a4dee48fd458e685ae6ce3cf0a767e4bd5b36c07a2cf90` |
+| capability | `6a6d11ca1663a0a1b1fc14bd284515498492506f1d51fb7bd47116ba4392112c` |
+| request | `82fbd44723826be1749d837ff29a7c6f9e15b3d4d878357c9c5e960460865934` |
+| `space` grant | `262af4e44f835b3688312ca60eea8c6325a3911b018b81fba770a56f2f4c6162` |
+| `model` grant | `ed00d69110cb798ec4d2b5ee60c4edc3b10c54c9d11c6fdadd63d68d6f984e0c` |
+| `fit_summary` grant | `a5a5ce9dd403643219de064302c7a00517d25fb50ab89cf16303085b47648fc2` |
+| success receipt | `2c4a2ecfd258de228b3ab63fc0bb6ae865906aaf7224426e08f96be45d91767c` |
+| error receipt | `dacd86e9474b05c482a780bbeb2cb4ed48694ea11c73c6be6f9252183b45a82e` |
+
+The separate R `chromvar` dynamic-provider fixture has transition
+`2a4675dde0fe265edaae65789446147a2d66e22dc142831f722d2fe216ef1489`,
+capability
+`8c696fe80ec094f0d4d24411d37f46a01d55884f7159a3032fc7237a300d4e87`,
+request `2b1f597614f59e082af94e4472bc6da2fd432e4da056c6b68a2f7fe7ad90f761`,
+and success receipt
+`c9bf84f11ab81e26c5a791c5509ae7e7431b1eeff7e91673ef69b66b43eb62a8`.
+Those identities include the observed hg19 provider resolution; they do not
+make it a provider allowlist.
 
 ### Mixed materialization plus terminal: `scwbrna::matrix_log_normalize`
 
