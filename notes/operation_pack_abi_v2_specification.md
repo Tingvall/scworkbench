@@ -8,6 +8,8 @@ Python source: `d2e0587950973cf7eeacfc46b2829397cf84f079` plus Quill's
 specification commit `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
 commit `8f73acebe833606e5d733988cb3d253720fcd333`. Sable Amendment 01
 responds to audit `f05ce0923d2b9bfbd7cfd8447208a674fb21319a`.
+Amendment 02 closes focused re-audit
+`be23f800428dda93dbc0e4d6d963f8ee5f786e99`.
 
 ## 1. Normative vocabulary and authority
 
@@ -105,6 +107,62 @@ definition digest is core-derived after normalization and is not a recursive
 manifest member. The manifest has no root dependency array: pack metadata may
 neither override, inherit into, weaken, nor silently augment an operation's
 complete dependency set.
+
+Manifest input and output declarations are themselves closed discriminated
+branches. Registration therefore rejects an intrinsically unrepresentable
+declaration before activation, handler installation, or catalog mutation. The
+input branch fixes alignment from primitive kind:
+
+| Manifest input kind | Manifest/request alignment |
+|---|---|
+| `matrix` | `cell_and_feature_ordered` |
+| `space` | `cell_ordered` |
+| `space_2d` | `cell_ordered` |
+| `model_ref` | `model_linked` |
+| `cell_vector` | `cell_ordered` |
+| `cell_vector_family` | `cell_ordered` |
+| `relation_family` | `cell_ordered` |
+| `feature_table` | `feature_ordered` |
+| `obs_table` | `none` |
+| `path_2d_family` | `canonical_row_ordered` |
+| `space_path_family` | `associated_space` |
+
+For tuple comparison, request input `storage_profile` and `reader` are
+execution fields with no manifest tuple counterpart and are projected out.
+The resulting request `(kind, alignment)` set is exactly the 11-row manifest
+set above. Manifest output declarations have these 15 legal tuples; the final
+column is the request-only sanctioned writer and is projected out for the
+manifest/request `(category, kind, storage_profile)` equality proof:
+
+| Category | Kind | Storage profile | Request writer |
+|---|---|---|---|
+| `materialization` | `matrix` | `matrix_ordinary_v1` | `write_matrix` |
+| `materialization` | `matrix` | `matrix_backed_chunked_v1` | `write_matrix` |
+| `materialization` | `space` | `space_dense_v1` | `write_space` |
+| `materialization` | `space` | `space_file_backed_hdf5_v1` | `write_space` |
+| `materialization` | `space_2d` | `space_2d_dense_v1` | `write_space_2d` |
+| `terminal_artifact` | `space_2d` | `space_2d_dense_v1` | `write_space_2d` |
+| `terminal_artifact` | `model_ref` | `model_ref_contained_tree_v1` | `write_model_ref` |
+| `terminal_artifact` | `cell_vector` | `terminal_primitive_v1` | `write_terminal_primitive` |
+| `terminal_artifact` | `cell_vector_family` | `terminal_primitive_v1` | `write_terminal_primitive` |
+| `terminal_artifact` | `relation_family` | `terminal_primitive_v1` | `write_terminal_primitive` |
+| `terminal_artifact` | `feature_table` | `terminal_primitive_v1` | `write_terminal_primitive` |
+| `terminal_artifact` | `obs_table` | `terminal_primitive_v1` | `write_terminal_primitive` |
+| `terminal_artifact` | `path_2d_family` | `path_2d_family_v1` | `write_path_2d_family` |
+| `terminal_artifact` | `space_path_family` | `space_path_family_v1` | `write_space_path_family` |
+| `core_registry_request` | `cell_set_admission` | `cell_set_admission_v1` | `request_cell_set_admission` |
+
+Request-only relative roots, allocated IDs, expected dimensions/order,
+ancestry/linkage, semantic constraints and grant identity are also projected
+out of this declaration-tuple proof; they remain mandatory request bindings.
+Conversely, manifest `name`, `required`, `allocated_id_key`,
+`promotion_group`, and applicable declaration semantics such as
+`materialized_by_terminals`, `value_kind`, or `table_type` are not tuple
+dimensions but remain identity-bearing operation-definition content. Each is
+admitted only by its applicable closed declaration branch. In particular, a
+matrix input with `alignment=none`, a `materialization/model_ref/terminal_primitive_v1`
+output, and a `terminal_artifact/matrix/matrix_ordinary_v1` output are all
+schema-invalid before registration.
 
 Every declared output has exactly one category:
 

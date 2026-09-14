@@ -7,6 +7,7 @@
   "x-quill-specification-commit": "eb5334a7bec73490ccfbf106f83ba91b1ab39fb8",
   "x-quill-handoff-commit": "8f73acebe833606e5d733988cb3d253720fcd333",
   "x-sable-audit-commit": "f05ce0923d2b9bfbd7cfd8447208a674fb21319a",
+  "x-sable-reaudit-commit": "be23f800428dda93dbc0e4d6d963f8ee5f786e99",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -606,130 +607,933 @@
       ]
     },
     "input": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "name",
-        "kind",
-        "required",
-        "alignment"
-      ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "kind": {
-          "$ref": "#/$defs/primitive_kind"
-        },
-        "required": {
-          "type": "boolean"
-        },
-        "alignment": {
-          "enum": [
-            "none",
-            "cell_ordered",
-            "feature_ordered",
-            "cell_and_feature_ordered",
-            "model_linked",
-            "associated_space"
-          ]
-        }
-      }
-    },
-    "output": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "name",
-        "category",
-        "kind",
-        "storage_profile",
-        "allocated_id_key",
-        "required",
-        "promotion_group"
-      ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "category": {
-          "enum": [
-            "materialization",
-            "terminal_artifact",
-            "core_registry_request"
-          ]
-        },
-        "kind": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/primitive_kind"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
             },
-            {
-              "const": "cell_set_admission"
+            "kind": {
+              "const": "matrix"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "cell_and_feature_ordered"
             }
-          ]
-        },
-        "storage_profile": {
-          "$ref": "#/$defs/storage_profile"
-        },
-        "allocated_id_key": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*_id$"
-        },
-        "required": {
-          "const": true
-        },
-        "promotion_group": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "table_type": {
-          "type": "string",
-          "minLength": 1
-        },
-        "materialized_by_terminals": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9_]*$"
           }
         },
-        "value_kind": {
-          "enum": [
-            "categorical",
-            "continuous"
-          ]
-        }
-      },
-      "allOf": [
         {
-          "if": {
-            "properties": {
-              "category": {
-                "const": "core_registry_request"
-              }
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
             },
-            "required": [
-              "category"
-            ]
-          },
-          "then": {
-            "properties": {
-              "kind": {
-                "const": "cell_set_admission"
-              },
-              "storage_profile": {
-                "const": "cell_set_admission_v1"
-              }
+            "kind": {
+              "const": "space"
             },
-            "not": {
-              "required": [
-                "materialized_by_terminals"
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "space_2d"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "model_ref"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "model_linked"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "cell_vector"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "cell_vector_family"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "relation_family"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "feature_table"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "feature_ordered"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "obs_table"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "path_2d_family"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "canonical_row_ordered"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "space_path_family"
+            },
+            "required": {
+              "type": "boolean"
+            },
+            "alignment": {
+              "const": "associated_space"
+            }
+          }
+        }
+      ]
+    },
+    "output": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "matrix"
+            },
+            "storage_profile": {
+              "const": "matrix_ordinary_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "materialized_by_terminals": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "matrix"
+            },
+            "storage_profile": {
+              "const": "matrix_backed_chunked_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "materialized_by_terminals": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space"
+            },
+            "storage_profile": {
+              "const": "space_dense_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "materialized_by_terminals": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space"
+            },
+            "storage_profile": {
+              "const": "space_file_backed_hdf5_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "materialized_by_terminals": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space_2d"
+            },
+            "storage_profile": {
+              "const": "space_2d_dense_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "materialized_by_terminals": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "space_2d"
+            },
+            "storage_profile": {
+              "const": "space_2d_dense_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "model_ref"
+            },
+            "storage_profile": {
+              "const": "model_ref_contained_tree_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "cell_vector"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "value_kind": {
+              "enum": [
+                "categorical",
+                "continuous"
               ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "cell_vector_family"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "value_kind": {
+              "enum": [
+                "categorical",
+                "continuous"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "relation_family"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "feature_table"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "table_type": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "obs_table"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "table_type": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "path_2d_family"
+            },
+            "storage_profile": {
+              "const": "path_2d_family_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "space_path_family"
+            },
+            "storage_profile": {
+              "const": "space_path_family_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "core_registry_request"
+            },
+            "kind": {
+              "const": "cell_set_admission"
+            },
+            "storage_profile": {
+              "const": "cell_set_admission_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
             }
           }
         }
@@ -935,6 +1739,71 @@
       "action": "duplicate",
       "pointer": "/operations/0/dependencies/0",
       "expected": "reject"
+    },
+    {
+      "id": "MAN-MATRIX-ALIGNMENT-NONE",
+      "base_example": 0,
+      "action": "replace",
+      "pointer": "/operations/0/inputs/0/alignment",
+      "value": "none",
+      "expected": "reject_before_registration"
+    },
+    {
+      "id": "MAN-MATERIALIZATION-MODEL-TERMINAL-PROFILE",
+      "base_example": 0,
+      "action": "replace_fields",
+      "pointer": "/operations/0/outputs/0",
+      "fields": {
+        "category": "materialization",
+        "kind": "model_ref",
+        "storage_profile": "terminal_primitive_v1"
+      },
+      "expected": "reject_before_registration"
+    },
+    {
+      "id": "MAN-TERMINAL-MATRIX-ORDINARY",
+      "base_example": 0,
+      "action": "replace_fields",
+      "pointer": "/operations/0/outputs/0",
+      "fields": {
+        "category": "terminal_artifact",
+        "kind": "matrix",
+        "storage_profile": "matrix_ordinary_v1"
+      },
+      "expected": "reject_before_registration"
+    },
+    {
+      "id": "MAN-INPUT-ALL-INVALID-TUPLES",
+      "action": "exhaustive_other_values",
+      "definition": "#/$defs/input",
+      "fields": [
+        "kind",
+        "alignment"
+      ],
+      "expected": "reject_every_tuple_outside_declared_oneOf"
+    },
+    {
+      "id": "MAN-OUTPUT-ALL-INVALID-TUPLES",
+      "action": "exhaustive_other_values",
+      "definition": "#/$defs/output",
+      "fields": [
+        "category",
+        "kind",
+        "storage_profile"
+      ],
+      "expected": "reject_every_tuple_outside_declared_oneOf"
+    },
+    {
+      "id": "MAN-INPUT-ALL-REQUIRED-REMOVALS",
+      "action": "exhaustive_required_field_removal",
+      "definition": "#/$defs/input",
+      "expected": "reject_every_required_field_removed_from_every_branch"
+    },
+    {
+      "id": "MAN-OUTPUT-ALL-REQUIRED-REMOVALS",
+      "action": "exhaustive_required_field_removal",
+      "definition": "#/$defs/output",
+      "expected": "reject_every_required_field_removed_from_every_branch"
     }
   ]
 }

@@ -5,7 +5,8 @@ Status: **PROPOSED, NON-RUNTIME PLANNING ARTIFACT**.
 Inputs: scworkbench `368c864126b2e60880a81fab8dc0abbd34cf27a9`;
 Quill specification `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
 `8f73acebe833606e5d733988cb3d253720fcd333`; Sable audit
-`f05ce0923d2b9bfbd7cfd8447208a674fb21319a`.
+`f05ce0923d2b9bfbd7cfd8447208a674fb21319a`; focused re-audit
+`be23f800428dda93dbc0e4d6d963f8ee5f786e99`.
 
 The engine owns this state machine. Packs observe a single request and may
 return a receipt; they cannot advance durable state.
@@ -28,6 +29,11 @@ return a receipt; they cannot advance durable state.
 `resolved` through `audited` may be represented by a durable core journal so
 host recovery can clean private state. They never make analytical outputs
 getter-visible.
+
+Before this state machine can begin, activation validates every manifest input
+and output against the closed discriminated registration branches. A tuple not
+representable by the typed request contract fails before handler or catalog
+registration and therefore creates no `resolved` transition.
 
 ## Normal transition
 
