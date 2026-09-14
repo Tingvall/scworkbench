@@ -1583,7 +1583,8 @@
           }
         },
         "params_schema": {
-          "type": "object"
+          "type": "object",
+          "description": "Embedded JSON Schema. Before identity computation, validate natively as Draft 2020-12 and against closed profile scworkbench.operation_pack.params_schema.draft2020_12_closed_v1. An absent $schema means exactly Draft 2020-12 and remains absent in canonical identity; any other dialect or unsupported keyword fails before registration."
         },
         "outputs": {
           "type": "array",
@@ -1620,7 +1621,8 @@
               "exact_canonical_value",
               "loadable_reference",
               "cell_aligned_embedding",
-              "not_comparable"
+              "not_comparable",
+              "exact_membership_and_order"
             ]
           }
         }
@@ -1696,6 +1698,139 @@
           },
           "replay_equivalence": {
             "deviation_z": "exact_canonical_value"
+          }
+        }
+      ]
+    },
+    {
+      "schema_version": "scworkbench.operation_pack.v2",
+      "pack_abi_version": "2",
+      "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "namespace": "scwbexample",
+      "package": {
+        "name": "scwbExample",
+        "version": "0.1.0"
+      },
+      "backend": "R",
+      "compatibility": {
+        "scworkbench": {
+          "minimum": "0.1.0",
+          "maximum_exclusive": "0.2.0"
+        },
+        "pack_abi": {
+          "minimum": "2",
+          "maximum": "2"
+        }
+      },
+      "entry_point": "scwbExample::register_operation_pack",
+      "operations": [
+        {
+          "name": "normalize",
+          "qualified_name": "scwbexample::normalize",
+          "title": "Normalize matrix",
+          "description": "Valid multi-output registration fixture.",
+          "runner": ".run_normalize",
+          "inputs": [
+            {
+              "name": "matrix",
+              "kind": "matrix",
+              "required": true,
+              "alignment": "cell_and_feature_ordered"
+            }
+          ],
+          "params_schema": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+              "scale_factor": {
+                "type": "number",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "outputs": [
+            {
+              "name": "normalized",
+              "category": "materialization",
+              "kind": "matrix",
+              "storage_profile": "matrix_ordinary_v1",
+              "allocated_id_key": "matrix_id",
+              "required": true,
+              "promotion_group": "normalization",
+              "materialized_by_terminals": [
+                "summary"
+              ]
+            },
+            {
+              "name": "summary",
+              "category": "terminal_artifact",
+              "kind": "obs_table",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "summary_id",
+              "required": true,
+              "promotion_group": "normalization",
+              "table_type": "normalization_summary"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "summary": [
+              "normalized",
+              "summary"
+            ]
+          },
+          "replay_equivalence": {
+            "normalized": "exact_canonical_value",
+            "summary": "exact_canonical_value"
+          }
+        },
+        {
+          "name": "cluster",
+          "qualified_name": "scwbexample::cluster",
+          "title": "Cluster cells",
+          "description": "Valid second operation registration fixture.",
+          "runner": ".run_cluster",
+          "inputs": [
+            {
+              "name": "space",
+              "kind": "space",
+              "required": true,
+              "alignment": "cell_ordered"
+            }
+          ],
+          "params_schema": {
+            "type": "object",
+            "properties": {
+              "resolution": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "outputs": [
+            {
+              "name": "clusters",
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "allocated_id_key": "clusters_id",
+              "required": true,
+              "promotion_group": "clustering",
+              "value_kind": "categorical"
+            }
+          ],
+          "dependencies": [],
+          "promotion_closure": {
+            "clusters": [
+              "clusters"
+            ]
+          },
+          "replay_equivalence": {
+            "clusters": "exact_canonical_value"
           }
         }
       ]
@@ -1804,6 +1939,114 @@
       "action": "exhaustive_required_field_removal",
       "definition": "#/$defs/output",
       "expected": "reject_every_required_field_removed_from_every_branch"
+    }
+  ],
+  "x-meridian9-audit-target": "385860ff591de57ef59939a3aa62d2b811201c2e",
+  "x-meridian9-semantic-admission": {
+    "contract": "scworkbench.operation_pack.manifest_semantic_admission.v1",
+    "position": "after outer Draft 2020-12 validation and before parameter-schema validation or identity computation",
+    "parameter_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "parameter_schema_profile": "scworkbench.operation_pack.params_schema.draft2020_12_closed_v1",
+    "absent_parameter_schema_dialect": "interpret as the frozen Draft 2020-12 dialect; preserve absence as identity-bearing syntax; never guess",
+    "failure_law": "discard the private candidate; handler and catalog preimage identities remain unchanged"
+  },
+  "x-semantic-negative-fixtures": [
+    {
+      "id": "SEM-QUALIFIED-NAMESPACE-MISMATCH",
+      "base_example": 0,
+      "mutation": "replace",
+      "pointer": "/operations/0/qualified_name",
+      "value": "other::chromvar",
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH"
+    },
+    {
+      "id": "SEM-QUALIFIED-SUFFIX-MISMATCH",
+      "base_example": 0,
+      "mutation": "replace",
+      "pointer": "/operations/0/qualified_name",
+      "value": "scwbatac::different",
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH"
+    },
+    {
+      "id": "SEM-DUPLICATE-OPERATION",
+      "base_example": 0,
+      "mutation": "append_modified_copy",
+      "pointer": "/operations/0",
+      "changes": {
+        "title": "Structurally different duplicate"
+      },
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_OPERATION_DUPLICATE"
+    },
+    {
+      "id": "SEM-DUPLICATE-INPUT",
+      "base_example": 0,
+      "mutation": "append_modified_copy",
+      "pointer": "/operations/0/inputs/0",
+      "changes": {
+        "required": false
+      },
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_INPUT_DUPLICATE"
+    },
+    {
+      "id": "SEM-DUPLICATE-OUTPUT",
+      "base_example": 0,
+      "mutation": "append_modified_copy",
+      "pointer": "/operations/0/outputs/0",
+      "changes": {
+        "promotion_group": "other_group"
+      },
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_OUTPUT_DUPLICATE"
+    },
+    {
+      "id": "SEM-DUPLICATE-ALLOCATED-ID-KEY",
+      "base_example": 0,
+      "mutation": "append_modified_copy",
+      "pointer": "/operations/0/outputs/0",
+      "changes": {
+        "name": "deviation_raw"
+      },
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_ALLOCATION_KEY_DUPLICATE"
+    },
+    {
+      "id": "SEM-PROMOTION-GHOST",
+      "base_example": 0,
+      "mutation": "replace",
+      "pointer": "/operations/0/promotion_closure",
+      "value": {
+        "ghost": [
+          "ghost"
+        ]
+      },
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_PROMOTION_CLOSURE_INVALID"
+    },
+    {
+      "id": "SEM-REPLAY-GHOST",
+      "base_example": 0,
+      "mutation": "replace",
+      "pointer": "/operations/0/replay_equivalence",
+      "value": {
+        "ghost": "exact_canonical_value"
+      },
+      "expected_stage": "semantic_admission",
+      "expected_code": "OPERATION_PACK_MANIFEST_REPLAY_EQUIVALENCE_INVALID"
+    },
+    {
+      "id": "SEM-PARAM-SCHEMA-INVALID",
+      "base_example": 0,
+      "mutation": "replace",
+      "pointer": "/operations/0/params_schema",
+      "value": {
+        "type": "not-a-json-schema-type"
+      },
+      "expected_stage": "parameter_schema",
+      "expected_code": "OPERATION_PACK_PARAM_SCHEMA_INVALID"
     }
   ]
 }

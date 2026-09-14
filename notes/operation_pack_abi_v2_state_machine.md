@@ -6,7 +6,8 @@ Inputs: scworkbench `368c864126b2e60880a81fab8dc0abbd34cf27a9`;
 Quill specification `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
 `8f73acebe833606e5d733988cb3d253720fcd333`; Sable audit
 `f05ce0923d2b9bfbd7cfd8447208a674fb21319a`; focused re-audit
-`be23f800428dda93dbc0e4d6d963f8ee5f786e99`.
+`be23f800428dda93dbc0e4d6d963f8ee5f786e99`; Meridian-9 audit target
+`385860ff591de57ef59939a3aa62d2b811201c2e`.
 
 The engine owns this state machine. Packs observe a single request and may
 return a receipt; they cannot advance durable state.
@@ -30,10 +31,23 @@ return a receipt; they cannot advance durable state.
 host recovery can clean private state. They never make analytical outputs
 getter-visible.
 
-Before this state machine can begin, activation validates every manifest input
-and output against the closed discriminated registration branches. A tuple not
-representable by the typed request contract fails before handler or catalog
-registration and therefore creates no `resolved` transition.
+Before this state machine can begin, activation runs the normative
+`scworkbench.operation_pack.manifest_semantic_admission.v1` pipeline. It parses
+original bytes with duplicate-key rejection, validates the outer Draft 2020-12
+schema, validates every relational invariant, validates every embedded
+parameter schema under the frozen dialect/profile, computes identities,
+authenticates the distribution/source/entry point, and constructs a complete
+private candidate catalog—in that order. Only then may one atomic publication
+replace the catalog and handler-registry snapshot.
+
+Stages before publication have no mutable reference to the live catalog.
+Failure discards the candidate. Publication records the exact serialized
+catalog, alias, lookup-index and handler preimages and either exposes the entire
+pack or restores all of them. Phase 2 conformance captures those identities and
+asserts exact equality, absence of every candidate operation/alias/handler, and
+unchanged existing lookups after each semantic-admission fault. An invalid
+manifest therefore creates no `resolved` transition, and a multi-operation pack
+can never register a valid prefix before a later invalid operation fails.
 
 ## Normal transition
 

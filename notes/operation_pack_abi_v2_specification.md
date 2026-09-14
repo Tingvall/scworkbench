@@ -164,6 +164,116 @@ matrix input with `alignment=none`, a `materialization/model_ref/terminal_primit
 output, and a `terminal_artifact/matrix/matrix_ordinary_v1` output are all
 schema-invalid before registration.
 
+### Normative manifest semantic admission
+
+Relationships that JSON Schema cannot express are governed by
+`scworkbench.operation_pack.manifest_semantic_admission.v1`. The validator is
+language-neutral, deterministic, and precedes all identity admission and
+catalog mutation. Activation executes exactly this order:
+
+1. Parse the original manifest bytes with duplicate-object-key rejection.
+2. Validate the complete outer manifest with native Draft 2020-12.
+3. Validate names, name-keyed collections, allocation keys, dependencies,
+   promotion closure, and replay equivalence under the semantic-admission
+   contract below.
+4. Validate every embedded `params_schema` natively and against the frozen
+   parameter profile below.
+5. Normalize and compute manifest, definition, and pack identities.
+6. Authenticate distribution content, original manifest bytes, and entry point.
+7. Build a complete candidate handler/catalog snapshot privately.
+8. Publish that complete candidate with one atomic catalog/handler commit.
+
+Stages 1–7 cannot mutate the live handler registry, operation/alias catalog, or
+their lookup indexes. Any stage-8 failure restores their exact serialized
+preimage. Identity computation never repairs, drops, merges, or admits an
+invalid definition. When multiple faults exist, detection uses the numbered
+stage order, manifest operation order, and the rule order below; diagnostic
+name sets are ASCII-byte sorted. It never depends on object-map iteration.
+
+Stable admission errors are:
+
+| Stage/rule | Error code |
+|---|---|
+| Original JSON cannot be parsed or repeats an object key | `OPERATION_PACK_MANIFEST_PARSE_INVALID` |
+| Outer Draft 2020-12 shape fails | `OPERATION_PACK_MANIFEST_SCHEMA_INVALID` |
+| Qualified name differs from `namespace::name` | `OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH` |
+| Operation short or qualified name repeats | `OPERATION_PACK_MANIFEST_OPERATION_DUPLICATE` |
+| Input name repeats within an operation | `OPERATION_PACK_MANIFEST_INPUT_DUPLICATE` |
+| Output name repeats within an operation | `OPERATION_PACK_MANIFEST_OUTPUT_DUPLICATE` |
+| `allocated_id_key` repeats within an operation | `OPERATION_PACK_MANIFEST_ALLOCATION_KEY_DUPLICATE` |
+| Dependency or another name-keyed definition repeats | `OPERATION_PACK_MANIFEST_DEFINITION_KEY_DUPLICATE` |
+| Promotion closure is not the exact group-derived closure | `OPERATION_PACK_MANIFEST_PROMOTION_CLOSURE_INVALID` |
+| Replay key coverage or kind/category policy is invalid | `OPERATION_PACK_MANIFEST_REPLAY_EQUIVALENCE_INVALID` |
+| Parameter `$schema` names another dialect | `OPERATION_PACK_PARAM_SCHEMA_DIALECT_UNSUPPORTED` |
+| Parameter schema fails the Draft 2020-12 meta-schema | `OPERATION_PACK_PARAM_SCHEMA_INVALID` |
+| Parameter schema uses a keyword/ref outside the closed profile | `OPERATION_PACK_PARAM_SCHEMA_PROFILE_UNSUPPORTED` |
+| Identity/authentication evidence fails | Existing domain-specific identity, distribution, source, or entry-point error |
+| Candidate conflicts or atomic publication fails | `OPERATION_PACK_CANDIDATE_CATALOG_CONFLICT` or `OPERATION_PACK_CATALOG_PUBLICATION_FAILED` |
+
+For each operation, `qualified_name` is exactly
+`manifest.namespace + "::" + operation.name`. Short operation names and
+qualified names are independently unique across the manifest. Input names,
+output names, `allocated_id_key` values, dependency `requirement_id` values,
+and every other identity-bearing name-keyed collection are unique in their
+declared scope. No shared allocation-key exception exists. Identifiers are
+already restricted to ASCII contract syntax and receive no case folding or
+Unicode normalization. The strict parser rejects duplicate raw JSON keys;
+normalization must also reject, never merge, any logical collision.
+
+`promotion_closure` keys are **terminal-artifact output names**, not group
+names. Every terminal output occurs exactly once as a key. Its member array is
+the complete set of all declared outputs with the same `promotion_group`, in
+ascending ASCII-byte output-name order. Every promotion group contains at least
+one terminal artifact; materializations and core registry requests are members,
+never keys, and therefore require a terminal witness. Every materialization's
+`materialized_by_terminals` is present and equals the sorted terminal-name set
+for its group. Thus every output occurs in the closure representation, sibling
+outputs and witnesses cannot be omitted, and unknown/missing/duplicate members
+or cross-group members fail semantic admission.
+
+`replay_equivalence` keys are exactly the declared output-name set. The valid
+policy relation is closed:
+
+| Output category/kind | Admissible replay policy |
+|---|---|
+| `materialization` / `matrix` or `space` | `exact_canonical_value` |
+| `materialization` / `space_2d` | `exact_canonical_value` or `cell_aligned_embedding` |
+| `terminal_artifact` / `space_2d` | `exact_canonical_value` or `cell_aligned_embedding` |
+| `terminal_artifact` / `model_ref` | `loadable_reference` |
+| Any other current `terminal_artifact` kind | `exact_canonical_value` |
+| `core_registry_request` / `cell_set_admission` | `exact_membership_and_order` |
+
+`not_comparable` remains a reserved schema token but is inadmissible for every
+currently promotable v2 output, preserving the v1 fail-closed floor. Replay map
+keys are parsed strictly and never normalized with last-wins behavior.
+
+### Embedded parameter-schema dialect
+
+The frozen dialect is `https://json-schema.org/draft/2020-12/schema`; the
+supported feature profile is
+`scworkbench.operation_pack.params_schema.draft2020_12_closed_v1`. An absent
+root `$schema` means exactly that dialect, remains absent in canonical identity
+bytes, and never triggers dialect guessing. An explicit root `$schema` must be
+the exact frozen URI. Nested `$schema`, remote identifiers/references, and
+vocabulary changes are unsupported.
+
+Each root schema is an object, as the outer manifest requires, and first passes
+the native Draft 2020-12 meta-schema. Nested schemas may be boolean or objects.
+Every object then passes a recursive closed-keyword profile allowing only these
+keywords: `$schema`, `$defs`, `$ref`, `$comment`, `title`, `description`,
+`type`, `enum`, `const`, `default`, `examples`, `allOf`, `anyOf`, `oneOf`,
+`not`, `if`, `then`, `else`, `properties`, `required`,
+`additionalProperties`, `minProperties`, `maxProperties`, `items`,
+`prefixItems`, `minItems`, `maxItems`, `uniqueItems`, `minLength`,
+`maxLength`, `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`,
+and `multipleOf`. `$ref` is limited to JSON Pointers beneath the same schema's
+`#/$defs/`; definitions and property maps contain schemas, not new keywords.
+Unknown keywords, unsupported formats/pattern engines, non-local references,
+invalid defaults, duplicate `required` names, and unsupported dialects fail
+before identity computation. If `default` occurs, its value must validate under
+the containing schema with the annotation removed. R and Python adapters must
+apply this same meta-schema plus profile contract and return the same code.
+
 Every declared output has exactly one category:
 
 | Category | Meaning | Publication owner |
@@ -282,6 +392,15 @@ fixture in the conformance ledger:
 | C12 | Independently observed output values satisfy every expected descriptor field and semantic constraint | `observed_output_binding_mismatch` |
 | C13 | Runtime attestation repeats exact operation, source, distribution, entry-point, selected-dependency, dynamic-resolution and preflight identities | `runtime_attestation_binding_mismatch` |
 | C14 | No undeclared/duplicate/conflicting dependency appears at manifest, request, capability, runtime or receipt level | `undeclared_or_duplicate_dependency` |
+| C15 | Qualified namespace equals the manifest namespace | `manifest_namespace_prefix_mismatch` |
+| C16 | Qualified suffix equals the short operation name | `manifest_qualified_suffix_mismatch` |
+| C17 | Operation short and qualified names are independently unique | `manifest_duplicate_operation_definition` |
+| C18 | Input names are unique within each operation | `manifest_duplicate_input_name` |
+| C19 | Output names are unique within each operation | `manifest_duplicate_output_name` |
+| C20 | Allocation keys are unique within each operation | `manifest_duplicate_allocated_id_key` |
+| C21 | Promotion keys, members, groups, and witnesses reconcile exactly | `manifest_promotion_closure_ghost` |
+| C22 | Replay keys exactly cover outputs and every policy matches category/kind | `manifest_replay_map_ghost` |
+| C23 | Every parameter schema passes the frozen dialect meta-schema and profile | `manifest_invalid_embedded_parameter_schema` |
 
 ## 6. Dependencies and preflight
 

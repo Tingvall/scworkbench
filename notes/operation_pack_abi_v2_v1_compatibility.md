@@ -5,7 +5,8 @@ Status: **PROPOSED, NON-RUNTIME PLANNING ARTIFACT**.
 Inputs: scworkbench `368c864126b2e60880a81fab8dc0abbd34cf27a9`;
 Quill specification `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
 `8f73acebe833606e5d733988cb3d253720fcd333`; Sable audit
-`f05ce0923d2b9bfbd7cfd8447208a674fb21319a`.
+`f05ce0923d2b9bfbd7cfd8447208a674fb21319a`; Meridian-9 audit target
+`385860ff591de57ef59939a3aa62d2b811201c2e`.
 
 ## Coexistence law
 
@@ -42,6 +43,29 @@ pack cannot receive a v2 capability, and a v2 pack cannot be downgraded to v1.
 Same-name registrations from different ABI/definition identities are conflicts,
 not aliases. Failure leaves catalog state byte-for-byte/identity-for-identity at
 its pre-activation state.
+
+## Existing-v1 admission floor
+
+The accepted v1 validator in `R/operation_packs.R` is the minimum, not a legacy
+exception. V2 preserves or strengthens its admission laws:
+
+| V1 invariant | V2 treatment |
+|---|---|
+| Qualified operation uses the manifest namespace prefix | Strengthened to exact `namespace::short_name`, so a mismatched suffix also fails |
+| Operation names are unique | Short and qualified names are independently unique before identity computation |
+| Required/optional input names are unique | Array-form input names are explicitly unique within each operation |
+| Promotable names are unique declared outputs | Every terminal key has an exact group-derived closure; every materialization/request has a terminal witness |
+| Replay policies cover every declared output exactly | Preserved, plus policy validity is constrained by category and primitive kind |
+| Invalid definitions do not become registrations | Preserved through a complete private candidate and one atomic handler/catalog publication |
+
+Deliberate representation differences remain fail-closed. V1 uses its closed
+typed parameter-declaration list; v2 uses a natively meta-validated Draft
+2020-12 schema plus a closed language-neutral keyword profile. V2 array-form
+outputs add unique allocation keys and promotion groups. These structures are
+never translated implicitly between ABIs, and their distinct canonical
+definitions receive distinct identities. V2 therefore cannot admit a name,
+input, output, closure, replay map, parameter contract, or partial catalog state
+that v1 would have rejected merely because the wire representation changed.
 
 ## Historical unqualified core operations
 
