@@ -34,6 +34,10 @@ scwb_documentation_policy <- function(root = ".") {
     "docs/bundle_integrity_validation.md", "docs/bundle_path_containment_and_trust.md", "docs/bundle_state_contract.md", "docs/bundle_writer_lock.md", "docs/entity_lifecycle.md", "docs/durable_resumable_sessions.md", "docs/metadata_field_identity.md", "docs/metadata_cell_vector_diagnostics.md", "docs/pybench_integration_contract.md", "docs/pybench_op_protocol_v2.md", "docs/scvi_train.md", "docs/peakvi_fit.md", "docs/rna_map_ops.md", "docs/tabular_primitives.md", "docs/trajectory_fit_family_contract.md", "docs/trajectory_segment_contract.md", "docs/trajectory_segment_join_contract.md",
     "inst/protocol/operation-pack-v1.schema.json",
     "inst/protocol/operation-pack-canonical-json-v1.md",
+    "inst/protocol/operation-pack-v2.schema.json",
+    "inst/protocol/operation-pack-transition-request-v2.schema.json",
+    "inst/protocol/operation-pack-transition-receipt-v2.schema.json",
+    "inst/protocol/operation-pack-v2.md",
     "inst/protocol/pybench-op-v2.schema.json"
   )
   operation_pack_fixtures <- sort(list.files(
@@ -49,6 +53,13 @@ scwb_documentation_policy <- function(root = ".") {
   ))
   canonical <- c(canonical, file.path(
     "inst/protocol/fixtures/operation-pack-canonical-json-v1", canonical_json_fixtures
+  ))
+  operation_pack_v2_fixtures <- sort(list.files(
+    file.path(root, "inst", "protocol", "fixtures", "operation-pack-v2"),
+    pattern = "[.](json|csv)$", recursive = TRUE, full.names = FALSE
+  ))
+  canonical <- c(canonical, file.path(
+    "inst/protocol/fixtures/operation-pack-v2", operation_pack_v2_fixtures
   ))
   onboarding <- sort(list.files(file.path(root, "inst", "onboarding"), recursive = TRUE,
                                 full.names = FALSE, all.files = FALSE))

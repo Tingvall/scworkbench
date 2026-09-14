@@ -1,0 +1,5798 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scworkbench.org/protocol/operation-pack-transition-receipt-v2.schema.json",
+  "title": "scworkbench operation-pack ABI v2 transition receipt",
+  "description": "Live closed transition-receipt contract for scworkbench operation-pack ABI v2.",
+  "x-document-status": "PROPOSED_NON_RUNTIME",
+  "x-quill-specification-commit": "eb5334a7bec73490ccfbf106f83ba91b1ab39fb8",
+  "x-quill-handoff-commit": "8f73acebe833606e5d733988cb3d253720fcd333",
+  "x-sable-audit-commit": "f05ce0923d2b9bfbd7cfd8447208a674fb21319a",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "message_type",
+    "process_protocol_version",
+    "pack_abi_version",
+    "canonical_json_scheme",
+    "status",
+    "transition_id",
+    "session_id",
+    "run_id",
+    "transition_identity",
+    "request_identity",
+    "capability_identity",
+    "receipt_identity"
+  ],
+  "properties": {
+    "schema": {
+      "const": "scworkbench.operation_pack.transition_receipt.v2"
+    },
+    "message_type": {
+      "const": "receipt"
+    },
+    "process_protocol_version": {
+      "const": "pybench-op-v3"
+    },
+    "pack_abi_version": {
+      "const": "2"
+    },
+    "canonical_json_scheme": {
+      "const": "scworkbench.operation_pack.canonical_json.v1"
+    },
+    "status": {
+      "enum": [
+        "ok",
+        "error"
+      ]
+    },
+    "transition_id": {
+      "$ref": "#/$defs/id"
+    },
+    "session_id": {
+      "$ref": "#/$defs/id"
+    },
+    "run_id": {
+      "$ref": "#/$defs/id"
+    },
+    "transition_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.transition.v2"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scope": {
+          "const": "transition excluding transition_identity"
+        }
+      }
+    },
+    "request_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.transition_request.v2"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scope": {
+          "const": "request excluding request_identity"
+        }
+      }
+    },
+    "capability_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.capability.v2"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scope": {
+          "const": "capability excluding capability_identity"
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/observed_output"
+      }
+    },
+    "registry_requests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/registry_request"
+      }
+    },
+    "mutation_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entries_identity",
+        "entry_count",
+        "unexpected_entries",
+        "mutation_identity"
+      ],
+      "properties": {
+        "entries_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.mutation_entries.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "entry_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unexpected_entries": {
+          "const": 0
+        },
+        "mutation_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.mutation_manifest.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "mutation manifest excluding mutation_identity"
+            }
+          }
+        }
+      }
+    },
+    "runtime_attestation": {
+      "$ref": "#/$defs/runtime_attestation"
+    },
+    "phase": {
+      "enum": [
+        "resolution",
+        "preflight",
+        "staging",
+        "dispatch",
+        "execution",
+        "receipt",
+        "audit",
+        "publication",
+        "reopen",
+        "promotion",
+        "replay"
+      ]
+    },
+    "error_code": {
+      "enum": [
+        "OPERATION_PACK_REQUIRED",
+        "OPERATION_PACK_INCOMPATIBLE",
+        "OPERATION_PACK_DEPENDENCY_MISSING",
+        "OPERATION_PACK_DEPENDENCY_INCOMPATIBLE",
+        "OPERATION_PACK_DYNAMIC_PROVIDER_INVALID",
+        "OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED",
+        "OPERATION_PACK_PREFLIGHT_FAILED",
+        "PYBENCH_CAPABILITY_MISMATCH",
+        "PYBENCH_STALE_STAGING_IDENTITY",
+        "PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "PYBENCH_OUTPUT_INVALID",
+        "PYBENCH_RECEIPT_MISMATCH",
+        "PYBENCH_OUT_OF_SCOPE_MUTATION",
+        "PYBENCH_SOURCE_WRITE_ATTEMPT",
+        "PYBENCH_PROCESS_FAILED",
+        "PYBENCH_PUBLICATION_FAILED",
+        "PYBENCH_REOPEN_VALIDATION_FAILED",
+        "PYBENCH_PROMOTION_FAILED"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retryable": {
+      "type": "boolean"
+    },
+    "runtime_attestation_status": {
+      "enum": [
+        "available",
+        "not_established"
+      ]
+    },
+    "receipt_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.transition_receipt.v2"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scope": {
+          "const": "receipt excluding receipt_identity"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "ok"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "required": [
+          "outputs",
+          "registry_requests",
+          "mutation_manifest",
+          "runtime_attestation"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "phase"
+              ]
+            },
+            {
+              "required": [
+                "error_code"
+              ]
+            },
+            {
+              "required": [
+                "message"
+              ]
+            },
+            {
+              "required": [
+                "retryable"
+              ]
+            },
+            {
+              "required": [
+                "runtime_attestation_status"
+              ]
+            }
+          ]
+        }
+      },
+      "else": {
+        "required": [
+          "phase",
+          "error_code",
+          "message",
+          "retryable",
+          "runtime_attestation_status"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "outputs"
+              ]
+            },
+            {
+              "required": [
+                "registry_requests"
+              ]
+            },
+            {
+              "required": [
+                "mutation_manifest"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "error"
+          },
+          "runtime_attestation_status": {
+            "const": "available"
+          }
+        },
+        "required": [
+          "status",
+          "runtime_attestation_status"
+        ]
+      },
+      "then": {
+        "required": [
+          "runtime_attestation"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "error"
+          },
+          "runtime_attestation_status": {
+            "const": "not_established"
+          }
+        },
+        "required": [
+          "status",
+          "runtime_attestation_status"
+        ]
+      },
+      "then": {
+        "not": {
+          "required": [
+            "runtime_attestation"
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$"
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "model_linkage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "reference_name",
+            "reference_identity"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "input",
+                "sibling_output"
+              ]
+            },
+            "reference_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "reference_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "dynamic_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "selector_identity",
+        "input_name",
+        "input_identity",
+        "metadata_field",
+        "ecosystem",
+        "provider_name",
+        "package_name_scheme",
+        "probe",
+        "disposition",
+        "resolved_package",
+        "status",
+        "resolution_identity"
+      ],
+      "properties": {
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "selector_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dynamic_dependency_selector.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "input_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "input_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "metadata_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]*$"
+        },
+        "ecosystem": {
+          "enum": [
+            "R",
+            "Python"
+          ]
+        },
+        "provider_name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "package_name_scheme": {
+          "enum": [
+            "r_package_name_v1",
+            "python_distribution_name_v1"
+          ]
+        },
+        "probe": {
+          "enum": [
+            "r_namespace_available_v1",
+            "r_namespace_exports_v1",
+            "python_import_spec_v1"
+          ]
+        },
+        "disposition": {
+          "const": "required"
+        },
+        "resolved_package": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "artifact_identity",
+            "probe_evidence_identity"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "artifact_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "probe_evidence_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        "status": {
+          "const": "available"
+        },
+        "resolution_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dynamic_dependency_resolution.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "resolution excluding resolution_identity"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ecosystem": {
+                "const": "R"
+              }
+            },
+            "required": [
+              "ecosystem"
+            ]
+          },
+          "then": {
+            "properties": {
+              "package_name_scheme": {
+                "const": "r_package_name_v1"
+              },
+              "probe": {
+                "enum": [
+                  "r_namespace_available_v1",
+                  "r_namespace_exports_v1"
+                ]
+              },
+              "provider_name": {
+                "pattern": "^[A-Za-z][A-Za-z0-9.]*$"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "package_name_scheme": {
+                "const": "python_distribution_name_v1"
+              },
+              "probe": {
+                "const": "python_import_spec_v1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "observed_output_descriptor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity",
+            "feature_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "matrix"
+            },
+            "storage_profile": {
+              "const": "matrix_ordinary_v1"
+            },
+            "writer": {
+              "const": "write_matrix"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_and_feature_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "feature_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity",
+            "feature_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "matrix"
+            },
+            "storage_profile": {
+              "const": "matrix_backed_chunked_v1"
+            },
+            "writer": {
+              "const": "write_matrix"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_and_feature_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "feature_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space"
+            },
+            "storage_profile": {
+              "const": "space_dense_v1"
+            },
+            "writer": {
+              "const": "write_space"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space"
+            },
+            "storage_profile": {
+              "const": "space_file_backed_hdf5_v1"
+            },
+            "writer": {
+              "const": "write_space"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space_2d"
+            },
+            "storage_profile": {
+              "const": "space_2d_dense_v1"
+            },
+            "writer": {
+              "const": "write_space_2d"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "const": 2
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "space_2d"
+            },
+            "storage_profile": {
+              "const": "space_2d_dense_v1"
+            },
+            "writer": {
+              "const": "write_space_2d"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "const": 2
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "model_linkage_identity",
+            "contained_payload"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "model_ref"
+            },
+            "storage_profile": {
+              "const": "model_ref_contained_tree_v1"
+            },
+            "writer": {
+              "const": "write_model_ref"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "alignment": {
+              "const": "model_linked"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "model_linkage_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "contained_payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "contained",
+                "no_symlinks",
+                "payload_tree_identity"
+              ],
+              "properties": {
+                "contained": {
+                  "const": true
+                },
+                "no_symlinks": {
+                  "const": true
+                },
+                "payload_tree_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "cell_vector"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 1,
+              "maxItems": 1
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "cell_vector_family"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "relation_family"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "feature_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "feature_table"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "feature_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "feature_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "obs_table"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "none"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "row_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "path_2d_family"
+            },
+            "storage_profile": {
+              "const": "path_2d_family_v1"
+            },
+            "writer": {
+              "const": "write_path_2d_family"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "canonical_row_ordered"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "row_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "grant_identity",
+            "dimensions",
+            "alignment",
+            "ancestry_identity",
+            "model_linkage",
+            "content_identity",
+            "payload_manifest_identity",
+            "semantic_metadata_identity",
+            "semantic_validation",
+            "observed_descriptor_identity",
+            "row_order_identity",
+            "linked_space_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "space_path_family"
+            },
+            "storage_profile": {
+              "const": "space_path_family_v1"
+            },
+            "writer": {
+              "const": "write_space_path_family"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              ],
+              "items": false,
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "alignment": {
+              "const": "associated_space"
+            },
+            "ancestry_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "model_linkage": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "const": "none"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "mode",
+                    "reference_name",
+                    "reference_identity"
+                  ],
+                  "properties": {
+                    "mode": {
+                      "enum": [
+                        "input",
+                        "sibling_output"
+                      ]
+                    },
+                    "reference_name": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "reference_identity": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "scheme",
+                        "sha256"
+                      ],
+                      "properties": {
+                        "scheme": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "scope": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "sha256": {
+                          "$ref": "#/$defs/sha256"
+                        }
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "content_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "payload_manifest_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.semantic_metadata.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "semantic_validation": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "constraints_identity",
+                "status"
+              ],
+              "properties": {
+                "constraints_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.semantic_constraints.v2"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                },
+                "status": {
+                  "const": "passed"
+                }
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.observed_output.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding observed_descriptor_identity"
+                }
+              }
+            },
+            "row_order_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "linked_space_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "observed_output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "allocated_id",
+        "descriptor"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "allocated_id": {
+          "$ref": "#/$defs/id"
+        },
+        "descriptor": {
+          "$ref": "#/$defs/observed_output_descriptor"
+        }
+      }
+    },
+    "registry_request_descriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "kind",
+        "storage_profile",
+        "writer",
+        "grant_identity",
+        "dimensions",
+        "alignment",
+        "cell_order_identity",
+        "ancestry_identity",
+        "membership_identity",
+        "semantic_validation",
+        "observed_descriptor_identity"
+      ],
+      "properties": {
+        "category": {
+          "const": "core_registry_request"
+        },
+        "kind": {
+          "const": "cell_set_admission"
+        },
+        "storage_profile": {
+          "const": "cell_set_admission_v1"
+        },
+        "writer": {
+          "const": "request_cell_set_admission"
+        },
+        "grant_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.output_grant.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "descriptor excluding grant_identity"
+            }
+          }
+        },
+        "dimensions": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ],
+          "items": false,
+          "minItems": 1,
+          "maxItems": 1
+        },
+        "alignment": {
+          "const": "cell_ordered"
+        },
+        "cell_order_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "ancestry_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "membership_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "semantic_validation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "constraints_identity",
+            "status"
+          ],
+          "properties": {
+            "constraints_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "status": {
+              "const": "passed"
+            }
+          }
+        },
+        "observed_descriptor_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.observed_registry_request.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "descriptor excluding observed_descriptor_identity"
+            }
+          }
+        }
+      }
+    },
+    "registry_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "allocated_id",
+        "descriptor"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "allocated_id": {
+          "$ref": "#/$defs/id"
+        },
+        "descriptor": {
+          "$ref": "#/$defs/registry_request_descriptor"
+        }
+      }
+    },
+    "runtime_attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "backend",
+        "runtime_identity",
+        "pack_identity",
+        "manifest_source_identity",
+        "distribution_identity",
+        "operation_definition_identity",
+        "entry_point",
+        "declared_requirement_set_identity",
+        "selected_requirement_set_identity",
+        "dynamic_resolutions",
+        "preflight_report_identity",
+        "path_policy"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.runtime.v2"
+        },
+        "backend": {
+          "enum": [
+            "R",
+            "Python"
+          ]
+        },
+        "runtime_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.runtime.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "runtime attestation excluding runtime_identity"
+            }
+          }
+        },
+        "pack_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.pack.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "manifest_source_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.manifest_source.bytes.v1"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "distribution_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.content.v1"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "operation_definition_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.definition.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "entry_point": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "identity"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "minLength": 1
+            },
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.entry_point.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        "declared_requirement_set_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dependencies.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "selected_requirement_set_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dependencies.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "dynamic_resolutions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/dynamic_resolution"
+          }
+        },
+        "preflight_report_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.preflight.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "path_policy": {
+          "const": "no_absolute_paths"
+        }
+      }
+    },
+    "self_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "schema": "scworkbench.operation_pack.transition_receipt.v2",
+      "message_type": "receipt",
+      "process_protocol_version": "pybench-op-v3",
+      "pack_abi_version": "2",
+      "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "transition_id": "transition_scvi_0001",
+      "session_id": "session_0001",
+      "run_id": "run_scvi_0001",
+      "transition_identity": {
+        "scheme": "scworkbench.operation_pack.transition.v2",
+        "scope": "transition excluding transition_identity",
+        "sha256": "7d6e84475b85cf91e7a4dee48fd458e685ae6ce3cf0a767e4bd5b36c07a2cf90"
+      },
+      "request_identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v2",
+        "scope": "request excluding request_identity",
+        "sha256": "82fbd44723826be1749d837ff29a7c6f9e15b3d4d878357c9c5e960460865934"
+      },
+      "capability_identity": {
+        "scheme": "scworkbench.operation_pack.capability.v2",
+        "scope": "capability excluding capability_identity",
+        "sha256": "6a6d11ca1663a0a1b1fc14bd284515498492506f1d51fb7bd47116ba4392112c"
+      },
+      "status": "ok",
+      "outputs": [
+        {
+          "name": "space",
+          "allocated_id": "space_rna_scvi",
+          "descriptor": {
+            "category": "materialization",
+            "kind": "space",
+            "storage_profile": "space_file_backed_hdf5_v1",
+            "writer": "write_space",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "262af4e44f835b3688312ca60eea8c6325a3911b018b81fba770a56f2f4c6162"
+            },
+            "dimensions": [
+              100,
+              30
+            ],
+            "alignment": "cell_ordered",
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "d719960afb88e00844f419a7faa4f672b10a4bad658b710859218a9c67085304"
+            },
+            "model_linkage": {
+              "mode": "sibling_output",
+              "reference_name": "model",
+              "reference_identity": {
+                "scheme": "scworkbench.operation_pack.definition.v2",
+                "sha256": "48681581d2a41a97467fc74e215bfb727d8500ad585d7acd808273519c021f70"
+              }
+            },
+            "content_identity": {
+              "scheme": "scworkbench.space.content.v1",
+              "sha256": "aaa27b84ac254e68c605b9b15744025dcff0c13e0a624a242d40e41a89b1f67d"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "a775503d477680239b34d5f18e8e4f5e06217780f825952ec65216ea3ceedfa0"
+            },
+            "semantic_metadata_identity": {
+              "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+              "sha256": "9a337863e2694b75567350eda47301783b4eb754f3e3ab8f1bb947dc41fdabe0"
+            },
+            "semantic_validation": {
+              "constraints_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                "sha256": "40a328557a283fd9f4f48bdabe97677a9f9d58f49e7469ce795e1f315ee6e99c"
+              },
+              "status": "passed"
+            },
+            "cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "d4a166459610f6b206e2743c8ca3c6a3ef6c694a8875a00d5dc0062ddb14d293"
+            },
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v2",
+              "scope": "descriptor excluding observed_descriptor_identity",
+              "sha256": "0ca7b4eb03d8306d0f83184cdb57fa2ee2423db9a57d07afffa900544baae4c1"
+            }
+          }
+        },
+        {
+          "name": "model",
+          "allocated_id": "artifact_scvi_model",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "model_ref",
+            "storage_profile": "model_ref_contained_tree_v1",
+            "writer": "write_model_ref",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "ed00d69110cb798ec4d2b5ee60c4edc3b10c54c9d11c6fdadd63d68d6f984e0c"
+            },
+            "dimensions": [
+              1
+            ],
+            "alignment": "model_linked",
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "bf601f85e8441ac84f8147f03b2a3331f77647398c1720397437045adbf5b53b"
+            },
+            "model_linkage": {
+              "mode": "input",
+              "reference_name": "matrix",
+              "reference_identity": {
+                "scheme": "scworkbench.matrix.content.v1",
+                "sha256": "02eb632fa015fcb811d72526018662b911da5e57b42acecf96465868104576d9"
+              }
+            },
+            "content_identity": {
+              "scheme": "scworkbench.model_ref.content.v1",
+              "sha256": "3df361d9021879ef4ee48674184fdf56880dae346b5c0e1195a0fdaefdae5e14"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "cc71bdc299324f89cf620029f3ff84d97f0b83d6f40f9ae95a17583608ed2472"
+            },
+            "semantic_metadata_identity": {
+              "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+              "sha256": "502cbba57d2a1e502a2bbe2a66d28299a1e7f4af3e96fd2deb9ff355305cba90"
+            },
+            "semantic_validation": {
+              "constraints_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                "sha256": "6fe69434921b0aa8cc894b9b014ff234b9a18500b499dbee1370d8e000c1ae9c"
+              },
+              "status": "passed"
+            },
+            "model_linkage_identity": {
+              "scheme": "scworkbench.model_linkage.v1",
+              "sha256": "6ce57458d90a3545048ddb8b17b9a846ce7031a3add2c94768fb909da031d1cf"
+            },
+            "contained_payload": {
+              "contained": true,
+              "no_symlinks": true,
+              "payload_tree_identity": {
+                "scheme": "scworkbench.operation_pack.contained_payload.v2",
+                "sha256": "bac9349f8a4ce342b6bfc5c4d9eb6ad3aee1256aab919768909930ab6cfa9e74"
+              }
+            },
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v2",
+              "scope": "descriptor excluding observed_descriptor_identity",
+              "sha256": "34f5016015d951716b7d34fc7344c723122e4d907938e02ac2b2a287abd67a2c"
+            }
+          }
+        },
+        {
+          "name": "fit_summary",
+          "allocated_id": "artifact_scvi_summary",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "obs_table",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "a5a5ce9dd403643219de064302c7a00517d25fb50ab89cf16303085b47648fc2"
+            },
+            "dimensions": [
+              1,
+              6
+            ],
+            "alignment": "none",
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "c6a60f041da6ca16beac5698e2d72cf0058c99364844170dd3f356c2cd7f0ce9"
+            },
+            "model_linkage": {
+              "mode": "none"
+            },
+            "content_identity": {
+              "scheme": "scworkbench.obs_table.content.v1",
+              "sha256": "aeec0abf7c8943fe820e62ed7e31c743817a972917f8238ead433403e1224199"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "877429c1f0b0ef560c1237f8bea49ebbe0b9c5587f3e8a7bfb3a4d870d12163e"
+            },
+            "semantic_metadata_identity": {
+              "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+              "sha256": "ea19212febf1b57ae11e8156377e0225a9ae857f0db3ffb0ae1e09d8b02ceeff"
+            },
+            "semantic_validation": {
+              "constraints_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                "sha256": "7c884fa7bc85fa1f7ad40c6993707cca3c56b43514106bfd9c5d41e06b1f7103"
+              },
+              "status": "passed"
+            },
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v2",
+              "scope": "descriptor excluding observed_descriptor_identity",
+              "sha256": "ec1dcd2d81c755c28d5a2cbdc8890cb122f1ef744eed5b39d4d4728d97356e6e"
+            }
+          }
+        }
+      ],
+      "registry_requests": [],
+      "mutation_manifest": {
+        "entries_identity": {
+          "scheme": "scworkbench.operation_pack.mutation_entries.v2",
+          "sha256": "5211a3b96e7ba3e3fba70e79f457df0052ab2f7966f386a9df5784148e95dead"
+        },
+        "entry_count": 3,
+        "unexpected_entries": 0,
+        "mutation_identity": {
+          "scheme": "scworkbench.operation_pack.mutation_manifest.v2",
+          "scope": "mutation manifest excluding mutation_identity",
+          "sha256": "183c67f4c37810f545c544b7305bb683a5b1aa999c2db32051a5ea2716064347"
+        }
+      },
+      "runtime_attestation": {
+        "schema": "scworkbench.operation_pack.runtime.v2",
+        "backend": "Python",
+        "pack_identity": {
+          "scheme": "scworkbench.operation_pack.pack.v2",
+          "sha256": "b9622936165520a054747b0d408001d19169a5e1440b121bf02c4746e77db9e8"
+        },
+        "manifest_source_identity": {
+          "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+          "sha256": "6240e60d363cf90d4b41acd5418528e320c3a4f51ac25e1d77a2de17bfa69d41"
+        },
+        "distribution_identity": {
+          "scheme": "scworkbench.operation_pack.content.v1",
+          "sha256": "7b366a32ffef3b3294e3d2aa6e0f841ce6c1fb8864a369d4bf26e0435605f08f"
+        },
+        "operation_definition_identity": {
+          "scheme": "scworkbench.operation_pack.definition.v2",
+          "sha256": "48681581d2a41a97467fc74e215bfb727d8500ad585d7acd808273519c021f70"
+        },
+        "entry_point": {
+          "value": "scworkbench.operation_packs:scwblatent=scwblatent.pack:register",
+          "identity": {
+            "scheme": "scworkbench.operation_pack.entry_point.v2",
+            "sha256": "ce73daacb9db356a7b870f809a047712ee60b40917d6ebb37f1fd6f6094080bb"
+          }
+        },
+        "declared_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "960c3c00308309226a5ac44506d39c43e6f73345143cef832b31c20a87191453"
+        },
+        "selected_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "cf666c56f02e98b49631738ddfabef58c7aee61d012a1491af3e9fd0fa04c68c"
+        },
+        "dynamic_resolutions": [],
+        "preflight_report_identity": {
+          "scheme": "scworkbench.operation_pack.preflight.v2",
+          "sha256": "a8486a776a34e5344400f02d418666c82c3653cb96b90c96c4bac6892b6dffb4"
+        },
+        "path_policy": "no_absolute_paths",
+        "runtime_identity": {
+          "scheme": "scworkbench.operation_pack.runtime.v2",
+          "scope": "runtime attestation excluding runtime_identity",
+          "sha256": "8e024705a642e65cc5ae736ba2193b20da68f602fb45137673d87e322fd0905e"
+        }
+      },
+      "receipt_identity": {
+        "scheme": "scworkbench.operation_pack.transition_receipt.v2",
+        "scope": "receipt excluding receipt_identity",
+        "sha256": "2c4a2ecfd258de228b3ab63fc0bb6ae865906aaf7224426e08f96be45d91767c"
+      }
+    },
+    {
+      "schema": "scworkbench.operation_pack.transition_receipt.v2",
+      "message_type": "receipt",
+      "process_protocol_version": "pybench-op-v3",
+      "pack_abi_version": "2",
+      "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "transition_id": "transition_scvi_0001",
+      "session_id": "session_0001",
+      "run_id": "run_scvi_0001",
+      "transition_identity": {
+        "scheme": "scworkbench.operation_pack.transition.v2",
+        "scope": "transition excluding transition_identity",
+        "sha256": "7d6e84475b85cf91e7a4dee48fd458e685ae6ce3cf0a767e4bd5b36c07a2cf90"
+      },
+      "request_identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v2",
+        "scope": "request excluding request_identity",
+        "sha256": "82fbd44723826be1749d837ff29a7c6f9e15b3d4d878357c9c5e960460865934"
+      },
+      "capability_identity": {
+        "scheme": "scworkbench.operation_pack.capability.v2",
+        "scope": "capability excluding capability_identity",
+        "sha256": "6a6d11ca1663a0a1b1fc14bd284515498492506f1d51fb7bd47116ba4392112c"
+      },
+      "status": "error",
+      "phase": "execution",
+      "error_code": "PYBENCH_PROCESS_FAILED",
+      "message": "Python operation failed; inspect the core-owned diagnostic record",
+      "retryable": false,
+      "runtime_attestation_status": "available",
+      "runtime_attestation": {
+        "schema": "scworkbench.operation_pack.runtime.v2",
+        "backend": "Python",
+        "pack_identity": {
+          "scheme": "scworkbench.operation_pack.pack.v2",
+          "sha256": "b9622936165520a054747b0d408001d19169a5e1440b121bf02c4746e77db9e8"
+        },
+        "manifest_source_identity": {
+          "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+          "sha256": "6240e60d363cf90d4b41acd5418528e320c3a4f51ac25e1d77a2de17bfa69d41"
+        },
+        "distribution_identity": {
+          "scheme": "scworkbench.operation_pack.content.v1",
+          "sha256": "7b366a32ffef3b3294e3d2aa6e0f841ce6c1fb8864a369d4bf26e0435605f08f"
+        },
+        "operation_definition_identity": {
+          "scheme": "scworkbench.operation_pack.definition.v2",
+          "sha256": "48681581d2a41a97467fc74e215bfb727d8500ad585d7acd808273519c021f70"
+        },
+        "entry_point": {
+          "value": "scworkbench.operation_packs:scwblatent=scwblatent.pack:register",
+          "identity": {
+            "scheme": "scworkbench.operation_pack.entry_point.v2",
+            "sha256": "ce73daacb9db356a7b870f809a047712ee60b40917d6ebb37f1fd6f6094080bb"
+          }
+        },
+        "declared_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "960c3c00308309226a5ac44506d39c43e6f73345143cef832b31c20a87191453"
+        },
+        "selected_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "cf666c56f02e98b49631738ddfabef58c7aee61d012a1491af3e9fd0fa04c68c"
+        },
+        "dynamic_resolutions": [],
+        "preflight_report_identity": {
+          "scheme": "scworkbench.operation_pack.preflight.v2",
+          "sha256": "a8486a776a34e5344400f02d418666c82c3653cb96b90c96c4bac6892b6dffb4"
+        },
+        "path_policy": "no_absolute_paths",
+        "runtime_identity": {
+          "scheme": "scworkbench.operation_pack.runtime.v2",
+          "scope": "runtime attestation excluding runtime_identity",
+          "sha256": "8e024705a642e65cc5ae736ba2193b20da68f602fb45137673d87e322fd0905e"
+        }
+      },
+      "receipt_identity": {
+        "scheme": "scworkbench.operation_pack.transition_receipt.v2",
+        "scope": "receipt excluding receipt_identity",
+        "sha256": "dacd86e9474b05c482a780bbeb2cb4ed48694ea11c73c6be6f9252183b45a82e"
+      }
+    },
+    {
+      "schema": "scworkbench.operation_pack.transition_receipt.v2",
+      "message_type": "receipt",
+      "process_protocol_version": "pybench-op-v3",
+      "pack_abi_version": "2",
+      "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "transition_id": "transition_chromvar_0001",
+      "session_id": "session_0002",
+      "run_id": "run_chromvar_0001",
+      "transition_identity": {
+        "scheme": "scworkbench.operation_pack.transition.v2",
+        "scope": "transition excluding transition_identity",
+        "sha256": "2a4675dde0fe265edaae65789446147a2d66e22dc142831f722d2fe216ef1489"
+      },
+      "request_identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v2",
+        "scope": "request excluding request_identity",
+        "sha256": "2b1f597614f59e082af94e4472bc6da2fd432e4da056c6b68a2f7fe7ad90f761"
+      },
+      "capability_identity": {
+        "scheme": "scworkbench.operation_pack.capability.v2",
+        "scope": "capability excluding capability_identity",
+        "sha256": "8c696fe80ec094f0d4d24411d37f46a01d55884f7159a3032fc7237a300d4e87"
+      },
+      "status": "ok",
+      "outputs": [
+        {
+          "name": "deviation_raw",
+          "allocated_id": "artifact_deviation_raw",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "cell_vector_family",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "d59bb48869c15f45b234b9f40fab60b502fe2e9c2b3df43fcdbb146ff5912662"
+            },
+            "dimensions": [
+              100,
+              50
+            ],
+            "alignment": "cell_ordered",
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "5d467fb6fa70f60e985fa5630cf532f15a1719617e593fafc5f9a008f2640af9"
+            },
+            "model_linkage": {
+              "mode": "none"
+            },
+            "content_identity": {
+              "scheme": "scworkbench.cell_vector_family.content.v1",
+              "sha256": "8cafcd28ae7f9b768a61c4e7170d73d58b63e155256e2657533b48bc6aec1520"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "14919bc75c4bfa2c193a00733fa4efaf13f38971a5a57a2c5965d6e9263a485f"
+            },
+            "semantic_metadata_identity": {
+              "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+              "sha256": "7949c723e262a832967b501fc2970f64db5cf614bcee7ef138ce67ffa367bde9"
+            },
+            "semantic_validation": {
+              "constraints_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                "sha256": "faf45c8186476610fd9bf2306ee5a097ba16815fe37cb4458e073e373eab36dc"
+              },
+              "status": "passed"
+            },
+            "cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "4fa2ac4ca91b0e997c458eff9ca39fddb58e8058ad12dcbdd702846f2113c8ad"
+            },
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v2",
+              "scope": "descriptor excluding observed_descriptor_identity",
+              "sha256": "68a6bd69792e4e5a11db6f65c5fabfcb9c2098f066ba503f6cb4cabbeb27514a"
+            }
+          }
+        },
+        {
+          "name": "deviation_z",
+          "allocated_id": "artifact_deviation_z",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "cell_vector_family",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "2f75235ce6f9541ebf0275b9327d6f21b29d07f75de66fcaacc55b611a3543dc"
+            },
+            "dimensions": [
+              100,
+              50
+            ],
+            "alignment": "cell_ordered",
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "91d1aa57bbfcad5b92e5a420eed5af89f303e40572afbf01b1d8f5fa0a6e3fbe"
+            },
+            "model_linkage": {
+              "mode": "none"
+            },
+            "content_identity": {
+              "scheme": "scworkbench.cell_vector_family.content.v1",
+              "sha256": "0d4bd4c9df0fdd39b671c8ad62069f4ce10906f70150d55c65aefb689d7830d9"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "c0e568c93fb7ba5c0b17386ff7d5242e1a3005566526b43f218a3b2c0f4062fb"
+            },
+            "semantic_metadata_identity": {
+              "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+              "sha256": "0168175b180001678e7ffd8d56a94e5d89400b38341c951dee30dd4ed8d5ccbd"
+            },
+            "semantic_validation": {
+              "constraints_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                "sha256": "faf45c8186476610fd9bf2306ee5a097ba16815fe37cb4458e073e373eab36dc"
+              },
+              "status": "passed"
+            },
+            "cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "4fa2ac4ca91b0e997c458eff9ca39fddb58e8058ad12dcbdd702846f2113c8ad"
+            },
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v2",
+              "scope": "descriptor excluding observed_descriptor_identity",
+              "sha256": "b3eb14943e2ba1059fa7db95c44c59bef2df712d46678f8f6081ee7cb06277d4"
+            }
+          }
+        },
+        {
+          "name": "motif_summary",
+          "allocated_id": "artifact_motif_summary",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "obs_table",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "8b37e9696a0ba451d51cb6e7464482d2b7c33ef32617192932279a94a0529e45"
+            },
+            "dimensions": [
+              50,
+              8
+            ],
+            "alignment": "none",
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "c5a47d7a84af179ca386eefacc40e8843f9549bdfda42314c5a771da35e87669"
+            },
+            "model_linkage": {
+              "mode": "none"
+            },
+            "content_identity": {
+              "scheme": "scworkbench.obs_table.content.v1",
+              "sha256": "531dbaf631d9e1272e587fa8034105d81ba25a552987b6b0b8ed08b74a5b313c"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "10b36a1d185094e93cd70afc51ac578a25463b59f75adc88145dc76556ecb5e7"
+            },
+            "semantic_metadata_identity": {
+              "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+              "sha256": "0468fca0e4153caaf20c146593524cb94a85887fc0847c9376e7cc302bab659d"
+            },
+            "semantic_validation": {
+              "constraints_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                "sha256": "75627cd7f54cb0becafc9eddcace5d40214b589cef9619936305ea99b1acc69f"
+              },
+              "status": "passed"
+            },
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v2",
+              "scope": "descriptor excluding observed_descriptor_identity",
+              "sha256": "3eea2cad24d5cc59ff1a5fe39c8aa4f96106c4a5b3ada46ca712bd023565675b"
+            }
+          }
+        }
+      ],
+      "registry_requests": [],
+      "mutation_manifest": {
+        "entries_identity": {
+          "scheme": "scworkbench.operation_pack.mutation_entries.v2",
+          "sha256": "f6fd3dd4765b53f65934a1ae704305b9a8a8e66e48bdf9931b59daa4c7b908d4"
+        },
+        "entry_count": 3,
+        "unexpected_entries": 0,
+        "mutation_identity": {
+          "scheme": "scworkbench.operation_pack.mutation_manifest.v2",
+          "scope": "mutation manifest excluding mutation_identity",
+          "sha256": "f2ee789034520bfa25c264965148e0ebaa4727f162d2f71c6c10cbc09e9311a8"
+        }
+      },
+      "runtime_attestation": {
+        "schema": "scworkbench.operation_pack.runtime.v2",
+        "backend": "R",
+        "pack_identity": {
+          "scheme": "scworkbench.operation_pack.pack.v2",
+          "sha256": "6f1c2151e225d19c185088d191a79b3b163f61cbaeb8ef659881e00def73f0a4"
+        },
+        "manifest_source_identity": {
+          "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+          "sha256": "34900f0fd1e449dc2b95fd058b18543b73b0f640ad3ddc2a9ebf0095515c5cc6"
+        },
+        "distribution_identity": {
+          "scheme": "scworkbench.operation_pack.content.v1",
+          "sha256": "7d6731f577147b6cfb9e51ed802d00178eddc1fe1f0fa9818fe240a3b631fa1a"
+        },
+        "operation_definition_identity": {
+          "scheme": "scworkbench.operation_pack.definition.v2",
+          "sha256": "7c7777109d9636916e9fbb059bead1d63084caff2c502d5572484885b3103dca"
+        },
+        "entry_point": {
+          "value": "scwbatac::.run_chromvar",
+          "identity": {
+            "scheme": "scworkbench.operation_pack.entry_point.v2",
+            "sha256": "ee2f3349697564ce1f0914adb8f9e0697000584843f4a40125b6780295e709da"
+          }
+        },
+        "declared_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "63a8c72cc281b486b0e03f4d255ebf610f24fe332147463866b360db03a36910"
+        },
+        "selected_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "fabd6e31033e5a26c89f9c9b37b3c33a90d04732b0bb100755dc13914bcb4657"
+        },
+        "dynamic_resolutions": [
+          {
+            "requirement_id": "genome_provider",
+            "selector_identity": {
+              "scheme": "scworkbench.operation_pack.dynamic_dependency_selector.v2",
+              "sha256": "15c819b3822a53241320d1555695c5770d04db28ec3ac52920cdb2b73efc64a5"
+            },
+            "input_name": "matrix",
+            "input_identity": {
+              "scheme": "scworkbench.matrix.content.v1",
+              "sha256": "26ff02ad9c6d0532e618d5f67a8e3bf65c0de2ff5c1207d0a39a8ea643252c28"
+            },
+            "metadata_field": "genome_provider",
+            "ecosystem": "R",
+            "provider_name": "BSgenome.Hsapiens.UCSC.hg19",
+            "package_name_scheme": "r_package_name_v1",
+            "probe": "r_namespace_exports_v1",
+            "disposition": "required",
+            "resolved_package": {
+              "name": "BSgenome.Hsapiens.UCSC.hg19",
+              "version": "1.4.3",
+              "artifact_identity": {
+                "scheme": "scworkbench.r_package.artifact.v1",
+                "sha256": "a1b5e901736995ee59a8408247929a2df109b892d5e7822028ee5c518e06d737"
+              },
+              "probe_evidence_identity": {
+                "scheme": "scworkbench.r_namespace_exports.v1",
+                "sha256": "fe273943ef3f7c942cb4fbca5fc15971ffe011a4a5efa04fd44b4bbfaf559285"
+              }
+            },
+            "status": "available",
+            "resolution_identity": {
+              "scheme": "scworkbench.operation_pack.dynamic_dependency_resolution.v2",
+              "scope": "resolution excluding resolution_identity",
+              "sha256": "8f98ac1a30f79bea6e9848ef6c6515a5aab8aa8c233e57478cbad3584f3d82cd"
+            }
+          }
+        ],
+        "preflight_report_identity": {
+          "scheme": "scworkbench.operation_pack.preflight.v2",
+          "sha256": "78f6064159f69fc5f5ddab28c255379f1268b439e05cb4fee95cf79e9db8252d"
+        },
+        "path_policy": "no_absolute_paths",
+        "runtime_identity": {
+          "scheme": "scworkbench.operation_pack.runtime.v2",
+          "scope": "runtime attestation excluding runtime_identity",
+          "sha256": "95372488605e367e35eace4cf6cd39dbe0859d28415ec3ca68455cd19c1e51f6"
+        }
+      },
+      "receipt_identity": {
+        "scheme": "scworkbench.operation_pack.transition_receipt.v2",
+        "scope": "receipt excluding receipt_identity",
+        "sha256": "c9bf84f11ab81e26c5a791c5509ae7e7431b1eeff7e91673ef69b66b43eb62a8"
+      }
+    }
+  ],
+  "x-negative-fixtures": [
+    {
+      "id": "REC-SPACE-CROSS-PRODUCT",
+      "base_example": 0,
+      "action": "exhaustive_other_values",
+      "pointer": "/outputs/0/descriptor",
+      "fields": [
+        "category",
+        "kind",
+        "storage_profile",
+        "writer"
+      ]
+    },
+    {
+      "id": "REC-MODEL-CROSS-PRODUCT",
+      "base_example": 0,
+      "action": "exhaustive_other_values",
+      "pointer": "/outputs/1/descriptor",
+      "fields": [
+        "category",
+        "kind",
+        "storage_profile",
+        "writer"
+      ]
+    },
+    {
+      "id": "REC-SUMMARY-CROSS-PRODUCT",
+      "base_example": 0,
+      "action": "exhaustive_other_values",
+      "pointer": "/outputs/2/descriptor",
+      "fields": [
+        "category",
+        "kind",
+        "storage_profile",
+        "writer"
+      ]
+    },
+    {
+      "id": "REC-SPACE-NO-CELL",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/outputs/0/descriptor/cell_order_identity"
+    },
+    {
+      "id": "REC-MODEL-NO-LINKAGE",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/outputs/1/descriptor/model_linkage_identity"
+    },
+    {
+      "id": "REC-MODEL-NO-CONTAINMENT",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/outputs/1/descriptor/contained_payload"
+    },
+    {
+      "id": "REC-DYNAMIC-NO-RESOLUTION",
+      "base_example": 2,
+      "action": "remove",
+      "pointer": "/runtime_attestation/dynamic_resolutions/0/resolution_identity"
+    },
+    {
+      "id": "REC-ERROR-WITH-OUTPUT",
+      "base_example": 1,
+      "action": "add_outputs_from_success"
+    }
+  ]
+}

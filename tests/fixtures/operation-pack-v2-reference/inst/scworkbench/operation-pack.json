@@ -1,0 +1,101 @@
+{
+  "schema_version": "scworkbench.operation_pack.v2",
+  "pack_abi_version": "2",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbv2reference",
+  "package": {"name": "scwbV2Reference", "version": "0.1.0"},
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {"minimum": "0.1.0", "maximum_exclusive": "0.2.0"},
+    "pack_abi": {"minimum": "2", "maximum": "2"}
+  },
+  "entry_point": "scwbV2Reference::register_operation_pack",
+  "operations": [
+    {
+      "name": "all_contracts",
+      "qualified_name": "scwbv2reference::all_contracts",
+      "title": "All R ABI v2 contracts",
+      "description": "Synthetic coverage of every typed reader, writer, category and storage profile.",
+      "runner": ".all_contracts",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"},
+        {"name": "space", "kind": "space", "required": true, "alignment": "cell_ordered"},
+        {"name": "space_2d", "kind": "space_2d", "required": true, "alignment": "cell_ordered"},
+        {"name": "model_ref", "kind": "model_ref", "required": true, "alignment": "model_linked"},
+        {"name": "cell_vector", "kind": "cell_vector", "required": true, "alignment": "cell_ordered"},
+        {"name": "cell_vector_family", "kind": "cell_vector_family", "required": true, "alignment": "cell_ordered"},
+        {"name": "relation_family", "kind": "relation_family", "required": true, "alignment": "cell_ordered"},
+        {"name": "feature_table", "kind": "feature_table", "required": true, "alignment": "feature_ordered"},
+        {"name": "obs_table", "kind": "obs_table", "required": true, "alignment": "none"},
+        {"name": "path_2d_family", "kind": "path_2d_family", "required": true, "alignment": "canonical_row_ordered"},
+        {"name": "space_path_family", "kind": "space_path_family", "required": true, "alignment": "associated_space"}
+      ],
+      "params_schema": {"type": "object", "properties": {}, "additionalProperties": false},
+      "outputs": [
+        {"name": "matrix_ordinary", "category": "materialization", "kind": "matrix", "storage_profile": "matrix_ordinary_v1", "allocated_id_key": "matrix_ordinary_id", "required": true, "promotion_group": "g_matrix_ordinary", "materialized_by_terminals": ["cell_vector"]},
+        {"name": "matrix_backed", "category": "materialization", "kind": "matrix", "storage_profile": "matrix_backed_chunked_v1", "allocated_id_key": "matrix_backed_id", "required": true, "promotion_group": "g_matrix_backed", "materialized_by_terminals": ["cell_vector_family"]},
+        {"name": "space_dense", "category": "materialization", "kind": "space", "storage_profile": "space_dense_v1", "allocated_id_key": "space_dense_id", "required": true, "promotion_group": "g_space_dense", "materialized_by_terminals": ["relation_family"]},
+        {"name": "space_file", "category": "materialization", "kind": "space", "storage_profile": "space_file_backed_hdf5_v1", "allocated_id_key": "space_file_id", "required": true, "promotion_group": "g_space_file", "materialized_by_terminals": ["feature_table"]},
+        {"name": "space_materialized_2d", "category": "materialization", "kind": "space_2d", "storage_profile": "space_2d_dense_v1", "allocated_id_key": "space_materialized_2d_id", "required": true, "promotion_group": "g_space_2d", "materialized_by_terminals": ["space_terminal_2d"]},
+        {"name": "space_terminal_2d", "category": "terminal_artifact", "kind": "space_2d", "storage_profile": "space_2d_dense_v1", "allocated_id_key": "space_terminal_2d_id", "required": true, "promotion_group": "g_space_2d"},
+        {"name": "model", "category": "terminal_artifact", "kind": "model_ref", "storage_profile": "model_ref_contained_tree_v1", "allocated_id_key": "model_id", "required": true, "promotion_group": "g_model"},
+        {"name": "cell_vector", "category": "terminal_artifact", "kind": "cell_vector", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "cell_vector_id", "required": true, "promotion_group": "g_matrix_ordinary", "value_kind": "categorical"},
+        {"name": "cell_vector_family", "category": "terminal_artifact", "kind": "cell_vector_family", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "cell_vector_family_id", "required": true, "promotion_group": "g_matrix_backed", "value_kind": "continuous"},
+        {"name": "relation_family", "category": "terminal_artifact", "kind": "relation_family", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "relation_family_id", "required": true, "promotion_group": "g_space_dense"},
+        {"name": "feature_table", "category": "terminal_artifact", "kind": "feature_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "feature_table_id", "required": true, "promotion_group": "g_space_file", "table_type": "v2_fixture"},
+        {"name": "obs_table", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "obs_table_id", "required": true, "promotion_group": "g_registry", "table_type": "v2_fixture"},
+        {"name": "path_2d", "category": "terminal_artifact", "kind": "path_2d_family", "storage_profile": "path_2d_family_v1", "allocated_id_key": "path_2d_id", "required": true, "promotion_group": "g_path_2d"},
+        {"name": "space_path", "category": "terminal_artifact", "kind": "space_path_family", "storage_profile": "space_path_family_v1", "allocated_id_key": "space_path_id", "required": true, "promotion_group": "g_space_path"},
+        {"name": "cell_set", "category": "core_registry_request", "kind": "cell_set_admission", "storage_profile": "cell_set_admission_v1", "allocated_id_key": "cell_set_id", "required": true, "promotion_group": "g_registry"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "cell_vector": ["cell_vector", "matrix_ordinary"],
+        "cell_vector_family": ["cell_vector_family", "matrix_backed"],
+        "relation_family": ["relation_family", "space_dense"],
+        "feature_table": ["feature_table", "space_file"],
+        "space_terminal_2d": ["space_materialized_2d", "space_terminal_2d"],
+        "model": ["model"],
+        "obs_table": ["cell_set", "obs_table"],
+        "path_2d": ["path_2d"],
+        "space_path": ["space_path"]
+      },
+      "replay_equivalence": {
+        "matrix_ordinary": "exact_canonical_value",
+        "matrix_backed": "exact_canonical_value",
+        "space_dense": "exact_canonical_value",
+        "space_file": "exact_canonical_value",
+        "space_materialized_2d": "cell_aligned_embedding",
+        "space_terminal_2d": "cell_aligned_embedding",
+        "model": "loadable_reference",
+        "cell_vector": "exact_canonical_value",
+        "cell_vector_family": "exact_canonical_value",
+        "relation_family": "exact_canonical_value",
+        "feature_table": "exact_canonical_value",
+        "obs_table": "exact_canonical_value",
+        "path_2d": "exact_canonical_value",
+        "space_path": "exact_canonical_value",
+        "cell_set": "exact_membership_and_order"
+      }
+    },
+    {
+      "name": "dynamic_provider",
+      "qualified_name": "scwbv2reference::dynamic_provider",
+      "title": "Dynamic provider",
+      "description": "Synthetic dynamic input-metadata dependency fixture.",
+      "runner": ".dynamic_provider",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {}, "additionalProperties": false},
+      "outputs": [
+        {"name": "provider", "category": "terminal_artifact", "kind": "cell_vector", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "provider_id", "required": true, "promotion_group": "provider", "value_kind": "categorical"}
+      ],
+      "dependencies": [
+        {"requirement_id": "genome_provider", "kind": "dynamic_input_metadata_package", "input_name": "matrix", "metadata_field": "genome_provider", "ecosystem": "R", "package_name_scheme": "r_package_name_v1", "probe": "r_namespace_exports_v1", "disposition": "required", "version_policy": "record_resolved_installed_version_v1"}
+      ],
+      "promotion_closure": {"provider": ["provider"]},
+      "replay_equivalence": {"provider": "exact_canonical_value"}
+    }
+  ]
+}

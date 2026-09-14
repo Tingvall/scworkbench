@@ -77,8 +77,10 @@ wb_open_bundle <- function(bundle_dir, validate = FALSE, read_only = FALSE) {
   if (!isTRUE(read_only)) {
     wb_migrate_bundle(bundle)
     .wb_capsule_recover_residue(bundle)
+    .wb_operation_pack_v2_recover(bundle)
   } else {
     .wb_capsule_assert_no_residue(bundle, "recipient read-only open")
+    .wb_operation_pack_v2_assert_recipient(bundle)
   }
   if (isTRUE(validate)) {
     wb_validate_bundle(bundle_dir, read_only = read_only)

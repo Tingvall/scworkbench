@@ -21,6 +21,40 @@ The authoritative byte contract is
 `inst/protocol/operation-pack-canonical-json-v1.md`; its scheme identifier is
 `scworkbench.operation_pack.canonical_json.v1`.
 
+## ABI v2 R reference contract
+
+ABI v2 is a separate, fail-closed activation path. Its live manifest, request,
+and receipt schemas are installed under `inst/protocol/` and their relationship
+to v1, `pybench-op-v2`, future `pybench-op-v3`, and durable scientific state is
+recorded in `inst/protocol/operation-pack-v2.md`. V2 does not reinterpret a v1
+manifest or change any existing v1 identity.
+
+An R v2 package uses the same explicit installation and activation APIs, but
+its entry-point runners have the closed signature:
+
+```r
+function(readers, writers, params, context)
+```
+
+`readers` and `writers` are named, opaque, single-use core capabilities. They
+expose typed copies of declared inputs and sanctioned writers for declared
+outputs only. They never expose a bundle root, SQLite connection, registry,
+provenance writer, or final publication path. Core resolves dependencies
+offline, allocates output IDs, validates the request and receipt, audits the
+complete private tree and every scientific binding, and publishes the entire
+promotion group or none. Failed activation restores the exact process-local
+catalog preimage; failed execution leaves no transition payload or registry
+claim. Finalized transition outputs remain available through
+`wb_operation_pack_transition_outputs()` and
+`wb_operation_pack_transition_load()` without the pack installed.
+
+The source-tree package `tests/fixtures/operation-pack-v2-reference` is a small
+synthetic conformance pack. It exercises all accepted R readers, writers,
+output categories, storage profiles, cell-set admission, mixed output groups,
+and dynamic input-metadata dependency resolution. It is not installed by
+scworkbench, is never activated ambiently, and makes no scientific-method
+claim.
+
 ## Trust and activation
 
 Installing a package or distribution does not activate it. scworkbench never

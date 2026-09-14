@@ -1463,6 +1463,18 @@ wb_bundle_validation_report <- function(bundle_dir,
         if (inherits(immutable,"error")) add("SQLITE_IMMUTABLE_OPEN_FAILED",check_class="recipient",entity_kind="sqlite",entity_id="main",path=substring(db,nchar(root)+2L),observed=conditionMessage(immutable),message="Finalized recipient SQLite cannot be opened immutable/read-only.")
       }
     }
+    v2_result <- tryCatch({
+      .wb_operation_pack_v2_assert_recipient(structure(
+        list(dir = root, manifest = manifest, con = con, read_only = TRUE),
+        class = "scworkbench_bundle"))
+      TRUE
+    }, error = identity)
+    if (inherits(v2_result, "error")) add(
+      "OPERATION_PACK_V2_RECIPIENT_INVALID", check_class = "recipient",
+      entity_kind = "operation_pack_transition", entity_id = "v2",
+      path = "operation_pack_v2", observed = conditionMessage(v2_result),
+      message = "A finalized ABI v2 transition failed pack-free recipient validation."
+    )
   }) else skip("recipient", "recipient", "finalized transfer invariants require level='recipient'")
 
   if (!is.null(con)) { try(DBI::dbDisconnect(con), silent=TRUE); con <- NULL }

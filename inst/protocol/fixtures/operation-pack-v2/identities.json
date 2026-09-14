@@ -1,0 +1,35 @@
+{
+  "schema": "scworkbench.operation_pack.protocol_identity_fixture.v2",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "files": {
+    "operation-pack-v2.schema.json": "8343f8ea40ce3cc57027b0810c4d05b4df00196edd544361d15dc1fd59fe96aa",
+    "operation-pack-transition-request-v2.schema.json": "81bf35b2827778f149aee3e3ca2e921332f22415a290b5e9c704af37b7e1aed2",
+    "operation-pack-transition-receipt-v2.schema.json": "2cd5e6192daa799bd4562dd1f0d4761eb1a7e8847ff048b3880783a0db0fba1b"
+  },
+  "manifest_examples": [
+    {
+      "index": 1,
+      "manifest_sha256": "921228acccc7d7e5cd851fbe24678c9a9698dad617cd9d865aa332f79f21f36a",
+      "definitions": {
+        "scwbatac::chromvar": "5072fbdffb10673ee89e38c433ebb04d956d5930b56d11ddafc086cffdb6647e"
+      }
+    },
+    {
+      "index": 2,
+      "manifest_sha256": "348c724e1494ba31470145dd115879bc9ae13b1c2a82e7189d8e92099f816d83",
+      "definitions": {
+        "scwbexample::normalize": "22e2d011c8ae32a25f0f68a9d5cc0eac9872ff2b78bb40cee68845772bca8bdf",
+        "scwbexample::cluster": "d6953d8277da79b5c63d65d8406cc747e6a3c4bfbb793aa6d49169a2d14dbc9e"
+      }
+    }
+  ],
+  "request_examples": [
+    "82fbd44723826be1749d837ff29a7c6f9e15b3d4d878357c9c5e960460865934",
+    "2b1f597614f59e082af94e4472bc6da2fd432e4da056c6b68a2f7fe7ad90f761"
+  ],
+  "receipt_examples": [
+    "2c4a2ecfd258de228b3ab63fc0bb6ae865906aaf7224426e08f96be45d91767c",
+    "dacd86e9474b05c482a780bbeb2cb4ed48694ea11c73c6be6f9252183b45a82e",
+    "c9bf84f11ab81e26c5a791c5509ae7e7431b1eeff7e91673ef69b66b43eb62a8"
+  ]
+}

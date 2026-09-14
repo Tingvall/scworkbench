@@ -915,7 +915,14 @@
 #'   manifest, operation definitions, and pack identity.
 #' @export
 wb_operation_pack_manifest_validate <- function(manifest, runtime_identity = NULL) {
-  validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_manifest_input(manifest))
+  input <- .wb_operation_pack_manifest_input_any(manifest)
+  if (identical(as.character(input$schema_version %||% "")[1], "scworkbench.operation_pack.v2")) {
+    .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
+      "ABI v2 structural validation derives authentication at activation; caller runtime claims are not accepted.",
+      class = "wb_operation_pack_v2_error")
+    return(.wb_operation_pack_v2_manifest_conformance(input))
+  }
+  validated <- .wb_operation_pack_validate_manifest(input)
   observed_runtime <- NULL
   if (!is.null(runtime_identity)) {
     .wb_operation_pack_assert(identical(validated$backend, "Python"),
@@ -977,7 +984,29 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
       !is.na(manifest) && file.exists(manifest)) {
     normalizePath(manifest, winslash = "/", mustWork = TRUE)
   } else NULL
-  validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_manifest_input(manifest))
+  input <- .wb_operation_pack_manifest_input_any(manifest)
+  if (identical(as.character(input$schema_version %||% "")[1], "scworkbench.operation_pack.v2")) {
+    .wb_operation_pack_assert(is.null(runtime_identity) && is.null(python),
+      "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
+      "ABI v2 R activation does not accept caller runtime identity or a Python interpreter.",
+      class = "wb_operation_pack_v2_error")
+    .wb_operation_pack_assert(!is.null(supplied_manifest_path), "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
+      "ABI v2 activation requires original installed manifest bytes.",
+      class = "wb_operation_pack_identity_error")
+    validated_v2 <- .wb_operation_pack_v2_normalize(input)
+    .wb_operation_pack_assert(identical(as.character(validated_v2$backend)[1], "R"),
+      "OPERATION_PACK_RUNTIME_UNAVAILABLE", "Phase 2A activates only ABI v2 R packs.",
+      class = "wb_operation_pack_runtime_unavailable")
+    package <- as.character(validated_v2$package$name)[1]
+    installed_manifest <- .wb_operation_pack_v2_manifest_path(package, lib.loc)
+    .wb_operation_pack_assert(identical(normalizePath(supplied_manifest_path, winslash = "/", mustWork = TRUE),
+      installed_manifest), "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
+      "ABI v2 activation must authenticate the original installed manifest path.",
+      class = "wb_operation_pack_identity_error")
+    registration <- .wb_operation_pack_v2_invoke(package, lib.loc)
+    return(.wb_operation_pack_publish(registration))
+  }
+  validated <- .wb_operation_pack_validate_manifest(input)
   if (identical(validated$backend, "Python")) {
     .wb_operation_pack_assert(is.null(runtime_identity), "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
       paste0("Python activation discovers runtime identity from the explicitly configured ",
@@ -1049,11 +1078,19 @@ wb_operation_pack_register <- function(manifest, operations) {
   path <- normalizePath(.wb_operation_pack_scalar(manifest, "manifest"), winslash = "/", mustWork = TRUE)
   .wb_operation_pack_assert(identical(path, context$manifest_path), "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
                             "Entry point attempted to register a manifest other than the installed manifest.")
-  validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_read_manifest(path),
-    package = context$package, package_description = context$package_description,
-    expected_backend = "R")
-  registration <- .wb_operation_pack_registration(validated, operations,
-    package_description = context$package_description, installed_path = context$installed_path)
+  if (identical(as.character(context$abi %||% "1")[1], "2")) {
+    validated <- .wb_operation_pack_v2_normalize(.wb_operation_pack_v2_read_manifest(path),
+      package = context$package, package_description = context$package_description)
+    registration <- .wb_operation_pack_v2_registration(validated, operations,
+      package_description = context$package_description, installed_path = context$installed_path,
+      manifest_path = path)
+  } else {
+    validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_read_manifest(path),
+      package = context$package, package_description = context$package_description,
+      expected_backend = "R")
+    registration <- .wb_operation_pack_registration(validated, operations,
+      package_description = context$package_description, installed_path = context$installed_path)
+  }
   .wb_operation_pack_assert(is.null(context$result), "OPERATION_PACK_ENTRY_POINT_INVALID",
                             "Operation-pack entry point called wb_operation_pack_register() more than once.")
   context$result <- registration
@@ -1063,6 +1100,10 @@ wb_operation_pack_register <- function(manifest, operations) {
 .wb_operation_pack_invoke <- function(package, lib.loc = NULL) {
   package <- .wb_operation_pack_scalar(package, "package", "^[A-Za-z][A-Za-z0-9.]*$")
   manifest_path <- .wb_operation_pack_manifest_path(package, lib.loc = lib.loc)
+  probe <- jsonlite::read_json(manifest_path, simplifyVector = FALSE)
+  if (identical(as.character(probe$schema_version %||% "")[1], "scworkbench.operation_pack.v2")) {
+    return(.wb_operation_pack_v2_invoke(package, lib.loc = lib.loc))
+  }
   description <- utils::packageDescription(package, lib.loc = lib.loc)
   manifest <- .wb_operation_pack_validate_manifest(.wb_operation_pack_read_manifest(manifest_path),
     package = package, package_description = description, expected_backend = "R")
@@ -1116,6 +1157,19 @@ wb_operation_pack_register <- function(manifest, operations) {
 #' @export
 wb_operation_pack_validate <- function(package, lib.loc = NULL) {
   registration <- .wb_operation_pack_invoke(package, lib.loc = lib.loc)
+  if (inherits(registration, "wb_operation_pack_registration_v2")) {
+    return(structure(list(
+      schema_version = "scworkbench.operation_pack.conformance.v2", ok = TRUE,
+      activated = FALSE, identity = registration$identity,
+      operations = lapply(registration$manifest$operations, function(x) list(
+        op_name = x$qualified_name,
+        definition_sha256 = registration$identity$operation_definition_sha256[[x$qualified_name]],
+        consumes = x$inputs, produces = x$outputs,
+        promotable = names(x$promotion_closure))),
+      claims = list(engine_compatible = TRUE, scientifically_validated = FALSE,
+        host_sandboxed = FALSE, bundle_mutated = FALSE)
+    ), class = c("wb_operation_pack_conformance_v2", "wb_operation_pack_conformance", "list")))
+  }
   structure(list(
     schema_version = "scworkbench.operation_pack.conformance.v1",
     ok = TRUE,
@@ -1175,11 +1229,15 @@ wb_operation_pack_validate <- function(package, lib.loc = NULL) {
     "OPERATION_PACK_OPERATION_DUPLICATE", "Operation pack duplicates an already loaded operation.")
 
   operations <- list()
-  definitions <- stats::setNames(registration$manifest$operations, op_names)
+  definitions <- if (inherits(registration, "wb_operation_pack_registration_v2")) {
+    registration$definitions
+  } else stats::setNames(registration$manifest$operations, op_names)
   for (op_name in sort(op_names, method = "radix")) {
     definition <- definitions[[op_name]]
     raw_runner <- registration$runners[[op_name]]
-    definition$runner <- .wb_operation_pack_runner(op_name, raw_runner)
+    definition$runner <- if (inherits(registration, "wb_operation_pack_registration_v2")) {
+      .wb_operation_pack_runner(op_name, .wb_operation_pack_v2_runner(op_name))
+    } else .wb_operation_pack_runner(op_name, raw_runner)
     definition$source_pack <- identity
     operations[[op_name]] <- list(namespace = namespace, definition = definition,
                                   execution_depth = 0L, used = FALSE)
@@ -1187,9 +1245,35 @@ wb_operation_pack_validate <- function(package, lib.loc = NULL) {
   pack <- list(identity = identity, manifest = registration$manifest,
                runtime_attestation = registration$runtime_attestation,
                runtime_config = registration$runtime_config %||% NULL,
+               protocol_version = registration$protocol_version %||% "1",
+               registration = if (inherits(registration, "wb_operation_pack_registration_v2")) registration else NULL,
                operation_names = sort(op_names, method = "radix"), used = FALSE)
-  .wb_operation_pack_registry$packs[[namespace]] <- pack
-  for (op_name in names(operations)) .wb_operation_pack_registry$operations[[op_name]] <- operations[[op_name]]
+  preimage_packs <- .wb_operation_pack_registry$packs
+  preimage_operations <- .wb_operation_pack_registry$operations
+  published <- FALSE
+  on.exit(if (!published) {
+    .wb_operation_pack_registry$packs <- preimage_packs
+    .wb_operation_pack_registry$operations <- preimage_operations
+  }, add = TRUE)
+  tryCatch({
+    .wb_operation_pack_v2_fault("catalog_before_pack", namespace = namespace)
+    .wb_operation_pack_registry$packs[[namespace]] <- pack
+    .wb_operation_pack_v2_fault("catalog_pack_installed", namespace = namespace)
+    for (op_name in names(operations)) {
+      .wb_operation_pack_registry$operations[[op_name]] <- operations[[op_name]]
+      .wb_operation_pack_v2_fault("catalog_operation_installed", namespace = namespace,
+        operation = op_name)
+    }
+    .wb_operation_pack_v2_fault("catalog_before_commit", namespace = namespace)
+  }, error = function(error) {
+    .wb_operation_pack_registry$packs <- preimage_packs
+    .wb_operation_pack_registry$operations <- preimage_operations
+    if (inherits(error, "wb_operation_pack_error")) stop(error)
+    .wb_operation_pack_v2_error("OPERATION_PACK_CATALOG_PUBLICATION_FAILED",
+      paste0("Atomic operation-pack catalog publication failed: ", conditionMessage(error)),
+      "catalog_publication")
+  })
+  published <- TRUE
   invisible(wb_operation_pack_inspect(namespace))
 }
 
@@ -1246,7 +1330,8 @@ wb_operation_pack_inspect <- function(pack) {
   }
   x <- packs[[key]]
   definitions <- stats::setNames(x$manifest$operations, vapply(x$manifest$operations, function(z) z$name, character(1)))
-  structure(list(schema_version = "scworkbench.operation_pack.inspection.v1",
+  abi <- as.character(x$identity$pack_abi_version %||% "1")[1]
+  structure(list(schema_version = paste0("scworkbench.operation_pack.inspection.v", abi),
     identity = x$identity, manifest = x$manifest, operations = definitions,
     runtime_attestation = x$runtime_attestation, used = isTRUE(x$used)),
     class = c("wb_operation_pack", "list"))

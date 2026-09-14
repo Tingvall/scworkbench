@@ -1,0 +1,10 @@
+Package: scwbV2Reference
+Type: Package
+Title: Test-Only Operation Pack ABI V2 Reference Fixture
+Version: 0.1.0
+Authors@R: person("Test", "Fixture", role = c("aut", "cre"), email = "fixture@example.invalid")
+Description: Synthetic deterministic fixture used only by scworkbench ABI v2
+    conformance tests. It contains no scientific method.
+License: MIT
+Encoding: UTF-8
+

@@ -1,0 +1,3932 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scworkbench.org/protocol/operation-pack-transition-request-v2.schema.json",
+  "title": "scworkbench operation-pack ABI v2 transition request",
+  "description": "Live closed transition-request contract for scworkbench operation-pack ABI v2.",
+  "x-document-status": "PROPOSED_NON_RUNTIME",
+  "x-quill-specification-commit": "eb5334a7bec73490ccfbf106f83ba91b1ab39fb8",
+  "x-quill-handoff-commit": "8f73acebe833606e5d733988cb3d253720fcd333",
+  "x-sable-audit-commit": "f05ce0923d2b9bfbd7cfd8447208a674fb21319a",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "message_type",
+    "process_protocol_version",
+    "pack_abi_version",
+    "canonical_json_scheme",
+    "transition",
+    "operation_authentication",
+    "engine_contract",
+    "dependency_resolution",
+    "inputs",
+    "params",
+    "outputs",
+    "execution_capability",
+    "request_identity"
+  ],
+  "properties": {
+    "schema": {
+      "const": "scworkbench.operation_pack.transition_request.v2"
+    },
+    "message_type": {
+      "const": "request"
+    },
+    "process_protocol_version": {
+      "const": "pybench-op-v3"
+    },
+    "pack_abi_version": {
+      "const": "2"
+    },
+    "canonical_json_scheme": {
+      "const": "scworkbench.operation_pack.canonical_json.v1"
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transition_id",
+        "session_id",
+        "run_id",
+        "checkpoint_generation",
+        "source_state_identity",
+        "transition_identity"
+      ],
+      "properties": {
+        "transition_id": {
+          "$ref": "#/$defs/id"
+        },
+        "session_id": {
+          "$ref": "#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "checkpoint_generation": {
+          "$ref": "#/$defs/id"
+        },
+        "source_state_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "transition_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.transition.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "transition excluding transition_identity"
+            }
+          }
+        }
+      }
+    },
+    "operation_authentication": {
+      "$ref": "#/$defs/operation_authentication"
+    },
+    "engine_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation",
+        "implementation_version",
+        "scientific_state_scheme",
+        "scientific_state_schema_identity",
+        "reader_api",
+        "writer_api"
+      ],
+      "properties": {
+        "implementation": {
+          "const": "scworkbench"
+        },
+        "implementation_version": {
+          "type": "string"
+        },
+        "scientific_state_scheme": {
+          "type": "string"
+        },
+        "scientific_state_schema_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "reader_api": {
+          "const": "scworkbench.operation_pack.typed_readers.v2"
+        },
+        "writer_api": {
+          "const": "scworkbench.operation_pack.staged_writers.v2"
+        }
+      }
+    },
+    "dependency_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "declared_requirement_set_identity",
+        "selected_requirement_set_identity",
+        "dynamic_resolutions",
+        "preflight_report_identity",
+        "network_policy"
+      ],
+      "properties": {
+        "declared_requirement_set_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dependencies.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "selected_requirement_set_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dependencies.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "dynamic_resolutions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/dynamic_resolution"
+          }
+        },
+        "preflight_report_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.preflight.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "network_policy": {
+          "const": "deny"
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/input_grant"
+      }
+    },
+    "params": {
+      "type": "object"
+    },
+    "outputs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/output_grant"
+      }
+    },
+    "execution_capability": {
+      "$ref": "#/$defs/capability"
+    },
+    "request_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "const": "scworkbench.operation_pack.transition_request.v2"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "scope": {
+          "const": "request excluding request_identity"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$"
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "self_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scheme",
+        "scope",
+        "sha256"
+      ],
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "dimensions_1": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0
+        }
+      ],
+      "items": false,
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "dimensions_2": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "dimensions_2d": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0
+        },
+        {
+          "const": 2
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "relative_root": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"
+    },
+    "model_linkage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode"
+          ],
+          "properties": {
+            "mode": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "reference_name",
+            "reference_identity"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "input",
+                "sibling_output"
+              ]
+            },
+            "reference_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "reference_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        }
+      ]
+    },
+    "matrix_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_domain",
+        "finite_values",
+        "sparse_allowed"
+      ],
+      "properties": {
+        "value_domain": {
+          "enum": [
+            "counts",
+            "nonnegative_real",
+            "real"
+          ]
+        },
+        "finite_values": {
+          "type": "boolean"
+        },
+        "sparse_allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "space_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finite_values",
+        "minimum_dimensions"
+      ],
+      "properties": {
+        "finite_values": {
+          "const": true
+        },
+        "minimum_dimensions": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "space_2d_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finite_values",
+        "coordinate_dimensions"
+      ],
+      "properties": {
+        "finite_values": {
+          "const": true
+        },
+        "coordinate_dimensions": {
+          "const": 2
+        }
+      }
+    },
+    "model_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "contained",
+        "no_symlinks"
+      ],
+      "properties": {
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contained": {
+          "const": true
+        },
+        "no_symlinks": {
+          "const": true
+        }
+      }
+    },
+    "contained_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contained",
+        "no_symlinks",
+        "manifest_scheme"
+      ],
+      "properties": {
+        "contained": {
+          "const": true
+        },
+        "no_symlinks": {
+          "const": true
+        },
+        "manifest_scheme": {
+          "const": "scworkbench.operation_pack.payload_manifest.v2"
+        }
+      }
+    },
+    "cell_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value_kind",
+        "missing_values"
+      ],
+      "properties": {
+        "value_kind": {
+          "enum": [
+            "categorical",
+            "continuous"
+          ]
+        },
+        "missing_values": {
+          "enum": [
+            "allowed",
+            "forbidden"
+          ]
+        }
+      }
+    },
+    "table_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "table_type",
+        "row_order"
+      ],
+      "properties": {
+        "table_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "row_order": {
+          "enum": [
+            "canonical",
+            "preserve_declared"
+          ]
+        }
+      }
+    },
+    "path2d_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finite_coordinates",
+        "key_fields"
+      ],
+      "properties": {
+        "finite_coordinates": {
+          "const": true
+        },
+        "key_fields": {
+          "const": [
+            "key",
+            "point"
+          ]
+        }
+      }
+    },
+    "spacepath_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "finite_coordinates",
+        "key_fields"
+      ],
+      "properties": {
+        "finite_coordinates": {
+          "const": true
+        },
+        "key_fields": {
+          "const": [
+            "space_id",
+            "path_id",
+            "point",
+            "dim"
+          ]
+        }
+      }
+    },
+    "cellset_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "members_unique",
+        "members_in_universe",
+        "order"
+      ],
+      "properties": {
+        "members_unique": {
+          "const": true
+        },
+        "members_in_universe": {
+          "const": true
+        },
+        "order": {
+          "const": "core_cell_order"
+        }
+      }
+    },
+    "input_descriptor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "cell_order_identity",
+            "feature_order_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "matrix"
+            },
+            "storage_profile": {
+              "enum": [
+                "matrix_ordinary_v1",
+                "matrix_backed_chunked_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_matrix"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "cell_and_feature_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "feature_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "space"
+            },
+            "storage_profile": {
+              "enum": [
+                "space_dense_v1",
+                "space_file_backed_hdf5_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_space"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "cell_order_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "space_2d"
+            },
+            "storage_profile": {
+              "enum": [
+                "space_2d_dense_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_space_2d"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2d"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "model_linkage_identity",
+            "contained_payload_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "model_ref"
+            },
+            "storage_profile": {
+              "enum": [
+                "model_ref_contained_tree_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_model_ref"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_1"
+            },
+            "alignment": {
+              "const": "model_linked"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "model_linkage_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "contained_payload_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "cell_order_identity",
+            "semantic_metadata_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "cell_vector"
+            },
+            "storage_profile": {
+              "enum": [
+                "terminal_primitive_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_terminal_primitive"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_1"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "semantic_metadata_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "cell_order_identity",
+            "semantic_metadata_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "cell_vector_family"
+            },
+            "storage_profile": {
+              "enum": [
+                "terminal_primitive_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_terminal_primitive"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "semantic_metadata_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "cell_order_identity",
+            "semantic_metadata_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "relation_family"
+            },
+            "storage_profile": {
+              "enum": [
+                "terminal_primitive_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_terminal_primitive"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "cell_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "semantic_metadata_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "feature_order_identity",
+            "semantic_metadata_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "feature_table"
+            },
+            "storage_profile": {
+              "enum": [
+                "terminal_primitive_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_terminal_primitive"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "feature_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "feature_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "semantic_metadata_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "semantic_metadata_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "obs_table"
+            },
+            "storage_profile": {
+              "enum": [
+                "terminal_primitive_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_terminal_primitive"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "none"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "semantic_metadata_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "row_order_identity",
+            "semantic_metadata_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "path_2d_family"
+            },
+            "storage_profile": {
+              "enum": [
+                "path_2d_family_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_path_2d_family"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "canonical_row_ordered"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "row_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "semantic_metadata_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "storage_profile",
+            "reader",
+            "dimensions",
+            "alignment",
+            "content_identity",
+            "ancestry_identity",
+            "payload_manifest_identity",
+            "descriptor_identity",
+            "row_order_identity",
+            "linked_space_identity",
+            "semantic_metadata_identity"
+          ],
+          "properties": {
+            "kind": {
+              "const": "space_path_family"
+            },
+            "storage_profile": {
+              "enum": [
+                "space_path_family_v1"
+              ]
+            },
+            "reader": {
+              "const": "read_space_path_family"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "alignment": {
+              "const": "associated_space"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "descriptor_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.input_descriptor.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding descriptor_identity"
+                }
+              }
+            },
+            "row_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "linked_space_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "semantic_metadata_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        }
+      ]
+    },
+    "input_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "reference",
+        "descriptor"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "descriptor": {
+          "$ref": "#/$defs/input_descriptor"
+        }
+      }
+    },
+    "output_descriptor": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity",
+            "expected_feature_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "matrix"
+            },
+            "storage_profile": {
+              "const": "matrix_ordinary_v1"
+            },
+            "writer": {
+              "const": "write_matrix"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "cell_and_feature_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/matrix_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_feature_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity",
+            "expected_feature_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "matrix"
+            },
+            "storage_profile": {
+              "const": "matrix_backed_chunked_v1"
+            },
+            "writer": {
+              "const": "write_matrix"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "cell_and_feature_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/matrix_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_feature_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space"
+            },
+            "storage_profile": {
+              "const": "space_dense_v1"
+            },
+            "writer": {
+              "const": "write_space"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/space_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space"
+            },
+            "storage_profile": {
+              "const": "space_file_backed_hdf5_v1"
+            },
+            "writer": {
+              "const": "write_space"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/space_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "materialization"
+            },
+            "kind": {
+              "const": "space_2d"
+            },
+            "storage_profile": {
+              "const": "space_2d_dense_v1"
+            },
+            "writer": {
+              "const": "write_space_2d"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2d"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/space_2d_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "space_2d"
+            },
+            "storage_profile": {
+              "const": "space_2d_dense_v1"
+            },
+            "writer": {
+              "const": "write_space_2d"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2d"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/space_2d_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "contained_payload_requirements"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "model_ref"
+            },
+            "storage_profile": {
+              "const": "model_ref_contained_tree_v1"
+            },
+            "writer": {
+              "const": "write_model_ref"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_1"
+            },
+            "expected_alignment": {
+              "const": "model_linked"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/model_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "contained_payload_requirements": {
+              "$ref": "#/$defs/contained_requirements"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "cell_vector"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_1"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/cell_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "cell_vector_family"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/cell_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "relation_family"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/cell_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_feature_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "feature_table"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "feature_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/table_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_feature_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "obs_table"
+            },
+            "storage_profile": {
+              "const": "terminal_primitive_v1"
+            },
+            "writer": {
+              "const": "write_terminal_primitive"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "none"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/table_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_row_order_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "path_2d_family"
+            },
+            "storage_profile": {
+              "const": "path_2d_family_v1"
+            },
+            "writer": {
+              "const": "write_path_2d_family"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "canonical_row_ordered"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/path2d_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_row_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "relative_root",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity",
+            "expected_row_order_identity",
+            "expected_linked_space_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "terminal_artifact"
+            },
+            "kind": {
+              "const": "space_path_family"
+            },
+            "storage_profile": {
+              "const": "space_path_family_v1"
+            },
+            "writer": {
+              "const": "write_space_path_family"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_alignment": {
+              "const": "associated_space"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/spacepath_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            },
+            "expected_row_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_linked_space_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_cell_order_identity",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity"
+          ],
+          "properties": {
+            "category": {
+              "const": "core_registry_request"
+            },
+            "kind": {
+              "const": "cell_set_admission"
+            },
+            "storage_profile": {
+              "const": "cell_set_admission_v1"
+            },
+            "writer": {
+              "const": "request_cell_set_admission"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_1"
+            },
+            "expected_alignment": {
+              "const": "cell_ordered"
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_ancestry_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_model_linkage": {
+              "$ref": "#/$defs/model_linkage"
+            },
+            "semantic_constraints": {
+              "$ref": "#/$defs/cellset_constraints"
+            },
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.output_grant.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                },
+                "scope": {
+                  "const": "descriptor excluding grant_identity"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "output_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "allocated_id",
+        "descriptor"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "allocated_id": {
+          "$ref": "#/$defs/id"
+        },
+        "descriptor": {
+          "$ref": "#/$defs/output_descriptor"
+        }
+      }
+    },
+    "operation_authentication": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "pack_identity",
+        "manifest_identity",
+        "manifest_source_identity",
+        "distribution_identity",
+        "operation_definition_identity",
+        "entry_point"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*::[a-z][a-z0-9_]*$"
+        },
+        "pack_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.pack.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "manifest_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.manifest.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "manifest_source_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.manifest_source.bytes.v1"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "distribution_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.content.v1"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "operation_definition_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.definition.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "entry_point": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "value",
+            "identity"
+          ],
+          "properties": {
+            "value": {
+              "type": "string",
+              "minLength": 1
+            },
+            "identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.entry_point.v2"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dynamic_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requirement_id",
+        "selector_identity",
+        "input_name",
+        "input_identity",
+        "metadata_field",
+        "ecosystem",
+        "provider_name",
+        "package_name_scheme",
+        "probe",
+        "disposition",
+        "resolved_package",
+        "status",
+        "resolution_identity"
+      ],
+      "properties": {
+        "requirement_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "selector_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dynamic_dependency_selector.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "input_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "input_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "metadata_field": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]*$"
+        },
+        "ecosystem": {
+          "enum": [
+            "R",
+            "Python"
+          ]
+        },
+        "provider_name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+        },
+        "package_name_scheme": {
+          "enum": [
+            "r_package_name_v1",
+            "python_distribution_name_v1"
+          ]
+        },
+        "probe": {
+          "enum": [
+            "r_namespace_available_v1",
+            "r_namespace_exports_v1",
+            "python_import_spec_v1"
+          ]
+        },
+        "disposition": {
+          "const": "required"
+        },
+        "resolved_package": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "artifact_identity",
+            "probe_evidence_identity"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1
+            },
+            "artifact_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "probe_evidence_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        "status": {
+          "const": "available"
+        },
+        "resolution_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dynamic_dependency_resolution.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "resolution excluding resolution_identity"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "ecosystem": {
+                "const": "R"
+              }
+            },
+            "required": [
+              "ecosystem"
+            ]
+          },
+          "then": {
+            "properties": {
+              "package_name_scheme": {
+                "const": "r_package_name_v1"
+              },
+              "probe": {
+                "enum": [
+                  "r_namespace_available_v1",
+                  "r_namespace_exports_v1"
+                ]
+              },
+              "provider_name": {
+                "pattern": "^[A-Za-z][A-Za-z0-9.]*$"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "package_name_scheme": {
+                "const": "python_distribution_name_v1"
+              },
+              "probe": {
+                "const": "python_import_spec_v1"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability_id",
+        "mode",
+        "transition_identity",
+        "session_id",
+        "run_id",
+        "checkpoint_generation",
+        "source_state_identity",
+        "staging_root_identity",
+        "lease_id",
+        "pack_identity",
+        "distribution_identity",
+        "manifest_source_identity",
+        "operation_definition_identity",
+        "entry_point_identity",
+        "selected_requirement_set_identity",
+        "preflight_report_identity",
+        "reader_grants",
+        "writer_grants",
+        "single_use",
+        "capability_identity"
+      ],
+      "properties": {
+        "capability_id": {
+          "$ref": "#/$defs/id"
+        },
+        "mode": {
+          "const": "private_staging_write"
+        },
+        "transition_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.transition.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "transition excluding transition_identity"
+            }
+          }
+        },
+        "session_id": {
+          "$ref": "#/$defs/id"
+        },
+        "run_id": {
+          "$ref": "#/$defs/id"
+        },
+        "checkpoint_generation": {
+          "$ref": "#/$defs/id"
+        },
+        "source_state_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "staging_root_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "lease_id": {
+          "$ref": "#/$defs/id"
+        },
+        "pack_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.pack.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "distribution_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.content.v1"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "manifest_source_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.manifest_source.bytes.v1"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "operation_definition_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.definition.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "entry_point_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.entry_point.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "selected_requirement_set_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.dependencies.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "preflight_report_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.preflight.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "reader_grants": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "input_name",
+              "reader",
+              "descriptor_identity"
+            ],
+            "properties": {
+              "input_name": {
+                "type": "string"
+              },
+              "reader": {
+                "enum": [
+                  "read_matrix",
+                  "read_space",
+                  "read_space_2d",
+                  "read_model_ref",
+                  "read_terminal_primitive",
+                  "read_path_2d_family",
+                  "read_space_path_family"
+                ]
+              },
+              "descriptor_identity": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scheme",
+                  "scope",
+                  "sha256"
+                ],
+                "properties": {
+                  "scheme": {
+                    "const": "scworkbench.operation_pack.input_descriptor.v2"
+                  },
+                  "sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "scope": {
+                    "const": "descriptor excluding descriptor_identity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "writer_grants": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "output_name",
+              "writer",
+              "grant_identity"
+            ],
+            "properties": {
+              "output_name": {
+                "type": "string"
+              },
+              "writer": {
+                "enum": [
+                  "write_matrix",
+                  "write_space",
+                  "write_space_2d",
+                  "write_model_ref",
+                  "write_terminal_primitive",
+                  "write_path_2d_family",
+                  "write_space_path_family",
+                  "request_cell_set_admission"
+                ]
+              },
+              "grant_identity": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scheme",
+                  "scope",
+                  "sha256"
+                ],
+                "properties": {
+                  "scheme": {
+                    "const": "scworkbench.operation_pack.output_grant.v2"
+                  },
+                  "sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "scope": {
+                    "const": "descriptor excluding grant_identity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "single_use": {
+          "const": true
+        },
+        "capability_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.capability.v2"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "scope": {
+              "const": "capability excluding capability_identity"
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "schema": "scworkbench.operation_pack.transition_request.v2",
+      "message_type": "request",
+      "process_protocol_version": "pybench-op-v3",
+      "pack_abi_version": "2",
+      "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "transition": {
+        "transition_id": "transition_scvi_0001",
+        "session_id": "session_0001",
+        "run_id": "run_scvi_0001",
+        "checkpoint_generation": "generation_0007",
+        "source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "0f5b529111c4520fb902784cd236bba2423c0575d5c16569a9877aeceeec7e83"
+        },
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "scope": "transition excluding transition_identity",
+          "sha256": "7d6e84475b85cf91e7a4dee48fd458e685ae6ce3cf0a767e4bd5b36c07a2cf90"
+        }
+      },
+      "operation_authentication": {
+        "name": "scwblatent::scvi_train",
+        "pack_identity": {
+          "scheme": "scworkbench.operation_pack.pack.v2",
+          "sha256": "b9622936165520a054747b0d408001d19169a5e1440b121bf02c4746e77db9e8"
+        },
+        "manifest_identity": {
+          "scheme": "scworkbench.operation_pack.manifest.v2",
+          "sha256": "9faf77099b4abf8e4fd89b296b84ce30993ca2faf057862479ad7910dd6b1898"
+        },
+        "manifest_source_identity": {
+          "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+          "sha256": "6240e60d363cf90d4b41acd5418528e320c3a4f51ac25e1d77a2de17bfa69d41"
+        },
+        "distribution_identity": {
+          "scheme": "scworkbench.operation_pack.content.v1",
+          "sha256": "7b366a32ffef3b3294e3d2aa6e0f841ce6c1fb8864a369d4bf26e0435605f08f"
+        },
+        "operation_definition_identity": {
+          "scheme": "scworkbench.operation_pack.definition.v2",
+          "sha256": "48681581d2a41a97467fc74e215bfb727d8500ad585d7acd808273519c021f70"
+        },
+        "entry_point": {
+          "value": "scworkbench.operation_packs:scwblatent=scwblatent.pack:register",
+          "identity": {
+            "scheme": "scworkbench.operation_pack.entry_point.v2",
+            "sha256": "ce73daacb9db356a7b870f809a047712ee60b40917d6ebb37f1fd6f6094080bb"
+          }
+        }
+      },
+      "engine_contract": {
+        "implementation": "scworkbench",
+        "implementation_version": "proposal-fixture",
+        "scientific_state_scheme": "scworkbench.scientific_state.v1",
+        "scientific_state_schema_identity": {
+          "scheme": "scworkbench.scientific_state.schema.v1",
+          "sha256": "4e6de0d103702b23d01552739c7acd57cd8e63782d15bd6e07d4465663f8aef8"
+        },
+        "reader_api": "scworkbench.operation_pack.typed_readers.v2",
+        "writer_api": "scworkbench.operation_pack.staged_writers.v2"
+      },
+      "dependency_resolution": {
+        "declared_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "960c3c00308309226a5ac44506d39c43e6f73345143cef832b31c20a87191453"
+        },
+        "selected_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "cf666c56f02e98b49631738ddfabef58c7aee61d012a1491af3e9fd0fa04c68c"
+        },
+        "dynamic_resolutions": [],
+        "preflight_report_identity": {
+          "scheme": "scworkbench.operation_pack.preflight.v2",
+          "sha256": "a8486a776a34e5344400f02d418666c82c3653cb96b90c96c4bac6892b6dffb4"
+        },
+        "network_policy": "deny"
+      },
+      "inputs": [
+        {
+          "name": "matrix",
+          "reference": "matrix:rna.counts",
+          "descriptor": {
+            "kind": "matrix",
+            "storage_profile": "matrix_backed_chunked_v1",
+            "reader": "read_matrix",
+            "dimensions": [
+              20000,
+              100
+            ],
+            "alignment": "cell_and_feature_ordered",
+            "content_identity": {
+              "scheme": "scworkbench.matrix.content.v1",
+              "sha256": "02eb632fa015fcb811d72526018662b911da5e57b42acecf96465868104576d9"
+            },
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "87b66aeb60d80b0763742f65c5079016617e3690de331d587d1e94bac08f2c15"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.payload.manifest.v2",
+              "sha256": "2727d6ff9a4b01adf6de64b7a2070be36e35f2347fb0784392cf7c3e7525c7fd"
+            },
+            "cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "d4a166459610f6b206e2743c8ca3c6a3ef6c694a8875a00d5dc0062ddb14d293"
+            },
+            "feature_order_identity": {
+              "scheme": "scworkbench.feature_order.v1",
+              "sha256": "3aa224b5969387abea2096a663fdd254c3e0f43541305d7d07167a69d23c0dc0"
+            },
+            "descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+              "scope": "descriptor excluding descriptor_identity",
+              "sha256": "4b287bcd40b986eaf56b140b0e9c5d99c95f0082969f6a68ab7f9aae0e2b8af8"
+            }
+          }
+        }
+      ],
+      "params": {
+        "n_latent": 30,
+        "seed": 1,
+        "use_gpu": false
+      },
+      "outputs": [
+        {
+          "name": "space",
+          "allocated_id": "space_rna_scvi",
+          "descriptor": {
+            "category": "materialization",
+            "kind": "space",
+            "storage_profile": "space_file_backed_hdf5_v1",
+            "writer": "write_space",
+            "relative_root": "outputs/space",
+            "expected_dimensions": [
+              100,
+              30
+            ],
+            "expected_alignment": "cell_ordered",
+            "expected_ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "d719960afb88e00844f419a7faa4f672b10a4bad658b710859218a9c67085304"
+            },
+            "expected_model_linkage": {
+              "mode": "sibling_output",
+              "reference_name": "model",
+              "reference_identity": {
+                "scheme": "scworkbench.operation_pack.definition.v2",
+                "sha256": "48681581d2a41a97467fc74e215bfb727d8500ad585d7acd808273519c021f70"
+              }
+            },
+            "semantic_constraints": {
+              "finite_values": true,
+              "minimum_dimensions": 2
+            },
+            "expected_cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "d4a166459610f6b206e2743c8ca3c6a3ef6c694a8875a00d5dc0062ddb14d293"
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "262af4e44f835b3688312ca60eea8c6325a3911b018b81fba770a56f2f4c6162"
+            }
+          }
+        },
+        {
+          "name": "model",
+          "allocated_id": "artifact_scvi_model",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "model_ref",
+            "storage_profile": "model_ref_contained_tree_v1",
+            "writer": "write_model_ref",
+            "relative_root": "outputs/model",
+            "expected_dimensions": [
+              1
+            ],
+            "expected_alignment": "model_linked",
+            "expected_ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "bf601f85e8441ac84f8147f03b2a3331f77647398c1720397437045adbf5b53b"
+            },
+            "expected_model_linkage": {
+              "mode": "input",
+              "reference_name": "matrix",
+              "reference_identity": {
+                "scheme": "scworkbench.matrix.content.v1",
+                "sha256": "02eb632fa015fcb811d72526018662b911da5e57b42acecf96465868104576d9"
+              }
+            },
+            "semantic_constraints": {
+              "engine": "scvi",
+              "contained": true,
+              "no_symlinks": true
+            },
+            "contained_payload_requirements": {
+              "contained": true,
+              "no_symlinks": true,
+              "manifest_scheme": "scworkbench.operation_pack.payload_manifest.v2"
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "ed00d69110cb798ec4d2b5ee60c4edc3b10c54c9d11c6fdadd63d68d6f984e0c"
+            }
+          }
+        },
+        {
+          "name": "fit_summary",
+          "allocated_id": "artifact_scvi_summary",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "obs_table",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "relative_root": "outputs/fit_summary",
+            "expected_dimensions": [
+              1,
+              6
+            ],
+            "expected_alignment": "none",
+            "expected_ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "c6a60f041da6ca16beac5698e2d72cf0058c99364844170dd3f356c2cd7f0ce9"
+            },
+            "expected_model_linkage": {
+              "mode": "none"
+            },
+            "semantic_constraints": {
+              "table_type": "scvi_fit_summary",
+              "row_order": "canonical"
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "a5a5ce9dd403643219de064302c7a00517d25fb50ab89cf16303085b47648fc2"
+            }
+          }
+        }
+      ],
+      "execution_capability": {
+        "capability_id": "capability_scvi_0001",
+        "mode": "private_staging_write",
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "scope": "transition excluding transition_identity",
+          "sha256": "7d6e84475b85cf91e7a4dee48fd458e685ae6ce3cf0a767e4bd5b36c07a2cf90"
+        },
+        "session_id": "session_0001",
+        "run_id": "run_scvi_0001",
+        "checkpoint_generation": "generation_0007",
+        "source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "0f5b529111c4520fb902784cd236bba2423c0575d5c16569a9877aeceeec7e83"
+        },
+        "staging_root_identity": {
+          "scheme": "scworkbench.operation_pack.staging_root.v1",
+          "sha256": "7774ecb01297c4ba2e983d1e17d080a5ffe3b682f397d8e0ad72b3a7ddbe5525"
+        },
+        "lease_id": "lease_scvi_0001",
+        "pack_identity": {
+          "scheme": "scworkbench.operation_pack.pack.v2",
+          "sha256": "b9622936165520a054747b0d408001d19169a5e1440b121bf02c4746e77db9e8"
+        },
+        "distribution_identity": {
+          "scheme": "scworkbench.operation_pack.content.v1",
+          "sha256": "7b366a32ffef3b3294e3d2aa6e0f841ce6c1fb8864a369d4bf26e0435605f08f"
+        },
+        "manifest_source_identity": {
+          "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+          "sha256": "6240e60d363cf90d4b41acd5418528e320c3a4f51ac25e1d77a2de17bfa69d41"
+        },
+        "operation_definition_identity": {
+          "scheme": "scworkbench.operation_pack.definition.v2",
+          "sha256": "48681581d2a41a97467fc74e215bfb727d8500ad585d7acd808273519c021f70"
+        },
+        "entry_point_identity": {
+          "scheme": "scworkbench.operation_pack.entry_point.v2",
+          "sha256": "ce73daacb9db356a7b870f809a047712ee60b40917d6ebb37f1fd6f6094080bb"
+        },
+        "selected_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "cf666c56f02e98b49631738ddfabef58c7aee61d012a1491af3e9fd0fa04c68c"
+        },
+        "preflight_report_identity": {
+          "scheme": "scworkbench.operation_pack.preflight.v2",
+          "sha256": "a8486a776a34e5344400f02d418666c82c3653cb96b90c96c4bac6892b6dffb4"
+        },
+        "reader_grants": [
+          {
+            "input_name": "matrix",
+            "reader": "read_matrix",
+            "descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+              "scope": "descriptor excluding descriptor_identity",
+              "sha256": "4b287bcd40b986eaf56b140b0e9c5d99c95f0082969f6a68ab7f9aae0e2b8af8"
+            }
+          }
+        ],
+        "writer_grants": [
+          {
+            "output_name": "space",
+            "writer": "write_space",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "262af4e44f835b3688312ca60eea8c6325a3911b018b81fba770a56f2f4c6162"
+            }
+          },
+          {
+            "output_name": "model",
+            "writer": "write_model_ref",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "ed00d69110cb798ec4d2b5ee60c4edc3b10c54c9d11c6fdadd63d68d6f984e0c"
+            }
+          },
+          {
+            "output_name": "fit_summary",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "a5a5ce9dd403643219de064302c7a00517d25fb50ab89cf16303085b47648fc2"
+            }
+          }
+        ],
+        "single_use": true,
+        "capability_identity": {
+          "scheme": "scworkbench.operation_pack.capability.v2",
+          "scope": "capability excluding capability_identity",
+          "sha256": "6a6d11ca1663a0a1b1fc14bd284515498492506f1d51fb7bd47116ba4392112c"
+        }
+      },
+      "request_identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v2",
+        "scope": "request excluding request_identity",
+        "sha256": "82fbd44723826be1749d837ff29a7c6f9e15b3d4d878357c9c5e960460865934"
+      }
+    },
+    {
+      "schema": "scworkbench.operation_pack.transition_request.v2",
+      "message_type": "request",
+      "process_protocol_version": "pybench-op-v3",
+      "pack_abi_version": "2",
+      "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "transition": {
+        "transition_id": "transition_chromvar_0001",
+        "session_id": "session_0002",
+        "run_id": "run_chromvar_0001",
+        "checkpoint_generation": "generation_0003",
+        "source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "7685fdc3ffae93e2273328b48b0753e49fbb0e0cb15226e7192fcce3d39ebef0"
+        },
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "scope": "transition excluding transition_identity",
+          "sha256": "2a4675dde0fe265edaae65789446147a2d66e22dc142831f722d2fe216ef1489"
+        }
+      },
+      "operation_authentication": {
+        "name": "scwbatac::chromvar",
+        "pack_identity": {
+          "scheme": "scworkbench.operation_pack.pack.v2",
+          "sha256": "6f1c2151e225d19c185088d191a79b3b163f61cbaeb8ef659881e00def73f0a4"
+        },
+        "manifest_identity": {
+          "scheme": "scworkbench.operation_pack.manifest.v2",
+          "sha256": "aae092d65c2d0e7b31d5f1ed8f48ee6bc1814b25be608ade0eb6e1caa05f3bb5"
+        },
+        "manifest_source_identity": {
+          "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+          "sha256": "34900f0fd1e449dc2b95fd058b18543b73b0f640ad3ddc2a9ebf0095515c5cc6"
+        },
+        "distribution_identity": {
+          "scheme": "scworkbench.operation_pack.content.v1",
+          "sha256": "7d6731f577147b6cfb9e51ed802d00178eddc1fe1f0fa9818fe240a3b631fa1a"
+        },
+        "operation_definition_identity": {
+          "scheme": "scworkbench.operation_pack.definition.v2",
+          "sha256": "7c7777109d9636916e9fbb059bead1d63084caff2c502d5572484885b3103dca"
+        },
+        "entry_point": {
+          "value": "scwbatac::.run_chromvar",
+          "identity": {
+            "scheme": "scworkbench.operation_pack.entry_point.v2",
+            "sha256": "ee2f3349697564ce1f0914adb8f9e0697000584843f4a40125b6780295e709da"
+          }
+        }
+      },
+      "engine_contract": {
+        "implementation": "scworkbench",
+        "implementation_version": "proposal-fixture",
+        "scientific_state_scheme": "scworkbench.scientific_state.v1",
+        "scientific_state_schema_identity": {
+          "scheme": "scworkbench.scientific_state.schema.v1",
+          "sha256": "4e6de0d103702b23d01552739c7acd57cd8e63782d15bd6e07d4465663f8aef8"
+        },
+        "reader_api": "scworkbench.operation_pack.typed_readers.v2",
+        "writer_api": "scworkbench.operation_pack.staged_writers.v2"
+      },
+      "dependency_resolution": {
+        "declared_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "63a8c72cc281b486b0e03f4d255ebf610f24fe332147463866b360db03a36910"
+        },
+        "selected_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "fabd6e31033e5a26c89f9c9b37b3c33a90d04732b0bb100755dc13914bcb4657"
+        },
+        "dynamic_resolutions": [
+          {
+            "requirement_id": "genome_provider",
+            "selector_identity": {
+              "scheme": "scworkbench.operation_pack.dynamic_dependency_selector.v2",
+              "sha256": "15c819b3822a53241320d1555695c5770d04db28ec3ac52920cdb2b73efc64a5"
+            },
+            "input_name": "matrix",
+            "input_identity": {
+              "scheme": "scworkbench.matrix.content.v1",
+              "sha256": "26ff02ad9c6d0532e618d5f67a8e3bf65c0de2ff5c1207d0a39a8ea643252c28"
+            },
+            "metadata_field": "genome_provider",
+            "ecosystem": "R",
+            "provider_name": "BSgenome.Hsapiens.UCSC.hg19",
+            "package_name_scheme": "r_package_name_v1",
+            "probe": "r_namespace_exports_v1",
+            "disposition": "required",
+            "resolved_package": {
+              "name": "BSgenome.Hsapiens.UCSC.hg19",
+              "version": "1.4.3",
+              "artifact_identity": {
+                "scheme": "scworkbench.r_package.artifact.v1",
+                "sha256": "a1b5e901736995ee59a8408247929a2df109b892d5e7822028ee5c518e06d737"
+              },
+              "probe_evidence_identity": {
+                "scheme": "scworkbench.r_namespace_exports.v1",
+                "sha256": "fe273943ef3f7c942cb4fbca5fc15971ffe011a4a5efa04fd44b4bbfaf559285"
+              }
+            },
+            "status": "available",
+            "resolution_identity": {
+              "scheme": "scworkbench.operation_pack.dynamic_dependency_resolution.v2",
+              "scope": "resolution excluding resolution_identity",
+              "sha256": "8f98ac1a30f79bea6e9848ef6c6515a5aab8aa8c233e57478cbad3584f3d82cd"
+            }
+          }
+        ],
+        "preflight_report_identity": {
+          "scheme": "scworkbench.operation_pack.preflight.v2",
+          "sha256": "78f6064159f69fc5f5ddab28c255379f1268b439e05cb4fee95cf79e9db8252d"
+        },
+        "network_policy": "deny"
+      },
+      "inputs": [
+        {
+          "name": "matrix",
+          "reference": "matrix:atac.counts",
+          "descriptor": {
+            "kind": "matrix",
+            "storage_profile": "matrix_backed_chunked_v1",
+            "reader": "read_matrix",
+            "dimensions": [
+              50000,
+              100
+            ],
+            "alignment": "cell_and_feature_ordered",
+            "content_identity": {
+              "scheme": "scworkbench.matrix.content.v1",
+              "sha256": "26ff02ad9c6d0532e618d5f67a8e3bf65c0de2ff5c1207d0a39a8ea643252c28"
+            },
+            "ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "da82dcc436ef211f431c04f6b9ac8bd6a914be50e26841e0cdce4b39a2e00460"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.payload.manifest.v2",
+              "sha256": "17281c8d6f174a591a69e1f8d3320b44af59b0fa2d6bb199aef0bae8fa2ef89d"
+            },
+            "cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "4fa2ac4ca91b0e997c458eff9ca39fddb58e8058ad12dcbdd702846f2113c8ad"
+            },
+            "feature_order_identity": {
+              "scheme": "scworkbench.feature_order.v1",
+              "sha256": "0f3937d33cc9288f9f2ac0dd1cadad7c27159044e8d2f028b581a2bc130d4c61"
+            },
+            "descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+              "scope": "descriptor excluding descriptor_identity",
+              "sha256": "79246e4a8983101be5f1b5b2f53722fabf4bf8a871e0449d345aa0fa96a35388"
+            }
+          }
+        }
+      ],
+      "params": {
+        "motif_library": "JASPAR2024",
+        "background_iterations": 50
+      },
+      "outputs": [
+        {
+          "name": "deviation_raw",
+          "allocated_id": "artifact_deviation_raw",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "cell_vector_family",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "relative_root": "outputs/deviation_raw",
+            "expected_dimensions": [
+              100,
+              50
+            ],
+            "expected_alignment": "cell_ordered",
+            "expected_ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "5d467fb6fa70f60e985fa5630cf532f15a1719617e593fafc5f9a008f2640af9"
+            },
+            "expected_model_linkage": {
+              "mode": "none"
+            },
+            "semantic_constraints": {
+              "value_kind": "continuous",
+              "missing_values": "forbidden"
+            },
+            "expected_cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "4fa2ac4ca91b0e997c458eff9ca39fddb58e8058ad12dcbdd702846f2113c8ad"
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "d59bb48869c15f45b234b9f40fab60b502fe2e9c2b3df43fcdbb146ff5912662"
+            }
+          }
+        },
+        {
+          "name": "deviation_z",
+          "allocated_id": "artifact_deviation_z",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "cell_vector_family",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "relative_root": "outputs/deviation_z",
+            "expected_dimensions": [
+              100,
+              50
+            ],
+            "expected_alignment": "cell_ordered",
+            "expected_ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "91d1aa57bbfcad5b92e5a420eed5af89f303e40572afbf01b1d8f5fa0a6e3fbe"
+            },
+            "expected_model_linkage": {
+              "mode": "none"
+            },
+            "semantic_constraints": {
+              "value_kind": "continuous",
+              "missing_values": "forbidden"
+            },
+            "expected_cell_order_identity": {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "4fa2ac4ca91b0e997c458eff9ca39fddb58e8058ad12dcbdd702846f2113c8ad"
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "2f75235ce6f9541ebf0275b9327d6f21b29d07f75de66fcaacc55b611a3543dc"
+            }
+          }
+        },
+        {
+          "name": "motif_summary",
+          "allocated_id": "artifact_motif_summary",
+          "descriptor": {
+            "category": "terminal_artifact",
+            "kind": "obs_table",
+            "storage_profile": "terminal_primitive_v1",
+            "writer": "write_terminal_primitive",
+            "relative_root": "outputs/motif_summary",
+            "expected_dimensions": [
+              50,
+              8
+            ],
+            "expected_alignment": "none",
+            "expected_ancestry_identity": {
+              "scheme": "scworkbench.provenance.ancestry.v1",
+              "sha256": "c5a47d7a84af179ca386eefacc40e8843f9549bdfda42314c5a771da35e87669"
+            },
+            "expected_model_linkage": {
+              "mode": "none"
+            },
+            "semantic_constraints": {
+              "table_type": "chromvar_motif_summary",
+              "row_order": "canonical"
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "8b37e9696a0ba451d51cb6e7464482d2b7c33ef32617192932279a94a0529e45"
+            }
+          }
+        }
+      ],
+      "execution_capability": {
+        "capability_id": "capability_chromvar_0001",
+        "mode": "private_staging_write",
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "scope": "transition excluding transition_identity",
+          "sha256": "2a4675dde0fe265edaae65789446147a2d66e22dc142831f722d2fe216ef1489"
+        },
+        "session_id": "session_0002",
+        "run_id": "run_chromvar_0001",
+        "checkpoint_generation": "generation_0003",
+        "source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "7685fdc3ffae93e2273328b48b0753e49fbb0e0cb15226e7192fcce3d39ebef0"
+        },
+        "staging_root_identity": {
+          "scheme": "scworkbench.operation_pack.staging_root.v1",
+          "sha256": "140f5962c688beae634ad53dc3eb7c75bc7f04b8db5dd5c9046478b058ce297e"
+        },
+        "lease_id": "lease_chromvar_0001",
+        "pack_identity": {
+          "scheme": "scworkbench.operation_pack.pack.v2",
+          "sha256": "6f1c2151e225d19c185088d191a79b3b163f61cbaeb8ef659881e00def73f0a4"
+        },
+        "distribution_identity": {
+          "scheme": "scworkbench.operation_pack.content.v1",
+          "sha256": "7d6731f577147b6cfb9e51ed802d00178eddc1fe1f0fa9818fe240a3b631fa1a"
+        },
+        "manifest_source_identity": {
+          "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+          "sha256": "34900f0fd1e449dc2b95fd058b18543b73b0f640ad3ddc2a9ebf0095515c5cc6"
+        },
+        "operation_definition_identity": {
+          "scheme": "scworkbench.operation_pack.definition.v2",
+          "sha256": "7c7777109d9636916e9fbb059bead1d63084caff2c502d5572484885b3103dca"
+        },
+        "entry_point_identity": {
+          "scheme": "scworkbench.operation_pack.entry_point.v2",
+          "sha256": "ee2f3349697564ce1f0914adb8f9e0697000584843f4a40125b6780295e709da"
+        },
+        "selected_requirement_set_identity": {
+          "scheme": "scworkbench.operation_pack.dependencies.v2",
+          "sha256": "fabd6e31033e5a26c89f9c9b37b3c33a90d04732b0bb100755dc13914bcb4657"
+        },
+        "preflight_report_identity": {
+          "scheme": "scworkbench.operation_pack.preflight.v2",
+          "sha256": "78f6064159f69fc5f5ddab28c255379f1268b439e05cb4fee95cf79e9db8252d"
+        },
+        "reader_grants": [
+          {
+            "input_name": "matrix",
+            "reader": "read_matrix",
+            "descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+              "scope": "descriptor excluding descriptor_identity",
+              "sha256": "79246e4a8983101be5f1b5b2f53722fabf4bf8a871e0449d345aa0fa96a35388"
+            }
+          }
+        ],
+        "writer_grants": [
+          {
+            "output_name": "deviation_raw",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "d59bb48869c15f45b234b9f40fab60b502fe2e9c2b3df43fcdbb146ff5912662"
+            }
+          },
+          {
+            "output_name": "deviation_z",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "2f75235ce6f9541ebf0275b9327d6f21b29d07f75de66fcaacc55b611a3543dc"
+            }
+          },
+          {
+            "output_name": "motif_summary",
+            "writer": "write_terminal_primitive",
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v2",
+              "scope": "descriptor excluding grant_identity",
+              "sha256": "8b37e9696a0ba451d51cb6e7464482d2b7c33ef32617192932279a94a0529e45"
+            }
+          }
+        ],
+        "single_use": true,
+        "capability_identity": {
+          "scheme": "scworkbench.operation_pack.capability.v2",
+          "scope": "capability excluding capability_identity",
+          "sha256": "8c696fe80ec094f0d4d24411d37f46a01d55884f7159a3032fc7237a300d4e87"
+        }
+      },
+      "request_identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v2",
+        "scope": "request excluding request_identity",
+        "sha256": "2b1f597614f59e082af94e4472bc6da2fd432e4da056c6b68a2f7fe7ad90f761"
+      }
+    }
+  ],
+  "x-negative-fixtures": [
+    {
+      "id": "REQ-MATRIX-NO-CELL",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/inputs/0/descriptor/cell_order_identity"
+    },
+    {
+      "id": "REQ-MATRIX-NO-FEATURE",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/inputs/0/descriptor/feature_order_identity"
+    },
+    {
+      "id": "REQ-INPUT-CROSS-PRODUCT",
+      "base_example": 0,
+      "action": "exhaustive_other_values",
+      "pointer": "/inputs/0/descriptor",
+      "fields": [
+        "kind",
+        "storage_profile",
+        "reader"
+      ]
+    },
+    {
+      "id": "REQ-SPACE-CROSS-PRODUCT",
+      "base_example": 0,
+      "action": "exhaustive_other_values",
+      "pointer": "/outputs/0/descriptor",
+      "fields": [
+        "category",
+        "kind",
+        "storage_profile",
+        "writer"
+      ]
+    },
+    {
+      "id": "REQ-MODEL-CROSS-PRODUCT",
+      "base_example": 0,
+      "action": "exhaustive_other_values",
+      "pointer": "/outputs/1/descriptor",
+      "fields": [
+        "category",
+        "kind",
+        "storage_profile",
+        "writer"
+      ]
+    },
+    {
+      "id": "REQ-SUMMARY-CROSS-PRODUCT",
+      "base_example": 0,
+      "action": "exhaustive_other_values",
+      "pointer": "/outputs/2/descriptor",
+      "fields": [
+        "category",
+        "kind",
+        "storage_profile",
+        "writer"
+      ]
+    },
+    {
+      "id": "REQ-SPACE-NO-CELL",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/outputs/0/descriptor/expected_cell_order_identity"
+    },
+    {
+      "id": "REQ-MODEL-NO-CONTAINMENT",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/outputs/1/descriptor/contained_payload_requirements"
+    },
+    {
+      "id": "REQ-MODEL-NO-LINKAGE",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/outputs/1/descriptor/expected_model_linkage"
+    },
+    {
+      "id": "REQ-CAP-NO-PACK",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/execution_capability/pack_identity"
+    },
+    {
+      "id": "REQ-CAP-NO-DISTRIBUTION",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/execution_capability/distribution_identity"
+    },
+    {
+      "id": "REQ-CAP-NO-MANIFEST-SOURCE",
+      "base_example": 0,
+      "action": "remove",
+      "pointer": "/execution_capability/manifest_source_identity"
+    },
+    {
+      "id": "REQ-DYNAMIC-MISSING",
+      "base_example": 1,
+      "action": "remove",
+      "pointer": "/dependency_resolution/dynamic_resolutions/0/metadata_field"
+    },
+    {
+      "id": "REQ-DYNAMIC-EMPTY",
+      "base_example": 1,
+      "action": "replace",
+      "pointer": "/dependency_resolution/dynamic_resolutions/0/provider_name",
+      "value": ""
+    },
+    {
+      "id": "REQ-DYNAMIC-MALFORMED",
+      "base_example": 1,
+      "action": "replace",
+      "pointer": "/dependency_resolution/dynamic_resolutions/0/provider_name",
+      "value": "bad package/name"
+    }
+  ]
+}
