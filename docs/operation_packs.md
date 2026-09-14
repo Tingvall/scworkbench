@@ -26,7 +26,7 @@ The authoritative byte contract is
 ABI v2 is a separate, fail-closed activation path. Its live manifest, request,
 and receipt schemas are installed under `inst/protocol/` and their relationship
 to v1, `pybench-op-v2`, `pybench-op-v3`, and durable scientific state is
-recorded in `inst/protocol/operation-pack-v2.md`. V2 does not reinterpret a v1
+recorded in `docs/operation_pack_v2_protocol.md`. V2 does not reinterpret a v1
 manifest or change any existing v1 identity.
 
 An R v2 package uses the same explicit installation and activation APIs, but

@@ -189,6 +189,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "docs/operation_pack_v2_protocol.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/operation_pack_v2_protocol.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "docs/source_ownership.md",
       "class": "public_canonical",
       "audience": "public",
@@ -484,17 +495,6 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "protocol/pybench-op-v3-python-runtime.schema.json"
-    },
-    {
-      "path": "inst/protocol/operation-pack-v2.md",
-      "class": "public_canonical",
-      "audience": "public",
-      "status": "current",
-      "canonical_source": "inst/protocol/operation-pack-v2.md",
-      "generator": null,
-      "source_tarball": true,
-      "installed_package": true,
-      "installed_relative_path": "protocol/operation-pack-v2.md"
     },
     {
       "path": "inst/protocol/pybench-op-v2.schema.json",

@@ -29,7 +29,8 @@ scwb_documentation_policy <- function(root = ".") {
     "docs/sessions_and_ops.md", "docs/promotion_and_provenance.md",
     "docs/typed_cell_set_consumption.md",
     "docs/recipient_audit.md", "docs/python_bridge.md",
-    "docs/extension_engineering.md", "docs/operation_packs.md", "docs/source_ownership.md",
+    "docs/extension_engineering.md", "docs/operation_packs.md",
+    "docs/operation_pack_v2_protocol.md", "docs/source_ownership.md",
     "docs/CONTRIBUTING.md", "docs/SUPPORT.md", "docs/release_process.md",
     "docs/bundle_integrity_validation.md", "docs/bundle_path_containment_and_trust.md", "docs/bundle_state_contract.md", "docs/bundle_writer_lock.md", "docs/entity_lifecycle.md", "docs/durable_resumable_sessions.md", "docs/metadata_field_identity.md", "docs/metadata_cell_vector_diagnostics.md", "docs/pybench_integration_contract.md", "docs/pybench_op_protocol_v2.md", "docs/scvi_train.md", "docs/peakvi_fit.md", "docs/rna_map_ops.md", "docs/tabular_primitives.md", "docs/trajectory_fit_family_contract.md", "docs/trajectory_segment_contract.md", "docs/trajectory_segment_join_contract.md",
     "inst/protocol/operation-pack-v1.schema.json",
@@ -38,7 +39,6 @@ scwb_documentation_policy <- function(root = ".") {
     "inst/protocol/operation-pack-transition-request-v2.schema.json",
     "inst/protocol/operation-pack-transition-receipt-v2.schema.json",
     "inst/protocol/pybench-op-v3-python-runtime.schema.json",
-    "inst/protocol/operation-pack-v2.md",
     "inst/protocol/pybench-op-v2.schema.json"
   )
   operation_pack_fixtures <- sort(list.files(
