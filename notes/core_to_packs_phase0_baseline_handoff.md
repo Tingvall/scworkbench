@@ -1,6 +1,6 @@
-# Core-to-packs Phase 0 baseline handoff
+READY FOR FOCUSED INDEPENDENT RE-AUDIT
 
-**BASELINE PREPARED FOR INDEPENDENT AUDIT**
+# Core-to-packs Phase 0 genome-dependency amendment handoff
 
 This status means the planning evidence is assembled. It does not activate Phase 0, authorize extraction, or assert that the collaborator SIF gate has passed.
 
@@ -42,6 +42,12 @@ ABI v2 must provide engine-sanctioned matrix/space/model writers, atomic materia
 
 Dependency versions are not declared per operation in the present sources. The handoff therefore preserves unresolved minima rather than inventing them. `scwbTrajectory`, `scwbLatent` and `scwbATAC` carry the largest optional runtime/license surfaces. No hard scientific pack-to-pack dependency is required; typed primitives are the interoperability boundary. Release-time locks, offline tests and third-party license notices remain gates.
 
+The amended dependency inventory contains 86 rows. For `scwbATAC::chromvar`, it now separates (i) the open-ended R runtime package selected from the retained matrix's non-empty `genome_provider`, (ii) the qualified hg19 provider observation at version 1.4.3, and (iii) the qualified mm10 provider observation at version 1.4.3. The selected provider is mandatory once the operation is chosen, must be installed for offline execution, and must fail future pack preflight before method dispatch when unavailable. No operation-level minimum, fixed allowlist, footprint, or redistribution conclusion is inferred.
+
+Using Meridian-9's recursive machine-record rule, the amended baseline cites 225 unique repository-relative source/test/document paths and eight unique absolute retained-bundle/publication-evidence paths, for 233 total. The three genuinely new relative anchors are `DESCRIPTION`, `containers/apptainer/fullstack_r_dependencies.dcf`, and `containers/apptainer/fullstack_r_versions.lock.csv`; `R/op_chromvar.R` was already counted. All 233 resolve.
+
+All previously accepted conclusions remain unchanged: the 60-operation catalog and digest, 4/55/1 partition, namespaces, ABI classifications and v2 requirements, `knn_pseudobulk` fixture gap, core-retention analysis, historical identities and bundle mappings, compatibility policy, and repository recommendations are byte-identical or semantically unchanged as applicable.
+
 ## Fixture and history findings
 
 The repository contains operation-named positive anchors for 59/60 operations. No operation-specific positive test containing the literal identity `knn_pseudobulk` was found under `tests/`; its implementation and interface exist, but an execution fixture is a documented pre-migration gap. Existing tests are mapped conservatively by content and may cover several fixture roles; each migration still needs a dedicated old-core/new-pack comparator, negative preflight, promotion/closure, finalized pack-free reopen, strict replay, missing-pack rejection, and rollback fixture as applicable.
@@ -54,6 +60,6 @@ The working namespaces are `scwbrna`, `scwbrepresentation`, `scwbgeneprograms`, 
 
 ## Audit routing and activation gate
 
-Route this commit to Meridian-9 only after the Controller records the collaborator Bdev SIF gate and other roadmap activation conditions. Independent audit should confirm the catalog extraction, classification decisions, dependency scan, fixture gap and immutable-history policy. Do not begin ABI v2 or extract, rename or remove operations on the strength of this planning status.
+Route this descendant of `3ff3d05bf0fd600ebbb291fe9a3538cb9ca3db0e` to Meridian-9 for a focused re-audit of the corrected genome-provider dependency and preservation of the previously passing checks. Do not begin ABI v2 or extract, rename or remove operations on the strength of this planning status.
 
 No source, schema, generated catalog, package metadata, publication file, evidence bundle, runtime or primary worktree was modified.

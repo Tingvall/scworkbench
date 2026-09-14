@@ -14,9 +14,15 @@ All seven scientific packs require a compatible scworkbench core. No hard pack-t
 | `scwbStatistics` | 6 | Matrix/BPCells and base R statistics | matrix/vectors → feature and observation tables | Low dependency weight; suitable for the first production extraction after v2 conformance. |
 | `scwbTrajectory` | 24 | `slingshot`, `monocle3`, SingleCellExperiment/S4 stack, `igraph`, `RANN`; Palantir operations use PyBench with `palantir>=1.3` | spaces/matrices/vectors/models/path families → models, trajectories, paths and statistics | Heaviest R pack and mixed optional stacks; engine-specific runtime preflights are required. |
 | `scwbLatent` | 4 | PyBench 0.1.0/protocol 2; Python >=3.11; scVI operations require `scvi-tools>=1.1` plus ingest extras | matrix/model/space → latent spaces, model references and summaries | Python/model release cadence; requires ABI v2 writers, receipts, containment and rollback. |
-| `scwbATAC` | 1 | `chromVAR`, motifmatchr/JASPAR-compatible inputs, Bioconductor genomic ranges and genome data | peak matrix → deviation families and summary | Small initial pack but a heavy optional genomics stack; likely grows independently. |
+| `scwbATAC` | 1 | `chromVAR`, motifmatchr/JASPAR-compatible inputs, Bioconductor genomic ranges, and the R package dynamically named by retained matrix `genome_provider` metadata | peak matrix → deviation families and summary | Small initial pack with a heavy, provider-dependent optional genomics stack; likely grows independently. |
 
 PyBench's pinned [`pyproject.toml`](/home/dirk/Projects/pybench/pyproject.toml) declares Python `>=3.11`, core dependencies, and optional `scvi`, `palantir`, `scanpy`, and `ingest` groups. The inventory also records versions found in [`containers/apptainer/fullstack_r_versions.lock.csv`](../containers/apptainer/fullstack_r_versions.lock.csv) and [`containers/apptainer/fullstack_python_requirements.lock`](../containers/apptainer/fullstack_python_requirements.lock). Those are qualified fullstack environment versions, not inferred package minima. Exact per-operation locks and system-library minima remain **unresolved** because `DESCRIPTION` and PyBench metadata do not declare them at operation granularity. Forge/Quill must freeze pack lockfiles and runtime preflights before extraction.
+
+### Matrix-bound genome dependency
+
+`chromvar` reads a non-empty R package name from the selected retained matrix's `genome_provider`, requires that package at operation runtime, and loads its exported `BSgenome` singleton. This is an open-ended matrix-bound dependency contract: future pack preflight must reject an unavailable selected provider before method dispatch, and offline qualification must install it in advance. The current source declares no per-operation minimum version; provider-specific compiled/data footprint, package cadence, and redistribution review remain unresolved gates.
+
+`BSgenome.Hsapiens.UCSC.hg19` and `BSgenome.Mmusculus.UCSC.mm10`, each at fullstack lock version 1.4.3, are the two currently qualified observations. They are not a closed provider allowlist, universal compatibility claim, or contract minimum. The machine inventory keeps the dynamic contract and both observations in three separate rows. Its amended schema documents the selector, contract scope, and qualification semantics; it contains 86 data rows.
 
 ## Installation, replay and licensing
 
@@ -27,4 +33,4 @@ PyBench's pinned [`pyproject.toml`](/home/dirk/Projects/pybench/pyproject.toml) 
 - scworkbench and PyBench are MIT-licensed. Every redistributed dependency retains its own license; the Bioconductor, model and genome/motif stacks require a release-time notice and redistribution review. A source citation is not a license.
 - Expected installed size is not inferable from package declarations alone. Measure it from the eventual locked pack artifacts; do not quote an estimate as evidence.
 
-The dependency inventory is deliberately conservative: entries marked “observed” reflect namespace/runtime calls in the current implementation source, not a final minimal dependency declaration.
+The dependency inventory is deliberately conservative: entries marked “observed” reflect namespace/runtime calls or qualified provider observations, not a final minimal dependency declaration. The dynamic provider row is a contract requirement and is deliberately separate from those observations.

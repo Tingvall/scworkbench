@@ -6514,7 +6514,45 @@
           "motifmatchr"
         ],
         "Python_distributions": [],
-        "system_dependencies": "not declared per operation; resolve in pack lock/runtime qualification"
+        "system_dependencies": "not declared per operation; resolve in pack lock/runtime qualification",
+        "dynamic_R_runtime_packages": [
+          {
+            "selector": {
+              "source_entity": "selected retained matrix",
+              "metadata_field": "genome_provider",
+              "value_semantics": "R package name",
+              "non_empty_required": true
+            },
+            "contract_scope": "open-ended; not exhausted by currently qualified providers",
+            "installation_status": "optional/runtime-preflight",
+            "execution_requirement": "mandatory once chromvar is selected",
+            "current_runtime_behavior": "the operation rejects an empty provider, requires the named package, and loads its exported BSgenome singleton",
+            "migration_preflight_requirement": "fail before method dispatch when the selected provider package is unavailable",
+            "offline_requirement": "selected provider must already be installed; no network retrieval during operation execution",
+            "minimum_version": null,
+            "minimum_version_status": "unresolved_not_declared_per_operation",
+            "system_compiled_and_data_footprint": "unresolved; gate before pack distribution",
+            "redistribution_review": "unresolved; gate before pack distribution",
+            "qualified_observations": [
+              {
+                "package": "BSgenome.Hsapiens.UCSC.hg19",
+                "fullstack_lock_version": "1.4.3",
+                "semantics": "currently qualified observation; not a contract minimum, closed allowlist, or universal provider"
+              },
+              {
+                "package": "BSgenome.Mmusculus.UCSC.mm10",
+                "fullstack_lock_version": "1.4.3",
+                "semantics": "currently qualified observation; not a contract minimum, closed allowlist, or universal provider"
+              }
+            ],
+            "source_anchors": [
+              "R/op_chromvar.R",
+              "DESCRIPTION",
+              "containers/apptainer/fullstack_r_dependencies.dcf",
+              "containers/apptainer/fullstack_r_versions.lock.csv"
+            ]
+          }
+        ]
       },
       "documentation_anchors": [
         "man/wb_op_chromvar.Rd",
