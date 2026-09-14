@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scworkbench.org/proposals/operation-pack-v2-transition-request.schema.json",
+  "title": "PROPOSAL ONLY — operation-pack ABI v2 transition request",
+  "description": "Closed planning schema, not a runtime protocol. Synthesized from Quill specification eb5334a7bec73490ccfbf106f83ba91b1ab39fb8 and handoff 8f73acebe833606e5d733988cb3d253720fcd333.",
+  "x-document-status": "PROPOSED_NON_RUNTIME",
+  "x-quill-specification-commit": "eb5334a7bec73490ccfbf106f83ba91b1ab39fb8",
+  "x-quill-handoff-commit": "8f73acebe833606e5d733988cb3d253720fcd333",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "message_type", "process_protocol_version", "pack_abi_version",
+    "canonical_json_scheme", "transition", "operation", "engine_contract",
+    "runtime_requirements", "inputs", "params", "outputs",
+    "execution_capability", "request_identity"
+  ],
+  "properties": {
+    "schema": {"const": "scworkbench.operation_pack.transition_request.v2"},
+    "message_type": {"const": "request"},
+    "process_protocol_version": {"const": "pybench-op-v3"},
+    "pack_abi_version": {"const": "2"},
+    "canonical_json_scheme": {"const": "scworkbench.operation_pack.canonical_json.v1"},
+    "transition": {
+      "type": "object", "additionalProperties": false,
+      "required": ["transition_id", "session_id", "run_id", "checkpoint_generation"],
+      "properties": {
+        "transition_id": {"$ref": "#/$defs/id"},
+        "session_id": {"$ref": "#/$defs/id"},
+        "run_id": {"$ref": "#/$defs/id"},
+        "checkpoint_generation": {"$ref": "#/$defs/id"}
+      }
+    },
+    "operation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "manifest_sha256", "operation_definition_sha256", "pack_content_sha256"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9._-]*::[a-z][a-z0-9_]*$"},
+        "manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "operation_definition_sha256": {"$ref": "#/$defs/sha256"},
+        "pack_content_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "engine_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["implementation", "implementation_version", "pack_abi_version", "scientific_state_scheme", "scientific_state_schema_sha256", "reader_api", "writer_api"],
+      "properties": {
+        "implementation": {"const": "scworkbench"},
+        "implementation_version": {"type": "string", "minLength": 1},
+        "pack_abi_version": {"const": "2"},
+        "scientific_state_scheme": {"type": "string", "minLength": 1},
+        "scientific_state_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "reader_api": {"const": "scworkbench.operation_pack.typed_readers.v2"},
+        "writer_api": {"const": "scworkbench.operation_pack.staged_writers.v2"}
+      }
+    },
+    "runtime_requirements": {
+      "type": "object", "additionalProperties": false,
+      "required": ["requirements_sha256", "preflight_report_sha256", "network_policy"],
+      "properties": {
+        "requirements_sha256": {"$ref": "#/$defs/sha256"},
+        "preflight_report_sha256": {"$ref": "#/$defs/sha256"},
+        "network_policy": {"const": "deny"}
+      }
+    },
+    "inputs": {"type": "array", "items": {"$ref": "#/$defs/input"}},
+    "params": {"type": "object"},
+    "outputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/output_grant"}},
+    "execution_capability": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "capability_id", "mode", "transition_id", "session_id", "run_id",
+        "source_state_sha256", "staging_root_sha256", "checkpoint_generation",
+        "lease_id", "operation_definition_sha256", "preflight_report_sha256", "single_use"
+      ],
+      "properties": {
+        "capability_id": {"$ref": "#/$defs/id"},
+        "mode": {"const": "private_staging_write"},
+        "transition_id": {"$ref": "#/$defs/id"},
+        "session_id": {"$ref": "#/$defs/id"},
+        "run_id": {"$ref": "#/$defs/id"},
+        "source_state_sha256": {"$ref": "#/$defs/sha256"},
+        "staging_root_sha256": {"$ref": "#/$defs/sha256"},
+        "checkpoint_generation": {"$ref": "#/$defs/id"},
+        "lease_id": {"$ref": "#/$defs/id"},
+        "operation_definition_sha256": {"$ref": "#/$defs/sha256"},
+        "preflight_report_sha256": {"$ref": "#/$defs/sha256"},
+        "single_use": {"const": true}
+      }
+    },
+    "request_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.transition_request.v2"},
+        "scope": {"const": "request excluding request_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$"},
+    "primitive_kind": {"enum": ["matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "feature_table", "obs_table", "model_ref", "relation_family", "path_2d_family", "space_path_family"]},
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "sha256"],
+      "properties": {
+        "scheme": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "input": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "kind", "reference", "content_identity", "dimensions", "ancestry_sha256"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "kind": {"$ref": "#/$defs/primitive_kind"},
+        "reference": {"type": "string", "minLength": 1},
+        "content_identity": {"$ref": "#/$defs/identity"},
+        "dimensions": {"type": "array", "items": {"type": "integer", "minimum": 0}, "maxItems": 2},
+        "cell_order_sha256": {"$ref": "#/$defs/sha256"},
+        "feature_order_sha256": {"$ref": "#/$defs/sha256"},
+        "ancestry_sha256": {"$ref": "#/$defs/sha256"},
+        "model_linkage_sha256": {"$ref": "#/$defs/sha256"},
+        "payload_manifest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "output_grant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "category", "kind", "allocated_id", "storage_profile", "writer", "required", "promotion_group"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "category": {"enum": ["materialization", "terminal_artifact", "core_registry_request"]},
+        "kind": {"oneOf": [{"$ref": "#/$defs/primitive_kind"}, {"const": "cell_set_admission"}]},
+        "allocated_id": {"$ref": "#/$defs/id"},
+        "storage_profile": {"enum": ["matrix_ordinary_v1", "matrix_backed_chunked_v1", "space_dense_v1", "space_file_backed_hdf5_v1", "space_2d_dense_v1", "model_ref_contained_tree_v1", "terminal_primitive_v1", "path_2d_family_v1", "space_path_family_v1", "cell_set_admission_v1"]},
+        "writer": {"enum": ["write_matrix", "write_space", "write_space_2d", "write_model_ref", "write_terminal_primitive", "write_path_2d_family", "write_space_path_family", "request_cell_set_admission"]},
+        "relative_root": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[A-Za-z0-9._/-]+$"},
+        "required": {"const": true},
+        "promotion_group": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"category": {"const": "core_registry_request"}}, "required": ["category"]},
+          "then": {
+            "properties": {
+              "kind": {"const": "cell_set_admission"},
+              "storage_profile": {"const": "cell_set_admission_v1"},
+              "writer": {"const": "request_cell_set_admission"}
+            },
+            "not": {"required": ["relative_root"]}
+          },
+          "else": {"required": ["relative_root"]}
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "schema": "scworkbench.operation_pack.transition_request.v2",
+      "message_type": "request",
+      "process_protocol_version": "pybench-op-v3",
+      "pack_abi_version": "2",
+      "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+      "transition": {"transition_id": "transition_scvi_0001", "session_id": "session_0001", "run_id": "run_scvi_0001", "checkpoint_generation": "generation_0007"},
+      "operation": {"name": "scwblatent::scvi_train", "manifest_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "operation_definition_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "pack_content_sha256": "6666666666666666666666666666666666666666666666666666666666666666"},
+      "engine_contract": {"implementation": "scworkbench", "implementation_version": "proposed", "pack_abi_version": "2", "scientific_state_scheme": "scworkbench-scientific-state-v1", "scientific_state_schema_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "reader_api": "scworkbench.operation_pack.typed_readers.v2", "writer_api": "scworkbench.operation_pack.staged_writers.v2"},
+      "runtime_requirements": {"requirements_sha256": "8888888888888888888888888888888888888888888888888888888888888888", "preflight_report_sha256": "9999999999999999999999999999999999999999999999999999999999999999", "network_policy": "deny"},
+      "inputs": [{"name": "matrix", "kind": "matrix", "reference": "matrix:rna.counts", "content_identity": {"scheme": "scworkbench.matrix.v1", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, "dimensions": [20000, 3000], "cell_order_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "feature_order_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "ancestry_sha256": "1212121212121212121212121212121212121212121212121212121212121212"}],
+      "params": {"n_latent": 30, "seed": 1, "use_gpu": false},
+      "outputs": [
+        {"name": "space", "category": "materialization", "kind": "space", "allocated_id": "space_rna_scvi", "storage_profile": "space_file_backed_hdf5_v1", "writer": "write_space", "relative_root": "outputs/space", "required": true, "promotion_group": "scvi_transition"},
+        {"name": "model", "category": "terminal_artifact", "kind": "model_ref", "allocated_id": "artifact_scvi_model", "storage_profile": "model_ref_contained_tree_v1", "writer": "write_model_ref", "relative_root": "outputs/model", "required": true, "promotion_group": "scvi_transition"},
+        {"name": "fit_summary", "category": "terminal_artifact", "kind": "obs_table", "allocated_id": "artifact_scvi_summary", "storage_profile": "terminal_primitive_v1", "writer": "write_terminal_primitive", "relative_root": "outputs/fit_summary", "required": true, "promotion_group": "scvi_transition"}
+      ],
+      "execution_capability": {"capability_id": "capability_scvi_0001", "mode": "private_staging_write", "transition_id": "transition_scvi_0001", "session_id": "session_0001", "run_id": "run_scvi_0001", "source_state_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "staging_root_sha256": "3333333333333333333333333333333333333333333333333333333333333333", "checkpoint_generation": "generation_0007", "lease_id": "lease_0001", "operation_definition_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "preflight_report_sha256": "9999999999999999999999999999999999999999999999999999999999999999", "single_use": true},
+      "request_identity": {"scheme": "scworkbench.operation_pack.transition_request.v2", "scope": "request excluding request_identity", "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}
+    }
+  ]
+}

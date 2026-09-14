@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scworkbench.org/proposals/operation-pack-v2-transition-receipt.schema.json",
+  "title": "PROPOSAL ONLY — operation-pack ABI v2 transition receipt",
+  "description": "Closed planning schema, not a runtime protocol. Synthesized from Quill specification eb5334a7bec73490ccfbf106f83ba91b1ab39fb8 and handoff 8f73acebe833606e5d733988cb3d253720fcd333.",
+  "x-document-status": "PROPOSED_NON_RUNTIME",
+  "x-quill-specification-commit": "eb5334a7bec73490ccfbf106f83ba91b1ab39fb8",
+  "x-quill-handoff-commit": "8f73acebe833606e5d733988cb3d253720fcd333",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "message_type", "process_protocol_version", "pack_abi_version",
+    "canonical_json_scheme", "status", "transition_id", "session_id", "run_id",
+    "request_sha256", "capability_sha256", "preflight_report_sha256",
+    "receipt_identity"
+  ],
+  "properties": {
+    "schema": {"const": "scworkbench.operation_pack.transition_receipt.v2"},
+    "message_type": {"const": "receipt"},
+    "process_protocol_version": {"const": "pybench-op-v3"},
+    "pack_abi_version": {"const": "2"},
+    "canonical_json_scheme": {"const": "scworkbench.operation_pack.canonical_json.v1"},
+    "status": {"enum": ["ok", "error"]},
+    "transition_id": {"$ref": "#/$defs/id"},
+    "session_id": {"$ref": "#/$defs/id"},
+    "run_id": {"$ref": "#/$defs/id"},
+    "request_sha256": {"$ref": "#/$defs/sha256"},
+    "capability_sha256": {"$ref": "#/$defs/sha256"},
+    "preflight_report_sha256": {"$ref": "#/$defs/sha256"},
+    "outputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/output"}},
+    "registry_requests": {"type": "array", "items": {"$ref": "#/$defs/registry_request"}},
+    "mutation_manifest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entries_sha256", "entry_count", "unexpected_entries"],
+      "properties": {
+        "entries_sha256": {"$ref": "#/$defs/sha256"},
+        "entry_count": {"type": "integer", "minimum": 0},
+        "unexpected_entries": {"const": 0}
+      }
+    },
+    "runtime_attestation": {"$ref": "#/$defs/runtime_attestation"},
+    "phase": {"enum": ["resolution", "preflight", "staging", "dispatch", "execution", "receipt", "audit", "publication", "reopen", "promotion", "replay"]},
+    "error_code": {
+      "enum": [
+        "OPERATION_PACK_REQUIRED", "OPERATION_PACK_INCOMPATIBLE",
+        "OPERATION_PACK_DEPENDENCY_MISSING", "OPERATION_PACK_DEPENDENCY_INCOMPATIBLE",
+        "OPERATION_PACK_PREFLIGHT_FAILED", "PYBENCH_CAPABILITY_MISMATCH",
+        "PYBENCH_STALE_STAGING_IDENTITY", "PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "PYBENCH_OUTPUT_INVALID", "PYBENCH_RECEIPT_MISMATCH",
+        "PYBENCH_OUT_OF_SCOPE_MUTATION", "PYBENCH_SOURCE_WRITE_ATTEMPT",
+        "PYBENCH_PROCESS_FAILED", "PYBENCH_PUBLICATION_FAILED",
+        "PYBENCH_REOPEN_VALIDATION_FAILED", "PYBENCH_PROMOTION_FAILED"
+      ]
+    },
+    "message": {"type": "string", "minLength": 1},
+    "retryable": {"type": "boolean"},
+    "runtime_attestation_status": {"enum": ["available", "not_established"]},
+    "receipt_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.transition_receipt.v2"},
+        "scope": {"const": "receipt excluding receipt_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "ok"}}, "required": ["status"]},
+      "then": {
+        "required": ["outputs", "registry_requests", "mutation_manifest", "runtime_attestation"],
+        "not": {"anyOf": [{"required": ["phase"]}, {"required": ["error_code"]}, {"required": ["message"]}, {"required": ["retryable"]}, {"required": ["runtime_attestation_status"]}]}
+      },
+      "else": {
+        "required": ["phase", "error_code", "message", "retryable", "runtime_attestation_status"],
+        "not": {"anyOf": [{"required": ["outputs"]}, {"required": ["registry_requests"]}, {"required": ["mutation_manifest"]}]}
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "error"}, "runtime_attestation_status": {"const": "available"}}, "required": ["status", "runtime_attestation_status"]},
+      "then": {"required": ["runtime_attestation"]}
+    },
+    {
+      "if": {"properties": {"status": {"const": "error"}, "runtime_attestation_status": {"const": "not_established"}}, "required": ["status", "runtime_attestation_status"]},
+      "then": {"not": {"required": ["runtime_attestation"]}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {"type": "string", "pattern": "^[A-Za-z][A-Za-z0-9._:-]*$"},
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "sha256"],
+      "properties": {"scheme": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "output": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "category", "kind", "allocated_id", "storage_profile", "status", "content_identity", "dimensions", "ancestry_sha256", "payload_manifest_sha256", "semantic_metadata_sha256"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "category": {"enum": ["materialization", "terminal_artifact"]},
+        "kind": {"enum": ["matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "feature_table", "obs_table", "model_ref", "relation_family", "path_2d_family", "space_path_family"]},
+        "allocated_id": {"$ref": "#/$defs/id"},
+        "storage_profile": {"enum": ["matrix_ordinary_v1", "matrix_backed_chunked_v1", "space_dense_v1", "space_file_backed_hdf5_v1", "space_2d_dense_v1", "model_ref_contained_tree_v1", "terminal_primitive_v1", "path_2d_family_v1", "space_path_family_v1"]},
+        "status": {"const": "staged"},
+        "content_identity": {"$ref": "#/$defs/identity"},
+        "dimensions": {"type": "array", "items": {"type": "integer", "minimum": 0}, "maxItems": 2},
+        "cell_order_sha256": {"$ref": "#/$defs/sha256"},
+        "feature_order_sha256": {"$ref": "#/$defs/sha256"},
+        "ancestry_sha256": {"$ref": "#/$defs/sha256"},
+        "model_linkage_sha256": {"$ref": "#/$defs/sha256"},
+        "payload_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "semantic_metadata_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "registry_request": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "kind", "allocated_id", "status", "request_identity", "membership_sha256", "cell_order_sha256"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "kind": {"const": "cell_set_admission"},
+        "allocated_id": {"$ref": "#/$defs/id"},
+        "status": {"const": "proposed"},
+        "request_identity": {"$ref": "#/$defs/identity"},
+        "membership_sha256": {"$ref": "#/$defs/sha256"},
+        "cell_order_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "runtime_attestation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "backend", "runtime_sha256", "pack_content_sha256", "operation_definition_sha256", "distribution_sha256", "manifest_source_sha256", "entry_point", "dependency_set_sha256"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.runtime.v2"},
+        "backend": {"enum": ["R", "Python"]},
+        "runtime_sha256": {"$ref": "#/$defs/sha256"},
+        "pack_content_sha256": {"$ref": "#/$defs/sha256"},
+        "operation_definition_sha256": {"$ref": "#/$defs/sha256"},
+        "distribution_sha256": {"$ref": "#/$defs/sha256"},
+        "manifest_source_sha256": {"$ref": "#/$defs/sha256"},
+        "entry_point": {"type": "string", "minLength": 1},
+        "dependency_set_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "examples": [
+    {
+      "schema": "scworkbench.operation_pack.transition_receipt.v2", "message_type": "receipt", "process_protocol_version": "pybench-op-v3", "pack_abi_version": "2", "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1", "status": "ok", "transition_id": "transition_pca_0001", "session_id": "session_0001", "run_id": "run_pca_0001", "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "capability_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "preflight_report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "outputs": [{"name": "space", "category": "materialization", "kind": "space", "allocated_id": "space_pca", "storage_profile": "space_file_backed_hdf5_v1", "status": "staged", "content_identity": {"scheme": "scworkbench.space.v1", "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}, "dimensions": [100, 20], "cell_order_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "ancestry_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "payload_manifest_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "semantic_metadata_sha256": "3333333333333333333333333333333333333333333333333333333333333333"}],
+      "registry_requests": [], "mutation_manifest": {"entries_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "entry_count": 1, "unexpected_entries": 0}, "runtime_attestation": {"schema": "scworkbench.operation_pack.runtime.v2", "backend": "R", "runtime_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "pack_content_sha256": "6666666666666666666666666666666666666666666666666666666666666666", "operation_definition_sha256": "7777777777777777777777777777777777777777777777777777777777777777", "distribution_sha256": "8888888888888888888888888888888888888888888888888888888888888888", "manifest_source_sha256": "9999999999999999999999999999999999999999999999999999999999999999", "entry_point": "scwbRepresentation::.run_pca_fit", "dependency_set_sha256": "1212121212121212121212121212121212121212121212121212121212121212"}, "receipt_identity": {"scheme": "scworkbench.operation_pack.transition_receipt.v2", "scope": "receipt excluding receipt_identity", "sha256": "1313131313131313131313131313131313131313131313131313131313131313"}
+    },
+    {
+      "schema": "scworkbench.operation_pack.transition_receipt.v2", "message_type": "receipt", "process_protocol_version": "pybench-op-v3", "pack_abi_version": "2", "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1", "status": "ok", "transition_id": "transition_scvi_0001", "session_id": "session_0001", "run_id": "run_scvi_0001", "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "capability_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "preflight_report_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "outputs": [{"name": "space", "category": "materialization", "kind": "space", "allocated_id": "space_scvi", "storage_profile": "space_file_backed_hdf5_v1", "status": "staged", "content_identity": {"scheme": "scworkbench.space.v1", "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}, "dimensions": [100, 20], "cell_order_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "ancestry_sha256": "1111111111111111111111111111111111111111111111111111111111111111", "payload_manifest_sha256": "2222222222222222222222222222222222222222222222222222222222222222", "semantic_metadata_sha256": "3333333333333333333333333333333333333333333333333333333333333333"}],
+      "registry_requests": [], "mutation_manifest": {"entries_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "entry_count": 1, "unexpected_entries": 0}, "runtime_attestation": {"schema": "scworkbench.operation_pack.runtime.v2", "backend": "Python", "runtime_sha256": "5555555555555555555555555555555555555555555555555555555555555555", "pack_content_sha256": "6666666666666666666666666666666666666666666666666666666666666666", "operation_definition_sha256": "7777777777777777777777777777777777777777777777777777777777777777", "distribution_sha256": "8888888888888888888888888888888888888888888888888888888888888888", "manifest_source_sha256": "9999999999999999999999999999999999999999999999999999999999999999", "entry_point": "scworkbench.operation_packs:scwblatent=scwblatent.pack:register", "dependency_set_sha256": "1212121212121212121212121212121212121212121212121212121212121212"}, "receipt_identity": {"scheme": "scworkbench.operation_pack.transition_receipt.v2", "scope": "receipt excluding receipt_identity", "sha256": "1313131313131313131313131313131313131313131313131313131313131313"}
+    }
+  ]
+}
