@@ -1,162 +1,235 @@
-# Operation-pack ABI v2 Forge handoff — Sable Amendment 02
+# Operation-pack ABI v2 Forge handoff — Meridian-9 Amendment 03
 
-READY FOR SABLE RE-AUDIT
+READY FOR MERIDIAN-9 RE-AUDIT
 
 Status: **PROPOSED, NON-RUNTIME PLANNING ARTIFACT**.
 
 ## Checkpoints and scope
 
 - Branch: `feat/operation-pack-abi-v2-spec-forge-20260914`
-- Amendment 02 parent: `a1e989b5fb155315918882f559b196b3358c9597`
-- Amendment 02 specification commit: `02a620a11f5bcdd2c80b48aa1054698b544ba95e`
-- Exact Phase 0 base: `368c864126b2e60880a81fab8dc0abbd34cf27a9`
+- Required parent: `385860ff591de57ef59939a3aa62d2b811201c2e`
+- Amendment 03 specification commit: `4e4e43b065a90d9b077292e7c4ca2f4113ddf3be`
+- Phase 0 base: `368c864126b2e60880a81fab8dc0abbd34cf27a9`
 - Quill specification: `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8`
 - Quill handoff: `8f73acebe833606e5d733988cb3d253720fcd333`
-- First Sable audit: `f05ce0923d2b9bfbd7cfd8447208a674fb21319a`
-- Focused Sable re-audit: `be23f800428dda93dbc0e4d6d963f8ee5f786e99`
+- Meridian-9 audited target: `385860ff591de57ef59939a3aa62d2b811201c2e`
 - The closure commit containing this handoff is reported externally because a
   commit cannot contain its own identity.
-- Remote action: none. Push, merge and tag are prohibited by the work order.
+- Remote action: none. Push, merge, tag and publication are prohibited.
 
-Amendment 02 changes the manifest schema, specification, state-machine note,
-conformance ledger and this handoff. The complete Phase 0-to-descendant diff
-remains inside the original eight-file planning allowlist. No implementation,
-live protocol, test, package metadata, operation, bundle, evidence, manuscript,
-container, SIF or release artifact changed.
+Amendment 03 changes the specification, state-machine note, v1-compatibility
+note, manifest schema annotations/examples/recipes, conformance ledger and this
+handoff. The complete Phase 0-to-descendant diff remains inside the original
+eight planning records. No implementation, live protocol, tests, package
+metadata, scientific operation, bundle, evidence, manuscript, container, SIF
+or release artifact changed.
 
-## Blocking correction closed
+## Normative admission closure
 
-Manifest inputs are now 11 closed discriminated branches. Primitive kind fixes
-its declaration alignment. Manifest outputs are now 15 closed discriminated
-branches. Category, primitive kind and storage profile jointly fix one legal
-shape; the three categories are disjoint, and branch-local
-`additionalProperties: false` rejects unknown fields before registration.
+The language-neutral semantic contract is
+`scworkbench.operation_pack.manifest_semantic_admission.v1`. Activation now has
+one mandatory order before any live handler, operation, alias or catalog row is
+installed:
 
-The mechanical equivalence projection is explicit:
+1. strict parse of original bytes, including duplicate-object-key rejection;
+2. native Draft 2020-12 outer-manifest validation;
+3. deterministic relational semantic admission;
+4. embedded parameter-schema dialect/meta-schema/profile validation;
+5. normalization and manifest/definition/pack identity computation;
+6. distribution, original-source and entry-point authentication;
+7. complete private candidate-catalog construction;
+8. one atomic candidate-catalog/handler publication.
 
-- Request input profile, reader and observed identity/value fields are
-  request-only and are projected out. Manifest and request then expose the same
-  11 `(kind, alignment)` tuples.
-- Request output writer, relative staging root, allocated ID, expected
-  dimensions/order, ancestry/linkage, semantic constraints and grant identity
-  are request-only and are projected out. Manifest and request then expose the
-  same 15 `(category, kind, storage_profile)` tuples. Each tuple maps to exactly
-  one sanctioned request writer.
-- Manifest names, requiredness, allocated-ID key, promotion group and applicable
-  declaration semantics remain identity-bearing definition fields rather than
-  tuple dimensions. They are admitted only on their applicable closed branch.
+Stages 1–7 cannot mutate live catalog state. A stage-8 failure restores the
+serialized handler, operation, alias and lookup-index preimages. Phase 2 must
+capture those identities before every injected failure and prove exact equality,
+absence of every candidate name/handler, unchanged old lookups, and no valid
+prefix registration from a multi-operation pack.
 
-Consequently, the three exact Sable probes now fail native Draft 2020-12
-validation before handler or catalog registration:
+The contract names 15 stable admission/pipeline error codes. The nine mandatory
+mutations use eight distinct deterministic codes because both qualified-name
+mutations correctly share
+`OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH`. Detection follows pipeline
+stage, manifest operation order and rule order; reported name sets are
+ASCII-byte sorted, never map-iteration ordered.
 
-1. `matrix` input with `alignment="none"`;
-2. `materialization + model_ref + terminal_primitive_v1`;
-3. `terminal_artifact + matrix + matrix_ordinary_v1`.
+## Relational rules
 
-Manifest negative recipes now include those probes, exhaustive invalid input
-and output tuple enumeration, and required-field removal for every branch.
-Fault rows F072–F078 bind the same seven cases to stable pre-registration,
-zero-residue outcomes.
+- `qualified_name` is exactly `manifest.namespace + "::" + operation.name`.
+  Short and qualified operation names are independently unique.
+- Input names, output names, allocation keys, dependency IDs and every other
+  identity-bearing name-keyed collection are unique in their scope. There is no
+  shared allocation exception.
+- Promotion-closure keys are terminal-output names, never group names. Every
+  terminal is exactly one key whose sorted member list is the complete set of
+  outputs in its `promotion_group`. Every group has a terminal witness;
+  materializations and registry requests are members, never keys. A
+  materialization's `materialized_by_terminals` is the exact sorted terminal set
+  for its group.
+- Replay keys are exactly the output-name set. Policy validity is closed by
+  category/kind: ordinary scientific values use `exact_canonical_value`, 2D
+  spaces may use `cell_aligned_embedding`, models use `loadable_reference`, and
+  cell-set admissions use `exact_membership_and_order`. `not_comparable` is
+  reserved but inadmissible for every current promotable v2 output.
+- Strict parsing and semantic admission reject raw or normalized duplicate
+  logical keys; invalid definitions never reach identity computation.
 
-## Counts and reconciliation
+The manifest now commits two positive examples: the retained one-operation
+`chromvar` example and a valid two-operation example with distinct names,
+inputs, outputs, allocation keys, promotion groups, replay maps and three total
+outputs. Both publish atomically in the temporary admission harness.
 
-- Manifest inputs: 11 legal tuples, 66 invalid closed-enum combinations.
-- Manifest outputs: 15 legal tuples, 345 invalid closed-enum combinations.
-- Required-field removals rejected: 44 input and 105 output cases.
-- Unknown-property probes rejected: all 11 input and all 15 output branches.
-- Positive schema examples: manifest 1, request 2, receipt 3 (6 total).
-- Negative schema recipes: manifest 12, request 15, receipt 8 (35 total;
-  24 concrete mutations and 11 exhaustive recipes).
-- Ledger: 60 unique operations, 78 unique faults, 6 dynamic-provider cases and
-  C01–C14. F001–F071 are field-for-field identical to Amendment 01; F072–F078
-  are the seven Amendment 02 additions. Classifications remain
+## Parameter-schema contract
+
+- Dialect: exact `https://json-schema.org/draft/2020-12/schema`.
+- Profile:
+  `scworkbench.operation_pack.params_schema.draft2020_12_closed_v1`.
+- An absent root `$schema` means that exact dialect, remains absent in canonical
+  identity bytes, and never invokes dialect guessing.
+- An explicit root `$schema` must equal the frozen URI.
+- Each object-root schema passes native Draft 2020-12 meta-validation, then a
+  recursive closed keyword profile. Nested boolean schemas are supported.
+- Only local `#/$defs/...` references are allowed. Remote refs, nested dialects,
+  unknown keywords, unsupported format/pattern engines, invalid defaults and
+  duplicate `required` names fail before identity computation.
+
+Python performed native Draft 2020-12 meta-validation and the closed-profile
+check. The independent R path parsed the identical manifest and applied the
+same frozen dialect/profile meta-rules to all three committed embedded schemas.
+No package installation or network access occurred.
+
+## Mandatory mutation disposition
+
+| Recipe | Stage | Stable result |
+|---|---|---|
+| `SEM-QUALIFIED-NAMESPACE-MISMATCH` | semantic admission | `OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH` |
+| `SEM-QUALIFIED-SUFFIX-MISMATCH` | semantic admission | `OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH` |
+| `SEM-DUPLICATE-OPERATION` | semantic admission | `OPERATION_PACK_MANIFEST_OPERATION_DUPLICATE` |
+| `SEM-DUPLICATE-INPUT` | semantic admission | `OPERATION_PACK_MANIFEST_INPUT_DUPLICATE` |
+| `SEM-DUPLICATE-OUTPUT` | semantic admission | `OPERATION_PACK_MANIFEST_OUTPUT_DUPLICATE` |
+| `SEM-DUPLICATE-ALLOCATED-ID-KEY` | semantic admission | `OPERATION_PACK_MANIFEST_ALLOCATION_KEY_DUPLICATE` |
+| `SEM-PROMOTION-GHOST` | semantic admission | `OPERATION_PACK_MANIFEST_PROMOTION_CLOSURE_INVALID` |
+| `SEM-REPLAY-GHOST` | semantic admission | `OPERATION_PACK_MANIFEST_REPLAY_EQUIVALENCE_INVALID` |
+| `SEM-PARAM-SCHEMA-INVALID` | parameter schema | `OPERATION_PACK_PARAM_SCHEMA_INVALID` |
+
+All nine outer-schema-valid mutations failed before candidate publication with
+zero simulated catalog/handler residue. F079–F087 and C15–C23 record these cases,
+their detector, code, phase and Phase 2 preimage assertions.
+
+## Counts and preserved contracts
+
+- Outer positive examples: manifest 2, request 2, receipt 3 (7 total).
+- Structural negative recipes: manifest 12, request 15, receipt 8 (35 total;
+  24 concrete and 11 exhaustive).
+- Semantic manifest recipes: 9/9 rejected.
+- Manifest/request tuple equality remains exact: 11 input and 15 output tuples.
+- Exhaustive invalid manifest tuples remain rejected: 66 input and 345 output.
+- Required-field removals remain rejected: 44 input and 105 output.
+- Ledger: 60 unique operations, 87 unique faults, 6 dynamic-provider cases and
+  23 semantic rules. F001–F078 and C01–C14 are field-identical to the required
+  parent; F079–F087 and C15–C23 are the only additions. Classifications remain
   42 / 11 / 1 / 1 / 4 / 1.
+- All prior Sable closures remain intact: dynamic `chromvar`, typed request and
+  receipt descriptors, scVI three-output closure, operation-owned dependencies,
+  tuple equivalence and correct focused-test names.
 
-The complete path count uses only semicolon-delimited non-empty values from the
-ledger's `positive_fixture`, `adversarial_fixture`, and `source_anchor` fields;
-every value beginning `future:` is excluded. The amended ledger contains 120
-unique counted paths, and all 120 resolve against the pinned scworkbench or
-Quill worktree.
+The complete ledger path rule splits the `positive_fixture`,
+`adversarial_fixture`, and `source_anchor` fields on semicolons, removes empty
+values and every value beginning `future:`, and deduplicates the rest. It yields
+120 unique paths; all 120 resolve against the pinned scworkbench or Quill
+worktree.
 
-## Identity disposition
+## Identity results
 
-The manifest example data is byte-semantically unchanged; only its registration
-schema and negative recipes changed. The request and receipt schema files are
-byte-identical to Amendment 01. Therefore no worked manifest definition or
-dependent identity changed. Both pinned canonicalizers independently
-recomputed all 30 request/receipt self-identities without mismatch, including:
-
-| Identity | SHA-256 |
-|---|---|
-| scvi transition | `7d6e84475b85cf91e7a4dee48fd458e685ae6ce3cf0a767e4bd5b36c07a2cf90` |
-| scvi capability | `6a6d11ca1663a0a1b1fc14bd284515498492506f1d51fb7bd47116ba4392112c` |
-| scvi request | `82fbd44723826be1749d837ff29a7c6f9e15b3d4d878357c9c5e960460865934` |
-| scvi success receipt | `2c4a2ecfd258de228b3ab63fc0bb6ae865906aaf7224426e08f96be45d91767c` |
-| scvi error receipt | `dacd86e9474b05c482a780bbeb2cb4ed48694ea11c73c6be6f9252183b45a82e` |
-| chromvar transition | `2a4675dde0fe265edaae65789446147a2d66e22dc142831f722d2fe216ef1489` |
-| chromvar capability | `8c696fe80ec094f0d4d24411d37f46a01d55884f7159a3032fc7237a300d4e87` |
-| chromvar request | `2b1f597614f59e082af94e4472bc6da2fd432e4da056c6b68a2f7fe7ad90f761` |
-| chromvar success receipt | `c9bf84f11ab81e26c5a791c5509ae7e7431b1eeff7e91673ef69b66b43eb62a8` |
-
-Proposed schema file digests are:
+The request and receipt schemas/examples are byte-identical to Amendment 02,
+and their 30 self-identities still recompute independently in Python and R. The
+existing `chromvar` manifest example is unchanged. Canonical fixture hashes for
+the two valid manifests and their definitions agree across languages:
 
 ```text
-e214e356c029ac42aab3be18af03078280267301a6cd5fec2336d9e96c9886f7  notes/operation_pack_abi_v2_manifest.schema.proposed.json
+921228acccc7d7e5cd851fbe24678c9a9698dad617cd9d865aa332f79f21f36a  manifest[0]
+5072fbdffb10673ee89e38c433ebb04d956d5930b56d11ddafc086cffdb6647e  manifest[0].chromvar
+348c724e1494ba31470145dd115879bc9ae13b1c2a82e7189d8e92099f816d83  manifest[1]
+22e2d011c8ae32a25f0f68a9d5cc0eac9872ff2b78bb40cee68845772bca8bdf  manifest[1].normalize
+d6953d8277da79b5c63d65d8406cc747e6a3c4bfbb793aa6d49169a2d14dbc9e  manifest[1].cluster
+```
+
+Proposed schema file digests:
+
+```text
+1d4858dfd5cbdfd681ecfe07e119cc8f652b10116a42a88ee6fa832ec760e481  notes/operation_pack_abi_v2_manifest.schema.proposed.json
 0a14ad57ed8c48c16e9300355c31f7f1dd8cd2e82cf3c1998975a1c12ac2b61d  notes/operation_pack_abi_v2_transition_request.schema.proposed.json
 8baba38a83eb3e5cc3ed0eb3628288a18deff7fc0f1b27e0c67fcb2686d228ad  notes/operation_pack_abi_v2_transition_receipt.schema.proposed.json
 ```
 
-## Validation record
+## Literal validation results
 
-Native validation used read-only
-`/home/dirk/Projects/pybench/.venv/bin/python` with Python 3.11.0rc1 and
-`jsonschema 4.26.0` `Draft202012Validator`; no Draft-7 projection, installation
-or network access was used.
+Native outer-schema and tuple validation:
 
 ```text
-PASS manifest: Draft2020 self-check positive=1 concrete_negative=8 exhaustive_recipes=4 total_negative=12
-PASS transition_request: Draft2020 self-check positive=2 concrete_negative=11 exhaustive_recipes=4 total_negative=15
-PASS transition_receipt: Draft2020 self-check positive=3 concrete_negative=5 exhaustive_recipes=3 total_negative=8
-PASS tuple equivalence: manifest_input(kind,alignment)=request_projection count=11
-PASS tuple equivalence: manifest_output(category,kind,profile)=request_projection(writer removed) count=15 unique_writer_per_tuple=1
-PASS manifest input: legal=11 invalid_exhaustive=66 required_field_removals=44 unknown_property_branches=11
-PASS manifest output: legal=15 invalid_exhaustive=345 required_field_removals=105 unknown_property_branches=15
-PASS exact Sable rejection: MAN-MATRIX-ALIGNMENT-NONE
-PASS exact Sable rejection: MAN-MATERIALIZATION-MODEL-TERMINAL-PROFILE
-PASS exact Sable rejection: MAN-TERMINAL-MATRIX-ORDINARY
-PASS ledger: operations=60 faults=78 prior_faults_F001-F071_exact=71 new_faults_F072-F078=7 dynamic_provider=6 semantic_rules_C01-C14=14
-PASS complete ledger path accounting: fields=positive_fixture,adversarial_fixture,source_anchor exclusion=empty_or_future unique=120 resolved=120 missing=0
-PASS worked manifest example content unchanged; no definition/identity chain change
-PASS pinned-PyBench canonical self-identities: verified=30
-PASS R canonical self-identities: verified=30
-PASS scvi_train closure: requested=3 granted=3 returned=3 extras=0
-PASS all six chromvar dynamic-provider cases; failure_dispatches=0
+PASS outer manifest: Draft2020 positive=2 concrete_negative=8 exhaustive_recipes=4
+PASS outer transition_request: Draft2020 positive=2 concrete_negative=11 exhaustive_recipes=4
+PASS outer transition_receipt: Draft2020 positive=3 concrete_negative=5 exhaustive_recipes=3
+PASS tuple equality: manifest/request input=11 output=15 projections exact
+PASS manifest input: legal=11 invalid=66 missing_required=44 unknown_branch=11
+PASS manifest output: legal=15 invalid=345 missing_required=105 unknown_branch=15
 ```
 
-The exact focused R invocation was:
+Temporary untracked Python admission harness:
 
-```r
-devtools::load_all('.', quiet=TRUE)
-source('tests/test_operation_pack_canonical_identity_contract.R', local=.GlobalEnv)
-stopifnot(isTRUE(test_operation_pack_canonical_json_v1_contract()))
-source('tests/test_op_catalog_semantic_contract.R', local=.GlobalEnv)
-stopifnot(isTRUE(test_op_catalog_semantic_contract()))
+```sh
+PYTHONPATH=/home/dirk/Projects/.pybench-worktrees/operation-pack-abi-v2-python-spec-quill-20260914/src \
+  /home/dirk/Projects/pybench/.venv/bin/python \
+  /tmp/forge_operation_pack_abi_v2_amendment03_validate.py \
+  /home/dirk/Projects/.scworkbench-worktrees/operation-pack-abi-v2-spec-forge-20260914
 ```
 
 Result:
+
+```text
+PASS positive manifest 0: operations=1 outputs=1 atomic_publish=1
+PASS positive manifest 1: operations=2 outputs=3 atomic_publish=1
+PASS semantic rejection SEM-QUALIFIED-NAMESPACE-MISMATCH: stage=semantic_admission code=OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-QUALIFIED-SUFFIX-MISMATCH: stage=semantic_admission code=OPERATION_PACK_MANIFEST_QUALIFIED_NAME_MISMATCH catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-DUPLICATE-OPERATION: stage=semantic_admission code=OPERATION_PACK_MANIFEST_OPERATION_DUPLICATE catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-DUPLICATE-INPUT: stage=semantic_admission code=OPERATION_PACK_MANIFEST_INPUT_DUPLICATE catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-DUPLICATE-OUTPUT: stage=semantic_admission code=OPERATION_PACK_MANIFEST_OUTPUT_DUPLICATE catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-DUPLICATE-ALLOCATED-ID-KEY: stage=semantic_admission code=OPERATION_PACK_MANIFEST_ALLOCATION_KEY_DUPLICATE catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-PROMOTION-GHOST: stage=semantic_admission code=OPERATION_PACK_MANIFEST_PROMOTION_CLOSURE_INVALID catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-REPLAY-GHOST: stage=semantic_admission code=OPERATION_PACK_MANIFEST_REPLAY_EQUIVALENCE_INVALID catalog_residue=0 handler_residue=0
+PASS semantic rejection SEM-PARAM-SCHEMA-INVALID: stage=parameter_schema code=OPERATION_PACK_PARAM_SCHEMA_INVALID catalog_residue=0 handler_residue=0
+PASS parameter-schema rejection: OPERATION_PACK_PARAM_SCHEMA_DIALECT_UNSUPPORTED
+PASS parameter-schema rejection: OPERATION_PACK_PARAM_SCHEMA_PROFILE_UNSUPPORTED
+PASS normative semantic admission harness: contract=scworkbench.operation_pack.manifest_semantic_admission.v1 profile=scworkbench.operation_pack.params_schema.draft2020_12_closed_v1 invalid=9 residue=0
+```
+
+R parameter-profile command and result:
+
+```sh
+Rscript /tmp/forge_operation_pack_abi_v2_amendment03_params.R \
+  /home/dirk/Projects/.scworkbench-worktrees/operation-pack-abi-v2-spec-forge-20260914
+```
+
+```text
+PASS R frozen parameter-schema dialect/profile meta-validation: examples=3 explicit_dialect=1 absent_dialect=2
+PASS R invalid embedded parameter schema rejection: OPERATION_PACK_PARAM_SCHEMA_INVALID
+```
+
+The actual focused R contracts passed:
 
 ```text
 PASS tests/test_operation_pack_canonical_identity_contract.R::test_operation_pack_canonical_json_v1_contract
 PASS tests/test_op_catalog_semantic_contract.R::test_op_catalog_semantic_contract
 ```
 
-Accepted live v1 protocol files remain byte-identical to Quill:
+V1 floor inspection confirmed namespace, operation/input uniqueness, promotable
+membership, replay coverage and private registration. Accepted live protocol
+bytes remain unchanged and byte-identical to Quill:
 
 ```text
 39112be67f3d022725d8dc57a569d7bfd94ea0242f1421be4d2d479be56795bb  inst/protocol/operation-pack-v1.schema.json
 7fa992ab7dcb8b07f9d75621b4a5eb27cd29c21edac33ad962e6c1393999361e  inst/protocol/operation-pack-canonical-json-v1.md
 d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b  inst/protocol/pybench-op-v2.schema.json
-PASS v1 protocol bytes: 3/3 unchanged and cross-repository byte-identical
 ```
 
 Final `git diff --check`, eight-file maximum allowlist and clean-worktree checks
@@ -164,6 +237,7 @@ passed on the closure commit.
 
 ## Routing
 
-Return this narrow planning descendant to Sable only. Meridian-9 review,
-implementation, live activation, operation migration, pack repositories and
-runtime qualification remain unauthorized until Sable accepts.
+Return this descendant directly to Meridian-9 for focused re-audit. Phase 2,
+implementation, operation migration, pack repositories and runtime
+qualification remain unauthorized until the complete Phase 1 specification is
+accepted.
