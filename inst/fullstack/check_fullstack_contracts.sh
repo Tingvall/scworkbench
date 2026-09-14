@@ -58,7 +58,20 @@ case "$GOLDEN_IDENTITY" in
 esac
 export PYBENCH_GOLDEN_BUNDLE_SHA256="${GOLDEN_IDENTITY#*:}"
 export PYBENCH_SCWORKBENCH_SOURCE_DIR="$(realpath -e "$SCWORKBENCH_ROOT")"
-export PYBENCH_SCWORKBENCH_PROTOCOL_DIR="$PYBENCH_SCWORKBENCH_SOURCE_DIR/inst/protocol"
+SCWORKBENCH_SHARED_PROTOCOL_DIR="$FULLSTACK_TMP/scworkbench_shared_protocol"
+mkdir -p "$SCWORKBENCH_SHARED_PROTOCOL_DIR"
+while IFS= read -r relative
+do
+  source_path="$PYBENCH_SCWORKBENCH_SOURCE_DIR/inst/protocol/$relative"
+  pybench_path="$PYBENCH_ROOT/protocol/$relative"
+  if [[ ! -f "$source_path" ]] || ! cmp -s "$source_path" "$pybench_path"; then
+    echo "Shared protocol file is absent or differs: $relative" >&2
+    exit 1
+  fi
+  mkdir -p "$SCWORKBENCH_SHARED_PROTOCOL_DIR/$(dirname "$relative")"
+  cp -- "$source_path" "$SCWORKBENCH_SHARED_PROTOCOL_DIR/$relative"
+done < <(cd "$PYBENCH_ROOT/protocol" && find . -type f -printf '%P\n' | LC_ALL=C sort)
+export PYBENCH_SCWORKBENCH_PROTOCOL_DIR="$SCWORKBENCH_SHARED_PROTOCOL_DIR"
 
 echo "[fullstack] scworkbench KG JSONL export"
 KG_EXPORT_DIR="$(mktemp -d /tmp/scwb_kg_export.XXXXXX)"
