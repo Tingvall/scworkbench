@@ -12,7 +12,10 @@ Status: **PROPOSED, NON-RUNTIME PLANNING ARTIFACT**.
 - Exact PyBench base: `d2e0587950973cf7eeacfc46b2829397cf84f079`
 - Quill specification commit: `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8`
 - Quill handoff commit: `8f73acebe833606e5d733988cb3d253720fcd333`
-- Forge final commit: `FINAL_COMMIT_TO_BE_RECORDED_AFTER_COMMIT`
+- Forge specification commit: `e71c3108d66be0caf79613aae0abecf1a094a019`
+- Forge handoff closure: the commit containing this record; its SHA is reported
+  in the external completion message because a commit cannot contain its own
+  identity.
 - Remote action: none; the work order prohibits push, merge, and tag actions.
 
 Only the eight authorized `notes/` records are changed. No R, Python, live
@@ -218,9 +221,10 @@ Accepted live-protocol digests remained:
 d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b  inst/protocol/pybench-op-v2.schema.json
 ```
 
-Each is byte-identical to its pinned PyBench counterpart. The final changed-file
-allowlist, `git diff --check`, final commit containment, and clean-worktree check
-are recorded after the final commit below.
+Each is byte-identical to its pinned PyBench counterpart. The staged closure
+tree passed the exact eight-file allowlist and `git diff --cached --check`.
+Final commit containment and clean-worktree results are reported with the
+containing commit identity.
 
 ## Sable audit focus
 
