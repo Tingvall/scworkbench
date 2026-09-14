@@ -39,4 +39,3 @@ and mutation evidence, removes private inputs, and publishes the whole closed
 output set by atomic directory rename. Interrupted or rejected generations are
 removed or deterministically recovered; a completed transition ID is never
 replayed by starting a fresh Python process.
-
