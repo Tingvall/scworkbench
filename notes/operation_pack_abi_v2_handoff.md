@@ -1,28 +1,24 @@
-# Operation-pack ABI v2 Forge handoff
+# Operation-pack ABI v2 Forge handoff — Sable Amendment 01
 
-READY FOR SABLE AUDIT
+READY FOR SABLE RE-AUDIT
 
 Status: **PROPOSED, NON-RUNTIME PLANNING ARTIFACT**.
 
-## Checkpoints
+## Checkpoints and scope
 
 - Branch: `feat/operation-pack-abi-v2-spec-forge-20260914`
-- Worktree: `/home/dirk/Projects/.scworkbench-worktrees/operation-pack-abi-v2-spec-forge-20260914`
-- Exact scworkbench base: `368c864126b2e60880a81fab8dc0abbd34cf27a9`
-- Exact PyBench base: `d2e0587950973cf7eeacfc46b2829397cf84f079`
-- Quill specification commit: `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8`
-- Quill handoff commit: `8f73acebe833606e5d733988cb3d253720fcd333`
-- Forge specification commit: `e71c3108d66be0caf79613aae0abecf1a094a019`
-- Forge handoff closure: the commit containing this record; its SHA is reported
-  in the external completion message because a commit cannot contain its own
-  identity.
-- Remote action: none; the work order prohibits push, merge, and tag actions.
+- Rejected parent: `1765efef290968a1aaf53e821ce09514471ecd5f`
+- Accepted Phase 0 base: `368c864126b2e60880a81fab8dc0abbd34cf27a9`
+- Amendment specification commit: `d4ea4bc8819fbb707f83bec780c0626308c40c03`
+- Quill specification: `eb5334a7bec73490ccfbf106f83ba91b1ab39fb8`
+- Quill handoff: `8f73acebe833606e5d733988cb3d253720fcd333`
+- Sable audit: `f05ce0923d2b9bfbd7cfd8447208a674fb21319a`
+- This handoff's closure commit is reported externally because a commit cannot
+  contain its own identity.
+- Remote action: none. The work order prohibits push, merge and tag actions.
 
-Only the eight authorized `notes/` records are changed. No R, Python, live
-protocol, test, metadata, generated-document, bundle, evidence, manuscript,
-container, SIF, or operation implementation changed.
-
-## Delivered records
+The diff from the Phase 0 base remains exactly the authorized eight planning
+records:
 
 1. `notes/operation_pack_abi_v2_specification.md`
 2. `notes/operation_pack_abi_v2_manifest.schema.proposed.json`
@@ -33,203 +29,175 @@ container, SIF, or operation implementation changed.
 7. `notes/operation_pack_abi_v2_conformance_matrix.csv`
 8. `notes/operation_pack_abi_v2_handoff.md`
 
-Every record identifies Quill specification
-`eb5334a7bec73490ccfbf106f83ba91b1ab39fb8` and handoff
-`8f73acebe833606e5d733988cb3d253720fcd333`.
+No R/Python implementation, live protocol, test, package metadata, scientific
+operation, bundle, evidence, manuscript, container or SIF changed.
 
-## Resolved decisions
+## Sable findings closed
 
-- Manifest is `scworkbench.operation_pack.v2` with string
-  `pack_abi_version="2"`; v2 negotiation is the exact closed ABI interval 2..2.
-  Python uses exact process transport `pybench-op-v3`. Scientific-state version
-  remains an independent core-owned scheme/digest.
-- Definition and pack identities reuse the byte-exact language-neutral
-  `scworkbench.operation_pack.canonical_json.v1` algorithm. Original installed
-  Python manifest bytes and normalized content are independently authenticated.
-- Output categories are `materialization`, `terminal_artifact`, and
-  `core_registry_request`. Core preallocates all IDs and publishes all members
-  of a promotion group atomically.
-- Typed read/write grants and profiles are frozen for ordinary/backed matrices,
-  dense/file-backed spaces, 2D spaces, contained models, existing terminal
-  primitives, both path families, and cell-set admission.
-- Path families have explicit `write_path_2d_family` and
-  `write_space_path_family` writers. No primitive kind is pack-extensible.
-- Request/receipt schemas bind content, row order/alignment, dimensions,
-  ancestry, model linkage, payload containment, semantic metadata, mutation,
-  preflight, runtime, request, capability, and receipt identities.
-- The state machine specifies prepare, preflight, stage, dispatch, receipt,
-  independent audit, publication, fresh reopen, rollback, interrupted recovery,
-  and later promotion. Every failure has a zero-committed-residue law.
-- R/Python runners use the same logical request/receipt fields and semantics;
-  only genuine backend/software attestation values differ.
-- Dependencies are operation-scoped. R, PEP 440, and system version schemes are
-  explicit; optional selectors are explicit; probes are core-allowlisted,
-  read-only and no-network.
-- Finalized output inspection is pack-free. Replay requires the exact compatible
-  recorded pack. V1 packs coexist on a separate activation path and all retained
-  v1/core identities and history remain immutable.
-- `cell_vector_assoc` and `cell_vector_association` remain distinct definitions,
-  not aliases.
+1. The manifest now has one closed, language-neutral
+   `dynamic_input_metadata_package` dependency. Core binds the operation input,
+   retained input identity, metadata field/value, ecosystem, syntax, allowlisted
+   probe, required disposition, installed name/version/artifact and probe
+   evidence into request, selected requirements, preflight, capability, runtime
+   and receipt identities. It rereads the retained field immediately before
+   dispatch. Missing, empty, malformed, unavailable and changed values fail
+   offline before analytical execution. `chromvar` restores
+   `dynamic_R_runtime_packages` and all four accepted anchors. hg19/mm10 1.4.3
+   remain observations, not an allowlist, default or minimum.
+2. Request inputs, output grants and receipt outputs are closed type-specific
+   descriptor branches. Legal kind/profile/reader-or-writer pairs and applicable
+   dimensions, alignment, cell/feature/row order, ancestry, model linkage,
+   containment and semantic constraints are inside the canonical wire objects.
+   Capability authentication binds pack, distribution, original manifest source,
+   definition, entry point and every named reader/writer grant. C01–C14 enumerate
+   all additional cross-field identity checks with one fault row each.
+3. The Python `scvi_train` request, capability and successful receipt contain
+   exactly `space`, `model` and `fit_summary`; the error receipt has no output or
+   mutation claims. All self-identities were recomputed from canonical bytes.
+   The R `chromvar` fixture is explicitly backend-specific; no cross-backend
+   receipt-identity equality is claimed.
+4. Dependencies have one owner: each operation's complete declaration. The root
+   dependency array was removed. Identical duplicates are structurally rejected;
+   conflicting IDs, undeclared selected requirements and ambient augmentation
+   are normative C09/C14 failures.
+5. The validation record names and invokes the actual canonical identity test,
+   separately from the catalog semantic test.
 
-No accepted ABI design decision remains unresolved. Per-operation dependency
-minimums and executable migration evidence are Phase 2 shipping gates, not
-holes in this language-neutral contract.
+## Schema and reconciliation counts
 
-## Catalog reconciliation
+- Positive schema examples: manifest 1, request 2, receipt 3 (6 total).
+- Negative schema recipes: manifest 5, request 15, receipt 8 (28 total).
+- Closed descriptor branches: input 11 (13 valid profile tuples), request output
+  15, receipt output 14.
+- Exhaustive invalid tuples rejected: input 680, request output 2,865, receipt
+  output 1,372.
+- Missing branch-required fields rejected: input 119, request output 181,
+  receipt output 213.
+- Ledger: 60 unique operation rows, 71 unique fault rows, 6 dynamic-provider
+  cases and 14 semantic-rule rows. Original F001–F050 are field-for-field
+  identical to the rejected parent; F051–F071 are Sable Amendment 01 additions.
+- Operation classifications remain 42 / 11 / 1 / 1 / 4 / 1:
+  `v1_ready_with_packaging_work`, `requires_v2_atomic_multi_output`,
+  `requires_v2_materialization`, `requires_core_capability`, `core_only`, and
+  `conformance_only` respectively.
 
-`operation_pack_abi_v2_conformance_matrix.csv` contains one metadata row, every
-accepted operation exactly once (60 unique rows), and all 50 Quill adversarial
-faults exactly once.
+The `chromvar` operation row includes its twelve fixed R-package observations,
+the open-ended dynamic provider contract, and `R/op_chromvar.R`, `DESCRIPTION`,
+`containers/apptainer/fullstack_r_dependencies.dcf`, and
+`containers/apptainer/fullstack_r_versions.lock.csv` in addition to its normal
+core anchors.
 
-| Classification | Count | Disposition |
-|---|---:|---|
-| `v1_ready_with_packaging_work` | 42 | v1 shape is adequate; packaging, preflight and equivalence remain required |
-| `requires_v2_atomic_multi_output` | 11 | closed atomic transition capability specified |
-| `requires_v2_materialization` | 1 | `umap_transform`; sanctioned 2D-space writer/publication specified |
-| `requires_core_capability` | 1 | `winner_cell_sets`; cell-set admission request specified |
-| `core_only` | 4 | retained core identity; no migration |
-| `conformance_only` | 1 | `py_protocol_hello`; protocol fixture only |
+## Computed worked identities
 
-All output kinds and all three output categories occur in the matrix. The sole
-Phase 0 `fixture_gap`, `knn_pseudobulk`, is explicitly migration-blocked until
-its old-core/new-pack fixture is added; it does not leave an ABI decision open.
+All 30 nested/top-level self-identities in the two requests and three receipts
+were independently recomputed by pinned PyBench and scworkbench canonical JSON
+v1 implementations.
 
-## Exact source evidence inspected
+| Fixture identity | SHA-256 |
+|---|---|
+| scvi transition | `7d6e84475b85cf91e7a4dee48fd458e685ae6ce3cf0a767e4bd5b36c07a2cf90` |
+| scvi capability | `6a6d11ca1663a0a1b1fc14bd284515498492506f1d51fb7bd47116ba4392112c` |
+| scvi request | `82fbd44723826be1749d837ff29a7c6f9e15b3d4d878357c9c5e960460865934` |
+| scvi matrix input descriptor | `4b287bcd40b986eaf56b140b0e9c5d99c95f0082969f6a68ab7f9aae0e2b8af8` |
+| scvi space grant | `262af4e44f835b3688312ca60eea8c6325a3911b018b81fba770a56f2f4c6162` |
+| scvi model grant | `ed00d69110cb798ec4d2b5ee60c4edc3b10c54c9d11c6fdadd63d68d6f984e0c` |
+| scvi fit-summary grant | `a5a5ce9dd403643219de064302c7a00517d25fb50ab89cf16303085b47648fc2` |
+| scvi success receipt | `2c4a2ecfd258de228b3ab63fc0bb6ae865906aaf7224426e08f96be45d91767c` |
+| scvi error receipt | `dacd86e9474b05c482a780bbeb2cb4ed48694ea11c73c6be6f9252183b45a82e` |
+| chromvar transition | `2a4675dde0fe265edaae65789446147a2d66e22dc142831f722d2fe216ef1489` |
+| chromvar capability | `8c696fe80ec094f0d4d24411d37f46a01d55884f7159a3032fc7237a300d4e87` |
+| chromvar request | `2b1f597614f59e082af94e4472bc6da2fd432e4da056c6b68a2f7fe7ad90f761` |
+| chromvar dynamic resolution | `8f98ac1a30f79bea6e9848ef6c6515a5aab8aa8c233e57478cbad3584f3d82cd` |
+| chromvar success receipt | `c9bf84f11ab81e26c5a791c5509ae7e7431b1eeff7e91673ef69b66b43eb62a8` |
 
-Scworkbench at `368c864126b2e60880a81fab8dc0abbd34cf27a9`:
+## Literal validation record
 
-- `inst/protocol/operation-pack-v1.schema.json`
-- `inst/protocol/operation-pack-canonical-json-v1.md`
-- `inst/protocol/pybench-op-v2.schema.json`
-- `R/operation_packs.R`
-- `R/operation_pack_python.R`
-- `R/op_python_bridge.R`
-- `R/pybench_transition.R`
-- `R/session_staging.R`
-- `R/session_promote.R`
-- `R/op_catalog.R`
-- `R/op_scvi.R`
-- `R/op_peakvi.R`
-- `R/op_model_bound_latent_union.R`
-- `R/op_palantir.R`
-- `R/ops_slingshot.R`
-- `R/op_monocle3.R`
-- `R/op_space_path.R`
-- `R/promote_primitives.R`
-- `notes/core_to_packs_phase0_abi_v2_requirements.md`
-- `notes/core_to_packs_phase0_abi_gap_matrix.csv`
-- `notes/core_to_packs_phase0_operation_baseline.json`
-- `notes/core_to_packs_phase0_pack_dependencies.csv`
-- `notes/core_to_packs_phase0_migration_fixture_matrix.csv`
-- `notes/core_to_packs_phase0_compatibility_policy.md`
-- `notes/core_to_packs_phase0_historical_compatibility.csv`
+Pinned validator:
+`/home/dirk/Projects/pybench/.venv/bin/python`, Python 3.11.0rc1,
+`jsonschema 4.26.0`, native `Draft202012Validator`. No Draft-7 projection,
+installation or network access was used.
 
-PyBench at the Quill worktree (base
-`d2e0587950973cf7eeacfc46b2829397cf84f079`, planning commits above):
-
-- `protocol/operation-pack-v1.schema.json`
-- `protocol/operation-pack-canonical-json-v1.md`
-- `protocol/pybench-op-v2.schema.json`
-- `src/pybench/protocol.py`
-- `src/pybench/capability.py`
-- `src/pybench/bundle.py`
-- `src/pybench/operation_packs.py`
-- `src/pybench/artifacts_payload.py`
-- `src/pybench/spaces_write.py`
-- `tests/test_operation_packs.py`
-- `tests/test_capability_v2.py`
-- `tests/test_spaces_write_hdf5.py`
-- `notes/operation_pack_abi_v2_python_parity_spec.md`
-- `notes/operation_pack_abi_v2_python_request_receipt_model.json`
-- `notes/operation_pack_abi_v2_python_fault_matrix.csv`
-- `notes/operation_pack_abi_v2_python_handoff.md`
-
-Controller records inspected:
-
-- `/home/dirk/Projects/lymphocyte_trajectory/coordination/controller_notes/2026-09-14_core_to_packs_phase1_authorization.md`
-- `/home/dirk/Projects/lymphocyte_trajectory/coordination/plans/scworkbench_core_to_packs_roadmap_20260912.md`
-- `/home/dirk/Projects/lymphocyte_trajectory/coordination/requests/2026-09-14_forge_operation_pack_abi_v2_canonical_specification.md`
-
-## Validation results
-
-### JSON parsing and schemas
-
-Python `json` parsed all three schemas. Installed `jsonschema 3.2.0` does not
-provide a Draft 2020-12 validator, so the validation command made an in-memory
-Draft-7-compatible projection (`$defs` to `definitions`) without changing the
-files, checked every schema, validated one request and two receipt examples,
-and proved an unknown root field is rejected:
+Python `json` plus `Draft202012Validator.check_schema` and example validation:
 
 ```text
-PASS notes/operation_pack_abi_v2_manifest.schema.proposed.json schema+examples+closed-root
-PASS notes/operation_pack_abi_v2_transition_receipt.schema.proposed.json schema+examples+closed-root
-PASS notes/operation_pack_abi_v2_transition_request.schema.proposed.json schema+examples+closed-root
+PASS manifest: Draft2020 self-check; positive=1; concrete_negative=5; exhaustive_recipes=0
+PASS transition_request: Draft2020 self-check; positive=2; concrete_negative=11; exhaustive_recipes=4
+PASS transition_receipt: Draft2020 self-check; positive=3; concrete_negative=5; exhaustive_recipes=3
+PASS manifest: R selector rejects Python name/probe pairing
+PASS transition_request: R selector rejects Python name/probe pairing
+PASS transition_receipt: R selector rejects Python name/probe pairing
 ```
 
-Synthetic schema instances also passed R/Python manifest negotiation and
-dependency-scheme enforcement, path-free typed cell-set admission, and
-success/error receipt exclusivity. Negative variants were rejected as expected.
-
-R `jsonlite` provided the independent parser path:
+Exhaustive closed-branch probes:
 
 ```text
-PASS R jsonlite parse notes/operation_pack_abi_v2_manifest.schema.proposed.json
-PASS R jsonlite parse notes/operation_pack_abi_v2_transition_receipt.schema.proposed.json
-PASS R jsonlite parse notes/operation_pack_abi_v2_transition_request.schema.proposed.json
+PASS output_descriptor: allowed=15; all_invalid_cross_products_rejected=2865; all_missing_required_bindings_rejected=181; branches=15
+PASS input_descriptor: allowed=13; all_invalid_cross_products_rejected=680; all_missing_required_bindings_rejected=119; branches=11
+PASS observed_output_descriptor: allowed=14; all_invalid_cross_products_rejected=1372; all_missing_required_bindings_rejected=213; branches=14
 ```
 
-The installed R `jsonvalidate` front end could not be used because its installed
-V8 shared object requires unavailable `libnode.so.72`; no package installation
-or network access was attempted.
-
-### Cross-language deterministic identity
-
-The pinned R canonicalizer and pinned PyBench canonicalizer independently
-canonicalized two differently ordered/spelled objects to identical bytes and
-SHA-256:
+Dynamic dependency, dependency ownership and cross-field example checks:
 
 ```text
-{"a":{"x":"µ","y":true},"n":1e0,"z":[3e0,2e0,1e0]}
-1719c4112ba264823be791e969e3ff55f8c0da8b39195d88b2689d508727d2a5
+PASS dynamic provider cases: available=success; unavailable=OPERATION_PACK_DEPENDENCY_MISSING; missing=OPERATION_PACK_DYNAMIC_PROVIDER_INVALID; empty=OPERATION_PACK_DYNAMIC_PROVIDER_INVALID; malformed=OPERATION_PACK_DYNAMIC_PROVIDER_INVALID; changed=OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED; failure_dispatches=0
+PASS dependency ownership conflicting_duplicate: duplicate_or_conflicting_declaration
+PASS dependency ownership undeclared_selected: undeclared_or_missing_requirement
+PASS dependency ownership missing_selected: undeclared_or_missing_requirement
+PASS dependency ownership valid exact operation-level set; pack/ambient augmentation forbidden
+PASS cross-field examples: authentication, capability grant closure, exact receipt closure, runtime attestation
+PASS error receipt closure: outputs=0; mutation_claims=0
+PASS scvi_train closure: requested=3 granted=3 returned=3 extras=0 names=fit_summary,model,space
 ```
 
-### Reconciliation and receipt parity
+Independent identity and parser checks:
 
 ```text
-PASS matrix reconciliation metadata=1 operations=60 faults=50 unique
-PASS classification counts: 42 / 11 / 1 / 1 / 4 / 1
-PASS output coverage: 12 kinds including cell_set_admission; 3 categories
-PASS pinned source/fixture path existence matrix_paths=113
-PASS worked R/Python receipt field parity leaf_fields=40
+PASS Python canonical self-identities: verified=30
+PASS R canonical self-identities: verified=30
+PASS R JSON parse: notes/operation_pack_abi_v2_manifest.schema.proposed.json
+PASS R JSON parse: notes/operation_pack_abi_v2_transition_request.schema.proposed.json
+PASS R JSON parse: notes/operation_pack_abi_v2_transition_receipt.schema.proposed.json
 ```
 
-The two worked receipts have identical leaf-field sets. Only transition/run and
-allocated-output IDs plus backend/entry-point attestation values differ.
-
-### Focused accepted v1 checks
+Reconciliation and path checks:
 
 ```text
-PASS test_operation_pack_canonical_json_v1_contract
-PASS test_op_catalog_semantic_contract
+PASS conformance ledger: operations=60; conformance_only=1, core_only=4, requires_core_capability=1, requires_v2_atomic_multi_output=11, requires_v2_materialization=1, v1_ready_with_packaging_work=42
+PASS conformance ledger: original_Quill_faults=50 field-for-field preserved; amendment_faults=21; total_faults=71; dynamic_provider_cases=6; semantic_rules=14
+PASS cited path resolution: unique_local_paths=71; missing=0
 ```
 
-Accepted live-protocol digests remained:
+Actual focused R command:
+
+```r
+devtools::load_all('.', quiet=TRUE)
+source('tests/test_operation_pack_canonical_identity_contract.R', local=.GlobalEnv)
+stopifnot(isTRUE(test_operation_pack_canonical_json_v1_contract()))
+source('tests/test_op_catalog_semantic_contract.R', local=.GlobalEnv)
+stopifnot(isTRUE(test_op_catalog_semantic_contract()))
+```
+
+Result:
+
+```text
+PASS tests/test_operation_pack_canonical_identity_contract.R::test_operation_pack_canonical_json_v1_contract
+PASS tests/test_op_catalog_semantic_contract.R::test_op_catalog_semantic_contract
+```
+
+Accepted live v1 protocol bytes remain unchanged and byte-identical to Quill:
 
 ```text
 39112be67f3d022725d8dc57a569d7bfd94ea0242f1421be4d2d479be56795bb  inst/protocol/operation-pack-v1.schema.json
 7fa992ab7dcb8b07f9d75621b4a5eb27cd29c21edac33ad962e6c1393999361e  inst/protocol/operation-pack-canonical-json-v1.md
 d5e80b58e4f18b37d0e906e7dac127fd17fbb88ea56dd83926406691303b655b  inst/protocol/pybench-op-v2.schema.json
+PASS v1 protocol bytes: 3/3 unchanged and cross-repository byte-identical
 ```
 
-Each is byte-identical to its pinned PyBench counterpart. The staged closure
-tree passed the exact eight-file allowlist and `git diff --cached --check`.
-Final commit containment and clean-worktree results are reported with the
-containing commit identity.
+Final closure also passed `git diff --check`, the exact eight-file allowlist
+from Phase 0, and clean-worktree verification after the containing commit.
 
-## Sable audit focus
+## Re-audit boundary
 
-Audit the proposed names and closed schemas, the three independent version
-domains, output-category/profile pairing, recovery completeness, v1 historical
-non-substitution, the `umap_transform` classification, and the 60+50 ledger.
-Implementation, migration, pack repositories, SIF work, and scientific evidence
-remain out of scope.
+Sable should re-audit only these planning records against findings 1–5.
+Implementation, live protocol activation, operation migration, pack creation,
+scientific qualification and Meridian-9 review remain later authorized phases.
