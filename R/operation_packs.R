@@ -986,24 +986,37 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
   } else NULL
   input <- .wb_operation_pack_manifest_input_any(manifest)
   if (identical(as.character(input$schema_version %||% "")[1], "scworkbench.operation_pack.v2")) {
-    .wb_operation_pack_assert(is.null(runtime_identity) && is.null(python),
+    .wb_operation_pack_assert(is.null(runtime_identity),
       "OPERATION_PACK_RUNTIME_IDENTITY_UNTRUSTED",
-      "ABI v2 R activation does not accept caller runtime identity or a Python interpreter.",
+      "ABI v2 activation derives runtime identity and does not accept caller claims.",
       class = "wb_operation_pack_v2_error")
     .wb_operation_pack_assert(!is.null(supplied_manifest_path), "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
       "ABI v2 activation requires original installed manifest bytes.",
       class = "wb_operation_pack_identity_error")
     validated_v2 <- .wb_operation_pack_v2_normalize(input)
-    .wb_operation_pack_assert(identical(as.character(validated_v2$backend)[1], "R"),
-      "OPERATION_PACK_RUNTIME_UNAVAILABLE", "Phase 2A activates only ABI v2 R packs.",
-      class = "wb_operation_pack_runtime_unavailable")
-    package <- as.character(validated_v2$package$name)[1]
-    installed_manifest <- .wb_operation_pack_v2_manifest_path(package, lib.loc)
-    .wb_operation_pack_assert(identical(normalizePath(supplied_manifest_path, winslash = "/", mustWork = TRUE),
-      installed_manifest), "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
-      "ABI v2 activation must authenticate the original installed manifest path.",
-      class = "wb_operation_pack_identity_error")
-    registration <- .wb_operation_pack_v2_invoke(package, lib.loc)
+    backend <- as.character(validated_v2$backend)[1]
+    if (identical(backend, "R")) {
+      .wb_operation_pack_assert(is.null(python), "OPERATION_PACK_BACKEND_MISMATCH",
+        "python applies only to backend 'Python'.", class = "wb_operation_pack_v2_error")
+      package <- as.character(validated_v2$package$name)[1]
+      installed_manifest <- .wb_operation_pack_v2_manifest_path(package, lib.loc)
+      .wb_operation_pack_assert(identical(normalizePath(supplied_manifest_path, winslash = "/", mustWork = TRUE),
+        installed_manifest), "OPERATION_PACK_MANIFEST_SOURCE_REQUIRED",
+        "ABI v2 activation must authenticate the original installed manifest path.",
+        class = "wb_operation_pack_identity_error")
+      registration <- .wb_operation_pack_v2_invoke(package, lib.loc)
+    } else if (identical(backend, "Python")) {
+      .wb_operation_pack_assert(is.null(lib.loc), "OPERATION_PACK_BACKEND_MISMATCH",
+        "lib.loc applies only to backend 'R'.", class = "wb_operation_pack_v2_error")
+      python <- .wb_operation_pack_python_binary(python)
+      discovery <- .wb_operation_pack_v2_python_discover(supplied_manifest_path,
+        validated_v2, python, timeout_seconds, activate = TRUE)
+      registration <- .wb_operation_pack_v2_python_registration(validated_v2,
+        discovery, supplied_manifest_path, python, timeout_seconds)
+    } else {
+      .wb_operation_pack_v2_error("OPERATION_PACK_BACKEND_MISMATCH",
+        paste0("Unsupported ABI v2 backend: ", backend), "authentication")
+    }
     return(.wb_operation_pack_publish(registration))
   }
   validated <- .wb_operation_pack_validate_manifest(input)

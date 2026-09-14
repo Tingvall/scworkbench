@@ -124,38 +124,52 @@
   list(scheme = scheme, scope = scope, sha256 = .wb_operation_pack_sha256(value))
 }
 
-.wb_operation_pack_v2_input_descriptor <- function(name, value, declaration) {
+.wb_operation_pack_v2_input_descriptor <- function(name, value, declaration,
+                                                     transport_value = NULL) {
   kind <- as.character(declaration$kind)[1]
-  cells <- .wb_operation_pack_v2_primitive_cells(value)
-  features <- .wb_operation_pack_v2_primitive_features(value)
+  identity_value <- transport_value %||% unclass(value)
+  cells <- if (is.null(transport_value)) .wb_operation_pack_v2_primitive_cells(value) else
+    unname(unlist(identity_value$cell_id %||% list(), use.names = FALSE))
+  features <- if (is.null(transport_value)) .wb_operation_pack_v2_primitive_features(value) else
+    unname(unlist(identity_value$feature_id %||% list(), use.names = FALSE))
   descriptor <- list(
     kind = kind, storage_profile = .wb_operation_pack_v2_input_profile(kind, value),
     reader = .wb_operation_pack_v2_reader_name(kind),
     dimensions = unname(as.list(.wb_operation_pack_v2_dimensions(value, kind))),
     alignment = as.character(declaration$alignment)[1],
-    content_identity = .wb_operation_pack_v2_identity_plain(paste0("scworkbench.", kind, ".content.v1"), unclass(value)),
-    ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(input = name, value = unclass(value))),
-    payload_manifest_identity = .wb_operation_pack_v2_identity_plain("scworkbench.payload.manifest.v2", list(input = name, value = unclass(value)))
+    content_identity = .wb_operation_pack_v2_identity_plain(paste0("scworkbench.", kind, ".content.v1"), identity_value),
+    ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(input = name, value = identity_value)),
+    payload_manifest_identity = .wb_operation_pack_v2_identity_plain("scworkbench.payload.manifest.v2", list(input = name, value = identity_value))
   )
   if (kind %in% c("matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "relation_family")) {
-    descriptor$cell_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1", cells)
+    descriptor$cell_order_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", if (is.null(transport_value)) cells else
+        identity_value$cell_id)
   }
   if (kind %in% c("matrix", "feature_table")) {
-    descriptor$feature_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.feature_order.v1", features)
+    descriptor$feature_order_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.feature_order.v1", if (is.null(transport_value)) features else
+        identity_value$feature_id)
   }
   if (kind %in% c("cell_vector", "cell_vector_family", "relation_family", "feature_table", "obs_table", "path_2d_family", "space_path_family")) {
     descriptor$semantic_metadata_identity <- .wb_operation_pack_v2_identity_plain(
-      "scworkbench.operation_pack.semantic_metadata.v2", value$meta %||% list())
+      "scworkbench.operation_pack.semantic_metadata.v2", identity_value$meta %||%
+        structure(list(), names = character()))
   }
   if (kind %in% c("path_2d_family", "space_path_family")) {
-    order_value <- if (kind == "path_2d_family") list(value$key, value$point) else list(value$space_id, value$path_id, value$point, value$dim)
+    order_value <- if (kind == "path_2d_family") list(identity_value$key,
+      identity_value$point) else list(identity_value$space_id,
+      identity_value$path_id, identity_value$point, identity_value$dim)
     descriptor$row_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.row_order.v1", order_value)
   }
   if (kind == "space_path_family") descriptor$linked_space_identity <- .wb_operation_pack_v2_identity_plain(
-    "scworkbench.space.content.v1", unique(as.character(value$space_id)))
+    "scworkbench.space.content.v1", if (is.null(transport_value)) {
+      sort(unique(as.character(value$space_id)), method = "radix")
+    } else unname(as.list(sort(unique(as.character(unlist(identity_value$space_id,
+      use.names = FALSE))), method = "radix"))))
   if (kind == "model_ref") {
-    descriptor$model_linkage_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.model_linkage.v1", unclass(value))
-    descriptor$contained_payload_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.contained_payload.v2", unclass(value))
+    descriptor$model_linkage_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.model_linkage.v1", identity_value)
+    descriptor$contained_payload_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.contained_payload.v2", identity_value)
   }
   descriptor$descriptor_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.input_descriptor.v2", "descriptor excluding descriptor_identity", descriptor)
@@ -198,27 +212,44 @@
     cell_set_admission = list(members_unique = TRUE, members_in_universe = TRUE, order = "core_cell_order"))
 }
 
-.wb_operation_pack_v2_output_grant <- function(output, inputs, allocated_id) {
+.wb_operation_pack_v2_output_grant <- function(output, inputs, allocated_id,
+                                                registration = NULL) {
   kind <- as.character(output$kind)[1]
   category <- as.character(output$category)[1]
+  python_backend <- identical(as.character(registration$identity$backend %||% "R")[1],
+    "Python")
+  input_names <- if (python_backend) unname(as.list(names(inputs))) else names(inputs)
   descriptor <- list(
     category = category, kind = kind, storage_profile = as.character(output$storage_profile)[1],
     writer = .wb_operation_pack_v2_writer_name(output),
     expected_dimensions = unname(as.list(.wb_operation_pack_v2_expected_dimensions(output, inputs))),
     expected_alignment = if (kind == "matrix") "cell_and_feature_ordered" else if (kind %in% c("space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission")) "cell_ordered" else if (kind == "feature_table") "feature_ordered" else if (kind == "model_ref") "model_linked" else if (kind == "path_2d_family") "canonical_row_ordered" else if (kind == "space_path_family") "associated_space" else "none",
-    expected_ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(output = output$name, inputs = names(inputs))),
+    expected_ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(output = output$name, inputs = input_names)),
     expected_model_linkage = list(mode = "none"),
     semantic_constraints = .wb_operation_pack_v2_semantic_constraints(output)
   )
   if (!identical(category, "core_registry_request")) descriptor$relative_root <- paste0("outputs/", output$name)
   cells <- if (length(inputs)) .wb_operation_pack_v2_primitive_cells(inputs[[1]]) else character()
   features <- if (length(inputs)) .wb_operation_pack_v2_primitive_features(inputs[[1]]) else character()
+  if (python_backend) {
+    cells <- unname(as.list(cells))
+    features <- unname(as.list(features))
+  }
   if (kind %in% c("matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission")) {
     descriptor$expected_cell_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1", cells)
   }
   if (kind %in% c("matrix", "feature_table")) descriptor$expected_feature_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.feature_order.v1", features)
-  if (kind %in% c("path_2d_family", "space_path_family")) descriptor$expected_row_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.row_order.v1", list(output = output$name))
-  if (kind == "space_path_family") descriptor$expected_linked_space_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.space.content.v1", list(output = output$name))
+  expectation <- registration$runtime_config$conformance_expectations[[as.character(output$name)[1]]] %||% list()
+  if (kind %in% c("path_2d_family", "space_path_family")) {
+    row_value <- expectation$row_order %||% list(output = output$name)
+    descriptor$expected_row_order_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.row_order.v1", row_value)
+  }
+  if (kind == "space_path_family") {
+    linked_value <- expectation$linked_space %||% list(output = output$name)
+    descriptor$expected_linked_space_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.space.content.v1", linked_value)
+  }
   if (kind == "model_ref") descriptor$contained_payload_requirements <- list(
     contained = TRUE, no_symlinks = TRUE, manifest_scheme = "scworkbench.operation_pack.payload_manifest.v2")
   descriptor$grant_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -245,9 +276,14 @@
   as.character(out %||% "")[1]
 }
 
-.wb_operation_pack_v2_preflight <- function(operation, inputs, params) {
+.wb_operation_pack_v2_preflight <- function(operation, inputs, params,
+                                             registration = NULL,
+                                             transport_inputs = NULL) {
   declared <- operation$dependencies %||% list()
-  selected <- list(); dynamic <- list(); dispositions <- list()
+  selected <- list(); dynamic <- list()
+  dispositions <- structure(list(), names = character())
+  python_backend <- identical(as.character(registration$identity$backend %||% "R")[1],
+    "Python")
   for (dependency in declared) {
     id <- as.character(dependency$requirement_id)[1]
     kind <- as.character(dependency$kind)[1]
@@ -268,8 +304,16 @@
         "preflight", requirement_id = id, observed_version = version)
       dispositions[[id]] <- list(status = "available", requirement_id = id, name = dependency$name, version = version)
     } else if (kind == "python_distribution") {
-      .wb_operation_pack_v2_error("OPERATION_PACK_PREFLIGHT_FAILED",
-        "Python dependencies are unavailable to the R-only Phase 2A adapter.", "preflight", requirement_id = id)
+      if (!python_backend) .wb_operation_pack_v2_error("OPERATION_PACK_PREFLIGHT_FAILED",
+        "Python dependency cannot be selected for an R adapter.", "preflight", requirement_id = id)
+      evidence <- .wb_operation_pack_v2_python_probe_distribution(registration,
+        as.character(dependency$name)[1])
+      if (!.wb_operation_pack_v2_version_ok(evidence$version,
+          dependency$version$specifier)) .wb_operation_pack_v2_error(
+        "OPERATION_PACK_DEPENDENCY_INCOMPATIBLE",
+        paste0("Python distribution '", dependency$name, "' version is incompatible."),
+        "preflight", requirement_id = id, observed_version = evidence$version)
+      dispositions[[id]] <- c(list(requirement_id = id, status = "available"), evidence)
     } else if (kind == "device_runtime") {
       available <- identical(as.character(dependency$name)[1], "cpu") || isTRUE(getOption(paste0("scworkbench.device.", dependency$name), FALSE))
       if (!available) .wb_operation_pack_v2_error("OPERATION_PACK_PREFLIGHT_FAILED",
@@ -288,10 +332,31 @@
       if (!nzchar(value) || !grepl(pattern, value, perl = TRUE)) .wb_operation_pack_v2_error(
         "OPERATION_PACK_DYNAMIC_PROVIDER_INVALID", "Dynamic provider metadata is absent or malformed.",
         "preflight", requirement_id = id, input_name = input_name)
-      if (!identical(dependency$ecosystem, "R") || !requireNamespace(value, quietly = TRUE)) .wb_operation_pack_v2_error(
-        "OPERATION_PACK_DEPENDENCY_MISSING", paste0("Dynamic provider '", value, "' is unavailable."),
-        "preflight", requirement_id = id)
-      input_identity <- .wb_operation_pack_v2_identity_plain(paste0("scworkbench.", inputs[[input_name]]$kind, ".content.v1"), unclass(inputs[[input_name]]))
+      if (identical(dependency$ecosystem, "Python")) {
+        if (!python_backend) .wb_operation_pack_v2_error("OPERATION_PACK_DEPENDENCY_MISSING",
+          paste0("Dynamic provider '", value, "' requires the Python adapter."),
+          "preflight", requirement_id = id)
+        evidence <- .wb_operation_pack_v2_python_probe_distribution(registration, value)
+        resolved <- list(name = evidence$name, version = evidence$version,
+          artifact_identity = evidence$artifact_identity,
+          probe_evidence_identity = .wb_operation_pack_v2_identity_plain(
+            "scworkbench.python_import_spec.v1", list(import_name = value)))
+      } else {
+        if (!identical(dependency$ecosystem, "R") ||
+            !requireNamespace(value, quietly = TRUE)) .wb_operation_pack_v2_error(
+          "OPERATION_PACK_DEPENDENCY_MISSING", paste0("Dynamic provider '", value,
+            "' is unavailable."), "preflight", requirement_id = id)
+        version <- as.character(utils::packageVersion(value))
+        resolved <- list(name = value, version = version,
+          artifact_identity = .wb_operation_pack_v2_identity_plain(
+            "scworkbench.r_package.artifact.v1", list(name = value, version = version)),
+          probe_evidence_identity = .wb_operation_pack_v2_identity_plain(
+            "scworkbench.r_namespace_exports.v1", getNamespaceExports(value)))
+      }
+      identity_value <- if (python_backend) transport_inputs[[input_name]] else
+        unclass(inputs[[input_name]])
+      input_identity <- .wb_operation_pack_v2_identity_plain(paste0("scworkbench.",
+        inputs[[input_name]]$kind, ".content.v1"), identity_value)
       resolution <- list(
         requirement_id = id,
         selector_identity = .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.dynamic_dependency_selector.v2", dependency),
@@ -299,21 +364,18 @@
         ecosystem = dependency$ecosystem, provider_name = value,
         package_name_scheme = dependency$package_name_scheme, probe = dependency$probe,
         disposition = dependency$disposition,
-        resolved_package = list(name = value, version = as.character(utils::packageVersion(value)),
-          artifact_identity = .wb_operation_pack_v2_identity_plain("scworkbench.r_package.artifact.v1", list(name = value, version = as.character(utils::packageVersion(value)))),
-          probe_evidence_identity = .wb_operation_pack_v2_identity_plain("scworkbench.r_namespace_exports.v1", getNamespaceExports(value))),
+        resolved_package = resolved,
         status = "available")
       resolution$resolution_identity <- .wb_operation_pack_v2_identity_scoped(
         "scworkbench.operation_pack.dynamic_dependency_resolution.v2", "resolution excluding resolution_identity", resolution)
       dynamic[[length(dynamic) + 1L]] <- resolution
-      dispositions[[id]] <- list(status = "available", requirement_id = id, provider = value)
+      dispositions[[id]] <- resolution
     }
   }
   declared_id <- .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.dependencies.v2", declared)
-  selected_value <- list(requirements = selected, dispositions = dispositions, dynamic_resolutions = dynamic)
-  selected_id <- .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.dependencies.v2", selected_value)
-  preflight_value <- list(declared = declared_id, selected = selected_id, dispositions = dispositions,
-    dynamic_resolutions = dynamic, network_policy = "deny")
+  selected_id <- .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.dependencies.v2", selected)
+  preflight_value <- list(declared = declared, selected = selected,
+    dispositions = dispositions, dynamic = dynamic, network_policy = "deny")
   list(declared = declared, selected = selected, dispositions = dispositions, dynamic = dynamic,
     declared_identity = declared_id, selected_identity = selected_id,
     preflight_identity = .wb_operation_pack_v2_identity_plain("scworkbench.operation_pack.preflight.v2", preflight_value))
@@ -334,7 +396,8 @@
 .wb_operation_pack_v2_runtime_attestation <- function(registration, op_name, preflight) {
   identity <- registration$identity
   value <- list(
-    schema = "scworkbench.operation_pack.runtime.v2", backend = "R",
+    schema = "scworkbench.operation_pack.runtime.v2",
+    backend = as.character(identity$backend)[1],
     pack_identity = identity$pack_identity,
     manifest_source_identity = identity$manifest_source_identity,
     distribution_identity = identity$distribution_identity,
@@ -355,10 +418,17 @@
                                            preflight, stage_root) {
   op_name <- as.character(operation$qualified_name)[1]
   declarations <- stats::setNames(operation$inputs, vapply(operation$inputs, `[[`, character(1), "name"))
-  input_records <- lapply(names(inputs), function(name) .wb_operation_pack_v2_input_descriptor(name, inputs[[name]], declarations[[name]]))
+  python_backend <- identical(as.character(registration$identity$backend)[1], "Python")
+  transport_inputs <- if (python_backend) stats::setNames(lapply(names(inputs),
+    function(name) .wb_operation_pack_v2_transport_value(inputs[[name]],
+      declarations[[name]]$kind)), names(inputs)) else NULL
+  input_records <- lapply(names(inputs), function(name) .wb_operation_pack_v2_input_descriptor(
+    name, inputs[[name]], declarations[[name]],
+    if (python_backend) transport_inputs[[name]] else NULL))
   input_records <- input_records[order(vapply(input_records, `[[`, character(1), "name"), method = "radix")]
   output_records <- lapply(operation$outputs, function(output) .wb_operation_pack_v2_output_grant(
-    output, inputs, .wb_allocate_identifier(paste0(as.character(output$allocated_id_key)[1], "_"), 12L, purpose = "operation-pack v2 output")))
+    output, inputs, .wb_allocate_identifier(paste0(as.character(output$allocated_id_key)[1], "_"),
+      12L, purpose = "operation-pack v2 output"), registration = registration))
   transition_value <- list(transition_id = transition_id, session_id = session_id, run_id = run_id,
     checkpoint_generation = generation,
     source_state_identity = .wb_operation_pack_v2_identity_plain("scworkbench.scientific_state.v1",
@@ -412,6 +482,7 @@
     execution_capability = capability)
   request$request_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_request.v2", "request excluding request_identity", request)
+  attr(request, "operation_pack_v2_transport_inputs") <- transport_inputs
   request
 }
 
@@ -685,19 +756,29 @@
       !identical(receipt_id$sha256, .wb_operation_pack_sha256(receipt))) return(list(ok = FALSE, code = "identity_mismatch"))
   observed <- c(receipt$outputs %||% list(), receipt$registry_requests %||% list())
   for (item in observed) {
-    payload <- file.path(path, "outputs", item$name, "payload.rds")
+    python_payload <- identical(as.character(
+      receipt$runtime_attestation$backend %||% "R")[1], "Python")
+    payload_root <- if (python_payload && identical(as.character(item$descriptor$category)[1],
+        "core_registry_request")) "registry_requests" else "outputs"
+    payload <- file.path(path, payload_root, item$name,
+      if (python_payload) "payload.json" else "payload.rds")
     if (!file.exists(payload)) return(list(ok = FALSE, code = "payload_missing", output = item$name))
     manifest <- item$descriptor$payload_manifest_identity %||% NULL
     if (!is.null(manifest)) {
       expected <- manifest$sha256
-      actual <- .wb_operation_pack_sha256(list(path = paste0("outputs/", item$name, "/payload.rds"),
+      actual <- .wb_operation_pack_sha256(list(path = paste0(payload_root, "/",
+        item$name, "/", if (python_payload) "payload.json" else "payload.rds"),
         size = as.numeric(file.info(payload)$size), sha256 = .wb_operation_pack_v2_file_sha256(payload)))
       if (!identical(expected, actual)) return(list(ok = FALSE, code = "payload_identity_mismatch", output = item$name))
     }
     if (isTRUE(load_payloads)) {
-      value <- tryCatch(readRDS(payload), error = identity)
+      value <- tryCatch(if (python_payload) {
+        raw <- readChar(payload, nchars = file.info(payload)$size, useBytes = TRUE)
+        .wb_operation_pack_v2_assert_strict_json(raw)
+        .wb_operation_pack_parse_canonical_json(raw)
+      } else readRDS(payload), error = identity)
       if (inherits(value, "error")) return(list(ok = FALSE, code = "payload_unreadable", output = item$name))
-      actual <- .wb_operation_pack_sha256(unclass(value))
+      actual <- .wb_operation_pack_sha256(if (python_payload) value else unclass(value))
       expected_content <- item$descriptor$content_identity$sha256 %||% NULL
       if (!is.null(expected_content) && !identical(actual, expected_content)) return(list(ok = FALSE, code = "content_identity_mismatch", output = item$name))
     }
@@ -795,44 +876,64 @@
     .wb_operation_pack_v2_cleanup_empty(bundle)
   }, add = TRUE)
   .wb_operation_pack_v2_fault("resolved", transition_id = transition_id)
-  preflight <- .wb_operation_pack_v2_preflight(operation, inputs, params)
+  python_backend <- identical(as.character(registration$identity$backend)[1], "Python")
+  transport_inputs <- if (python_backend) stats::setNames(lapply(names(inputs),
+    function(name) .wb_operation_pack_v2_transport_value(inputs[[name]],
+      declarations[[name]]$kind)), names(inputs)) else NULL
+  preflight <- .wb_operation_pack_v2_preflight(operation, inputs, params,
+    registration = registration, transport_inputs = transport_inputs)
   .wb_operation_pack_v2_fault("preflighted", transition_id = transition_id)
   request <- .wb_operation_pack_v2_request(bundle, registration, operation, inputs, params,
     transition_id, session_id, run_id, generation, preflight, stage)
   .wb_operation_pack_v2_schema_assert(request, "request", "PYBENCH_CAPABILITY_MISMATCH")
   .wb_operation_pack_v2_request_audit(request, registration, operation)
   .wb_operation_pack_v2_atomic_json(request, file.path(stage, "request.json"))
+  if (python_backend) .wb_operation_pack_v2_python_stage_inputs(stage,
+    attr(request, "operation_pack_v2_transport_inputs") %||% transport_inputs)
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "staged", transition_id = transition_id), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("staged", transition_id = transition_id)
   .wb_operation_pack_v2_dynamic_reread(operation, inputs, preflight)
-  adapter <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs, stage)
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
-  runner <- registration$runners[[op_name]]
-  result <- tryCatch(runner(readers = adapter$readers, writers = adapter$writers,
-    params = .wb_operation_pack_v2_deep_copy(params),
-    context = list(transition_id = transition_id, session_id = session_id, run_id = run_id,
-      checkpoint_generation = generation, network_policy = "deny")), error = identity)
-  adapter$consume()
-  if (inherits(result, "error")) {
-    if (inherits(result, "wb_operation_pack_v2_error")) stop(result)
-    .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
-      paste0("R operation-pack runner failed: ", conditionMessage(result)), "execution")
+  if (python_backend) {
+    process_result <- .wb_operation_pack_v2_python_dispatch(request, registration, stage)
+    receipt <- process_result$receipt
+    unlink(file.path(stage, "inputs"), recursive = TRUE, force = TRUE)
+  } else {
+    adapter <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs, stage)
+    runner <- registration$runners[[op_name]]
+    result <- tryCatch(runner(readers = adapter$readers, writers = adapter$writers,
+      params = .wb_operation_pack_v2_deep_copy(params),
+      context = list(transition_id = transition_id, session_id = session_id, run_id = run_id,
+        checkpoint_generation = generation, network_policy = "deny")), error = identity)
+    adapter$consume()
+    if (inherits(result, "error")) {
+      if (inherits(result, "wb_operation_pack_v2_error")) stop(result)
+      .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
+        paste0("R operation-pack runner failed: ", conditionMessage(result)), "execution")
+    }
+    receipt <- .wb_operation_pack_v2_receipt(request, registration, operation,
+      adapter$state$writes, preflight)
   }
   .wb_operation_pack_v2_fault("receipt_received", transition_id = transition_id)
-  receipt <- .wb_operation_pack_v2_receipt(request, registration, operation, adapter$state$writes, preflight)
   .wb_operation_pack_v2_schema_assert(receipt, "receipt", "PYBENCH_RECEIPT_MISMATCH")
   .wb_operation_pack_v2_receipt_audit(receipt, request, registration, operation, preflight)
-  .wb_operation_pack_v2_atomic_json(receipt, file.path(stage, "receipt.json"))
+  if (!python_backend) .wb_operation_pack_v2_atomic_json(receipt,
+    file.path(stage, "receipt.json"))
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "audited", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("audited", transition_id = transition_id)
-  inventory <- list.files(stage, recursive = TRUE, all.files = TRUE, include.dirs = FALSE, no.. = TRUE)
-  expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
-    paste0("outputs/", names(adapter$state$writes), "/payload.rds")), method = "radix")
-  if (!identical(sort(inventory, method = "radix"), expected_inventory)) .wb_operation_pack_v2_error(
-    "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
-    unexpected = setdiff(inventory, expected_inventory))
+  if (python_backend) {
+    .wb_operation_pack_v2_python_audit(stage, request, receipt)
+  } else {
+    inventory <- list.files(stage, recursive = TRUE, all.files = TRUE,
+      include.dirs = FALSE, no.. = TRUE)
+    expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
+      paste0("outputs/", names(adapter$state$writes), "/payload.rds")), method = "radix")
+    if (!identical(sort(inventory, method = "radix"), expected_inventory)) .wb_operation_pack_v2_error(
+      "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
+      unexpected = setdiff(inventory, expected_inventory))
+  }
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
   if (!isTRUE(moved) || !dir.exists(final)) .wb_operation_pack_v2_error("PYBENCH_PUBLICATION_FAILED",
@@ -850,10 +951,15 @@
   .wb_operation_pack_v2_fault("reopened", transition_id = transition_id)
   published <- TRUE
   values <- stats::setNames(lapply(receipt$outputs %||% list(), function(item) {
-    readRDS(file.path(final, "outputs", item$name, "payload.rds"))
+    if (python_backend) {
+      raw <- jsonlite::read_json(file.path(final, "outputs", item$name,
+        "payload.json"), simplifyVector = FALSE)
+      .wb_operation_pack_v2_python_to_primitive(raw, item$descriptor)
+    } else readRDS(file.path(final, "outputs", item$name, "payload.rds"))
   }), vapply(receipt$outputs %||% list(), `[[`, character(1), "name"))
   list(transition_id = transition_id, request = request, receipt = receipt,
     outputs = values, registry_requests = receipt$registry_requests %||% list(),
+    runtime_sidecar = if (python_backend) process_result$sidecar else NULL,
     state = "reopened", path = final)
 }
 
@@ -913,15 +1019,28 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
   output_name <- as.character(output_name)[1]
   .wb_operation_pack_assert(output_name %in% table$name, "PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Transition has no output named '", output_name, "'."), class = "wb_operation_pack_v2_error")
-  path <- file.path(.wb_operation_pack_v2_store(bundle), transition_id, "outputs", output_name, "payload.rds")
-  value <- readRDS(path)
-  item <- which(table$name == output_name)
-  observed <- .wb_operation_pack_sha256(unclass(value))
   receipt <- jsonlite::read_json(file.path(.wb_operation_pack_v2_store(bundle), transition_id, "receipt.json"), simplifyVector = FALSE)
   records <- c(receipt$outputs %||% list(), receipt$registry_requests %||% list())
-  expected <- records[[match(output_name, vapply(records, `[[`, character(1), "name"))]]$descriptor$content_identity$sha256 %||%
-    .wb_operation_pack_sha256(unclass(value))
+  record <- records[[match(output_name, vapply(records, `[[`, character(1), "name"))]]
+  python_payload <- identical(as.character(
+    receipt$runtime_attestation$backend %||% "R")[1], "Python")
+  payload_root <- if (python_payload && identical(
+      as.character(record$descriptor$category)[1], "core_registry_request")) {
+    "registry_requests"
+  } else "outputs"
+  path <- file.path(.wb_operation_pack_v2_store(bundle), transition_id,
+    payload_root, output_name, if (python_payload) "payload.json" else "payload.rds")
+  raw_value <- if (python_payload) jsonlite::read_json(path,
+    simplifyVector = FALSE) else readRDS(path)
+  observed <- if (is.null(record$descriptor$content_identity)) {
+    .wb_operation_pack_sha256(if (python_payload) raw_value$cells else
+      as.character(unlist(raw_value$cells, use.names = FALSE)))
+  } else .wb_operation_pack_sha256(if (python_payload) raw_value else unclass(raw_value))
+  expected <- record$descriptor$content_identity$sha256 %||%
+    record$descriptor$membership_identity$sha256 %||% observed
   .wb_operation_pack_assert(identical(observed, expected), "PYBENCH_REOPEN_VALIDATION_FAILED",
-    "Durable ABI v2 output content identity changed.", class = "wb_operation_pack_v2_error")
-  value
+    paste0("Durable ABI v2 output content identity changed for '", output_name,
+      "'."), class = "wb_operation_pack_v2_error")
+  if (python_payload) .wb_operation_pack_v2_python_to_primitive(raw_value,
+    record$descriptor) else raw_value
 }

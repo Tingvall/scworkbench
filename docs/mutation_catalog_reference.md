@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 155
+Record count: 154
 
 Meaningful public transformations: 65
 
@@ -1395,20 +1395,6 @@ Durable mutation: false
 Boundary: `pure`
 
 Supported route: `direct_pure_computation`
-
-## `wb_op_py_protocol_hello`
-
-Category: matrix_space_model_writer
-
-Exported: false
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `internal`
-
-Supported route: `registered_session_execution_and_promotion`
 
 ## `.wb_pybench_preregister_outputs`
 

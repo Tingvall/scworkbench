@@ -21,11 +21,11 @@ The authoritative byte contract is
 `inst/protocol/operation-pack-canonical-json-v1.md`; its scheme identifier is
 `scworkbench.operation_pack.canonical_json.v1`.
 
-## ABI v2 R reference contract
+## ABI v2 R and Python reference contract
 
 ABI v2 is a separate, fail-closed activation path. Its live manifest, request,
 and receipt schemas are installed under `inst/protocol/` and their relationship
-to v1, `pybench-op-v2`, future `pybench-op-v3`, and durable scientific state is
+to v1, `pybench-op-v2`, `pybench-op-v3`, and durable scientific state is
 recorded in `inst/protocol/operation-pack-v2.md`. V2 does not reinterpret a v1
 manifest or change any existing v1 identity.
 
@@ -48,12 +48,29 @@ claim. Finalized transition outputs remain available through
 `wb_operation_pack_transition_outputs()` and
 `wb_operation_pack_transition_load()` without the pack installed.
 
+Python v2 activation authenticates the original manifest in the installed
+distribution through the explicitly configured PyBench interpreter. Execution
+uses the installed `pybench-operation-pack-v3` CLI: core owns a private staging
+generation and typed JSON inputs, while PyBench returns staged payloads, the
+shared language-neutral receipt, and a separate Python-only runtime sidecar.
+Core independently verifies all three, retires the input capability, and
+atomically publishes the complete record or nothing. The sidecar schema is
+installed as `pybench-op-v3-python-runtime.schema.json`; it does not add fields
+to the shared receipt.
+
 The source-tree package `tests/fixtures/operation-pack-v2-reference` is a small
 synthetic conformance pack. It exercises all accepted R readers, writers,
 output categories, storage profiles, cell-set admission, mixed output groups,
 and dynamic input-metadata dependency resolution. It is not installed by
 scworkbench, is never activated ambiently, and makes no scientific-method
 claim.
+
+The synthetic Python reference distribution lives only in PyBench's test
+fixtures and is activated explicitly during cross-repository conformance. It
+does not create an official scientific pack. The former core operation
+`py_protocol_hello` is no longer registered or discoverable: its implementation
+is retained privately only so historical records remain intelligible. Current
+protocol conformance uses explicit fixture packs.
 
 ## Trust and activation
 

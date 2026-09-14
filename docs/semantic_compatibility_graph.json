@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 330,
-  "edge_count": 936,
+  "node_count": 329,
+  "edge_count": 930,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -303,12 +303,6 @@
       "record_type": "op",
       "name": "monocle3_project",
       "title": "Monocle3 project curves"
-    },
-    {
-      "record_id": "op:py_protocol_hello",
-      "record_type": "op",
-      "name": "py_protocol_hello",
-      "title": "PyBench protocol hello"
     },
     {
       "record_id": "op:peakvi_fit",
@@ -4847,42 +4841,6 @@
       "to": "artifact_type:path_2d_family",
       "edge_type": "promotes_as",
       "label": "promotable:curves"
-    },
-    {
-      "from": "op:py_protocol_hello",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:py_protocol_hello",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:vector"
-    },
-    {
-      "from": "op:py_protocol_hello",
-      "to": "primitive:relation_family",
-      "edge_type": "produces",
-      "label": "output:membership"
-    },
-    {
-      "from": "op:py_protocol_hello",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:summary"
-    },
-    {
-      "from": "op:py_protocol_hello",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:vector"
-    },
-    {
-      "from": "op:py_protocol_hello",
-      "to": "artifact_type:relation_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:membership"
     },
     {
       "from": "primitive:matrix",

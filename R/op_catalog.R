@@ -4154,26 +4154,6 @@
         )
       )
     ),
-    py_protocol_hello = list(
-      op_name = "py_protocol_hello",
-      title = "PyBench protocol hello",
-      description = "Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.",
-      intent = c("protocol", "python", "qualification"),
-      requires = list(),
-      produces = list(vector = "cell_vector", membership = "relation_family", summary = "obs_table"),
-      promotable = c("vector", "membership", "summary"),
-      runner = .wb_runner_py_protocol_hello,
-      inputs = list(),
-      params = list(
-        list(name = "n_preview", type = "int", default = 25, min = 1, max = 100000,
-             help = "Maximum cells written by the lightweight protocol operation.")
-      ),
-      interface_produces = list(
-        vector = list(kind = "cell_vector", description = "Deterministic continuous preview vector."),
-        membership = list(kind = "relation_family", description = "Deterministic preview membership."),
-        summary = list(kind = "obs_table", description = "Protocol write summary.")
-      )
-    ),
     peakvi_fit = list(
       op_name = "peakvi_fit",
       title = "PeakVI fit (pybench)",

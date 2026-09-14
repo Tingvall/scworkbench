@@ -22,6 +22,11 @@
 
 ## Release engineering
 
+- Completes the synthetic operation-pack ABI v2 R/Python reference boundary:
+  explicit installed Python-pack authentication, `pybench-op-v3` typed staging,
+  independent receipt/runtime/payload audit, atomic durable publication, and
+  pack-free recipient reopen. The former `py_protocol_hello` operation is now
+  private historical compatibility code rather than a production catalog item.
 - Adds complete-discovery CI, source-package policy checks, composite release
   metadata, immutable base-image and runtime locks, source artifact builders,
   release evidence assembly, and explicit GPU/large-data gates.

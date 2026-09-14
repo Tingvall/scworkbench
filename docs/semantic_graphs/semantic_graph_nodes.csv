@@ -195,7 +195,6 @@
 "op:pca_fit","op","pca_fit","PCA Fit","Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space."
 "op:peakvi_fit","op","peakvi_fit","PeakVI fit (pybench)","Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference."
 "op:peakvi_project","op","peakvi_project","PeakVI project (pybench)","Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space."
-"op:py_protocol_hello","op","py_protocol_hello","PyBench protocol hello","Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs."
 "op:rna_qc_metrics","op","rna_qc_metrics","Calculate per-cell RNA QC metrics","Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells."
 "op:scvi_train","op","scvi_train","scVI train (pybench)","Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary."
 "op:slingshot","op","slingshot","Slingshot trajectory","Infer lineage curves and pseudotime from clusters in a 2D space."

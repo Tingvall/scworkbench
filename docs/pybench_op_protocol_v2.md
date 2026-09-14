@@ -66,6 +66,8 @@ Python tracebacks are not copied into persisted provenance.
 | v2 staging-write | source, recipient, unrelated or stale stage | rejected |
 | v1 writable | any bundle | rejected; no compatibility path |
 
-scVI, PeakVI, Palantir fit/project, and protocol hello use this same boundary.
+scVI, PeakVI, and Palantir fit/project use this production boundary. Protocol
+conformance is now exercised by explicitly activated synthetic operation-pack
+fixtures; `py_protocol_hello` is not part of the production operation catalog.
 Large matrix inputs remain external ephemeral chunk directories; all durable
 model paths and operation outputs remain bundle-relative.

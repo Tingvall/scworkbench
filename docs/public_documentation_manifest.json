@@ -475,6 +475,17 @@
       "installed_relative_path": "protocol/operation-pack-transition-receipt-v2.schema.json"
     },
     {
+      "path": "inst/protocol/pybench-op-v3-python-runtime.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/pybench-op-v3-python-runtime.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/pybench-op-v3-python-runtime.schema.json"
+    },
+    {
       "path": "inst/protocol/operation-pack-v2.md",
       "class": "public_canonical",
       "audience": "public",

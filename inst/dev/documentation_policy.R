@@ -37,6 +37,7 @@ scwb_documentation_policy <- function(root = ".") {
     "inst/protocol/operation-pack-v2.schema.json",
     "inst/protocol/operation-pack-transition-request-v2.schema.json",
     "inst/protocol/operation-pack-transition-receipt-v2.schema.json",
+    "inst/protocol/pybench-op-v3-python-runtime.schema.json",
     "inst/protocol/operation-pack-v2.md",
     "inst/protocol/pybench-op-v2.schema.json"
   )

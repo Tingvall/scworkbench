@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 60
+Operation count: 59
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -1669,32 +1669,6 @@ Replay equivalence:
 
 Key parameters:
 - `approx_points` (int, default=200): Target max curve points per lineage for display (0/NULL = no compaction).
-
-## `py_protocol_hello`
-
-Title: PyBench protocol hello
-
-Intent: protocol, python, qualification
-
-Description: Qualify the PyBench v2 staging capability, receipt audit, promotion, and reopen lifecycle with lightweight typed outputs.
-
-Consumes:
-- `cell_set`: select
-
-Produces:
-- `vector`: cell_vector [terminal artifact] - Deterministic continuous preview vector.
-- `membership`: relation_family [terminal artifact] - Deterministic preview membership.
-- `summary`: obs_table [terminal artifact] - Protocol write summary.
-
-Promotable outputs: vector, membership, summary
-
-Replay equivalence:
-- `vector`: `exact_canonical_value`
-- `membership`: `exact_canonical_value`
-- `summary`: `exact_canonical_value`
-
-Key parameters:
-- `n_preview` (int, default=25): Maximum cells written by the lightweight protocol operation.
 
 ## `peakvi_fit`
 

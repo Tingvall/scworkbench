@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scworkbench.org/protocol/pybench-op-v3-python-runtime.schema.json",
+  "title": "PyBench operation-pack v3 Python runtime sidecar",
+  "description": "Python-specific runtime evidence accompanying, but not extending, the shared ABI-v2 transition receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "backend", "distribution_identity", "interpreter", "seed", "device", "runtime_identity"],
+  "properties": {
+    "schema": {"const": "pybench.operation_pack.python_runtime.v3"},
+    "backend": {"const": "Python"},
+    "distribution_identity": {"$ref": "#/$defs/identity"},
+    "interpreter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation", "version", "abi", "platform", "executable_sha256"],
+      "properties": {
+        "implementation": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "abi": {"type": "string", "minLength": 1},
+        "platform": {"type": "string", "minLength": 1},
+        "executable_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "seed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value"],
+      "properties": {
+        "status": {"enum": ["declared", "not_declared"]},
+        "value": {"type": ["integer", "null"]}
+      }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "descriptor"],
+      "properties": {
+        "type": {"enum": ["cpu", "cuda", "metal"]},
+        "descriptor": {"type": "string", "minLength": 1}
+      }
+    },
+    "runtime_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "pybench.operation_pack.python_runtime.v3"},
+        "scope": {"const": "python runtime sidecar excluding runtime_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scheme", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.content.v1"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}
