@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 59
+Operation count: 53
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -523,60 +523,6 @@ Key parameters:
 - `background_w` (dbl, default=0.1): Background peak matching window width.
 - `background_bs` (int, default=50): Background peak matching bin count.
 
-## `de_wilcox`
-
-Title: Differential Expression (Wilcoxon)
-
-Intent: de, markers, comparison
-
-Description: Wilcoxon rank-sum DE between two cell groups (A vs B).
-
-Consumes:
-- `matrix`: matrix
-- `cell_set`: select
-
-Produces:
-- `de_table`: feature_table [terminal artifact] - Feature-level DE statistics table.
-
-Promotable outputs: de_table
-
-Replay equivalence:
-- `de_table`: `exact_canonical_value`
-
-Key parameters:
-- `group_a` (cell_ids_or_set, default=NULL): Group A cells: vector of cell IDs or 'set:<name>'.
-- `group_b` (cell_ids_or_set, default=NULL): Group B cells: vector of cell IDs or 'set:<name>'.
-- `features` (string_vec, default=NULL): Optional feature subset.
-- `min_pct` (dbl, default=0): Minimum detection fraction in either group.
-- `p_adjust_method` (string, default=BH): Method passed to p.adjust.
-
-## `markers_topn`
-
-Title: Top Markers Per Cluster
-
-Intent: markers, cluster
-
-Description: One-vs-rest Wilcoxon marker ranking for each cluster.
-
-Consumes:
-- `matrix`: matrix
-- `clusters`: cell_vector
-- `cell_set`: select
-
-Produces:
-- `markers`: feature_table [terminal artifact] - Cluster-marker table with per-feature statistics.
-
-Promotable outputs: markers
-
-Replay equivalence:
-- `markers`: `exact_canonical_value`
-
-Key parameters:
-- `features` (string_vec, default=NULL): Optional feature subset.
-- `top_n` (int, default=20): Top markers retained per cluster.
-- `min_pct` (dbl, default=0.1): Minimum detection fraction in either group.
-- `p_adjust_method` (string, default=BH): Method passed to p.adjust.
-
 ## `pathway_enrich`
 
 Title: Pathway Enrichment (Namespace)
@@ -783,32 +729,6 @@ Key parameters:
 - `recipe` (list, default=NULL): Optional selector recipe stored with the derived cell set.
 - `overwrite` (bool, default=TRUE): If TRUE, replace existing membership for the target set; if FALSE, add cells to it.
 
-## `cell_vector_assoc`
-
-Title: Cell Vector Association
-
-Intent: statistics, association, confounding
-
-Description: Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
-
-Consumes:
-- `vector_cont`: cell_vector - Examples: pseudotime, module score, gene-program score.
-- `vector_group`: cell_vector - Examples: cluster labels, cell type labels, condition labels.
-- `cell_set`: select
-
-Produces:
-- `assoc_summary`: feature_table [terminal artifact] - Omnibus association test summary (Kruskal/ANOVA).
-- `group_stats`: obs_table [terminal artifact] - Per-group descriptive statistics.
-
-Promotable outputs: assoc_summary, group_stats
-
-Replay equivalence:
-- `assoc_summary`: `exact_canonical_value`
-- `group_stats`: `exact_canonical_value`
-
-Key parameters:
-- `min_n_per_group` (int, default=3): Minimum cells per group.
-
 ## `metadata_cell_vector`
 
 Title: Metadata Cell Vector
@@ -836,91 +756,6 @@ Key parameters:
 - `missing_label` (string, default=__MISSING__): Replacement label when missing_policy='as_category'.
 - `vector_name` (string, default=NULL): Stable promoted vector name; collision protection is controlled by overwrite.
 - `overwrite` (bool, default=FALSE): Allow a new immutable artifact to supersede an existing vector with the same name.
-
-## `cell_vector_association`
-
-Title: Cell Vector Association
-
-Intent: statistics, association, confounding
-
-Description: Associate two typed cell vectors with categorical and continuous dispatch.
-
-Consumes:
-- `a`: cell_vector - Categorical or continuous cell vector.
-- `b`: cell_vector - Categorical or continuous cell vector.
-- `cell_set`: select
-
-Produces:
-- `summary`: obs_table [terminal artifact] - Typed association summary including method, effect size, and diagnostics.
-- `detail`: obs_table [terminal artifact] - Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.
-
-Promotable outputs: summary, detail
-
-Replay equivalence:
-- `summary`: `exact_canonical_value`
-- `detail`: `exact_canonical_value`
-
-Key parameters:
-- `cell_set` (cell_set, default=all): Named bundle cell set defining the association universe.
-- `min_n_per_group` (int, default=3): Minimum cells per retained categorical group.
-- `method` (choice, default=auto): Association method or typed automatic dispatch.
-
-## `cell_vector_compare`
-
-Title: Cell Vector Comparison
-
-Intent: statistics, comparison, signal
-
-Description: Compare two cell-level signals on their shared cell universe in raw or rank space.
-
-Consumes:
-- `a`: cell_vector - Continuous or rankable numeric signal per cell.
-- `b`: cell_vector - Continuous or rankable numeric signal per cell.
-- `cell_set`: select
-
-Produces:
-- `summary`: obs_table [terminal artifact] - One-row comparison summary with concordance and delta metrics.
-- `comparison`: obs_table [terminal artifact] - Per-cell comparison table with original values, compared values, and deltas.
-
-Promotable outputs: summary, comparison
-
-Replay equivalence:
-- `summary`: `exact_canonical_value`
-- `comparison`: `exact_canonical_value`
-
-Key parameters:
-- `compare_space` (choice, default=rank): Whether to compare original numeric values or cell ranks.
-- `ties_method` (choice, default=average): Tie handling rule used when compare_space='rank'.
-- `signal_a` (string, default=a): Optional label recorded in the summary table for signal A.
-- `signal_b` (string, default=b): Optional label recorded in the summary table for signal B.
-
-## `feature_trend_spearman`
-
-Title: Feature Trends vs Continuous Vector
-
-Intent: trend, statistics, trajectory
-
-Description: Feature-level Spearman trend testing against continuous pseudotime-like vectors.
-
-Consumes:
-- `matrix`: matrix
-- `pseudotime`: cell_vector
-- `cell_set`: select
-
-Produces:
-- `trend_table`: feature_table [terminal artifact] - Per-feature trend statistics (rho, p, adjusted p).
-
-Promotable outputs: trend_table
-
-Replay equivalence:
-- `trend_table`: `exact_canonical_value`
-
-Key parameters:
-- `features` (string_vec, default=NULL): Optional feature subset.
-- `min_pct_nonzero` (dbl, default=0): Minimum non-zero fraction filter.
-- `min_sd` (dbl, default=0): Minimum per-feature standard deviation filter.
-- `p_adjust_method` (string, default=BH): Method passed to p.adjust.
-- `chunk_size` (int, default=128): Chunk size for matrix slicing.
 
 ## `trajectory_de`
 

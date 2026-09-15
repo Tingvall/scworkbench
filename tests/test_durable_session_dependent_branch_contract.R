@@ -1,4 +1,5 @@
 test_durable_session_dependent_branch_contract <- function() {
+  contract_test_activate_statistics_pack()
   bundle_dir <- tempfile("scwb_durable_dependent_bundle_")
   workspace_root <- tempfile("scwb_durable_dependent_sessions_")
   b <- wb_init_bundle(bundle_dir, overwrite = TRUE)
@@ -36,7 +37,7 @@ test_durable_session_dependent_branch_contract <- function() {
   child_log <- tempfile("scwb_durable_dependent_child_", fileext = ".log")
   esc <- function(x) gsub("'", "\\\\'", x)
   code <- paste0(
-    "devtools::load_all('", esc(normalizePath(".", winslash = "/", mustWork = TRUE)), "',quiet=TRUE);",
+    "devtools::load_all('", esc(normalizePath(".", winslash = "/", mustWork = TRUE)), "',quiet=TRUE);wb_operation_pack_load('scwbStatistics');",
     "b<-wb_open_bundle('", esc(bundle_dir), "');s<-wb_session_resume(b,'", esc(workspace), "');",
     "a<-wb_session_run_op(s,b,'cell_vector_association',inputs=list(a=wb_ref_run('", treatment$run$run_id,
     "','vector'),b=wb_ref_run('", lane$run$run_id, "','vector'),cell_set='all',min_cells=1L,min_n_per_group=1L));",

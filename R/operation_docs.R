@@ -28,39 +28,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$labels` (`cell_vector`): Categorical label per cell from suffix parsing.; `outputs$label_table` (`obs_table`): Per-cell suffix/label table.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_cell_vector_assoc
-#' @aliases wb_op_cell_vector_assoc
-#' @description Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
-#' @param vector_cont Required `vector_cont` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param vector_group Required `vector_group` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param min_n_per_group Minimum cells per group.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$assoc_summary` (`feature_table`): Omnibus association test summary (Kruskal/ANOVA).; `outputs$group_stats` (`obs_table`): Per-group descriptive statistics.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_cell_vector_association
-#' @aliases wb_op_cell_vector_association
-#' @description Associate two typed cell vectors with categorical and continuous dispatch.
-#' @param a Required `a` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param b Required `b` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param min_n_per_group Minimum cells per retained categorical group.
-#' @param method Association method or typed automatic dispatch.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$summary` (`obs_table`): Typed association summary including method, effect size, and diagnostics.; `outputs$detail` (`obs_table`): Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_cell_vector_compare
-#' @aliases wb_op_cell_vector_compare
-#' @description Compare two cell-level signals on their shared cell universe in raw or rank space.
-#' @param a Required `a` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param b Required `b` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param compare_space Whether to compare original numeric values or cell ranks.
-#' @param ties_method Tie handling rule used when compare_space='rank'.
-#' @param signal_a Optional label recorded in the summary table for signal A.
-#' @param signal_b Optional label recorded in the summary table for signal B.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$summary` (`obs_table`): One-row comparison summary with concordance and delta metrics.; `outputs$comparison` (`obs_table`): Per-cell comparison table with original values, compared values, and deltas.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_cell_vector_family_calibrate
 #' @aliases wb_op_cell_vector_family_calibrate
 #' @description Normalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.
@@ -156,19 +123,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$deviation_z` (`cell_vector_family`): Per-cell chromVAR z-scores keyed by motif.; `outputs$deviation_raw` (`cell_vector_family`): Per-cell raw chromVAR deviations keyed by motif.; `outputs$motif_summary` (`obs_table`): Per-motif chromVAR summary statistics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_de_wilcox
-#' @aliases wb_op_de_wilcox
-#' @description Wilcoxon rank-sum DE between two cell groups (A vs B).
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param cells_a Canonical cell ids for the first comparison group.
-#' @param cells_b Canonical cell ids for the second comparison group.
-#' @param features Optional feature subset.
-#' @param min_pct Minimum detection fraction in either group.
-#' @param p_adjust_method Method passed to p.adjust.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$de_table` (`feature_table`): Feature-level DE statistics table.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_feature_set_import
 #' @aliases wb_op_feature_set_import
 #' @description Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.
@@ -212,21 +166,6 @@ NULL
 #' @param min_detected_fraction Minimum fraction of source genes detected in the matrix.
 #' @param deduplicate_sets If TRUE, duplicate mapped-gene signatures after the first are excluded.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$overlap_qc` (`obs_table`): One row per feature set with raw, mapped, detected counts and include/exclude status.; `outputs$namespace_summary` (`obs_table`): Namespace-level count and overlap summaries.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_feature_trend_spearman
-#' @aliases wb_op_feature_trend_spearman
-#' @description Feature-level Spearman trend testing against continuous pseudotime-like vectors.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param pseudotime Required `pseudotime` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param features Optional feature subset.
-#' @param min_pct_nonzero Minimum non-zero fraction filter.
-#' @param min_sd Minimum per-feature standard deviation filter.
-#' @param p_adjust_method Method passed to p.adjust.
-#' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$trend_table` (`feature_table`): Per-feature trend statistics (rho, p, adjusted p).. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_hvg_select
@@ -289,20 +228,6 @@ NULL
 #' @param seed Integer random seed used to make stochastic computation reproducible.
 #' @param weight Whether weighted nearest-neighbor relationships are used by the engine.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$clusters` (`cell_vector`): Cluster label per cell (categorical cell vector).. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_markers_topn
-#' @aliases wb_op_markers_topn
-#' @description One-vs-rest Wilcoxon marker ranking for each cluster.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param clusters Required `clusters` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param features Optional feature subset.
-#' @param top_n Top markers retained per cluster.
-#' @param min_pct Minimum detection fraction in either group.
-#' @param p_adjust_method Method passed to p.adjust.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$markers` (`feature_table`): Cluster-marker table with per-feature statistics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_matrix_log_normalize

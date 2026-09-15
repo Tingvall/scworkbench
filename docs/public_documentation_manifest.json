@@ -2939,39 +2939,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_op_cell_vector_assoc.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_cell_vector_association.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_cell_vector_compare.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_op_cell_vector_family_calibrate.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -3159,17 +3126,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_op_de_wilcox.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_op_expr_avg_by.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -3258,17 +3214,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_op_feature_trend_spearman.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_op_hvg_select.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -3325,17 +3270,6 @@
     },
     {
       "path": "man/wb_op_leiden.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_markers_topn.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

@@ -1,4 +1,5 @@
 test_op_feature_trend_spearman_chunking_contract <- function() {
+  contract_test_activate_statistics_pack()
   tmp <- tempfile("scwb_feature_trend_chunk_")
   b <- wb_init_bundle(tmp, overwrite = TRUE)
   on.exit(wb_close_bundle(b), add = TRUE)

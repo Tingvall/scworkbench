@@ -1,4 +1,5 @@
 test_foundation_hardening_1to5 <- function(bundle_dir) {
+  contract_test_activate_statistics_pack()
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
 

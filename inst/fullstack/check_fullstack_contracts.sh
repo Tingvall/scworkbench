@@ -98,9 +98,10 @@ stopifnot(nrow(wb_matrices(b)) >= 1)
 stopifnot(nrow(wb_spaces(b)) >= 1)
 stopifnot(length(wb_cells(b, 'core')) == 600)
 stopifnot(nrow(wb_feature_sets(b, matrix_id = 'RNA_counts')) >= 2)
-stopifnot('de_wilcox' %in% wb_list_ops())
-iface <- wb_op_interface('de_wilcox', bundle = b)
-stopifnot(is.list(iface), identical(iface\$name, 'de_wilcox') || identical(iface\$op_name, 'de_wilcox') || !is.null(iface\$inputs))
+stopifnot(length(wb_list_ops()) == 53L, !'de_wilcox' %in% wb_list_ops())
+missing_statistics <- tryCatch(scworkbench:::.wb_op('de_wilcox'), error = identity)
+stopifnot(inherits(missing_statistics, 'wb_operation_pack_error'),
+          identical(as.character(missing_statistics\$code), 'OPERATION_PACK_REQUIRED'))
 arts <- wb_art_list(b)
 stopifnot(is.data.frame(arts), nrow(arts) >= 1)
 golden_art <- arts[

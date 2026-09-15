@@ -1,4 +1,5 @@
 test_payload_content_identity_contract <- function() {
+  contract_test_activate_statistics_pack()
   # Object identities are portable across supported R runtimes.  This fixed
   # typed value has the same digest in the host and provisioned container even
   # though their R minor versions differ.

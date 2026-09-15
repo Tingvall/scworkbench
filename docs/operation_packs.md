@@ -357,6 +357,32 @@ After exact activation, strict replay and targeted reproduction use the same
 ordinary catalog/session path. Emitted replay scripts call only exported
 scworkbench APIs.
 
+## Statistics production pack
+
+The independently versioned R package `scwbStatistics` uses canonical namespace
+`scwbstatistics`. Installation is inert; activate it explicitly with
+`wb_operation_pack_load("scwbStatistics")`. It contributes:
+
+- `scwbstatistics::de_wilcox`
+- `scwbstatistics::markers_topn`
+- `scwbstatistics::cell_vector_assoc`
+- `scwbstatistics::cell_vector_association`
+- `scwbstatistics::cell_vector_compare`
+- `scwbstatistics::feature_trend_spearman`
+
+Core alone exposes 53 operations. This pack adds six namespaced definitions for
+a total of 59. An unqualified prospective call resolves only when one active
+qualified definition has that short name, and the run records the qualified
+definition and pack identities. Historical unqualified records are never
+rewritten. Finalized payloads and provenance remain readable without the pack;
+new execution and strict replay require the exact pack and otherwise fail with
+`OPERATION_PACK_REQUIRED` before dispatch.
+
+`cell_vector_assoc` is the narrower continuous-by-categorical predecessor.
+`cell_vector_association` is a semantically distinct typed dispatcher that also
+supports categorical-by-categorical and continuous-by-continuous methods. Their
+input and output tuples differ; neither is an alias.
+
 ## Operation, capsule, or adopted state
 
 - Use a core operation for broadly supported engine capability.

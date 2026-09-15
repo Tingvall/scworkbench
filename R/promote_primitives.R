@@ -598,6 +598,7 @@ wb_promote_analysis <- function(bundle,
   params <- run$params %||% list()
   user_inputs <- run$inputs$user_inputs %||% list()
   op_name <- as.character(run$op_name %||% "")[1]
+  display_op_name <- sub("^.*::", "", op_name)
   out_name <- as.character(out_name %||% "")[1]
 
   matrix_id <- .wb_name_nonempty(params$matrix_id %||% user_inputs$matrix %||% user_inputs$matrix_id)
@@ -611,7 +612,7 @@ wb_promote_analysis <- function(bundle,
   n_lineages <- suppressWarnings(as.integer(params$n_lineages %||% params$n_lineages_input %||% NA_integer_))
 
   base <- switch(
-    op_name,
+    display_op_name,
     de_wilcox = .wb_title_compose("DE:", group_a %||% "A", "vs", group_b %||% "B",
                                   if (!is.null(matrix_id)) paste0("on ", matrix_id) else NULL),
     markers_topn = .wb_title_compose("Markers",

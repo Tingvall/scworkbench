@@ -1,5 +1,6 @@
 test_op_metadata_cell_vector_diagnostics_contract <- function() {
-  stopifnot(all(c("metadata_cell_vector", "cell_vector_association") %in% wb_list_ops()))
+  contract_test_activate_statistics_pack()
+  stopifnot(all(c("metadata_cell_vector", "scwbstatistics::cell_vector_association") %in% wb_list_ops()))
   stopifnot(identical(wb_op_interface("metadata_cell_vector")$produces$vector$kind, "cell_vector"))
   stopifnot(identical(wb_op_interface("cell_vector_association")$produces$summary$kind, "obs_table"))
 
@@ -35,8 +36,11 @@ test_op_metadata_cell_vector_diagnostics_contract <- function() {
   cc_summary <- cc$run$outputs$summary$table
   stopifnot(identical(cc_summary$association_type, "categorical_x_categorical"), identical(cc_summary$effect_size_name, "cramers_v"), "min_expected" %in% names(cc_summary))
   stopifnot(identical(cg$run$outputs$summary$table$association_type, "continuous_x_categorical"))
-  cont <- wb_op_cell_vector_association(vecs[[3]], wb_prim_cell_vector(stats::setNames(seq_along(ids), ids), value_type = "continuous"))
-  stopifnot(identical(cont$outputs$summary$table$association_type, "continuous_x_continuous"), "spearman" %in% names(cont$outputs$summary$table))
+  cont <- wb_session_run_op(wb_session_new(), b, "cell_vector_association", inputs = list(
+    a = vecs[[3]], b = wb_prim_cell_vector(stats::setNames(seq_along(ids), ids),
+      value_type = "continuous"), cell_set = "all", min_cells = 1L))
+  stopifnot(identical(cont$run$outputs$summary$table$association_type,
+    "continuous_x_continuous"), "spearman" %in% names(cont$run$outputs$summary$table))
   duplicate <- try(wb_session_run_op(wb_session_new(), b, "metadata_cell_vector", inputs = list(source_column = "lane", vector_name = "lane", cell_set = "all", min_cells = 1L)), silent = TRUE)
   stopifnot(inherits(duplicate, "try-error"))
   plot <- wb_wrangle_plot_dataset("embedding_overlay", list(space = wb_prim_space_2d("umap"), color = vecs[[1]]), b)

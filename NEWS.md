@@ -22,6 +22,10 @@
 
 ## Release engineering
 
+- Extracts six terminal statistical methods into the independently installed,
+  explicitly activated ABI v2 `scwbStatistics` pack. Core retains durable state
+  ownership, pack-free inspection, and historical unqualified provenance while
+  prospective execution records qualified `scwbstatistics::` identities.
 - Completes the synthetic operation-pack ABI v2 R/Python reference boundary:
   explicit installed Python-pack authentication, `pybench-op-v3` typed staging,
   independent receipt/runtime/payload audit, atomic durable publication, and

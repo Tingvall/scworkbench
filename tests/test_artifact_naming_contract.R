@@ -1,4 +1,5 @@
 test_artifact_naming_contract <- function(bundle_dir) {
+  contract_test_activate_statistics_pack()
   tmp <- file.path(tempdir(), paste0("scwb_artifact_names_", as.integer(Sys.time())))
   b <- wb_init_bundle(tmp, overwrite = TRUE)
   on.exit(wb_close_bundle(b), add = TRUE)

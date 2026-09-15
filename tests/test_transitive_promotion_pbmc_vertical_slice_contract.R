@@ -1,4 +1,5 @@
 test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
+  contract_test_activate_statistics_pack()
   required <- c("BPCells", "Matrix", "irlba", "uwot", "igraph")
   if (!all(vapply(required, requireNamespace, logical(1), quietly = TRUE))) {
     missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
@@ -75,14 +76,14 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
   stopifnot(setequal(as.character(ok$output), c("selected_features", "space_2d", "clusters", "markers")))
   arts <- wb_art_list(b)
   stopifnot(nrow(arts) == 5L)
-  stopifnot(setequal(as.character(arts$source_op), c("ingest_apply", "hvg_select", "umap_fit", "leiden", "markers_topn")))
+  stopifnot(setequal(as.character(arts$source_op), c("ingest_apply", "hvg_select", "umap_fit", "leiden", "scwbstatistics::markers_topn")))
   stopifnot(all(as.character(ok$lineage_status) == "complete"))
   stopifnot("RNA_log" %in% as.character(wb_matrices(b)$matrix_id))
   stopifnot(all(c("pca", "umap") %in% as.character(wb_spaces(b)$space_id)))
 
   sid <- as.character(promoted$provenance_snapshot_id)
   runs <- DBI::dbGetQuery(b$con, "SELECT run_id, op_name, runtime_fingerprint_json FROM prov_runs WHERE snapshot_id = ?;", params = list(sid))
-  stopifnot(setequal(as.character(runs$op_name), c("matrix_log_normalize", "hvg_select", "pca_fit", "umap_fit", "leiden", "markers_topn")))
+  stopifnot(setequal(as.character(runs$op_name), c("matrix_log_normalize", "hvg_select", "pca_fit", "umap_fit", "leiden", "scwbstatistics::markers_topn")))
   stopifnot(all(nzchar(as.character(runs$runtime_fingerprint_json))))
   mats <- DBI::dbGetQuery(b$con, "SELECT * FROM prov_materializations WHERE commit_id = ?;", params = list(DBI::dbGetQuery(b$con, "SELECT commit_id FROM prov_heads WHERE snapshot_id = ?;", params = list(sid))$commit_id[1]))
   stopifnot(nrow(mats) >= 6L, all(file.exists(file.path(b$dir, mats$path))))

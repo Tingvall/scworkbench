@@ -715,58 +715,6 @@
   raw
 }
 
-.wb_runner_de_wilcox <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "de_wilcox runner: missing resolved$matrix.")
-  .wb_assert(!is.null(inputs$group_a), "de_wilcox runner: inputs$group_a is required.")
-  .wb_assert(!is.null(inputs$group_b), "de_wilcox runner: inputs$group_b is required.")
-
-  matrix_id <- resolved$matrix$matrix_id
-  cells_a <- .wb_resolve_group_cells(bundle, inputs$group_a, effective_cells)
-  cells_b <- .wb_resolve_group_cells(bundle, inputs$group_b, effective_cells)
-
-  .wb_assert(length(cells_a) >= 2, "de_wilcox runner: group_a resolved to <2 cells.")
-  .wb_assert(length(cells_b) >= 2, "de_wilcox runner: group_b resolved to <2 cells.")
-
-  raw <- wb_op_de_wilcox(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    cells_a = cells_a,
-    cells_b = cells_b,
-    features = inputs$features %||% NULL,
-    min_pct = inputs$min_pct %||% 0,
-    p_adjust_method = inputs$p_adjust_method %||% "BH"
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "de_wilcox must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
-.wb_runner_markers_topn <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "markers_topn runner: missing resolved$matrix.")
-  .wb_assert(!is.null(resolved$clusters), "markers_topn runner: missing resolved$clusters.")
-
-  matrix_id <- resolved$matrix$matrix_id
-  clp <- resolved$clusters
-  clusters_vec <- as.character(clp$value)
-  names(clusters_vec) <- as.character(clp$cell_id)
-
-  raw <- wb_op_markers_topn(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    clusters = clusters_vec,
-    cells = as.character(effective_cells),
-    features = inputs$features %||% NULL,
-    top_n = inputs$top_n %||% 20,
-    min_pct = inputs$min_pct %||% 0.1,
-    p_adjust_method = inputs$p_adjust_method %||% "BH"
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "markers_topn must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_pathway_enrich <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "pathway_enrich runner: missing resolved$matrix.")
   .wb_assert(!is.null(resolved$feature_table), "pathway_enrich runner: missing resolved$feature_table.")
@@ -974,34 +922,6 @@
   raw
 }
 
-.wb_runner_cell_vector_assoc <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$vector_cont), "cell_vector_assoc runner: missing resolved$vector_cont.")
-  .wb_assert(!is.null(resolved$vector_group), "cell_vector_assoc runner: missing resolved$vector_group.")
-
-  vc <- resolved$vector_cont
-  vg <- resolved$vector_group
-  x <- suppressWarnings(as.numeric(vc$value))
-  names(x) <- as.character(vc$cell_id)
-  g <- as.character(vg$value)
-  names(g) <- as.character(vg$cell_id)
-
-  keep <- as.character(effective_cells)
-  .wb_assert(all(keep %in% names(x)) && all(keep %in% names(g)),
-             "cell_vector_assoc runner received effective cells absent from a required vector.")
-  x <- x[keep]
-  g <- g[keep]
-
-  raw <- wb_op_cell_vector_assoc(
-    vector_cont = x,
-    vector_group = g,
-    min_n_per_group = inputs$min_n_per_group %||% 3
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "cell_vector_assoc must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_metadata_cell_vector <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   source_field <- .wb_metadata_resolve(bundle, inputs$source_column, allow_core = TRUE)
   vector_name <- as.character(inputs$vector_name %||% source_field$display_name[[1L]])[1]
@@ -1022,35 +942,6 @@
     overwrite = inputs$overwrite %||% FALSE
   )
   raw$params$cell_set <- as.character(inputs$cell_set %||% "all")[1]
-  raw
-}
-
-.wb_runner_cell_vector_association <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  raw <- wb_op_cell_vector_association(
-    a = resolved$a, b = resolved$b, cells = as.character(effective_cells),
-    min_n_per_group = inputs$min_n_per_group %||% 3L, method = inputs$method %||% "auto"
-  )
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "cell_vector_association must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
-.wb_runner_cell_vector_compare <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$a), "cell_vector_compare runner: missing resolved$a.")
-  .wb_assert(!is.null(resolved$b), "cell_vector_compare runner: missing resolved$b.")
-
-  raw <- wb_op_cell_vector_compare(
-    a = resolved$a,
-    b = resolved$b,
-    cells = as.character(effective_cells),
-    compare_space = inputs$compare_space %||% "rank",
-    ties_method = inputs$ties_method %||% "average",
-    signal_a = inputs$signal_a %||% "a",
-    signal_b = inputs$signal_b %||% "b"
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "cell_vector_compare must return list(outputs=<list>, params=<list>).")
   raw
 }
 
@@ -1260,117 +1151,6 @@
       n_cell_sets = nrow(manifest$table)
     )
   )
-}
-
-.wb_runner_feature_trend_spearman <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "feature_trend_spearman runner: missing resolved$matrix.")
-  .wb_assert(!is.null(resolved$pseudotime), "feature_trend_spearman runner: missing resolved$pseudotime.")
-
-  matrix_id <- resolved$matrix$matrix_id
-  ptp <- resolved$pseudotime
-  pt <- suppressWarnings(as.numeric(ptp$value))
-  names(pt) <- as.character(ptp$cell_id)
-  features_use <- inputs$features %||% wb_feature_ids(bundle, matrix_id = matrix_id)
-  features_use <- as.character(features_use)
-  features_use <- features_use[nzchar(features_use)]
-  .wb_assert(length(features_use) > 0L, "feature_trend_spearman runner: no features selected.")
-
-  run_one <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-    chunk_feats <- as.character(inputs$features %||% character(0))
-    .wb_assert(length(chunk_feats) > 0L, "feature_trend_spearman chunk runner: no features for chunk.")
-    wb_op_feature_trend_spearman(
-      bundle = bundle,
-      matrix_id = matrix_id,
-      pseudotime = pt,
-      cells = as.character(effective_cells),
-      features = chunk_feats,
-      min_pct_nonzero = inputs$min_pct_nonzero %||% 0,
-      min_sd = inputs$min_sd %||% 0,
-      p_adjust_method = inputs$p_adjust_method %||% "BH",
-      chunk_size = max(length(chunk_feats), 1L)
-    )
-  }
-
-  chunk_size <- suppressWarnings(as.integer(inputs$chunk_size %||% 128L)[1])
-  if (is.finite(chunk_size) && chunk_size > 0L && length(features_use) > chunk_size) {
-    raw_chunked <- .wb_run_op_in_chunks(
-      bundle = bundle,
-      resolved = resolved,
-      effective_cells = as.character(effective_cells),
-      inputs = utils::modifyList(inputs, list(features = features_use)),
-      runner = run_one,
-      chunk_axis = "features",
-      chunk_size = chunk_size,
-      merge_spec = list(
-        trend_table = "row_bind_feature_table"
-      ),
-      context = list(
-        trend_table = list(feature_order = features_use)
-      )
-    )
-
-    tbl <- raw_chunked$outputs$trend_table$table
-    if (nrow(tbl) > 0L && "p_val" %in% colnames(tbl)) {
-      tbl$p_val_adj <- stats::p.adjust(tbl$p_val, method = as.character(inputs$p_adjust_method %||% "BH")[1])
-      ord <- order(tbl$p_val_adj, -tbl$abs_rho, na.last = TRUE)
-      tbl <- tbl[ord, , drop = FALSE]
-      rownames(tbl) <- NULL
-    }
-
-    chunk_params <- lapply(raw_chunked$chunk_results, `[[`, "params")
-    first_params <- chunk_params[[1]]
-    raw <- list(
-      outputs = list(
-        trend_table = wb_prim_feature_table(
-          table = tbl,
-          table_type = "feature_trend_spearman",
-          meta = list(
-            matrix_id = matrix_id,
-            n_cells_input = as.integer(first_params$n_cells_input %||% NA_integer_),
-            n_cells_used = as.integer(first_params$n_cells_used %||% NA_integer_),
-            n_features_input = as.integer(length(features_use)),
-            n_features_tested = as.integer(nrow(tbl)),
-            min_pct_nonzero = as.numeric(inputs$min_pct_nonzero %||% 0),
-            min_sd = as.numeric(inputs$min_sd %||% 0),
-            p_adjust_method = as.character(inputs$p_adjust_method %||% "BH")[1],
-            n_filtered_min_cells = sum(vapply(chunk_params, function(x) as.integer(x$n_filtered_min_cells %||% 0L), integer(1))),
-            n_filtered_min_pct_nonzero = sum(vapply(chunk_params, function(x) as.integer(x$n_filtered_min_pct_nonzero %||% 0L), integer(1))),
-            n_filtered_min_sd = sum(vapply(chunk_params, function(x) as.integer(x$n_filtered_min_sd %||% 0L), integer(1)))
-          )
-        )
-      ),
-      params = list(
-        matrix_id = matrix_id,
-        n_cells_input = as.integer(first_params$n_cells_input %||% NA_integer_),
-        n_cells_used = as.integer(first_params$n_cells_used %||% NA_integer_),
-        n_features_input = as.integer(length(features_use)),
-        n_features_tested = as.integer(nrow(tbl)),
-        min_pct_nonzero = as.numeric(inputs$min_pct_nonzero %||% 0),
-        min_sd = as.numeric(inputs$min_sd %||% 0),
-        p_adjust_method = as.character(inputs$p_adjust_method %||% "BH")[1],
-        n_filtered_min_cells = sum(vapply(chunk_params, function(x) as.integer(x$n_filtered_min_cells %||% 0L), integer(1))),
-        n_filtered_min_pct_nonzero = sum(vapply(chunk_params, function(x) as.integer(x$n_filtered_min_pct_nonzero %||% 0L), integer(1))),
-        n_filtered_min_sd = sum(vapply(chunk_params, function(x) as.integer(x$n_filtered_min_sd %||% 0L), integer(1))),
-        chunking = raw_chunked$params$chunking
-      )
-    )
-  } else {
-    raw <- wb_op_feature_trend_spearman(
-      bundle = bundle,
-      matrix_id = matrix_id,
-      pseudotime = pt,
-      cells = as.character(effective_cells),
-      features = features_use,
-      min_pct_nonzero = inputs$min_pct_nonzero %||% 0,
-      min_sd = inputs$min_sd %||% 0,
-      p_adjust_method = inputs$p_adjust_method %||% "BH",
-      chunk_size = inputs$chunk_size %||% 128L
-    )
-  }
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "feature_trend_spearman must return list(outputs=<list>, params=<list>).")
-  raw
 }
 
 .wb_runner_trajectory_de <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
@@ -1691,7 +1471,7 @@
 # Canonical op catalog.
 # Add new ops in one place only: contract + wrangler + interface metadata.
 .wb_op_catalog <- function() {
-  list(
+  catalog <- list(
     leiden = list(
       op_name = "leiden",
       title = "Leiden clustering",
@@ -2462,67 +2242,6 @@
         )
       )
     ),
-    de_wilcox = list(
-      op_name = "de_wilcox",
-      title = "Differential Expression (Wilcoxon)",
-      description = "Wilcoxon rank-sum DE between two cell groups (A vs B).",
-      intent = c("de", "markers", "comparison"),
-      requires = list(matrix = "matrix"),
-      produces = list(de_table = "feature_table"),
-      promotable = c("de_table"),
-      runner = .wb_runner_de_wilcox,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix")
-      ),
-      params = list(
-        list(name = "group_a", type = "cell_ids_or_set", default = NULL,
-             help = "Group A cells: vector of cell IDs or 'set:<name>'."),
-        list(name = "group_b", type = "cell_ids_or_set", default = NULL,
-             help = "Group B cells: vector of cell IDs or 'set:<name>'."),
-        list(name = "features", type = "string_vec", default = NULL,
-             help = "Optional feature subset."),
-        list(name = "min_pct", type = "dbl", default = 0, min = 0, max = 1,
-             help = "Minimum detection fraction in either group."),
-        list(name = "p_adjust_method", type = "string", default = "BH",
-             help = "Method passed to p.adjust.")
-      ),
-      interface_produces = list(
-        de_table = list(
-          kind = "feature_table",
-          description = "Feature-level DE statistics table."
-        )
-      )
-    ),
-    markers_topn = list(
-      op_name = "markers_topn",
-      title = "Top Markers Per Cluster",
-      description = "One-vs-rest Wilcoxon marker ranking for each cluster.",
-      intent = c("markers", "cluster"),
-      requires = list(matrix = "matrix", clusters = "cell_vector"),
-      produces = list(markers = "feature_table"),
-      promotable = c("markers"),
-      runner = .wb_runner_markers_topn,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix"),
-        clusters = list(required = TRUE, kind = "cell_vector")
-      ),
-      params = list(
-        list(name = "features", type = "string_vec", default = NULL,
-             help = "Optional feature subset."),
-        list(name = "top_n", type = "int", default = 20, min = 1, max = 1000,
-             help = "Top markers retained per cluster."),
-        list(name = "min_pct", type = "dbl", default = 0.1, min = 0, max = 1,
-             help = "Minimum detection fraction in either group."),
-        list(name = "p_adjust_method", type = "string", default = "BH",
-             help = "Method passed to p.adjust.")
-      ),
-      interface_produces = list(
-        markers = list(
-          kind = "feature_table",
-          description = "Cluster-marker table with per-feature statistics."
-        )
-      )
-    ),
     pathway_enrich = list(
       op_name = "pathway_enrich",
       title = "Pathway Enrichment (Namespace)",
@@ -2824,44 +2543,6 @@
         )
       )
     ),
-    cell_vector_assoc = list(
-      op_name = "cell_vector_assoc",
-      title = "Cell Vector Association",
-      description = "Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.",
-      intent = c("statistics", "association", "confounding"),
-      requires = list(vector_cont = "cell_vector", vector_group = "cell_vector"),
-      produces = list(assoc_summary = "feature_table", group_stats = "obs_table"),
-      promotable = c("assoc_summary", "group_stats"),
-      runner = .wb_runner_cell_vector_assoc,
-      inputs = list(
-        vector_cont = list(
-          required = TRUE,
-          kind = "cell_vector",
-          label = "Continuous vector (numeric per cell)",
-          help = "Examples: pseudotime, module score, gene-program score."
-        ),
-        vector_group = list(
-          required = TRUE,
-          kind = "cell_vector",
-          label = "Grouping vector (categorical per cell)",
-          help = "Examples: cluster labels, cell type labels, condition labels."
-        )
-      ),
-      params = list(
-        list(name = "min_n_per_group", type = "int", default = 3, min = 1, max = 100000,
-             help = "Minimum cells per group.")
-      ),
-      interface_produces = list(
-        assoc_summary = list(
-          kind = "feature_table",
-          description = "Omnibus association test summary (Kruskal/ANOVA)."
-        ),
-        group_stats = list(
-          kind = "obs_table",
-          description = "Per-group descriptive statistics."
-        )
-      )
-    ),
     metadata_cell_vector = list(
       op_name = "metadata_cell_vector",
       title = "Metadata Cell Vector",
@@ -2880,115 +2561,6 @@
         list(name = "overwrite", type = "bool", default = FALSE, help = "Allow a new immutable artifact to supersede an existing vector with the same name.")
       ),
       interface_produces = list(vector = list(kind = "cell_vector", description = "Typed per-cell vector materialized from imported bundle metadata."))
-    ),
-    cell_vector_association = list(
-      op_name = "cell_vector_association",
-      title = "Cell Vector Association",
-      description = "Associate two typed cell vectors with categorical and continuous dispatch.",
-      intent = c("statistics", "association", "confounding"),
-      requires = list(a = "cell_vector", b = "cell_vector"), produces = list(summary = "obs_table", detail = "obs_table"),
-      promotable = c("summary", "detail"), runner = .wb_runner_cell_vector_association,
-      inputs = list(
-        a = list(required = TRUE, kind = "cell_vector", label = "First vector", help = "Categorical or continuous cell vector."),
-        b = list(required = TRUE, kind = "cell_vector", label = "Second vector", help = "Categorical or continuous cell vector.")
-      ),
-      params = list(
-        list(name = "cell_set", type = "cell_set", default = "all", help = "Named bundle cell set defining the association universe."),
-        list(name = "min_n_per_group", type = "int", default = 3, min = 1, max = 100000, help = "Minimum cells per retained categorical group."),
-        list(name = "method", type = "choice", default = "auto", choices = c("auto", "chisq", "fisher", "kruskal_anova", "correlation"), help = "Association method or typed automatic dispatch.")
-      ),
-      interface_produces = list(
-        summary = list(kind = "obs_table", description = "Typed association summary including method, effect size, and diagnostics."),
-        detail = list(kind = "obs_table", description = "Contingency, group-statistic, or per-cell association detail appropriate to the dispatched test.")
-      )
-    ),
-    cell_vector_compare = list(
-      op_name = "cell_vector_compare",
-      title = "Cell Vector Comparison",
-      description = "Compare two cell-level signals on their shared cell universe in raw or rank space.",
-      intent = c("statistics", "comparison", "signal"),
-      requires = list(a = "cell_vector", b = "cell_vector"),
-      produces = list(summary = "obs_table", comparison = "obs_table"),
-      promotable = c("summary", "comparison"),
-      runner = .wb_runner_cell_vector_compare,
-      inputs = list(
-        a = list(
-          required = TRUE,
-          kind = "cell_vector",
-          label = "Signal A",
-          help = "Continuous or rankable numeric signal per cell."
-        ),
-        b = list(
-          required = TRUE,
-          kind = "cell_vector",
-          label = "Signal B",
-          help = "Continuous or rankable numeric signal per cell."
-        )
-      ),
-      params = list(
-        list(name = "compare_space", type = "choice", default = "rank",
-             choices = c("raw", "rank"),
-             help = "Whether to compare original numeric values or cell ranks."),
-        list(name = "ties_method", type = "choice", default = "average",
-             choices = c("average", "first", "last", "random", "max", "min"),
-             help = "Tie handling rule used when compare_space='rank'."),
-        list(name = "signal_a", type = "string", default = "a",
-             help = "Optional label recorded in the summary table for signal A."),
-        list(name = "signal_b", type = "string", default = "b",
-             help = "Optional label recorded in the summary table for signal B.")
-      ),
-      interface_produces = list(
-        summary = list(
-          kind = "obs_table",
-          description = "One-row comparison summary with concordance and delta metrics."
-        ),
-        comparison = list(
-          kind = "obs_table",
-          description = "Per-cell comparison table with original values, compared values, and deltas."
-        )
-      )
-    ),
-    feature_trend_spearman = list(
-      op_name = "feature_trend_spearman",
-      title = "Feature Trends vs Continuous Vector",
-      description = "Feature-level Spearman trend testing against continuous pseudotime-like vectors.",
-      intent = c("trend", "statistics", "trajectory"),
-      requires = list(matrix = "matrix", pseudotime = "cell_vector"),
-      produces = list(trend_table = "feature_table"),
-      promotable = c("trend_table"),
-      chunking = list(
-        chunkable = TRUE,
-        axis = "features",
-        chunk_size_param = "chunk_size",
-        chunk_size_default = 128L,
-        merge = list(
-          trend_table = "row_bind_feature_table"
-        ),
-        status = "implemented_generic"
-      ),
-      runner = .wb_runner_feature_trend_spearman,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix"),
-        pseudotime = list(required = TRUE, kind = "cell_vector")
-      ),
-      params = list(
-        list(name = "features", type = "string_vec", default = NULL,
-             help = "Optional feature subset."),
-        list(name = "min_pct_nonzero", type = "dbl", default = 0, min = 0, max = 1,
-             help = "Minimum non-zero fraction filter."),
-        list(name = "min_sd", type = "dbl", default = 0, min = 0, max = 1e6,
-             help = "Minimum per-feature standard deviation filter."),
-        list(name = "p_adjust_method", type = "string", default = "BH",
-             help = "Method passed to p.adjust."),
-        list(name = "chunk_size", type = "int", default = 128, min = 1, max = 4096,
-             help = "Chunk size for matrix slicing.")
-      ),
-      interface_produces = list(
-        trend_table = list(
-          kind = "feature_table",
-          description = "Per-feature trend statistics (rho, p, adjusted p)."
-        )
-      )
     ),
     trajectory_de = list(
       op_name = "trajectory_de",
@@ -4549,4 +4121,5 @@
       )
     )
   )
+  catalog
 }

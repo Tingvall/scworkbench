@@ -1228,6 +1228,12 @@ wb_operation_pack_validate <- function(package, lib.loc = NULL) {
   namespace <- identity$namespace
   op_names <- names(identity$operation_definition_sha256)
   core_names <- names(.wb_op_catalog())
+  existing <- .wb_operation_pack_registry$packs[[namespace]]
+  if (!is.null(existing) && identical(
+      as.character(existing$identity$pack_identity$sha256 %||% existing$identity$pack_sha256)[1],
+      as.character(identity$pack_identity$sha256 %||% identity$pack_sha256)[1])) {
+    return(invisible(wb_operation_pack_inspect(namespace)))
+  }
   .wb_operation_pack_assert(!namespace %in% names(.wb_operation_pack_registry$packs),
     "OPERATION_PACK_NAMESPACE_DUPLICATE", paste0("Operation-pack namespace '", namespace, "' is already loaded."),
     namespace = namespace)

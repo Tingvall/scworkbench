@@ -91,7 +91,7 @@ wb_list_ops <- function() {
 #'   inputs, parameters, declared primitive outputs, and chunking metadata.
 #' @export
 wb_op_interface <- function(op_name, bundle = NULL) {
-  op_name <- as.character(op_name)
+  op_name <- .wb_operation_name_resolve(op_name)
   reg <- .wb_op_interface_registry()
 
   if (!op_name %in% names(reg)) {

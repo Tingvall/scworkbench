@@ -9,6 +9,7 @@
 }
 
 test_typed_cell_set_consumption_provenance_contract <- function() {
+  contract_test_activate_statistics_pack()
   if (!requireNamespace("BPCells", quietly=TRUE)) {
     return(contract_test_skip("BPCells is not installed."))
   }
@@ -145,7 +146,7 @@ test_typed_cell_set_consumption_provenance_contract <- function() {
     }
     audited[[op_name]] <- unique(expected)
   }
-  stopifnot(all(c("de_wilcox","knn_neighbors","trajectory_space_path_segment") %in% names(audited)))
+  stopifnot(all(c("scwbstatistics::de_wilcox","knn_neighbors","trajectory_space_path_segment") %in% names(audited)))
   explicit_endpoint <- .wb_named_cell_set_selectors(b,"trajectory_space_path_segment",list(
     cell_set="all",start_endpoint=list(x=0,y=0,cell_set="set:group_a"),
     start_cell_set="set:group_b"

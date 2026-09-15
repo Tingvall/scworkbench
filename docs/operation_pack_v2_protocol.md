@@ -22,6 +22,15 @@ readers and writers, audits the closed output set, publishes a complete
 transition atomically, and retains request, receipt, runtime, dependency,
 payload, and semantic identities for pack-free recipient inspection.
 
+For the migrated Statistics terminal `feature_table` and `obs_table` outputs,
+whose row count is data-dependent, core issues the request descriptor dimension
+sentinel `[0, 0]`.
+Both zeros together mean “audit dimensions from the staged primitive”; they do
+not claim an empty result. Core still verifies the declared kind, table type,
+complete output tuple, semantic constraints, staged payload identity, and the
+observed non-negative dimensions before atomic publication. A single zero or a
+nonzero claimed dimension retains its literal meaning and must match exactly.
+
 The deterministic installed fixture
 `fixtures/operation-pack-v2/identities.json` pins the live schema bytes and all
 positive schema-example identities. The test-only package under

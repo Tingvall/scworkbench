@@ -1,4 +1,5 @@
 test_primitives_contract <- function() {
+  contract_test_activate_statistics_pack()
   # Primitive constructors
   cv <- wb_prim_cell_vector(setNames(c("a", "b"), c("c1", "c2")))
   stopifnot(.wb_is_primitive(cv), identical(cv$kind, "cell_vector"))

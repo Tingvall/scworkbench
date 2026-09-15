@@ -182,10 +182,13 @@ at [inst/onboarding](inst/onboarding), or after installation through
 `system.file("onboarding", package = "scworkbench")`.
 
 Independently distributed scientific operations can be explicitly activated
-through the operation-pack v1 ABI. Installation is inert; see
+through the operation-pack ABI. Installation is inert; see
 [docs/operation_packs.md](docs/operation_packs.md) for trust, authoring,
 provenance, recipient, and conformance semantics.
-Protocol v1 admits R packages and Python distributions. R packs activate
+Protocols v1 and v2 admit R packages and Python distributions. The production
+`scwbStatistics` ABI v2 pack adds six `scwbstatistics::` operations after
+`wb_operation_pack_load("scwbStatistics")`; core alone exposes 53 operations.
+R packs activate
 in-process; Python packs activate explicitly through the configured PyBench
 interpreter and then execute through the same catalog, session, promotion,
 provenance, replay, and recipient contracts.

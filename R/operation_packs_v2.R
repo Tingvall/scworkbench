@@ -530,7 +530,7 @@
   ordinary <- Filter(function(x) !identical(as.character(x$category)[1], "core_registry_request"), op$outputs)
   produces <- stats::setNames(lapply(ordinary, `[[`, "kind"), vapply(ordinary, `[[`, character(1), "name"))
   terminals <- vapply(Filter(function(x) identical(as.character(x$category)[1], "terminal_artifact"), ordinary), `[[`, character(1), "name")
-  list(
+  definition <- list(
     name = op$qualified_name, op_name = op$qualified_name, title = op$title,
     description = op$description, intent = "operation_pack_v2_reference",
     requires = requires, optional_requires = optional_requires,
@@ -542,6 +542,7 @@
       materialized_by_terminals = x$materialized_by_terminals %||% NULL)), vapply(ordinary, `[[`, character(1), "name")),
     promotable = terminals, replay_equivalence = op$replay_equivalence[names(produces)],
     coverage = list(), pack_abi_version = "2", v2_definition = op)
+  .wb_operation_pack_migration_catalog_overlay(definition)
 }
 
 .wb_operation_pack_v2_registration <- function(manifest, runners, package_description,

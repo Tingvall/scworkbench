@@ -42,6 +42,7 @@
 }
 
 test_deep_bundle_integrity_validation_contract <- function() {
+  contract_test_activate_statistics_pack()
   root <- tempfile("scwb_deep_validation_")
   dir.create(root, recursive = TRUE)
   on.exit(unlink(root, recursive = TRUE, force = TRUE), add = TRUE)
@@ -249,6 +250,7 @@ test_deep_bundle_integrity_validation_contract <- function() {
 }
 
 test_deep_bundle_integrity_validation_closure_contract <- function() {
+  contract_test_activate_statistics_pack()
   root <- tempfile("scwb_deep_validation_closure_")
   dir.create(root, recursive = TRUE)
   on.exit(unlink(root, recursive = TRUE, force = TRUE), add = TRUE)

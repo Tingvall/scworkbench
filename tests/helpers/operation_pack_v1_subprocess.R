@@ -56,14 +56,17 @@ invisible(expect_pack_error(scworkbench:::.wb_operation_pack_registration(
   validated, stats::setNames(list("not-a-function"), template_op)),
   "OPERATION_PACK_ENTRY_POINT_INVALID"))
 
-# Explicit activation, inspection, safe unused unload, duplicate rejection.
+# Explicit activation, inspection, safe unused unload, and idempotent exact
+# reactivation.
 wb_operation_pack_load(template_package)
 stopifnot(template_op %in% wb_list_ops(), nrow(wb_operation_packs()) == 1L)
 identity_a <- wb_operation_pack_inspect("scwbexample")$identity
 stopifnot(grepl("^[0-9a-f]{64}$", identity_a$manifest_sha256),
           grepl("^[0-9a-f]{64}$", identity_a$pack_sha256),
           identical(wb_op_interface(template_op)$source_pack$pack_sha256, identity_a$pack_sha256))
-invisible(expect_pack_error(wb_operation_pack_load(template_package), "OPERATION_PACK_NAMESPACE_DUPLICATE"))
+identity_b <- wb_operation_pack_load(template_package)$identity
+stopifnot(identical(identity_a$pack_sha256, identity_b$pack_sha256),
+          nrow(wb_operation_packs()) == 1L)
 stopifnot(wb_operation_pack_unload("scwbexample"), !template_op %in% wb_list_ops())
 wb_operation_pack_load(template_package)
 

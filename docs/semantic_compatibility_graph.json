@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 329,
-  "edge_count": 930,
+  "node_count": 323,
+  "edge_count": 891,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -101,18 +101,6 @@
       "title": "chromVAR deviations"
     },
     {
-      "record_id": "op:de_wilcox",
-      "record_type": "op",
-      "name": "de_wilcox",
-      "title": "Differential Expression (Wilcoxon)"
-    },
-    {
-      "record_id": "op:markers_topn",
-      "record_type": "op",
-      "name": "markers_topn",
-      "title": "Top Markers Per Cluster"
-    },
-    {
       "record_id": "op:pathway_enrich",
       "record_type": "op",
       "name": "pathway_enrich",
@@ -149,34 +137,10 @@
       "title": "Derived Cell Set"
     },
     {
-      "record_id": "op:cell_vector_assoc",
-      "record_type": "op",
-      "name": "cell_vector_assoc",
-      "title": "Cell Vector Association"
-    },
-    {
       "record_id": "op:metadata_cell_vector",
       "record_type": "op",
       "name": "metadata_cell_vector",
       "title": "Metadata Cell Vector"
-    },
-    {
-      "record_id": "op:cell_vector_association",
-      "record_type": "op",
-      "name": "cell_vector_association",
-      "title": "Cell Vector Association"
-    },
-    {
-      "record_id": "op:cell_vector_compare",
-      "record_type": "op",
-      "name": "cell_vector_compare",
-      "title": "Cell Vector Comparison"
-    },
-    {
-      "record_id": "op:feature_trend_spearman",
-      "record_type": "op",
-      "name": "feature_trend_spearman",
-      "title": "Feature Trends vs Continuous Vector"
     },
     {
       "record_id": "op:trajectory_de",
@@ -2690,78 +2654,6 @@
     },
     {
       "from": "primitive:matrix",
-      "to": "op:de_wilcox",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:de_wilcox",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:de_wilcox",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:de_wilcox",
-      "to": "parameter:p_adjust_method",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:p_adjust_method"
-    },
-    {
-      "from": "op:de_wilcox",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:de_table"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:markers_topn",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:markers_topn",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:markers_topn",
-      "edge_type": "consumed_by",
-      "label": "input:clusters"
-    },
-    {
-      "from": "op:markers_topn",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:markers_topn",
-      "to": "parameter:top_n",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:top_n"
-    },
-    {
-      "from": "op:markers_topn",
-      "to": "parameter:p_adjust_method",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:p_adjust_method"
-    },
-    {
-      "from": "op:markers_topn",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:markers"
-    },
-    {
-      "from": "primitive:matrix",
       "to": "op:pathway_enrich",
       "edge_type": "consumed_by",
       "label": "input:matrix"
@@ -3085,36 +2977,6 @@
       "label": "output:rule_table"
     },
     {
-      "from": "primitive:cell_vector",
-      "to": "op:cell_vector_assoc",
-      "edge_type": "consumed_by",
-      "label": "input:vector_cont"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:cell_vector_assoc",
-      "edge_type": "consumed_by",
-      "label": "input:vector_group"
-    },
-    {
-      "from": "op:cell_vector_assoc",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_assoc",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:assoc_summary"
-    },
-    {
-      "from": "op:cell_vector_assoc",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:group_stats"
-    },
-    {
       "from": "op:metadata_cell_vector",
       "to": "parameter:cell_set",
       "edge_type": "has_parameter_semantics",
@@ -3143,114 +3005,6 @@
       "to": "artifact_type:cell_vector",
       "edge_type": "promotes_as",
       "label": "promotable:vector"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:cell_vector_association",
-      "edge_type": "consumed_by",
-      "label": "input:a"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:cell_vector_association",
-      "edge_type": "consumed_by",
-      "label": "input:b"
-    },
-    {
-      "from": "op:cell_vector_association",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_association",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:cell_set"
-    },
-    {
-      "from": "op:cell_vector_association",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:summary"
-    },
-    {
-      "from": "op:cell_vector_association",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:detail"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:cell_vector_compare",
-      "edge_type": "consumed_by",
-      "label": "input:a"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:cell_vector_compare",
-      "edge_type": "consumed_by",
-      "label": "input:b"
-    },
-    {
-      "from": "op:cell_vector_compare",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_compare",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:summary"
-    },
-    {
-      "from": "op:cell_vector_compare",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:comparison"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:feature_trend_spearman",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:feature_trend_spearman",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:feature_trend_spearman",
-      "edge_type": "consumed_by",
-      "label": "input:pseudotime"
-    },
-    {
-      "from": "op:feature_trend_spearman",
-      "to": "parameter:pseudotime",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:pseudotime"
-    },
-    {
-      "from": "op:feature_trend_spearman",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:feature_trend_spearman",
-      "to": "parameter:p_adjust_method",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:p_adjust_method"
-    },
-    {
-      "from": "op:feature_trend_spearman",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:trend_table"
     },
     {
       "from": "primitive:matrix",
@@ -7178,18 +6932,6 @@
     },
     {
       "from": "recipe:de_to_pathway_report",
-      "to": "op:de_wilcox",
-      "edge_type": "uses",
-      "label": "op:de_wilcox"
-    },
-    {
-      "from": "op:de_wilcox",
-      "to": "recipe:de_to_pathway_report",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:de_to_pathway_report"
-    },
-    {
-      "from": "recipe:de_to_pathway_report",
       "to": "op:pathway_enrich",
       "edge_type": "uses",
       "label": "op:pathway_enrich"
@@ -7316,18 +7058,6 @@
     },
     {
       "from": "op:leiden",
-      "to": "recipe:cluster_markers_pathways",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:cluster_markers_pathways"
-    },
-    {
-      "from": "recipe:cluster_markers_pathways",
-      "to": "op:markers_topn",
-      "edge_type": "uses",
-      "label": "op:markers_topn"
-    },
-    {
-      "from": "op:markers_topn",
       "to": "recipe:cluster_markers_pathways",
       "edge_type": "used_by_recipe",
       "label": "recipe:cluster_markers_pathways"

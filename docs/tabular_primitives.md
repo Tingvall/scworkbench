@@ -117,8 +117,10 @@ alone is usually not enough for the right display or navigation behavior.
 
 ## Current Ops
 
-- `de_wilcox` -> output `de_table` (`feature_table`, promotable)
-- `markers_topn` -> output `markers` (`feature_table`, promotable)
+- `scwbstatistics::de_wilcox` -> output `de_table` (`feature_table`, promotable;
+  requires explicit `scwbStatistics` activation)
+- `scwbstatistics::markers_topn` -> output `markers` (`feature_table`, promotable;
+  requires explicit `scwbStatistics` activation)
 - `trajectory_de` -> output `de_table` (`feature_table`, promotable)
 - `trajectory_smooth` -> output `trend_table` (`obs_table`, promotable)
 - `trajectory_signature_smooth` -> output `signature_table` (`obs_table`, promotable)

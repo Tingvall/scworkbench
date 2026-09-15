@@ -73,14 +73,15 @@ Question: Which pathways explain differential genes between two cell sets?
 Description: Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.
 
 Steps:
+- Install and explicitly activate scwbStatistics.
 - Define or choose group_a and group_b cell sets.
-- Run de_wilcox on the selected matrix.
+- Run scwbstatistics::de_wilcox on the selected matrix.
 - Promote de_table and inspect top features.
 - Run pathway_enrich on selected up/down genes or ranked query policy.
 - Plot pathway_bar and volcano summaries.
 
 Uses:
-- `op:de_wilcox`
+- `op:scwbstatistics::de_wilcox`
 - `op:pathway_enrich`
 - `plot:volcano`
 - `plot:pathway_bar`
@@ -105,15 +106,16 @@ Question: What are the marker genes and pathway programs for clusters?
 Description: Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.
 
 Steps:
+- Install and explicitly activate scwbStatistics.
 - Run leiden on a biologically appropriate space and cell_set.
-- Run markers_topn using the cluster labels.
+- Run scwbstatistics::markers_topn using the cluster labels.
 - Promote marker table.
 - Optionally run pathway_enrich per cluster marker subset.
 - Plot dotplot, ranked lollipop, or pathway bars.
 
 Uses:
 - `op:leiden`
-- `op:markers_topn`
+- `op:scwbstatistics::markers_topn`
 - `op:pathway_enrich`
 - `plot:dotplot`
 - `plot:ranked_lollipop`

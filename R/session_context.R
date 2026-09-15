@@ -35,6 +35,7 @@
 }
 
 .wb_op <- function(op_name) {
+  op_name <- .wb_operation_name_resolve(op_name)
   reg <- .wb_ops()
   if (!op_name %in% names(reg) && grepl("::", as.character(op_name)[1], fixed = TRUE)) {
     namespace <- strsplit(as.character(op_name)[1], "::", fixed = TRUE)[[1]][1]
@@ -402,6 +403,7 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     .wb_session_validate_source(session, bundle)
     .wb_session_validate_payloads(session)
   }
+  op_name <- .wb_operation_name_resolve(op_name)
   op <- .wb_op(op_name)
   validated <- .wb_validate_op_inputs_contract(op_name = op_name, inputs = inputs, session = session)
   inputs <- validated$inputs

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 154
+Record count: 148
 
 Meaningful public transformations: 65
 
@@ -39,48 +39,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_cell_suffix_label`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_assoc`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_association`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_compare`
 
 Category: operation_implementation
 
@@ -332,20 +290,6 @@ Boundary: `pure`
 
 Supported route: `direct_pure_computation`
 
-## `wb_op_de_wilcox`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
 ## `wb_op_expr_avg_by`
 
 Category: operation_implementation
@@ -458,20 +402,6 @@ Boundary: `pure`
 
 Supported route: `direct_pure_computation`
 
-## `wb_op_feature_trend_spearman`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
 ## `wb_op_hvg_select`
 
 Category: operation_implementation
@@ -543,20 +473,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_leiden`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_markers_topn`
 
 Category: operation_implementation
 

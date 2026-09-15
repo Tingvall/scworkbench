@@ -116,6 +116,34 @@ contract_test_copy_bundle <- function(baseline_bundle_dir, root, test_name, inde
   normalizePath(file.path(parent, basename(baseline_bundle_dir)), winslash = "/", mustWork = TRUE)
 }
 
+.contract_test_statistics_state <- new.env(parent = emptyenv())
+
+contract_test_activate_statistics_pack <- function() {
+  source <- Sys.getenv("SCWBSTATISTICS_SOURCE", unset = "")
+  if (!nzchar(source) || !dir.exists(source)) {
+    stop("Set SCWBSTATISTICS_SOURCE to the scwbStatistics source repository for migration contracts.",
+      call. = FALSE)
+  }
+  if (is.null(.contract_test_statistics_state$library)) {
+    library <- tempfile("scwbStatistics-contract-library-", tmpdir = "/tmp")
+    dir.create(library, recursive = TRUE)
+    log <- tempfile("scwbStatistics-contract-install-", fileext = ".log")
+    status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      paste0("--library=", shQuote(library)), shQuote(normalizePath(source))),
+      stdout = log, stderr = log)
+    if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE), collapse = "\n"),
+      call. = FALSE)
+    .contract_test_statistics_state$library <- library
+    .libPaths(c(library, .libPaths()))
+    existing <- Sys.getenv("R_LIBS", unset = "")
+    Sys.setenv(R_LIBS = paste(c(library, if (nzchar(existing)) existing else character()),
+      collapse = .Platform$path.sep))
+  }
+  wb_operation_pack_load("scwbStatistics",
+    lib.loc = .contract_test_statistics_state$library)
+  invisible(TRUE)
+}
+
 contract_test_execute <- function(inventory, baseline_bundle_dir = NULL, reporter = TRUE) {
   if (!inherits(inventory, "scworkbench_contract_inventory")) {
     stop("inventory must come from contract_test_discover().", call. = FALSE)
@@ -156,11 +184,21 @@ contract_test_execute <- function(inventory, baseline_bundle_dir = NULL, reporte
       cat("RUN ", record$name, " [", basename(record$file), "; ", record$signature$kind, "]\n", sep = "")
     }
 
+    registry <- tryCatch(getFromNamespace(".wb_operation_pack_registry", "scworkbench"),
+      error = function(error) NULL)
+    registry_preimage <- if (is.null(registry)) NULL else unserialize(serialize(list(
+      packs = registry$packs, operations = registry$operations,
+      registration_context = registry$registration_context), NULL, version = 3L))
     started <- proc.time()[["elapsed"]]
     value <- tryCatch(
       do.call(record$fn, args),
       error = function(error) structure(list(message = conditionMessage(error)), class = "scworkbench_contract_failure")
     )
+    if (!is.null(registry_preimage)) {
+      registry$packs <- registry_preimage$packs
+      registry$operations <- registry_preimage$operations
+      registry$registration_context <- registry_preimage$registration_context
+    }
     elapsed <- proc.time()[["elapsed"]] - started
     if (!is.null(isolated_parent)) unlink(isolated_parent, recursive = TRUE, force = TRUE)
 

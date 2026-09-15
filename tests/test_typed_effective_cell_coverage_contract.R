@@ -1,4 +1,5 @@
 test_typed_effective_cell_coverage_contract <- function() {
+  contract_test_activate_statistics_pack()
   root <- tempfile("scwb_typed_coverage_")
   b <- wb_init_bundle(root, overwrite = TRUE)
   on.exit({ try(wb_close_bundle(b), silent = TRUE); unlink(root, recursive = TRUE, force = TRUE) }, add = TRUE)

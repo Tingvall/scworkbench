@@ -2318,7 +2318,8 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
   # public input is the requested method (often auto).  That result label is
   # an output diagnostic, not an execution parameter.  Preserve the recorded
   # request and do not mistake this legacy output annotation for a conflict.
-  if (identical(as.character(op_name %||% "")[1], "cell_vector_association") &&
+  replay_op_name <- as.character(op_name %||% "")[1]
+  if (identical(sub("^.*::", "", replay_op_name), "cell_vector_association") &&
       !is.null(inputs$method) && !is.null(params$method) &&
       !identical(inputs$method, params$method)) {
     params$method <- NULL

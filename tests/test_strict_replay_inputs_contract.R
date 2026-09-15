@@ -1,4 +1,5 @@
 test_strict_replay_inputs_contract <- function() {
+  contract_test_activate_statistics_pack()
   same <- scworkbench:::.wb_prov_replay_execution_inputs(
     list(alpha = 1L, nested = list(ref = wb_ref_run("old_run", "vector"))),
     list(alpha = 1L, beta = c("x", "y"), nil = NULL),
@@ -105,6 +106,7 @@ test_strict_replay_inputs_contract <- function() {
       wrapper <- tempfile("scwb_replay_wrapper_", fileext = ".R")
       writeLines(c(
         paste0("devtools::load_all(", shQuote(normalizePath(getwd())), ", quiet = TRUE)"),
+        "wb_operation_pack_load('scwbStatistics')",
         replay
       ), wrapper)
       status <- system2(file.path(R.home("bin"), "Rscript"), wrapper)

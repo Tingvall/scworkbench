@@ -76,6 +76,54 @@
   as.character(value$feature_id %||% character())
 }
 
+.wb_operation_pack_v2_bind_inputs <- function(bundle, inputs, effective_cells) {
+  cells <- unique(as.character(effective_cells))
+  stats::setNames(lapply(names(inputs), function(name) {
+    value <- .wb_operation_pack_v2_deep_copy(inputs[[name]])
+    kind <- as.character(value$kind %||% "")[1]
+    if (identical(kind, "matrix")) {
+      matrix_cells <- if (is.null(value$values)) {
+        wb_cells_with_matrix(bundle, value$matrix_id)
+      } else {
+        as.character(value$cell_id %||% colnames(value$values))
+      }
+      value$cell_id <- cells[cells %in% matrix_cells]
+      value$feature_id <- if (is.null(value$values)) {
+        wb_feature_ids(bundle, value$matrix_id)
+      } else {
+        as.character(value$feature_id %||% rownames(value$values))
+      }
+      if (!is.null(value$values)) {
+        value$values <- value$values[match(value$feature_id,
+          as.character(value$feature_id %||% rownames(value$values))),
+          match(value$cell_id, matrix_cells), drop = FALSE]
+        dimnames(value$values) <- list(value$feature_id, value$cell_id)
+      }
+      value$dimensions <- as.integer(c(length(value$feature_id), length(value$cell_id)))
+      fragments <- if (is.null(value$values)) tryCatch(
+        wb_matrix_fragments(bundle, value$matrix_id),
+        error = function(error) data.frame()) else data.frame()
+      value$storage_profile <- if (nrow(fragments) >= 1L) {
+        "matrix_backed_chunked_v1"
+      } else value$storage_profile %||% "matrix_ordinary_v1"
+    } else if (identical(kind, "cell_vector")) {
+      index <- which(as.character(value$cell_id) %in% cells)
+      value$cell_id <- as.character(value$cell_id[index])
+      value$value <- value$value[index]
+      if (!is.null(names(value$value))) names(value$value) <- value$cell_id
+    } else if (kind %in% c("cell_vector_family", "relation_family")) {
+      index <- match(cells, unique(as.character(value$cell_id)))
+      retained <- cells[!is.na(index)]
+      keep <- as.character(value$cell_id) %in% retained
+      order_index <- order(match(as.character(value$cell_id[keep]), retained),
+        seq_along(value$cell_id)[keep], method = "radix")
+      slots <- c("cell_id", "key", "value")
+      for (slot in intersect(slots, names(value))) value[[slot]] <- value[[slot]][keep][order_index]
+    }
+    value
+  }), names(inputs))
+}
+
 .wb_operation_pack_v2_dimensions <- function(value, kind = as.character(value$kind %||% "")[1]) {
   if (identical(kind, "cell_set_admission")) return(as.integer(length(value$cells %||% character())))
   if (.wb_is_primitive(value)) {
@@ -176,7 +224,8 @@
   list(name = name, reference = paste0(kind, ":", name), descriptor = descriptor)
 }
 
-.wb_operation_pack_v2_expected_dimensions <- function(output, inputs) {
+.wb_operation_pack_v2_expected_dimensions <- function(output, inputs,
+                                                        dynamic_tables = FALSE) {
   kind <- as.character(output$kind)[1]
   first <- if (length(inputs)) inputs[[1]] else NULL
   input_dims <- if (!is.null(first)) .wb_operation_pack_v2_dimensions(first) else 1L
@@ -191,7 +240,11 @@
   if (kind %in% c("cell_vector_family", "relation_family")) return(as.integer(c(n_cells, 3L)))
   if (kind == "path_2d_family") return(as.integer(c(n_cells, 4L)))
   if (kind == "space_path_family") return(as.integer(c(n_cells, 5L)))
-  if (kind %in% c("feature_table", "obs_table")) return(as.integer(c(1L, 1L)))
+  if (kind %in% c("feature_table", "obs_table")) {
+    # Statistics terminal tables are data-dependent. A zero pair is the
+    # request-side sentinel for dimensions audited from the staged primitive.
+    return(as.integer(if (isTRUE(dynamic_tables)) c(0L, 0L) else c(1L, 1L)))
+  }
   1L
 }
 
@@ -213,7 +266,8 @@
 }
 
 .wb_operation_pack_v2_output_grant <- function(output, inputs, allocated_id,
-                                                registration = NULL) {
+                                                registration = NULL,
+                                                dynamic_tables = FALSE) {
   kind <- as.character(output$kind)[1]
   category <- as.character(output$category)[1]
   python_backend <- identical(as.character(registration$identity$backend %||% "R")[1],
@@ -222,7 +276,8 @@
   descriptor <- list(
     category = category, kind = kind, storage_profile = as.character(output$storage_profile)[1],
     writer = .wb_operation_pack_v2_writer_name(output),
-    expected_dimensions = unname(as.list(.wb_operation_pack_v2_expected_dimensions(output, inputs))),
+    expected_dimensions = unname(as.list(.wb_operation_pack_v2_expected_dimensions(
+      output, inputs, dynamic_tables = dynamic_tables))),
     expected_alignment = if (kind == "matrix") "cell_and_feature_ordered" else if (kind %in% c("space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission")) "cell_ordered" else if (kind == "feature_table") "feature_ordered" else if (kind == "model_ref") "model_linked" else if (kind == "path_2d_family") "canonical_row_ordered" else if (kind == "space_path_family") "associated_space" else "none",
     expected_ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(output = output$name, inputs = input_names)),
     expected_model_linkage = list(mode = "none"),
@@ -428,7 +483,9 @@
   input_records <- input_records[order(vapply(input_records, `[[`, character(1), "name"), method = "radix")]
   output_records <- lapply(operation$outputs, function(output) .wb_operation_pack_v2_output_grant(
     output, inputs, .wb_allocate_identifier(paste0(as.character(output$allocated_id_key)[1], "_"),
-      12L, purpose = "operation-pack v2 output"), registration = registration))
+      12L, purpose = "operation-pack v2 output"), registration = registration,
+    dynamic_tables = as.character(operation$qualified_name)[1] %in%
+      unname(.wb_operation_pack_migrated_map())))
   transition_value <- list(transition_id = transition_id, session_id = session_id, run_id = run_id,
     checkpoint_generation = generation,
     source_state_identity = .wb_operation_pack_v2_identity_plain("scworkbench.scientific_state.v1",
@@ -593,12 +650,49 @@
   value
 }
 
-.wb_operation_pack_v2_capability_adapter <- function(request, operation, inputs, stage_root) {
+.wb_operation_pack_v2_capability_adapter <- function(request, operation, inputs, stage_root,
+                                                      bundle = NULL) {
   state <- new.env(parent = emptyenv()); state$used <- FALSE; state$writes <- list()
   declarations <- stats::setNames(operation$outputs, vapply(operation$outputs, `[[`, character(1), "name"))
   grants <- stats::setNames(request$outputs, vapply(request$outputs, `[[`, character(1), "name"))
   readers <- stats::setNames(lapply(names(inputs), function(name) {
-    force(name); function() .wb_operation_pack_v2_deep_copy(inputs[[name]])
+    force(name)
+    if (identical(as.character(inputs[[name]]$kind %||% "")[1], "matrix")) {
+      function(features = NULL, cells = NULL) {
+        value <- inputs[[name]]
+        allowed_features <- as.character(value$feature_id %||% character())
+        allowed_cells <- as.character(value$cell_id %||% character())
+        features <- if (is.null(features)) allowed_features else as.character(features)
+        cells <- if (is.null(cells)) allowed_cells else as.character(cells)
+        if (length(setdiff(features, allowed_features)) || length(setdiff(cells, allowed_cells))) {
+          .wb_operation_pack_v2_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+            "Matrix reader selection exceeds the authenticated input descriptor.", "execution")
+        }
+        values <- if (!is.null(value$values)) {
+          value$values[match(features, allowed_features), match(cells, allowed_cells),
+            drop = FALSE]
+        } else {
+          if (is.null(bundle)) .wb_operation_pack_v2_error(
+            "PYBENCH_INPUT_IDENTITY_MISMATCH",
+            "Symbolic matrix reader has no core bundle binding.", "execution")
+          wb_slice(bundle, matrix_id = value$matrix_id,
+            features = features, cells = cells)
+        }
+        dimnames(values) <- list(features, cells)
+        structure(list(kind = "matrix", matrix_id = value$matrix_id,
+          values = values, dimensions = as.integer(dim(values)),
+          feature_id = features, cell_id = cells,
+          storage_profile = value$storage_profile,
+          meta = value$meta %||% list()), class = "wb_primitive")
+      }
+    } else {
+      function(...) {
+        if (length(list(...))) .wb_operation_pack_v2_error(
+          "PYBENCH_CAPABILITY_MISMATCH",
+          "Only read_matrix accepts a typed selection.", "execution")
+        .wb_operation_pack_v2_deep_copy(inputs[[name]])
+      }
+    }
   }), names(inputs))
   write_one <- function(writer, name, value, semantic_metadata = list()) {
     if (isTRUE(state$used)) .wb_operation_pack_v2_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -638,7 +732,9 @@
   kind <- descriptor$kind
   dimensions <- .wb_operation_pack_v2_dimensions(value, kind)
   expected_dimensions <- as.integer(unlist(descriptor$expected_dimensions, use.names = FALSE))
-  if (!identical(as.integer(dimensions), expected_dimensions)) .wb_operation_pack_v2_error(
+  dynamic_table <- kind %in% c("feature_table", "obs_table") &&
+    identical(expected_dimensions, c(0L, 0L))
+  if (!dynamic_table && !identical(as.integer(dimensions), expected_dimensions)) .wb_operation_pack_v2_error(
     "PYBENCH_OUTPUT_INVALID", paste0("Output '", grant$name, "' dimensions do not match its grant."),
     "audit", output = grant$name, expected = descriptor$expected_dimensions, observed = dimensions)
   cells <- if (identical(kind, "cell_set_admission")) value$cells else .wb_operation_pack_v2_primitive_cells(value)
@@ -835,7 +931,8 @@
 
 .wb_operation_pack_v2_execute <- function(bundle, op_name, inputs, params = list(),
                                            session_id = NULL, run_id = NULL,
-                                           checkpoint_generation = "ephemeral") {
+                                           checkpoint_generation = "ephemeral",
+                                           effective_cells = NULL) {
   .wb_assert_bundle_writable(bundle, "operation-pack v2 transition")
   op_name <- as.character(op_name)[1]
   record <- .wb_operation_pack_registry$operations[[op_name]]
@@ -900,12 +997,15 @@
     receipt <- process_result$receipt
     unlink(file.path(stage, "inputs"), recursive = TRUE, force = TRUE)
   } else {
-    adapter <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs, stage)
+    adapter <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs, stage,
+      bundle = bundle)
     runner <- registration$runners[[op_name]]
     result <- tryCatch(runner(readers = adapter$readers, writers = adapter$writers,
       params = .wb_operation_pack_v2_deep_copy(params),
       context = list(transition_id = transition_id, session_id = session_id, run_id = run_id,
-        checkpoint_generation = generation, network_policy = "deny")), error = identity)
+        checkpoint_generation = generation, network_policy = "deny",
+        effective_cells = unname(as.character(effective_cells %||%
+          .wb_operation_pack_v2_primitive_cells(inputs[[1]]))))), error = identity)
     adapter$consume()
     if (inherits(result, "error")) {
       if (inherits(result, "wb_operation_pack_v2_error")) stop(result)
@@ -967,12 +1067,34 @@
   force(op_name)
   function(bundle, resolved, effective_cells, inputs, ...) {
     binding <- bundle$pybench_session_binding %||% list()
-    result <- .wb_operation_pack_v2_execute(bundle, op_name, resolved,
-      params = inputs[setdiff(names(inputs), c(names(resolved), names(.wb_op_engine_input_specs())))],
+    bound <- .wb_operation_pack_v2_bind_inputs(bundle, resolved, effective_cells)
+    params <- inputs[setdiff(names(inputs), c(names(resolved), names(.wb_op_engine_input_specs())))]
+    params <- .wb_operation_pack_resolve_migrated_params(bundle, op_name, params,
+      effective_cells)
+    result <- .wb_operation_pack_v2_execute(bundle, op_name, bound,
+      params = params,
       session_id = binding$session_id %||% NULL,
       run_id = NULL,
-      checkpoint_generation = binding$checkpoint_generation %||% "ephemeral")
-    list(outputs = result$outputs, params = inputs,
+      checkpoint_generation = binding$checkpoint_generation %||% "ephemeral",
+      effective_cells = effective_cells)
+    returned_params <- .wb_operation_pack_migrated_result_params(op_name, inputs,
+      bound, result$outputs)
+    definition <- .wb_operation_pack_registry$operations[[op_name]]$definition
+    chunking <- definition$chunking %||% NULL
+    if (is.list(chunking) && isTRUE(chunking$chunkable)) {
+      axis <- as.character(chunking$axis)[1]
+      values <- if (axis == "features") {
+        as.character(inputs$features %||% bound$matrix$feature_id %||% character())
+      } else effective_cells
+      size_name <- as.character(chunking$chunk_size_param)[1]
+      size <- as.integer(inputs[[size_name]] %||% chunking$chunk_size_default)[1]
+      if (length(values) > size) {
+        returned_params$chunking <- list(enabled = TRUE, axis = axis,
+          chunk_size = size,
+          n_chunks = as.integer(ceiling(length(values) / size)))
+      }
+    }
+    list(outputs = result$outputs, params = returned_params,
       operation_pack_runtime = result$receipt$runtime_attestation,
       operation_pack_transition = list(transition_id = result$transition_id,
         receipt_identity = result$receipt$receipt_identity))

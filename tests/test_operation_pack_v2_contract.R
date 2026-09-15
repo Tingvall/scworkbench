@@ -180,7 +180,7 @@ test_operation_pack_v2_outer_schema_exhaustive_contract <- function() {
 test_operation_pack_v2_atomic_activation_contract <- function() {
   fixture <- .wb_v2_fixture_install()
   on.exit(.wb_v2_fixture_cleanup(fixture), add = TRUE)
-  stopifnot(length(wb_list_ops()) == 59L)
+  stopifnot(length(wb_list_ops()) == 53L)
   before_packs <- wb_operation_packs(); before_ops <- wb_list_ops()
   before_identity <- wb_operation_catalog_identity()
   boundaries <- c("catalog_before_pack", "catalog_pack_installed",
@@ -198,7 +198,7 @@ test_operation_pack_v2_atomic_activation_contract <- function() {
       identical(wb_operation_catalog_identity(), before_identity))
   }
   activated <- wb_operation_pack_activate(fixture$manifest, lib.loc = fixture$lib)
-  stopifnot(nrow(wb_operation_packs()) == 1L, length(wb_list_ops()) == 61L,
+  stopifnot(nrow(wb_operation_packs()) == 1L, length(wb_list_ops()) == 55L,
     identical(activated$identity$pack_abi_version, "2"))
   wb_operation_pack_unload("scwbv2reference")
   stopifnot(identical(wb_operation_packs(), before_packs), identical(wb_list_ops(), before_ops),
@@ -448,12 +448,12 @@ test_operation_pack_v2_v1_coexistence_and_order_contract <- function() {
       if (abi == "1") wb_operation_pack_activate(v1_manifest, lib.loc = v2$lib)
       else wb_operation_pack_activate(v2$manifest, lib.loc = v2$lib)
     }
-    stopifnot(length(wb_list_ops()) == 62L, nrow(wb_operation_packs()) == 2L)
+    stopifnot(length(wb_list_ops()) == 56L, nrow(wb_operation_packs()) == 2L)
     identity <- wb_operation_catalog_identity()
     for (pack in rev(order)) {
       wb_operation_pack_unload(if (pack == "1") "scwbfixture" else "scwbv2reference")
     }
-    stopifnot(length(wb_list_ops()) == 59L)
+    stopifnot(length(wb_list_ops()) == 53L)
     identity
   }
   first <- activate(c("1", "2"))

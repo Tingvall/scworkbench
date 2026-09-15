@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 329
+Record count: 323
 
-Graph edges: 930
+Graph edges: 891
 
 ## artifact_type
 
@@ -1088,18 +1088,6 @@ Title: chromVAR deviations
 
 Description: Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
 
-### `op:de_wilcox`
-
-Title: Differential Expression (Wilcoxon)
-
-Description: Wilcoxon rank-sum DE between two cell groups (A vs B).
-
-### `op:markers_topn`
-
-Title: Top Markers Per Cluster
-
-Description: One-vs-rest Wilcoxon marker ranking for each cluster.
-
 ### `op:pathway_enrich`
 
 Title: Pathway Enrichment (Namespace)
@@ -1136,35 +1124,11 @@ Title: Derived Cell Set
 
 Description: Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.
 
-### `op:cell_vector_assoc`
-
-Title: Cell Vector Association
-
-Description: Test whether a continuous cell-level signal differs across groups defined by a categorical cell-level vector.
-
 ### `op:metadata_cell_vector`
 
 Title: Metadata Cell Vector
 
 Description: Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
-
-### `op:cell_vector_association`
-
-Title: Cell Vector Association
-
-Description: Associate two typed cell vectors with categorical and continuous dispatch.
-
-### `op:cell_vector_compare`
-
-Title: Cell Vector Comparison
-
-Description: Compare two cell-level signals on their shared cell universe in raw or rank space.
-
-### `op:feature_trend_spearman`
-
-Title: Feature Trends vs Continuous Vector
-
-Description: Feature-level Spearman trend testing against continuous pseudotime-like vectors.
 
 ### `op:trajectory_de`
 

@@ -1,4 +1,5 @@
 test_op_chunking_metadata_contract <- function() {
+  contract_test_activate_statistics_pack()
   iface_ucell <- wb_op_interface("ucell")
   stopifnot(is.list(iface_ucell))
   stopifnot(is.list(iface_ucell$chunking))
