@@ -225,7 +225,7 @@
 }
 
 .wb_operation_pack_v2_expected_dimensions <- function(output, inputs,
-                                                        dynamic_tables = FALSE) {
+                                                        dimension_policy = NULL) {
   kind <- as.character(output$kind)[1]
   first <- if (length(inputs)) inputs[[1]] else NULL
   input_dims <- if (!is.null(first)) .wb_operation_pack_v2_dimensions(first) else 1L
@@ -243,7 +243,8 @@
   if (kind %in% c("feature_table", "obs_table")) {
     # Statistics terminal tables are data-dependent. A zero pair is the
     # request-side sentinel for dimensions audited from the staged primitive.
-    return(as.integer(if (isTRUE(dynamic_tables)) c(0L, 0L) else c(1L, 1L)))
+    return(as.integer(if (identical(dimension_policy, "data_dependent_table_v1"))
+      c(0L, 0L) else c(1L, 1L)))
   }
   1L
 }
@@ -267,7 +268,7 @@
 
 .wb_operation_pack_v2_output_grant <- function(output, inputs, allocated_id,
                                                 registration = NULL,
-                                                dynamic_tables = FALSE) {
+                                                dimension_policy = NULL) {
   kind <- as.character(output$kind)[1]
   category <- as.character(output$category)[1]
   python_backend <- identical(as.character(registration$identity$backend %||% "R")[1],
@@ -277,7 +278,7 @@
     category = category, kind = kind, storage_profile = as.character(output$storage_profile)[1],
     writer = .wb_operation_pack_v2_writer_name(output),
     expected_dimensions = unname(as.list(.wb_operation_pack_v2_expected_dimensions(
-      output, inputs, dynamic_tables = dynamic_tables))),
+      output, inputs, dimension_policy = dimension_policy))),
     expected_alignment = if (kind == "matrix") "cell_and_feature_ordered" else if (kind %in% c("space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission")) "cell_ordered" else if (kind == "feature_table") "feature_ordered" else if (kind == "model_ref") "model_linked" else if (kind == "path_2d_family") "canonical_row_ordered" else if (kind == "space_path_family") "associated_space" else "none",
     expected_ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(output = output$name, inputs = input_names)),
     expected_model_linkage = list(mode = "none"),
@@ -481,11 +482,12 @@
     name, inputs[[name]], declarations[[name]],
     if (python_backend) transport_inputs[[name]] else NULL))
   input_records <- input_records[order(vapply(input_records, `[[`, character(1), "name"), method = "radix")]
+  policies <- stats::setNames(operation$dimension_policies %||% list(),
+    vapply(operation$dimension_policies %||% list(), function(x) as.character(x$output)[1], character(1)))
   output_records <- lapply(operation$outputs, function(output) .wb_operation_pack_v2_output_grant(
     output, inputs, .wb_allocate_identifier(paste0(as.character(output$allocated_id_key)[1], "_"),
       12L, purpose = "operation-pack v2 output"), registration = registration,
-    dynamic_tables = as.character(operation$qualified_name)[1] %in%
-      unname(.wb_operation_pack_migrated_map())))
+    dimension_policy = as.character(policies[[as.character(output$name)[1]]]$policy %||% "")[1]))
   transition_value <- list(transition_id = transition_id, session_id = session_id, run_id = run_id,
     checkpoint_generation = generation,
     source_state_identity = .wb_operation_pack_v2_identity_plain("scworkbench.scientific_state.v1",
@@ -653,6 +655,7 @@
 .wb_operation_pack_v2_capability_adapter <- function(request, operation, inputs, stage_root,
                                                       bundle = NULL) {
   state <- new.env(parent = emptyenv()); state$used <- FALSE; state$writes <- list()
+  state$reader_calls <- list()
   declarations <- stats::setNames(operation$outputs, vapply(operation$outputs, `[[`, character(1), "name"))
   grants <- stats::setNames(request$outputs, vapply(request$outputs, `[[`, character(1), "name"))
   readers <- stats::setNames(lapply(names(inputs), function(name) {
@@ -679,6 +682,8 @@
             features = features, cells = cells)
         }
         dimnames(values) <- list(features, cells)
+        state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
+          input = name, features = as.character(features), cells = as.character(cells))
         structure(list(kind = "matrix", matrix_id = value$matrix_id,
           values = values, dimensions = as.integer(dim(values)),
           feature_id = features, cell_id = cells,
@@ -725,6 +730,32 @@
     write_space_path_family = function(name, value, semantic_metadata = list()) write_one("write_space_path_family", name, value, semantic_metadata),
     request_cell_set_admission = function(name, value, semantic_metadata = list()) write_one("request_cell_set_admission", name, value, semantic_metadata))
   list(readers = readers, writers = writers, state = state, consume = function() { state$used <- TRUE; invisible(TRUE) })
+}
+
+.wb_operation_pack_v2_chunk_observation <- function(operation, params, reader_calls, inputs) {
+  chunk <- operation$chunking %||% NULL
+  if (is.null(chunk)) return(NULL)
+  sequence <- as.character(unlist(params[[as.character(chunk$sequence_parameter)[1]]],
+    use.names = FALSE))
+  if (!length(sequence)) sequence <- as.character(
+    inputs[[as.character(chunk$input)[1]]]$feature_id %||% character())
+  size <- as.integer(params[[as.character(chunk$size_parameter)[1]]])[1]
+  expected <- if (!length(sequence)) list() else split(sequence,
+    ceiling(seq_along(sequence) / size))
+  observed <- Filter(function(x) identical(as.character(x$input)[1],
+    as.character(chunk$input)[1]), reader_calls)
+  batches <- lapply(observed, function(x) as.character(x$features))
+  valid <- length(observed) == length(expected) &&
+    identical(unname(batches), unname(expected)) &&
+    all(lengths(batches) > 0L & lengths(batches) <= size)
+  if (!valid) .wb_operation_pack_v2_error("PYBENCH_CAPABILITY_MISMATCH",
+    "Observed matrix-reader calls do not implement the authenticated chunk declaration.",
+    "execution", expected_batches = expected, observed_batches = batches)
+  list(axis = as.character(chunk$axis)[1],
+    requested_chunk_size = size,
+    observed_call_count = length(observed),
+    observed_batch_sizes = as.integer(lengths(batches)),
+    observed_batches = unname(batches))
 }
 
 .wb_operation_pack_v2_observed_descriptor <- function(grant, write) {
@@ -955,6 +986,13 @@
   params_result <- .wb_json_schema_validate_2020(params, operation$params_schema)
   if (!isTRUE(params_result$ok)) .wb_operation_pack_v2_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
     paste0("Parameters fail the admitted schema at ", params_result$path, ": ", params_result$message), "resolution")
+  for (binding in operation$parameter_bindings %||% list()) {
+    if (identical(as.character(binding$policy)[1], "feature_ids_or_all_v1") &&
+        is.null(params[[as.character(binding$parameter)[1]]])) {
+      params[[as.character(binding$parameter)[1]]] <- unname(as.list(as.character(
+        inputs[[as.character(binding$input)[1]]]$feature_id %||% character())))
+    }
+  }
   transition_id <- .wb_allocate_identifier("transition_", 16L, purpose = "operation-pack v2 transition")
   session_id <- as.character(session_id %||% .wb_allocate_identifier("session_", 12L, purpose = "operation-pack v2 session"))[1]
   run_id <- as.character(run_id %||% .wb_allocate_identifier("run_", 12L, purpose = "operation-pack v2 run"))[1]
@@ -1006,12 +1044,15 @@
         checkpoint_generation = generation, network_policy = "deny",
         effective_cells = unname(as.character(effective_cells %||%
           .wb_operation_pack_v2_primitive_cells(inputs[[1]]))))), error = identity)
-    adapter$consume()
     if (inherits(result, "error")) {
+      adapter$consume()
       if (inherits(result, "wb_operation_pack_v2_error")) stop(result)
       .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
         paste0("R operation-pack runner failed: ", conditionMessage(result)), "execution")
     }
+    reader_observation <- .wb_operation_pack_v2_chunk_observation(operation,
+      params, adapter$state$reader_calls, inputs)
+    adapter$consume()
     receipt <- .wb_operation_pack_v2_receipt(request, registration, operation,
       adapter$state$writes, preflight)
   }
@@ -1060,7 +1101,52 @@
   list(transition_id = transition_id, request = request, receipt = receipt,
     outputs = values, registry_requests = receipt$registry_requests %||% list(),
     runtime_sidecar = if (python_backend) process_result$sidecar else NULL,
+    reader_observation = if (python_backend) NULL else reader_observation,
     state = "reopened", path = final)
+}
+
+.wb_operation_pack_v2_bind_parameters <- function(bundle, operation, params,
+                                                   bound, effective_cells) {
+  for (binding in operation$parameter_bindings %||% list()) {
+    parameter <- as.character(binding$parameter)[1]
+    policy <- as.character(binding$policy)[1]
+    input <- bound[[as.character(binding$input)[1]]]
+    if (identical(policy, "cell_ids_or_set_v1")) {
+      params[[parameter]] <- .wb_resolve_group_cells(bundle, params[[parameter]],
+        effective_cells)
+    } else if (identical(policy, "feature_ids_or_all_v1")) {
+      value <- params[[parameter]]
+      params[[parameter]] <- if (is.null(value)) as.character(input$feature_id) else
+        as.character(unlist(value, use.names = FALSE))
+    }
+  }
+  .wb_operation_pack_params_transport(params)
+}
+
+.wb_operation_pack_v2_retained_parameters <- function(operation, original,
+                                                        effective, bound, outputs) {
+  out <- list()
+  for (item in operation$retained_parameters %||% list()) {
+    source <- as.character(item$source)[1]
+    output <- outputs[[as.character(item$output %||% "")[1]]]
+    value <- switch(source,
+      output_meta = output$meta[[as.character(item$field)[1]]],
+      output_first_row = {
+        table <- output$table
+        if (is.data.frame(table) && nrow(table)) table[[as.character(item$field)[1]]][[1]] else NULL
+      },
+      output_row_count = if (is.data.frame(output$table)) nrow(output$table) else NULL,
+      input_feature_count = length(bound[[as.character(item$input)[1]]]$feature_id %||% character()),
+      parameter_supplied = !is.null(original[[as.character(item$parameter)[1]]]),
+      parameter_count = length(unlist(effective[[as.character(item$parameter)[1]]], use.names = FALSE)),
+      parameter_value = original[[as.character(item$parameter)[1]]],
+      NULL)
+    if (is.null(value) && isTRUE(item$required %||% TRUE)) .wb_operation_pack_v2_error(
+      "PYBENCH_RECEIPT_MISMATCH", paste0("Required retained parameter '", item$name,
+        "' is absent from the declared source."), "receipt")
+    if (!is.null(value)) out[[as.character(item$name)[1]]] <- value
+  }
+  out
 }
 
 .wb_operation_pack_v2_runner <- function(op_name) {
@@ -1068,31 +1154,31 @@
   function(bundle, resolved, effective_cells, inputs, ...) {
     binding <- bundle$pybench_session_binding %||% list()
     bound <- .wb_operation_pack_v2_bind_inputs(bundle, resolved, effective_cells)
+    all_inputs <- inputs
     params <- inputs[setdiff(names(inputs), c(names(resolved), names(.wb_op_engine_input_specs())))]
-    params <- .wb_operation_pack_resolve_migrated_params(bundle, op_name, params,
-      effective_cells)
+    definition <- .wb_operation_pack_registry$operations[[op_name]]$definition
+    operation <- definition$v2_definition
+    params <- .wb_operation_pack_v2_bind_parameters(bundle, operation, params,
+      bound, effective_cells)
     result <- .wb_operation_pack_v2_execute(bundle, op_name, bound,
       params = params,
       session_id = binding$session_id %||% NULL,
       run_id = NULL,
       checkpoint_generation = binding$checkpoint_generation %||% "ephemeral",
       effective_cells = effective_cells)
-    returned_params <- .wb_operation_pack_migrated_result_params(op_name, inputs,
-      bound, result$outputs)
-    definition <- .wb_operation_pack_registry$operations[[op_name]]$definition
-    chunking <- definition$chunking %||% NULL
-    if (is.list(chunking) && isTRUE(chunking$chunkable)) {
-      axis <- as.character(chunking$axis)[1]
-      values <- if (axis == "features") {
-        as.character(inputs$features %||% bound$matrix$feature_id %||% character())
-      } else effective_cells
-      size_name <- as.character(chunking$chunk_size_param)[1]
-      size <- as.integer(inputs[[size_name]] %||% chunking$chunk_size_default)[1]
-      if (length(values) > size) {
-        returned_params$chunking <- list(enabled = TRUE, axis = axis,
-          chunk_size = size,
-          n_chunks = as.integer(ceiling(length(values) / size)))
-      }
+    returned_params <- .wb_operation_pack_v2_retained_parameters(operation,
+      all_inputs, params, bound, result$outputs)
+    if (!is.null(result$reader_observation)) {
+      observation <- result$reader_observation
+      returned_params$chunking <- list(
+        enabled = observation$observed_call_count > 1L,
+        axis = observation$axis,
+        chunk_size = observation$requested_chunk_size,
+        n_chunks = observation$observed_call_count,
+        requested_chunk_size = observation$requested_chunk_size,
+        observed_call_count = observation$observed_call_count,
+        observed_batch_sizes = observation$observed_batch_sizes,
+        observed_batches = observation$observed_batches)
     }
     list(outputs = result$outputs, params = returned_params,
       operation_pack_runtime = result$receipt$runtime_attestation,

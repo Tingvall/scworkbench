@@ -14,11 +14,10 @@ test_op_feature_trend_spearman_chunking_contract <- function() {
       rev(seq_len(12)),          # strong down
       rep(c(0, 1), 6),           # patterned
       rep(c(1, 0), 6),           # patterned inverse
-      c(rep(0, 6), rep(5, 6)),   # step up
-      c(rep(5, 6), rep(0, 6))    # step down
+      c(rep(0, 6), rep(5, 6))    # step up
     ),
     sparse = TRUE,
-    dimnames = list(paste0("g", seq_len(6)), cells)
+    dimnames = list(paste0("g", seq_len(5)), cells)
   )
   wb_attach_matrix(b, matrix_id = "RNA_counts", mat = mat, feature_type = "gene")
 
@@ -32,7 +31,7 @@ test_op_feature_trend_spearman_chunking_contract <- function() {
       pseudotime = wb_prim_cell_vector(pt, value_type = "continuous"),
       cell_set = "all",
       min_cells = 1L,
-      features = paste0("g", seq_len(6)),
+      features = paste0("g", seq_len(5)),
       min_pct_nonzero = 0,
       min_sd = 0,
       p_adjust_method = "BH",
@@ -50,7 +49,7 @@ test_op_feature_trend_spearman_chunking_contract <- function() {
       pseudotime = wb_prim_cell_vector(pt, value_type = "continuous"),
       cell_set = "all",
       min_cells = 1L,
-      features = paste0("g", seq_len(6)),
+      features = paste0("g", seq_len(5)),
       min_pct_nonzero = 0,
       min_sd = 0,
       p_adjust_method = "BH",
@@ -73,6 +72,14 @@ test_op_feature_trend_spearman_chunking_contract <- function() {
   stopifnot(identical(as.character(r2$run$params$chunking$axis), "features"))
   stopifnot(identical(as.integer(r2$run$params$chunking$chunk_size), 2L))
   stopifnot(identical(as.integer(r2$run$params$chunking$n_chunks), 3L))
+  stopifnot(identical(as.integer(r2$run$params$chunking$requested_chunk_size), 2L))
+  stopifnot(identical(as.integer(r2$run$params$chunking$observed_call_count), 3L))
+  stopifnot(identical(as.integer(r2$run$params$chunking$observed_batch_sizes), c(2L, 2L, 1L)))
+  stopifnot(identical(r2$run$params$chunking$observed_batches,
+    list(c("g1", "g2"), c("g3", "g4"), "g5")))
+  stopifnot(identical(as.integer(r1$run$params$chunking$observed_call_count), 1L))
+  stopifnot(identical(r1$run$params$chunking$observed_batches,
+    list(paste0("g", seq_len(5)))))
 
   iface <- wb_op_interface("feature_trend_spearman")
   stopifnot(is.list(iface$chunking))

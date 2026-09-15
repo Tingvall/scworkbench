@@ -1539,6 +1539,110 @@
         }
       ]
     },
+    "public_interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intent", "inputs", "parameters", "outputs"],
+      "properties": {
+        "intent": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "inputs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "label", "help"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "label": {"type": "string", "minLength": 1},
+              "help": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "parameters": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "type", "help"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "type": {
+                "enum": ["bool", "int", "dbl", "string", "choice", "string_vec", "cell_set", "cell_ids_or_set", "list"]
+              },
+              "help": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "description"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "description": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "parameter_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parameter", "policy", "input"],
+      "properties": {
+        "parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "policy": {"enum": ["cell_ids_or_set_v1", "feature_ids_or_all_v1"]},
+        "input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+      }
+    },
+    "dimension_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["output", "policy"],
+      "properties": {
+        "output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "policy": {"const": "data_dependent_table_v1"}
+      }
+    },
+    "chunking": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["axis", "input", "sequence_parameter", "size_parameter", "output", "merge", "adjust_parameter"],
+      "properties": {
+        "axis": {"const": "features"},
+        "input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "sequence_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "size_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "merge": {"const": "row_bind_then_global_p_adjust_v1"},
+        "adjust_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+      }
+    },
+    "retained_parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "source"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "source": {"enum": ["output_meta", "output_first_row", "output_row_count", "input_feature_count", "parameter_supplied", "parameter_count", "parameter_value"]},
+        "output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "field": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "required": {"type": "boolean"}
+      }
+    },
     "operation": {
       "type": "object",
       "additionalProperties": false,
@@ -1572,6 +1676,9 @@
           "type": "string",
           "minLength": 1
         },
+        "public_interface": {
+          "$ref": "#/$defs/public_interface"
+        },
         "runner": {
           "type": "string",
           "minLength": 1
@@ -1585,6 +1692,24 @@
         "params_schema": {
           "type": "object",
           "description": "Embedded JSON Schema. Before identity computation, validate natively as Draft 2020-12 and against closed profile scworkbench.operation_pack.params_schema.draft2020_12_closed_v1. An absent $schema means exactly Draft 2020-12 and remains absent in canonical identity; any other dialect or unsupported keyword fails before registration."
+        },
+        "parameter_bindings": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/parameter_binding"}
+        },
+        "dimension_policies": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/dimension_policy"}
+        },
+        "chunking": {
+          "$ref": "#/$defs/chunking"
+        },
+        "retained_parameters": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/retained_parameter"}
         },
         "outputs": {
           "type": "array",

@@ -347,6 +347,22 @@
   invisible(TRUE)
 }
 
+.wb_operation_pack_v2_catalog_param_type <- function(schema) {
+  types <- as.character(unlist(schema$type %||% "list", use.names = FALSE))
+  if ("integer" %in% types) return("int")
+  if ("number" %in% types) return("dbl")
+  if ("boolean" %in% types) return("bool")
+  if ("string" %in% types) return(if (is.null(schema$enum)) "string" else "choice")
+  if ("array" %in% types && identical(as.character(schema$items$type %||% "")[1], "string")) return("string_vec")
+  "list"
+}
+
+.wb_operation_pack_v2_declaration_error <- function(operation, message) {
+  .wb_operation_pack_v2_error("OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+    paste0("Operation '", operation, "' ", message), "semantic_admission",
+    operation = operation)
+}
+
 .wb_operation_pack_v2_semantic_validate <- function(manifest) {
   namespace <- as.character(manifest$namespace)[1]
   operations <- manifest$operations
@@ -380,6 +396,100 @@
       if (!as.character(dep$input_name %||% "")[1] %in% input_names) .wb_operation_pack_v2_error(
         "OPERATION_PACK_MANIFEST_DEFINITION_KEY_DUPLICATE", "Dynamic dependency names an undeclared input.",
         "semantic_admission", operation = opname, requirement_id = dep$requirement_id)
+    }
+    properties <- op$params_schema$properties %||% list()
+    public <- op$public_interface %||% NULL
+    if (!is.null(public)) {
+      public_inputs <- vapply(public$inputs, `[[`, character(1), "name")
+      public_params <- vapply(public$parameters, `[[`, character(1), "name")
+      public_outputs <- vapply(public$outputs, `[[`, character(1), "name")
+      if (anyDuplicated(public_inputs) || any(!public_inputs %in% input_names) ||
+          anyDuplicated(public_params) || any(!public_params %in% names(properties)) ||
+          anyDuplicated(public_outputs) || !setequal(public_outputs, output_names)) {
+        .wb_operation_pack_v2_declaration_error(opname,
+          "public interface is not an exact bijection with its inputs, parameters, and outputs.")
+      }
+      for (item in public$parameters) {
+        name <- as.character(item$name)[1]
+        expected <- .wb_operation_pack_v2_catalog_param_type(properties[[name]])
+        declared <- as.character(item$type)[1]
+        compatible <- identical(declared, expected) ||
+          (identical(expected, "string_vec") && declared %in% c("cell_ids_or_set", "string_vec")) ||
+          (identical(expected, "string") && identical(declared, "cell_set"))
+        if (!compatible) .wb_operation_pack_v2_declaration_error(opname,
+          paste0("public parameter '", name, "' type conflicts with params_schema."))
+      }
+    }
+    bindings <- op$parameter_bindings %||% list()
+    binding_names <- vapply(bindings, function(x) as.character(x$parameter)[1], character(1))
+    if (anyDuplicated(binding_names)) .wb_operation_pack_v2_declaration_error(opname,
+      "repeats a parameter binding.")
+    for (binding in bindings) {
+      parameter <- as.character(binding$parameter)[1]
+      input <- as.character(binding$input)[1]
+      policy <- as.character(binding$policy)[1]
+      input_index <- match(input, input_names)
+      if (is.na(input_index) || is.null(properties[[parameter]]) ||
+          !identical(as.character(op$inputs[[input_index]]$kind)[1], "matrix")) {
+        .wb_operation_pack_v2_declaration_error(opname,
+          "has a parameter binding with a missing or incompatible input/parameter reference.")
+      }
+      schema_type <- as.character(unlist(properties[[parameter]]$type %||% character(), use.names = FALSE))
+      if (!"array" %in% schema_type ||
+          !identical(as.character(properties[[parameter]]$items$type %||% "")[1], "string")) {
+        .wb_operation_pack_v2_declaration_error(opname,
+          paste0("binding policy '", policy, "' requires an array-of-string parameter."))
+      }
+    }
+    policies <- op$dimension_policies %||% list()
+    policy_outputs <- vapply(policies, function(x) as.character(x$output)[1], character(1))
+    if (anyDuplicated(policy_outputs)) .wb_operation_pack_v2_declaration_error(opname,
+      "repeats a dimension policy output.")
+    for (policy in policies) {
+      output_index <- match(as.character(policy$output)[1], output_names)
+      valid <- !is.na(output_index) &&
+        identical(as.character(op$outputs[[output_index]]$category)[1], "terminal_artifact") &&
+        as.character(op$outputs[[output_index]]$kind)[1] %in% c("feature_table", "obs_table") &&
+        identical(as.character(op$outputs[[output_index]]$storage_profile)[1], "terminal_primitive_v1")
+      if (!valid) .wb_operation_pack_v2_declaration_error(opname,
+        "declares data-dependent dimensions for an incompatible output.")
+    }
+    chunk <- op$chunking %||% NULL
+    if (!is.null(chunk)) {
+      input_index <- match(as.character(chunk$input)[1], input_names)
+      output_index <- match(as.character(chunk$output)[1], output_names)
+      sequence_schema <- properties[[as.character(chunk$sequence_parameter)[1]]]
+      size_schema <- properties[[as.character(chunk$size_parameter)[1]]]
+      adjust_schema <- properties[[as.character(chunk$adjust_parameter)[1]]]
+      valid <- !is.na(input_index) && !is.na(output_index) &&
+        identical(as.character(op$inputs[[input_index]]$kind)[1], "matrix") &&
+        identical(as.character(op$outputs[[output_index]]$kind)[1], "feature_table") &&
+        as.character(chunk$output)[1] %in% policy_outputs &&
+        identical(.wb_operation_pack_v2_catalog_param_type(sequence_schema), "string_vec") &&
+        identical(.wb_operation_pack_v2_catalog_param_type(size_schema), "int") &&
+        identical(.wb_operation_pack_v2_catalog_param_type(adjust_schema), "string") &&
+        is.numeric(size_schema$minimum) && as.numeric(size_schema$minimum) >= 1 &&
+        !is.null(size_schema$default) && as.numeric(size_schema$default) >= 1 &&
+        as.character(chunk$sequence_parameter)[1] %in% binding_names
+      if (!valid) .wb_operation_pack_v2_declaration_error(opname,
+        "has a chunk declaration with a missing, incompatible, or undeclared reference.")
+    }
+    retained <- op$retained_parameters %||% list()
+    retained_names <- vapply(retained, function(x) as.character(x$name)[1], character(1))
+    if (anyDuplicated(retained_names)) .wb_operation_pack_v2_declaration_error(opname,
+      "repeats a retained parameter name.")
+    for (item in retained) {
+      source <- as.character(item$source)[1]
+      needs_output <- source %in% c("output_meta", "output_first_row", "output_row_count")
+      needs_input <- identical(source, "input_feature_count")
+      needs_parameter <- source %in% c("parameter_supplied", "parameter_count", "parameter_value")
+      needs_field <- source %in% c("output_meta", "output_first_row")
+      valid <- (!needs_output || as.character(item$output %||% "")[1] %in% output_names) &&
+        (!needs_input || as.character(item$input %||% "")[1] %in% input_names) &&
+        (!needs_parameter || as.character(item$parameter %||% "")[1] %in% names(properties)) &&
+        (!needs_field || nzchar(as.character(item$field %||% "")[1]))
+      if (!valid) .wb_operation_pack_v2_declaration_error(opname,
+        paste0("retained parameter '", item$name, "' has an invalid source reference."))
     }
     groups <- vapply(op$outputs, function(x) as.character(x$promotion_group)[1], character(1))
     categories <- vapply(op$outputs, function(x) as.character(x$category)[1], character(1))
@@ -503,21 +613,23 @@
     pack_identity = pack, pack_sha256 = pack$sha256)
 }
 
-.wb_operation_pack_v2_params_to_catalog <- function(schema) {
+.wb_operation_pack_v2_params_to_catalog <- function(schema, public = NULL) {
   properties <- schema$properties %||% list()
   required <- as.character(unlist(schema$required %||% character(), use.names = FALSE))
   lapply(names(properties) %||% character(), function(name) {
     item <- properties[[name]]
-    types <- as.character(unlist(item$type %||% "list", use.names = FALSE))
-    type <- if ("integer" %in% types) "int" else if ("number" %in% types) "number" else if ("boolean" %in% types) "bool" else if ("string" %in% types) {
-      if (!is.null(item$enum)) "choice" else "string"
-    } else if ("array" %in% types) "list" else "list"
-    out <- list(name = name, type = type, required = name %in% required,
-      help = as.character(item$description %||% paste0("ABI v2 parameter ", name))[1])
-    if ("default" %in% names(item)) out$default <- item$default
+    public_index <- if (is.null(public)) NA_integer_ else match(name,
+      vapply(public, `[[`, character(1), "name"))
+    metadata <- if (is.na(public_index)) NULL else public[[public_index]]
+    type <- as.character(metadata$type %||% .wb_operation_pack_v2_catalog_param_type(item))[1]
+    out <- list(name = name, type = type)
+    if ("default" %in% names(item)) out["default"] <- list(if (type %in% c("int", "dbl"))
+      as.numeric(item$default) else item$default)
+    if (!is.null(item$minimum)) out$min <- as.numeric(item$minimum)
+    if (!is.null(item$maximum)) out$max <- as.numeric(item$maximum)
     if (!is.null(item$enum)) out$choices <- as.character(unlist(item$enum, use.names = FALSE))
-    if (!is.null(item$minimum)) out$min <- item$minimum
-    if (!is.null(item$maximum)) out$max <- item$maximum
+    out$help <- as.character(metadata$help %||% item$description %||% paste0("ABI v2 parameter ", name))[1]
+    out$required <- name %in% required
     out
   })
 }
@@ -530,19 +642,41 @@
   ordinary <- Filter(function(x) !identical(as.character(x$category)[1], "core_registry_request"), op$outputs)
   produces <- stats::setNames(lapply(ordinary, `[[`, "kind"), vapply(ordinary, `[[`, character(1), "name"))
   terminals <- vapply(Filter(function(x) identical(as.character(x$category)[1], "terminal_artifact"), ordinary), `[[`, character(1), "name")
+  public <- op$public_interface %||% NULL
+  public_inputs <- if (is.null(public)) list() else stats::setNames(public$inputs,
+    vapply(public$inputs, `[[`, character(1), "name"))
+  public_outputs <- if (is.null(public)) list() else stats::setNames(public$outputs,
+    vapply(public$outputs, `[[`, character(1), "name"))
+  inputs <- stats::setNames(lapply(op$inputs, function(x) {
+    metadata <- public_inputs[[as.character(x$name)[1]]] %||% list()
+    value <- list(required = x$required, kind = x$kind)
+    if (!is.null(metadata$label)) value$label <- metadata$label
+    if (!is.null(metadata$help)) value$help <- metadata$help
+    value
+  }), vapply(op$inputs, `[[`, character(1), "name"))
+  interface_produces <- stats::setNames(lapply(ordinary, function(x) list(
+    kind = x$kind, description = public_outputs[[as.character(x$name)[1]]]$description %||% NULL)),
+    vapply(ordinary, `[[`, character(1), "name"))
   definition <- list(
     name = op$qualified_name, op_name = op$qualified_name, title = op$title,
-    description = op$description, intent = "operation_pack_v2_reference",
+    description = op$description,
+    intent = public$intent %||% "operation_pack_v2_reference",
     requires = requires, optional_requires = optional_requires,
-    inputs = stats::setNames(lapply(op$inputs, function(x) list(kind = x$kind, required = x$required,
-      alignment = x$alignment)), vapply(op$inputs, `[[`, character(1), "name")),
-    params = .wb_operation_pack_v2_params_to_catalog(op$params_schema), produces = produces,
-    interface_produces = stats::setNames(lapply(ordinary, function(x) list(
-      kind = x$kind, durability_role = x$category, storage_profile = x$storage_profile,
-      materialized_by_terminals = x$materialized_by_terminals %||% NULL)), vapply(ordinary, `[[`, character(1), "name")),
+    inputs = inputs,
+    params = .wb_operation_pack_v2_params_to_catalog(op$params_schema,
+      public$parameters %||% NULL), produces = produces,
+    interface_produces = interface_produces,
     promotable = terminals, replay_equivalence = op$replay_equivalence[names(produces)],
     coverage = list(), pack_abi_version = "2", v2_definition = op)
-  .wb_operation_pack_migration_catalog_overlay(definition)
+  if (!is.null(op$chunking)) {
+    size <- op$params_schema$properties[[as.character(op$chunking$size_parameter)[1]]]
+    definition$chunking <- list(chunkable = TRUE, axis = op$chunking$axis,
+      chunk_size_param = op$chunking$size_parameter,
+      chunk_size_default = as.integer(size$default),
+      merge = as.list(stats::setNames("row_bind_feature_table", op$chunking$output)),
+      status = "implemented_generic")
+  }
+  definition
 }
 
 .wb_operation_pack_v2_registration <- function(manifest, runners, package_description,

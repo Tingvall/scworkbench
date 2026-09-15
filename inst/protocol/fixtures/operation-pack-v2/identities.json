@@ -2,7 +2,7 @@
   "schema": "scworkbench.operation_pack.protocol_identity_fixture.v2",
   "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
   "files": {
-    "operation-pack-v2.schema.json": "8343f8ea40ce3cc57027b0810c4d05b4df00196edd544361d15dc1fd59fe96aa",
+    "operation-pack-v2.schema.json": "d6756c057704820f2b6f1069035546a85fa2cbf504885f519bfe4535550f727c",
     "operation-pack-transition-request-v2.schema.json": "81bf35b2827778f149aee3e3ca2e921332f22415a290b5e9c704af37b7e1aed2",
     "operation-pack-transition-receipt-v2.schema.json": "2cd5e6192daa799bd4562dd1f0d4761eb1a7e8847ff048b3880783a0db0fba1b"
   },

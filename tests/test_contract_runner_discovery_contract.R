@@ -21,6 +21,14 @@ test_contract_runner_discovery_contract <- function() {
     "}"
   ), file.path(test_dir, "test_explicit_skip_contract.R"))
   inventory <- contract_test_discover(test_dir)
+  selected <- contract_test_discover(test_dir,
+    files = "test_new_unregistered_contract.R")
+  stopifnot(length(selected$tests) == 1L,
+    identical(selected$tests[[1]]$name, "test_new_unregistered_contract"))
+  missing_selection <- tryCatch(contract_test_discover(test_dir,
+    files = "test_absent_contract.R"), error = identity)
+  stopifnot(inherits(missing_selection, "error"),
+    grepl("Unknown selected contract test file", conditionMessage(missing_selection), fixed = TRUE))
   run <- contract_test_execute(inventory, reporter = FALSE)
   stopifnot(
     identical(as.integer(run$summary[c("discovered", "executed", "passed", "skipped", "accounted")]), c(2L, 2L, 1L, 1L, 2L)),

@@ -213,6 +213,15 @@ excluded accounting:
 Rscript inst/tests/run_contract_tests.R
 ```
 
+To run an auditable focused subset, repeat `--test-file=` with repository test
+paths (or basenames relative to `tests/`):
+
+```bash
+Rscript inst/tests/run_contract_tests.R \
+  --test-file=tests/test_operation_pack_v2_manifest_owned_statistics_contract.R \
+  --test-file=tests/test_op_feature_trend_spearman_chunking_contract.R
+```
+
 Run a specific contract test:
 
 ```sh

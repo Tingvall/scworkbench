@@ -22,14 +22,28 @@ readers and writers, audits the closed output set, publishes a complete
 transition atomically, and retains request, receipt, runtime, dependency,
 payload, and semantic identities for pack-free recipient inspection.
 
-For the migrated Statistics terminal `feature_table` and `obs_table` outputs,
-whose row count is data-dependent, core issues the request descriptor dimension
-sentinel `[0, 0]`.
+An operation may declare the closed `data_dependent_table_v1` dimension policy
+for a terminal `feature_table` or `obs_table` using the
+`terminal_primitive_v1` storage profile. For every conforming namespace, and
+only for outputs carrying that authenticated declaration, core issues the
+request descriptor dimension sentinel `[0, 0]`.
 Both zeros together mean “audit dimensions from the staged primitive”; they do
 not claim an empty result. Core still verifies the declared kind, table type,
 complete output tuple, semantic constraints, staged payload identity, and the
 observed non-negative dimensions before atomic publication. A single zero or a
 nonzero claimed dimension retains its literal meaning and must match exactly.
+
+Optional language-neutral manifest sections also define public interface
+metadata, closed parameter-binding policies, retained run-parameter
+projections, and one closed feature-chunk contract. The feature contract binds
+a matrix input, feature-sequence parameter, positive integer size parameter,
+terminal feature-table output, global P-adjustment parameter, and
+`row_bind_then_global_p_adjust_v1`. Core observes each typed reader call and
+requires the calls to be the exact contiguous partition before it creates a
+receipt or publishes payloads. Retained chunk evidence records the requested
+size, observed call count, batch sizes, and exact ordered batches. These fields
+are identity-bearing canonical manifest content; operation or namespace names
+never select their semantics.
 
 The deterministic installed fixture
 `fixtures/operation-pack-v2/identities.json` pins the live schema bytes and all

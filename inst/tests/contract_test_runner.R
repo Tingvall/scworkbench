@@ -42,9 +42,21 @@ contract_test_signature <- function(fn, test_name) {
   )
 }
 
-contract_test_discover <- function(test_dir, exclusions = character(), parent_env = globalenv()) {
+contract_test_discover <- function(test_dir, exclusions = character(), parent_env = globalenv(),
+                                   files = NULL) {
   test_dir <- normalizePath(test_dir, winslash = "/", mustWork = TRUE)
-  files <- sort(list.files(test_dir, pattern = "^test_.*\\.R$", full.names = TRUE))
+  available <- sort(list.files(test_dir, pattern = "^test_.*\\.R$", full.names = TRUE))
+  if (!is.null(files)) {
+    requested <- as.character(files)
+    if (!length(requested) || anyNA(requested) || any(!nzchar(requested)) ||
+        anyDuplicated(requested)) stop("Selected contract test files must be unique non-empty paths.", call. = FALSE)
+    resolved <- vapply(requested, function(path) normalizePath(if (file.exists(path)) path else
+      file.path(test_dir, path), winslash = "/", mustWork = FALSE), character(1))
+    missing <- requested[!resolved %in% available]
+    if (length(missing)) stop("Unknown selected contract test file(s): ",
+      paste(missing, collapse = ", "), call. = FALSE)
+    files <- resolved
+  } else files <- available
   if (!length(files)) stop("No contract test files discovered in ", test_dir, call. = FALSE)
 
   if (is.null(names(exclusions))) names(exclusions) <- rep("", length(exclusions))

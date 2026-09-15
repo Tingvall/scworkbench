@@ -2,10 +2,11 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 bundle_arg <- grep("^--bundle=", args, value = TRUE)
+test_file_arg <- grep("^--test-file=", args, value = TRUE)
 if (length(bundle_arg) > 1L) {
   stop("Specify at most one --bundle=/path argument.", call. = FALSE)
 }
-unknown <- setdiff(args, bundle_arg)
+unknown <- setdiff(args, c(bundle_arg, test_file_arg))
 if (length(unknown)) {
   stop("Unknown argument(s): ", paste(unknown, collapse = ", "), call. = FALSE)
 }
@@ -61,7 +62,8 @@ intentional_exclusions <- character()
 inventory <- contract_test_discover(
   file.path(repo, "tests"),
   exclusions = intentional_exclusions,
-  parent_env = globalenv()
+  parent_env = globalenv(),
+  files = if (length(test_file_arg)) sub("^--test-file=", "", test_file_arg) else NULL
 )
 cat("Discovered ", length(inventory$tests), " contract tests in ",
     length(inventory$files), " files.\n", sep = "")
