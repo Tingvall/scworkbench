@@ -50,6 +50,7 @@ test_operation_pack_v1_cross_language_lifecycle_contract <- function() {
       "Set SCWORKBENCH_PYBENCH_PYTHON and SCWORKBENCH_PYTHON_PACK_MANIFEST ",
       "to execute the installed cross-language lifecycle proof.")))
   }
+  contract_test_activate_core_conformance_pack()
   root <- normalizePath(".", winslash = "/", mustWork = TRUE)
   helper <- file.path(root, "tests", "helpers",
                       "operation_pack_v1_cross_language_subprocess.R")

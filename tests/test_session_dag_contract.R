@@ -17,7 +17,7 @@ test_session_dag_contract <- function(bundle_dir = NULL) {
   )
 
   r2 <- wb_new_run(
-    op_name = "markers_topn",
+    op_name = "synthetic_dependent_feature_table_run",
     inputs = list(
       cell_set = "all",
       effective_n = 3L,
@@ -30,9 +30,9 @@ test_session_dag_contract <- function(bundle_dir = NULL) {
     ),
     params = list(top_n = 10L),
     outputs = list(
-      markers = wb_prim_feature_table(
+      result = wb_prim_feature_table(
         table = data.frame(feature_id = c("g1", "g2"), score = c(1, 2), stringsAsFactors = FALSE),
-        table_type = "markers_topn"
+        table_type = "synthetic_dependent_feature_table"
       )
     ),
     notes = "markers run"
@@ -41,7 +41,7 @@ test_session_dag_contract <- function(bundle_dir = NULL) {
   s <- wb_session_add_run(s, r1)
   s <- wb_session_add_run(s, r2)
   s <- wb_session_set_active(s, "clusters", wb_ref_run(r1$run_id, "clusters"))
-  s <- wb_session_set_active(s, "markers", wb_ref_run(r2$run_id, "markers"))
+  s <- wb_session_set_active(s, "result", wb_ref_run(r2$run_id, "result"))
 
   dag <- wb_session_dag(s, include_artifacts = FALSE, include_active = TRUE)
   stopifnot(is.list(dag), is.data.frame(dag$nodes), is.data.frame(dag$edges))
@@ -70,12 +70,12 @@ test_session_dag_contract <- function(bundle_dir = NULL) {
   stopifnot(identical(det$run$run_id, r2$run_id))
   stopifnot("top_n" %in% names(det$run$params))
   stopifnot(r1$run_id %in% det$parents)
-  stopifnot("markers" %in% det$active_bindings)
+  stopifnot("result" %in% det$active_bindings)
   stopifnot(is.data.frame(det$input_refs), nrow(det$input_refs) >= 2)
   stopifnot(any(det$input_refs$ref_type == "run"))
   stopifnot(any(det$input_refs$ref_type == "artifact"))
   stopifnot(is.data.frame(det$outputs))
-  stopifnot(any(det$outputs$output == "markers"))
+  stopifnot(any(det$outputs$output == "result"))
 
   TRUE
 }

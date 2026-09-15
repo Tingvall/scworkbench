@@ -17,7 +17,7 @@ test_report_draft_contract <- function(bundle_dir) {
     notes = "clusters"
   )
   r2 <- wb_new_run(
-    op_name = "markers_topn",
+    op_name = "synthetic_named_terminal_report",
     inputs = list(
       cell_set = "all",
       effective_n = 100L,
@@ -26,9 +26,9 @@ test_report_draft_contract <- function(bundle_dir) {
     ),
     params = list(top_n = 20L, min_pct = 0.1),
     outputs = list(
-      markers = wb_prim_feature_table(
+      report_table = wb_prim_feature_table(
         table = data.frame(feature_id = c("g1", "g2"), score = c(2, 1), stringsAsFactors = FALSE),
-        table_type = "markers_topn"
+        table_type = "synthetic_named_terminal_report"
       )
     ),
     notes = "markers"
@@ -37,14 +37,14 @@ test_report_draft_contract <- function(bundle_dir) {
   s <- wb_session_add_run(s, r1)
   s <- wb_session_add_run(s, r2)
   s <- wb_session_set_active(s, "clusters", wb_ref_run(r1$run_id, "clusters"))
-  s <- wb_session_set_active(s, "markers", wb_ref_run(r2$run_id, "markers"))
+  s <- wb_session_set_active(s, "report_table", wb_ref_run(r2$run_id, "report_table"))
 
   m <- wb_report_methods(session = s, bundle = b)
   stopifnot(is.list(m))
   stopifnot(is.character(m$text), length(m$text) == 1)
   stopifnot(length(m$lines) >= 2)
   stopifnot(any(grepl("leiden", m$text, fixed = TRUE)))
-  stopifnot(any(grepl("markers_topn", m$text, fixed = TRUE)))
+  stopifnot(any(grepl("synthetic_named_terminal_report", m$text, fixed = TRUE)))
   stopifnot(is.data.frame(m$run_table), nrow(m$run_table) >= 2)
 
   rep <- wb_report_draft(
@@ -60,7 +60,7 @@ test_report_draft_contract <- function(bundle_dir) {
   stopifnot(rep$summary$n_runs >= 2)
   stopifnot(is.data.frame(rep$results$outputs), nrow(rep$results$outputs) >= 2)
   stopifnot(any(rep$results$outputs$output == "clusters"))
-  stopifnot(any(rep$results$outputs$output == "markers"))
+  stopifnot(any(rep$results$outputs$output == "report_table"))
   stopifnot(is.data.frame(rep$dag$nodes), nrow(rep$dag$nodes) >= 2)
 
   md <- wb_report_render_md(rep, include_dag_text = TRUE)

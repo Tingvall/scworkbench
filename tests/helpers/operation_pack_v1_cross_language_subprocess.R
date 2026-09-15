@@ -24,6 +24,7 @@ copy_bundle <- function(source, destination) {
 # Explicit activation, inspection, public catalog composition, and load-order
 # independent identities.
 invisible(wb_operation_pack_load(r_package))
+invisible(wb_operation_pack_load("scwbV2Reference"))
 python_pack <- wb_operation_pack_activate(
   python_manifest, python = python, timeout_seconds = 60)
 composite <- read.dcf(file.path(repo, "inst", "release", "composite_release.dcf"))
@@ -102,10 +103,10 @@ python_run <- wb_session_run_op(r_run$session, bundle,
     signal = wb_ref_run(r_run$run$run_id, "vector"), scale = 3,
     min_cells = 1L))
 terminal <- wb_session_run_op(python_run$session, bundle,
-  "cell_vector_association", inputs = list(
+  "scwbv2reference::two_table_terminal", inputs = list(
     a = wb_ref_run(r_run$run$run_id, "vector"),
     b = wb_ref_run(python_run$run$run_id, "vector"),
-    method = "auto", min_n_per_group = 2L, min_cells = 1L))
+    min_cells = 1L))
 stopifnot(
   identical(r_run$run$operation_pack$pack_sha256,
     "f8abd3c8dcaa78c9f08494d98ce45adec68c05147fc0a01dbb3d11e20038b361"),
@@ -142,7 +143,8 @@ dag <- wb_prov_bundle_dag(bundle, include_snapshots = TRUE)
 stopifnot(all(paste0("run:", mixed_run_ids) %in% dag$nodes$id),
           paste0("artifact:", summary_artifact) %in% dag$nodes$id)
 certificate <- wb_entity_certificate(bundle, "artifact", summary_artifact)
-stopifnot(identical(certificate$producer$operation$name, "cell_vector_association"))
+stopifnot(identical(certificate$producer$operation$name,
+  "scwbv2reference::two_table_terminal"))
 python_details <- wb_prov_run_details(bundle, python_run$run$run_id, snapshot_id)
 runtime <- python_details$run$runtime_fingerprint$operation_pack_runtime
 stopifnot(
@@ -203,6 +205,7 @@ writeLines(c(
   "a<-commandArgs(trailingOnly=TRUE)",
   "if(identical(Sys.getenv('SCWORKBENCH_TEST_INSTALLED'),'1'))library(scworkbench)else devtools::load_all(a[[1]],quiet=TRUE)",
   "invisible(wb_operation_pack_load('scworkbenchOperationPackTemplate'))",
+  "invisible(wb_operation_pack_load('scwbV2Reference'))",
   "invisible(wb_operation_pack_activate(a[[3]],python=a[[2]],timeout_seconds=60))",
   "source(a[[4]],local=TRUE)",
   "cat('PUBLIC_EMITTED_REPLAY_OK\\n')"
@@ -256,6 +259,7 @@ load_line <- paste0(
 writeLines(c(
   "a<-commandArgs(trailingOnly=TRUE)", load_line,
   "invisible(wb_operation_pack_load('scworkbenchOperationPackTemplate'))",
+  "invisible(wb_operation_pack_load('scwbV2Reference'))",
   "invisible(wb_operation_pack_activate(a[[5]],python=a[[4]],timeout_seconds=60))",
   "b<-wb_open_bundle(a[[2]])", "s<-wb_session_resume(b,a[[3]])",
   "x<-wb_session_run_op(s,b,'scwbpython::affine_cell_vector',inputs=list(signal=wb_ref_run(a[[6]],'vector'),scale=3,min_cells=1L))",
@@ -279,7 +283,7 @@ writeLines(c(
   "invisible(wb_operation_pack_load('scworkbenchOperationPackTemplate'))",
   "invisible(wb_operation_pack_activate(a[[5]],python=a[[4]],timeout_seconds=60))",
   "b<-wb_open_bundle(a[[2]])", "s<-wb_session_resume(b,a[[3]])",
-  "x<-wb_session_run_op(s,b,'cell_vector_association',inputs=list(a=wb_ref_run(a[[6]],'vector'),b=wb_ref_run(a[[7]],'vector'),method='auto',min_n_per_group=2L,min_cells=1L))",
+  "x<-wb_session_run_op(s,b,'scwbv2reference::two_table_terminal',inputs=list(a=wb_ref_run(a[[6]],'vector'),b=wb_ref_run(a[[7]],'vector'),min_cells=1L))",
   "p<-wb_session_promote_current(b,x$session,outputs=c('summary','detail'),created_by='process-replacement-proof')",
   "stopifnot(sum(p$promoted$status=='ok')==2L)",
   "cat('PROCESS_REPLACEMENT_OK',unique(p$promoted$snapshot_id[p$promoted$status=='ok']),'\\n')",
@@ -309,7 +313,7 @@ sibling_python <- wb_session_run_op(sibling$session, bundle,
   "scwbpython::affine_cell_vector", inputs = list(
     signal = wb_ref_run(sibling$run$run_id, "vector"), scale = -2, min_cells = 1L))
 sibling_core <- wb_session_run_op(sibling_python$session, bundle,
-  "cell_vector_association", inputs = list(
+  "scwbv2reference::two_table_terminal", inputs = list(
     a = wb_ref_run(sibling$run$run_id, "vector"),
     b = wb_ref_run(sibling_python$run$run_id, "vector"), min_cells = 1L))
 stopifnot(identical(original_before,

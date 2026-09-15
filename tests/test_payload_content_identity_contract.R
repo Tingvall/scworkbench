@@ -1,5 +1,5 @@
 test_payload_content_identity_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   # Object identities are portable across supported R runtimes.  This fixed
   # typed value has the same digest in the host and provisioned container even
   # though their R minor versions differ.
@@ -55,7 +55,7 @@ test_payload_content_identity_contract <- function() {
   s <- wb_session_new()
   p <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "perturbation", vector_name = "identity_perturbation", value_type = "categorical", missing_policy = "error", overwrite = TRUE, cell_set = "all", min_cells = 1L)); s <- p$session
   l <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "lane", vector_name = "identity_lane", value_type = "categorical", missing_policy = "error", overwrite = TRUE, cell_set = "all", min_cells = 1L)); s <- l$session
-  a <- wb_session_run_op(s, b, "cell_vector_association", inputs = list(a = wb_ref_run(p$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L, min_n_per_group = 1L, method = "auto")); s <- a$session
+  a <- wb_session_run_op(s, b, "scwbv2reference::two_table_terminal", inputs = list(a = wb_ref_run(p$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L)); s <- a$session
   promoted <- wb_session_promote_current(b, s, created_by = "payload-identity", outputs = list(wb_ref_run(a$run$run_id, "summary"), wb_ref_run(a$run$run_id, "detail")))
   sid <- as.character(promoted$provenance_snapshot_id)[1]
   stored <- DBI::dbGetQuery(b$con, "SELECT output_name, output_hash, structural_fingerprint, content_sha256, content_identity_scheme, verification_level, verification_status FROM prov_run_outputs WHERE snapshot_id = ? AND run_id = ? ORDER BY output_name;", params = list(sid, a$run$run_id))

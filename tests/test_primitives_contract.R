@@ -1,5 +1,4 @@
 test_primitives_contract <- function() {
-  contract_test_activate_statistics_pack()
   # Primitive constructors
   cv <- wb_prim_cell_vector(setNames(c("a", "b"), c("c1", "c2")))
   stopifnot(.wb_is_primitive(cv), identical(cv$kind, "cell_vector"))
@@ -112,10 +111,6 @@ test_primitives_contract <- function() {
 
   sp_proj <- wb_op_interface("space_path_project_2d")
   stopifnot(identical(as.character(sp_proj$produces$curves$kind), "path_2d_family"))
-
-  cvc <- wb_op_interface("cell_vector_compare")
-  stopifnot(identical(as.character(cvc$produces$summary$kind), "obs_table"))
-  stopifnot(identical(as.character(cvc$produces$comparison$kind), "obs_table"))
 
   TRUE
 }

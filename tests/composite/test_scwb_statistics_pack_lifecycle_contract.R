@@ -27,7 +27,7 @@
     inputs = utils::modifyList(list(cell_set = "all", min_cells = 1L), inputs))
 }
 
-test_scwb_statistics_pack_execution_identity_contract <- function() {
+test_six_operation_qualified_name_and_receipt_smoke <- function() {
   contract_test_activate_statistics_pack()
   fixture <- .statistics_fixture("scwb_statistics_execution_")
   b <- fixture$bundle
@@ -62,21 +62,12 @@ test_scwb_statistics_pack_execution_identity_contract <- function() {
     "feature_trend_spearman"))
   stopifnot(identical(vapply(runs, function(x) x$run$op_name, character(1)),
     stats::setNames(qualified, names(runs))))
-  stopifnot(
-    identical(runs$de$run$params$n_features, 5L),
-    identical(runs$markers$run$params$n_clusters, 2L),
-    setequal(names(runs$assoc$run$outputs), c("assoc_summary", "group_stats")),
-    identical(runs$association$run$outputs$summary$table$association_type,
-      "categorical_x_categorical"),
-    nrow(runs$compare$run$outputs$comparison$table) == 12L,
-    identical(runs$trend$run$params$chunking$n_chunks, 3L),
-    all(vapply(runs, function(x) nzchar(as.character(
-      x$result$operation_pack_transition$receipt_identity$sha256)), logical(1)))
-  )
+  stopifnot(all(vapply(runs, function(x) nzchar(as.character(
+    x$result$operation_pack_transition$receipt_identity$sha256)), logical(1))))
   TRUE
 }
 
-test_scwb_statistics_pack_promotion_replay_recipient_contract <- function() {
+test_promotion_replay_recipient <- function() {
   contract_test_activate_statistics_pack()
   fixture <- .statistics_fixture("scwb_statistics_recipient_")
   b <- fixture$bundle

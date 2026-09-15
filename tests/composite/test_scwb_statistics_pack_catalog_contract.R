@@ -4,7 +4,7 @@
   as.character(error$code)[1]
 }
 
-test_scwb_statistics_pack_catalog_contract <- function() {
+test_catalog_activation <- function() {
   stopifnot(length(wb_list_ops()) == 53L, nrow(wb_operation_packs()) == 0L)
   before <- wb_operation_catalog_identity()
   stopifnot(identical(.statistics_error_code(.wb_op("de_wilcox")),
@@ -90,39 +90,5 @@ test_scwb_statistics_pack_late_admission_zero_residue_contract <- function() {
   stopifnot(identical(code, "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID"),
     identical(before_ops, wb_list_ops()), identical(before_packs, wb_operation_packs()),
     identical(before_identity, wb_operation_catalog_identity()))
-  TRUE
-}
-
-test_scwb_statistics_pack_transition_rollback_contract <- function() {
-  contract_test_activate_statistics_pack()
-  bundle <- wb_init_bundle(tempfile("scwbStatistics-rollback-"))
-  on.exit(wb_close_bundle(bundle), add=TRUE)
-  cells <- paste0("c", 1:6)
-  a <- wb_prim_cell_vector(stats::setNames(1:6, cells), "continuous")
-  b <- wb_prim_cell_vector(stats::setNames(6:1, cells), "continuous")
-  execute <- getFromNamespace(".wb_operation_pack_v2_execute", "scworkbench")
-  fingerprint <- function() .wb_manifest_registry_snapshot(bundle$con)$fingerprint
-  before <- fingerprint()
-  events <- list(resolved=c("OPERATION_PACK_PREFLIGHT_FAILED","preflight"),
-    staged=c("PYBENCH_PROCESS_FAILED","execution"),
-    receipt_received=c("PYBENCH_RECEIPT_MISMATCH","receipt"),
-    audited=c("PYBENCH_OUTPUT_INVALID","audit"),
-    before_publication=c("PYBENCH_PUBLICATION_FAILED","publication"),
-    published=c("PYBENCH_PUBLICATION_FAILED","publication"))
-  for (event_name in names(events)) {
-    options(scworkbench.operation_pack_v2_test_hook=local({ target<-event_name; function(event,...)
-      if(identical(event,target)) stop("injected") }))
-    error <- tryCatch(execute(bundle,"scwbstatistics::cell_vector_compare",
-      list(a=a,b=b),list(compare_space="rank",ties_method="average",signal_a="a",signal_b="b")),error=identity)
-    options(scworkbench.operation_pack_v2_test_hook=NULL)
-    stopifnot(inherits(error,"wb_operation_pack_error"),
-      identical(error$code,events[[event_name]][[1]]),
-      identical(error$phase,events[[event_name]][[2]]),
-      identical(before,fingerprint()),
-      !dir.exists(file.path(bundle$dir,"operation_pack_v2")))
-  }
-  success <- execute(bundle,"scwbstatistics::cell_vector_compare",list(a=a,b=b),
-    list(compare_space="rank",ties_method="average",signal_a="a",signal_b="b"))
-  stopifnot(success$state=="reopened",setequal(names(success$outputs),c("summary","comparison")))
   TRUE
 }

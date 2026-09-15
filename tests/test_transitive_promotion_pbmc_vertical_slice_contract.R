@@ -1,5 +1,5 @@
 test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   required <- c("BPCells", "Matrix", "irlba", "uwot", "igraph")
   if (!all(vapply(required, requireNamespace, logical(1), quietly = TRUE))) {
     missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
@@ -57,8 +57,8 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
     s, b, "leiden", inputs = list(space = "pca", k = 5L, resolution = 0.5, seed = 1L)
   ); s <- r_leiden$session
   r_markers <- wb_session_run_op(
-    s, b, "markers_topn",
-    inputs = list(matrix = "RNA_log", clusters = wb_ref_run(r_leiden$run$run_id, "clusters"), top_n = 2L, min_pct = 0)
+    s, b, "scwbv2reference::feature_table_from_matrix",
+    inputs = list(matrix = "RNA_log", labels = wb_ref_run(r_leiden$run$run_id, "clusters"), result_limit = 2L)
   ); s <- r_markers$session
 
   stopifnot(!"RNA_log" %in% as.character(wb_matrices(b)$matrix_id))
@@ -70,20 +70,20 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
   stopifnot(inherits(ambiguous, "try-error"))
 
   promoted <- wb_session_promote_current(
-    b, s, outputs = c("selected_features", "space_2d", "clusters", "markers"), created_by = "test"
+    b, s, outputs = c("selected_features", "space_2d", "clusters", "result"), created_by = "test"
   )
   ok <- promoted$promoted[as.character(promoted$promoted$status) == "ok", , drop = FALSE]
-  stopifnot(setequal(as.character(ok$output), c("selected_features", "space_2d", "clusters", "markers")))
+  stopifnot(setequal(as.character(ok$output), c("selected_features", "space_2d", "clusters", "result")))
   arts <- wb_art_list(b)
   stopifnot(nrow(arts) == 5L)
-  stopifnot(setequal(as.character(arts$source_op), c("ingest_apply", "hvg_select", "umap_fit", "leiden", "scwbstatistics::markers_topn")))
+  stopifnot(setequal(as.character(arts$source_op), c("ingest_apply", "hvg_select", "umap_fit", "leiden", "scwbv2reference::feature_table_from_matrix")))
   stopifnot(all(as.character(ok$lineage_status) == "complete"))
   stopifnot("RNA_log" %in% as.character(wb_matrices(b)$matrix_id))
   stopifnot(all(c("pca", "umap") %in% as.character(wb_spaces(b)$space_id)))
 
   sid <- as.character(promoted$provenance_snapshot_id)
   runs <- DBI::dbGetQuery(b$con, "SELECT run_id, op_name, runtime_fingerprint_json FROM prov_runs WHERE snapshot_id = ?;", params = list(sid))
-  stopifnot(setequal(as.character(runs$op_name), c("matrix_log_normalize", "hvg_select", "pca_fit", "umap_fit", "leiden", "scwbstatistics::markers_topn")))
+  stopifnot(setequal(as.character(runs$op_name), c("matrix_log_normalize", "hvg_select", "pca_fit", "umap_fit", "leiden", "scwbv2reference::feature_table_from_matrix")))
   stopifnot(all(nzchar(as.character(runs$runtime_fingerprint_json))))
   mats <- DBI::dbGetQuery(b$con, "SELECT * FROM prov_materializations WHERE commit_id = ?;", params = list(DBI::dbGetQuery(b$con, "SELECT commit_id FROM prov_heads WHERE snapshot_id = ?;", params = list(sid))$commit_id[1]))
   stopifnot(nrow(mats) >= 6L, all(file.exists(file.path(b$dir, mats$path))))
@@ -125,7 +125,7 @@ test_transitive_promotion_pbmc_vertical_slice_contract <- function() {
   }
   hvg_artifact <- artifact_for(r_hvg$run$run_id, "selected_features")
   cluster_artifact <- artifact_for(r_leiden$run$run_id, "clusters")
-  markers_artifact <- artifact_for(r_markers$run$run_id, "markers")
+  markers_artifact <- artifact_for(r_markers$run$run_id, "result")
   stopifnot(all(nzchar(c(hvg_artifact, cluster_artifact, markers_artifact))))
   next_nodes <- split(as.character(edges$to), as.character(edges$from))
   directed_path <- function(from, to) {

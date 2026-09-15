@@ -1,8 +1,8 @@
 test_op_metadata_cell_vector_diagnostics_contract <- function() {
-  contract_test_activate_statistics_pack()
-  stopifnot(all(c("metadata_cell_vector", "scwbstatistics::cell_vector_association") %in% wb_list_ops()))
+  contract_test_activate_core_conformance_pack()
+  stopifnot(all(c("metadata_cell_vector", "scwbv2reference::two_table_terminal") %in% wb_list_ops()))
   stopifnot(identical(wb_op_interface("metadata_cell_vector")$produces$vector$kind, "cell_vector"))
-  stopifnot(identical(wb_op_interface("cell_vector_association")$produces$summary$kind, "obs_table"))
+  stopifnot(identical(wb_op_interface("scwbv2reference::two_table_terminal")$produces$summary$kind, "obs_table"))
 
   root <- tempfile("scwb_metadata_vector_")
   b <- wb_init_bundle(root, overwrite = TRUE)
@@ -17,8 +17,8 @@ test_op_metadata_cell_vector_diagnostics_contract <- function() {
   p <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "perturbation", vector_name = "perturbation", value_type = "categorical", missing_policy = "error", cell_set = "all", min_cells = 1L)); s <- p$session
   l <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "lane", vector_name = "lane", value_type = "auto", missing_policy = "error", cell_set = "all", min_cells = 1L)); s <- l$session
   q <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "qc", vector_name = "qc", value_type = "auto", missing_policy = "error", cell_set = "all", min_cells = 1L)); s <- q$session
-  cc <- wb_session_run_op(s, b, "cell_vector_association", inputs = list(a = wb_ref_run(p$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L)); s <- cc$session
-  cg <- wb_session_run_op(s, b, "cell_vector_association", inputs = list(a = wb_ref_run(q$run$run_id, "vector"), b = wb_ref_run(p$run$run_id, "vector"), cell_set = "all", min_cells = 1L)); s <- cg$session
+  cc <- wb_session_run_op(s, b, "scwbv2reference::two_table_terminal", inputs = list(a = wb_ref_run(p$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L)); s <- cc$session
+  cg <- wb_session_run_op(s, b, "scwbv2reference::two_table_terminal", inputs = list(a = wb_ref_run(q$run$run_id, "vector"), b = wb_ref_run(p$run$run_id, "vector"), cell_set = "all", min_cells = 1L)); s <- cg$session
   promoted <- wb_session_promote_current(b, s, created_by = "test", outputs = list(
     wb_ref_run(p$run$run_id, "vector"), wb_ref_run(l$run$run_id, "vector"), wb_ref_run(q$run$run_id, "vector"),
     wb_ref_run(cc$run$run_id, "summary"), wb_ref_run(cc$run$run_id, "detail"),
@@ -33,14 +33,8 @@ test_op_metadata_cell_vector_diagnostics_contract <- function() {
   cert <- wb_entity_certificate(b, "artifact", vector_ids[[1]])
   persisted_params <- cert$producer$run$parameters$value
   stopifnot(identical(persisted_params$source_column, "perturbation"), identical(persisted_params$cell_set, "all"), identical(persisted_params$missing_policy, "error"))
-  cc_summary <- cc$run$outputs$summary$table
-  stopifnot(identical(cc_summary$association_type, "categorical_x_categorical"), identical(cc_summary$effect_size_name, "cramers_v"), "min_expected" %in% names(cc_summary))
-  stopifnot(identical(cg$run$outputs$summary$table$association_type, "continuous_x_categorical"))
-  cont <- wb_session_run_op(wb_session_new(), b, "cell_vector_association", inputs = list(
-    a = vecs[[3]], b = wb_prim_cell_vector(stats::setNames(seq_along(ids), ids),
-      value_type = "continuous"), cell_set = "all", min_cells = 1L))
-  stopifnot(identical(cont$run$outputs$summary$table$association_type,
-    "continuous_x_continuous"), "spearman" %in% names(cont$run$outputs$summary$table))
+  stopifnot(identical(cc$run$outputs$summary$table$record_type, "paired_cell_vectors"),
+    identical(cg$run$outputs$summary$table$n_cells, length(ids)))
   duplicate <- try(wb_session_run_op(wb_session_new(), b, "metadata_cell_vector", inputs = list(source_column = "lane", vector_name = "lane", cell_set = "all", min_cells = 1L)), silent = TRUE)
   stopifnot(inherits(duplicate, "try-error"))
   plot <- wb_wrangle_plot_dataset("embedding_overlay", list(space = wb_prim_space_2d("umap"), color = vecs[[1]]), b)

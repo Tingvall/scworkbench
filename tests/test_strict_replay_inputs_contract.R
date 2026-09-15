@@ -1,5 +1,5 @@
 test_strict_replay_inputs_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   same <- scworkbench:::.wb_prov_replay_execution_inputs(
     list(alpha = 1L, nested = list(ref = wb_ref_run("old_run", "vector"))),
     list(alpha = 1L, beta = c("x", "y"), nil = NULL),
@@ -12,11 +12,6 @@ test_strict_replay_inputs_contract <- function() {
     silent = TRUE
   )
   stopifnot(inherits(conflict, "try-error"), grepl("collision", as.character(conflict), ignore.case = TRUE))
-  legacy_method <- scworkbench:::.wb_prov_replay_execution_inputs(
-    list(method = "auto"), list(method = "fisher_exact"),
-    run_id = "legacy-association", op_name = "cell_vector_association"
-  )
-  stopifnot(identical(legacy_method$method, "auto"))
   raw_inputs <- list(flag = TRUE, count = 2L, ratio = 0.5, values = c("x", "y"), nil = NULL,
                      nested = list(ref = wb_ref_run("old_run", "vector")))
   raw_roundtrip <- jsonlite::fromJSON(
@@ -61,11 +56,11 @@ test_strict_replay_inputs_contract <- function() {
   )
   sess <- lane$session
   association <- wb_session_run_op(
-    sess, b, "cell_vector_association",
+    sess, b, "scwbv2reference::two_table_terminal",
     inputs = list(
       a = wb_ref_run(perturbation$run$run_id, "vector"),
       b = wb_ref_run(lane$run$run_id, "vector"),
-      cell_set = "all", min_cells = 1L, min_n_per_group = 1L, method = "auto"
+      cell_set = "all", min_cells = 1L
     )
   )
   sess <- association$session
@@ -106,7 +101,7 @@ test_strict_replay_inputs_contract <- function() {
       wrapper <- tempfile("scwb_replay_wrapper_", fileext = ".R")
       writeLines(c(
         paste0("devtools::load_all(", shQuote(normalizePath(getwd())), ", quiet = TRUE)"),
-        "wb_operation_pack_load('scwbStatistics')",
+        "wb_operation_pack_load('scwbV2Reference')",
         replay
       ), wrapper)
       status <- system2(file.path(R.home("bin"), "Rscript"), wrapper)
@@ -127,9 +122,7 @@ test_strict_replay_inputs_contract <- function() {
       match(association$run$run_id, validated$per_run$run_id)
     ]
     association_inputs <- replay_runs[[association_replay_id]]$inputs$user_inputs
-    stopifnot(identical(association_inputs$min_n_per_group, 1L),
-              identical(association_inputs$method, "auto"),
-              identical(association_inputs$a$ref_type, "run"),
+    stopifnot(identical(association_inputs$a$ref_type, "run"),
               association_inputs$a$run_id != perturbation$run$run_id)
   }
   TRUE

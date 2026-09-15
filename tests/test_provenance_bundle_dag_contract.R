@@ -1,10 +1,10 @@
 test_provenance_bundle_dag_contract <- function(bundle_dir) {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
 
   r1 <- wb_new_run(
-    op_name = "de_wilcox",
+    op_name = "scwbv2reference::feature_table_from_matrix",
     inputs = list(
       cell_set = "all",
       effective_n = 12L,
@@ -13,9 +13,9 @@ test_provenance_bundle_dag_contract <- function(bundle_dir) {
     ),
     params = list(min_pct = 0, p_adjust_method = "BH"),
     outputs = list(
-      de_table = wb_prim_feature_table(
+      result = wb_prim_feature_table(
         table = data.frame(feature_id = c("g1", "g2"), score = c(1.2, 0.4), stringsAsFactors = FALSE),
-        table_type = "de_wilcox"
+        table_type = "synthetic_dag_stage"
       )
     ),
     notes = "synthetic bundle dag stage 1"
@@ -30,28 +30,28 @@ test_provenance_bundle_dag_contract <- function(bundle_dir) {
     created_by = "test",
     fail_fast = TRUE
   )
-  a1 <- p1$promoted$artifact_id[as.character(p1$promoted$output) == "de_table"][1]
+  a1 <- p1$promoted$artifact_id[as.character(p1$promoted$output) == "result"][1]
   a1 <- as.character(a1)
   stopifnot(nzchar(a1))
 
   r2 <- wb_new_run(
-    op_name = "markers_topn",
+    op_name = "scwbv2reference::feature_table_from_matrix",
     inputs = list(
       cell_set = "all",
       effective_n = 12L,
       parents = character(0),
-      provenance_refs = list(feature_table = wb_ref_artifact(a1, "de_table")),
-      user_inputs = list(feature_table = wb_ref_artifact(a1, "de_table")),
+      provenance_refs = list(feature_table = wb_ref_artifact(a1, "result")),
+      user_inputs = list(feature_table = wb_ref_artifact(a1, "result")),
       symbolic_inputs = list(
         cell_set = "all",
-        feature_table = wb_ref_artifact(a1, "de_table")
+        feature_table = wb_ref_artifact(a1, "result")
       )
     ),
     params = list(top_n = 2L),
     outputs = list(
-      markers = wb_prim_feature_table(
+      result = wb_prim_feature_table(
         table = data.frame(feature_id = c("g1", "g2"), score = c(2.1, 1.4), stringsAsFactors = FALSE),
-        table_type = "markers_topn"
+        table_type = "synthetic_dag_stage"
       )
     ),
     notes = "synthetic bundle dag stage 2"
@@ -66,7 +66,7 @@ test_provenance_bundle_dag_contract <- function(bundle_dir) {
     created_by = "test",
     fail_fast = TRUE
   )
-  a2 <- p2$promoted$artifact_id[as.character(p2$promoted$output) == "markers"][1]
+  a2 <- p2$promoted$artifact_id[as.character(p2$promoted$output) == "result"][1]
   a2 <- as.character(a2)
   stopifnot(nzchar(a2))
 

@@ -1,5 +1,5 @@
 test_foundation_hardening_1to5 <- function(bundle_dir) {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
 
@@ -286,18 +286,18 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   # 6) Tabular primitives are promotable and loadable
   # ---------------------------------------------------------
   run_ft <- wb_new_run(
-    op_name = "de_wilcox",
+    op_name = "scwbv2reference::feature_table_from_matrix",
     inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
     params = list(matrix_id = if (nrow(wb_matrices(b)) > 0) wb_matrices(b)$matrix_id[1] else NA_character_),
     outputs = list(
-      de_table = wb_prim_feature_table(
+      result = wb_prim_feature_table(
         table = data.frame(
           feature_id = c("f1", "f2"),
           p_val = c(0.01, 0.02),
           p_val_adj = c(0.02, 0.03),
           stringsAsFactors = FALSE
         ),
-        table_type = "de_wilcox"
+        table_type = "synthetic_feature_table_promotion"
       )
     ),
     notes = "feature_table promote/load test"
@@ -318,7 +318,7 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   ok_tbl <- prom_tbl$promoted[prom_tbl$promoted$status == "ok", , drop = FALSE]
   stopifnot(nrow(ok_tbl) >= 1)
 
-  aid_ft <- ok_tbl$artifact_id[ok_tbl$output == "de_table"][1]
+  aid_ft <- ok_tbl$artifact_id[ok_tbl$output == "result"][1]
   pft <- wb_art_load(b, artifact_id = as.character(aid_ft), expected_kind = "feature_table")
   stopifnot(identical(pft$kind, "feature_table"), nrow(pft$table) == 2)
 
@@ -326,7 +326,7 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   if (exists("wb_client_load_table", mode = "function")) {
     tft <- wb_client_load_table(
       bundle = b,
-      ref = wb_ref_artifact(as.character(aid_ft), "de_table"),
+      ref = wb_ref_artifact(as.character(aid_ft), "result"),
       include_context = TRUE
     )
     stopifnot(is.data.frame(tft), nrow(tft) == 2, "feature_id" %in% names(tft), "kind" %in% names(tft))
@@ -334,7 +334,7 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
 
   # obs_table promotion path (internal promoter, same artifact schema)
   run_obs <- wb_new_run(
-    op_name = "de_wilcox",
+    op_name = "metadata_cell_vector",
     inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
     params = list(),
     outputs = list(),

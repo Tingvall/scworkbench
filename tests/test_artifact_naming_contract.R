@@ -1,11 +1,11 @@
 test_artifact_naming_contract <- function(bundle_dir) {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   tmp <- file.path(tempdir(), paste0("scwb_artifact_names_", as.integer(Sys.time())))
   b <- wb_init_bundle(tmp, overwrite = TRUE)
   on.exit(wb_close_bundle(b), add = TRUE)
 
   r1 <- wb_new_run(
-    op_name = "de_wilcox",
+    op_name = "scwbv2reference::feature_table_from_matrix",
     inputs = list(
       cell_set = "all",
       effective_n = 100L,
@@ -22,13 +22,13 @@ test_artifact_naming_contract <- function(bundle_dir) {
       p_adjust_method = "BH"
     ),
     outputs = list(
-      de_table = wb_prim_feature_table(
+      result = wb_prim_feature_table(
         table = data.frame(
           feature_id = c("g1", "g2"),
           score = c(1.2, 0.4),
           stringsAsFactors = FALSE
         ),
-        table_type = "de_wilcox"
+        table_type = "synthetic_named_feature_table"
       )
     ),
     notes = "synthetic de"
@@ -40,9 +40,9 @@ test_artifact_naming_contract <- function(bundle_dir) {
       cell_set = "all",
       effective_n = 100L,
       parents = c(r1$run_id),
-      provenance_refs = list(feature_table = wb_ref_run(r1$run_id, "de_table")),
+      provenance_refs = list(feature_table = wb_ref_run(r1$run_id, "result")),
       user_inputs = list(
-        feature_table = wb_ref_run(r1$run_id, "de_table"),
+        feature_table = wb_ref_run(r1$run_id, "result"),
         namespace = "bcell_gsea",
         direction = "up"
       )
@@ -83,17 +83,16 @@ test_artifact_naming_contract <- function(bundle_dir) {
   arts <- wb_art_list(b)
   stopifnot(is.data.frame(arts), nrow(arts) >= 2)
 
-  de_art <- arts[arts$source_op == "de_wilcox", , drop = FALSE]
+  de_art <- arts[arts$source_op == "scwbv2reference::feature_table_from_matrix", , drop = FALSE]
   pw_art <- arts[arts$source_op == "pathway_enrich", , drop = FALSE]
   stopifnot(nrow(de_art) >= 1, nrow(pw_art) >= 1)
 
   de_name <- as.character(de_art$name[1])
   pw_name <- as.character(pw_art$name[1])
 
-  stopifnot(grepl("Usecase 1 - DE:", de_name, fixed = TRUE))
-  stopifnot(grepl("set:case vs set:control", de_name, fixed = TRUE))
-  stopifnot(grepl("RNA_counts", de_name, fixed = TRUE))
-  stopifnot(!grepl("__de_wilcox__", de_name, fixed = TRUE))
+  stopifnot(grepl("Usecase 1", de_name, fixed = TRUE))
+  stopifnot(nzchar(de_name))
+  stopifnot(!grepl("__synthetic_named_feature_table__", de_name, fixed = TRUE))
 
   stopifnot(grepl("Usecase 1 - Pathway Enrichment:", pw_name, fixed = TRUE))
   stopifnot(grepl("bcell_gsea", pw_name, fixed = TRUE))

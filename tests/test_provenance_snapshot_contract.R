@@ -1,10 +1,10 @@
 test_provenance_snapshot_contract <- function(bundle_dir) {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
 
   r1 <- wb_new_run(
-    op_name = "de_wilcox",
+    op_name = "scwbv2reference::feature_table_from_matrix",
     inputs = list(
       cell_set = "all",
       effective_n = 100L,
@@ -13,27 +13,27 @@ test_provenance_snapshot_contract <- function(bundle_dir) {
     ),
     params = list(min_pct = 0, p_adjust_method = "BH", vec_param = c("x", "y")),
     outputs = list(
-      de_table = wb_prim_feature_table(
+      result = wb_prim_feature_table(
         table = data.frame(feature_id = c("g1", "g2"), score = c(1.2, 0.4), stringsAsFactors = FALSE),
-        table_type = "de_wilcox"
+        table_type = "synthetic_snapshot_chain"
       )
     ),
     notes = "synthetic de"
   )
 
   r2 <- wb_new_run(
-    op_name = "markers_topn",
+    op_name = "scwbv2reference::feature_table_from_matrix",
     inputs = list(
       cell_set = "all",
       effective_n = 100L,
       parents = c(r1$run_id),
-      user_inputs = list(de_ref = wb_ref_run(r1$run_id, "de_table"))
+      user_inputs = list(first_ref = wb_ref_run(r1$run_id, "result"))
     ),
     params = list(top_n = 10L, min_pct = 0.1),
     outputs = list(
-      markers = wb_prim_feature_table(
+      result = wb_prim_feature_table(
         table = data.frame(feature_id = c("g1", "g2"), score = c(2.1, 1.4), stringsAsFactors = FALSE),
-        table_type = "markers_topn"
+        table_type = "synthetic_snapshot_chain"
       )
     ),
     notes = "synthetic markers"
@@ -97,7 +97,7 @@ test_provenance_snapshot_contract <- function(bundle_dir) {
   if (is.null(sym_cell_set)) sym_cell_set <- "all"
   stopifnot(identical(as.character(sym_cell_set), "all"))
   stopifnot(is.data.frame(det$outputs), nrow(det$outputs) >= 1)
-  stopifnot(any(as.character(det$outputs$output_name) == "markers"))
+  stopifnot(any(as.character(det$outputs$output_name) == "result"))
 
   replay <- wb_prov_emit_r_script(
     b,

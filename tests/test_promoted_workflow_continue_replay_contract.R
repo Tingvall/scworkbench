@@ -1,5 +1,5 @@
 test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
 
@@ -27,14 +27,12 @@ test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
   rr1 <- wb_session_run_op(
     session = s1,
     bundle = b,
-    op_name = "de_wilcox",
+    op_name = "scwbv2reference::grouped_feature_table",
     inputs = list(
       matrix = mid,
-      group_a = as.character(cells[1:8]),
-      group_b = as.character(cells[9:16]),
-      features = as.character(feats[1:40]),
-      min_pct = 0,
-      p_adjust_method = "BH"
+      left_cells = as.character(cells[1:8]),
+      right_cells = as.character(cells[9:16]),
+      selected_features = as.character(feats[1:40])
     ),
     notes = "test continue-promote stage1 de"
   )
@@ -51,7 +49,7 @@ test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
   stopifnot(is.data.frame(p1$promoted), nrow(p1$promoted) >= 1)
   de_rows <- p1$promoted[
     as.character(p1$promoted$status %||% "") == "ok" &
-      as.character(p1$promoted$output %||% "") == "de_table",
+      as.character(p1$promoted$output %||% "") == "result",
     ,
     drop = FALSE
   ]
@@ -67,7 +65,7 @@ test_promoted_workflow_continue_replay_contract <- function(bundle_dir) {
     op_name = "pathway_enrich",
     inputs = list(
       matrix = mid,
-      feature_table = wb_ref_artifact(de_art_id, "de_table"),
+      feature_table = wb_ref_artifact(de_art_id, "result"),
       namespace = ns,
       p_adj_col = "__not_present__",
       p_adj_max = 1,

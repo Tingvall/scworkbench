@@ -79,6 +79,123 @@
       }
     },
     {
+      "name": "two_table_terminal",
+      "qualified_name": "scwbv2reference::two_table_terminal",
+      "title": "Synthetic two-table terminal",
+      "description": "Generic paired cell-vector terminal used by core conformance tests.",
+      "runner": ".two_table_terminal",
+      "inputs": [
+        {"name": "a", "kind": "cell_vector", "required": true, "alignment": "cell_ordered"},
+        {"name": "b", "kind": "cell_vector", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {}, "additionalProperties": false},
+      "dimension_policies": [
+        {"output": "summary", "policy": "data_dependent_table_v1"},
+        {"output": "detail", "policy": "data_dependent_table_v1"}
+      ],
+      "outputs": [
+        {"name": "summary", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "summary_id", "required": true, "promotion_group": "summary", "table_type": "synthetic_pair_summary"},
+        {"name": "detail", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "detail_id", "required": true, "promotion_group": "detail", "table_type": "synthetic_pair_detail"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"summary": ["summary"], "detail": ["detail"]},
+      "replay_equivalence": {"summary": "exact_canonical_value", "detail": "exact_canonical_value"}
+    },
+    {
+      "name": "feature_table_from_matrix",
+      "qualified_name": "scwbv2reference::feature_table_from_matrix",
+      "title": "Synthetic feature-table terminal",
+      "description": "Generic matrix and label conformance operation with bounded feature selection.",
+      "runner": ".feature_table_from_matrix",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"},
+        {"name": "labels", "kind": "cell_vector", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {
+        "selected_features": {"type": ["array", "null"], "default": null, "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "result_limit": {"type": "integer", "default": 100, "minimum": 1, "maximum": 100000}
+      }, "additionalProperties": false},
+      "parameter_bindings": [
+        {"parameter": "selected_features", "policy": "feature_ids_or_all_v1", "input": "matrix"}
+      ],
+      "dimension_policies": [{"output": "result", "policy": "data_dependent_table_v1"}],
+      "retained_parameters": [
+        {"name": "matrix_id", "source": "output_meta", "output": "result", "field": "matrix_id"},
+        {"name": "selected_feature_count", "source": "output_meta", "output": "result", "field": "selected_feature_count"},
+        {"name": "result_limit", "source": "parameter_value", "parameter": "result_limit"},
+        {"name": "n_results", "source": "output_row_count", "output": "result"}
+      ],
+      "outputs": [
+        {"name": "result", "category": "terminal_artifact", "kind": "feature_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "result_id", "required": true, "promotion_group": "result", "table_type": "synthetic_feature_result"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"result": ["result"]},
+      "replay_equivalence": {"result": "exact_canonical_value"}
+    },
+    {
+      "name": "grouped_feature_table",
+      "qualified_name": "scwbv2reference::grouped_feature_table",
+      "title": "Synthetic grouped feature-table terminal",
+      "description": "Generic multiple-cell-set consumption fixture for provenance conformance.",
+      "public_interface": {
+        "intent": ["test_conformance"],
+        "inputs": [],
+        "parameters": [
+          {"name": "left_cells", "type": "cell_ids_or_set", "help": "First named or literal cell group."},
+          {"name": "right_cells", "type": "cell_ids_or_set", "help": "Second named or literal cell group."},
+          {"name": "selected_features", "type": "string_vec", "help": "Optional feature subset."}
+        ],
+        "outputs": [{"name": "result", "description": "Generic feature table."}]
+      },
+      "runner": ".grouped_feature_table",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {
+        "left_cells": {"type": ["array", "null"], "default": null, "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "right_cells": {"type": ["array", "null"], "default": null, "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "selected_features": {"type": ["array", "null"], "default": null, "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }, "additionalProperties": false},
+      "parameter_bindings": [
+        {"parameter": "left_cells", "policy": "cell_ids_or_set_v1", "input": "matrix"},
+        {"parameter": "right_cells", "policy": "cell_ids_or_set_v1", "input": "matrix"},
+        {"parameter": "selected_features", "policy": "feature_ids_or_all_v1", "input": "matrix"}
+      ],
+      "dimension_policies": [{"output": "result", "policy": "data_dependent_table_v1"}],
+      "outputs": [
+        {"name": "result", "category": "terminal_artifact", "kind": "feature_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "result_id", "required": true, "promotion_group": "result", "table_type": "synthetic_grouped_feature_result"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"result": ["result"]},
+      "replay_equivalence": {"result": "exact_canonical_value"}
+    },
+    {
+      "name": "chunked_feature_table",
+      "qualified_name": "scwbv2reference::chunked_feature_table",
+      "title": "Synthetic chunked feature-table terminal",
+      "description": "Generic feature-axis reader-schedule conformance operation.",
+      "runner": ".chunked_feature_table",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {
+        "items": {"type": ["array", "null"], "default": null, "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "batch_size": {"type": "integer", "default": 128, "minimum": 1, "maximum": 4096},
+        "adjustment_method": {"type": "string", "default": "BH", "minLength": 1}
+      }, "additionalProperties": false},
+      "parameter_bindings": [
+        {"parameter": "items", "policy": "feature_ids_or_all_v1", "input": "matrix"}
+      ],
+      "dimension_policies": [{"output": "result", "policy": "data_dependent_table_v1"}],
+      "chunking": {"axis": "features", "input": "matrix", "sequence_parameter": "items", "size_parameter": "batch_size", "output": "result", "merge": "row_bind_then_global_p_adjust_v1", "adjust_parameter": "adjustment_method"},
+      "outputs": [
+        {"name": "result", "category": "terminal_artifact", "kind": "feature_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "result_id", "required": true, "promotion_group": "result", "table_type": "synthetic_chunked_feature_result"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"result": ["result"]},
+      "replay_equivalence": {"result": "exact_canonical_value"}
+    },
+    {
       "name": "dynamic_provider",
       "qualified_name": "scwbv2reference::dynamic_provider",
       "title": "Dynamic provider",

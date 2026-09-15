@@ -1,5 +1,5 @@
 test_durable_session_dependent_branch_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   bundle_dir <- tempfile("scwb_durable_dependent_bundle_")
   workspace_root <- tempfile("scwb_durable_dependent_sessions_")
   b <- wb_init_bundle(bundle_dir, overwrite = TRUE)
@@ -37,10 +37,10 @@ test_durable_session_dependent_branch_contract <- function() {
   child_log <- tempfile("scwb_durable_dependent_child_", fileext = ".log")
   esc <- function(x) gsub("'", "\\\\'", x)
   code <- paste0(
-    "devtools::load_all('", esc(normalizePath(".", winslash = "/", mustWork = TRUE)), "',quiet=TRUE);wb_operation_pack_load('scwbStatistics');",
+    "devtools::load_all('", esc(normalizePath(".", winslash = "/", mustWork = TRUE)), "',quiet=TRUE);wb_operation_pack_load('scwbV2Reference');",
     "b<-wb_open_bundle('", esc(bundle_dir), "');s<-wb_session_resume(b,'", esc(workspace), "');",
-    "a<-wb_session_run_op(s,b,'cell_vector_association',inputs=list(a=wb_ref_run('", treatment$run$run_id,
-    "','vector'),b=wb_ref_run('", lane$run$run_id, "','vector'),cell_set='all',min_cells=1L,min_n_per_group=1L));",
+    "a<-wb_session_run_op(s,b,'scwbv2reference::two_table_terminal',inputs=list(a=wb_ref_run('", treatment$run$run_id,
+    "','vector'),b=wb_ref_run('", lane$run$run_id, "','vector'),cell_set='all',min_cells=1L));",
     "terminal<-wb_session_resume(b,'", esc(workspace), "');",
     "da<-try(wb_session_set_active(terminal,'forged',wb_ref_run(a$run$run_id,'summary')),silent=TRUE);",
     "dr<-try(wb_session_add_run(terminal,terminal$runs[[1]]),silent=TRUE);",

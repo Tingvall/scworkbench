@@ -178,6 +178,10 @@ test_operation_pack_v2_outer_schema_exhaustive_contract <- function() {
 }
 
 test_operation_pack_v2_atomic_activation_contract <- function() {
+  # Other core contracts may activate the shared conformance pack earlier in a
+  # complete-suite process.  This test owns an empty-catalog baseline, so reset
+  # that test-only registration explicitly before taking its atomicity snapshot.
+  try(wb_operation_pack_unload("scwbv2reference"), silent = TRUE)
   fixture <- .wb_v2_fixture_install()
   on.exit(.wb_v2_fixture_cleanup(fixture), add = TRUE)
   stopifnot(length(wb_list_ops()) == 53L)
@@ -198,7 +202,7 @@ test_operation_pack_v2_atomic_activation_contract <- function() {
       identical(wb_operation_catalog_identity(), before_identity))
   }
   activated <- wb_operation_pack_activate(fixture$manifest, lib.loc = fixture$lib)
-  stopifnot(nrow(wb_operation_packs()) == 1L, length(wb_list_ops()) == 55L,
+  stopifnot(nrow(wb_operation_packs()) == 1L, length(wb_list_ops()) == 59L,
     identical(activated$identity$pack_abi_version, "2"))
   wb_operation_pack_unload("scwbv2reference")
   stopifnot(identical(wb_operation_packs(), before_packs), identical(wb_list_ops(), before_ops),
@@ -213,7 +217,7 @@ test_operation_pack_v2_reference_lifecycle_contract <- function() {
   activated <- wb_operation_pack_activate(fixture$manifest, lib.loc = fixture$lib)
   on.exit(try(wb_operation_pack_unload("scwbv2reference"), silent = TRUE), add = TRUE)
   stopifnot(identical(activated$identity$pack_abi_version, "2"),
-    length(wb_list_ops()) == before_count + 2L)
+    length(wb_list_ops()) == before_count + 6L)
   dir <- tempfile("scwb_v2_bundle_")
   bundle <- wb_init_bundle(dir)
   result <- getFromNamespace(".wb_operation_pack_v2_execute", "scworkbench")(
@@ -448,7 +452,7 @@ test_operation_pack_v2_v1_coexistence_and_order_contract <- function() {
       if (abi == "1") wb_operation_pack_activate(v1_manifest, lib.loc = v2$lib)
       else wb_operation_pack_activate(v2$manifest, lib.loc = v2$lib)
     }
-    stopifnot(length(wb_list_ops()) == 56L, nrow(wb_operation_packs()) == 2L)
+    stopifnot(length(wb_list_ops()) == 60L, nrow(wb_operation_packs()) == 2L)
     identity <- wb_operation_catalog_identity()
     for (pack in rev(order)) {
       wb_operation_pack_unload(if (pack == "1") "scwbfixture" else "scwbv2reference")
@@ -468,7 +472,10 @@ test_operation_pack_v2_optional_dependency_and_capability_contract <- function()
   wb_operation_pack_activate(fixture$manifest, lib.loc = fixture$lib)
   on.exit(try(wb_operation_pack_unload("scwbv2reference"), silent = TRUE), add = TRUE)
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
-  operation <- .wb_v2_copy(registry$packs$scwbv2reference$registration$manifest$operations[[2]])
+  operations <- registry$packs$scwbv2reference$registration$manifest$operations
+  dynamic_index <- match("dynamic_provider",
+    vapply(operations, `[[`, character(1), "name"))
+  operation <- .wb_v2_copy(operations[[dynamic_index]])
   operation$dependencies[[1]] <- list(requirement_id = "optional_missing", kind = "r_package",
     name = "Package.That.Does.Not.Exist", version = list(specifier = ">=1"), disposition = "optional",
     selected_when = list(parameter = "use_optional", equals = TRUE))
@@ -478,7 +485,7 @@ test_operation_pack_v2_optional_dependency_and_capability_contract <- function()
   stopifnot(identical(unselected$dispositions$optional_missing$status, "not_selected"))
   .wb_v2_expect_error(preflight(operation, input, list(use_optional = TRUE)),
     "OPERATION_PACK_DEPENDENCY_MISSING", "preflight")
-  dynamic_operation <- registry$packs$scwbv2reference$registration$manifest$operations[[2]]
+  dynamic_operation <- operations[[dynamic_index]]
   resolved <- preflight(dynamic_operation, input, list())
   changed <- input
   changed$matrix$meta$genome_provider <- "utils"

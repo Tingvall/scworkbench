@@ -1,5 +1,5 @@
 test_session_run_op_parameter_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   tmp <- tempfile("scwb_session_params_")
   b <- wb_init_bundle(tmp, overwrite = TRUE)
   on.exit({
@@ -25,9 +25,9 @@ test_session_run_op_parameter_contract <- function() {
 
   rejected <- try(
     wb_session_run_op(
-      wb_session_new(), b, "markers_topn",
-      inputs = list(matrix = "RNA_counts", clusters = wb_prim_cell_vector(cluster_values), cell_set = "all"),
-      features = features[1:2], top_n = 1
+      wb_session_new(), b, "scwbv2reference::feature_table_from_matrix",
+      inputs = list(matrix = "RNA_counts", labels = wb_prim_cell_vector(cluster_values), cell_set = "all"),
+      selected_features = features[1:2], result_limit = 1
     ),
     silent = TRUE
   )
@@ -36,26 +36,23 @@ test_session_run_op_parameter_contract <- function() {
 
   started <- Sys.time()
   rr <- wb_session_run_op(
-    wb_session_new(), b, "markers_topn",
+    wb_session_new(), b, "scwbv2reference::feature_table_from_matrix",
     inputs = list(
       matrix = "RNA_counts",
-      clusters = wb_prim_cell_vector(cluster_values),
+      labels = wb_prim_cell_vector(cluster_values),
       cell_set = "all",
       min_cells = 1L,
-      features = features[1:2],
-      top_n = 1
+      selected_features = features[1:2],
+      result_limit = 1
     )
   )
   elapsed <- as.numeric(difftime(Sys.time(), started, units = "secs"))
-  markers <- rr$run$outputs$markers$table
-  stopifnot(identical(rr$run$params$top_n, 1L))
-  stopifnot(identical(rr$run$inputs$user_inputs$top_n, 1L))
+  result <- rr$run$outputs$result$table
+  stopifnot(identical(rr$run$params$result_limit, 1L))
+  stopifnot(identical(rr$run$inputs$user_inputs$result_limit, 1L))
   stopifnot(identical(rr$run$inputs$user_inputs$min_cells, 1L))
-  stopifnot(identical(as.integer(rr$run$params$n_features_requested), 2L))
-  stopifnot(isTRUE(rr$run$params$feature_subset_supplied))
-  stopifnot(identical(as.integer(rr$run$params$n_markers), nrow(markers)))
-  stopifnot(all(markers$feature_id %in% features[1:2]))
-  stopifnot(nrow(markers) <= 2L)
+  stopifnot(identical(as.integer(rr$run$params$selected_feature_count), 2L))
+  stopifnot(identical(as.integer(rr$run$params$n_results), nrow(result)))
   stopifnot(is.finite(elapsed) && elapsed < 30)
   TRUE
 }

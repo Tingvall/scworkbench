@@ -156,6 +156,33 @@ contract_test_activate_statistics_pack <- function() {
   invisible(TRUE)
 }
 
+.contract_test_core_conformance_state <- new.env(parent = emptyenv())
+
+contract_test_activate_core_conformance_pack <- function() {
+  if (is.null(.contract_test_core_conformance_state$library)) {
+    source <- file.path(normalizePath(".", winslash = "/", mustWork = TRUE),
+      "tests", "fixtures", "operation-pack-v2-reference")
+    library <- tempfile("scwb-core-conformance-library-", tmpdir = "/tmp")
+    dir.create(library, recursive = TRUE)
+    log <- tempfile("scwb-core-conformance-install-", fileext = ".log")
+    status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      paste0("--library=", shQuote(library)), shQuote(source)),
+      stdout = log, stderr = log)
+    if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE), collapse = "\n"),
+      call. = FALSE)
+    .contract_test_core_conformance_state$library <- library
+    .libPaths(c(library, .libPaths()))
+    existing <- Sys.getenv("R_LIBS", unset = "")
+    Sys.setenv(R_LIBS = paste(c(library, if (nzchar(existing)) existing else character()),
+      collapse = .Platform$path.sep))
+  }
+  manifest <- system.file("scworkbench", "operation-pack.json",
+    package = "scwbV2Reference", lib.loc = .contract_test_core_conformance_state$library)
+  wb_operation_pack_activate(manifest,
+    lib.loc = .contract_test_core_conformance_state$library)
+  invisible(TRUE)
+}
+
 contract_test_execute <- function(inventory, baseline_bundle_dir = NULL, reporter = TRUE) {
   if (!inherits(inventory, "scworkbench_contract_inventory")) {
     stop("inventory must come from contract_test_discover().", call. = FALSE)
@@ -201,6 +228,7 @@ contract_test_execute <- function(inventory, baseline_bundle_dir = NULL, reporte
     registry_preimage <- if (is.null(registry)) NULL else unserialize(serialize(list(
       packs = registry$packs, operations = registry$operations,
       registration_context = registry$registration_context), NULL, version = 3L))
+    conformance_namespace_loaded <- "scwbV2Reference" %in% loadedNamespaces()
     started <- proc.time()[["elapsed"]]
     value <- tryCatch(
       do.call(record$fn, args),
@@ -210,6 +238,9 @@ contract_test_execute <- function(inventory, baseline_bundle_dir = NULL, reporte
       registry$packs <- registry_preimage$packs
       registry$operations <- registry_preimage$operations
       registry$registration_context <- registry_preimage$registration_context
+    }
+    if (!conformance_namespace_loaded && "scwbV2Reference" %in% loadedNamespaces()) {
+      try(unloadNamespace("scwbV2Reference"), silent = TRUE)
     }
     elapsed <- proc.time()[["elapsed"]] - started
     if (!is.null(isolated_parent)) unlink(isolated_parent, recursive = TRUE, force = TRUE)

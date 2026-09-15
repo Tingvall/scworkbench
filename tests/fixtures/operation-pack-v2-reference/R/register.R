@@ -45,13 +45,85 @@
   invisible(list(status = "ok"))
 }
 
+.two_table_terminal <- function(readers, writers, params, context) {
+  a <- readers$a()
+  b <- readers$b()
+  cells <- intersect(as.character(a$cell_id), as.character(b$cell_id))
+  detail <- data.frame(
+    cell_id = cells,
+    value_a = as.character(a$value[match(cells, a$cell_id)]),
+    value_b = as.character(b$value[match(cells, b$cell_id)]),
+    stringsAsFactors = FALSE
+  )
+  summary <- data.frame(
+    record_type = "paired_cell_vectors",
+    n_cells = length(cells),
+    stringsAsFactors = FALSE
+  )
+  writers$write_terminal_primitive("summary", scworkbench::wb_prim_obs_table(
+    summary, "synthetic_pair_summary", "pair"))
+  writers$write_terminal_primitive("detail", scworkbench::wb_prim_obs_table(
+    detail, "synthetic_pair_detail", "cell"))
+  invisible(list(status = "ok"))
+}
+
+.feature_table_from_matrix <- function(readers, writers, params, context) {
+  matrix <- readers$matrix(features = params$selected_features)
+  labels <- readers$labels()
+  features <- as.character(matrix$feature_id)
+  limit <- min(length(features), as.integer(params$result_limit))
+  rows <- data.frame(
+    feature_id = utils::head(features, limit),
+    observed_cells = length(intersect(matrix$cell_id, labels$cell_id)),
+    stringsAsFactors = FALSE
+  )
+  writers$write_terminal_primitive("result", scworkbench::wb_prim_feature_table(
+    rows, "synthetic_feature_result", meta = list(
+      matrix_id = matrix$matrix_id, selected_feature_count = length(features),
+      result_limit = limit)))
+  invisible(list(status = "ok"))
+}
+
+.grouped_feature_table <- function(readers, writers, params, context) {
+  cells <- unique(c(unlist(params$left_cells, use.names = FALSE),
+    unlist(params$right_cells, use.names = FALSE)))
+  matrix <- readers$matrix(features = params$selected_features, cells = cells)
+  rows <- data.frame(
+    feature_id = as.character(matrix$feature_id),
+    observed_cells = length(matrix$cell_id),
+    stringsAsFactors = FALSE
+  )
+  writers$write_terminal_primitive("result", scworkbench::wb_prim_feature_table(
+    rows, "synthetic_grouped_feature_result", meta = list(
+      matrix_id = matrix$matrix_id,
+      left_n = length(params$left_cells), right_n = length(params$right_cells))))
+  invisible(list(status = "ok"))
+}
+
+.chunked_feature_table <- function(readers, writers, params, context) {
+  items <- unlist(params$items, use.names = FALSE)
+  batch_size <- as.integer(params$batch_size)
+  batches <- split(items, ceiling(seq_along(items) / batch_size))
+  rows <- lapply(batches, function(batch) {
+    value <- readers$matrix(features = batch)
+    data.frame(feature_id = as.character(value$feature_id), p_val = 1,
+      stringsAsFactors = FALSE)
+  })
+  writers$write_terminal_primitive("result", scworkbench::wb_prim_feature_table(
+    do.call(rbind, rows), "synthetic_chunked_feature_result"))
+  invisible(list(status = "ok"))
+}
+
 register_operation_pack <- function() {
   scworkbench::wb_operation_pack_register(
     system.file("scworkbench", "operation-pack.json", package = "scwbV2Reference"),
     list(
       `scwbv2reference::all_contracts` = .all_contracts,
-      `scwbv2reference::dynamic_provider` = .dynamic_provider
+      `scwbv2reference::dynamic_provider` = .dynamic_provider,
+      `scwbv2reference::two_table_terminal` = .two_table_terminal,
+      `scwbv2reference::feature_table_from_matrix` = .feature_table_from_matrix,
+      `scwbv2reference::grouped_feature_table` = .grouped_feature_table,
+      `scwbv2reference::chunked_feature_table` = .chunked_feature_table
     )
   )
 }
-

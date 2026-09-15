@@ -71,6 +71,8 @@ test_contract_runner_discovery_contract <- function() {
   repository_inventory <- contract_test_discover(file.path("tests"))
   stopifnot(
     identical(sort(basename(repository_inventory$files)), sort(list.files("tests", pattern = "^test_.*\\.R$"))),
+    !any(grepl("/tests/composite/", vapply(repository_inventory$tests, `[[`,
+      character(1), "file"), fixed = TRUE)),
     sum(vapply(repository_inventory$tests, function(record) identical(record$name, "test_contract_runner_discovery_contract"), logical(1))) == 1L
   )
 

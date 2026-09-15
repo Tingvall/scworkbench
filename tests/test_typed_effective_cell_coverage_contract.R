@@ -1,5 +1,5 @@
 test_typed_effective_cell_coverage_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   root <- tempfile("scwb_typed_coverage_")
   b <- wb_init_bundle(root, overwrite = TRUE)
   on.exit({ try(wb_close_bundle(b), silent = TRUE); unlink(root, recursive = TRUE, force = TRUE) }, add = TRUE)
@@ -70,7 +70,7 @@ test_typed_effective_cell_coverage_contract <- function() {
   explicit <- cells[c(10, 8, 2, 4, 1, 11)]
   typed <- scworkbench:::.wb_typed_effective_cells(
     b, "all", list(cell_ids = explicit), list(a = a, b = bvec),
-    list(a = "cell_vector", b = "cell_vector"), "cell_vector_association", 1L
+    list(a = "cell_vector", b = "cell_vector"), "scwbv2reference::two_table_terminal", 1L
   )
   stopifnot(
     identical(typed$cells, c("cell_10", "cell_08", "cell_02", "cell_04")),
@@ -82,21 +82,21 @@ test_typed_effective_cell_coverage_contract <- function() {
 
   dup_explicit <- try(scworkbench:::.wb_typed_effective_cells(
     b, "all", list(cell_ids = c(cells[1], cells[1])), list(a = a),
-    list(a = "cell_vector"), "cell_vector_association", 1L
+    list(a = "cell_vector"), "scwbv2reference::two_table_terminal", 1L
   ), silent = TRUE)
   unknown_explicit <- try(scworkbench:::.wb_typed_effective_cells(
     b, "all", list(cell_ids = c(cells[1], "absent")), list(a = a),
-    list(a = "cell_vector"), "cell_vector_association", 1L
+    list(a = "cell_vector"), "scwbv2reference::two_table_terminal", 1L
   ), silent = TRUE)
   bad_a <- a
   bad_a$cell_id[2] <- bad_a$cell_id[1]
   dup_vector <- try(scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(a = bad_a), list(a = "cell_vector"),
-    "cell_vector_association", 1L
+    "scwbv2reference::two_table_terminal", 1L
   ), silent = TRUE)
   small <- try(scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(a = a, b = bvec),
-    list(a = "cell_vector", b = "cell_vector"), "cell_vector_association", 5L
+    list(a = "cell_vector", b = "cell_vector"), "scwbv2reference::two_table_terminal", 5L
   ), silent = TRUE)
   stopifnot(inherits(dup_explicit, "try-error"), inherits(unknown_explicit, "try-error"),
             inherits(dup_vector, "try-error"), inherits(small, "try-error"))
@@ -134,9 +134,9 @@ test_typed_effective_cell_coverage_contract <- function() {
   )
   session <- wb_session_add_run(wb_session_new(), source_run)
   rr_run <- wb_session_run_op(
-    session, b, "cell_vector_association",
+    session, b, "scwbv2reference::two_table_terminal",
     inputs = list(a = wb_ref_run(source_run$run_id, "vector"), b = bvec,
-                  cell_ids = explicit, min_cells = 1L, min_n_per_group = 1L)
+                  cell_ids = explicit, min_cells = 1L)
   )
   stopifnot(
     identical(rr_run$run$inputs$effective_n, 4L),
@@ -149,9 +149,9 @@ test_typed_effective_cell_coverage_contract <- function() {
     bundle = b, run = source_run, out_name = "vector", prim = a, created_by = "test"
   )
   rr_art <- wb_session_run_op(
-    wb_session_new(), b, "cell_vector_association",
+    wb_session_new(), b, "scwbv2reference::two_table_terminal",
     inputs = list(a = wb_ref_artifact(artifact_id, "vector"), b = bvec,
-                  cell_ids = explicit, min_cells = 1L, min_n_per_group = 1L)
+                  cell_ids = explicit, min_cells = 1L)
   )
   stopifnot(identical(rr_art$run$inputs$effective_n, 4L),
             identical(rr_art$run$inputs$coverage$per_input$a$available_n, 6L))
@@ -166,11 +166,9 @@ test_typed_effective_cell_coverage_contract <- function() {
     identical(matrix_cov$diagnostics$per_input$matrix$available_n, 8L)
   )
 
-  iface <- wb_op_interface("cell_vector_association")
   peak_iface <- wb_op_interface("peakvi_project")
   umap_iface <- wb_op_interface("umap_transform")
   stopifnot(
-    identical(iface$inputs$a$effective_cell_coverage, "cell_indexed"),
     identical(peak_iface$inputs$model$effective_cell_coverage, "reference_only"),
     identical(umap_iface$inputs$model$effective_cell_coverage, "model_associated_unless_query_space")
   )

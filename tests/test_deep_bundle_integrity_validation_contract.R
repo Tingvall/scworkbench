@@ -42,7 +42,7 @@
 }
 
 test_deep_bundle_integrity_validation_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   root <- tempfile("scwb_deep_validation_")
   dir.create(root, recursive = TRUE)
   on.exit(unlink(root, recursive = TRUE, force = TRUE), add = TRUE)
@@ -76,7 +76,7 @@ test_deep_bundle_integrity_validation_contract <- function() {
   s <- wb_session_new()
   a <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "cluster", vector_name = "cluster", value_type = "categorical", missing_policy = "error", cell_set = "all", min_cells = 1L)); s <- a$session
   l <- wb_session_run_op(s, b, "metadata_cell_vector", inputs = list(source_column = "lane", vector_name = "lane", value_type = "categorical", missing_policy = "error", cell_set = "all", min_cells = 1L)); s <- l$session
-  assoc <- wb_session_run_op(s, b, "cell_vector_association", inputs = list(a = wb_ref_run(a$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L, min_n_per_group = 1L, method = "auto")); s <- assoc$session
+  assoc <- wb_session_run_op(s, b, "scwbv2reference::two_table_terminal", inputs = list(a = wb_ref_run(a$run$run_id, "vector"), b = wb_ref_run(l$run$run_id, "vector"), cell_set = "all", min_cells = 1L)); s <- assoc$session
   wb_session_promote_current(b, s, outputs = list(wb_ref_run(assoc$run$run_id, "summary"), wb_ref_run(assoc$run$run_id, "detail")), created_by = "deep-validation-test")
   scworkbench:::.wb_with_mutation_context(b, route = "ingestion", code = wb_refresh_manifest(b))
   wb_finalize_recipient_bundle(b)
@@ -250,7 +250,7 @@ test_deep_bundle_integrity_validation_contract <- function() {
 }
 
 test_deep_bundle_integrity_validation_closure_contract <- function() {
-  contract_test_activate_statistics_pack()
+  contract_test_activate_core_conformance_pack()
   root <- tempfile("scwb_deep_validation_closure_")
   dir.create(root, recursive = TRUE)
   on.exit(unlink(root, recursive = TRUE, force = TRUE), add = TRUE)
@@ -287,9 +287,9 @@ test_deep_bundle_integrity_validation_closure_contract <- function() {
     source_column = "lane", vector_name = "lane", value_type = "categorical",
     missing_policy = "error", cell_set = "all", min_cells = 1L
   )); session <- lane$session
-  assoc <- wb_session_run_op(session, b, "cell_vector_association", inputs = list(
+  assoc <- wb_session_run_op(session, b, "scwbv2reference::two_table_terminal", inputs = list(
     a = wb_ref_run(a$run$run_id, "vector"), b = wb_ref_run(lane$run$run_id, "vector"),
-    cell_set = "all", min_cells = 1L, min_n_per_group = 1L, method = "auto"
+    cell_set = "all", min_cells = 1L
   )); session <- assoc$session
   wb_session_promote_current(
     b, session,
