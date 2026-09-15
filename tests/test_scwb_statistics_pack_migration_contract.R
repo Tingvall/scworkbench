@@ -81,15 +81,13 @@ test_scwb_statistics_pack_late_admission_zero_residue_contract <- function() {
   manifest <- system.file("scworkbench", "operation-pack.json",
     package="scwbStatistics", lib.loc=library)
   text <- readLines(manifest, warn=FALSE)
-  text <- sub('"name": "feature_trend_spearman",',
-    '"name": "feature_trend_spearman_bad",', text, fixed=TRUE)
-  text <- sub('"qualified_name": "scwbstatistics::feature_trend_spearman",',
-    '"qualified_name": "scwbstatistics::feature_trend_spearman_bad",', text, fixed=TRUE)
+  text <- sub('"output": "trend_table", "merge": "row_bind_then_global_p_adjust_v1"',
+    '"output": "missing", "merge": "row_bind_then_global_p_adjust_v1"', text, fixed=TRUE)
   writeLines(text, manifest, useBytes=TRUE)
   before_ops <- wb_list_ops(); before_packs <- wb_operation_packs()
   before_identity <- wb_operation_catalog_identity()
   code <- .statistics_error_code(wb_operation_pack_load("scwbStatistics", lib.loc=library))
-  stopifnot(identical(code, "OPERATION_PACK_ENTRY_POINT_INVALID"),
+  stopifnot(identical(code, "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID"),
     identical(before_ops, wb_list_ops()), identical(before_packs, wb_operation_packs()),
     identical(before_identity, wb_operation_catalog_identity()))
   TRUE
