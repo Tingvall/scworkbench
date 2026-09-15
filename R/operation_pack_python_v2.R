@@ -283,7 +283,85 @@
   invisible(TRUE)
 }
 
-.wb_operation_pack_v2_python_sidecar_audit <- function(value, registration) {
+.wb_operation_pack_v2_python_chunk_observation_audit <- function(value, request,
+                                                                  registration) {
+  op_name <- as.character(request$operation_authentication$name %||% "")[1]
+  operation <- Filter(function(x) identical(as.character(x$qualified_name)[1],
+    op_name), registration$manifest$operations)
+  .wb_operation_pack_assert(length(operation) == 1L,
+    "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+    "Python chunk observation operation is not uniquely authenticated.",
+    phase = "receipt", class = "wb_operation_pack_v2_error")
+  chunk <- operation[[1]]$chunking %||% NULL
+  observation <- value$chunk_observation %||% NULL
+  .wb_operation_pack_assert(xor(is.null(chunk), !is.null(observation)),
+    "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+    if (is.null(chunk)) {
+      "Python runtime sidecar includes a chunk observation for an undeclared operation."
+    } else {
+      "Python runtime sidecar omits the required chunk observation."
+    }, phase = "receipt", class = "wb_operation_pack_v2_error")
+  if (is.null(chunk)) return(NULL)
+
+  .wb_operation_pack_v2_assert_self_identity(observation,
+    "observation_identity", "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+    "receipt")
+  input_name <- as.character(chunk$input)[1]
+  input <- Filter(function(x) identical(as.character(x$name)[1], input_name),
+    request$inputs)
+  .wb_operation_pack_assert(length(input) == 1L,
+    "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+    "Python chunk observation input is not uniquely bound to the request.",
+    phase = "receipt", class = "wb_operation_pack_v2_error")
+  expected_identities <- list(
+    request_identity = request$request_identity,
+    capability_identity = request$execution_capability$capability_identity,
+    operation_definition_identity =
+      request$operation_authentication$operation_definition_identity,
+    input_descriptor_identity = input[[1]]$descriptor$descriptor_identity)
+  for (name in names(expected_identities)) {
+    .wb_operation_pack_assert(identical(.wb_operation_pack_canonical_json(
+      observation[[name]]), .wb_operation_pack_canonical_json(
+        expected_identities[[name]])),
+      "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+      paste0("Python chunk observation differs at ", name, "."),
+      phase = "receipt", class = "wb_operation_pack_v2_error")
+  }
+
+  sequence_parameter <- as.character(chunk$sequence_parameter)[1]
+  size_parameter <- as.character(chunk$size_parameter)[1]
+  sequence <- as.character(unlist(request$params[[sequence_parameter]],
+    use.names = FALSE))
+  size <- as.integer(request$params[[size_parameter]])[1]
+  expected_batches <- if (!length(sequence)) list() else unname(split(sequence,
+    ceiling(seq_along(sequence) / size)))
+  observed_batches <- lapply(observation$observed_batches,
+    function(x) as.character(unlist(x, use.names = FALSE)))
+  observed_sizes <- as.integer(unlist(observation$observed_batch_sizes,
+    use.names = FALSE))
+  valid <- identical(as.character(observation$input_name)[1], input_name) &&
+    identical(as.character(observation$axis)[1], as.character(chunk$axis)[1]) &&
+    identical(as.character(observation$sequence_parameter)[1],
+      sequence_parameter) &&
+    identical(as.character(observation$size_parameter)[1], size_parameter) &&
+    identical(as.integer(observation$requested_chunk_size)[1], size) &&
+    identical(as.integer(observation$observed_call_count)[1],
+      length(expected_batches)) &&
+    identical(observed_sizes, as.integer(lengths(expected_batches))) &&
+    identical(unname(observed_batches), expected_batches)
+  .wb_operation_pack_assert(valid,
+    "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID",
+    "Python chunk observation differs from the authenticated request schedule.",
+    expected_batches = expected_batches, observed_batches = observed_batches,
+    phase = "receipt", class = "wb_operation_pack_v2_error")
+  list(axis = as.character(chunk$axis)[1], requested_chunk_size = size,
+    observed_call_count = length(observed_batches),
+    observed_batch_sizes = observed_sizes, observed_batches = observed_batches,
+    observation_identity = observation$observation_identity)
+}
+
+.wb_operation_pack_v2_python_sidecar_audit <- function(value, registration,
+                                                         request) {
   schema <- .wb_operation_pack_v2_read_schema(.wb_operation_pack_v2_python_schema())
   result <- .wb_json_schema_validate_2020(value, schema)
   if (!isTRUE(result$ok)) .wb_operation_pack_v2_error(
@@ -304,7 +382,8 @@
     "OPERATION_PACK_RUNTIME_IDENTITY_MISMATCH",
     "Python interpreter identity changed after activation.",
     class = "wb_operation_pack_v2_error")
-  invisible(TRUE)
+  .wb_operation_pack_v2_python_chunk_observation_audit(value, request,
+    registration)
 }
 
 .wb_operation_pack_v2_python_payload_path <- function(stage, item) {
@@ -401,8 +480,10 @@
     class = "wb_operation_pack_v2_error")
   .wb_operation_pack_v2_fault("python_receipt_loaded", stage = stage,
     receipt = receipt, runtime = runtime)
-  .wb_operation_pack_v2_python_sidecar_audit(runtime, registration)
-  list(receipt = receipt, sidecar = runtime, process = result)
+  reader_observation <- .wb_operation_pack_v2_python_sidecar_audit(runtime,
+    registration, request)
+  list(receipt = receipt, sidecar = runtime, process = result,
+    reader_observation = reader_observation)
 }
 
 .wb_operation_pack_v2_python_to_primitive <- function(value, descriptor) {

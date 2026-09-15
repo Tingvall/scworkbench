@@ -1101,7 +1101,9 @@
   list(transition_id = transition_id, request = request, receipt = receipt,
     outputs = values, registry_requests = receipt$registry_requests %||% list(),
     runtime_sidecar = if (python_backend) process_result$sidecar else NULL,
-    reader_observation = if (python_backend) NULL else reader_observation,
+    reader_observation = if (python_backend) {
+      process_result$reader_observation
+    } else reader_observation,
     state = "reopened", path = final)
 }
 

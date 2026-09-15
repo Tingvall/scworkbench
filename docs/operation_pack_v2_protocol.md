@@ -45,6 +45,14 @@ size, observed call count, batch sizes, and exact ordered batches. These fields
 are identity-bearing canonical manifest content; operation or namespace names
 never select their semantics.
 
+For Python execution, PyBench records its validated typed-reader ledger in the
+separately authenticated runtime sidecar as
+`pybench.operation_pack.chunk_observation.v1`. Core independently checks the
+observation identity and its request, capability, definition, input-descriptor,
+declaration, and exact schedule bindings. The observation is required exactly
+when the operation declares chunking and is projected into the same durable run
+parameters as the R adapter; it never extends the shared transition receipt.
+
 The deterministic installed fixture
 `fixtures/operation-pack-v2/identities.json` pins the live schema bytes and all
 positive schema-example identities. The test-only package under

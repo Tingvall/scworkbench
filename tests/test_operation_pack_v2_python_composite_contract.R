@@ -108,16 +108,16 @@ test_operation_pack_v2_composite_protocol_contract <- function() {
   revision <- system2("git", c("-C", context$root, "rev-parse", "HEAD"),
     stdout = TRUE)
   stopifnot(identical(revision[[1]],
-    "0cf2b4329b3393a9836d07c76558bb86aeb45cb3"))
+    "11232d000ee42aa1344c9d6fb25a73acb1d88fe2"))
   shared <- c("operation-pack-v2.schema.json",
     "operation-pack-transition-request-v2.schema.json",
     "operation-pack-transition-receipt-v2.schema.json",
     "fixtures/operation-pack-v2/identities.json")
   expected <- c(
-    "8343f8ea40ce3cc57027b0810c4d05b4df00196edd544361d15dc1fd59fe96aa",
+    "d6756c057704820f2b6f1069035546a85fa2cbf504885f519bfe4535550f727c",
     "81bf35b2827778f149aee3e3ca2e921332f22415a290b5e9c704af37b7e1aed2",
     "2cd5e6192daa799bd4562dd1f0d4761eb1a7e8847ff048b3880783a0db0fba1b",
-    "4f617d4824c9956c854a13687e71e24ba7a99c17d7d3067cc611918383956bac")
+    "2bbb704a50c9c3fbed15c305e1767b953520df8a471613b493ba7f3f4b27925d")
   for (i in seq_along(shared)) {
     r_path <- file.path("inst", "protocol", shared[[i]])
     p_path <- file.path(context$root, "protocol", shared[[i]])
@@ -128,11 +128,144 @@ test_operation_pack_v2_composite_protocol_contract <- function() {
   }
   sidecar <- file.path("inst", "protocol",
     "pybench-op-v3-python-runtime.schema.json")
+  python_sidecar <- file.path(context$root, "protocol",
+    "pybench-op-v3-python-runtime.schema.json")
   stopifnot(identical(digest::digest(file = sidecar, algo = "sha256",
     serialize = FALSE),
-    "713a34375b5b0b9168bcc3d477425e298ca0293e8c7d87e24d8f826a663e87d8"),
+    "59fbaf6456d010bf777323e113ea0e36f94c5b41e75657148ae8cd0aeb9b0b7d"),
+    identical(file.info(sidecar)$size, file.info(python_sidecar)$size),
+    identical(readBin(sidecar, "raw", file.info(sidecar)$size),
+      readBin(python_sidecar, "raw", file.info(python_sidecar)$size)),
     identical(read.dcf("inst/release/composite_release.dcf")[[1,
       "PyBenchCommit"]], revision[[1]]))
+  TRUE
+}
+
+.wb_phase2c_chunk_matrix <- function() {
+  cells <- paste0("c", seq_len(4L)); features <- paste0("g", seq_len(5L))
+  values <- matrix(seq_len(20L), nrow = 5L,
+    dimnames = list(features, cells))
+  structure(list(kind = "matrix", values = values,
+    dimensions = as.integer(dim(values)), cell_id = cells,
+    feature_id = features, storage_profile = "matrix_ordinary_v1",
+    meta = list()), class = "wb_primitive")
+}
+
+.wb_phase2c_all_params <- function() list(features = list("feature_1"),
+  chunk_size = 64L, p_adjust_method = "BH")
+
+test_operation_pack_v2_python_chunk_observation_contract <- function() {
+  context <- .wb_phase2c_context(); if (is.null(context)) return(.wb_phase2c_skip())
+  guard <- .wb_phase2c_registry_guard()
+  on.exit(.wb_phase2c_registry_restore(guard), add = TRUE)
+  wb_operation_pack_activate(context$manifest, python = context$python)
+  root <- tempfile("scwb_phase2c_python_chunk_")
+  bundle <- wb_init_bundle(root)
+  on.exit({
+    options(scworkbench.operation_pack_v2_test_hook = NULL)
+    try(wb_close_bundle(bundle), silent = TRUE)
+    unlink(root, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+  matrix <- .wb_phase2c_chunk_matrix()
+  wb_define_cells(bundle, matrix$cell_id)
+  wb_attach_matrix(bundle, "inline_matrix", matrix$values, feature_type = "gene")
+  matrix$matrix_id <- "inline_matrix"
+  source <- wb_new_run("synthetic_matrix_source",
+    inputs = list(cell_set = "all", parents = character(),
+      provenance_refs = list(), user_inputs = list()),
+    params = list(), outputs = list(matrix = matrix))
+  session <- wb_session_add_run(wb_session_new(), source)
+  session_params <- list(features = matrix$feature_id, chunk_size = 2L,
+    p_adjust_method = "BH")
+  params <- session_params
+  params$features <- unname(as.list(params$features))
+  result <- wb_session_run_op(session, bundle,
+    "scwbpyv2reference::chunk_probe", inputs = c(list(
+      matrix = wb_ref_run(source$run_id, "matrix"),
+      cell_set = "all", min_cells = 1L), session_params))
+  run_chunk <- function() scworkbench:::.wb_operation_pack_v2_execute(bundle,
+    "scwbpyv2reference::chunk_probe", list(matrix = matrix), params)
+  direct <- run_chunk()
+  expected <- list(c("g1", "g2"), c("g3", "g4"), "g5")
+  observed <- direct$runtime_sidecar$chunk_observation
+  retained <- result$run$params$chunking
+  stopifnot(
+    identical(result$run$op_name, "scwbpyv2reference::chunk_probe"),
+    identical(as.character(observed$observation_identity$scheme),
+      "pybench.operation_pack.chunk_observation.v1"),
+    identical(lapply(observed$observed_batches, as.character), expected),
+    identical(as.integer(unlist(observed$observed_batch_sizes)), c(2L, 2L, 1L)),
+    identical(as.integer(observed$observed_call_count), 3L),
+    identical(direct$reader_observation$observed_batches, expected),
+    identical(retained$observed_batches, expected),
+    identical(as.integer(retained$observed_batch_sizes), c(2L, 2L, 1L)),
+    identical(as.integer(retained$observed_call_count), 3L),
+    identical(as.integer(retained$requested_chunk_size), 2L))
+
+  baseline_db <- scworkbench:::.wb_manifest_registry_snapshot(bundle$con)
+  baseline_tree <- .wb_phase2c_tree_identity(root)
+  assert_zero_residue <- function() {
+    stopifnot(identical(baseline_db,
+      scworkbench:::.wb_manifest_registry_snapshot(bundle$con)),
+      identical(baseline_tree, .wb_phase2c_tree_identity(root)))
+    pending <- scworkbench:::.wb_operation_pack_v2_pending_root(bundle)
+    stopifnot(!dir.exists(pending) || !length(list.dirs(pending,
+      recursive = FALSE)))
+  }
+  rehash_runtime <- function(value) {
+    value$runtime_identity <- NULL
+    value$runtime_identity <- scworkbench:::.wb_operation_pack_v2_identity_scoped(
+      "pybench.operation_pack.python_runtime.v3",
+      "python runtime sidecar excluding runtime_identity", value)
+    value
+  }
+  rehash_observation <- function(value) {
+    value$observation_identity <- NULL
+    value$observation_identity <- scworkbench:::.wb_operation_pack_v2_identity_scoped(
+      "pybench.operation_pack.chunk_observation.v1",
+      "chunk observation excluding observation_identity", value)
+    value
+  }
+  faults <- list(
+    missing = function(value) {
+      value$chunk_observation <- NULL; rehash_runtime(value)
+    },
+    schedule = function(value) {
+      value$chunk_observation$observed_batches[[1]] <- c("g2", "g1")
+      value$chunk_observation <- rehash_observation(value$chunk_observation)
+      rehash_runtime(value)
+    },
+    substitution = function(value) {
+      value$chunk_observation <- observed; rehash_runtime(value)
+    })
+  for (mutate in faults) {
+    options(scworkbench.operation_pack_v2_test_hook = local({ change <- mutate
+      function(event, stage = NULL, ...) if (identical(event,
+          "python_process_completed")) {
+        path <- file.path(stage, "python-runtime.json")
+        value <- jsonlite::read_json(path, simplifyVector = FALSE)
+        scworkbench:::.wb_operation_pack_v2_atomic_json(change(value), path)
+      }
+    }))
+    .wb_phase2c_expect(run_chunk(),
+      "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID", "receipt")
+    options(scworkbench.operation_pack_v2_test_hook = NULL)
+    assert_zero_residue()
+  }
+
+  options(scworkbench.operation_pack_v2_test_hook = function(event,
+      stage = NULL, ...) if (identical(event, "python_process_completed")) {
+    path <- file.path(stage, "python-runtime.json")
+    value <- jsonlite::read_json(path, simplifyVector = FALSE)
+    value$chunk_observation <- observed
+    scworkbench:::.wb_operation_pack_v2_atomic_json(rehash_runtime(value), path)
+  })
+  .wb_phase2c_expect(scworkbench:::.wb_operation_pack_v2_execute(bundle,
+    "scwbpyv2reference::dynamic_provider", .wb_phase2c_inputs()["matrix"],
+    list()),
+    "OPERATION_PACK_RUNTIME_ATTESTATION_INVALID", "receipt")
+  options(scworkbench.operation_pack_v2_test_hook = NULL)
+  assert_zero_residue()
   TRUE
 }
 
@@ -175,7 +308,7 @@ test_operation_pack_v2_python_activation_contract <- function() {
     identical(wb_operation_catalog_identity(), before$identity))
   activated <- wb_operation_pack_activate(context$manifest, python = context$python)
   stopifnot(identical(activated$identity$backend, "Python"),
-    length(wb_list_ops()) == 55L)
+    length(wb_list_ops()) == 56L)
   TRUE
 }
 
@@ -210,7 +343,8 @@ test_operation_pack_v2_python_durable_lifecycle_contract <- function() {
   root <- tempfile("scwb_phase2c_python_bundle_")
   bundle <- wb_init_bundle(root)
   result <- scworkbench:::.wb_operation_pack_v2_execute(bundle,
-    "scwbpyv2reference::all_contracts", .wb_phase2c_inputs(), list(),
+    "scwbpyv2reference::all_contracts", .wb_phase2c_inputs(),
+    .wb_phase2c_all_params(),
     session_id = "phase2c_session", run_id = "phase2c_run",
     checkpoint_generation = "generation_1")
   stopifnot(identical(result$state, "reopened"),
@@ -296,8 +430,8 @@ test_operation_pack_v2_python_failure_conformance_contract <- function() {
       recursive = FALSE)))
   }
   run <- function(inputs = .wb_phase2c_inputs(), op =
-      "scwbpyv2reference::all_contracts") {
-    scworkbench:::.wb_operation_pack_v2_execute(bundle, op, inputs, list())
+      "scwbpyv2reference::all_contracts", params = .wb_phase2c_all_params()) {
+    scworkbench:::.wb_operation_pack_v2_execute(bundle, op, inputs, params)
   }
   options(scworkbench.operation_pack_v2_test_hook = function(event,
       transition_id = NULL, ...) {
@@ -407,7 +541,8 @@ test_operation_pack_v2_r_python_logical_equivalence_contract <- function() {
   r <- scworkbench:::.wb_operation_pack_v2_execute(r_bundle,
     "scwbv2reference::all_contracts", .wb_phase2c_inputs("stats"), list())
   py <- scworkbench:::.wb_operation_pack_v2_execute(py_bundle,
-    "scwbpyv2reference::all_contracts", .wb_phase2c_inputs(), list())
+    "scwbpyv2reference::all_contracts", .wb_phase2c_inputs(),
+    .wb_phase2c_all_params())
   r_inventory <- wb_operation_pack_transition_outputs(r_bundle, r$transition_id)
   py_inventory <- wb_operation_pack_transition_outputs(py_bundle, py$transition_id)
   columns <- c("name", "category", "kind", "storage_profile")

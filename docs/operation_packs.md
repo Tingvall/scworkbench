@@ -56,7 +56,12 @@ shared language-neutral receipt, and a separate Python-only runtime sidecar.
 Core independently verifies all three, retires the input capability, and
 atomically publishes the complete record or nothing. The sidecar schema is
 installed as `pybench-op-v3-python-runtime.schema.json`; it does not add fields
-to the shared receipt.
+to the shared receipt. For a chunk-declared operation, core independently binds
+the authenticated sidecar observation to the request, capability, operation,
+input descriptor, and exact requested batch schedule. The observed calls then
+populate the same retained chunk parameters as an in-process R pack. A missing,
+smuggled, substituted, or inconsistent observation rejects the transition
+before publication.
 
 The source-tree package `tests/fixtures/operation-pack-v2-reference` is a small
 synthetic conformance pack. It exercises all accepted R readers, writers,
