@@ -75,3 +75,59 @@ Quill must synchronize and qualify Python parity for the changed shared ABI.
 The six definition identities, raw logs, atomic exit sidecars, exact commands,
 and evidence hashes are recorded in the coordination evidence ledger and final
 handoff.
+
+## Composite qualification addendum
+
+Quill synchronized the shared ABI v2 protocol and added authenticated Python
+chunk-reader observations in PyBench commit
+`11232d000ee42aa1344c9d6fb25a73acb1d88fe2`.  Core integration commit
+`3fada7831383406348f2393a9342c25b13011333` copies the accepted Python runtime
+sidecar schema byte-for-byte, pins that PyBench revision, independently
+validates every observation binding, and projects the validated observation
+into the existing durable `params$chunking` contract.  The shared transition
+receipt remains unchanged.
+
+The R-side audit requires an observation exactly when the authenticated
+operation declares chunking.  It verifies the observation self-identity plus
+request, execution-capability, operation-definition, input-descriptor, input,
+axis, sequence-parameter, size-parameter, requested-size, call-count, exact
+ordered batches, and batch-size bindings.  Missing, smuggled, substituted, or
+reordered observations fail in the receipt phase before transition
+publication.  Fault-injection tests assert identical registry and filesystem
+preimages and no pending transition residue after each rejection.
+
+Composite protocol identities are:
+
+- operation-pack v2 schema:
+  `d6756c057704820f2b6f1069035546a85fa2cbf504885f519bfe4535550f727c`
+- transition request schema:
+  `81bf35b2827778f149aee3e3ca2e921332f22415a290b5e9c704af37b7e1aed2`
+- transition receipt schema:
+  `2cd5e6192daa799bd4562dd1f0d4761eb1a7e8847ff048b3880783a0db0fba1b`
+- operation-pack v2 identity fixture:
+  `2bbb704a50c9c3fbed15c305e1767b953520df8a471613b493ba7f3f4b27925d`
+- canonical JSON case corpus:
+  `6c3da09b7840be621aae02e2bc17ac38435124992864da50e4c06819829e5d0c`
+- Python runtime sidecar schema:
+  `59fbaf6456d010bf777323e113ea0e36f94c5b41e75657148ae8cd0aeb9b0b7d`
+
+All six files compare byte-for-byte with the accepted PyBench worktree.  Final
+qualification results were:
+
+- focused Python composite contracts: 1 file, 8 discovered/executed/passed,
+  0 skipped/failed;
+- complete scworkbench suite: 170 files, 241 discovered/executed/accounted,
+  239 passed, 2 named ABI v1 fixture skips, 0 failed;
+- fullstack: metadata, golden bundle, KG export, engine smoke, generated
+  catalogs, payload parity, and 254/254 PyBench tests passed;
+- core and `scwbStatistics` `R CMD check --no-manual`: exact `Status: OK`;
+- clean extracted install: 53 core operations and 59 after pack activation,
+  followed by all pack contracts;
+- generated-document drift, protocol/fixture byte comparison, source-package
+  membership/tree reproducibility, and final diff checks passed.
+
+The evidence directory retains the complete successful logs and atomic status
+sidecars.  It also retains failed development diagnostics: early focused test
+assumptions, an incorrect protocol filename, and an initial clean-library
+command that hid the dependency library.  Each was corrected by the named
+retry; no failed diagnostic is represented as acceptance evidence.
