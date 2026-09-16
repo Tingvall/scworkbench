@@ -305,7 +305,11 @@ wb_promote_analysis <- function(bundle,
     !is.null(target_reproduction_receipts)
   materializations <- tryCatch({
     if (!is.null(staging_bundle)) {
-      .wb_stage_prepare_materializations(staging_bundle, bundle, workspace, runs, topo, commit_id)
+      prepared_materializations <- .wb_stage_prepare_materializations(
+        staging_bundle, bundle, workspace, runs, topo, commit_id)
+      .wb_operation_pack_v2_prepare_transition_payloads(
+        staging_bundle, bundle, workspace, runs, topo)
+      prepared_materializations
     } else {
       .wb_prepare_materialization_payloads(workspace, runs, topo, commit_id)
     }
@@ -352,7 +356,14 @@ wb_promote_analysis <- function(bundle,
           }
         }
       }
-      .wb_replay_registry_mutations(staging_bundle, bundle, topo, commit_id)
+      registry_events <- .wb_replay_registry_mutations(
+        staging_bundle, bundle, topo, commit_id)
+      if (is.data.frame(registry_events) && nrow(registry_events) &&
+          any(as.character(registry_events$registry_type) ==
+            "operation_pack_cell_set_family")) {
+        .wb_operation_pack_registry_fault(
+          "after_sqlite_writes_before_commit", commit_id = commit_id)
+      }
     }
 
   # Artifact pool: lets downstream promotions reference upstream artifacts if they want

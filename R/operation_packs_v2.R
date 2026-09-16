@@ -522,6 +522,7 @@
       if (identical(category, "terminal_artifact") && identical(kind, "model_ref")) return("loadable_reference")
       if (identical(category, "terminal_artifact")) return("exact_canonical_value")
       if (identical(category, "core_registry_request") && identical(kind, "cell_set_admission")) return("exact_membership_and_order")
+      if (identical(category, "core_registry_request") && identical(kind, "cell_set_family_admission")) return("exact_family_membership_and_order")
       character()
     }
     if (!invalid_replay) for (output in op$outputs) {

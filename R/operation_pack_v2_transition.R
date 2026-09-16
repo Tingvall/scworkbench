@@ -126,6 +126,10 @@
 
 .wb_operation_pack_v2_dimensions <- function(value, kind = as.character(value$kind %||% "")[1]) {
   if (identical(kind, "cell_set_admission")) return(as.integer(length(value$cells %||% character())))
+  if (identical(kind, "cell_set_family_admission")) return(as.integer(c(
+    length(value$sets %||% list()),
+    sum(vapply(value$sets %||% list(), function(x) length(x$cells %||% character()), integer(1)))
+  )))
   if (.wb_is_primitive(value)) {
     if (!is.null(value$values) && length(dim(value$values)) == 2L) return(as.integer(dim(value$values)))
     if (kind %in% c("cell_vector")) return(as.integer(length(value$cell_id %||% value$value)))
@@ -158,7 +162,11 @@
 
 .wb_operation_pack_v2_writer_name <- function(output) {
   kind <- as.character(output$kind)[1]
-  if (identical(output$category, "core_registry_request")) return("request_cell_set_admission")
+  if (identical(output$category, "core_registry_request")) return(switch(kind,
+    cell_set_admission = "request_cell_set_admission",
+    cell_set_family_admission = "request_cell_set_family_admission",
+    .wb_operation_pack_v2_error("OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Unknown core registry request kind: ", kind), "semantic_admission")))
   switch(kind, matrix = "write_matrix", space = "write_space", space_2d = "write_space_2d",
     model_ref = "write_model_ref", path_2d_family = "write_path_2d_family",
     space_path_family = "write_space_path_family", "write_terminal_primitive")
@@ -237,6 +245,7 @@
   if (kind == "space") return(as.integer(c(n_cells, max(1L, min(2L, if (length(input_dims) > 1L) input_dims[[2]] else 2L)))))
   if (kind == "space_2d") return(as.integer(c(n_cells, 2L)))
   if (kind %in% c("cell_vector", "cell_set_admission")) return(as.integer(n_cells))
+  if (kind == "cell_set_family_admission") return(as.integer(c(0L, 0L)))
   if (kind %in% c("cell_vector_family", "relation_family")) return(as.integer(c(n_cells, 3L)))
   if (kind == "path_2d_family") return(as.integer(c(n_cells, 4L)))
   if (kind == "space_path_family") return(as.integer(c(n_cells, 5L)))
@@ -263,7 +272,12 @@
     obs_table = list(table_type = as.character(output$table_type %||% "generic")[1], row_order = "canonical"),
     path_2d_family = list(finite_coordinates = TRUE, key_fields = list("key", "point")),
     space_path_family = list(finite_coordinates = TRUE, key_fields = list("space_id", "path_id", "point", "dim")),
-    cell_set_admission = list(members_unique = TRUE, members_in_universe = TRUE, order = "core_cell_order"))
+    cell_set_admission = list(members_unique = TRUE, members_in_universe = TRUE, order = "core_cell_order"),
+    cell_set_family_admission = list(
+      set_names_unique = TRUE, members_unique = TRUE,
+      members_in_universe = TRUE, set_order = "canonical_name_order",
+      member_order = "core_cell_order", family_mode = c("add", "replace"),
+      source_provenance = "unambiguous"))
 }
 
 .wb_operation_pack_v2_output_grant <- function(output, inputs, allocated_id,
@@ -279,7 +293,7 @@
     writer = .wb_operation_pack_v2_writer_name(output),
     expected_dimensions = unname(as.list(.wb_operation_pack_v2_expected_dimensions(
       output, inputs, dimension_policy = dimension_policy))),
-    expected_alignment = if (kind == "matrix") "cell_and_feature_ordered" else if (kind %in% c("space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission")) "cell_ordered" else if (kind == "feature_table") "feature_ordered" else if (kind == "model_ref") "model_linked" else if (kind == "path_2d_family") "canonical_row_ordered" else if (kind == "space_path_family") "associated_space" else "none",
+    expected_alignment = if (kind == "matrix") "cell_and_feature_ordered" else if (kind %in% c("space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission")) "cell_ordered" else if (kind == "cell_set_family_admission") "family_name_then_core_cell_order" else if (kind == "feature_table") "feature_ordered" else if (kind == "model_ref") "model_linked" else if (kind == "path_2d_family") "canonical_row_ordered" else if (kind == "space_path_family") "associated_space" else "none",
     expected_ancestry_identity = .wb_operation_pack_v2_identity_plain("scworkbench.provenance.ancestry.v1", list(output = output$name, inputs = input_names)),
     expected_model_linkage = list(mode = "none"),
     semantic_constraints = .wb_operation_pack_v2_semantic_constraints(output)
@@ -291,7 +305,7 @@
     cells <- unname(as.list(cells))
     features <- unname(as.list(features))
   }
-  if (kind %in% c("matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission")) {
+  if (kind %in% c("matrix", "space", "space_2d", "cell_vector", "cell_vector_family", "relation_family", "cell_set_admission", "cell_set_family_admission")) {
     descriptor$expected_cell_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1", cells)
   }
   if (kind %in% c("matrix", "feature_table")) descriptor$expected_feature_order_identity <- .wb_operation_pack_v2_identity_plain("scworkbench.feature_order.v1", features)
@@ -621,6 +635,24 @@
   }
   for (item in observed) .wb_operation_pack_v2_assert_self_identity(item$descriptor,
     "observed_descriptor_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+  for (item in receipt$registry_requests %||% list()) {
+    if (!identical(as.character(item$descriptor$kind)[1],
+        "cell_set_family_admission")) next
+    grant_index <- match(as.character(item$name)[1],
+      vapply(grants, `[[`, character(1), "name"))
+    expected_order <- grants[[grant_index]]$descriptor$
+      expected_cell_order_identity
+    dimensions <- as.integer(unlist(item$descriptor$dimensions,
+      use.names = FALSE))
+    if (!identical(item$descriptor$cell_order_identity, expected_order) ||
+        length(dimensions) != 2L ||
+        dimensions[[1]] != length(item$descriptor$member_identities)) {
+      .wb_operation_pack_v2_error(
+        "PYBENCH_RECEIPT_MISMATCH",
+        "Cell-set-family receipt contradicts its granted bundle order or member count.",
+        "receipt")
+    }
+  }
   .wb_operation_pack_v2_assert_self_identity(receipt$mutation_manifest, "mutation_identity",
     "PYBENCH_RECEIPT_MISMATCH", "receipt")
   expected_runtime <- .wb_operation_pack_v2_runtime_attestation(registration,
@@ -631,7 +663,7 @@
   invisible(TRUE)
 }
 
-.wb_operation_pack_v2_writer_value <- function(output, value) {
+.wb_operation_pack_v2_writer_value <- function(output, value, bundle = NULL) {
   kind <- as.character(output$kind)[1]
   if (identical(kind, "cell_set_admission")) {
     .wb_operation_pack_assert(is.list(value) && is.character(value$cells) && length(value$cells) &&
@@ -639,6 +671,9 @@
       "PYBENCH_OUTPUT_INVALID", "Cell-set admission requires unique non-empty cells.",
       class = "wb_operation_pack_v2_error")
     return(list(kind = kind, name = as.character(value$name %||% output$name)[1], cells = as.character(value$cells)))
+  }
+  if (identical(kind, "cell_set_family_admission")) {
+    return(.wb_operation_pack_cell_set_family_normalize(bundle, value))
   }
   .wb_operation_pack_assert(.wb_is_primitive(value) && identical(as.character(value$kind)[1], kind),
     "PYBENCH_OUTPUT_INVALID", paste0("Writer for '", output$name, "' requires a ", kind, " primitive."),
@@ -710,7 +745,8 @@
     }
     if (!is.null(state$writes[[name]])) .wb_operation_pack_v2_error("PYBENCH_RECEIPT_MISMATCH",
       paste0("Output '", name, "' was written more than once."), "receipt", output = name)
-    value <- .wb_operation_pack_v2_writer_value(declaration, value)
+    value <- .wb_operation_pack_v2_writer_value(declaration, value,
+      bundle = bundle)
     output_dir <- file.path(stage_root, "outputs", name)
     dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
     payload <- file.path(output_dir, "payload.rds")
@@ -728,7 +764,8 @@
     write_terminal_primitive = function(name, value, semantic_metadata = list()) write_one("write_terminal_primitive", name, value, semantic_metadata),
     write_path_2d_family = function(name, value, semantic_metadata = list()) write_one("write_path_2d_family", name, value, semantic_metadata),
     write_space_path_family = function(name, value, semantic_metadata = list()) write_one("write_space_path_family", name, value, semantic_metadata),
-    request_cell_set_admission = function(name, value, semantic_metadata = list()) write_one("request_cell_set_admission", name, value, semantic_metadata))
+    request_cell_set_admission = function(name, value, semantic_metadata = list()) write_one("request_cell_set_admission", name, value, semantic_metadata),
+    request_cell_set_family_admission = function(name, value, semantic_metadata = list()) write_one("request_cell_set_family_admission", name, value, semantic_metadata))
   list(readers = readers, writers = writers, state = state, consume = function() { state$used <- TRUE; invisible(TRUE) })
 }
 
@@ -763,9 +800,10 @@
   kind <- descriptor$kind
   dimensions <- .wb_operation_pack_v2_dimensions(value, kind)
   expected_dimensions <- as.integer(unlist(descriptor$expected_dimensions, use.names = FALSE))
-  dynamic_table <- kind %in% c("feature_table", "obs_table") &&
+  dynamic_dimensions <- (kind %in% c("feature_table", "obs_table") ||
+    identical(kind, "cell_set_family_admission")) &&
     identical(expected_dimensions, c(0L, 0L))
-  if (!dynamic_table && !identical(as.integer(dimensions), expected_dimensions)) .wb_operation_pack_v2_error(
+  if (!dynamic_dimensions && !identical(as.integer(dimensions), expected_dimensions)) .wb_operation_pack_v2_error(
     "PYBENCH_OUTPUT_INVALID", paste0("Output '", grant$name, "' dimensions do not match its grant."),
     "audit", output = grant$name, expected = descriptor$expected_dimensions, observed = dimensions)
   cells <- if (identical(kind, "cell_set_admission")) value$cells else .wb_operation_pack_v2_primitive_cells(value)
@@ -787,6 +825,45 @@
     observed$observed_descriptor_identity <- .wb_operation_pack_v2_identity_scoped(
       "scworkbench.operation_pack.observed_registry_request.v2",
       "descriptor excluding observed_descriptor_identity", observed)
+    return(observed)
+  }
+  if (identical(kind, "cell_set_family_admission")) {
+    family_identity <- attr(value, "family_identity") %||%
+      .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.cell_set.family_admission.v1",
+        "normalized family payload", value)
+    member_identities <- attr(value, "member_identities") %||%
+      lapply(value$sets %||% list(), function(item) list(
+        name = item$name,
+        membership_identity = .wb_operation_pack_v2_identity_scoped(
+          "scworkbench.cell_set.membership.v1",
+          "ordered exact membership", item$cells)))
+    source_identity <- attr(value, "source_identity") %||%
+      .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.cell_set.family_source.v1",
+        "normalized source metadata", value$source)
+    observed <- list(
+      category = descriptor$category, kind = kind,
+      storage_profile = descriptor$storage_profile,
+      writer = descriptor$writer, grant_identity = descriptor$grant_identity,
+      dimensions = unname(as.list(as.integer(dimensions))),
+      alignment = "family_name_then_core_cell_order",
+      cell_order_identity = descriptor$expected_cell_order_identity,
+      ancestry_identity = .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.provenance.ancestry.v1",
+        "registry request ancestry", descriptor$expected_ancestry_identity),
+      family_identity = family_identity,
+      member_identities = unname(member_identities),
+      source_identity = source_identity,
+      semantic_validation = list(
+        constraints_identity = .wb_operation_pack_v2_identity_scoped(
+          "scworkbench.operation_pack.semantic_constraints.v2",
+          "cell-set-family admission constraints",
+          descriptor$semantic_constraints), status = "passed"))
+    observed$observed_descriptor_identity <-
+      .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.observed_registry_request.v2",
+        "descriptor excluding observed_descriptor_identity", observed)
     return(observed)
   }
   observed <- list(
@@ -905,8 +982,15 @@
         .wb_operation_pack_parse_canonical_json(raw)
       } else readRDS(payload), error = identity)
       if (inherits(value, "error")) return(list(ok = FALSE, code = "payload_unreadable", output = item$name))
-      actual <- .wb_operation_pack_sha256(if (python_payload) value else unclass(value))
-      expected_content <- item$descriptor$content_identity$sha256 %||% NULL
+      actual <- if (identical(as.character(item$descriptor$kind)[1],
+          "cell_set_family_admission")) {
+        # The writer has already stored the normalized family payload; bundle
+        # universe validation is repeated by staging, promotion and recipient
+        # audit where a bundle handle is available.
+        .wb_operation_pack_sha256(value)
+      } else .wb_operation_pack_sha256(if (python_payload) value else unclass(value))
+      expected_content <- item$descriptor$content_identity$sha256 %||%
+        item$descriptor$family_identity$sha256 %||% NULL
       if (!is.null(expected_content) && !identical(actual, expected_content)) return(list(ok = FALSE, code = "content_identity_mismatch", output = item$name))
     }
   }
@@ -957,6 +1041,7 @@
       paste0("Recipient ABI v2 transition record is invalid: ", basename(record), " (", result$code %||% "not_reopened", ")."),
       class = "wb_operation_pack_v2_error")
   }
+  .wb_operation_pack_v2_assert_registry_receipts(bundle)
   invisible(TRUE)
 }
 
@@ -1098,8 +1183,17 @@
       .wb_operation_pack_v2_python_to_primitive(raw, item$descriptor)
     } else readRDS(file.path(final, "outputs", item$name, "payload.rds"))
   }), vapply(receipt$outputs %||% list(), `[[`, character(1), "name"))
+  registry_values <- stats::setNames(lapply(receipt$registry_requests %||%
+      list(), function(item) {
+    if (python_backend) {
+      jsonlite::read_json(file.path(final, "registry_requests", item$name,
+        "payload.json"), simplifyVector = FALSE)
+    } else readRDS(file.path(final, "outputs", item$name, "payload.rds"))
+  }), vapply(receipt$registry_requests %||% list(), `[[`, character(1),
+    "name"))
   list(transition_id = transition_id, request = request, receipt = receipt,
     outputs = values, registry_requests = receipt$registry_requests %||% list(),
+    registry_request_values = registry_values,
     runtime_sidecar = if (python_backend) process_result$sidecar else NULL,
     reader_observation = if (python_backend) {
       process_result$reader_observation
@@ -1160,12 +1254,21 @@
     params <- inputs[setdiff(names(inputs), c(names(resolved), names(.wb_op_engine_input_specs())))]
     definition <- .wb_operation_pack_registry$operations[[op_name]]$definition
     operation <- definition$v2_definition
+    mutation_context <- .wb_current_mutation_context(bundle$con, bundle$dir)
+    .wb_operation_pack_assert(
+      !is.null(mutation_context) &&
+        identical(as.character(mutation_context$route)[1],
+          "session_execution") &&
+        nzchar(as.character(mutation_context$run_id %||% "")[1]),
+      "PYBENCH_CAPABILITY_MISMATCH",
+      "ABI v2 execution requires a preallocated session run.",
+      phase = "execution", class = "wb_operation_pack_v2_error")
     params <- .wb_operation_pack_v2_bind_parameters(bundle, operation, params,
       bound, effective_cells)
     result <- .wb_operation_pack_v2_execute(bundle, op_name, bound,
       params = params,
       session_id = binding$session_id %||% NULL,
-      run_id = NULL,
+      run_id = as.character(mutation_context$run_id)[1],
       checkpoint_generation = binding$checkpoint_generation %||% "ephemeral",
       effective_cells = effective_cells)
     returned_params <- .wb_operation_pack_v2_retained_parameters(operation,
@@ -1182,10 +1285,19 @@
         observed_batch_sizes = observation$observed_batch_sizes,
         observed_batches = observation$observed_batches)
     }
+    registry_requests <- tryCatch(
+      .wb_operation_pack_v2_stage_registry_requests(bundle, result),
+      error = function(error) {
+        if (dir.exists(result$path)) {
+          unlink(result$path, recursive = TRUE, force = TRUE)
+        }
+        stop(error)
+      })
     list(outputs = result$outputs, params = returned_params,
       operation_pack_runtime = result$receipt$runtime_attestation,
       operation_pack_transition = list(transition_id = result$transition_id,
-        receipt_identity = result$receipt$receipt_identity))
+        receipt_identity = result$receipt$receipt_identity),
+      operation_pack_registry_requests = registry_requests)
   }
 }
 
@@ -1242,11 +1354,17 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
     payload_root, output_name, if (python_payload) "payload.json" else "payload.rds")
   raw_value <- if (python_payload) jsonlite::read_json(path,
     simplifyVector = FALSE) else readRDS(path)
-  observed <- if (is.null(record$descriptor$content_identity)) {
+  observed <- if (identical(as.character(record$descriptor$kind)[1],
+      "cell_set_family_admission")) {
+    normalized <- .wb_operation_pack_cell_set_family_normalize(bundle,
+      raw_value)
+    attr(normalized, "family_identity")$sha256
+  } else if (is.null(record$descriptor$content_identity)) {
     .wb_operation_pack_sha256(if (python_payload) raw_value$cells else
       as.character(unlist(raw_value$cells, use.names = FALSE)))
   } else .wb_operation_pack_sha256(if (python_payload) raw_value else unclass(raw_value))
   expected <- record$descriptor$content_identity$sha256 %||%
+    record$descriptor$family_identity$sha256 %||%
     record$descriptor$membership_identity$sha256 %||% observed
   .wb_operation_pack_assert(identical(observed, expected), "PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Durable ABI v2 output content identity changed for '", output_name,

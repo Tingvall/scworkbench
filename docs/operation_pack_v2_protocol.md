@@ -22,6 +22,21 @@ readers and writers, audits the closed output set, publishes a complete
 transition atomically, and retains request, receipt, runtime, dependency,
 payload, and semantic identities for pack-free recipient inspection.
 
+The language-neutral core registry tuples are
+`cell_set_admission`/`cell_set_admission_v1` and
+`cell_set_family_admission`/`cell_set_family_admission_v1`. The latter grants
+only `request_cell_set_family_admission`: its payload has exactly `kind`,
+`sets`, `mode`, and `source`; its set members have exactly `name`, `cells`,
+`description`, and `selection_rule`. Core prefixes bare names with `set:`,
+sorts normalized sets by name, and reorders each membership to the declared
+bundle cell order before hashing. The family identity scheme is
+`scworkbench.cell_set.family_admission.v1`; empty families are authenticated
+no-ops. The transition remains private until promotion, where core applies all
+members and publishes the terminal group, transition, provenance, and registry
+receipt in one rollback-capable transaction. `add` retains pre-existing
+members in bundle order; `replace` installs the exact requested membership.
+Neither mode may alter a provenance-bound set to a different membership.
+
 An operation may declare the closed `data_dependent_table_v1` dimension policy
 for a terminal `feature_table` or `obs_table` using the
 `terminal_primitive_v1` storage profile. For every conforming namespace, and

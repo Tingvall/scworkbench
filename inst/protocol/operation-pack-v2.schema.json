@@ -196,7 +196,8 @@
         "terminal_primitive_v1",
         "path_2d_family_v1",
         "space_path_family_v1",
-        "cell_set_admission_v1"
+        "cell_set_admission_v1",
+        "cell_set_family_admission_v1"
       ]
     },
     "dependency": {
@@ -1536,6 +1537,45 @@
               "pattern": "^[a-z][a-z0-9_]*$"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "storage_profile",
+            "allocated_id_key",
+            "required",
+            "promotion_group"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "core_registry_request"
+            },
+            "kind": {
+              "const": "cell_set_family_admission"
+            },
+            "storage_profile": {
+              "const": "cell_set_family_admission_v1"
+            },
+            "allocated_id_key": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*_id$"
+            },
+            "required": {
+              "const": true
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
         }
       ]
     },
@@ -1747,7 +1787,8 @@
               "loadable_reference",
               "cell_aligned_embedding",
               "not_comparable",
-              "exact_membership_and_order"
+              "exact_membership_and_order",
+              "exact_family_membership_and_order"
             ]
           }
         }

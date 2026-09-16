@@ -115,6 +115,7 @@
     params = as.list(ids)
   )
   if (!nrow(events)) return(invisible(events))
+  .wb_operation_pack_registry_preflight(bundle, events)
   old <- getOption("scworkbench.registry_replay_transaction_open")
   old_replay <- getOption("scworkbench.provenance_registry_replay")
   options(scworkbench.registry_replay_transaction_open = TRUE)
@@ -190,6 +191,10 @@
       } else {
         stop("Unsupported cell-set registry mutation action: ", action, call. = FALSE)
       }
+    } else if (identical(registry_type,
+        "operation_pack_cell_set_family") && identical(action, "admit")) {
+      event_hashes[i] <- .wb_operation_pack_registry_apply_event(
+        bundle, events[i, , drop = FALSE], payload_obj)
     } else if (identical(registry_type, "cell_set_recipe") && identical(action, "upsert")) {
       payload <- payload_obj
       .wb_cell_set_recipe_row_upsert(
@@ -217,6 +222,11 @@
   })
   .wb_ensure_registry_mutation_events_table(bundle$con)
   .wb_ensure_prov_registry_mutations_table(bundle$con)
+  if (any(as.character(events$registry_type) ==
+      "operation_pack_cell_set_family")) {
+    .wb_operation_pack_registry_fault(
+      "before_registry_receipt_finalization", commit_id = commit_id)
+  }
   events$content_hash <- event_hashes
   events$content_identity_scheme <- ifelse(
     is.na(event_hashes), NA_character_,

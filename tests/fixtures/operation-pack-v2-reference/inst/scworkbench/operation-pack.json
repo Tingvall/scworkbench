@@ -46,7 +46,8 @@
         {"name": "obs_table", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "obs_table_id", "required": true, "promotion_group": "g_registry", "table_type": "v2_fixture"},
         {"name": "path_2d", "category": "terminal_artifact", "kind": "path_2d_family", "storage_profile": "path_2d_family_v1", "allocated_id_key": "path_2d_id", "required": true, "promotion_group": "g_path_2d"},
         {"name": "space_path", "category": "terminal_artifact", "kind": "space_path_family", "storage_profile": "space_path_family_v1", "allocated_id_key": "space_path_id", "required": true, "promotion_group": "g_space_path"},
-        {"name": "cell_set", "category": "core_registry_request", "kind": "cell_set_admission", "storage_profile": "cell_set_admission_v1", "allocated_id_key": "cell_set_id", "required": true, "promotion_group": "g_registry"}
+        {"name": "cell_set", "category": "core_registry_request", "kind": "cell_set_admission", "storage_profile": "cell_set_admission_v1", "allocated_id_key": "cell_set_id", "required": true, "promotion_group": "g_registry"},
+        {"name": "cell_set_family", "category": "core_registry_request", "kind": "cell_set_family_admission", "storage_profile": "cell_set_family_admission_v1", "allocated_id_key": "cell_set_family_id", "required": true, "promotion_group": "g_registry"}
       ],
       "dependencies": [],
       "promotion_closure": {
@@ -56,7 +57,7 @@
         "feature_table": ["feature_table", "space_file"],
         "space_terminal_2d": ["space_materialized_2d", "space_terminal_2d"],
         "model": ["model"],
-        "obs_table": ["cell_set", "obs_table"],
+      "obs_table": ["cell_set", "cell_set_family", "obs_table"],
         "path_2d": ["path_2d"],
         "space_path": ["space_path"]
       },
@@ -75,7 +76,8 @@
         "obs_table": "exact_canonical_value",
         "path_2d": "exact_canonical_value",
         "space_path": "exact_canonical_value",
-        "cell_set": "exact_membership_and_order"
+      "cell_set": "exact_membership_and_order",
+      "cell_set_family": "exact_family_membership_and_order"
       }
     },
     {
@@ -213,6 +215,48 @@
       ],
       "promotion_closure": {"provider": ["provider"]},
       "replay_equivalence": {"provider": "exact_canonical_value"}
+    },
+    {
+      "name": "cell_set_family_contract",
+      "qualified_name": "scwbv2reference::cell_set_family_contract",
+      "title": "Cell-set-family admission conformance",
+      "description": "Synthetic data-dependent registry-family contract.",
+      "runner": ".cell_set_family_contract",
+      "inputs": [
+        {"name": "labels", "kind": "cell_vector", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {
+        "mode": {"type": "string", "enum": ["add", "replace"], "default": "add"},
+        "prefix": {"type": "string", "default": "family_", "minLength": 1},
+        "source_label": {"type": "string", "default": "operation_pack_v2_family_fixture", "minLength": 1}
+      }, "additionalProperties": false},
+      "dimension_policies": [{"output": "manifest", "policy": "data_dependent_table_v1"}],
+      "outputs": [
+        {"name": "manifest", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "manifest_id", "required": true, "promotion_group": "registry_family", "table_type": "cell_set_family_manifest"},
+        {"name": "cell_set_family", "category": "core_registry_request", "kind": "cell_set_family_admission", "storage_profile": "cell_set_family_admission_v1", "allocated_id_key": "cell_set_family_id", "required": true, "promotion_group": "registry_family"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"manifest": ["cell_set_family", "manifest"]},
+      "replay_equivalence": {"manifest": "exact_canonical_value", "cell_set_family": "exact_family_membership_and_order"}
+    },
+    {
+      "name": "single_cell_set_contract",
+      "qualified_name": "scwbv2reference::single_cell_set_contract",
+      "title": "Legacy single cell-set admission conformance",
+      "description": "Synthetic legacy single-set registry request lifecycle contract.",
+      "runner": ".single_cell_set_contract",
+      "inputs": [
+        {"name": "labels", "kind": "cell_vector", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {}, "additionalProperties": false},
+      "dimension_policies": [{"output": "manifest", "policy": "data_dependent_table_v1"}],
+      "outputs": [
+        {"name": "manifest", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "manifest_id", "required": true, "promotion_group": "single_registry", "table_type": "single_cell_set_manifest"},
+        {"name": "cell_set", "category": "core_registry_request", "kind": "cell_set_admission", "storage_profile": "cell_set_admission_v1", "allocated_id_key": "cell_set_id", "required": true, "promotion_group": "single_registry"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"manifest": ["cell_set", "manifest"]},
+      "replay_equivalence": {"manifest": "exact_canonical_value", "cell_set": "exact_membership_and_order"}
     }
   ]
 }

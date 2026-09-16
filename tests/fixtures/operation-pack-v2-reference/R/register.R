@@ -34,6 +34,60 @@
   writers$write_space_path_family("space_path", scworkbench::wb_prim_space_path_family(
     "space_file", "p", 1L, 1L, 0, meta = list(fixture = "v2")))
   writers$request_cell_set_admission("cell_set", list(name = "v2_cells", cells = cell))
+  writers$request_cell_set_family_admission("cell_set_family", list(
+    kind = "cell_set_family_admission", sets = list(), mode = "add",
+    source = list(label = "operation_pack_v2_family_fixture",
+      created_by = NULL, input_artifact_id = NULL, input_run_id = NULL,
+      input_snapshot_id = NULL)))
+  invisible(list(status = "ok"))
+}
+
+.cell_set_family_contract <- function(readers, writers, params, context) {
+  or_default <- function(value, default) if (is.null(value)) default else value
+  labels <- readers$labels()
+  cells <- as.character(labels$cell_id)
+  values <- as.character(labels$value)
+  keep <- !is.na(values) & nzchar(values)
+  keys <- sort(unique(values[keep]), method = "radix")
+  prefix <- as.character(or_default(params$prefix, "family_"))[1]
+  sets <- lapply(keys, function(key) {
+    members <- rev(cells[keep & values == key])
+    list(
+      name = paste0("set:", prefix, gsub("[^A-Za-z0-9_.-]", "_", key)),
+      cells = members,
+      description = paste0("Synthetic family for ", key),
+      selection_rule = paste0("label == '", key, "'")
+    )
+  })
+  manifest <- if (length(sets)) data.frame(
+    cell_set = vapply(sets, `[[`, character(1), "name"),
+    label = keys,
+    n_cells = as.integer(vapply(sets, function(x) length(x$cells), integer(1))),
+    stringsAsFactors = FALSE
+  ) else data.frame(
+    cell_set = character(), label = character(), n_cells = integer(),
+    stringsAsFactors = FALSE)
+  writers$write_terminal_primitive("manifest", scworkbench::wb_prim_obs_table(
+    manifest, table_type = "cell_set_family_manifest"))
+  writers$request_cell_set_family_admission("cell_set_family", list(
+    kind = "cell_set_family_admission", sets = rev(sets),
+    mode = as.character(or_default(params$mode, "add"))[1],
+    source = list(
+      label = as.character(or_default(params$source_label,
+        "operation_pack_v2_family_fixture"))[1],
+      created_by = NULL, input_artifact_id = NULL, input_run_id = NULL,
+      input_snapshot_id = NULL)))
+  invisible(list(status = "ok"))
+}
+
+.single_cell_set_contract <- function(readers, writers, params, context) {
+  labels <- readers$labels()
+  cells <- as.character(labels$cell_id)
+  writers$write_terminal_primitive("manifest", scworkbench::wb_prim_obs_table(
+    data.frame(cell_set = "set:single_contract", n_cells = length(cells),
+      stringsAsFactors = FALSE), table_type = "single_cell_set_manifest"))
+  writers$request_cell_set_admission("cell_set", list(
+    name = "set:single_contract", cells = cells))
   invisible(list(status = "ok"))
 }
 
@@ -123,7 +177,9 @@ register_operation_pack <- function() {
       `scwbv2reference::two_table_terminal` = .two_table_terminal,
       `scwbv2reference::feature_table_from_matrix` = .feature_table_from_matrix,
       `scwbv2reference::grouped_feature_table` = .grouped_feature_table,
-      `scwbv2reference::chunked_feature_table` = .chunked_feature_table
+      `scwbv2reference::chunked_feature_table` = .chunked_feature_table,
+      `scwbv2reference::cell_set_family_contract` = .cell_set_family_contract,
+      `scwbv2reference::single_cell_set_contract` = .single_cell_set_contract
     )
   )
 }

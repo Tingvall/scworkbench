@@ -4653,6 +4653,8 @@
       }
     },
     "registry_request_descriptor": {
+      "oneOf": [
+        {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -4835,6 +4837,99 @@
           }
         }
       }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category", "kind", "storage_profile", "writer",
+            "grant_identity", "dimensions", "alignment",
+            "cell_order_identity", "ancestry_identity", "family_identity",
+            "member_identities", "source_identity", "semantic_validation",
+            "observed_descriptor_identity"
+          ],
+          "properties": {
+            "category": {"const": "core_registry_request"},
+            "kind": {"const": "cell_set_family_admission"},
+            "storage_profile": {"const": "cell_set_family_admission_v1"},
+            "writer": {"const": "request_cell_set_family_admission"},
+            "grant_identity": {
+              "type": "object", "additionalProperties": false,
+              "required": ["scheme", "scope", "sha256"],
+              "properties": {
+                "scheme": {"const": "scworkbench.operation_pack.output_grant.v2"},
+                "sha256": {"$ref": "#/$defs/sha256"},
+                "scope": {"const": "descriptor excluding grant_identity"}
+              }
+            },
+            "dimensions": {
+              "type": "array",
+              "prefixItems": [
+                {"type": "integer", "minimum": 0},
+                {"type": "integer", "minimum": 0}
+              ],
+              "items": false, "minItems": 2, "maxItems": 2
+            },
+            "alignment": {"const": "family_name_then_core_cell_order"},
+            "cell_order_identity": {"$ref": "#/$defs/identity"},
+            "ancestry_identity": {"$ref": "#/$defs/identity"},
+            "family_identity": {
+              "type": "object", "additionalProperties": false,
+              "required": ["scheme", "scope", "sha256"],
+              "properties": {
+                "scheme": {"const": "scworkbench.cell_set.family_admission.v1"},
+                "scope": {"const": "normalized family payload"},
+                "sha256": {"$ref": "#/$defs/sha256"}
+              }
+            },
+            "member_identities": {
+              "type": "array",
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "required": ["name", "membership_identity"],
+                "properties": {
+                  "name": {"type": "string", "pattern": "^set:[A-Za-z0-9][A-Za-z0-9_.-]*$"},
+                  "membership_identity": {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["scheme", "scope", "sha256"],
+                    "properties": {
+                      "scheme": {"const": "scworkbench.cell_set.membership.v1"},
+                      "scope": {"const": "ordered exact membership"},
+                      "sha256": {"$ref": "#/$defs/sha256"}
+                    }
+                  }
+                }
+              }
+            },
+            "source_identity": {
+              "type": "object", "additionalProperties": false,
+              "required": ["scheme", "scope", "sha256"],
+              "properties": {
+                "scheme": {"const": "scworkbench.cell_set.family_source.v1"},
+                "scope": {"const": "normalized source metadata"},
+                "sha256": {"$ref": "#/$defs/sha256"}
+              }
+            },
+            "semantic_validation": {
+              "type": "object", "additionalProperties": false,
+              "required": ["constraints_identity", "status"],
+              "properties": {
+                "constraints_identity": {"$ref": "#/$defs/identity"},
+                "status": {"const": "passed"}
+              }
+            },
+            "observed_descriptor_identity": {
+              "type": "object", "additionalProperties": false,
+              "required": ["scheme", "scope", "sha256"],
+              "properties": {
+                "scheme": {"const": "scworkbench.operation_pack.observed_registry_request.v2"},
+                "scope": {"const": "descriptor excluding observed_descriptor_identity"},
+                "sha256": {"$ref": "#/$defs/sha256"}
+              }
+            }
+          }
+        }
+      ]
     },
     "registry_request": {
       "type": "object",

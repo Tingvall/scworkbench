@@ -528,7 +528,9 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     execution_inputs = .wb_execution_inputs_snapshot(
       resolved = resolved,
       effective_cells = effective_cells
-    )
+    ),
+    operation_pack_registry_requests =
+      res$operation_pack_registry_requests %||% list()
   )
 
   run <- wb_new_run(
@@ -547,6 +549,13 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     )[1]
     if (!is.null(res$operation_pack_runtime)) {
       run$operation_pack_runtime <- res$operation_pack_runtime
+    }
+    if (!is.null(res$operation_pack_transition)) {
+      run$operation_pack_transition <- res$operation_pack_transition
+    }
+    if (!is.null(res$operation_pack_registry_requests)) {
+      run$operation_pack_registry_requests <-
+        res$operation_pack_registry_requests
     }
   }
 

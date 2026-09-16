@@ -3731,6 +3731,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "man/wb_operation_pack_registry_receipts.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "man/wb_operation_pack_transition_load.Rd",
       "class": "generated_public_reference",
       "audience": "public",

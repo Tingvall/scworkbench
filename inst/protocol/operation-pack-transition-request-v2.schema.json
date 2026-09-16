@@ -571,6 +571,28 @@
         }
       }
     },
+    "cellset_family_constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "set_names_unique",
+        "members_unique",
+        "members_in_universe",
+        "set_order",
+        "member_order",
+        "family_mode",
+        "source_provenance"
+      ],
+      "properties": {
+        "set_names_unique": {"const": true},
+        "members_unique": {"const": true},
+        "members_in_universe": {"const": true},
+        "set_order": {"const": "canonical_name_order"},
+        "member_order": {"const": "core_cell_order"},
+        "family_mode": {"const": ["add", "replace"]},
+        "source_provenance": {"const": "unambiguous"}
+      }
+    },
     "input_descriptor": {
       "oneOf": [
         {
@@ -2472,6 +2494,45 @@
               }
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category",
+            "kind",
+            "storage_profile",
+            "writer",
+            "expected_dimensions",
+            "expected_alignment",
+            "expected_cell_order_identity",
+            "expected_ancestry_identity",
+            "expected_model_linkage",
+            "semantic_constraints",
+            "grant_identity"
+          ],
+          "properties": {
+            "category": {"const": "core_registry_request"},
+            "kind": {"const": "cell_set_family_admission"},
+            "storage_profile": {"const": "cell_set_family_admission_v1"},
+            "writer": {"const": "request_cell_set_family_admission"},
+            "expected_dimensions": {"$ref": "#/$defs/dimensions_2"},
+            "expected_alignment": {"const": "family_name_then_core_cell_order"},
+            "expected_cell_order_identity": {"$ref": "#/$defs/identity"},
+            "expected_ancestry_identity": {"$ref": "#/$defs/identity"},
+            "expected_model_linkage": {"$ref": "#/$defs/model_linkage"},
+            "semantic_constraints": {"$ref": "#/$defs/cellset_family_constraints"},
+            "grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["scheme", "scope", "sha256"],
+              "properties": {
+                "scheme": {"const": "scworkbench.operation_pack.output_grant.v2"},
+                "sha256": {"$ref": "#/$defs/sha256"},
+                "scope": {"const": "descriptor excluding grant_identity"}
+              }
+            }
+          }
         }
       ]
     },
@@ -3049,7 +3110,8 @@
                   "write_terminal_primitive",
                   "write_path_2d_family",
                   "write_space_path_family",
-                  "request_cell_set_admission"
+                  "request_cell_set_admission",
+                  "request_cell_set_family_admission"
                 ]
               },
               "grant_identity": {

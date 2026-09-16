@@ -153,7 +153,7 @@ test_operation_pack_v2_outer_schema_exhaustive_contract <- function() {
     ok <- validate(candidate, schema[["$defs"]]$output, schema)$ok
     stopifnot(identical(ok, legal)); if (!legal) output_invalid <- output_invalid + 1L
   }
-  stopifnot(input_invalid == 66L, output_invalid == 345L)
+  stopifnot(input_invalid == 66L, output_invalid == 413L)
   input_removals <- 0L
   for (branch in input_branches) for (field in as.character(unlist(branch$required))) {
     candidate <- list(name = "input", kind = branch$properties$kind$const, required = TRUE,
@@ -173,7 +173,7 @@ test_operation_pack_v2_outer_schema_exhaustive_contract <- function() {
       stopifnot(!validate(removed, schema[["$defs"]]$output, schema)$ok); output_removals <- output_removals + 1L
     }
   }
-  stopifnot(input_removals == 44L, output_removals == 105L)
+  stopifnot(input_removals == 44L, output_removals == 112L)
   TRUE
 }
 
@@ -202,7 +202,7 @@ test_operation_pack_v2_atomic_activation_contract <- function() {
       identical(wb_operation_catalog_identity(), before_identity))
   }
   activated <- wb_operation_pack_activate(fixture$manifest, lib.loc = fixture$lib)
-  stopifnot(nrow(wb_operation_packs()) == 1L, length(wb_list_ops()) == 59L,
+  stopifnot(nrow(wb_operation_packs()) == 1L, length(wb_list_ops()) == 61L,
     identical(activated$identity$pack_abi_version, "2"))
   wb_operation_pack_unload("scwbv2reference")
   stopifnot(identical(wb_operation_packs(), before_packs), identical(wb_list_ops(), before_ops),
@@ -217,25 +217,26 @@ test_operation_pack_v2_reference_lifecycle_contract <- function() {
   activated <- wb_operation_pack_activate(fixture$manifest, lib.loc = fixture$lib)
   on.exit(try(wb_operation_pack_unload("scwbv2reference"), silent = TRUE), add = TRUE)
   stopifnot(identical(activated$identity$pack_abi_version, "2"),
-    length(wb_list_ops()) == before_count + 6L)
+    length(wb_list_ops()) == before_count + 8L)
   dir <- tempfile("scwb_v2_bundle_")
   bundle <- wb_init_bundle(dir)
   result <- getFromNamespace(".wb_operation_pack_v2_execute", "scworkbench")(
     bundle, "scwbv2reference::all_contracts", .wb_v2_fixture_inputs(), list())
   stopifnot(identical(result$state, "reopened"), length(result$outputs) == 14L,
-    length(result$registry_requests) == 1L,
-    nrow(wb_operation_pack_transition_outputs(bundle, result$transition_id)) == 15L)
+    length(result$registry_requests) == 2L,
+    nrow(wb_operation_pack_transition_outputs(bundle, result$transition_id)) == 16L)
   wb_close_bundle(bundle)
   writable <- wb_open_bundle(dir)
   wb_finalize_recipient_bundle(writable)
   wb_close_bundle(writable)
   read_only <- wb_open_bundle(dir, read_only = TRUE)
   inventory <- wb_operation_pack_transition_outputs(read_only, result$transition_id)
-  stopifnot(nrow(inventory) == 15L, setequal(unique(inventory$storage_profile), c(
+  stopifnot(nrow(inventory) == 16L, setequal(unique(inventory$storage_profile), c(
     "matrix_ordinary_v1", "matrix_backed_chunked_v1", "space_dense_v1",
     "space_file_backed_hdf5_v1", "space_2d_dense_v1",
     "model_ref_contained_tree_v1", "terminal_primitive_v1",
-    "path_2d_family_v1", "space_path_family_v1", "cell_set_admission_v1")))
+    "path_2d_family_v1", "space_path_family_v1", "cell_set_admission_v1",
+    "cell_set_family_admission_v1")))
   value <- wb_operation_pack_transition_load(read_only, result$transition_id, "cell_vector")
   stopifnot(inherits(value, "wb_primitive"), identical(value$kind, "cell_vector"),
     identical(value$meta$fixture, "v2"))
@@ -341,10 +342,9 @@ test_operation_pack_v2_cell_set_family_capability_gap_contract <- function() {
     )
   }
 
-  # The accepted single-request capability persists an authenticated request,
-  # but it does not apply even that one request to the governed cell-set
-  # registry.  Session/promotion therefore has no family request to validate or
-  # publish atomically.
+  # Direct pack execution remains pre-promotion and therefore cannot mutate the
+  # core registry. Both authenticated request payloads are durable in the
+  # private transition only.
   set_runner(original)
   success <- execute(bundle, op_name, .wb_v2_fixture_inputs(), list())
   request <- wb_operation_pack_transition_load(bundle, success$transition_id,
@@ -354,9 +354,37 @@ test_operation_pack_v2_cell_set_family_capability_gap_contract <- function() {
     identical(request$cells, "cell_1"),
     identical(registry_state(), before),
     !"v2_cells" %in% wb_cell_sets(bundle),
-    length(success$registry_requests) == 1L
+    length(success$registry_requests) == 2L
   )
-  cat("CAPABILITY GAP single_request durable=true registry_applied=false\n")
+  cat("REGISTRY REQUESTS durable=true prepromotion_registry_applied=false\n")
+
+  # The legacy single-set tuple is still authenticated and remains read-only
+  # until promotion, but promotion now applies its core-owned registry effect
+  # in the same closure as the selected terminal.
+  single_dir <- tempfile("scwb_v2_single_registry_")
+  single_bundle <- wb_init_bundle(single_dir, overwrite = TRUE)
+  on.exit({
+    try(wb_close_bundle(single_bundle), silent = TRUE)
+    unlink(single_dir, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+  wb_define_cells(single_bundle, "cell_1")
+  single_inputs <- list(
+    labels = wb_prim_cell_vector(stats::setNames("member", "cell_1"),
+      value_type = "categorical"),
+    cell_set = "all", min_cells = 1L)
+  single_run <- wb_session_run_op(
+    wb_session_new(), single_bundle,
+    "scwbv2reference::single_cell_set_contract", inputs = single_inputs)
+  stopifnot(!"set:single_contract" %in% wb_cell_sets(single_bundle))
+  single_promotion <- wb_session_promote_current(
+    single_bundle, single_run$session, outputs = "manifest")
+  single_receipts <- wb_operation_pack_registry_receipts(single_bundle)
+  stopifnot(
+    any(single_promotion$promoted$output == "manifest"),
+    identical(wb_cells(single_bundle, "set:single_contract"), "cell_1"),
+    identical(single_receipts$request_kind, "cell_set_admission"),
+    identical(single_receipts$n_sets, 1L)
+  )
   TRUE
 }
 
@@ -552,7 +580,7 @@ test_operation_pack_v2_v1_coexistence_and_order_contract <- function() {
       if (abi == "1") wb_operation_pack_activate(v1_manifest, lib.loc = v2$lib)
       else wb_operation_pack_activate(v2$manifest, lib.loc = v2$lib)
     }
-    stopifnot(length(wb_list_ops()) == 60L, nrow(wb_operation_packs()) == 2L)
+    stopifnot(length(wb_list_ops()) == 62L, nrow(wb_operation_packs()) == 2L)
     identity <- wb_operation_catalog_identity()
     for (pack in rev(order)) {
       wb_operation_pack_unload(if (pack == "1") "scwbfixture" else "scwbv2reference")
@@ -624,8 +652,8 @@ test_operation_pack_v2_transition_schema_exhaustive_contract <- function() {
   receipt_schema <- jsonlite::read_json(
     "inst/protocol/operation-pack-transition-receipt-v2.schema.json", simplifyVector = FALSE)
   validate <- getFromNamespace(".wb_json_schema_validate_2020", "scworkbench")
-  stopifnot(length(result$request$inputs) == 11L, length(result$request$outputs) == 15L,
-    length(result$receipt$outputs) == 14L, length(result$receipt$registry_requests) == 1L)
+  stopifnot(length(result$request$inputs) == 11L, length(result$request$outputs) == 16L,
+    length(result$receipt$outputs) == 14L, length(result$receipt$registry_requests) == 2L)
 
   for (entry in result$request$inputs) {
     descriptor <- entry$descriptor
@@ -666,8 +694,9 @@ test_operation_pack_v2_transition_schema_exhaustive_contract <- function() {
   receipt_descriptors <- lapply(result$receipt$outputs, `[[`, "descriptor")
   for (descriptor in receipt_descriptors) stopifnot(isTRUE(validate(descriptor,
     receipt_schema[["$defs"]]$observed_output_descriptor, receipt_schema)$ok))
-  registry_descriptor <- result$receipt$registry_requests[[1]]$descriptor
-  stopifnot(isTRUE(validate(registry_descriptor,
-    receipt_schema[["$defs"]]$registry_request_descriptor, receipt_schema)$ok))
+  for (entry in result$receipt$registry_requests) {
+    stopifnot(isTRUE(validate(entry$descriptor,
+      receipt_schema[["$defs"]]$registry_request_descriptor, receipt_schema)$ok))
+  }
   TRUE
 }

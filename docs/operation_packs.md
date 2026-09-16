@@ -48,6 +48,19 @@ claim. Finalized transition outputs remain available through
 `wb_operation_pack_transition_outputs()` and
 `wb_operation_pack_transition_load()` without the pack installed.
 
+ABI v2 registry outputs remain requests, never write capabilities. The legacy
+`cell_set_admission_v1` request and the generic
+`cell_set_family_admission_v1` request are authenticated in the private
+transition, then applied by core only when their complete promotion group is
+published. A family carries an ordered (possibly empty) normalized set array,
+one family-wide `add` or `replace` mode, and identity-bearing source metadata.
+Core canonicalizes set names lexically and each membership in bundle cell
+order, while preserving the original request and per-member identities in the
+committed receipt. Registry effects, selected terminals, transition payloads,
+provenance bindings, and receipts commit or roll back together. A pack-free
+recipient can inspect those receipts with
+`wb_operation_pack_registry_receipts()`.
+
 Python v2 activation authenticates the original manifest in the installed
 distribution through the explicitly configured PyBench interpreter. Execution
 uses the installed `pybench-operation-pack-v3` CLI: core owns a private staging

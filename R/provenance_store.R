@@ -1571,6 +1571,8 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           if (!is.na(art_id) && nzchar(art_id)) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "output", nm, "artifact", as.character(art_id), "PRODUCES", mat_path, identity_hash, identity$content_identity_scheme, "promotion_artifact")
         }
       }
+      .wb_operation_pack_v2_write_registry_bindings(
+        bundle, sid, commit_id, rid)
     }
   }
   if (isTRUE(transaction_open)) write_snapshot() else DBI::dbWithTransaction(con, write_snapshot())

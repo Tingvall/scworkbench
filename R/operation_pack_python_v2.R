@@ -408,10 +408,17 @@
     registry_request <- identical(as.character(descriptor$category)[1],
       "core_registry_request")
     content_ok <- if (registry_request) {
-      cells <- as.character(unlist(value$cells %||% character(), use.names = FALSE))
-      identical(.wb_operation_pack_sha256(value$cells %||% list()),
-        as.character(descriptor$membership_identity$sha256 %||% "")[1]) &&
-        !anyDuplicated(cells)
+      if (identical(as.character(descriptor$kind)[1],
+          "cell_set_family_admission")) {
+        identical(.wb_operation_pack_sha256(value),
+          as.character(descriptor$family_identity$sha256 %||% "")[1])
+      } else {
+        cells <- as.character(unlist(value$cells %||% character(),
+          use.names = FALSE))
+        identical(.wb_operation_pack_sha256(value$cells %||% list()),
+          as.character(descriptor$membership_identity$sha256 %||% "")[1]) &&
+          !anyDuplicated(cells)
+      }
     } else identical(.wb_operation_pack_sha256(value),
       as.character(descriptor$content_identity$sha256 %||% "")[1])
     .wb_operation_pack_assert(identical(as.character(value$kind %||% "")[1],
@@ -534,6 +541,7 @@
       meta = meta)), class = "wb_primitive"),
     cell_set_admission = list(kind = kind, name = as.character(value$name)[1],
       cells = as.character(value$cells)),
+    cell_set_family_admission = value,
     .wb_operation_pack_v2_error("PYBENCH_OUTPUT_INVALID",
       paste0("No pack-free reconstruction for Python kind '", kind, "'."), "reopen"))
   out

@@ -37,7 +37,11 @@
     ),
     promotion_outputs = c("run_id", "output_name"),
     durable_outputs = c("run_id", "entity_kind", "entity_id"),
-    artifact_sources = c("artifact_id", "run_id", "output_name")
+    artifact_sources = c("artifact_id", "run_id", "output_name"),
+    registry_requests = c(
+      "run_id", "output_name", "request_kind", "family_sha256",
+      "family_json"
+    )
   )
   for (name in names(required_frames)) {
     value <- plan[[name]] %||% data.frame()
@@ -347,6 +351,12 @@ wb_target_execute_plan <- function(plan, execution_bundle_dir) {
       inputs = execution_inputs,
       notes = as.character(row$notes[1] %||% "")[1]
     )
+    expected_registry <- (plan$registry_requests %||% data.frame())[
+      as.character((plan$registry_requests %||% data.frame())$run_id) == run_id,
+      , drop = FALSE]
+    .wb_operation_pack_v2_assert_registry_replay(
+      expected_registry, result$run$operation_pack_registry_requests %||%
+        list())
     session <- result$session
     replay_map[[run_id]] <- as.character(result$run$run_id)
     run_rows[[i]] <- data.frame(

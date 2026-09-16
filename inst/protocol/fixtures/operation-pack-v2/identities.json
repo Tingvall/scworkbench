@@ -2,9 +2,9 @@
   "schema": "scworkbench.operation_pack.protocol_identity_fixture.v2",
   "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
   "files": {
-    "operation-pack-v2.schema.json": "d6756c057704820f2b6f1069035546a85fa2cbf504885f519bfe4535550f727c",
-    "operation-pack-transition-request-v2.schema.json": "81bf35b2827778f149aee3e3ca2e921332f22415a290b5e9c704af37b7e1aed2",
-    "operation-pack-transition-receipt-v2.schema.json": "2cd5e6192daa799bd4562dd1f0d4761eb1a7e8847ff048b3880783a0db0fba1b"
+    "operation-pack-v2.schema.json": "b871ee6b7ead0012907a5586f3457ae4f5913c44d771a4646770945686c4f2ee",
+    "operation-pack-transition-request-v2.schema.json": "2d2e663ecc61fc2b82d3378f4363d76d9b5e70ebd7c92552defc9296df7c3882",
+    "operation-pack-transition-receipt-v2.schema.json": "c4406842983475e1a833b2e37cf882ee863409a2657469e88815dde42df964c4"
   },
   "manifest_examples": [
     {
@@ -31,5 +31,89 @@
     "2c4a2ecfd258de228b3ab63fc0bb6ae865906aaf7224426e08f96be45d91767c",
     "dacd86e9474b05c482a780bbeb2cb4ed48694ea11c73c6be6f9252183b45a82e",
     "c9bf84f11ab81e26c5a791c5509ae7e7431b1eeff7e91673ef69b66b43eb62a8"
+  ],
+  "cell_set_family_examples": [
+    {
+      "name": "replace_two_sets_noncanonical_source_order",
+      "cell_order": ["cell_c", "cell_a", "cell_b", "cell_d"],
+      "input_payload": {
+        "kind": "cell_set_family_admission",
+        "sets": [
+          {
+            "name": "set:zeta",
+            "cells": ["cell_b", "cell_c"],
+            "description": "Zeta",
+            "selection_rule": "label == z"
+          },
+          {
+            "name": "alpha",
+            "cells": ["cell_d", "cell_a"],
+            "description": "Alpha",
+            "selection_rule": "label == a"
+          }
+        ],
+        "mode": "replace",
+        "source": {
+          "label": "cross_language_fixture",
+          "created_by": "forge",
+          "input_artifact_id": null,
+          "input_run_id": null,
+          "input_snapshot_id": null
+        }
+      },
+      "normalized_payload": {
+        "kind": "cell_set_family_admission",
+        "sets": [
+          {
+            "name": "set:alpha",
+            "cells": ["cell_a", "cell_d"],
+            "description": "Alpha",
+            "selection_rule": "label == a"
+          },
+          {
+            "name": "set:zeta",
+            "cells": ["cell_c", "cell_b"],
+            "description": "Zeta",
+            "selection_rule": "label == z"
+          }
+        ],
+        "mode": "replace",
+        "source": {
+          "label": "cross_language_fixture",
+          "created_by": "forge",
+          "input_artifact_id": null,
+          "input_run_id": null,
+          "input_snapshot_id": null
+        }
+      },
+      "family_identity": {
+        "scheme": "scworkbench.cell_set.family_admission.v1",
+        "scope": "normalized family payload",
+        "sha256": "b14ba7c346af6fd7cd5c14fd1c8b269daabc02f9a52152d4b36563c805ef2904"
+      },
+      "member_identities": [
+        {
+          "name": "set:alpha",
+          "membership_identity": {
+            "scheme": "scworkbench.cell_set.membership.v1",
+            "scope": "ordered exact membership",
+            "sha256": "07f36a10d26952a372ee796ad0159beee47d79b90c96b08d1ee03800dcbe1741"
+          }
+        },
+        {
+          "name": "set:zeta",
+          "membership_identity": {
+            "scheme": "scworkbench.cell_set.membership.v1",
+            "scope": "ordered exact membership",
+            "sha256": "02caa0a42a709e1a1c1a46e792848c4468ac9c7078cbef891b25f8d057be1c90"
+          }
+        }
+      ],
+      "source_identity": {
+        "scheme": "scworkbench.cell_set.family_source.v1",
+        "scope": "normalized source metadata",
+        "sha256": "73ebb7117754f70ba00bfcf11dcead266537934c31b1d7705d0b8db7483d5b0c"
+      }
+    }
   ]
 }

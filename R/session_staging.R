@@ -99,7 +99,8 @@
 
     roots <- list.files(bundle$dir, all.files = TRUE, no.. = TRUE)
     roots <- setdiff(roots, c("manifest.json", dirname(db_rel), ".git"))
-    mutable <- c("mat", "models", "artifact_models", "space_payloads")
+    mutable <- c("mat", "models", "artifact_models", "space_payloads",
+      "operation_pack_v2")
     for (nm in roots) {
       status <- if (nm %in% mutable && dir.exists(file.path(bundle$dir,nm))) {
         .wb_path_tree_status(bundle$dir,nm,purpose="session staging payload tree")
@@ -114,7 +115,14 @@
         .wb_assert(isTRUE(ok), paste0("Failed to link bundle payload root into session staging: ", src))
       }
     }
-    for (nm in mutable) dir.create(file.path(stage_dir, nm), recursive = TRUE, showWarnings = FALSE)
+    # ABI v2 creates its private transition root lazily. An eager empty root is
+    # observable to the legacy PyBench payload-diff publisher and can change
+    # which nested model tree it publishes. Existing transition roots still
+    # enter the copy-on-write branch above.
+    for (nm in setdiff(mutable, "operation_pack_v2")) {
+      dir.create(file.path(stage_dir, nm), recursive = TRUE,
+        showWarnings = FALSE)
+    }
   })
 
   stage_bundle <- wb_open_bundle(stage_dir, validate = FALSE)
