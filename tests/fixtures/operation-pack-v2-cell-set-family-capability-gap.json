@@ -1,0 +1,47 @@
+{
+  "schema_version": "scworkbench.operation_pack.cell_set_family_capability_gap.v1",
+  "accepted_capability": {
+    "category": "core_registry_request",
+    "kind": "cell_set_admission",
+    "storage_profile": "cell_set_admission_v1",
+    "writer": "request_cell_set_admission",
+    "payload_fields": ["name", "cells"],
+    "cardinality": "one write for one statically declared output"
+  },
+  "required_winner_cell_sets_contract": {
+    "cardinality": "data-dependent zero-or-more cell sets in one atomic family",
+    "replace_policy": "explicit and family-wide",
+    "publication": "promotion transaction with manifest and complete receipt set",
+    "validation": [
+      "unique canonical set names",
+      "unique members",
+      "members in bundle universe",
+      "canonical member order",
+      "collision and replacement policy",
+      "complete provenance binding"
+    ]
+  },
+  "negative_fixtures": [
+    {
+      "case": "second_declared_name",
+      "attempt": "write a second data-dependent family member through an undeclared output name",
+      "expected_code": "PYBENCH_CAPABILITY_MISMATCH",
+      "expected_phase": "execution",
+      "expected_residue": "none"
+    },
+    {
+      "case": "repeat_single_grant",
+      "attempt": "write two family members through the one declared cell-set grant",
+      "expected_code": "PYBENCH_RECEIPT_MISMATCH",
+      "expected_phase": "receipt",
+      "expected_residue": "none"
+    },
+    {
+      "case": "zero_requests",
+      "attempt": "emit the valid zero-winner case by omitting the required registry request",
+      "expected_code": "PYBENCH_RECEIPT_MISMATCH",
+      "expected_phase": "receipt",
+      "expected_residue": "none"
+    }
+  ]
+}

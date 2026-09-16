@@ -260,6 +260,106 @@ test_operation_pack_v2_reference_lifecycle_contract <- function() {
   TRUE
 }
 
+test_operation_pack_v2_cell_set_family_capability_gap_contract <- function() {
+  gap <- jsonlite::read_json(
+    "tests/fixtures/operation-pack-v2-cell-set-family-capability-gap.json",
+    simplifyVector = FALSE
+  )
+  stopifnot(
+    identical(gap$schema_version,
+      "scworkbench.operation_pack.cell_set_family_capability_gap.v1"),
+    identical(vapply(gap$negative_fixtures, `[[`, character(1), "case"),
+      c("second_declared_name", "repeat_single_grant", "zero_requests"))
+  )
+
+  fixture <- .wb_v2_fixture_install()
+  on.exit(.wb_v2_fixture_cleanup(fixture), add = TRUE)
+  wb_operation_pack_activate(fixture$manifest, lib.loc = fixture$lib)
+  on.exit(try(wb_operation_pack_unload("scwbv2reference"), silent = TRUE), add = TRUE)
+
+  bundle_dir <- tempfile("scwb_v2_registry_family_gap_")
+  bundle <- wb_init_bundle(bundle_dir)
+  on.exit(wb_close_bundle(bundle), add = TRUE)
+  execute <- getFromNamespace(".wb_operation_pack_v2_execute", "scworkbench")
+  registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
+  op_name <- "scwbv2reference::all_contracts"
+  original <- registry$packs$scwbv2reference$registration$runners[[op_name]]
+  set_runner <- function(runner) {
+    current <- registry$packs$scwbv2reference
+    current$registration$runners[[op_name]] <- runner
+    registry$packs$scwbv2reference <- current
+    invisible(TRUE)
+  }
+  on.exit(set_runner(original), add = TRUE)
+
+  registry_state <- function() {
+    list(
+      sets = wb_cell_sets(bundle, include_history = TRUE),
+      membership = DBI::dbGetQuery(bundle$con,
+        "SELECT cell_set, cell_id, source, description FROM cell_set_membership ORDER BY cell_set, cell_id;")
+    )
+  }
+  transition_dirs <- function() {
+    root <- file.path(bundle_dir, "operation_pack_v2")
+    if (!dir.exists(root)) return(character())
+    dirs <- list.dirs(root, recursive = FALSE, full.names = TRUE)
+    sort(setdiff(dirs, file.path(root, ".pending")), method = "radix")
+  }
+  before <- registry_state()
+
+  runners <- list(
+    second_declared_name = function(readers, writers, params, context) {
+      writers$request_cell_set_admission("cell_set_a",
+        list(name = "set:winner_a", cells = "cell_1"))
+      invisible(list(status = "unreachable"))
+    },
+    repeat_single_grant = function(readers, writers, params, context) {
+      writers$request_cell_set_admission("cell_set",
+        list(name = "set:winner_a", cells = "cell_1"))
+      writers$request_cell_set_admission("cell_set",
+        list(name = "set:winner_b", cells = "cell_1"))
+      invisible(list(status = "unreachable"))
+    },
+    zero_requests = function(readers, writers, params, context) {
+      invisible(list(status = "no_registry_requests"))
+    }
+  )
+  for (case in gap$negative_fixtures) {
+    set_runner(runners[[case$case]])
+    error <- .wb_v2_expect_error(
+      execute(bundle, op_name, .wb_v2_fixture_inputs(), list()),
+      case$expected_code, case$expected_phase
+    )
+    cat(sprintf(
+      "CAPABILITY GAP %s code=%s phase=%s message=%s\n",
+      case$case, error$code, error$phase, conditionMessage(error)
+    ))
+    stopifnot(
+      inherits(error, "wb_operation_pack_v2_error"),
+      identical(registry_state(), before),
+      !length(transition_dirs())
+    )
+  }
+
+  # The accepted single-request capability persists an authenticated request,
+  # but it does not apply even that one request to the governed cell-set
+  # registry.  Session/promotion therefore has no family request to validate or
+  # publish atomically.
+  set_runner(original)
+  success <- execute(bundle, op_name, .wb_v2_fixture_inputs(), list())
+  request <- wb_operation_pack_transition_load(bundle, success$transition_id,
+    "cell_set")
+  stopifnot(
+    identical(request$name, "v2_cells"),
+    identical(request$cells, "cell_1"),
+    identical(registry_state(), before),
+    !"v2_cells" %in% wb_cell_sets(bundle),
+    length(success$registry_requests) == 1L
+  )
+  cat("CAPABILITY GAP single_request durable=true registry_applied=false\n")
+  TRUE
+}
+
 test_operation_pack_v2_dynamic_dependency_contract <- function() {
   fixture <- .wb_v2_fixture_install()
   on.exit(.wb_v2_fixture_cleanup(fixture), add = TRUE)
