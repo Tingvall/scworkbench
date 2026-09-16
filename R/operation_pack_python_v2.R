@@ -459,8 +459,41 @@
     "PYBENCH_OUT_OF_SCOPE_MUTATION",
     "Core mutation audit differs from the Python mutation manifest.",
     class = "wb_operation_pack_v2_error")
+  registry_read_paths <- vapply(request$registry_reads %||% list(), function(item) {
+    relative <- paste0("registry_reads/", item$name, "/payload.json")
+    path <- file.path(stage, relative)
+    .wb_operation_pack_assert(file.exists(path) && !nzchar(Sys.readlink(path)),
+      "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Authenticated registry snapshot is absent or linked: ", item$name),
+      class = "wb_operation_pack_v2_error")
+    raw <- readChar(path, nchars = file.info(path)$size, useBytes = TRUE)
+    .wb_operation_pack_v2_assert_strict_json(raw)
+    value <- .wb_operation_pack_v2_feature_set_registry_snapshot_validate(
+      .wb_operation_pack_parse_canonical_json(raw))
+    manifest <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.payload_manifest.v2",
+      "registry read payload manifest", list(path = relative,
+        size = as.numeric(file.info(path)$size),
+        sha256 = .wb_operation_pack_v2_file_sha256(path)))
+    content <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.feature_set_registry.snapshot.v1",
+      "canonical matrix-bound registry snapshot", value)
+    source <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.feature_set_registry.source.v1",
+      "ordered registry source state", list(matrix_id = value$matrix_id,
+        feature_universe = value$feature_universe, sets = value$sets))
+    .wb_operation_pack_assert(
+      identical(manifest, item$descriptor$payload_manifest_identity) &&
+        identical(content, item$descriptor$content_identity) &&
+        identical(source, item$descriptor$source_identity),
+      "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Authenticated registry snapshot identity differs: ", item$name),
+      class = "wb_operation_pack_v2_error")
+    relative
+  }, character(1))
   allowed <- sort(c("request.json", "state.json", "receipt.json",
-    "python-runtime.json", vapply(entries, `[[`, character(1), "path")),
+    "python-runtime.json", vapply(entries, `[[`, character(1), "path"),
+    registry_read_paths),
     method = "radix")
   actual <- sort(list.files(stage, recursive = TRUE, all.files = TRUE,
     include.dirs = FALSE, no.. = TRUE), method = "radix")

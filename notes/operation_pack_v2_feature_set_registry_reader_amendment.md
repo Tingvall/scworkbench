@@ -1,8 +1,9 @@
-# Proposed ABI v2 feature-set-registry reader capability
+# ABI v2 feature-set-registry reader capability
 
-Status: review required; not a live protocol change
+Status: R/core/protocol candidate implemented; Python parity required before
+scientific pack extraction
 
-## Confirmed gap
+## Closed R/core gap
 
 Two frozen Phase 3B methods consume durable feature-set registry state that is
 not present in their declared primitive inputs:
@@ -12,20 +13,17 @@ not present in their declared primitive inputs:
 - `feature_set_overlap_qc` reads the same registry surface to compute namespace
   and membership QC.
 
-ABI v2 grants readers only for manifest-declared primitive inputs. Its input
-schema has no feature-set-registry kind, the R adapter exposes exactly the
-declared reader names, and the execution context intentionally carries no
-bundle handle. A matrix primitive contains the matrix feature universe but not
-feature-set names, namespace metadata, source cardinalities, or ordered
-memberships. Consequently neither frozen method can be implemented by a pack
-without changing its public interface, passing an unauthenticated hidden
-payload, or restoring direct bundle access to pack code.
+ABI v2 now grants this state through a dedicated manifest `registry_reads`
+declaration, not through a new primitive input. The execution context still
+carries no bundle handle, and an ordinary matrix input does not acquire hidden
+registry authority. The public input tuples of the frozen methods remain
+unchanged.
 
 Executable evidence is in
 `tests/test_operation_pack_v2_feature_set_registry_gap.R` and
 `tests/fixtures/operation-pack-v2-feature-set-registry-capability-gap.json`.
 
-## Smallest generic amendment
+## Implemented generic amendment
 
 Add an authenticated, read-only core registry snapshot input contract:
 
@@ -47,25 +45,31 @@ parameter validation. The snapshot contains:
 - a content identity over the complete ordered snapshot;
 - source-state and ancestry identities binding it to the transition.
 
+Set rows are ordered by namespace then set name; memberships preserve stored
+rank order and carry their ranks explicitly. Selector arrays are de-duplicated
+and radix-sorted. With no selector, all namespaces are selected. Each grant
+declares whether an empty match is allowed or rejected; no namespace allowlist
+exists.
+
 The typed reader returns a private deep copy and grants no mutation authority.
 The source-state identity must be re-read immediately before dispatch so a
 namespace, metadata, membership, or rank change after preflight fails closed.
 This is generic registry access: no GenePrograms operation name or algorithm
 appears in the resolver or protocol.
 
-## Required protocol work
+## Remaining cross-language work
 
-Quill must update the byte-identical v2 manifest, request, and receipt schemas
-and implement Python transport parity before extraction resumes. The R core
-must add the same declaration validation, parameter binding, snapshot
-canonicalization, reader grant, source-state recheck, and receipt audit.
+Quill must adopt the four byte-identical shared files and implement Python
+transport parity before extraction resumes. The R core candidate includes
+declaration validation, parameter binding, snapshot canonicalization, reader
+grant, source-state recheck, receipt audit, durable reopen, and pack-free
+recipient inspection.
 
-Required negative fixtures include undeclared registry reads, absent or wrong
-namespace, wrong matrix binding, duplicate set names, duplicate or
-out-of-universe members, noncanonical membership rank, post-preflight registry
-mutation, malformed descriptors, and wrong snapshot identity. Every rejection
-must occur before pack dispatch or output publication and leave no transition,
-artifact, registry, provenance, or receipt residue.
+Executable coverage includes undeclared, missing, and extra reads; absent or
+wrong namespace; wrong matrix binding; duplicate set names or members;
+out-of-universe members; noncanonical rank/order; post-preflight registry
+mutation; malformed descriptors; and forged identities. Lifecycle failures
+before publication leave no transition or analytical residue and are retryable.
 
 ## Rejected local workarounds
 

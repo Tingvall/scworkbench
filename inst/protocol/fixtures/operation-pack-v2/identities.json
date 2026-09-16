@@ -2,9 +2,9 @@
   "schema": "scworkbench.operation_pack.protocol_identity_fixture.v2",
   "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
   "files": {
-    "operation-pack-v2.schema.json": "b871ee6b7ead0012907a5586f3457ae4f5913c44d771a4646770945686c4f2ee",
-    "operation-pack-transition-request-v2.schema.json": "2d2e663ecc61fc2b82d3378f4363d76d9b5e70ebd7c92552defc9296df7c3882",
-    "operation-pack-transition-receipt-v2.schema.json": "c4406842983475e1a833b2e37cf882ee863409a2657469e88815dde42df964c4"
+    "operation-pack-v2.schema.json": "e4ca57a6a40d87a62865aae43597646f5b6a3f5ca15dec65b89d163033acd8ec",
+    "operation-pack-transition-request-v2.schema.json": "700665a2ba03a69c6df75f9640bf09b9be86b443c61060ffdf0381dcc24bcae5",
+    "operation-pack-transition-receipt-v2.schema.json": "3e9f07c342fa929806e3747f36ef59f43838921b98907cf5d4ceeede1a1f0a15"
   },
   "manifest_examples": [
     {
@@ -113,6 +113,201 @@
         "scheme": "scworkbench.cell_set.family_source.v1",
         "scope": "normalized source metadata",
         "sha256": "73ebb7117754f70ba00bfcf11dcead266537934c31b1d7705d0b8db7483d5b0c"
+      }
+    }
+  ],
+  "feature_set_registry_examples": [
+    {
+      "name": "zero_selected_sets",
+      "snapshot": {
+        "schema": "scworkbench.feature_set_registry.snapshot.v1",
+        "matrix_id": "matrix_fixture",
+        "feature_universe": ["feature_c", "feature_a", "feature_b"],
+        "selection": {
+          "namespaces": ["ns_missing"],
+          "feature_sets": [],
+          "no_selector_policy": "all_namespaces",
+          "empty_match_policy": "allow"
+        },
+        "sets": []
+      },
+      "matrix_content_identity": {
+        "scheme": "scworkbench.matrix.content.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "feature_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "9fa4cfed532cfc5591a0fc2bd9e205cd6d007453804642a66995fc5c8c12f8fa"
+      },
+      "selection_identity": {
+        "scheme": "scworkbench.feature_set_registry.selection.v1",
+        "scope": "normalized selector binding",
+        "sha256": "e2665f183f4e802851482345d737a4f800321aa07aec95c96adfffa60a25ddb0"
+      },
+      "content_identity": {
+        "scheme": "scworkbench.feature_set_registry.snapshot.v1",
+        "scope": "canonical matrix-bound registry snapshot",
+        "sha256": "e66f5146e8f0382cc9803eec827190337000b32a52ff2b1a80d0bfe53814bb24"
+      },
+      "source_identity": {
+        "scheme": "scworkbench.feature_set_registry.source.v1",
+        "scope": "ordered registry source state",
+        "sha256": "b323e3c041d4880498ebae4d33e31dc097e6cc56b738a4b78cca9700fda58c58"
+      },
+      "ancestry_identity": {
+        "scheme": "scworkbench.provenance.ancestry.v1",
+        "scope": "registry snapshot ancestry",
+        "sha256": "eb64d7547a5c1c1393ee6addf99dc7b1ef9d32ab462df7ca9df1e92d7115eb6e"
+      }
+    },
+    {
+      "name": "one_selected_set",
+      "snapshot": {
+        "schema": "scworkbench.feature_set_registry.snapshot.v1",
+        "matrix_id": "matrix_fixture",
+        "feature_universe": ["feature_c", "feature_a", "feature_b"],
+        "selection": {
+          "namespaces": ["ns_alpha"],
+          "feature_sets": [],
+          "no_selector_policy": "all_namespaces",
+          "empty_match_policy": "allow"
+        },
+        "sets": [
+          {
+            "feature_set": "SET_A",
+            "matrix_id": "matrix_fixture",
+            "n_features": 2,
+            "set_id": "fset_alpha",
+            "namespace": "ns_alpha",
+            "organism": "human",
+            "source_id": "source_alpha",
+            "source_version": "1",
+            "origin": "fixture",
+            "recipe_json": "{\"method\":\"fixture\",\"n_genes_raw\":2}",
+            "is_readonly": 1,
+            "created_at": "2026-09-16T00:00:00Z",
+            "updated_at": "2026-09-16T00:00:00Z",
+            "created_by": "forge",
+            "description": "Fixture SET_A",
+            "memberships": [
+              {"feature_id": "feature_c", "rank": 1},
+              {"feature_id": "feature_a", "rank": 2}
+            ]
+          }
+        ]
+      },
+      "matrix_content_identity": {
+        "scheme": "scworkbench.matrix.content.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "feature_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "9fa4cfed532cfc5591a0fc2bd9e205cd6d007453804642a66995fc5c8c12f8fa"
+      },
+      "selection_identity": {
+        "scheme": "scworkbench.feature_set_registry.selection.v1",
+        "scope": "normalized selector binding",
+        "sha256": "d12255c4632b8a1db8946d0c1649592c98d316b47a2888dcfab055d59157f3cb"
+      },
+      "content_identity": {
+        "scheme": "scworkbench.feature_set_registry.snapshot.v1",
+        "scope": "canonical matrix-bound registry snapshot",
+        "sha256": "248536d4f116e3ef4408e278ccf25b7cfd4493014fe99cba19f5b1359499b477"
+      },
+      "source_identity": {
+        "scheme": "scworkbench.feature_set_registry.source.v1",
+        "scope": "ordered registry source state",
+        "sha256": "9338b4e3bc727a4168cdbd7db9ea0933a749b6aafbe567570a698efdf1198540"
+      },
+      "ancestry_identity": {
+        "scheme": "scworkbench.provenance.ancestry.v1",
+        "scope": "registry snapshot ancestry",
+        "sha256": "556975241edc650aafd275e706bb71e564e6c0645e952233be76181c4ba86cc4"
+      }
+    },
+    {
+      "name": "many_selected_sets",
+      "snapshot": {
+        "schema": "scworkbench.feature_set_registry.snapshot.v1",
+        "matrix_id": "matrix_fixture",
+        "feature_universe": ["feature_c", "feature_a", "feature_b"],
+        "selection": {
+          "namespaces": [],
+          "feature_sets": [],
+          "no_selector_policy": "all_namespaces",
+          "empty_match_policy": "allow"
+        },
+        "sets": [
+          {
+            "feature_set": "SET_A",
+            "matrix_id": "matrix_fixture",
+            "n_features": 2,
+            "set_id": "fset_alpha",
+            "namespace": "ns_alpha",
+            "organism": "human",
+            "source_id": "source_alpha",
+            "source_version": "1",
+            "origin": "fixture",
+            "recipe_json": "{\"method\":\"fixture\",\"n_genes_raw\":2}",
+            "is_readonly": 1,
+            "created_at": "2026-09-16T00:00:00Z",
+            "updated_at": "2026-09-16T00:00:00Z",
+            "created_by": "forge",
+            "description": "Fixture SET_A",
+            "memberships": [
+              {"feature_id": "feature_c", "rank": 1},
+              {"feature_id": "feature_a", "rank": 2}
+            ]
+          },
+          {
+            "feature_set": "SET_B",
+            "matrix_id": "matrix_fixture",
+            "n_features": 1,
+            "set_id": "fset_beta",
+            "namespace": "ns_beta",
+            "organism": "human",
+            "source_id": "source_beta",
+            "source_version": "1",
+            "origin": "fixture",
+            "recipe_json": "{\"method\":\"fixture\",\"n_genes_raw\":1}",
+            "is_readonly": 1,
+            "created_at": "2026-09-16T00:00:00Z",
+            "updated_at": "2026-09-16T00:00:00Z",
+            "created_by": "forge",
+            "description": "Fixture SET_B",
+            "memberships": [
+              {"feature_id": "feature_b", "rank": 1}
+            ]
+          }
+        ]
+      },
+      "matrix_content_identity": {
+        "scheme": "scworkbench.matrix.content.v1",
+        "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "feature_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "9fa4cfed532cfc5591a0fc2bd9e205cd6d007453804642a66995fc5c8c12f8fa"
+      },
+      "selection_identity": {
+        "scheme": "scworkbench.feature_set_registry.selection.v1",
+        "scope": "normalized selector binding",
+        "sha256": "8909076c4946e20916866de5ec7353dc6ea164435ef1fdd36d1c2f732ea6e6e1"
+      },
+      "content_identity": {
+        "scheme": "scworkbench.feature_set_registry.snapshot.v1",
+        "scope": "canonical matrix-bound registry snapshot",
+        "sha256": "58e18b98965a02d253b99718aa274de5d47d34f0d32e93b2ff9f1d4271260d04"
+      },
+      "source_identity": {
+        "scheme": "scworkbench.feature_set_registry.source.v1",
+        "scope": "ordered registry source state",
+        "sha256": "2680901e33ea384529dab692473689661b9166cad8ed65542be3cb11aa617452"
+      },
+      "ancestry_identity": {
+        "scheme": "scworkbench.provenance.ancestry.v1",
+        "scope": "registry snapshot ancestry",
+        "sha256": "3aec639edd2fd53af50fd03a23dbdd821c02b53add9f071e998df741d0816de7"
       }
     }
   ]

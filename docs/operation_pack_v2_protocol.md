@@ -37,6 +37,24 @@ receipt in one rollback-capable transaction. `add` retains pre-existing
 members in bundle order; `replace` installs the exact requested membership.
 Neither mode may alter a provenance-bound set to a different membership.
 
+Read-only core registry state is a separate manifest-declared grant, never a
+primitive input or hidden bundle capability. A `registry_reads` declaration
+with category `authenticated_core_registry_snapshot`, kind
+`feature_set_registry`, and reader `read_feature_set_registry` binds one
+declared matrix input and only the named namespace, namespaces, and feature-set
+parameters. Selector arrays are radix-sorted and duplicate-free. With no
+selector, `all_namespaces` is explicit; each declaration chooses `allow` or
+`error` for an empty match, and no fixed namespace allowlist exists.
+
+Core authenticates the exact ordered matrix feature universe, canonical set
+rows ordered by namespace then set name, all registry metadata, and
+memberships in stored rank order. Selection, content, source, ancestry,
+payload-manifest, and descriptor identities enter the request; the receipt
+records one matching observed descriptor and a use count of one. Core re-reads
+the source immediately before dispatch. The pack receives only a private typed
+copy, and the durable payload remains inspectable without the pack through
+`wb_operation_pack_transition_registry_reads()`.
+
 An operation may declare the closed `data_dependent_table_v1` dimension policy
 for a terminal `feature_table` or `obs_table` using the
 `terminal_primitive_v1` storage profile. For every conforming namespace, and

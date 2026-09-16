@@ -257,6 +257,42 @@
       "dependencies": [],
       "promotion_closure": {"manifest": ["cell_set", "manifest"]},
       "replay_equivalence": {"manifest": "exact_canonical_value", "cell_set": "exact_membership_and_order"}
+    },
+    {
+      "name": "feature_set_registry_contract",
+      "qualified_name": "scwbv2reference::feature_set_registry_contract",
+      "title": "Feature-set-registry read conformance",
+      "description": "Generic authenticated read-only registry snapshot conformance operation.",
+      "runner": ".feature_set_registry_contract",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {
+        "namespace": {"type": ["string", "null"], "default": null, "minLength": 1},
+        "namespaces": {"type": ["array", "null"], "default": null, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "feature_sets": {"type": ["array", "null"], "default": null, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }, "additionalProperties": false},
+      "registry_reads": [
+        {
+          "name": "feature_sets",
+          "category": "authenticated_core_registry_snapshot",
+          "kind": "feature_set_registry",
+          "reader": "read_feature_set_registry",
+          "matrix_input": "matrix",
+          "namespace_parameter": "namespace",
+          "namespaces_parameter": "namespaces",
+          "feature_sets_parameter": "feature_sets",
+          "no_selector_policy": "all_namespaces",
+          "empty_match_policy": "allow"
+        }
+      ],
+      "dimension_policies": [{"output": "summary", "policy": "data_dependent_table_v1"}],
+      "outputs": [
+        {"name": "summary", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "summary_id", "required": true, "promotion_group": "summary", "table_type": "synthetic_feature_set_registry_summary"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"summary": ["summary"]},
+      "replay_equivalence": {"summary": "exact_canonical_value"}
     }
   ]
 }

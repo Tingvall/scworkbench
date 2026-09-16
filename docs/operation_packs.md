@@ -61,6 +61,17 @@ provenance bindings, and receipts commit or roll back together. A pack-free
 recipient can inspect those receipts with
 `wb_operation_pack_registry_receipts()`.
 
+ABI v2 read authority for feature-set registries is declared separately under
+`registry_reads`; it does not change an operation's public input tuple. The
+grant binds a declared matrix and declared selector parameters, authenticates
+the ordered feature universe, complete registry metadata, and stored-rank
+memberships, and is re-read immediately before dispatch. No selector means all
+namespaces, and the manifest explicitly chooses whether an empty match is
+allowed. The single-use `read_feature_set_registry` capability returns a
+private typed copy, never a bundle handle. Finalized snapshots and their
+request/receipt identities remain available pack-free through
+`wb_operation_pack_transition_registry_reads()`.
+
 Python v2 activation authenticates the original manifest in the installed
 distribution through the explicitly configured PyBench interpreter. Execution
 uses the installed `pybench-operation-pack-v3` CLI: core owns a private staging
@@ -78,8 +89,9 @@ before publication.
 
 The source-tree package `tests/fixtures/operation-pack-v2-reference` is a small
 synthetic conformance pack. It exercises all accepted R readers, writers,
-output categories, storage profiles, cell-set admission, mixed output groups,
-and dynamic input-metadata dependency resolution. It is not installed by
+output categories, storage profiles, cell-set admission, authenticated
+feature-set-registry reads, mixed output groups, and dynamic input-metadata
+dependency resolution. It is not installed by
 scworkbench, is never activated ambiently, and makes no scientific-method
 claim.
 

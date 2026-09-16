@@ -202,6 +202,12 @@
         "$ref": "#/$defs/input_grant"
       }
     },
+    "registry_reads": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/registry_read_grant"}
+    },
     "params": {
       "type": "object"
     },
@@ -1371,6 +1377,66 @@
           }
         }
       ]
+    },
+    "registry_read_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "descriptor"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "descriptor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "category", "kind", "reader", "matrix_input", "selector_binding",
+            "matrix_id", "dimensions", "matrix_content_identity",
+            "feature_order_identity", "selection_identity", "content_identity",
+            "source_identity", "ancestry_identity", "payload_manifest_identity",
+            "descriptor_identity"
+          ],
+          "properties": {
+            "category": {"const": "authenticated_core_registry_snapshot"},
+            "kind": {"const": "feature_set_registry"},
+            "reader": {"const": "read_feature_set_registry"},
+            "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "selector_binding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["namespace_parameter", "namespaces_parameter", "feature_sets_parameter", "no_selector_policy", "empty_match_policy"],
+              "properties": {
+                "namespace_parameter": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]*$"},
+                "namespaces_parameter": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]*$"},
+                "feature_sets_parameter": {"type": ["string", "null"], "pattern": "^[a-z][a-z0-9_]*$"},
+                "no_selector_policy": {"const": "all_namespaces"},
+                "empty_match_policy": {"enum": ["allow", "error"]}
+              }
+            },
+            "matrix_id": {"type": "string", "minLength": 1},
+            "dimensions": {
+              "type": "array", "prefixItems": [
+                {"type": "integer", "minimum": 0},
+                {"type": "integer", "minimum": 0}
+              ], "items": false, "minItems": 2, "maxItems": 2
+            },
+            "matrix_content_identity": {"$ref": "#/$defs/identity"},
+            "feature_order_identity": {"$ref": "#/$defs/identity"},
+            "selection_identity": {"$ref": "#/$defs/self_identity"},
+            "content_identity": {"$ref": "#/$defs/self_identity"},
+            "source_identity": {"$ref": "#/$defs/self_identity"},
+            "ancestry_identity": {"$ref": "#/$defs/self_identity"},
+            "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
+            "descriptor_identity": {
+              "type": "object", "additionalProperties": false,
+              "required": ["scheme", "scope", "sha256"],
+              "properties": {
+                "scheme": {"const": "scworkbench.operation_pack.registry_read_descriptor.v2"},
+                "scope": {"const": "descriptor excluding descriptor_identity"},
+                "sha256": {"$ref": "#/$defs/sha256"}
+              }
+            }
+          }
+        }
+      }
     },
     "input_grant": {
       "type": "object",
@@ -3040,49 +3106,50 @@
           "type": "array",
           "uniqueItems": true,
           "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "input_name",
-              "reader",
-              "descriptor_identity"
-            ],
-            "properties": {
-              "input_name": {
-                "type": "string"
-              },
-              "reader": {
-                "enum": [
-                  "read_matrix",
-                  "read_space",
-                  "read_space_2d",
-                  "read_model_ref",
-                  "read_terminal_primitive",
-                  "read_path_2d_family",
-                  "read_space_path_family"
-                ]
-              },
-              "descriptor_identity": {
+            "oneOf": [
+              {
                 "type": "object",
                 "additionalProperties": false,
-                "required": [
-                  "scheme",
-                  "scope",
-                  "sha256"
-                ],
+                "required": ["input_name", "reader", "descriptor_identity"],
                 "properties": {
-                  "scheme": {
-                    "const": "scworkbench.operation_pack.input_descriptor.v2"
+                  "input_name": {"type": "string"},
+                  "reader": {
+                    "enum": [
+                      "read_matrix", "read_space", "read_space_2d",
+                      "read_model_ref", "read_terminal_primitive",
+                      "read_path_2d_family", "read_space_path_family"
+                    ]
                   },
-                  "sha256": {
-                    "$ref": "#/$defs/sha256"
-                  },
-                  "scope": {
-                    "const": "descriptor excluding descriptor_identity"
+                  "descriptor_identity": {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["scheme", "scope", "sha256"],
+                    "properties": {
+                      "scheme": {"const": "scworkbench.operation_pack.input_descriptor.v2"},
+                      "sha256": {"$ref": "#/$defs/sha256"},
+                      "scope": {"const": "descriptor excluding descriptor_identity"}
+                    }
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["registry_read_name", "reader", "descriptor_identity"],
+                "properties": {
+                  "registry_read_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                  "reader": {"const": "read_feature_set_registry"},
+                  "descriptor_identity": {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["scheme", "scope", "sha256"],
+                    "properties": {
+                      "scheme": {"const": "scworkbench.operation_pack.registry_read_descriptor.v2"},
+                      "scope": {"const": "descriptor excluding descriptor_identity"},
+                      "sha256": {"$ref": "#/$defs/sha256"}
+                    }
                   }
                 }
               }
-            }
+            ]
           }
         },
         "writer_grants": {

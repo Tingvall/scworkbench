@@ -1646,6 +1646,31 @@
         "input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
       }
     },
+    "registry_read": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "category",
+        "kind",
+        "reader",
+        "matrix_input",
+        "no_selector_policy",
+        "empty_match_policy"
+      ],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "category": {"const": "authenticated_core_registry_snapshot"},
+        "kind": {"const": "feature_set_registry"},
+        "reader": {"const": "read_feature_set_registry"},
+        "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "namespace_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "namespaces_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "feature_sets_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "no_selector_policy": {"const": "all_namespaces"},
+        "empty_match_policy": {"enum": ["allow", "error"]}
+      }
+    },
     "dimension_policy": {
       "type": "object",
       "additionalProperties": false,
@@ -1737,6 +1762,12 @@
           "type": "array",
           "uniqueItems": true,
           "items": {"$ref": "#/$defs/parameter_binding"}
+        },
+        "registry_reads": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/registry_read"}
         },
         "dimension_policies": {
           "type": "array",

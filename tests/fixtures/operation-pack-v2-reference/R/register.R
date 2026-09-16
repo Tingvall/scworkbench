@@ -91,6 +91,35 @@
   invisible(list(status = "ok"))
 }
 
+.feature_set_registry_contract <- function(readers, writers, params, context) {
+  or_default <- function(value, default) if (is.null(value)) default else value
+  registry <- readers$feature_sets()
+  sets <- registry$sets
+  rows <- if (length(sets)) do.call(rbind, lapply(sets, function(item) {
+    data.frame(
+      namespace = as.character(or_default(item$namespace, "")),
+      feature_set = as.character(item$feature_set),
+      n_features = as.integer(item$n_features),
+      members = paste(vapply(item$memberships, `[[`, character(1), "feature_id"),
+        collapse = ","),
+      ranks = paste(vapply(item$memberships, function(x) as.integer(x$rank), integer(1)),
+        collapse = ","),
+      source_id = as.character(or_default(item$source_id, "")),
+      recipe_json = as.character(or_default(item$recipe_json, "")),
+      stringsAsFactors = FALSE
+    )
+  })) else data.frame(
+    namespace = character(), feature_set = character(), n_features = integer(),
+    members = character(), ranks = character(), source_id = character(),
+    recipe_json = character(), stringsAsFactors = FALSE)
+  writers$write_terminal_primitive("summary", scworkbench::wb_prim_obs_table(
+    rows, table_type = "synthetic_feature_set_registry_summary",
+    entity_kind = "feature_set", meta = list(
+      matrix_id = registry$matrix_id,
+      feature_universe = unlist(registry$feature_universe, use.names = FALSE))))
+  invisible(list(status = "ok"))
+}
+
 .dynamic_provider <- function(readers, writers, params, context) {
   matrix <- readers$matrix()
   cells <- as.character(matrix$cell_id)
@@ -179,7 +208,8 @@ register_operation_pack <- function() {
       `scwbv2reference::grouped_feature_table` = .grouped_feature_table,
       `scwbv2reference::chunked_feature_table` = .chunked_feature_table,
       `scwbv2reference::cell_set_family_contract` = .cell_set_family_contract,
-      `scwbv2reference::single_cell_set_contract` = .single_cell_set_contract
+      `scwbv2reference::single_cell_set_contract` = .single_cell_set_contract,
+      `scwbv2reference::feature_set_registry_contract` = .feature_set_registry_contract
     )
   )
 }

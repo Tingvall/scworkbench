@@ -1,5 +1,6 @@
 {
-  "schema_version": "scworkbench.operation_pack.feature_set_registry_capability_gap.v1",
+  "schema_version": "scworkbench.operation_pack.feature_set_registry_capability.v2",
+  "capability_status": "implemented_in_r_core",
   "current_input_kinds": [
     "matrix",
     "space",
@@ -13,7 +14,7 @@
     "path_2d_family",
     "space_path_family"
   ],
-  "blocked_operations": [
+  "prerequisite_for_operations": [
     "pathway_enrich",
     "feature_set_overlap_qc"
   ],
@@ -25,9 +26,11 @@
     "category": "authenticated_core_registry_snapshot",
     "kind": "feature_set_registry",
     "reader": "read_feature_set_registry",
-    "binding": "matrix plus namespace and optional feature-set parameters",
+    "binding": "declared matrix input plus declared namespace, namespaces, and optional feature-set parameters",
     "identity": "ordered registry metadata and ordered memberships at preflight",
-    "authority": "read_only"
+    "authority": "read_only",
+    "no_selector_policy": "all_namespaces",
+    "empty_match_policy": ["allow", "error"]
   },
   "negative_fixtures": [
     {

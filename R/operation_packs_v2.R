@@ -398,6 +398,48 @@
         "semantic_admission", operation = opname, requirement_id = dep$requirement_id)
     }
     properties <- op$params_schema$properties %||% list()
+    registry_reads <- op$registry_reads %||% list()
+    registry_names <- vapply(registry_reads, function(x) as.character(x$name)[1], character(1))
+    if (anyDuplicated(registry_names) || length(intersect(registry_names, input_names))) {
+      .wb_operation_pack_v2_declaration_error(opname,
+        "repeats a registry-read name or collides with a primitive input name.")
+    }
+    for (registry_read in registry_reads) {
+      matrix_input <- as.character(registry_read$matrix_input)[1]
+      matrix_index <- match(matrix_input, input_names)
+      if (is.na(matrix_index) ||
+          !identical(as.character(op$inputs[[matrix_index]]$kind)[1], "matrix")) {
+        .wb_operation_pack_v2_declaration_error(opname,
+          "has a feature-set registry read without a declared matrix input.")
+      }
+      scalar_parameter <- as.character(registry_read$namespace_parameter %||% "")[1]
+      vector_parameters <- c(
+        as.character(registry_read$namespaces_parameter %||% "")[1],
+        as.character(registry_read$feature_sets_parameter %||% "")[1]
+      )
+      vector_parameters <- vector_parameters[nzchar(vector_parameters)]
+      if (nzchar(scalar_parameter)) {
+        schema_type <- as.character(unlist(properties[[scalar_parameter]]$type %||%
+          character(), use.names = FALSE))
+        if (is.null(properties[[scalar_parameter]]) || !"string" %in% schema_type) {
+          .wb_operation_pack_v2_declaration_error(opname,
+            "has an incompatible scalar namespace selector binding.")
+        }
+      }
+      for (parameter in vector_parameters) {
+        schema <- properties[[parameter]]
+        schema_type <- as.character(unlist(schema$type %||% character(), use.names = FALSE))
+        if (is.null(schema) || !"array" %in% schema_type ||
+            !identical(as.character(schema$items$type %||% "")[1], "string")) {
+          .wb_operation_pack_v2_declaration_error(opname,
+            "has an incompatible registry vector-selector binding.")
+        }
+      }
+      selector_parameters <- c(scalar_parameter, vector_parameters)
+      selector_parameters <- selector_parameters[nzchar(selector_parameters)]
+      if (anyDuplicated(selector_parameters)) .wb_operation_pack_v2_declaration_error(
+        opname, "reuses one parameter for multiple registry selector roles.")
+    }
     public <- op$public_interface %||% NULL
     if (!is.null(public)) {
       public_inputs <- vapply(public$inputs, `[[`, character(1), "name")

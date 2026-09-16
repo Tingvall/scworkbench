@@ -508,6 +508,8 @@
     name, inputs[[name]], declarations[[name]],
     if (python_backend) transport_inputs[[name]] else NULL))
   input_records <- input_records[order(vapply(input_records, `[[`, character(1), "name"), method = "radix")]
+  registry_state <- .wb_operation_pack_v2_registry_read_records(
+    bundle, operation, inputs, params, input_records, stage_root)
   policies <- stats::setNames(operation$dimension_policies %||% list(),
     vapply(operation$dimension_policies %||% list(), function(x) as.character(x$output)[1], character(1)))
   output_records <- lapply(operation$outputs, function(output) .wb_operation_pack_v2_output_grant(
@@ -534,8 +536,11 @@
     entry_point_identity = identity$entry_point_identity,
     selected_requirement_set_identity = preflight$selected_identity,
     preflight_report_identity = preflight$preflight_identity,
-    reader_grants = lapply(input_records, function(x) list(input_name = x$name,
+    reader_grants = c(lapply(input_records, function(x) list(input_name = x$name,
       reader = x$descriptor$reader, descriptor_identity = x$descriptor$descriptor_identity)),
+      lapply(registry_state$records, function(x) list(registry_read_name = x$name,
+        reader = x$descriptor$reader,
+        descriptor_identity = x$descriptor$descriptor_identity))),
     writer_grants = lapply(output_records, function(x) list(output_name = x$name,
       writer = x$descriptor$writer, grant_identity = x$descriptor$grant_identity)),
     single_use = TRUE)
@@ -565,9 +570,11 @@
     params = if (!length(params)) structure(list(), names = character()) else params,
     outputs = output_records,
     execution_capability = capability)
+  if (length(registry_state$records)) request$registry_reads <- registry_state$records
   request$request_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_request.v2", "request excluding request_identity", request)
   attr(request, "operation_pack_v2_transport_inputs") <- transport_inputs
+  attr(request, "operation_pack_v2_registry_read_values") <- registry_state$values
   request
 }
 
@@ -595,6 +602,10 @@
     "PYBENCH_CAPABILITY_MISMATCH", "staging")
   for (input in request$inputs) .wb_operation_pack_v2_assert_self_identity(input$descriptor,
     "descriptor_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH", "resolution")
+  for (registry_read in request$registry_reads %||% list()) {
+    .wb_operation_pack_v2_assert_self_identity(registry_read$descriptor,
+      "descriptor_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH", "resolution")
+  }
   for (output in request$outputs) .wb_operation_pack_v2_assert_self_identity(output$descriptor,
     "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
   .wb_operation_pack_v2_assert_self_identity(request$execution_capability, "capability_identity",
@@ -611,8 +622,11 @@
   if (!identical(.wb_operation_pack_canonical_json(request$operation_authentication),
       .wb_operation_pack_canonical_json(expected_authentication))) .wb_operation_pack_v2_error(
     "PYBENCH_CAPABILITY_MISMATCH", "Request operation authentication differs from the activated pack.", "staging")
-  readers <- lapply(request$inputs, function(x) list(input_name = x$name,
-    reader = x$descriptor$reader, descriptor_identity = x$descriptor$descriptor_identity))
+  readers <- c(lapply(request$inputs, function(x) list(input_name = x$name,
+    reader = x$descriptor$reader, descriptor_identity = x$descriptor$descriptor_identity)),
+    lapply(request$registry_reads %||% list(), function(x) list(
+      registry_read_name = x$name, reader = x$descriptor$reader,
+      descriptor_identity = x$descriptor$descriptor_identity)))
   writers <- lapply(request$outputs, function(x) list(output_name = x$name,
     writer = x$descriptor$writer, grant_identity = x$descriptor$grant_identity))
   capability <- request$execution_capability
@@ -647,6 +661,29 @@
   }
   for (item in observed) .wb_operation_pack_v2_assert_self_identity(item$descriptor,
     "observed_descriptor_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+  expected_reads <- request$registry_reads %||% list()
+  observed_reads <- receipt$registry_reads %||% list()
+  expected_read_keys <- vapply(expected_reads, function(x) paste(x$name,
+    x$descriptor$descriptor_identity$sha256,
+    x$descriptor$content_identity$sha256,
+    x$descriptor$source_identity$sha256,
+    x$descriptor$ancestry_identity$sha256,
+    x$descriptor$payload_manifest_identity$sha256, sep = "\r"), character(1))
+  observed_read_keys <- vapply(observed_reads, function(x) paste(x$name,
+    x$descriptor$descriptor_identity$sha256,
+    x$descriptor$content_identity$sha256,
+    x$descriptor$source_identity$sha256,
+    x$descriptor$ancestry_identity$sha256,
+    x$descriptor$payload_manifest_identity$sha256, sep = "\r"), character(1))
+  if (!identical(expected_read_keys, observed_read_keys) ||
+      anyDuplicated(observed_read_keys)) {
+    .wb_operation_pack_v2_error("PYBENCH_RECEIPT_MISMATCH",
+      "Receipt registry reads are not an exact ordered bijection with grants.",
+      "receipt")
+  }
+  for (item in observed_reads) .wb_operation_pack_v2_assert_self_identity(
+    item$descriptor, "observed_descriptor_identity",
+    "PYBENCH_RECEIPT_MISMATCH", "receipt")
   for (item in receipt$registry_requests %||% list()) {
     if (!identical(as.character(item$descriptor$kind)[1],
         "cell_set_family_admission")) next
@@ -700,7 +737,8 @@
 }
 
 .wb_operation_pack_v2_capability_adapter <- function(request, operation, inputs, stage_root,
-                                                      bundle = NULL) {
+                                                      bundle = NULL,
+                                                      registry_read_values = list()) {
   state <- new.env(parent = emptyenv()); state$used <- FALSE; state$writes <- list()
   state$reader_calls <- list()
   declarations <- stats::setNames(operation$outputs, vapply(operation$outputs, `[[`, character(1), "name"))
@@ -730,7 +768,8 @@
         }
         dimnames(values) <- list(features, cells)
         state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
-          input = name, features = as.character(features), cells = as.character(cells))
+          category = "input", input = name,
+          features = as.character(features), cells = as.character(cells))
         structure(list(kind = "matrix", matrix_id = value$matrix_id,
           values = values, dimensions = as.integer(dim(values)),
           feature_id = features, cell_id = cells,
@@ -742,10 +781,32 @@
         if (length(list(...))) .wb_operation_pack_v2_error(
           "PYBENCH_CAPABILITY_MISMATCH",
           "Only read_matrix accepts a typed selection.", "execution")
+        state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
+          category = "input", input = name)
         .wb_operation_pack_v2_deep_copy(inputs[[name]])
       }
     }
   }), names(inputs))
+  registry_readers <- stats::setNames(lapply(names(registry_read_values), function(name) {
+    force(name)
+    function(...) {
+      if (isTRUE(state$used) || length(list(...))) {
+        .wb_operation_pack_v2_error("PYBENCH_CAPABILITY_MISMATCH",
+          "Registry readers are private, no-argument and single-use.", "execution")
+      }
+      prior <- Filter(function(x) identical(x$category %||% "", "registry_read") &&
+        identical(as.character(x$name)[1], name), state$reader_calls)
+      if (length(prior)) .wb_operation_pack_v2_error(
+        "PYBENCH_CAPABILITY_MISMATCH",
+        paste0("Registry reader '", name, "' was consumed more than once."),
+        "execution", registry_read = name)
+      state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
+        category = "registry_read", name = name)
+      value <- .wb_operation_pack_v2_deep_copy(registry_read_values[[name]])
+      structure(value, class = c("wb_operation_pack_feature_set_registry", "list"))
+    }
+  }), names(registry_read_values))
+  readers <- c(readers, registry_readers)
   write_one <- function(writer, name, value, semantic_metadata = list()) {
     if (isTRUE(state$used)) .wb_operation_pack_v2_error("PYBENCH_CAPABILITY_MISMATCH",
       "Capability has already been consumed.", "execution")
@@ -910,7 +971,8 @@
   observed
 }
 
-.wb_operation_pack_v2_receipt <- function(request, registration, operation, writes, preflight) {
+.wb_operation_pack_v2_receipt <- function(request, registration, operation, writes, preflight,
+                                           registry_reads = list()) {
   grants <- stats::setNames(request$outputs, vapply(request$outputs, `[[`, character(1), "name"))
   expected <- names(grants)
   if (!setequal(names(writes), expected) || anyDuplicated(names(writes)) || length(writes) != length(expected)) {
@@ -943,6 +1005,7 @@
     capability_identity = request$execution_capability$capability_identity,
     outputs = outputs, registry_requests = registry, mutation_manifest = mutation,
     runtime_attestation = .wb_operation_pack_v2_runtime_attestation(registration, operation$qualified_name, preflight))
+  if (length(registry_reads)) receipt$registry_reads <- registry_reads
   receipt$receipt_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_receipt.v2", "receipt excluding receipt_identity", receipt)
   receipt
@@ -1009,6 +1072,80 @@
       expected_content <- item$descriptor$content_identity$sha256 %||%
         item$descriptor$family_identity$sha256 %||% NULL
       if (!is.null(expected_content) && !identical(actual, expected_content)) return(list(ok = FALSE, code = "content_identity_mismatch", output = item$name))
+    }
+  }
+  request_reads <- request$registry_reads %||% list()
+  receipt_reads <- receipt$registry_reads %||% list()
+  if (length(request_reads) != length(receipt_reads) ||
+      !identical(vapply(request_reads, `[[`, character(1), "name"),
+        vapply(receipt_reads, `[[`, character(1), "name"))) {
+    return(list(ok = FALSE, code = "registry_read_bijection_mismatch"))
+  }
+  for (i in seq_along(request_reads)) {
+    request_read <- request_reads[[i]]; receipt_read <- receipt_reads[[i]]
+    name <- as.character(request_read$name)[1]
+    descriptor_ok <- tryCatch({
+      .wb_operation_pack_v2_assert_self_identity(request_read$descriptor,
+        "descriptor_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH", "reopen")
+      .wb_operation_pack_v2_assert_self_identity(receipt_read$descriptor,
+        "observed_descriptor_identity", "PYBENCH_RECEIPT_MISMATCH", "reopen")
+      identical(as.integer(receipt_read$descriptor$use_count)[1], 1L) &&
+        identical(receipt_read$descriptor$descriptor_identity,
+          request_read$descriptor$descriptor_identity) &&
+        identical(receipt_read$descriptor$content_identity,
+          request_read$descriptor$content_identity) &&
+        identical(receipt_read$descriptor$source_identity,
+          request_read$descriptor$source_identity) &&
+        identical(receipt_read$descriptor$ancestry_identity,
+          request_read$descriptor$ancestry_identity) &&
+        identical(receipt_read$descriptor$payload_manifest_identity,
+          request_read$descriptor$payload_manifest_identity)
+    }, error = function(error) FALSE)
+    if (!isTRUE(descriptor_ok)) return(list(ok = FALSE,
+      code = "registry_read_descriptor_identity_mismatch", output = name))
+    payload <- file.path(path, "registry_reads", name, "payload.json")
+    if (!file.exists(payload)) return(list(ok = FALSE,
+      code = "registry_read_payload_missing", output = name))
+    payload_manifest <- list(path = paste0("registry_reads/", name, "/payload.json"),
+      size = as.numeric(file.info(payload)$size),
+      sha256 = .wb_operation_pack_v2_file_sha256(payload))
+    observed_manifest <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.payload_manifest.v2",
+      "registry read payload manifest", payload_manifest)
+    if (!identical(observed_manifest,
+        request_read$descriptor$payload_manifest_identity) ||
+        !identical(receipt_read$descriptor$payload_manifest_identity,
+          request_read$descriptor$payload_manifest_identity)) {
+      return(list(ok = FALSE, code = "registry_read_payload_identity_mismatch",
+        output = name))
+    }
+    if (isTRUE(load_payloads)) {
+      value <- tryCatch({
+        raw <- readChar(payload, nchars = file.info(payload)$size, useBytes = TRUE)
+        .wb_operation_pack_v2_assert_strict_json(raw)
+        .wb_operation_pack_parse_canonical_json(raw)
+      }, error = identity)
+      if (inherits(value, "error")) return(list(ok = FALSE,
+        code = "registry_read_payload_unreadable", output = name))
+      validated <- tryCatch(
+        .wb_operation_pack_v2_feature_set_registry_snapshot_validate(value),
+        error = identity)
+      if (inherits(validated, "error")) return(list(ok = FALSE,
+        code = "registry_read_payload_invalid", output = name))
+      content <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.feature_set_registry.snapshot.v1",
+        "canonical matrix-bound registry snapshot", value)
+      source <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.feature_set_registry.source.v1",
+        "ordered registry source state", list(matrix_id = value$matrix_id,
+          feature_universe = value$feature_universe, sets = value$sets))
+      if (!identical(content, request_read$descriptor$content_identity) ||
+          !identical(source, request_read$descriptor$source_identity) ||
+          !identical(receipt_read$descriptor$content_identity, content) ||
+          !identical(receipt_read$descriptor$source_identity, source)) {
+        return(list(ok = FALSE, code = "registry_read_content_identity_mismatch",
+          output = name))
+      }
     }
   }
   list(ok = TRUE, request = request, request_identity = request_id,
@@ -1131,6 +1268,8 @@
     state = "staged", transition_id = transition_id), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("staged", transition_id = transition_id)
   .wb_operation_pack_v2_dynamic_reread(operation, inputs, preflight)
+  .wb_operation_pack_v2_registry_reads_assert_current(bundle, operation,
+    inputs, params, request$registry_reads %||% list())
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
   if (python_backend) {
     process_result <- .wb_operation_pack_v2_python_dispatch(request, registration, stage)
@@ -1138,7 +1277,9 @@
     unlink(file.path(stage, "inputs"), recursive = TRUE, force = TRUE)
   } else {
     adapter <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs, stage,
-      bundle = bundle)
+      bundle = bundle,
+      registry_read_values = attr(request,
+        "operation_pack_v2_registry_read_values") %||% list())
     runner <- registration$runners[[op_name]]
     result <- tryCatch(runner(readers = adapter$readers, writers = adapter$writers,
       params = .wb_operation_pack_v2_deep_copy(params),
@@ -1154,9 +1295,11 @@
     }
     reader_observation <- .wb_operation_pack_v2_chunk_observation(operation,
       params, adapter$state$reader_calls, inputs)
+    registry_read_observations <- .wb_operation_pack_v2_registry_read_observations(
+      request, adapter$state$reader_calls)
     adapter$consume()
     receipt <- .wb_operation_pack_v2_receipt(request, registration, operation,
-      adapter$state$writes, preflight)
+      adapter$state$writes, preflight, registry_read_observations)
   }
   .wb_operation_pack_v2_fault("receipt_received", transition_id = transition_id)
   .wb_operation_pack_v2_schema_assert(receipt, "receipt", "PYBENCH_RECEIPT_MISMATCH")
@@ -1171,8 +1314,13 @@
   } else {
     inventory <- list.files(stage, recursive = TRUE, all.files = TRUE,
       include.dirs = FALSE, no.. = TRUE)
+    registry_names <- names(attr(request,
+      "operation_pack_v2_registry_read_values") %||% list())
+    registry_payloads <- if (length(registry_names)) paste0(
+      "registry_reads/", registry_names, "/payload.json") else character()
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
-      paste0("outputs/", names(adapter$state$writes), "/payload.rds")), method = "radix")
+      paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
+      registry_payloads), method = "radix")
     if (!identical(sort(inventory, method = "radix"), expected_inventory)) .wb_operation_pack_v2_error(
       "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
       unexpected = setdiff(inventory, expected_inventory))

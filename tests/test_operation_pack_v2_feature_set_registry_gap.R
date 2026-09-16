@@ -24,16 +24,31 @@ test_operation_pack_v2_feature_set_registry_gap_contract <- function() {
     grepl("wb_feature_set_get", overlap_body, fixed = TRUE)
   )
 
-  # ABI v2 cannot declare an authenticated registry snapshot input. This is a
-  # protocol rejection, not an implementation convention.
-  proposed <- list(
+  # Registry authority remains separate from primitive inputs. The old hidden
+  # input shape is rejected, while the manifest-declared registry-read grant is
+  # admitted by its dedicated schema.
+  hidden_input <- list(
     name = "feature_sets",
     kind = "feature_set_registry",
     required = TRUE,
     alignment = "feature_ordered"
   )
-  result <- validate(proposed, schema[["$defs"]]$input, schema)
-  stopifnot(!isTRUE(result$ok))
+  proposed <- list(
+    name = "feature_sets",
+    category = "authenticated_core_registry_snapshot",
+    kind = "feature_set_registry",
+    reader = "read_feature_set_registry",
+    matrix_input = "matrix",
+    namespace_parameter = "namespace",
+    namespaces_parameter = "namespaces",
+    feature_sets_parameter = "feature_sets",
+    no_selector_policy = "all_namespaces",
+    empty_match_policy = "allow"
+  )
+  stopifnot(
+    !isTRUE(validate(hidden_input, schema[["$defs"]]$input, schema)$ok),
+    isTRUE(validate(proposed, schema[["$defs"]]$registry_read, schema)$ok)
+  )
 
   # The live R adapter exposes exactly the declared readers. A matrix input
   # does not silently acquire registry authority or registry payload.
@@ -80,13 +95,14 @@ test_operation_pack_v2_feature_set_registry_gap_contract <- function() {
   stopifnot(
     identical(sort(allowed, method = "radix"),
       sort(as.character(unlist(fixture$current_input_kinds)), method = "radix")),
-    identical(as.character(fixture$blocked_operations),
-      c("pathway_enrich", "feature_set_overlap_qc"))
+    identical(as.character(fixture$prerequisite_for_operations),
+      c("pathway_enrich", "feature_set_overlap_qc")),
+    identical(fixture$capability_status, "implemented_in_r_core")
   )
 
   message(
-    "CAPABILITY GAP feature_set_registry schema_admitted=false ",
-    "declared_readers=matrix frozen_operations=pathway_enrich,feature_set_overlap_qc"
+    "CAPABILITY AMENDMENT feature_set_registry schema_admitted=true ",
+    "hidden_input=false no_implicit_reader=true"
   )
   TRUE
 }
