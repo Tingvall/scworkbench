@@ -1,0 +1,54 @@
+{
+  "schema_version": "scworkbench.operation_pack.feature_set_registry_capability_gap.v1",
+  "current_input_kinds": [
+    "matrix",
+    "space",
+    "space_2d",
+    "model_ref",
+    "cell_vector",
+    "cell_vector_family",
+    "relation_family",
+    "feature_table",
+    "obs_table",
+    "path_2d_family",
+    "space_path_family"
+  ],
+  "blocked_operations": [
+    "pathway_enrich",
+    "feature_set_overlap_qc"
+  ],
+  "frozen_inputs": {
+    "pathway_enrich": ["matrix", "feature_table"],
+    "feature_set_overlap_qc": ["matrix"]
+  },
+  "required_capability": {
+    "category": "authenticated_core_registry_snapshot",
+    "kind": "feature_set_registry",
+    "reader": "read_feature_set_registry",
+    "binding": "matrix plus namespace and optional feature-set parameters",
+    "identity": "ordered registry metadata and ordered memberships at preflight",
+    "authority": "read_only"
+  },
+  "negative_fixtures": [
+    {
+      "case": "undeclared_registry_reader",
+      "expected_code": "PYBENCH_CAPABILITY_MISMATCH",
+      "expected_residue": "none"
+    },
+    {
+      "case": "namespace_absent_at_preflight",
+      "expected_code": "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "expected_residue": "none"
+    },
+    {
+      "case": "registry_mutated_after_preflight",
+      "expected_code": "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "expected_residue": "none"
+    },
+    {
+      "case": "membership_or_rank_changed",
+      "expected_code": "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "expected_residue": "none"
+    }
+  ]
+}
