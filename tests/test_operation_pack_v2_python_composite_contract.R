@@ -15,6 +15,47 @@
   "Phase 2C fixture requires SCWORKBENCH_PHASE2C_PYBENCH_ROOT,",
   "SCWORKBENCH_PHASE2C_PYTHON_PACK_MANIFEST, and SCWORKBENCH_PYBENCH_PYTHON"))
 
+.wb_phase2c_pybench_commit <-
+  "874af6b72a4b5ebdcf30449ef0052416ca0be21b"
+
+.wb_phase2c_shared_sha256 <- c(
+  "b871ee6b7ead0012907a5586f3457ae4f5913c44d771a4646770945686c4f2ee",
+  "2d2e663ecc61fc2b82d3378f4363d76d9b5e70ebd7c92552defc9296df7c3882",
+  "c4406842983475e1a833b2e37cf882ee863409a2657469e88815dde42df964c4",
+  "d2ad42db06c03332c94345d014eeff18145f317e46026d531da976139c5c98cd"
+)
+
+.wb_phase2c_assert_pin <- function(root, expected = .wb_phase2c_pybench_commit) {
+  observed <- system2("git", c("-C", root, "rev-parse", "HEAD"),
+    stdout = TRUE)
+  if (length(observed) != 1L || !identical(observed[[1]], expected)) {
+    stop(sprintf("Pinned PyBench mismatch: expected %s, observed %s.",
+      expected, paste(observed, collapse = ",")), call. = FALSE)
+  }
+  invisible(observed[[1]])
+}
+
+.wb_phase2c_assert_shared_protocol <- function(r_root, py_root,
+    expected = .wb_phase2c_shared_sha256) {
+  shared <- c("operation-pack-v2.schema.json",
+    "operation-pack-transition-request-v2.schema.json",
+    "operation-pack-transition-receipt-v2.schema.json",
+    "fixtures/operation-pack-v2/identities.json")
+  stopifnot(length(expected) == length(shared))
+  for (i in seq_along(shared)) {
+    r_path <- file.path(r_root, shared[[i]])
+    p_path <- file.path(py_root, shared[[i]])
+    if (!identical(readBin(r_path, "raw", file.info(r_path)$size),
+        readBin(p_path, "raw", file.info(p_path)$size)) ||
+        !identical(digest::digest(file = r_path, algo = "sha256",
+          serialize = FALSE), expected[[i]])) {
+      stop(sprintf("Shared protocol mismatch: %s", shared[[i]]),
+        call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
 .wb_phase2c_registry_guard <- function() {
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
   list(registry = registry, packs = registry$packs, operations = registry$operations)
@@ -105,27 +146,18 @@
 
 test_operation_pack_v2_composite_protocol_contract <- function() {
   context <- .wb_phase2c_context(); if (is.null(context)) return(.wb_phase2c_skip())
-  revision <- system2("git", c("-C", context$root, "rev-parse", "HEAD"),
-    stdout = TRUE)
-  stopifnot(identical(revision[[1]],
-    "11232d000ee42aa1344c9d6fb25a73acb1d88fe2"))
-  shared <- c("operation-pack-v2.schema.json",
-    "operation-pack-transition-request-v2.schema.json",
-    "operation-pack-transition-receipt-v2.schema.json",
-    "fixtures/operation-pack-v2/identities.json")
-  expected <- c(
-    "d6756c057704820f2b6f1069035546a85fa2cbf504885f519bfe4535550f727c",
-    "81bf35b2827778f149aee3e3ca2e921332f22415a290b5e9c704af37b7e1aed2",
-    "2cd5e6192daa799bd4562dd1f0d4761eb1a7e8847ff048b3880783a0db0fba1b",
-    "2bbb704a50c9c3fbed15c305e1767b953520df8a471613b493ba7f3f4b27925d")
-  for (i in seq_along(shared)) {
-    r_path <- file.path("inst", "protocol", shared[[i]])
-    p_path <- file.path(context$root, "protocol", shared[[i]])
-    stopifnot(identical(readBin(r_path, "raw", file.info(r_path)$size),
-      readBin(p_path, "raw", file.info(p_path)$size)),
-      identical(digest::digest(file = r_path, algo = "sha256", serialize = FALSE),
-        expected[[i]]))
-  }
+  revision <- .wb_phase2c_assert_pin(context$root)
+  .wb_phase2c_assert_shared_protocol(file.path("inst", "protocol"),
+    file.path(context$root, "protocol"))
+  wrong_pin <- try(.wb_phase2c_assert_pin(context$root, strrep("0", 40L)),
+    silent = TRUE)
+  wrong_protocol <- .wb_phase2c_shared_sha256
+  wrong_protocol[[1]] <- strrep("0", 64L)
+  wrong_bytes <- try(.wb_phase2c_assert_shared_protocol(
+    file.path("inst", "protocol"), file.path(context$root, "protocol"),
+    wrong_protocol), silent = TRUE)
+  stopifnot(inherits(wrong_pin, "try-error"),
+    inherits(wrong_bytes, "try-error"))
   sidecar <- file.path("inst", "protocol",
     "pybench-op-v3-python-runtime.schema.json")
   python_sidecar <- file.path(context$root, "protocol",
@@ -136,8 +168,9 @@ test_operation_pack_v2_composite_protocol_contract <- function() {
     identical(file.info(sidecar)$size, file.info(python_sidecar)$size),
     identical(readBin(sidecar, "raw", file.info(sidecar)$size),
       readBin(python_sidecar, "raw", file.info(python_sidecar)$size)),
+    identical(revision, .wb_phase2c_pybench_commit),
     identical(read.dcf("inst/release/composite_release.dcf")[[1,
-      "PyBenchCommit"]], revision[[1]]))
+      "PyBenchCommit"]], "11232d000ee42aa1344c9d6fb25a73acb1d88fe2"))
   TRUE
 }
 
@@ -308,7 +341,7 @@ test_operation_pack_v2_python_activation_contract <- function() {
     identical(wb_operation_catalog_identity(), before$identity))
   activated <- wb_operation_pack_activate(context$manifest, python = context$python)
   stopifnot(identical(activated$identity$backend, "Python"),
-    length(wb_list_ops()) == 56L)
+    length(wb_list_ops()) == 57L)
   TRUE
 }
 
@@ -546,7 +579,13 @@ test_operation_pack_v2_r_python_logical_equivalence_contract <- function() {
   r_inventory <- wb_operation_pack_transition_outputs(r_bundle, r$transition_id)
   py_inventory <- wb_operation_pack_transition_outputs(py_bundle, py$transition_id)
   columns <- c("name", "category", "kind", "storage_profile")
-  stopifnot(identical(r_inventory[, columns], py_inventory[, columns]),
+  # The R conformance operation also carries its local family fixture; Python
+  # exposes the equivalent contract through family_probe. Preserve the exact
+  # pre-amendment all_contracts comparison and qualify the family separately.
+  r_shared <- r_inventory[r_inventory$name != "cell_set_family", , drop = FALSE]
+  stopifnot(identical(r_shared[, columns], py_inventory[, columns]),
+    identical(r_inventory$name[r_inventory$name == "cell_set_family"],
+      "cell_set_family"),
     identical(r$outputs$cell_vector$value, py$outputs$cell_vector$value),
     identical(r$outputs$path_2d$key, py$outputs$path_2d$key),
     !identical(r$receipt$receipt_identity$sha256,
@@ -556,5 +595,303 @@ test_operation_pack_v2_r_python_logical_equivalence_contract <- function() {
   wb_close_bundle(r_bundle); wb_close_bundle(py_bundle)
   unlink(r_root, recursive = TRUE, force = TRUE)
   unlink(py_root, recursive = TRUE, force = TRUE)
+  TRUE
+}
+
+.wb_phase2c_family_fixture <- function() {
+  jsonlite::read_json(file.path("inst", "protocol", "fixtures",
+    "operation-pack-v2", "identities.json"), simplifyVector = FALSE)$
+    cell_set_family_examples[[1]]
+}
+
+.wb_phase2c_family_bundle <- function(label) {
+  root <- tempfile(paste0("scwb_phase2c_family_", label, "_"))
+  bundle <- wb_init_bundle(root)
+  cells <- c("cell_c", "cell_a", "cell_b", "cell_d")
+  features <- c("feature_1", "feature_2")
+  values <- matrix(seq_len(8L), nrow = 2L,
+    dimnames = list(features, cells))
+  wb_define_cells(bundle, cells)
+  wb_attach_matrix(bundle, "family_input", values, feature_type = "gene")
+  matrix <- structure(list(
+    kind = "matrix", values = values,
+    dimensions = as.integer(dim(values)), cell_id = cells,
+    feature_id = features, storage_profile = "matrix_ordinary_v1",
+    matrix_id = "family_input", meta = list(fixture = "family")),
+    class = "wb_primitive")
+  normalized <- wb_session_run_op(wb_session_new(), bundle,
+    "matrix_log_normalize", inputs = list(
+      matrix = "family_input", cell_set = "all", min_cells = 1L,
+      output_matrix_id = "family_normalized", scale_factor = 10000,
+      overwrite = TRUE))
+  list(root = root, bundle = bundle, cells = cells, matrix = matrix,
+    source = normalized$run, session = normalized$session)
+}
+
+.wb_phase2c_family_run <- function(setup, payload) {
+  wb_session_run_op(setup$session, setup$bundle,
+    "scwbpyv2reference::family_probe", inputs = list(
+      matrix = wb_ref_run(setup$source$run_id, "matrix"),
+      family = payload, cell_set = "all", min_cells = 1L))
+}
+
+.wb_phase2c_family_state <- function(bundle) {
+  list(
+    fingerprint = scworkbench:::.wb_session_source_identity(bundle)$
+      scientific_state_fingerprint,
+    registry = scworkbench:::.wb_manifest_registry_snapshot(bundle$con),
+    receipts = wb_operation_pack_registry_receipts(bundle),
+    artifacts = wb_art_list(bundle, include_history = TRUE),
+    sets = wb_cell_sets(bundle)
+  )
+}
+
+test_operation_pack_v2_python_cell_set_family_lifecycle_contract <- function() {
+  context <- .wb_phase2c_context(); if (is.null(context)) return(.wb_phase2c_skip())
+  guard <- .wb_phase2c_registry_guard()
+  on.exit(.wb_phase2c_registry_restore(guard), add = TRUE)
+  wb_operation_pack_activate(context$manifest, python = context$python)
+  fixture <- .wb_phase2c_family_fixture()
+  for (count in 0:2) {
+    setup <- .wb_phase2c_family_bundle(paste0("lifecycle_", count))
+    bundle <- setup$bundle
+    payload <- fixture$input_payload
+    payload$sets <- payload$sets[seq_len(count)]
+    wb_close_bundle(bundle)
+    clone_parent <- tempfile("scwb_phase2c_family_replay_")
+    dir.create(clone_parent)
+    stopifnot(isTRUE(file.copy(setup$root, clone_parent, recursive = TRUE)))
+    clone <- file.path(clone_parent, basename(setup$root))
+    bundle <- wb_open_bundle(setup$root)
+    setup$bundle <- bundle
+    baseline <- .wb_phase2c_family_state(bundle)
+    result <- .wb_phase2c_family_run(setup, payload)
+    stopifnot(identical(.wb_phase2c_family_state(bundle), baseline),
+      length(result$run$operation_pack_registry_requests) == 1L)
+    staged <- result$run$operation_pack_registry_requests[[1]]
+    expected <- scworkbench:::.wb_operation_pack_cell_set_family_normalize(
+      bundle, payload)
+    stopifnot(
+      identical(staged$family_identity$sha256,
+        attr(expected, "family_identity")$sha256),
+      identical(staged$family$sets, expected$sets))
+    receipt_item <- result$run$operation_pack_registry_requests[[1]]
+    transition <- wb_operation_pack_transition_load(
+      result$session$staging_bundle,
+      receipt_item$transition_id, "family")
+    stopifnot(identical(
+      scworkbench:::.wb_operation_pack_canonical_json(transition$sets),
+      scworkbench:::.wb_operation_pack_canonical_json(expected$sets)))
+
+    promotion <- wb_session_promote_current(bundle, result$session,
+      outputs = "summary", created_by = "phase2c_composite")
+    receipt <- wb_operation_pack_registry_receipts(bundle)
+    expected_names <- vapply(expected$sets, `[[`, character(1), "name")
+    stopifnot(nrow(receipt) == 1L, receipt$n_sets[[1]] == count,
+      identical(receipt$family_sha256[[1]],
+        attr(expected, "family_identity")$sha256),
+      all(expected_names %in% wb_cell_sets(bundle)),
+      any(promotion$promoted$output == "summary"))
+    for (set in expected$sets) {
+      stopifnot(identical(wb_cells(bundle, set$name), set$cells))
+    }
+
+    if (count == 2L) {
+      descriptor <- result$run$operation_pack_registry_requests[[1]]
+      stopifnot(
+        identical(descriptor$family_identity, fixture$family_identity),
+        identical(attr(expected, "member_identities"),
+          fixture$member_identities),
+        identical(attr(expected, "source_identity"),
+          fixture$source_identity))
+      artifact_id <- as.character(promotion$promoted$artifact_id[
+        promotion$promoted$output == "summary"][[1]])
+      plan <- wb_target_reproduction_plan(bundle,
+        paste0("artifact:", artifact_id))
+      stopifnot(nrow(plan$registry_requests) == 1L,
+        identical(plan$registry_requests$family_sha256[[1]],
+          receipt$family_sha256[[1]]))
+      replay <- wb_target_execute_plan(plan, clone)
+      stopifnot(identical(replay$status, "promoted_and_verified"))
+      replayed <- wb_open_bundle(clone, read_only = TRUE)
+      stopifnot(nrow(wb_operation_pack_registry_receipts(replayed)) == 1L)
+      for (set in expected$sets) {
+        stopifnot(identical(wb_cells(replayed, set$name), set$cells))
+      }
+      wb_close_bundle(replayed)
+
+      wb_finalize_recipient_bundle(bundle)
+      wb_close_bundle(bundle)
+      before <- .wb_phase2c_tree_identity(setup$root)
+      repo <- normalizePath(".", winslash = "/")
+      expression <- paste0(
+        "a<-commandArgs(TRUE);devtools::load_all(a[1],quiet=TRUE);",
+        "stopifnot(nrow(wb_operation_packs())==0L);",
+        "b<-wb_open_bundle(a[2],read_only=TRUE);",
+        "x<-wb_operation_pack_registry_receipts(b);",
+        "r<-wb_bundle_validation_report(a[2],level='recipient');",
+        "stopifnot(isTRUE(r$ok),nrow(x)==1L,",
+        "identical(x$family_sha256[[1]],a[3]));",
+        "wb_close_bundle(b);cat('pack_free_family_recipient_ok\\n')")
+      recipient <- processx::run(file.path(R.home("bin"), "Rscript"),
+        c("--vanilla", "-e", expression, repo, setup$root,
+          fixture$family_identity$sha256),
+        echo = FALSE, error_on_status = FALSE, timeout = 180)
+      if (recipient$status != 0L) stop(paste(recipient$stdout,
+        recipient$stderr, collapse = "\n"), call. = FALSE)
+      stopifnot(grepl("pack_free_family_recipient_ok", recipient$stdout,
+        fixed = TRUE))
+      stopifnot(identical(before, .wb_phase2c_tree_identity(setup$root)))
+      bundle <- NULL
+    }
+    if (!is.null(bundle)) wb_close_bundle(bundle)
+    unlink(c(setup$root, clone_parent), recursive = TRUE, force = TRUE)
+  }
+  TRUE
+}
+
+test_operation_pack_v2_python_cell_set_family_failure_contract <- function() {
+  context <- .wb_phase2c_context(); if (is.null(context)) return(.wb_phase2c_skip())
+  guard <- .wb_phase2c_registry_guard()
+  on.exit(.wb_phase2c_registry_restore(guard), add = TRUE)
+  wb_operation_pack_activate(context$manifest, python = context$python)
+  fixture <- .wb_phase2c_family_fixture()
+
+  variants <- list(
+    duplicate_member = within(fixture$input_payload,
+      sets[[1]]$cells <- rep(sets[[1]]$cells[[1]], 2L)),
+    foreign_member = within(fixture$input_payload,
+      sets[[1]]$cells <- "foreign_cell"),
+    invalid_name = within(fixture$input_payload,
+      sets[[1]]$name <- "bad/name"),
+    source_mismatch = within(fixture$input_payload, {
+      source$input_run_id <- "run_x"
+      source$input_snapshot_id <- NULL
+    })
+  )
+  for (name in names(variants)) {
+    setup <- .wb_phase2c_family_bundle(paste0("invalid_", name))
+    before <- .wb_phase2c_family_state(setup$bundle)
+    error <- try(.wb_phase2c_family_run(setup, variants[[name]]), silent = TRUE)
+    stopifnot(inherits(error, "try-error"),
+      identical(.wb_phase2c_family_state(setup$bundle), before))
+    pending <- scworkbench:::.wb_operation_pack_v2_pending_root(setup$bundle)
+    stopifnot(!dir.exists(pending) || !length(list.dirs(pending,
+      recursive = FALSE)))
+    wb_close_bundle(setup$bundle)
+    unlink(setup$root, recursive = TRUE, force = TRUE)
+  }
+
+  faults <- c("projected_order", "payload_identity", "receipt_identity",
+    "duplicate_receipt")
+  for (fault in faults) {
+    setup <- .wb_phase2c_family_bundle(paste0("tamper_", fault))
+    before <- .wb_phase2c_family_state(setup$bundle)
+    options(scworkbench.operation_pack_v2_test_hook = local({ target <- fault
+      function(event, stage = NULL, transition_id = NULL, ...) {
+        if (identical(target, "projected_order") &&
+            identical(event, "before_dispatch")) {
+          path <- file.path(
+            scworkbench:::.wb_operation_pack_v2_pending_root(setup$bundle),
+            transition_id, "inputs", "matrix", "payload.json")
+          value <- jsonlite::read_json(path, simplifyVector = FALSE)
+          value$cell_id <- rev(value$cell_id)
+          scworkbench:::.wb_operation_pack_v2_atomic_json(value, path)
+        }
+        if (!identical(event, "python_process_completed")) return(invisible())
+        if (identical(target, "payload_identity")) {
+          path <- file.path(stage, "registry_requests", "family",
+            "payload.json")
+          value <- jsonlite::read_json(path, simplifyVector = FALSE)
+          value$sets[[1]]$cells <- rev(value$sets[[1]]$cells)
+          scworkbench:::.wb_operation_pack_v2_atomic_json(value, path)
+        } else if (target %in% c("receipt_identity", "duplicate_receipt")) {
+          path <- file.path(stage, "receipt.json")
+          value <- jsonlite::read_json(path, simplifyVector = FALSE)
+          if (identical(target, "receipt_identity")) {
+            value$registry_requests[[1]]$descriptor$family_identity$sha256 <-
+              strrep("0", 64L)
+          } else {
+            value$registry_requests[[2]] <- value$registry_requests[[1]]
+          }
+          scworkbench:::.wb_operation_pack_v2_atomic_json(value, path)
+        }
+      }
+    }))
+    error <- try(if (identical(fault, "projected_order")) {
+      scworkbench:::.wb_operation_pack_v2_execute(
+        setup$bundle, "scwbpyv2reference::family_probe",
+        list(matrix = setup$matrix),
+        list(family = fixture$input_payload))
+    } else {
+      .wb_phase2c_family_run(setup, fixture$input_payload)
+    }, silent = TRUE)
+    options(scworkbench.operation_pack_v2_test_hook = NULL)
+    stopifnot(inherits(error, "try-error"),
+      identical(.wb_phase2c_family_state(setup$bundle), before))
+    wb_close_bundle(setup$bundle)
+    unlink(setup$root, recursive = TRUE, force = TRUE)
+  }
+
+  setup <- .wb_phase2c_family_bundle("promotion_fault")
+  result <- .wb_phase2c_family_run(setup, fixture$input_payload)
+  before <- .wb_phase2c_family_state(setup$bundle)
+  fired <- FALSE
+  options(scworkbench.operation_pack_registry_test_hook = function(event,
+      member_index = NULL, ...) {
+    if (!fired && identical(event, "between_family_member_writes") &&
+        identical(as.integer(member_index), 1L)) {
+      fired <<- TRUE
+      stop("injected family member publication fault")
+    }
+  })
+  error <- try(wb_session_promote_current(setup$bundle, result$session,
+    outputs = "summary"), silent = TRUE)
+  options(scworkbench.operation_pack_registry_test_hook = NULL)
+  if (!fired) {
+    condition <- attr(error, "condition")
+    stop("Promotion fault hook was not reached: ",
+      if (inherits(condition, "condition")) conditionMessage(condition) else
+        as.character(error), call. = FALSE)
+  }
+  stopifnot(inherits(error, "try-error"), fired,
+    identical(.wb_phase2c_family_state(setup$bundle), before))
+  retry <- wb_session_promote_current(setup$bundle, result$session,
+    outputs = "summary")
+  stopifnot(any(retry$promoted$output == "summary"),
+    nrow(wb_operation_pack_registry_receipts(setup$bundle)) == 1L)
+  wb_close_bundle(setup$bundle)
+  unlink(setup$root, recursive = TRUE, force = TRUE)
+  TRUE
+}
+
+test_operation_pack_v2_python_legacy_cell_set_acceptance_contract <- function() {
+  context <- .wb_phase2c_context(); if (is.null(context)) return(.wb_phase2c_skip())
+  guard <- .wb_phase2c_registry_guard()
+  on.exit(.wb_phase2c_registry_restore(guard), add = TRUE)
+  wb_operation_pack_activate(context$manifest, python = context$python)
+  root <- tempfile("scwb_phase2c_legacy_cell_set_")
+  bundle <- wb_init_bundle(root)
+  wb_define_cells(bundle, "cell_1")
+  before <- .wb_phase2c_family_state(bundle)
+  result <- .wb_operation_pack_v2_execute(
+    bundle = bundle,
+    op_name = "scwbpyv2reference::all_contracts",
+    inputs = .wb_phase2c_inputs(),
+    params = .wb_phase2c_all_params()
+  )
+  stopifnot(!"set:v2_cells" %in% wb_cell_sets(bundle),
+    nrow(wb_operation_pack_registry_receipts(bundle)) == 0L,
+    identical(.wb_phase2c_family_state(bundle), before),
+    length(result$registry_requests) == 1L,
+    identical(result$registry_requests[[1]]$descriptor$kind,
+      "cell_set_admission"),
+    identical(result$registry_request_values$cell_set$name,
+      "v2_cells"),
+    identical(unlist(result$registry_request_values$cell_set$cells,
+      use.names = FALSE),
+      "cell_1"))
+  wb_close_bundle(bundle)
+  unlink(root, recursive = TRUE, force = TRUE)
   TRUE
 }

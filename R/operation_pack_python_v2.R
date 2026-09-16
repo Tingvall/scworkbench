@@ -394,6 +394,19 @@
 
 .wb_operation_pack_v2_python_audit <- function(stage, request, receipt) {
   observed <- c(receipt$outputs %||% list(), receipt$registry_requests %||% list())
+  # Receipt categories are serialized in separate arrays, while the mutation
+  # manifest is defined in authenticated grant order. Reconstruct that order
+  # explicitly so interleaved registry requests cannot make audit depend on
+  # receipt-array grouping.
+  observed_names <- vapply(observed, `[[`, character(1), "name")
+  grant_names <- vapply(request$outputs, `[[`, character(1), "name")
+  .wb_operation_pack_assert(
+    length(observed_names) == length(grant_names) &&
+      !anyDuplicated(observed_names) && setequal(observed_names, grant_names),
+    "PYBENCH_RECEIPT_MISMATCH",
+    "Python receipt outputs are not a bijection with request grants.",
+    phase = "receipt", class = "wb_operation_pack_v2_error")
+  observed <- observed[match(grant_names, observed_names)]
   entries <- vector("list", length(observed))
   for (i in seq_along(observed)) {
     item <- observed[[i]]

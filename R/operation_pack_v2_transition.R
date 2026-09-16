@@ -93,7 +93,19 @@
       } else {
         as.character(value$feature_id %||% rownames(value$values))
       }
-      if (!is.null(value$values)) {
+      if (is.null(value$values)) {
+        # The Python ABI transport is a self-contained authenticated JSON
+        # projection. Resolve a file-backed core matrix through the public
+        # logical getter before hashing/staging it; a null physical-storage
+        # placeholder cannot be consumed or authenticated by the recipient
+        # process.
+        # `wb_slice()` may preserve a sparse backend class. The ABI payload and
+        # canonical identity are language-neutral JSON, so materialize the
+        # projected slice as an ordinary dense R matrix before either step.
+        value$values <- as.matrix(wb_slice(bundle,
+          matrix_id = value$matrix_id, features = value$feature_id,
+          cells = value$cell_id))
+      } else {
         value$values <- value$values[match(value$feature_id,
           as.character(value$feature_id %||% rownames(value$values))),
           match(value$cell_id, matrix_cells), drop = FALSE]
@@ -939,7 +951,12 @@
 .wb_operation_pack_v2_atomic_json <- function(value, path) {
   tmp <- paste0(path, ".tmp-", .wb_allocate_identifier("", 12L, purpose = "operation-pack v2 JSON publication"))
   on.exit(if (file.exists(tmp)) unlink(tmp, force = TRUE), add = TRUE)
-  jsonlite::write_json(value, tmp, auto_unbox = TRUE, pretty = TRUE, null = "null", na = "null")
+  # Preserve IEEE-754 values across the authenticated JSON transport. The
+  # jsonlite default rounds to four decimal places, which can make a staged
+  # file-backed matrix differ from the descriptor identity computed before
+  # serialization.
+  jsonlite::write_json(value, tmp, auto_unbox = TRUE, pretty = TRUE,
+    null = "null", na = "null", digits = NA)
   .wb_operation_pack_assert(file.rename(tmp, path), "PYBENCH_PUBLICATION_FAILED",
     paste0("Could not publish ", basename(path), "."), class = "wb_operation_pack_v2_error")
   invisible(TRUE)
@@ -1208,12 +1225,16 @@
     policy <- as.character(binding$policy)[1]
     input <- bound[[as.character(binding$input)[1]]]
     if (identical(policy, "cell_ids_or_set_v1")) {
-      params[[parameter]] <- .wb_resolve_group_cells(bundle, params[[parameter]],
-        effective_cells)
+      params[[parameter]] <- unname(as.list(.wb_resolve_group_cells(
+        bundle, params[[parameter]], effective_cells)))
     } else if (identical(policy, "feature_ids_or_all_v1")) {
       value <- params[[parameter]]
-      params[[parameter]] <- if (is.null(value)) as.character(input$feature_id) else
+      resolved <- if (is.null(value)) as.character(input$feature_id) else
         as.character(unlist(value, use.names = FALSE))
+      # These binding policies are JSON arrays even when the resolved
+      # selection contains one identifier. Preserve that shape explicitly;
+      # the generic scalar transport cannot infer it from length alone.
+      params[[parameter]] <- unname(as.list(resolved))
     }
   }
   .wb_operation_pack_params_transport(params)
