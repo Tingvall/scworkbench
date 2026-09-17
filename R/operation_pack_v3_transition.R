@@ -494,6 +494,14 @@
       descriptor$expected_dimensions <- if (identical(grant$shape,
           "cell_key_cartesian")) list(grant$expected_row_count, 3L) else
         list(grant$expected_row_count)
+      granted_cells <- attr(grant, "operation_pack_v3_cells") %||%
+        character()
+      output_cells <- if (identical(grant$shape,
+          "cell_key_cartesian")) rep(granted_cells,
+        times = as.integer(grant$key_axis_count)) else granted_cells
+      descriptor$expected_cell_order_identity <-
+        .wb_operation_pack_v2_identity_plain(
+          "scworkbench.cell_order.v1", unname(as.list(output_cells)))
     }
     descriptor$grant_identity <- NULL
     descriptor$grant_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -850,7 +858,9 @@
     "runtime_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
   expected_runtime <- .wb_operation_pack_v3_runtime_attestation(registration,
     operation$qualified_name, preflight)
-  if (!identical(receipt$runtime_attestation, expected_runtime))
+  if (!identical(.wb_operation_pack_canonical_json(
+        receipt$runtime_attestation),
+      .wb_operation_pack_canonical_json(expected_runtime)))
     .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
       "V3 runtime attestation differs from the audited execution.", "receipt")
   invisible(TRUE)
