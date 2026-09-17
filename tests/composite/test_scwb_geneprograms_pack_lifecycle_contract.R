@@ -112,10 +112,21 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
   stopifnot(identical(omitted$run$outputs$smoothed_signal,
       explicit$run$outputs$smoothed_signal),
     identical(meta$source_signal_artifact_id, artifact))
-  stale <- tryCatch(wb_session_run_op(wb_session_new(), b,
-    "cell_vector_family_graph_smooth", inputs = list(
-      signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
-      k = 2L, source_run_id = "run_wrong", min_cells = 1L)), error = identity)
+  stale_inputs <- list(signal = wb_art_load(b, artifact,
+    expected_kind = "cell_vector_family"), space = f$space)
+  attr(stale_inputs, "operation_pack_v3_source_refs") <- list(
+    signal = wb_ref_artifact(artifact, "module_scores"), space = f$space)
+  transport <- getFromNamespace(".wb_operation_pack_params_transport",
+    "scworkbench")
+  execute <- getFromNamespace(".wb_operation_pack_v2_execute",
+    "scworkbench")
+  stale <- tryCatch(execute(b,
+    "scwbgeneprograms::cell_vector_family_graph_smooth", stale_inputs,
+    transport(list(signal_keys = NULL, dims = NULL, k = 2L, alpha = .5,
+      distance_metric = "euclidean", query_chunk_size = 3L,
+      include_self = FALSE, na_policy = "ignore",
+      source_signal_artifact_id = artifact, source_run_id = "run_wrong",
+      source_snapshot_id = NULL)), effective_cells = f$cells), error = identity)
   stopifnot(inherits(stale, "wb_operation_pack_error"))
   omitted$session <- wb_session_discard(omitted$session)
   explicit$session <- wb_session_discard(explicit$session)
