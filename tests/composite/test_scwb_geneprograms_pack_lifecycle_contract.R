@@ -19,6 +19,18 @@
     space = space)
 }
 
+.geneprograms_lifecycle_registry_snapshot <- function() {
+  registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
+  list(registry = registry, packs = registry$packs,
+    operations = registry$operations)
+}
+
+.geneprograms_lifecycle_registry_restore <- function(snapshot) {
+  snapshot$registry$packs <- snapshot$packs
+  snapshot$registry$operations <- snapshot$operations
+  invisible(TRUE)
+}
+
 test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
   contract_test_activate_geneprograms_pack()
   f <- .geneprograms_composite_fixture(); b <- f$bundle
@@ -53,7 +65,7 @@ test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
   wb_close_bundle(b); b <- NULL
 
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
-  saved <- .geneprograms_registry_snapshot()
+  saved <- .geneprograms_lifecycle_registry_snapshot()
   for (name in saved$packs$scwbgeneprograms$operation_names)
     registry$operations[[name]] <- NULL
   registry$packs$scwbgeneprograms <- NULL
@@ -67,7 +79,7 @@ test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
   stopifnot(inherits(missing, "wb_operation_pack_error"),
     identical(missing$code, "OPERATION_PACK_REQUIRED"))
   wb_close_bundle(b); b <- NULL
-  .geneprograms_registry_restore(saved)
+  .geneprograms_lifecycle_registry_restore(saved)
   TRUE
 }
 
@@ -88,7 +100,7 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
     "cell_vector_family_graph_smooth", inputs = list(
       signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
       k = 2L, alpha = .5, query_chunk_size = 3L, min_cells = 1L))
-  meta <- omitted$run$outputs$smoothed_signal$meta
+  meta <- omitted$run$outputs$smoothing_summary$meta
   explicit <- wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
       signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
