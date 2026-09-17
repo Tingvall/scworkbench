@@ -96,6 +96,7 @@ The only new identity schemes are:
 - `scworkbench.operation_pack.typed_slice_grant.v1`
 - `scworkbench.operation_pack.typed_slice_axis_manifest.v1`
 - `scworkbench.operation_pack.typed_slice_source_reference.v1`
+- `scworkbench.operation_pack.typed_slice_source_projection.v1`
 - `scworkbench.operation_pack.matrix_slice.content.v1`
 - `scworkbench.operation_pack.typed_slice_control_request.v1`
 - `scworkbench.operation_pack.typed_slice_response.v1`
@@ -424,8 +425,8 @@ chunk_size_parameter       normalized positive-integer parameter
 call_discipline            ordered_partition_exactly_once | independent_slices
 empty_selection_policy     allow_zero_axis | reject
 duplicate_policy           reject
-selection.cells            authenticated effective input cells or declared selector
-selection.features         authenticated effective input features or declared selector
+selection.cells            closed axis-selection object
+selection.features         closed axis-selection object
 ```
 
 The declaration names no output, merge, summary, operation, or scientific
@@ -434,6 +435,22 @@ IDs on `chunk_axis` to equal the authenticated selected axis exactly, but the
 pack chooses the requested chunk size, boundaries, call order, computation,
 merge, and summary. `independent_slices` permits repeated or overlapping calls
 between requests while still rejecting duplicate IDs within one axis vector.
+
+Each `selection.cells` and `selection.features` is exactly one closed branch:
+
+```
+{policy: effective_input_axis_v1}
+{policy: parameter_ordered_subset_v1, parameter: <declared parameter>,
+ unknown: error, duplicates: reject, order: parameter_order}
+```
+
+The effective-axis branch has no other fields. The parameter branch requires
+the named normalized parameter to be a flat JSON array of nonempty strings,
+rejects unknown or duplicate IDs, and preserves parameter order. Null, nested
+arrays/objects, implicit sorting, dropping, deduplication, extra fields, and a
+parameter not declared by the operation are invalid. Cells and features apply
+the same rules independently. The chosen branch and normalized parameter value
+are part of the admitted definition/request identities.
 
 ### Grant, selected axes, and resource bounds
 
@@ -497,17 +514,30 @@ cells_axis                 exact staged-axis descriptor
 features_axis              exact staged-axis descriptor
 requested_chunk_size       exact normalized parameter value
 call_discipline, empty_selection_policy, duplicate_policy
-max_rows, max_columns, max_elements, max_response_bytes
+max_rows, max_columns, max_elements
+max_control_bytes, max_response_bytes
 max_outstanding_responses  1
 grant_identity
 ```
 
-`grant_identity` has scope `grant excluding grant_identity`. Limits are
-positive integers fixed in the request. A call above any limit fails; core
-never silently shrinks or repartitions it. A global default may select limits
-only for a new run. Strict replay reconstructs the historical grant; if the
-runtime can no longer honor it, replay fails before dispatch instead of using
-a new default.
+`grant_identity` has scope `grant excluding grant_identity`. Limits are exact
+nonnegative integers fixed in the request, except the two byte ceilings and
+`requested_chunk_size`, which are positive. If `chunk_axis = cells`, `max_rows` is
+the selected feature count and `max_columns` is
+`min(requested_chunk_size, selected cell count)`; if `chunk_axis = features`,
+the definitions are reversed. `max_elements` is exactly the overflow-checked
+product `max_rows * max_columns`; construction fails if the product is not an
+exact JSON-safe integer; it is zero when either selected axis is empty.
+`max_control_bytes` is the byte length limit
+for the complete canonical `broker/request.json`, including token and
+`control_identity`. `max_response_bytes` is the sum of the exact byte lengths
+of `matrix.mtx`, `features.json`, `cells.json`, and `manifest.json`; temporary
+names and directory metadata do not count. Both byte ceilings are positive
+runtime-policy values copied into the grant. A call above any limit fails;
+core never silently shrinks or repartitions it. A global default may select
+byte ceilings only for a new run. Strict replay reconstructs the historical
+grant; if the runtime can no longer honor it, replay fails before dispatch
+instead of using a new default.
 
 `source_reference_identity` is scoped
 `scworkbench.operation_pack.typed_slice_source_reference.v1` with scope
@@ -527,25 +557,47 @@ source_reference_identity
 ```
 
 The in-memory form replaces `matrix_id` with exactly
-`source_kind = in_memory_matrix` and `private_source_payload_identity`, a
-frozen `scworkbench.operation_pack.payload_manifest.v2` identity over the
-broker-private sparse source at
-`typed_slice_sources/<grant-name>/matrix.mtx`, using the same closed Matrix
-Market rules defined for broker responses. Its `{path, size, sha256}` preimage
-is exact; the input content identity and selected axis manifests separately
-bind its semantic values and axes. The two forms are a closed `oneOf`; fields
+`source_kind = in_memory_selected_projection`,
+`private_source_payload_identity`, `projected_content_identity`, and
+`projection_identity`. Before the broker starts, core uses the same canonical
+matrix-slice backend to project the caller-supplied primitive to the two exact
+selected axes. The projected matrix dimensions and row/column names must equal
+the staged feature/cell manifests. It is written to
+`typed_slice_sources/<grant-name>/matrix.mtx` under the same closed Matrix
+Market rules as responses. `private_source_payload_identity` is the frozen
+`scworkbench.operation_pack.payload_manifest.v2` identity over exact
+`{path, size, sha256}`; `projected_content_identity` is the ordinary
+`matrix_slice.content.v1` identity over the projected values and selected axes.
+`projection_identity` uses scheme
+`scworkbench.operation_pack.typed_slice_source_projection.v1`, scope
+`projection excluding projection_identity`, and hashes exactly:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_source_projection.v1
+original_input_content_identity
+features_axis_manifest_identity
+cells_axis_manifest_identity
+projected_content_identity
+private_source_payload_identity
+projection_identity
+```
+
+The broker maps requested string IDs only against those exact retained selected
+axis manifests. The two source-reference forms are a closed `oneOf`; fields
 from the other arm and unknown/null fields are forbidden. A
 bundle-backed broker calls `wb_slice(bundle, matrix_id, ...)`. Core may retain
-one broker-private sparse source payload only when the caller already supplied
-the entire in-memory primitive; this exception never materializes a backed
-source and never crosses the Python boundary. Both arms call the same canonical
-matrix-slice backend shared by public `wb_slice()` and `wb_slice_chunks()`.
+one preselected broker-private sparse source only when the caller already
+supplied the entire in-memory primitive; this exception never materializes a
+backed source and never crosses the Python boundary. Both arms call the same
+canonical matrix-slice backend shared by public `wb_slice()` and
+`wb_slice_chunks()`.
 Unsupported or ambiguous source references fail before the broker starts.
 
 The pack learns its capability from a deep-copy execution-context descriptor
 containing the grant and selected axis vectors. R and Python expose the same
-call shape, `readers[[input]](features = ..., cells = ...)` and
-`readers[input](features=..., cells=...)`. Both require explicit, nonempty,
+call shape, `readers[[name]](features = ..., cells = ...)` and
+`readers[name](features=..., cells=...)`, where `name` is the unique
+`typed_slice_reads` capability name. Both require explicit, nonempty,
 unique, in-grant axis vectors preserving their relative grant order.
 
 For `ordered_partition_exactly_once`, every call supplies the complete selected

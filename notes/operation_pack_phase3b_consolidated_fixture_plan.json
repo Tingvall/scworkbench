@@ -138,6 +138,11 @@
       "expect": "R_and_Python_authenticate_identical_staged_axis_control_response_semantic_content_acknowledgement_call_and_usage_preimages"
     },
     {
+      "id": "SLICE-P07-in-memory-subset-projection",
+      "capability": "typed_slice_read",
+      "expect": "noncanonical_feature_and_cell_subsets_project_an_in_memory_input_to_exact_selected_axes_and_match_the_bundle_backed_slice_identity"
+    },
+    {
       "id": "SLICE-N01-eager-full-matrix-staging",
       "capability": "typed_slice_read",
       "mutate": "stage_or_parse_inputs_name_payload_json_for_a_broker_enabled_matrix",
@@ -202,6 +207,24 @@
       "capability": "typed_slice_read",
       "mutate": "add_schedule_batches_fragment_output_merge_summary_finalizer_or_scientific_operation_fields_to_the_manifest_request_or_receipt",
       "reject": "closed_schema_admission"
+    },
+    {
+      "id": "SLICE-N12-in-memory-source-axis-tamper",
+      "capability": "typed_slice_read",
+      "mutate": "change_projected_matrix_dimensions_values_feature_or_cell_manifest_or_projection_identity_after_preflight",
+      "reject": "source_projection_audit_before_broker_or_publication"
+    },
+    {
+      "id": "SLICE-N13-selection-policy-shape",
+      "capability": "typed_slice_read",
+      "mutate": "mix_effective_and_parameter_branches_or_supply_null_nested_unknown_duplicate_sorted_dropped_or_undeclared_parameter_selection",
+      "reject": "manifest_or_request_schema_and_semantic_admission"
+    },
+    {
+      "id": "SLICE-N14-limit-arithmetic-or-byte-accounting",
+      "capability": "typed_slice_read",
+      "mutate": "overflow_or_change_derived_rows_columns_product_or_exclude_any_control_or_response_file_from_its_declared_byte_ceiling",
+      "reject": "grant_construction_broker_or_receipt_audit"
     },
     {
       "id": "ANCESTRY-P01-current-promoted-artifact",
