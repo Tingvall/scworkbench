@@ -51,7 +51,6 @@ test_space_cell_identity_contract <- function() {
     monocle3_fit = wb_op_monocle3_fit,
     monocle3_project = wb_op_monocle3_project,
     palantir_project = wb_op_palantir_project,
-    graph_smooth = .wb_cvf_graph_smooth_coords,
     space_path = .wb_space_path_coord_matrix,
     umap_fit = wb_op_umap_fit,
     umap_transform = wb_op_umap_transform,
