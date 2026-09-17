@@ -1,0 +1,11 @@
+operation,current_generic_status,new_generic_capabilities,method_specific_comparator_remaining,fixture_groups,migration_authorized
+addmodulescore,blocked_variable_family_grant,authenticated_output_axes_v1:cell_key_cartesian,"control sampling; selected cells; canonical score identity",CARD;LIFE,no
+ucell,blocked_family_grant_and_cell_chunking,"authenticated_output_axes_v1:cell_key_cartesian; cell_chunk_schedule_v1; row_bind_cell_vector_family_v1; pure_summary_finalizer_v1:fresh_pack_invocation_v1","UCell numerical equivalence; score and summary exact terminals",CARD;CHUNK;LIFE,no
+cell_vector_family_reduce,blocked_distinct_cell_vector_grant,authenticated_output_axes_v1:one_per_cell,"tie and abstention rules; one-key behavior; NA score and margin semantics",CARD;LIFE,no
+cell_vector_family_calibrate,blocked_selected_key_family_grant,authenticated_output_axes_v1:cell_key_cartesian,"NA policy; random-tie determinism; calibration summary",CARD;LIFE,no
+cell_vector_family_qc,generic_capabilities_available,none,"zero/one/many keys; absent grouping; pairwise cardinality; exact three-table equivalence",METHOD;LIFE,no
+cell_vector_family_graph_smooth,blocked_family_grant_and_artifact_ancestry,"authenticated_output_axes_v1:cell_key_cartesian; authenticated_core_provenance_snapshot:artifact_ancestry","RANN numerical equivalence; NA/nonfinite coordinates; selected keys; summary",CARD;ANCESTRY;METHOD;LIFE,no
+cell_vector_winners,generic_capabilities_available,none,"zero/multiple winners; ties; thresholds; prove no hidden artifact helper",METHOD;LIFE,no
+winner_cell_sets,accepted_family_admission_migration_unproven,none,"prefix and replace semantics; source metadata; manifest identity; all-or-nothing publication",METHOD;LIFE,no
+feature_set_overlap_qc,registry_composite_independently_accepted,feature_set_registry_read_semantics_carried_to_v3,"all and explicit selectors; duplicate mapped signatures; stale matrix registry; two-table equivalence",REGISTRY;METHOD;LIFE,no
+pathway_enrich,registry_composite_independently_accepted,feature_set_registry_read_semantics_carried_to_v3,"namespace and matrix binding; empty set; feature-table and membership equivalence",REGISTRY;METHOD;LIFE,no

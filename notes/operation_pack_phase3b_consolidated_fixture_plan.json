@@ -1,0 +1,289 @@
+{
+  "schema": "scworkbench.operation_pack.phase3b_consolidated_fixture_plan.v1",
+  "status": "design_accepted_for_schema_freeze",
+  "implementation_gate": {
+    "registry_pair": {
+      "scworkbench_candidate": "957af89e8825f5c1b299e0703eba5e2312a16c8c",
+      "pybench_candidate": "3e02ea266862adc3ffa96c5d0d99e817f1e43e06",
+      "status": "independently_accepted",
+      "audit_commit": "969b6d5299496f06cee126aef6919eb5960c1aec"
+    },
+    "sable_design_disposition": "accepted_for_schema_freeze",
+    "implementation_base": {
+      "scworkbench": "957af89e8825f5c1b299e0703eba5e2312a16c8c",
+      "pybench": "3e02ea266862adc3ffa96c5d0d99e817f1e43e06"
+    },
+    "protocol_successor": {
+      "manifest_schema": "scworkbench.operation_pack.v3",
+      "pack_abi_version": "3",
+      "request_schema": "scworkbench.operation_pack.transition_request.v3",
+      "receipt_schema": "scworkbench.operation_pack.transition_receipt.v3",
+      "process_protocol_version": "pybench-op-v4",
+      "legacy_v1_v2_bytes": "frozen"
+    }
+  },
+  "canonical_examples": {
+    "cell_axis": ["c2", "c1", "c3"],
+    "key_axis": ["sigB", "sigA"],
+    "family_rows": [
+      ["sigB", "c2"], ["sigB", "c1"], ["sigB", "c3"],
+      ["sigA", "c2"], ["sigA", "c1"], ["sigA", "c3"]
+    ],
+    "reduced_rows": ["c2", "c1", "c3"],
+    "cell_chunks_size_2": [
+      {"index": 1, "start": 1, "length": 2, "cells": ["c2", "c1"]},
+      {"index": 2, "start": 3, "length": 1, "cells": ["c3"]}
+    ]
+  },
+  "required_surfaces": ["R", "Python", "cross_language"],
+  "common_lifecycle_assertions": [
+    "staging_succeeds_only_after_manifest_and_source_preflight",
+    "promotion_publishes_outputs_and_complete_receipts_atomically",
+    "pack_free_reopen_preserves_descriptor_and_content_identities",
+    "recipient_validation_recomputes_and_accepts_all_identities",
+    "strict_replay_reconstructs_the_same_request_and_receipt_evidence",
+    "every_failure_leaves_source_fingerprint_catalog_graph_head_active_payload_registry_receipt_and_materialization_preimages_unchanged",
+    "retry_after_failure_uses_a_new_transition_and_succeeds"
+  ],
+  "fixtures": [
+    {
+      "id": "CARD-P01-three-cell-two-key-family",
+      "capability": "output_cardinality",
+      "expect": "six_key_major_cell_minor_rows_and_equal_R_Python_axis_grants"
+    },
+    {
+      "id": "CARD-P02-three-cell-reduction",
+      "capability": "output_cardinality",
+      "expect": "three_distinct_input_cell_rows_in_authenticated_order"
+    },
+    {
+      "id": "CARD-P03-zero-one-many-keys",
+      "capability": "output_cardinality",
+      "expect": "zero_only_when_parameter_contract_allows_it_then_exact_0_3_6_row_grants"
+    },
+    {
+      "id": "CARD-P04-selected-input-key-order",
+      "capability": "output_cardinality",
+      "expect": "selector_order_when_supplied_otherwise_input_first_appearance_order"
+    },
+    {
+      "id": "CARD-P05-resolved-parameter-feature-groups",
+      "capability": "output_cardinality",
+      "expect": "R_and_Python_match_legacy_module1_names_for_character_and_unnamed_list_inputs_prefix_all_partially_named_groups_and_match_exact_feature_drop_error_and_empty_group_policies"
+    },
+    {
+      "id": "CARD-N01-undeclared-cardinality",
+      "capability": "output_cardinality",
+      "mutate": "return_six_family_rows_under_legacy_three_row_grant",
+      "reject": "before_publish"
+    },
+    {
+      "id": "CARD-N02-missing-extra-duplicate",
+      "capability": "output_cardinality",
+      "mutate": "separately_drop_add_and_duplicate_a_cell_key_pair",
+      "reject": "writer_or_staged_payload_audit"
+    },
+    {
+      "id": "CARD-N03-wrong-cell-or-key-order",
+      "capability": "output_cardinality",
+      "mutate": "separately_permute_cell_minor_and_key_major_axes",
+      "reject": "writer_or_staged_payload_audit"
+    },
+    {
+      "id": "CARD-N04-malformed-missing-values",
+      "capability": "output_cardinality",
+      "mutate": "inject_null_NA_NaN_or_infinite_value_against_declared_policy",
+      "reject": "semantic_validation"
+    },
+    {
+      "id": "CARD-N05-receipt-output-disagreement",
+      "capability": "output_cardinality",
+      "mutate": "substitute_observed_axis_identity_or_row_count",
+      "reject": "receipt_audit"
+    },
+    {
+      "id": "CARD-N06-key-resolver-substitution",
+      "capability": "output_cardinality",
+      "mutate": "change_matrix_feature_axis_matching_missing_policy_generated_name_empty_group_or_zero_key_result",
+      "reject": "before_dispatch_or_receipt_audit"
+    },
+    {
+      "id": "CHUNK-P01-single-chunk",
+      "capability": "cell_axis_chunking",
+      "expect": "one_observed_fragment_then_merge_then_summary_finalizer"
+    },
+    {
+      "id": "CHUNK-P02-multiple-chunks",
+      "capability": "cell_axis_chunking",
+      "expect": "size_2_schedule_over_three_cells_produces_two_ordered_fragments"
+    },
+    {
+      "id": "CHUNK-P03-one-versus-several-equivalence",
+      "capability": "cell_axis_chunking",
+      "expect": "identical_family_and_summary_terminal_content_identities"
+    },
+    {
+      "id": "CHUNK-N01-partial-or-missing-chunk",
+      "capability": "cell_axis_chunking",
+      "mutate": "omit_the_second_reader_call_or_fragment",
+      "reject": "execution_or_receipt_audit"
+    },
+    {
+      "id": "CHUNK-N02-duplicate-overlap-or-reorder",
+      "capability": "cell_axis_chunking",
+      "mutate": "duplicate_overlap_or_reverse_schedule_entries",
+      "reject": "execution_or_receipt_audit"
+    },
+    {
+      "id": "CHUNK-N03-wrong-slice-identity",
+      "capability": "cell_axis_chunking",
+      "mutate": "bind_a_valid_range_to_different_cell_ids",
+      "reject": "reader_observation_audit"
+    },
+    {
+      "id": "CHUNK-N04-private-loop-without-observations",
+      "capability": "cell_axis_chunking",
+      "mutate": "return_final_outputs_without_scheduled_reads_and_fragments",
+      "reject": "receipt_audit"
+    },
+    {
+      "id": "CHUNK-N05-mismatched-summary",
+      "capability": "cell_axis_chunking",
+      "mutate": "return_a_numerically_wrong_but_self_consistent_summary_from_the_pure_finalizer",
+      "reject": "mandatory_old_core_new_pack_method_comparator_before_migration_acceptance"
+    },
+    {
+      "id": "CHUNK-N06-effective-parameter-or-source-mutation",
+      "capability": "cell_axis_chunking",
+      "mutate": "change_chunk_size_or_input_cell_axis_after_preflight",
+      "reject": "before_dispatch_or_publish"
+    },
+    {
+      "id": "CHUNK-N07-nonisolated-or-early-summary",
+      "capability": "cell_axis_chunking",
+      "mutate": "write_summary_in_chunk_process_or_invoke_finalizer_before_merge_or_with_fragment_state",
+      "reject": "adapter_capability_or_finalizer_isolation"
+    },
+    {
+      "id": "CHUNK-N08-finalizer-binding-substitution",
+      "capability": "cell_axis_chunking",
+      "mutate": "substitute_finalizer_definition_metadata_merged_input_result_or_invocation_identity",
+      "reject": "receipt_audit"
+    },
+    {
+      "id": "CHUNK-N09-fragment-grant-substitution",
+      "capability": "cell_axis_chunking",
+      "mutate": "use_full_output_grant_or_change_batch_start_length_cells_keys_row_count_order_or_parent_grant_in_a_fragment",
+      "reject": "before_fragment_stage_or_receipt_audit"
+    },
+    {
+      "id": "ANCESTRY-P01-current-promoted-artifact",
+      "capability": "artifact_ancestry",
+      "expect": "single_attested_read_bound_to_signal_input_with_run_snapshot_artifact_and_content_identities"
+    },
+    {
+      "id": "ANCESTRY-P02-explicit-optional-metadata",
+      "capability": "artifact_ancestry",
+      "expect": "explicit_scientific_metadata_is_accepted_only_after_compatibility_with_the_artifact_bound_attestation_and_cannot_reselect_the_source"
+    },
+    {
+      "id": "ANCESTRY-P03-current-successor-with-incoming-history",
+      "capability": "artifact_ancestry",
+      "expect": "current_provenance_bound_successor_with_incoming_SUPERSEDES_edge_and_no_outgoing_edge_is_accepted_and_history_is_identity_bound"
+    },
+    {
+      "id": "ANCESTRY-P04-repeat-observation-keeps-recorded-source",
+      "capability": "artifact_ancestry",
+      "expect": "same_artifact_observed_in_a_later_promoted_snapshot_still_resolves_the_single_producer_in_artifacts_provenance_snapshot_id"
+    },
+    {
+      "id": "ANCESTRY-N01-wrong-artifact-binding",
+      "capability": "artifact_ancestry",
+      "mutate": "substitute_another_artifact_or_input_descriptor",
+      "reject": "before_dispatch_or_receipt_audit"
+    },
+    {
+      "id": "ANCESTRY-N02-stale-or-superseded",
+      "capability": "artifact_ancestry",
+      "mutate": "bind_the_historical_predecessor_with_an_outgoing_successor_edge_or_noncurrent_lifecycle_state",
+      "reject": "preflight"
+    },
+    {
+      "id": "ANCESTRY-N03-mismatched-provenance",
+      "capability": "artifact_ancestry",
+      "mutate": "substitute_source_run_snapshot_output_or_content_identity",
+      "reject": "preflight_or_receipt_audit"
+    },
+    {
+      "id": "ANCESTRY-N04-undeclared-or-duplicate-read",
+      "capability": "artifact_ancestry",
+      "mutate": "read_an_ungranted_name_or_consume_the_grant_twice",
+      "reject": "execution"
+    },
+    {
+      "id": "ANCESTRY-N05-source-mutation-window",
+      "capability": "artifact_ancestry",
+      "mutate": "change_artifact_or_provenance_after_preflight_before_publication",
+      "reject": "promotion_transaction_recheck"
+    },
+    {
+      "id": "ANCESTRY-N06-forged-receipt-or-path-leak",
+      "capability": "artifact_ancestry",
+      "mutate": "forge_observation_identity_or_include_bundle_database_or_absolute_path",
+      "reject": "schema_or_receipt_audit"
+    },
+    {
+      "id": "ANCESTRY-N07-recorded-snapshot-ambiguity-or-mismatch",
+      "capability": "artifact_ancestry",
+      "mutate": "remove_duplicate_or_mismatch_the_producer_row_within_artifacts_provenance_snapshot_id_or_point_registry_to_another_snapshot",
+      "reject": "preflight_before_dispatch"
+    },
+    {
+      "id": "LIFE-P01-pack-free-reopen-recipient-replay",
+      "capability": "all",
+      "expect": "all_new_evidence_is_durable_inspectable_and_replay_equivalent_without_pack_installation"
+    },
+    {
+      "id": "LIFE-N01-fault-matrix-zero-residue",
+      "capability": "all",
+      "mutate": "fail_before_write_between_fragment_writes_after_receipt_before_commit_and_during_payload_publication",
+      "reject": "atomic_rollback_and_retryable_source_only_destination"
+    },
+    {
+      "id": "COMPAT-P01-legacy-v2-byte-identity",
+      "capability": "compatibility",
+      "expect": "all_v1_v2_schemas_definitions_requests_receipts_fixtures_and_identities_are_byte_unchanged"
+    },
+    {
+      "id": "COMPAT-P02-explicit-v3-negotiation",
+      "capability": "compatibility",
+      "expect": "v3_manifest_request_receipt_and_pybench_op_v4_are_selected_only_by_the_exact_successor_tuple"
+    },
+    {
+      "id": "COMPAT-N01-old-reader-new-definition",
+      "capability": "compatibility",
+      "mutate": "send_a_v3_definition_request_or_receipt_to_a_v1_or_v2_reader_or_mislabeled_transport",
+      "reject": "version_negotiation_fail_closed"
+    }
+  ],
+  "fixture_group_definitions": {
+    "CARD": "all fixture ids beginning CARD-",
+    "CHUNK": "all fixture ids beginning CHUNK-",
+    "ANCESTRY": "all fixture ids beginning ANCESTRY-",
+    "LIFE": "all fixture ids beginning LIFE- plus every fixture id beginning COMPAT-",
+    "METHOD": "the exact old-core/new-pack method comparator named in the ten-row readiness CSV",
+    "REGISTRY": "the independently accepted feature-set-registry positive and adversarial fixture corpus"
+  },
+  "method_fixture_group_requirements": {
+    "addmodulescore": ["CARD", "LIFE"],
+    "ucell": ["CARD", "CHUNK", "LIFE"],
+    "cell_vector_family_reduce": ["CARD", "LIFE"],
+    "cell_vector_family_calibrate": ["CARD", "LIFE"],
+    "cell_vector_family_qc": ["METHOD", "LIFE"],
+    "cell_vector_family_graph_smooth": ["CARD", "ANCESTRY", "METHOD", "LIFE"],
+    "cell_vector_winners": ["METHOD", "LIFE"],
+    "winner_cell_sets": ["METHOD", "LIFE"],
+    "feature_set_overlap_qc": ["REGISTRY", "METHOD", "LIFE"],
+    "pathway_enrich": ["REGISTRY", "METHOD", "LIFE"]
+  }
+}
