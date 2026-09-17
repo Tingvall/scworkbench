@@ -1,14 +1,15 @@
 # Phase 3B consolidated ABI successor design ledger
 
-Status: **CORRECTED JOINT DESIGN; SABLE REVIEW REQUIRED BEFORE SCHEMA FREEZE**
+Status: **CORRECTED JOINT DESIGN ACCEPTED FOR SCHEMA FREEZE**
 
 This is the joint Forge/Quill design checkpoint required before any shared
 schema is frozen. It contains no runtime implementation and authorizes no
 GenePrograms migration. The feature-set-registry pair has independent
 acceptance. Controller commit `9c784db1097c8d671ad98ab610f6624787b586c3`
 supersedes the previously accepted operation-shaped chunk schedule, merge, and
-summary-finalizer design. Sable must accept this corrected ledger before the
-successor protocol is frozen or implementation resumes.
+summary-finalizer design. Sable accepted the corrected ledger at
+`483120cdc2a5cbaa60d88a19d05c45f0675cf3fe`; successor protocol freeze and
+implementation may resume from the exact accepted base pair.
 
 ## Inputs and gates
 
@@ -23,9 +24,8 @@ successor protocol is frozen or implementation resumes.
   `3e02ea266862adc3ffa96c5d0d99e817f1e43e06`; Meridian-9 audit commit
   `969b6d5299496f06cee126aef6919eb5960c1aec` records `ACCEPTED` for this exact pair.
 - Implementation starts from exactly that accepted pair.
-- Sable accepted the cardinality and ancestry portions on 2026-09-17. Its
-  earlier chunk disposition is superseded by the controller correction and is
-  not schema-freeze authority for the typed reader below.
+- Sable accepted the corrected joint design for schema freeze on 2026-09-17 at
+  design commit `483120cdc2a5cbaa60d88a19d05c45f0675cf3fe`.
 
 The amendment is generic. No rule selects an operation by name, pack namespace,
 or implementation language. A pack opts into the successor explicitly; no v1

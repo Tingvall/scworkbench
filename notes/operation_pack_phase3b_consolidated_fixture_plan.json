@@ -1,6 +1,6 @@
 {
   "schema": "scworkbench.operation_pack.phase3b_consolidated_fixture_plan.v1",
-  "status": "corrected_joint_design_pending_sable_review",
+  "status": "corrected_joint_design_accepted_for_schema_freeze",
   "implementation_gate": {
     "registry_pair": {
       "scworkbench_candidate": "957af89e8825f5c1b299e0703eba5e2312a16c8c",
@@ -8,7 +8,7 @@
       "status": "independently_accepted",
       "audit_commit": "969b6d5299496f06cee126aef6919eb5960c1aec"
     },
-    "sable_design_disposition": "review_required_after_controller_9c784db_correction",
+    "sable_design_disposition": "accepted_for_schema_freeze_at_483120cdc2a5cbaa60d88a19d05c45f0675cf3fe",
     "implementation_base": {
       "scworkbench": "957af89e8825f5c1b299e0703eba5e2312a16c8c",
       "pybench": "3e02ea266862adc3ffa96c5d0d99e817f1e43e06"
