@@ -33,7 +33,8 @@ test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
     winners = wb_ref_run(third$run$run_id, "winners"),
     cell_set_prefix = "winner_", replace = TRUE, min_cells = 1L))
   promotion <- wb_promote_analysis(b, fourth$session$runs,
-    fourth$session$head_run_id, staging_bundle = wb_session_view(fourth$session),
+    c(second$run$run_id, fourth$run$run_id),
+    staging_bundle = wb_session_view(fourth$session),
     created_by = "composite", fail_fast = TRUE)
   stopifnot(all(promotion$promoted$status == "ok"),
     all(vapply(list(first, second, third, fourth), function(x)
@@ -80,12 +81,12 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
   artifact <- promoted$promoted$artifact_id[[1L]]
   omitted <- wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
-      signal = wb_ref_artifact(artifact), space = wb_prim_space("fixture_space"),
+      signal = wb_ref_artifact(artifact, "module_scores"), space = wb_prim_space("fixture_space"),
       k = 2L, alpha = .5, query_chunk_size = 3L, min_cells = 1L))
   meta <- omitted$run$outputs$smoothed_signal$meta
   explicit <- wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
-      signal = wb_ref_artifact(artifact), space = wb_prim_space("fixture_space"),
+      signal = wb_ref_artifact(artifact, "module_scores"), space = wb_prim_space("fixture_space"),
       k = 2L, alpha = .5, query_chunk_size = 3L,
       source_signal_artifact_id = artifact, source_run_id = meta$source_run_id,
       source_snapshot_id = meta$source_snapshot_id, min_cells = 1L))
@@ -94,7 +95,7 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
     identical(meta$source_signal_artifact_id, artifact))
   stale <- tryCatch(wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
-      signal = wb_ref_artifact(artifact), space = wb_prim_space("fixture_space"),
+      signal = wb_ref_artifact(artifact, "module_scores"), space = wb_prim_space("fixture_space"),
       k = 2L, source_run_id = "run_wrong", min_cells = 1L)), error = identity)
   stopifnot(inherits(stale, "wb_operation_pack_error"))
   TRUE

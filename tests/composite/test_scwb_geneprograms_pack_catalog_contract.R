@@ -1,16 +1,12 @@
 .geneprograms_registry_snapshot <- function() {
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
-  list(registry = registry, packs = as.list(registry$packs, all.names = TRUE),
-    operations = as.list(registry$operations, all.names = TRUE))
+  list(registry = registry, packs = registry$packs,
+    operations = registry$operations)
 }
 
 .geneprograms_registry_restore <- function(snapshot) {
-  rm(list = ls(snapshot$registry$packs, all.names = TRUE),
-    envir = snapshot$registry$packs)
-  rm(list = ls(snapshot$registry$operations, all.names = TRUE),
-    envir = snapshot$registry$operations)
-  list2env(snapshot$packs, snapshot$registry$packs)
-  list2env(snapshot$operations, snapshot$registry$operations)
+  snapshot$registry$packs <- snapshot$packs
+  snapshot$registry$operations <- snapshot$operations
   invisible(TRUE)
 }
 
