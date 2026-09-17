@@ -25,6 +25,14 @@ Python distribution normalization, entry-point group/name, and runtime
 attestation checkpoint. PyBench mirrors them byte-for-byte; it does not redefine
 their R semantics.
 
+`R/operation_packs_v2.R`, `R/operation_packs_v3.R`, and their transition and
+backend adapters own the closed successor ABIs. ABI v3's four shared files are
+the manifest, request, receipt, and identity corpus under `inst/protocol/`;
+PyBench mirrors those exact bytes and independently owns its v4 runtime
+sidecar. `docs/operation_pack_v2_protocol.md` and
+`docs/operation_pack_v3_protocol.md` are the corresponding public semantic
+maps. Earlier protocol identities remain immutable.
+
 `R/cell_set_consumption.R` owns catalog-driven durable named-cell-set
 resolution, membership identity, and replay preflight for both core and pack
 operations. Individual runners do not own cell-set provenance bindings.
@@ -67,7 +75,8 @@ processes produce byte-identical output.
 
 The source-tarball policy is also executable: it keeps code, metadata, MIT
 license files, the package-native `inst/CITATION`, public docs, installed
-onboarding, and the operation-pack v1 and PyBench v2 protocol schemas.
+onboarding, and the operation-pack v1/v2/v3 and PyBench protocol schemas and
+canonical fixture corpora.
 Repository-level `CITATION.cff` remains
 the canonical software citation for hosting services but is excluded from the
 R source tarball because R treats that top-level filename as non-standard. The

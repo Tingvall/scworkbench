@@ -200,6 +200,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "docs/operation_pack_v3_protocol.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/operation_pack_v3_protocol.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "docs/source_ownership.md",
       "class": "public_canonical",
       "audience": "public",
@@ -486,6 +497,39 @@
       "installed_relative_path": "protocol/operation-pack-transition-receipt-v2.schema.json"
     },
     {
+      "path": "inst/protocol/operation-pack-v3.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-v3.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-v3.schema.json"
+    },
+    {
+      "path": "inst/protocol/operation-pack-transition-request-v3.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-transition-request-v3.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-transition-request-v3.schema.json"
+    },
+    {
+      "path": "inst/protocol/operation-pack-transition-receipt-v3.schema.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/operation-pack-transition-receipt-v3.schema.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/operation-pack-transition-receipt-v3.schema.json"
+    },
+    {
       "path": "inst/protocol/pybench-op-v3-python-runtime.schema.json",
       "class": "public_canonical",
       "audience": "public",
@@ -627,6 +671,17 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "protocol/fixtures/operation-pack-v2/identities.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v3/identities.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v3/identities.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v3/identities.json"
     },
     {
       "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",

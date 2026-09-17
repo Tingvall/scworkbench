@@ -102,6 +102,31 @@ does not create an official scientific pack. The former core operation
 is retained privately only so historical records remain intelligible. Current
 protocol conformance uses explicit fixture packs.
 
+## ABI v3 bounded axes, cell chunks, and ancestry
+
+ABI v3 is an explicit successor tuple; it does not reinterpret ABI v1 or v2.
+Its complete language-neutral contract is documented in
+`docs/operation_pack_v3_protocol.md`. In summary, v3 adds exact authenticated
+cell/key output cardinality, adapter-owned cell-axis chunk schedules with a
+fresh pure summary finalizer, and a single-use core-attested read of the
+current provenance of an artifact-backed typed input.
+
+R packages register v3 finalizers through the existing entry point:
+
+```r
+wb_operation_pack_register(
+  system.file("scworkbench", "operation-pack.json", package = "YourPack"),
+  operations = list(`yourpack::score` = run_score),
+  finalizers = list(summarize_scores = summarize_scores)
+)
+```
+
+Python v3 activation continues to authenticate the original installed
+manifest and uses the closed `pybench-op-v4` process boundary. Both backends
+publish the same v3 request and receipt evidence atomically. The engine rejects
+cardinality, schedule, summary, ancestry, source-currentness, payload, or
+receipt disagreement before analytical state becomes visible.
+
 ## Trust and activation
 
 Installing a package or distribution does not activate it. scworkbench never

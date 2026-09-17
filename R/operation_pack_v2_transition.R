@@ -1038,6 +1038,16 @@
   receipt_id <- receipt$receipt_identity; receipt$receipt_identity <- NULL
   if (!identical(request_id$sha256, .wb_operation_pack_sha256(request)) ||
       !identical(receipt_id$sha256, .wb_operation_pack_sha256(receipt))) return(list(ok = FALSE, code = "identity_mismatch"))
+  if (identical(as.character(request$schema %||% "")[1],
+      "scworkbench.operation_pack.transition_request.v3")) {
+    request$request_identity <- request_id
+    receipt$receipt_identity <- receipt_id
+    v3 <- .wb_operation_pack_v3_record_validate(request, receipt, path,
+      load_payloads = load_payloads)
+    if (!isTRUE(v3$ok)) return(v3)
+    request$request_identity <- NULL
+    receipt$receipt_identity <- NULL
+  }
   observed <- c(receipt$outputs %||% list(), receipt$registry_requests %||% list())
   for (item in observed) {
     python_payload <- identical(as.character(
@@ -1194,6 +1204,10 @@
       "PYBENCH_REOPEN_VALIDATION_FAILED",
       paste0("Recipient ABI v2 transition record is invalid: ", basename(record), " (", result$code %||% "not_reopened", ")."),
       class = "wb_operation_pack_v2_error")
+    if (identical(as.character(result$request$schema %||% "")[1],
+        "scworkbench.operation_pack.transition_request.v3"))
+      .wb_operation_pack_v3_retained_provenance_assert_current(bundle,
+        result$request, record)
   }
   .wb_operation_pack_v2_assert_registry_receipts(bundle)
   invisible(TRUE)
@@ -1212,7 +1226,9 @@
   if (is.null(registration) || !inherits(registration, "wb_operation_pack_registration_v2")) {
     .wb_operation_pack_v2_error("OPERATION_PACK_INCOMPATIBLE", "Activated handler is not ABI v2.", "resolution")
   }
-  operation <- record$definition$v2_definition
+  abi_v3 <- inherits(registration, "wb_operation_pack_registration_v3")
+  operation <- if (abi_v3) record$definition$v3_definition else
+    record$definition$v2_definition
   declarations <- stats::setNames(operation$inputs, vapply(operation$inputs, `[[`, character(1), "name"))
   required <- vapply(operation$inputs, function(x) isTRUE(x$required), logical(1))
   required_names <- vapply(operation$inputs[required], `[[`, character(1), "name")
@@ -1257,10 +1273,21 @@
   preflight <- .wb_operation_pack_v2_preflight(operation, inputs, params,
     registration = registration, transport_inputs = transport_inputs)
   .wb_operation_pack_v2_fault("preflighted", transition_id = transition_id)
-  request <- .wb_operation_pack_v2_request(bundle, registration, operation, inputs, params,
-    transition_id, session_id, run_id, generation, preflight, stage)
-  .wb_operation_pack_v2_schema_assert(request, "request", "PYBENCH_CAPABILITY_MISMATCH")
-  .wb_operation_pack_v2_request_audit(request, registration, operation)
+  source_refs <- attr(inputs, "operation_pack_v3_source_refs") %||% list()
+  request <- if (abi_v3) .wb_operation_pack_v3_request(bundle,
+    registration, operation, inputs, params, transition_id, session_id,
+    run_id, generation, preflight, stage, effective_cells, source_refs) else
+    .wb_operation_pack_v2_request(bundle, registration, operation, inputs,
+      params, transition_id, session_id, run_id, generation, preflight, stage)
+  if (abi_v3) {
+    .wb_operation_pack_v3_schema_assert(request, "request",
+      "PYBENCH_CAPABILITY_MISMATCH")
+    .wb_operation_pack_v3_request_audit(request, registration, operation)
+  } else {
+    .wb_operation_pack_v2_schema_assert(request, "request",
+      "PYBENCH_CAPABILITY_MISMATCH")
+    .wb_operation_pack_v2_request_audit(request, registration, operation)
+  }
   .wb_operation_pack_v2_atomic_json(request, file.path(stage, "request.json"))
   if (python_backend) .wb_operation_pack_v2_python_stage_inputs(stage,
     attr(request, "operation_pack_v2_transport_inputs") %||% transport_inputs)
@@ -1270,16 +1297,25 @@
   .wb_operation_pack_v2_dynamic_reread(operation, inputs, preflight)
   .wb_operation_pack_v2_registry_reads_assert_current(bundle, operation,
     inputs, params, request$registry_reads %||% list())
+  if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
+    operation, inputs, source_refs, request, params)
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
   if (python_backend) {
-    process_result <- .wb_operation_pack_v2_python_dispatch(request, registration, stage)
+    process_result <- if (abi_v3) .wb_operation_pack_v3_python_dispatch(
+      request, registration, stage) else .wb_operation_pack_v2_python_dispatch(
+        request, registration, stage)
     receipt <- process_result$receipt
     unlink(file.path(stage, "inputs"), recursive = TRUE, force = TRUE)
   } else {
-    adapter <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs, stage,
-      bundle = bundle,
+    adapter <- if (abi_v3) .wb_operation_pack_v3_capability_adapter(request,
+      operation, inputs, stage, bundle = bundle,
       registry_read_values = attr(request,
-        "operation_pack_v2_registry_read_values") %||% list())
+        "operation_pack_v2_registry_read_values") %||% list(),
+      provenance_read_values = attr(request,
+        "operation_pack_v3_provenance_read_values") %||% list()) else
+      .wb_operation_pack_v2_capability_adapter(request, operation, inputs,
+        stage, bundle = bundle, registry_read_values = attr(request,
+          "operation_pack_v2_registry_read_values") %||% list())
     runner <- registration$runners[[op_name]]
     result <- tryCatch(runner(readers = adapter$readers, writers = adapter$writers,
       params = .wb_operation_pack_v2_deep_copy(params),
@@ -1293,24 +1329,51 @@
       .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
         paste0("R operation-pack runner failed: ", conditionMessage(result)), "execution")
     }
-    reader_observation <- .wb_operation_pack_v2_chunk_observation(operation,
-      params, adapter$state$reader_calls, inputs)
+    chunk_state <- if (abi_v3) .wb_operation_pack_v3_finalize_adapter(
+      adapter, request, registration, params, source_refs) else NULL
+    reader_observation <- if (abi_v3 && !is.null(chunk_state)) list(
+      axis = "cells",
+      requested_chunk_size = chunk_state$schedule$requested_chunk_size,
+      observed_call_count = length(chunk_state$observations),
+      observed_batch_sizes = as.integer(vapply(
+        chunk_state$schedule$batches, `[[`, integer(1), "length")),
+      observed_batches = lapply(chunk_state$schedule$batches, function(x)
+        attr(x$fragment_grant, "operation_pack_v3_cells") %||% character())) else
+      if (abi_v3) NULL else .wb_operation_pack_v2_chunk_observation(operation,
+        params, adapter$state$reader_calls, inputs)
     registry_read_observations <- .wb_operation_pack_v2_registry_read_observations(
       request, adapter$state$reader_calls)
+    provenance_read_observations <- if (abi_v3)
+      .wb_operation_pack_v3_provenance_observations(request,
+        adapter$state$reader_calls) else list()
     adapter$consume()
-    receipt <- .wb_operation_pack_v2_receipt(request, registration, operation,
-      adapter$state$writes, preflight, registry_read_observations)
+    receipt <- if (abi_v3) .wb_operation_pack_v3_receipt(request,
+      registration, operation, adapter$state$writes, preflight, inputs,
+      registry_read_observations, provenance_read_observations,
+      chunk_state = chunk_state) else .wb_operation_pack_v2_receipt(request,
+        registration, operation, adapter$state$writes, preflight,
+        registry_read_observations)
   }
   .wb_operation_pack_v2_fault("receipt_received", transition_id = transition_id)
-  .wb_operation_pack_v2_schema_assert(receipt, "receipt", "PYBENCH_RECEIPT_MISMATCH")
-  .wb_operation_pack_v2_receipt_audit(receipt, request, registration, operation, preflight)
+  if (abi_v3) {
+    .wb_operation_pack_v3_schema_assert(receipt, "receipt",
+      "PYBENCH_RECEIPT_MISMATCH")
+    .wb_operation_pack_v3_receipt_audit(receipt, request, registration,
+      operation, preflight)
+  } else {
+    .wb_operation_pack_v2_schema_assert(receipt, "receipt",
+      "PYBENCH_RECEIPT_MISMATCH")
+    .wb_operation_pack_v2_receipt_audit(receipt, request, registration,
+      operation, preflight)
+  }
   if (!python_backend) .wb_operation_pack_v2_atomic_json(receipt,
     file.path(stage, "receipt.json"))
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "audited", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("audited", transition_id = transition_id)
   if (python_backend) {
-    .wb_operation_pack_v2_python_audit(stage, request, receipt)
+    if (abi_v3) .wb_operation_pack_v3_python_audit(stage, request, receipt) else
+      .wb_operation_pack_v2_python_audit(stage, request, receipt)
   } else {
     inventory <- list.files(stage, recursive = TRUE, all.files = TRUE,
       include.dirs = FALSE, no.. = TRUE)
@@ -1318,13 +1381,19 @@
       "operation_pack_v2_registry_read_values") %||% list())
     registry_payloads <- if (length(registry_names)) paste0(
       "registry_reads/", registry_names, "/payload.json") else character()
+    provenance_names <- names(attr(request,
+      "operation_pack_v3_provenance_read_values") %||% list())
+    provenance_payloads <- if (length(provenance_names)) paste0(
+      "provenance_reads/", provenance_names, "/payload.json") else character()
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
       paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
-      registry_payloads), method = "radix")
+      registry_payloads, provenance_payloads), method = "radix")
     if (!identical(sort(inventory, method = "radix"), expected_inventory)) .wb_operation_pack_v2_error(
       "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
       unexpected = setdiff(inventory, expected_inventory))
   }
+  if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
+    operation, inputs, source_refs, request, params)
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
   if (!isTRUE(moved) || !dir.exists(final)) .wb_operation_pack_v2_error("PYBENCH_PUBLICATION_FAILED",

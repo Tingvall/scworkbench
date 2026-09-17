@@ -1,0 +1,186 @@
+{
+  "schema_version": "scworkbench.operation_pack.v3",
+  "pack_abi_version": "3",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "namespace": "scwbv3reference",
+  "package": {"name": "scwbV3Reference", "version": "0.1.0"},
+  "backend": "R",
+  "compatibility": {
+    "scworkbench": {"minimum": "0.1.0", "maximum_exclusive": "0.2.0"},
+    "pack_abi": {"minimum": "3", "maximum": "3"}
+  },
+  "entry_point": "scwbV3Reference::register_operation_pack",
+  "operations": [
+    {
+      "name": "bounded_family",
+      "qualified_name": "scwbv3reference::bounded_family",
+      "title": "Bounded family fixture",
+      "description": "Exercises authenticated family output axes.",
+      "runner": ".bounded_family",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"}
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "features": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+          "name": {"type": "string", "minLength": 1}
+        },
+        "required": ["features", "name"],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "scores", "policy": "authenticated_output_axes_v1",
+          "shape": "cell_key_cartesian",
+          "cell_axis": {"source": "effective_cells_v1", "input": "matrix"},
+          "key_axis": {
+            "source": "resolved_parameter_feature_groups_v1",
+            "groups_parameter": "features", "matrix_input": "matrix",
+            "name_prefix_parameter": "name", "matching": "exact_feature_id_v1",
+            "normalization": "ordered_unique_features_v1",
+            "generated_names": "legacy_module_group_names_v1",
+            "missing_feature_policy": {"source": "fixed_drop_v1"},
+            "empty_group_policy": "drop", "zero_key_policy": "error"
+          },
+          "row_order": "key_major_then_cell_v1", "missing_values": "forbidden"
+        }
+      ],
+      "outputs": [
+        {"name": "scores", "category": "terminal_artifact", "kind": "cell_vector_family", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "scores_id", "required": true, "promotion_group": "scores", "value_kind": "continuous"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"scores": ["scores"]},
+      "replay_equivalence": {"scores": "exact_canonical_value"}
+    },
+    {
+      "name": "chunked_family",
+      "qualified_name": "scwbv3reference::chunked_family",
+      "title": "Cell chunk fixture",
+      "description": "Exercises authenticated cell chunks and pure finalization.",
+      "runner": ".chunked_family",
+      "inputs": [
+        {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"}
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "features": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+          "name": {"type": "string", "minLength": 1},
+          "chunk_size": {"type": "integer", "minimum": 1}
+        },
+        "required": ["features", "name", "chunk_size"],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "scores", "policy": "authenticated_output_axes_v1",
+          "shape": "cell_key_cartesian",
+          "cell_axis": {"source": "effective_cells_v1", "input": "matrix"},
+          "key_axis": {
+            "source": "resolved_parameter_feature_groups_v1",
+            "groups_parameter": "features", "matrix_input": "matrix",
+            "name_prefix_parameter": "name", "matching": "exact_feature_id_v1",
+            "normalization": "ordered_unique_features_v1",
+            "generated_names": "legacy_module_group_names_v1",
+            "missing_feature_policy": {"source": "fixed_drop_v1"},
+            "empty_group_policy": "drop", "zero_key_policy": "error"
+          },
+          "row_order": "key_major_then_cell_v1", "missing_values": "forbidden"
+        },
+        {"output": "summary", "policy": "data_dependent_table_v1"}
+      ],
+      "chunking": {
+        "axis": "cells", "input": "matrix", "size_parameter": "chunk_size",
+        "fragment_output": "scores", "summary_output": "summary",
+        "key_axis_policy": "scores", "merge": "row_bind_cell_vector_family_v1",
+        "summary": {
+          "interface": "pure_summary_finalizer_v1", "callable": "summarize_scores",
+          "isolation": "fresh_pack_invocation_v1",
+          "metadata_sources": [
+            {"name": "keys", "source": "resolved_key_axis", "output": "scores"},
+            {"name": "chunk_size", "source": "normalized_parameter", "parameter": "chunk_size"},
+            {"name": "matrix", "source": "input_descriptor", "input": "matrix"}
+          ]
+        }
+      },
+      "outputs": [
+        {"name": "scores", "category": "terminal_artifact", "kind": "cell_vector_family", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "scores_id", "required": true, "promotion_group": "chunked", "value_kind": "continuous"},
+        {"name": "summary", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "summary_id", "required": true, "promotion_group": "chunked", "table_type": "abi_v3_chunk_summary"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"scores": ["scores", "summary"], "summary": ["scores", "summary"]},
+      "replay_equivalence": {"scores": "exact_canonical_value", "summary": "exact_canonical_value"}
+    },
+    {
+      "name": "reduce_family",
+      "qualified_name": "scwbv3reference::reduce_family",
+      "title": "Distinct cell reduction fixture",
+      "description": "Exercises one output row per first-seen distinct input cell.",
+      "runner": ".reduce_family",
+      "inputs": [
+        {"name": "signal", "kind": "cell_vector_family", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {"type": "object", "properties": {}, "additionalProperties": false},
+      "dimension_policies": [
+        {
+          "output": "reduced", "policy": "authenticated_output_axes_v1",
+          "shape": "one_per_cell",
+          "cell_axis": {"source": "distinct_input_cells_first_occurrence_v1", "input": "signal"},
+          "row_order": "input_cell_order_v1", "missing_values": "canonical_null_allowed"
+        }
+      ],
+      "outputs": [
+        {"name": "reduced", "category": "terminal_artifact", "kind": "cell_vector", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "reduced_id", "required": true, "promotion_group": "reduced", "value_kind": "continuous"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"reduced": ["reduced"]},
+      "replay_equivalence": {"reduced": "exact_canonical_value"}
+    },
+    {
+      "name": "ancestry_family",
+      "qualified_name": "scwbv3reference::ancestry_family",
+      "title": "Artifact ancestry fixture",
+      "description": "Exercises an input-bound core-attested ancestry read.",
+      "runner": ".ancestry_family",
+      "inputs": [
+        {"name": "signal", "kind": "cell_vector_family", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {"artifact_id": {"type": "string", "minLength": 1}},
+        "required": ["artifact_id"], "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "smoothed", "policy": "authenticated_output_axes_v1",
+          "shape": "cell_key_cartesian",
+          "cell_axis": {"source": "effective_cells_v1", "input": "signal"},
+          "key_axis": {
+            "source": "input_keys_with_optional_selector_v1", "input": "signal",
+            "no_selector_order": "first_occurrence_v1",
+            "selector_order": "normalized_parameter_order_v1",
+            "unknown_key_policy": "error", "zero_key_policy": "error"
+          },
+          "row_order": "key_major_then_cell_v1", "missing_values": "forbidden"
+        }
+      ],
+      "provenance_reads": [
+        {
+          "name": "source_ancestry",
+          "category": "authenticated_core_provenance_snapshot",
+          "kind": "artifact_ancestry", "reader": "read_artifact_ancestry",
+          "input": "signal", "activation": "when_resolved_from_artifact",
+          "lifecycle_policy": "require_current",
+          "parameter_assertions": {"artifact_id": "artifact_id"}
+        }
+      ],
+      "outputs": [
+        {"name": "smoothed", "category": "terminal_artifact", "kind": "cell_vector_family", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "smoothed_id", "required": true, "promotion_group": "smoothed", "value_kind": "continuous"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"smoothed": ["smoothed"]},
+      "replay_equivalence": {"smoothed": "exact_canonical_value"}
+    }
+  ]
+}

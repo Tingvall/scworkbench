@@ -4,7 +4,7 @@
 \alias{wb_operation_pack_register}
 \title{Register an R Operation-Pack Definition}
 \usage{
-wb_operation_pack_register(manifest, operations)
+wb_operation_pack_register(manifest, operations, finalizers = list())
 }
 \arguments{
 \item{manifest}{Path to the installed canonical \code{operation-pack.json}.}
@@ -13,6 +13,10 @@ wb_operation_pack_register(manifest, operations)
 the fully qualified operation names declared by the manifest. Every runner
 has formals \verb{bundle, resolved, effective_cells, inputs, ...}, consumes only
 sanctioned arguments, and returns \code{list(outputs = ..., params = ...)}.}
+
+\item{finalizers}{Optional named list of ABI-v3 pure summary finalizers.
+Every finalizer has formals \verb{merged_family, metadata}. Earlier ABIs reject
+a nonempty value.}
 }
 \value{
 A validated \code{wb_operation_pack_registration} object.

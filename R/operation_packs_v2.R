@@ -139,8 +139,12 @@
     path <- normalizePath(manifest, winslash = "/", mustWork = TRUE)
     text <- readChar(path, nchars = file.info(path)$size, useBytes = TRUE)
     probe <- tryCatch(jsonlite::fromJSON(text, simplifyVector = FALSE), error = identity)
-    if (!inherits(probe, "error") && identical(as.character(probe$schema_version %||% "")[1],
-        "scworkbench.operation_pack.v2")) return(.wb_operation_pack_v2_read_manifest(path))
+    schema_version <- if (inherits(probe, "error")) "" else
+      as.character(probe$schema_version %||% "")[1]
+    if (identical(schema_version, "scworkbench.operation_pack.v3"))
+      return(.wb_operation_pack_v3_read_manifest(path))
+    if (identical(schema_version, "scworkbench.operation_pack.v2"))
+      return(.wb_operation_pack_v2_read_manifest(path))
     return(.wb_operation_pack_read_manifest(path))
   }
   .wb_operation_pack_assert(is.list(manifest), "OPERATION_PACK_MANIFEST_INVALID",
