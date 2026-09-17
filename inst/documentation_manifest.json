@@ -3885,6 +3885,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "man/wb_partition_axis.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "man/wb_path_2d_family_space_id.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -4953,6 +4964,17 @@
     },
     {
       "path": "man/wb_set_create.Rd",
+      "class": "generated_public_reference",
+      "audience": "public",
+      "status": "generated",
+      "canonical_source": "R/ roxygen comments",
+      "generator": "devtools::document()",
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
+      "path": "man/wb_slice_chunks.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",
