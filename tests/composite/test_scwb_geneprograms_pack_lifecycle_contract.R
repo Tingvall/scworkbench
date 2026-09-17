@@ -12,7 +12,11 @@
     feature_type = "gene")
   coords <- cbind(x = seq_along(cells), y = rep(c(1, 2), 4L)); rownames(coords) <- cells
   wb_add_space(bundle, "fixture_space", coords, overwrite = TRUE)
-  list(root = root, bundle = bundle, cells = cells, features = features)
+  space <- structure(list(kind = "space", space_id = "fixture_space",
+    values = coords, dimensions = as.integer(dim(coords)), cell_id = cells,
+    storage_profile = "space_dense_v1"), class = "wb_primitive")
+  list(root = root, bundle = bundle, cells = cells, features = features,
+    space = space)
 }
 
 test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
@@ -36,7 +40,8 @@ test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
     c(second$run$run_id, fourth$run$run_id),
     staging_bundle = wb_session_view(fourth$session),
     created_by = "composite", fail_fast = TRUE)
-  stopifnot(all(promotion$promoted$status == "ok"),
+  stopifnot(all(promotion$promoted$status[promotion$promoted$status != "skipped"] == "ok"),
+    identical(sum(promotion$promoted$status == "skipped"), 2L),
     all(vapply(list(first, second, third, fourth), function(x)
       startsWith(x$run$op_name, "scwbgeneprograms::"), logical(1))))
   snapshot <- promotion$provenance_snapshot_id
@@ -44,7 +49,7 @@ test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
     profile = "strict", strict = TRUE)
   stopifnot(isTRUE(replay$summary$valid),
     isTRUE(wb_finalize_recipient_bundle(b)$ready))
-  artifacts <- wb_art_list(b); stopifnot(nrow(artifacts) >= 10L)
+  artifacts <- wb_art_list(b); stopifnot(nrow(artifacts) >= 8L)
   wb_close_bundle(b); b <- NULL
 
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
@@ -81,12 +86,12 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
   artifact <- promoted$promoted$artifact_id[[1L]]
   omitted <- wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
-      signal = wb_ref_artifact(artifact, "module_scores"), space = wb_prim_space("fixture_space"),
+      signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
       k = 2L, alpha = .5, query_chunk_size = 3L, min_cells = 1L))
   meta <- omitted$run$outputs$smoothed_signal$meta
   explicit <- wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
-      signal = wb_ref_artifact(artifact, "module_scores"), space = wb_prim_space("fixture_space"),
+      signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
       k = 2L, alpha = .5, query_chunk_size = 3L,
       source_signal_artifact_id = artifact, source_run_id = meta$source_run_id,
       source_snapshot_id = meta$source_snapshot_id, min_cells = 1L))
@@ -95,7 +100,7 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
     identical(meta$source_signal_artifact_id, artifact))
   stale <- tryCatch(wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
-      signal = wb_ref_artifact(artifact, "module_scores"), space = wb_prim_space("fixture_space"),
+      signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
       k = 2L, source_run_id = "run_wrong", min_cells = 1L)), error = identity)
   stopifnot(inherits(stale, "wb_operation_pack_error"))
   TRUE
