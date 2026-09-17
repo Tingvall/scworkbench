@@ -17,7 +17,7 @@
   "SCWORKBENCH_PYBENCH_PYTHON"))
 
 .wb_phase3b_pybench_commit <-
-  "16d523c71b7fa906c4bc6eca57c304cdeb79b472"
+  "1a9d9c3cc328ad1413462b0fa37b5a7ab5dcafc8"
 
 .wb_phase3b_shared_sha256 <- c(
   "f263fbcf15d3a928c5a3b7cfa41ca27b4f5d3e0f31f2b8f42cc930b1d9713ff3",
