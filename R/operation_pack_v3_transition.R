@@ -553,7 +553,7 @@
   }
   features <- axis_ids(grant$features_axis)
   cells <- axis_ids(grant$cells_axis)
-  matrix <- tryCatch(as(Matrix::readMM(path), "CsparseMatrix"),
+  matrix <- tryCatch(methods::as(Matrix::readMM(path), "CsparseMatrix"),
     error = function(error) .wb_operation_pack_v3_error(
       "PYBENCH_INPUT_IDENTITY_MISMATCH",
       paste0("Typed-slice private projection is unreadable: ",
