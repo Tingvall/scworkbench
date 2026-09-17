@@ -258,8 +258,13 @@
       kind = "feature_set_registry",
       reader = "read_feature_set_registry",
       matrix_input = as.character(declaration$matrix_input)[1],
-      selector_binding = declaration[c("namespace_parameter", "namespaces_parameter",
-        "feature_sets_parameter", "no_selector_policy", "empty_match_policy")],
+      selector_binding = list(
+        namespace_parameter = declaration$namespace_parameter %||% NULL,
+        namespaces_parameter = declaration$namespaces_parameter %||% NULL,
+        feature_sets_parameter = declaration$feature_sets_parameter %||% NULL,
+        no_selector_policy = declaration$no_selector_policy,
+        empty_match_policy = declaration$empty_match_policy
+      ),
       matrix_id = snapshot$matrix_id,
       dimensions = unname(as.list(as.integer(c(length(snapshot$sets),
         sum(vapply(snapshot$sets, function(x) length(x$memberships), integer(1))))))),

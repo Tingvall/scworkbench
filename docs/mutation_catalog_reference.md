@@ -2,27 +2,13 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 148
+Record count: 139
 
-Meaningful public transformations: 65
+Meaningful public transformations: 64
 
 Exported directly guarded functions: 27
 
 Exactly-one-route invariant: PASS
-
-## `wb_op_addmodulescore`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
 
 ## `wb_op_catalog_semantic`
 
@@ -39,76 +25,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_cell_suffix_label`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_family_calibrate`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_family_graph_smooth`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_family_qc`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_family_reduce`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_vector_winners`
 
 Category: operation_implementation
 
@@ -388,20 +304,6 @@ Boundary: `guarded_implementation`
 
 Supported route: `registered_session_execution_and_promotion`
 
-## `wb_op_feature_set_overlap_qc`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
 ## `wb_op_hvg_select`
 
 Category: operation_implementation
@@ -597,20 +499,6 @@ Durable mutation: true
 Boundary: `guarded_implementation`
 
 Supported route: `registered_session_execution_and_promotion`
-
-## `wb_op_pathway_enrich`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
 
 ## `wb_op_pca_fit`
 
@@ -1131,20 +1019,6 @@ Boundary: `public_transaction`
 Supported route: `declared_ingestion_transaction`
 
 ## `wb_feature_set_namespace_transfer`
-
-Category: registry_writer
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `guarded_implementation`
-
-Supported route: `registered_session_execution_and_promotion`
-
-## `wb_register_winner_cell_sets`
 
 Category: registry_writer
 

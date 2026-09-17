@@ -35,7 +35,7 @@ test_artifact_naming_contract <- function(bundle_dir) {
   )
 
   r2 <- wb_new_run(
-    op_name = "pathway_enrich",
+    op_name = "scwbv2reference::grouped_feature_table",
     inputs = list(
       cell_set = "all",
       effective_n = 100L,
@@ -53,14 +53,13 @@ test_artifact_naming_contract <- function(bundle_dir) {
       n_pathways = 12L
     ),
     outputs = list(
-      pathways = wb_prim_obs_table(
+      result = wb_prim_feature_table(
         table = data.frame(
-          pathway = c("p1", "p2"),
-          p_adj = c(0.01, 0.02),
+          feature_id = c("p1", "p2"),
+          score = c(0.01, 0.02),
           stringsAsFactors = FALSE
         ),
-        table_type = "pathway_enrich",
-        entity_kind = "pathway"
+        table_type = "synthetic_named_feature_table"
       )
     ),
     notes = "synthetic pathways"
@@ -84,7 +83,7 @@ test_artifact_naming_contract <- function(bundle_dir) {
   stopifnot(is.data.frame(arts), nrow(arts) >= 2)
 
   de_art <- arts[arts$source_op == "scwbv2reference::feature_table_from_matrix", , drop = FALSE]
-  pw_art <- arts[arts$source_op == "pathway_enrich", , drop = FALSE]
+  pw_art <- arts[arts$source_op == "scwbv2reference::grouped_feature_table", , drop = FALSE]
   stopifnot(nrow(de_art) >= 1, nrow(pw_art) >= 1)
 
   de_name <- as.character(de_art$name[1])
@@ -94,9 +93,8 @@ test_artifact_naming_contract <- function(bundle_dir) {
   stopifnot(nzchar(de_name))
   stopifnot(!grepl("__synthetic_named_feature_table__", de_name, fixed = TRUE))
 
-  stopifnot(grepl("Usecase 1 - Pathway Enrichment:", pw_name, fixed = TRUE))
-  stopifnot(grepl("bcell_gsea", pw_name, fixed = TRUE))
-  stopifnot(grepl("(up)", pw_name, fixed = TRUE))
+  stopifnot(grepl("Usecase 1", pw_name, fixed = TRUE))
+  stopifnot(nzchar(pw_name))
   stopifnot(!grepl("__pathway_enrich__", pw_name, fixed = TRUE))
 
   TRUE

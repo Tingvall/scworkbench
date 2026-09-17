@@ -435,7 +435,7 @@
     input_record$descriptor_identity)
   content_id <- input_record$content_identity
   matrix_id <- as.character(input$matrix_id %||% "")[1]
-  durable <- nzchar(matrix_id) && nrow(DBI::dbGetQuery(bundle$con,
+  durable <- is.null(input$values) && nzchar(matrix_id) && nrow(DBI::dbGetQuery(bundle$con,
     "SELECT 1 FROM matrices WHERE matrix_id=? LIMIT 1;",
     params = list(matrix_id))) == 1L
   source <- list(schema =
@@ -988,9 +988,14 @@
           as.character(descriptor$kind)[1])))
     }
     descriptor$observed_descriptor_identity <- NULL
+    observed_scheme <- if (identical(as.character(descriptor$category)[1],
+        "core_registry_request")) {
+      "scworkbench.operation_pack.observed_registry_request.v2"
+    } else {
+      "scworkbench.operation_pack.observed_output.v3"
+    }
     descriptor$observed_descriptor_identity <-
-      .wb_operation_pack_v2_identity_scoped(
-        "scworkbench.operation_pack.observed_output.v3",
+      .wb_operation_pack_v2_identity_scoped(observed_scheme,
         "descriptor excluding observed_descriptor_identity", descriptor)
     observed[[i]]$descriptor <- descriptor
   }

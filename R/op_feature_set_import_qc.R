@@ -409,12 +409,8 @@ wb_op_feature_set_import <- function(bundle,
   )
 }
 
-#' Compute Feature-Set Matrix Overlap QC
-#'
-#' Summarizes how registered feature sets overlap a target matrix before
-#' trajectory/pathway screening.
-#'
-#' @export
+# Historical private reader retained only for inspecting old method records.
+# New execution is owned by scwbgeneprograms::feature_set_overlap_qc.
 wb_op_feature_set_overlap_qc <- function(bundle,
                                          matrix_id,
                                          namespaces = NULL,

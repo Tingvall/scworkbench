@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "record_count": 148,
-  "meaningful_public_transformation_count": 65,
+  "record_count": 139,
+  "meaningful_public_transformation_count": 64,
   "exported_guarded_function_count": 27,
   "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_matrix_log_normalize", "wb_op_model_bound_latent_union", "wb_op_palantir_fit", "wb_op_palantir_project", "wb_op_pca_fit", "wb_op_peakvi_project", "wb_op_umap_fit", "wb_op_umap_transform", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
   "invariant": {
@@ -11,18 +11,6 @@
     "violation_ids": []
   },
   "records": [
-    {
-      "interface_id": "operation_implementation:wb_op_addmodulescore",
-      "function_name": "wb_op_addmodulescore",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
     {
       "interface_id": "operation_implementation:wb_op_catalog_semantic",
       "function_name": "wb_op_catalog_semantic",
@@ -38,66 +26,6 @@
     {
       "interface_id": "operation_implementation:wb_op_cell_suffix_label",
       "function_name": "wb_op_cell_suffix_label",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_cell_vector_family_calibrate",
-      "function_name": "wb_op_cell_vector_family_calibrate",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_cell_vector_family_graph_smooth",
-      "function_name": "wb_op_cell_vector_family_graph_smooth",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_cell_vector_family_qc",
-      "function_name": "wb_op_cell_vector_family_qc",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_cell_vector_family_reduce",
-      "function_name": "wb_op_cell_vector_family_reduce",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_cell_vector_winners",
-      "function_name": "wb_op_cell_vector_winners",
       "category": "operation_implementation",
       "exported": true,
       "implemented": true,
@@ -336,18 +264,6 @@
       "direct_committed_write": false
     },
     {
-      "interface_id": "operation_implementation:wb_op_feature_set_overlap_qc",
-      "function_name": "wb_op_feature_set_overlap_qc",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
       "interface_id": "operation_implementation:wb_op_hvg_select",
       "function_name": "wb_op_hvg_select",
       "category": "operation_implementation",
@@ -513,18 +429,6 @@
       "supported_route": "registered_session_execution_and_promotion",
       "supported_route_count": 1,
       "boundary": "guarded_implementation",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_pathway_enrich",
-      "function_name": "wb_op_pathway_enrich",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
       "direct_committed_write": false
     },
     {
@@ -974,18 +878,6 @@
     {
       "interface_id": "registry_writer:wb_feature_set_namespace_transfer",
       "function_name": "wb_feature_set_namespace_transfer",
-      "category": "registry_writer",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": true,
-      "supported_route": "registered_session_execution_and_promotion",
-      "supported_route_count": 1,
-      "boundary": "guarded_implementation",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "registry_writer:wb_register_winner_cell_sets",
-      "function_name": "wb_register_winner_cell_sets",
       "category": "registry_writer",
       "exported": true,
       "implemented": true,

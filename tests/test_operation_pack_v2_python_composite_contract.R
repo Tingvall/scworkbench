@@ -310,7 +310,7 @@ test_operation_pack_v2_python_activation_contract <- function() {
     identity = wb_operation_catalog_identity())
   conformance <- wb_operation_pack_manifest_validate(context$manifest)
   stopifnot(isTRUE(conformance$ok), !isTRUE(conformance$activated),
-    identical(conformance$backend, "Python"), length(wb_list_ops()) == 53L)
+    identical(conformance$backend, "Python"), length(wb_list_ops()) == 43L)
   manifest <- scworkbench:::.wb_operation_pack_v2_normalize(
     scworkbench:::.wb_operation_pack_v2_read_manifest(context$manifest))
   inert <- scworkbench:::.wb_operation_pack_v2_python_discover(context$manifest,
@@ -341,7 +341,7 @@ test_operation_pack_v2_python_activation_contract <- function() {
     identical(wb_operation_catalog_identity(), before$identity))
   activated <- wb_operation_pack_activate(context$manifest, python = context$python)
   stopifnot(identical(activated$identity$backend, "Python"),
-    length(wb_list_ops()) == 59L)
+    length(wb_list_ops()) == 49L)
   TRUE
 }
 
@@ -364,7 +364,7 @@ test_operation_pack_v2_python_coexistence_and_order_contract <- function() {
   }
   first <- activate_order(c("r1", "r2", "py2"))
   second <- activate_order(c("py2", "r2", "r1"))
-  stopifnot(identical(first, second), length(wb_list_ops()) == 53L)
+  stopifnot(identical(first, second), length(wb_list_ops()) == 43L)
   TRUE
 }
 
@@ -402,7 +402,7 @@ test_operation_pack_v2_python_durable_lifecycle_contract <- function() {
   repo <- normalizePath(".", winslash = "/")
   expression <- paste0(
     "args<-commandArgs(TRUE);devtools::load_all(args[1],quiet=TRUE);",
-    "stopifnot(nrow(wb_operation_packs())==0L,length(wb_list_ops())==53L,",
+    "stopifnot(nrow(wb_operation_packs())==0L,length(wb_list_ops())==43L,",
     "isTRUE(wb_validate_bundle(args[2],read_only=TRUE)));",
     "b<-wb_open_bundle(args[2],read_only=TRUE);",
     "x<-wb_operation_pack_transition_outputs(b,args[3]);stopifnot(nrow(x)==15L);",

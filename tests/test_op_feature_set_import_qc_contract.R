@@ -1,11 +1,8 @@
 test_op_feature_set_import_qc_contract <- function(bundle_dir) {
   iface_import <- wb_op_interface("feature_set_import")
-  iface_qc <- wb_op_interface("feature_set_overlap_qc")
-  stopifnot(is.list(iface_import), is.list(iface_qc))
+  stopifnot(is.list(iface_import))
   stopifnot(identical(as.character(iface_import$produces$import_manifest$kind), "obs_table"))
-  stopifnot(identical(as.character(iface_qc$produces$overlap_qc$kind), "obs_table"))
   stopifnot("feature_set_import" %in% wb_list_ops())
-  stopifnot("feature_set_overlap_qc" %in% wb_list_ops())
 
   b <- wb_open_bundle(bundle_dir)
   on.exit(wb_close_bundle(b), add = TRUE)
@@ -59,31 +56,7 @@ test_op_feature_set_import_qc_contract <- function(bundle_dir) {
   stopifnot(is.data.frame(fs), nrow(fs) == 2L)
   stopifnot(setequal(as.character(fs$feature_set), c("TEST_A", "TEST_B")))
 
-  r2 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "feature_set_overlap_qc",
-    inputs = list(
-      matrix = wb_prim_matrix(matrix_id),
-      namespace = ns,
-      min_set_size = 3L,
-      min_detected_fraction = 0.5,
-      deduplicate_sets = TRUE
-    ),
-    notes = "test feature-set overlap QC"
-  )
-  s <- r2$session
-  qc <- r2$run$outputs$overlap_qc
-  ns_sum <- r2$run$outputs$namespace_summary
-  stopifnot(inherits(qc, "wb_primitive"), identical(as.character(qc$table_type), "feature_set_overlap_qc"))
-  stopifnot(inherits(ns_sum, "wb_primitive"), identical(as.character(ns_sum$table_type), "feature_set_overlap_qc_summary"))
-  stopifnot(all(c("detected_fraction", "screening_status", "reason") %in% colnames(qc$table)))
-  stopifnot(nrow(qc$table) == 2L)
-  stopifnot(all(as.character(qc$table$screening_status) == "include"))
-
-  # Keep registry-mutating import and its QC in one staged session. Promotion
-  # commits the requested artifacts; the registry mutation remains session
-  # state until its own persistence contract is extended.
+  # Registry-mutating import remains core-owned.
   prom1 <- wb_session_promote_current(
     bundle = b,
     session = s,
@@ -109,21 +82,6 @@ test_op_feature_set_import_qc_contract <- function(bundle_dir) {
   ]
   stopifnot(nrow(mut) >= 2L)
   stopifnot(any(grepl(paste0("^feature_set:", ns, ":"), as.character(mut$to))))
-
-  prom2 <- wb_session_promote_current(
-    bundle = b,
-    session = s,
-    name_prefix = "Feature Set Overlap QC Test",
-    fail_fast = TRUE,
-    outputs = c("overlap_qc", "namespace_summary")
-  )
-  stopifnot(is.data.frame(prom2$promoted), nrow(prom2$promoted) >= 2L)
-  qc_artifact_id <- as.character(prom2$promoted$artifact_id[
-    as.character(prom2$promoted$output) == "overlap_qc"
-  ][1])
-  stopifnot(nzchar(qc_artifact_id))
-  loaded_qc <- wb_art_load(b, qc_artifact_id, expected_kind = "obs_table")
-  stopifnot(identical(as.character(loaded_qc$table_type), "feature_set_overlap_qc"))
 
   wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(wb_validate_bundle(bundle_dir)))

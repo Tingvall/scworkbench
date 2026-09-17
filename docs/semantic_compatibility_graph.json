@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 323,
-  "edge_count": 891,
+  "node_count": 313,
+  "edge_count": 809,
   "nodes": [
     {
       "record_id": "op:leiden",
@@ -47,76 +47,16 @@
       "title": "UMAP transform (project cells)"
     },
     {
-      "record_id": "op:addmodulescore",
-      "record_type": "op",
-      "name": "addmodulescore",
-      "title": "Add module score"
-    },
-    {
-      "record_id": "op:ucell",
-      "record_type": "op",
-      "name": "ucell",
-      "title": "UCell Signature Scoring"
-    },
-    {
-      "record_id": "op:cell_vector_family_reduce",
-      "record_type": "op",
-      "name": "cell_vector_family_reduce",
-      "title": "Reduce Cell Vector Family"
-    },
-    {
-      "record_id": "op:cell_vector_family_calibrate",
-      "record_type": "op",
-      "name": "cell_vector_family_calibrate",
-      "title": "Calibrate Cell Vector Family"
-    },
-    {
-      "record_id": "op:cell_vector_family_qc",
-      "record_type": "op",
-      "name": "cell_vector_family_qc",
-      "title": "QC Cell Vector Family"
-    },
-    {
-      "record_id": "op:cell_vector_family_graph_smooth",
-      "record_type": "op",
-      "name": "cell_vector_family_graph_smooth",
-      "title": "Graph Smooth Cell Vector Family"
-    },
-    {
-      "record_id": "op:cell_vector_winners",
-      "record_type": "op",
-      "name": "cell_vector_winners",
-      "title": "Cell Vector Winner Assignment"
-    },
-    {
-      "record_id": "op:winner_cell_sets",
-      "record_type": "op",
-      "name": "winner_cell_sets",
-      "title": "Winner Cell-Set Registration"
-    },
-    {
       "record_id": "op:chromvar",
       "record_type": "op",
       "name": "chromvar",
       "title": "chromVAR deviations"
     },
     {
-      "record_id": "op:pathway_enrich",
-      "record_type": "op",
-      "name": "pathway_enrich",
-      "title": "Pathway Enrichment (Namespace)"
-    },
-    {
       "record_id": "op:feature_set_import",
       "record_type": "op",
       "name": "feature_set_import",
       "title": "Feature-Set Library Import"
-    },
-    {
-      "record_id": "op:feature_set_overlap_qc",
-      "record_type": "op",
-      "name": "feature_set_overlap_qc",
-      "title": "Feature-Set Matrix Overlap QC"
     },
     {
       "record_id": "op:feature_set_namespace_transfer",
@@ -2270,342 +2210,6 @@
     },
     {
       "from": "primitive:matrix",
-      "to": "op:addmodulescore",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:addmodulescore",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:addmodulescore",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:addmodulescore",
-      "to": "parameter:seed",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:seed"
-    },
-    {
-      "from": "op:addmodulescore",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:module_scores"
-    },
-    {
-      "from": "op:addmodulescore",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:module_scores"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:ucell",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:ucell",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:ucell",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:ucell",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:signature_scores"
-    },
-    {
-      "from": "op:ucell",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:signature_summary"
-    },
-    {
-      "from": "op:ucell",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:signature_scores"
-    },
-    {
-      "from": "primitive:cell_vector_family",
-      "to": "op:cell_vector_family_reduce",
-      "edge_type": "consumed_by",
-      "label": "input:signal"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "parameter:signal_keys",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:signal_keys"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:label"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:top_score"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:runner_up_score"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:score_margin"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:abstain_reason"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:decision_table"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:label_summary"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:label"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:top_score"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:runner_up_score"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:score_margin"
-    },
-    {
-      "from": "op:cell_vector_family_reduce",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:abstain_reason"
-    },
-    {
-      "from": "primitive:cell_vector_family",
-      "to": "op:cell_vector_family_calibrate",
-      "edge_type": "consumed_by",
-      "label": "input:signal"
-    },
-    {
-      "from": "op:cell_vector_family_calibrate",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_family_calibrate",
-      "to": "parameter:signal_keys",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:signal_keys"
-    },
-    {
-      "from": "op:cell_vector_family_calibrate",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:calibrated_signal"
-    },
-    {
-      "from": "op:cell_vector_family_calibrate",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:calibration_summary"
-    },
-    {
-      "from": "op:cell_vector_family_calibrate",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:calibrated_signal"
-    },
-    {
-      "from": "primitive:cell_vector_family",
-      "to": "op:cell_vector_family_qc",
-      "edge_type": "consumed_by",
-      "label": "input:signal"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:cell_vector_family_qc",
-      "edge_type": "consumed_by",
-      "label": "input:grouping"
-    },
-    {
-      "from": "op:cell_vector_family_qc",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_family_qc",
-      "to": "parameter:signal_keys",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:signal_keys"
-    },
-    {
-      "from": "op:cell_vector_family_qc",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:key_summary"
-    },
-    {
-      "from": "op:cell_vector_family_qc",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:pairwise_summary"
-    },
-    {
-      "from": "op:cell_vector_family_qc",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:group_summary"
-    },
-    {
-      "from": "primitive:cell_vector_family",
-      "to": "op:cell_vector_family_graph_smooth",
-      "edge_type": "consumed_by",
-      "label": "input:signal"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:cell_vector_family_graph_smooth",
-      "edge_type": "consumed_by",
-      "label": "input:space"
-    },
-    {
-      "from": "op:cell_vector_family_graph_smooth",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:space"
-    },
-    {
-      "from": "op:cell_vector_family_graph_smooth",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_family_graph_smooth",
-      "to": "parameter:signal_keys",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:signal_keys"
-    },
-    {
-      "from": "op:cell_vector_family_graph_smooth",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:smoothed_signal"
-    },
-    {
-      "from": "op:cell_vector_family_graph_smooth",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:smoothing_summary"
-    },
-    {
-      "from": "op:cell_vector_family_graph_smooth",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:smoothed_signal"
-    },
-    {
-      "from": "primitive:cell_vector_family",
-      "to": "op:cell_vector_winners",
-      "edge_type": "consumed_by",
-      "label": "input:signal"
-    },
-    {
-      "from": "op:cell_vector_winners",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_vector_winners",
-      "to": "parameter:signal_keys",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:signal_keys"
-    },
-    {
-      "from": "op:cell_vector_winners",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:winners"
-    },
-    {
-      "from": "primitive:obs_table",
-      "to": "op:winner_cell_sets",
-      "edge_type": "consumed_by",
-      "label": "input:winners"
-    },
-    {
-      "from": "op:winner_cell_sets",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:winner_cell_sets",
-      "to": "parameter:overwrite",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:replace"
-    },
-    {
-      "from": "op:winner_cell_sets",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:manifest"
-    },
-    {
-      "from": "primitive:matrix",
       "to": "op:chromvar",
       "edge_type": "consumed_by",
       "label": "input:matrix"
@@ -2651,54 +2255,6 @@
       "to": "artifact_type:cell_vector_family",
       "edge_type": "promotes_as",
       "label": "promotable:deviation_raw"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:pathway_enrich",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:pathway_enrich",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "primitive:feature_table",
-      "to": "op:pathway_enrich",
-      "edge_type": "consumed_by",
-      "label": "input:feature_table"
-    },
-    {
-      "from": "op:pathway_enrich",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:pathway_enrich",
-      "to": "parameter:namespace",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:namespace"
-    },
-    {
-      "from": "op:pathway_enrich",
-      "to": "parameter:pseudotime_direction",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:direction"
-    },
-    {
-      "from": "op:pathway_enrich",
-      "to": "parameter:p_adjust_method",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:p_adjust_method"
-    },
-    {
-      "from": "op:pathway_enrich",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:pathways"
     },
     {
       "from": "primitive:matrix",
@@ -2777,54 +2333,6 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:rejected_sets"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:feature_set_overlap_qc",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "parameter:namespace",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:namespace"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "parameter:feature_sets",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:feature_sets"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "parameter:min_detected_fraction",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:min_detected_fraction"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:overlap_qc"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:namespace_summary"
     },
     {
       "from": "primitive:matrix",
@@ -5972,18 +5480,6 @@
     },
     {
       "from": "recipe:feature_set_import_qc_then_dynamics",
-      "to": "op:feature_set_overlap_qc",
-      "edge_type": "uses",
-      "label": "op:feature_set_overlap_qc"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
-      "to": "recipe:feature_set_import_qc_then_dynamics",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:feature_set_import_qc_then_dynamics"
-    },
-    {
-      "from": "recipe:feature_set_import_qc_then_dynamics",
       "to": "op:trajectory_geneset_dynamics",
       "edge_type": "uses",
       "label": "op:trajectory_geneset_dynamics"
@@ -6134,18 +5630,6 @@
     },
     {
       "from": "op:feature_set_namespace_transfer",
-      "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
-    },
-    {
-      "from": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
-      "to": "op:feature_set_overlap_qc",
-      "edge_type": "uses",
-      "label": "op:feature_set_overlap_qc"
-    },
-    {
-      "from": "op:feature_set_overlap_qc",
       "to": "recipe:feature_set_namespace_transfer_for_normalized_matrix",
       "edge_type": "used_by_recipe",
       "label": "recipe:feature_set_namespace_transfer_for_normalized_matrix"
@@ -6521,18 +6005,6 @@
       "to": "recipe:inspect_promoted_artifact",
       "edge_type": "produced_by_recipe",
       "label": "recipe:inspect_promoted_artifact"
-    },
-    {
-      "from": "recipe:plot_ucell_on_umap",
-      "to": "op:ucell",
-      "edge_type": "uses",
-      "label": "op:ucell"
-    },
-    {
-      "from": "op:ucell",
-      "to": "recipe:plot_ucell_on_umap",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:plot_ucell_on_umap"
     },
     {
       "from": "recipe:plot_ucell_on_umap",
@@ -6932,18 +6404,6 @@
     },
     {
       "from": "recipe:de_to_pathway_report",
-      "to": "op:pathway_enrich",
-      "edge_type": "uses",
-      "label": "op:pathway_enrich"
-    },
-    {
-      "from": "op:pathway_enrich",
-      "to": "recipe:de_to_pathway_report",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:de_to_pathway_report"
-    },
-    {
-      "from": "recipe:de_to_pathway_report",
       "to": "plot:volcano",
       "edge_type": "uses",
       "label": "plot:volcano"
@@ -7058,18 +6518,6 @@
     },
     {
       "from": "op:leiden",
-      "to": "recipe:cluster_markers_pathways",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:cluster_markers_pathways"
-    },
-    {
-      "from": "recipe:cluster_markers_pathways",
-      "to": "op:pathway_enrich",
-      "edge_type": "uses",
-      "label": "op:pathway_enrich"
-    },
-    {
-      "from": "op:pathway_enrich",
       "to": "recipe:cluster_markers_pathways",
       "edge_type": "used_by_recipe",
       "label": "recipe:cluster_markers_pathways"

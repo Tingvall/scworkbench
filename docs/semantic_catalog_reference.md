@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 323
+Record count: 313
 
-Graph edges: 891
+Graph edges: 809
 
 ## artifact_type
 
@@ -1034,77 +1034,17 @@ Title: UMAP transform (project cells)
 
 Description: Project cells into an existing UMAP using a stored model.
 
-### `op:addmodulescore`
-
-Title: Add module score
-
-Description: Seurat-style module scoring using matched control features by expression bin.
-
-### `op:ucell`
-
-Title: UCell Signature Scoring
-
-Description: Rank-based per-cell signature scoring using the UCell method.
-
-### `op:cell_vector_family_reduce`
-
-Title: Reduce Cell Vector Family
-
-Description: Compress a cell_vector_family into one categorical cell_vector using explicit reduction and abstention rules.
-
-### `op:cell_vector_family_calibrate`
-
-Title: Calibrate Cell Vector Family
-
-Description: Normalize one keyed per-cell signal family within keys so cross-key comparisons become more meaningful.
-
-### `op:cell_vector_family_qc`
-
-Title: QC Cell Vector Family
-
-Description: Compute per-key and pairwise diagnostics for one keyed per-cell signal family.
-
-### `op:cell_vector_family_graph_smooth`
-
-Title: Graph Smooth Cell Vector Family
-
-Description: Smooth each key of a cell_vector_family over local nearest-neighbor geometry in a selected bundle space.
-
-### `op:cell_vector_winners`
-
-Title: Cell Vector Winner Assignment
-
-Description: Assign one winning key per cell from a cell_vector_family and report confidence and pruning metrics.
-
-### `op:winner_cell_sets`
-
-Title: Winner Cell-Set Registration
-
-Description: Register bundle cell sets from a cell_vector_winners obs_table and return a manifest table.
-
 ### `op:chromvar`
 
 Title: chromVAR deviations
 
 Description: Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
 
-### `op:pathway_enrich`
-
-Title: Pathway Enrichment (Namespace)
-
-Description: Hypergeometric enrichment against all feature sets in a namespace.
-
 ### `op:feature_set_import`
 
 Title: Feature-Set Library Import
 
 Description: Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.
-
-### `op:feature_set_overlap_qc`
-
-Title: Feature-Set Matrix Overlap QC
-
-Description: Screen imported feature-set namespaces against a matrix before pathway or trajectory discovery.
 
 ### `op:feature_set_namespace_transfer`
 

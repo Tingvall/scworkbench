@@ -8,7 +8,17 @@
     cell_vector_assoc = "scwbstatistics::cell_vector_assoc",
     cell_vector_association = "scwbstatistics::cell_vector_association",
     cell_vector_compare = "scwbstatistics::cell_vector_compare",
-    feature_trend_spearman = "scwbstatistics::feature_trend_spearman"
+    feature_trend_spearman = "scwbstatistics::feature_trend_spearman",
+    addmodulescore = "scwbgeneprograms::addmodulescore",
+    ucell = "scwbgeneprograms::ucell",
+    cell_vector_family_reduce = "scwbgeneprograms::cell_vector_family_reduce",
+    cell_vector_family_calibrate = "scwbgeneprograms::cell_vector_family_calibrate",
+    cell_vector_family_qc = "scwbgeneprograms::cell_vector_family_qc",
+    cell_vector_family_graph_smooth = "scwbgeneprograms::cell_vector_family_graph_smooth",
+    cell_vector_winners = "scwbgeneprograms::cell_vector_winners",
+    winner_cell_sets = "scwbgeneprograms::winner_cell_sets",
+    feature_set_overlap_qc = "scwbgeneprograms::feature_set_overlap_qc",
+    pathway_enrich = "scwbgeneprograms::pathway_enrich"
   )
 }
 
@@ -29,8 +39,9 @@
     if (length(target) && !is.na(target)) .wb_operation_pack_abort(
       "OPERATION_PACK_REQUIRED",
       paste0("Operation '", op_name, "' moved to '", target,
-        "'. Install and explicitly activate scwbStatistics."),
-      operation = op_name, required_operation = target, namespace = "scwbstatistics",
+        "'. Install and explicitly activate its operation pack."),
+      operation = op_name, required_operation = target,
+      namespace = strsplit(target, "::", fixed = TRUE)[[1]][1],
       class = "wb_operation_pack_unavailable")
   }
   if (grepl("::", op_name, fixed = TRUE)) {

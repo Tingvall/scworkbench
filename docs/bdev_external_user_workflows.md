@@ -166,7 +166,8 @@ The cytokine set itself is a scientific selection, not an automatic QC result.
 Select genes from a promoted DE/marker table in a reviewed script or capsule,
 save the selected table plus its contrast and threshold metadata, then use
 `feature_set_import` in the Bdev integration context. Run
-`feature_set_overlap_qc`, `addmodulescore` or `ucell`, followed by
+`scwbgeneprograms::feature_set_overlap_qc`, `scwbgeneprograms::addmodulescore`
+or `scwbgeneprograms::ucell`, followed by
 `trajectory_signature_smooth` or `trajectory_geneset_dynamics` against the
 adopted Bdev trajectory.
 

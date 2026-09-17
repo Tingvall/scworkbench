@@ -156,6 +156,31 @@ contract_test_activate_statistics_pack <- function() {
   invisible(TRUE)
 }
 
+.contract_test_geneprograms_state <- new.env(parent = emptyenv())
+
+contract_test_activate_geneprograms_pack <- function() {
+  source <- Sys.getenv("SCWBGENEPROGRAMS_SOURCE", unset = "")
+  if (!nzchar(source) || !dir.exists(source)) {
+    stop("Set SCWBGENEPROGRAMS_SOURCE to the scwbGenePrograms source repository.",
+      call. = FALSE)
+  }
+  if (is.null(.contract_test_geneprograms_state$library)) {
+    library <- tempfile("scwbGenePrograms-contract-library-", tmpdir = "/tmp")
+    dir.create(library, recursive = TRUE)
+    log <- tempfile("scwbGenePrograms-contract-install-", fileext = ".log")
+    status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      paste0("--library=", shQuote(library)), shQuote(normalizePath(source))),
+      stdout = log, stderr = log)
+    if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE), collapse = "\n"),
+      call. = FALSE)
+    .contract_test_geneprograms_state$library <- library
+    .libPaths(c(library, .libPaths()))
+  }
+  wb_operation_pack_load("scwbGenePrograms",
+    lib.loc = .contract_test_geneprograms_state$library)
+  invisible(TRUE)
+}
+
 .contract_test_core_conformance_state <- new.env(parent = emptyenv())
 
 contract_test_activate_core_conformance_pack <- function() {

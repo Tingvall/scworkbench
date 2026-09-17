@@ -134,15 +134,6 @@ test_feature_set_namespace_transfer_contract <- function() {
   stopifnot(any(grepl("^feature_set:test_ns:", as.character(mut$to))))
   stopifnot(any(as.character(dag$edges$edge_type) == "TRANSFERRED_TO"))
 
-  qc <- wb_op_feature_set_overlap_qc(
-    bundle = b,
-    matrix_id = "RNA_log_norm",
-    namespace = "test_ns",
-    min_set_size = 1L
-  )
-  stopifnot(inherits(qc$outputs$overlap_qc, "wb_primitive"))
-  stopifnot(nrow(qc$outputs$overlap_qc$table) == 2L)
-
   wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(wb_validate_bundle(tmp)))
 

@@ -52,7 +52,7 @@ Inputs:
 
 Pattern:
 1. Build query table from significant genes (or top-N policy).
-2. Run `pathway_enrich` for up and down branches.
+2. Activate `scwbGenePrograms`, then run `scwbgeneprograms::pathway_enrich` for up and down branches.
 3. Promote pathway outputs.
 4. Plot top pathways (`-log10(adj p)` bars).
 

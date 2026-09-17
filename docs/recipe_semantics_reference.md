@@ -73,16 +73,16 @@ Question: Which pathways explain differential genes between two cell sets?
 Description: Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.
 
 Steps:
-- Install and explicitly activate scwbStatistics.
+- Install and explicitly activate scwbStatistics and scwbGenePrograms.
 - Define or choose group_a and group_b cell sets.
 - Run scwbstatistics::de_wilcox on the selected matrix.
 - Promote de_table and inspect top features.
-- Run pathway_enrich on selected up/down genes or ranked query policy.
+- Run scwbgeneprograms::pathway_enrich on selected up/down genes or ranked query policy.
 - Plot pathway_bar and volcano summaries.
 
 Uses:
 - `op:scwbstatistics::de_wilcox`
-- `op:pathway_enrich`
+- `op:scwbgeneprograms::pathway_enrich`
 - `plot:volcano`
 - `plot:pathway_bar`
 - `artifact_type:feature_table:de_wilcox`
@@ -116,7 +116,7 @@ Steps:
 Uses:
 - `op:leiden`
 - `op:scwbstatistics::markers_topn`
-- `op:pathway_enrich`
+- `op:scwbgeneprograms::pathway_enrich`
 - `plot:dotplot`
 - `plot:ranked_lollipop`
 - `plot:pathway_bar`
@@ -147,7 +147,7 @@ Steps:
 
 Uses:
 - `op:feature_set_namespace_transfer`
-- `op:feature_set_overlap_qc`
+- `op:scwbgeneprograms::feature_set_overlap_qc`
 - `op:trajectory_geneset_dynamics`
 - `getter:wb_feature_sets`
 - `artifact_type:obs_table:feature_set_transfer_manifest`
@@ -247,7 +247,7 @@ Steps:
 
 Uses:
 - `op:feature_set_import`
-- `op:feature_set_overlap_qc`
+- `op:scwbgeneprograms::feature_set_overlap_qc`
 - `op:trajectory_geneset_dynamics`
 - `getter:wb_feature_sets`
 - `artifact_type:obs_table:feature_set_import_manifest`
@@ -310,7 +310,7 @@ Steps:
 - Inspect distribution with violin if group comparison is needed.
 
 Uses:
-- `op:ucell`
+- `op:scwbgeneprograms::ucell`
 - `getter:wb_spaces`
 - `getter:wb_read_cell_vector_family`
 - `plot:embedding_overlay`

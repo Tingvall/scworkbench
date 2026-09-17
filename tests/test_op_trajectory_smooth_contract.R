@@ -292,20 +292,11 @@ test_op_trajectory_vector_smooth_contract <- function(bundle_dir) {
     notes = "test trajectory_vector_smooth: slingshot fit"
   )
   s <- r2$session
-  r3 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "addmodulescore",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      matrix = wb_prim_matrix(matrix_id),
-      features = list(sig_a = feats[1:3], sig_b = feats[4:6]),
-      nbin = 12L,
-      ctrl = 10L,
-      seed = 1L
-    ),
-    notes = "test trajectory_vector_smooth: module scores"
+  signal <- wb_prim_cell_vector_family(
+    key = rep(c("sig_a", "sig_b"), each = length(cells)),
+    cell_id = rep(cells, 2L),
+    value = c(seq_along(cells), rev(seq_along(cells))) / length(cells),
+    value_type = "continuous"
   )
 
   pt <- r2$run$outputs$pseudotime
@@ -313,13 +304,13 @@ test_op_trajectory_vector_smooth_contract <- function(bundle_dir) {
   stopifnot(nzchar(lineage))
 
   r4 <- wb_session_run_op(
-    session = r3$session,
+    session = s,
     bundle = b,
     op_name = "trajectory_vector_smooth",
     inputs = list(
       cell_set = "all",
       cell_ids = cells,
-      signal = wb_ref_run(r3$run$run_id, "module_scores"),
+      signal = signal,
       model = wb_ref_run(r2$run$run_id, "model"),
       lineage = lineage,
       signal_keys = c("sig_a", "sig_b"),
@@ -417,20 +408,11 @@ test_op_trajectory_signal_dynamics_contract <- function(bundle_dir) {
     ),
     notes = "test trajectory_signal_dynamics: slingshot fit"
   )
-  r3 <- wb_session_run_op(
-    session = r2$session,
-    bundle = b,
-    op_name = "addmodulescore",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      matrix = wb_prim_matrix(matrix_id),
-      features = list(sig_a = feats[1:3], sig_b = feats[4:6]),
-      nbin = 12L,
-      ctrl = 10L,
-      seed = 1L
-    ),
-    notes = "test trajectory_signal_dynamics: module scores"
+  signal <- wb_prim_cell_vector_family(
+    key = rep(c("sig_a", "sig_b"), each = length(cells)),
+    cell_id = rep(cells, 2L),
+    value = c(seq_along(cells), rev(seq_along(cells))) / length(cells),
+    value_type = "continuous"
   )
 
   pt <- r2$run$outputs$pseudotime
@@ -438,13 +420,13 @@ test_op_trajectory_signal_dynamics_contract <- function(bundle_dir) {
   stopifnot(nzchar(lineage))
 
   r4 <- wb_session_run_op(
-    session = r3$session,
+    session = r2$session,
     bundle = b,
     op_name = "trajectory_signal_dynamics",
     inputs = list(
       cell_set = "all",
       cell_ids = cells,
-      signal = wb_ref_run(r3$run$run_id, "module_scores"),
+      signal = signal,
       model = wb_ref_run(r2$run$run_id, "model"),
       lineage = lineage,
       signal_keys = c("sig_a", "sig_b"),
@@ -602,33 +584,24 @@ test_op_trajectory_signal_dynamics_promoted_contract <- function(bundle_dir) {
     ),
     notes = "test promoted trajectory_signal_dynamics: slingshot fit"
   )
-  r3 <- wb_session_run_op(
-    session = r2$session,
-    bundle = b,
-    op_name = "addmodulescore",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      matrix = wb_prim_matrix(matrix_id),
-      features = list(sig_a = feats[1:3], sig_b = feats[4:6]),
-      nbin = 12L,
-      ctrl = 10L,
-      seed = 1L
-    ),
-    notes = "test promoted trajectory_signal_dynamics: module scores"
+  signal <- wb_prim_cell_vector_family(
+    key = rep(c("sig_a", "sig_b"), each = length(cells)),
+    cell_id = rep(cells, 2L),
+    value = c(seq_along(cells), rev(seq_along(cells))) / length(cells),
+    value_type = "continuous"
   )
   pt <- r2$run$outputs$pseudotime
   lineage <- as.character(unique(pt$key))[1]
   stopifnot(nzchar(lineage))
 
   r4 <- wb_session_run_op(
-    session = r3$session,
+    session = r2$session,
     bundle = b,
     op_name = "trajectory_signal_dynamics",
     inputs = list(
       cell_set = "all",
       cell_ids = cells,
-      signal = wb_ref_run(r3$run$run_id, "module_scores"),
+      signal = signal,
       model = wb_ref_run(r2$run$run_id, "model"),
       lineage = lineage,
       signal_keys = c("sig_a", "sig_b"),

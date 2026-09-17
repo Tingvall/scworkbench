@@ -280,7 +280,7 @@ test_administrative_rng_static_allowlist_contract <- function() {
   root <- normalizePath(".", winslash = "/", mustWork = TRUE)
   files <- sort(list.files(file.path(root, "R"), pattern = "[.]R$", full.names = TRUE))
   allowed <- c(
-    "op_addmodulescore.R", "op_hvg_pca.R", "op_trajectory_smooth.R",
+    "op_hvg_pca.R", "op_trajectory_smooth.R",
     "op_umap_fit.R", "ops.R", "ops_geometry.R"
   )
   pattern <- paste0("\\b(sample|sample", "[.]int|set", "[.]seed)\\s*\\(")

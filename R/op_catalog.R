@@ -4121,5 +4121,10 @@
       )
     )
   )
-  catalog
+  catalog[setdiff(names(catalog), c(
+    "addmodulescore", "ucell", "cell_vector_family_reduce",
+    "cell_vector_family_calibrate", "cell_vector_family_qc",
+    "cell_vector_family_graph_smooth", "cell_vector_winners",
+    "winner_cell_sets", "feature_set_overlap_qc", "pathway_enrich"
+  ))]
 }

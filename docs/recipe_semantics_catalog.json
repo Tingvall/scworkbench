@@ -22,7 +22,7 @@
       "question": "Can this external gene-set library be used for dynamic program discovery along a trajectory?",
       "description": "Import a GMT/RDS/table feature-set library into a namespace, record import provenance, QC matrix overlap, then use the namespace in trajectory_geneset_dynamics.",
       "steps": ["Choose the target matrix that defines the feature universe.", "Run feature_set_import with source_path, namespace, species/gene_id_type, and source_version.", "Promote import_summary, import_manifest, and rejected_sets for auditability.", "Run feature_set_overlap_qc on the imported namespace and inspect include/exclude reasons.", "Use the accepted namespace with trajectory_geneset_dynamics and report QC artifacts alongside dynamics."],
-      "uses": ["op:feature_set_import", "op:feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "parameter:source_path", "parameter:namespace", "parameter:split_by_collection", "parameter:min_detected_fraction"],
+      "uses": ["op:feature_set_import", "op:scwbgeneprograms::feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "parameter:source_path", "parameter:namespace", "parameter:split_by_collection", "parameter:min_detected_fraction"],
       "produces": ["artifact_type:obs_table:feature_set_import_summary", "artifact_type:obs_table:feature_set_import_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "artifact_type:obs_table:trajectory_geneset_dynamics"],
       "use_when": ["collaborator sends new GSEA/MSigDB/custom gene-set library", "need to prove library coverage before screening pseudotime dynamics"],
       "cautions": ["Import matching is against bundle feature IDs; synonym/ortholog mapping is not performed here.", "QC include/exclude thresholds define the screened universe and should be reported.", "Broad libraries should be split only when collection/subcollection semantics are meaningful."]
@@ -34,7 +34,7 @@
       "question": "How can feature-set libraries registered on raw counts be reused on a comparable derived matrix?",
       "description": "Transfer matrix-scoped feature-set namespaces from a source matrix to a target matrix using mirror or intersect semantics before running dynamics on the target matrix.",
       "steps": ["Confirm the target matrix is comparable to the source matrix and uses the same feature ID type.", "Run feature_set_namespace_transfer with source_matrix_id, target_matrix_id, namespace, and mode='mirror' for lossless derived matrices.", "Promote transfer_summary, transfer_manifest, and transfer_rejected for provenance.", "Run feature_set_overlap_qc on the target matrix/namespace before broad screening.", "Run trajectory_geneset_dynamics on the target matrix with the transferred namespace."],
-      "uses": ["op:feature_set_namespace_transfer", "op:feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_transfer_manifest", "parameter:source_matrix_id", "parameter:target_matrix_id", "parameter:namespace", "parameter:target_namespace"],
+      "uses": ["op:feature_set_namespace_transfer", "op:scwbgeneprograms::feature_set_overlap_qc", "op:trajectory_geneset_dynamics", "getter:wb_feature_sets", "artifact_type:obs_table:feature_set_transfer_manifest", "parameter:source_matrix_id", "parameter:target_matrix_id", "parameter:namespace", "parameter:target_namespace"],
       "produces": ["artifact_type:obs_table:feature_set_transfer_summary", "artifact_type:obs_table:feature_set_transfer_manifest", "artifact_type:obs_table:feature_set_overlap_qc", "artifact_type:obs_table:trajectory_geneset_dynamics"],
       "use_when": ["raw-count feature sets need to be reused on log-normalized RNA", "derived matrices preserve feature IDs but feature-set registry is matrix-scoped"],
       "cautions": ["This is not ortholog/synonym/gene-to-peak/motif-to-TF mapping.", "mode='mirror' requires identical feature universes.", "mode='intersect' changes gene-set membership and must be reported with loss metrics."]
@@ -70,7 +70,7 @@
       "question": "Where are signature-high cells located in a 2D embedding?",
       "description": "Overlay one or more UCell signature scores from a cell_vector_family onto a 2D space.",
       "steps": ["Run or locate ucell output signature_scores.", "Choose a 2D space with wb_spaces() or a space_2d artifact.", "Load/select the desired signature key from the cell_vector_family.", "Use wb_wrangle_plot_dataset for embedding_overlay or plot via compatible client.", "Inspect distribution with violin if group comparison is needed."],
-      "uses": ["op:ucell", "getter:wb_spaces", "getter:wb_read_cell_vector_family", "plot:embedding_overlay", "plot:violin", "wrangler:plot_mapper:space2d_overlay_v1", "wrangler:plot_mapper:cell_vector_violin_v1", "parameter:space"],
+      "uses": ["op:scwbgeneprograms::ucell", "getter:wb_spaces", "getter:wb_read_cell_vector_family", "plot:embedding_overlay", "plot:violin", "wrangler:plot_mapper:space2d_overlay_v1", "wrangler:plot_mapper:cell_vector_violin_v1", "parameter:space"],
       "produces": "artifact_type:cell_vector_family",
       "use_when": ["visualize signature activity spatially", "check whether a gene-set score follows known cell states"],
       "cautions": ["UCell scores are rank-based within cells; interpret as relative signature activity.", "Embedding overlay is a visualization, not a statistical test."]
@@ -105,8 +105,8 @@
       "category": "differential_analysis",
       "question": "Which pathways explain differential genes between two cell sets?",
       "description": "Run DE between two sets, convert ranked/significant features to enrichment queries, and plot top pathway terms.",
-      "steps": ["Install and explicitly activate scwbStatistics.", "Define or choose group_a and group_b cell sets.", "Run scwbstatistics::de_wilcox on the selected matrix.", "Promote de_table and inspect top features.", "Run pathway_enrich on selected up/down genes or ranked query policy.", "Plot pathway_bar and volcano summaries."],
-      "uses": ["op:scwbstatistics::de_wilcox", "op:pathway_enrich", "plot:volcano", "plot:pathway_bar", "artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich", "parameter:cell_set", "parameter:matrix", "parameter:namespace"],
+      "steps": ["Install and explicitly activate scwbStatistics and scwbGenePrograms.", "Define or choose group_a and group_b cell sets.", "Run scwbstatistics::de_wilcox on the selected matrix.", "Promote de_table and inspect top features.", "Run scwbgeneprograms::pathway_enrich on selected up/down genes or ranked query policy.", "Plot pathway_bar and volcano summaries."],
+      "uses": ["op:scwbstatistics::de_wilcox", "op:scwbgeneprograms::pathway_enrich", "plot:volcano", "plot:pathway_bar", "artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich", "parameter:cell_set", "parameter:matrix", "parameter:namespace"],
       "produces": ["artifact_type:feature_table:de_wilcox", "artifact_type:obs_table:pathway_enrich"],
       "use_when": ["compare two biological groups", "derive pathway interpretation from DE"],
       "cautions": ["Cell-set definitions control the comparison.", "Pathway output depends on the selected feature universe and query policy."]
@@ -118,7 +118,7 @@
       "question": "What are the marker genes and pathway programs for clusters?",
       "description": "Cluster cells in a chosen space, find top markers per cluster, and optionally enrich each cluster marker list.",
       "steps": ["Install and explicitly activate scwbStatistics.", "Run leiden on a biologically appropriate space and cell_set.", "Run scwbstatistics::markers_topn using the cluster labels.", "Promote marker table.", "Optionally run pathway_enrich per cluster marker subset.", "Plot dotplot, ranked lollipop, or pathway bars."],
-      "uses": ["op:leiden", "op:scwbstatistics::markers_topn", "op:pathway_enrich", "plot:dotplot", "plot:ranked_lollipop", "plot:pathway_bar", "parameter:space", "parameter:cell_set", "parameter:matrix"],
+      "uses": ["op:leiden", "op:scwbstatistics::markers_topn", "op:scwbgeneprograms::pathway_enrich", "plot:dotplot", "plot:ranked_lollipop", "plot:pathway_bar", "parameter:space", "parameter:cell_set", "parameter:matrix"],
       "produces": ["artifact_type:cell_vector", "artifact_type:feature_table:markers_topn", "artifact_type:obs_table:pathway_enrich"],
       "use_when": ["explore unknown populations", "summarize cluster identities"],
       "cautions": ["Cluster resolution changes biological granularity.", "Markers reflect selected matrix and cell universe."]
