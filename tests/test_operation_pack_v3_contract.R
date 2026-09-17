@@ -430,6 +430,143 @@ test_operation_pack_v3_r_lifecycle_contract <- function() {
   TRUE
 }
 
+test_operation_pack_v3_ancestry_resolution_contract <- function() {
+  installed <- .wb_v3_fixture_install()
+  state <- .wb_v3_bundle()
+  on.exit(.wb_v3_fixture_cleanup(installed, state$bundle, state$root),
+    add = TRUE)
+
+  bounded <- wb_session_run_op(wb_session_new(), state$bundle,
+    "scwbv3reference::bounded_family", inputs = c(list(
+      matrix = "RNA", cell_set = "all", min_cells = 1L), state$params))
+  first <- wb_session_promote_current(state$bundle, bounded$session,
+    outputs = "scores", created_by = "abi-v3-ancestry-contract")
+  artifact_id <- as.character(first$promoted$artifact_id[[1]])
+  source_snapshot <- as.character(first$provenance_snapshot_id)[1]
+
+  reduced <- wb_session_run_op(bounded$session, state$bundle,
+    "scwbv3reference::reduce_family", inputs = list(
+      signal = wb_ref_run(bounded$run$run_id, "scores"),
+      cell_set = "all", min_cells = 1L))
+  second <- wb_session_promote_current(state$bundle, reduced$session,
+    outputs = "reduced", created_by = "abi-v3-ancestry-contract")
+  later_snapshot <- as.character(second$provenance_snapshot_id)[1]
+  predecessor_id <- as.character(second$promoted$artifact_id[
+    second$promoted$output == "reduced"][[1]])
+  stopifnot(!identical(source_snapshot, later_snapshot))
+
+  # ANCESTRY-P04: a later snapshot can observe the same durable artifact, but
+  # the artifact registry's recorded producer snapshot remains authoritative.
+  source_row <- DBI::dbGetQuery(state$bundle$con,
+    "SELECT * FROM prov_run_outputs WHERE snapshot_id=? AND artifact_id=?;",
+    params = list(source_snapshot, artifact_id))
+  stopifnot(nrow(source_row) == 1L)
+  later_run <- DBI::dbGetQuery(state$bundle$con,
+    "SELECT run_id FROM prov_runs WHERE snapshot_id=? ORDER BY run_id LIMIT 1;",
+    params = list(later_snapshot))$run_id[[1]]
+  repeated <- source_row
+  repeated$snapshot_id <- later_snapshot
+  repeated$run_id <- as.character(later_run)
+  repeated$output_name <- "recorded_source_repeat_observation"
+  DBI::dbWriteTable(state$bundle$con, "prov_run_outputs", repeated,
+    append = TRUE, row.names = FALSE)
+  stopifnot(nrow(DBI::dbGetQuery(state$bundle$con,
+    "SELECT 1 FROM prov_run_outputs WHERE artifact_id=?;",
+    params = list(artifact_id))) == 2L,
+    identical(DBI::dbGetQuery(state$bundle$con,
+      "SELECT provenance_snapshot_id FROM artifacts WHERE artifact_id=?;",
+      params = list(artifact_id))$provenance_snapshot_id[[1]],
+      source_snapshot))
+
+  # ANCESTRY-P03: a current successor may retain canonical incoming history.
+  wb_entity_supersede(state$bundle, "artifact", artifact_id, predecessor_id,
+    reason = "Exercise current successor ancestry history.",
+    created_by = "abi-v3-ancestry-contract")
+  ancestry <- wb_session_run_op(wb_session_new(), state$bundle,
+    "scwbv3reference::ancestry_family", inputs = list(
+      signal = wb_ref_artifact(artifact_id, "scores"),
+      artifact_id = artifact_id, cell_set = "all", min_cells = 1L))
+  ancestry_promotion <- wb_session_promote_current(state$bundle,
+    ancestry$session, outputs = "smoothed",
+    created_by = "abi-v3-ancestry-contract")
+  mismatch_snapshot <- as.character(
+    ancestry_promotion$provenance_snapshot_id)[1]
+  transition_id <- as.character(ancestry$run$operation_pack_transition$
+    transition_id)[1]
+  record_path <- file.path(scworkbench:::.wb_operation_pack_v2_store(
+    state$bundle), transition_id)
+  payload <- jsonlite::read_json(file.path(record_path, "provenance_reads",
+    "source_ancestry", "payload.json"), simplifyVector = FALSE)
+  stopifnot(identical(payload$source_snapshot_id, source_snapshot),
+    length(payload$lifecycle$incoming_supersedes) == 1L,
+    identical(payload$lifecycle$incoming_supersedes[[1]]$successor_id,
+      artifact_id),
+    identical(payload$lifecycle$incoming_supersedes[[1]]$predecessor_id,
+      predecessor_id),
+    identical(payload$lifecycle$outgoing_superseded_by, list()))
+
+  analytical_state <- function() {
+    tables <- c("artifacts", "prov_heads", "prov_runs", "prov_run_outputs",
+      "prov_run_entity_bindings", "entity_lifecycle",
+      "entity_supersessions")
+    counts <- stats::setNames(vapply(tables, function(table) as.integer(
+      DBI::dbGetQuery(state$bundle$con, paste0(
+        "SELECT COUNT(*) AS n FROM ", table, ";"))$n[[1]]), integer(1)),
+      tables)
+    pending <- scworkbench:::.wb_operation_pack_v2_pending_root(state$bundle)
+    list(counts = counts, pending = if (dir.exists(pending)) sort(
+      list.files(pending, recursive = TRUE, all.files = TRUE,
+        no.. = TRUE)) else character())
+  }
+  run_ancestry <- function() wb_session_run_op(wb_session_new(), state$bundle,
+    "scwbv3reference::ancestry_family", inputs = list(
+      signal = wb_ref_artifact(artifact_id, "scores"),
+      artifact_id = artifact_id, cell_set = "all", min_cells = 1L))
+  expect_pre_dispatch_rejection <- function(mutate, restore) {
+    mutate()
+    restored <- FALSE
+    on.exit(if (!restored) restore(), add = TRUE)
+    before <- analytical_state()
+    error <- tryCatch(run_ancestry(), error = identity)
+    after <- analytical_state()
+    restore(); restored <- TRUE
+    stopifnot(inherits(error, "wb_operation_pack_v3_error"),
+      identical(as.character(error$code),
+        "PYBENCH_INPUT_IDENTITY_MISMATCH"),
+      identical(as.character(error$phase), "resolution"),
+      identical(after, before))
+  }
+
+  # ANCESTRY-N07: missing, ambiguous, or registry-mismatched producer
+  # evidence in the recorded snapshot fails before dispatch without residue.
+  expect_pre_dispatch_rejection(
+    function() DBI::dbExecute(state$bundle$con,
+      "DELETE FROM prov_run_outputs WHERE snapshot_id=? AND run_id=? AND output_name=?;",
+      params = unname(as.list(source_row[1, c("snapshot_id", "run_id",
+        "output_name")]))),
+    function() DBI::dbWriteTable(state$bundle$con, "prov_run_outputs",
+      source_row, append = TRUE, row.names = FALSE))
+
+  duplicate <- source_row
+  duplicate$output_name <- "ambiguous_recorded_source"
+  expect_pre_dispatch_rejection(
+    function() DBI::dbWriteTable(state$bundle$con, "prov_run_outputs",
+      duplicate, append = TRUE, row.names = FALSE),
+    function() DBI::dbExecute(state$bundle$con,
+      "DELETE FROM prov_run_outputs WHERE snapshot_id=? AND run_id=? AND output_name=?;",
+      params = unname(as.list(duplicate[1, c("snapshot_id", "run_id",
+        "output_name")]))))
+
+  expect_pre_dispatch_rejection(
+    function() DBI::dbExecute(state$bundle$con,
+      "UPDATE artifacts SET provenance_snapshot_id=? WHERE artifact_id=?;",
+      params = list(mismatch_snapshot, artifact_id)),
+    function() DBI::dbExecute(state$bundle$con,
+      "UPDATE artifacts SET provenance_snapshot_id=? WHERE artifact_id=?;",
+      params = list(source_snapshot, artifact_id)))
+  TRUE
+}
+
 test_operation_pack_v3_chunk_replay_and_rollback_contract <- function() {
   installed <- .wb_v3_fixture_install()
   state <- .wb_v3_bundle()
