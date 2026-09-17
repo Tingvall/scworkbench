@@ -95,7 +95,11 @@ The only new identity schemes are:
 - `scworkbench.operation_pack.observed_output_cardinality.v1`
 - `scworkbench.operation_pack.typed_slice_grant.v1`
 - `scworkbench.operation_pack.typed_slice_axis_manifest.v1`
+- `scworkbench.operation_pack.typed_slice_source_reference.v1`
+- `scworkbench.operation_pack.matrix_slice.content.v1`
+- `scworkbench.operation_pack.typed_slice_control_request.v1`
 - `scworkbench.operation_pack.typed_slice_response.v1`
+- `scworkbench.operation_pack.typed_slice_acknowledgement.v1`
 - `scworkbench.operation_pack.observed_typed_slice_call.v1`
 - `scworkbench.operation_pack.typed_slice_usage.v1`
 - `scworkbench.artifact_ancestry.snapshot.v1`
@@ -435,9 +439,11 @@ between requests while still rejecting duplicate IDs within one axis vector.
 
 Core resolves both selected axes before dispatch from the authenticated input
 and declared selector. Selection preserves source or explicit selector order,
-contains no duplicates, and cannot add IDs. Each axis is staged as a canonical
-manifest so the pack can learn the exact available IDs without placing a
-bundle handle, database handle, storage path, or full matrix in its input:
+contains no duplicates, and cannot add IDs. There is one representation only:
+each axis is a separately staged and retained canonical manifest. Embedded
+axis vectors in the request are forbidden. The trusted adapter reads the files
+and gives a deep copy of their `ids` to the pack; their relative paths are not
+part of the pack API.
 
 ```
 schema                     scworkbench.operation_pack.typed_slice_axis_manifest.v1
@@ -449,9 +455,28 @@ manifest_identity
 ```
 
 `manifest_identity` has scope `axis manifest excluding manifest_identity`.
-The request embeds the complete small fixture form and may use a separately
-staged byte-identical axis manifest for large axes; in either form count,
-order identity, manifest byte identity, and content identity are request-bound.
+An axis manifest contains exactly the six shown fields; none is nullable and
+unknown fields are forbidden. It is canonical JSON with no final newline at
+`typed_slice_axes/<grant-name>/<axis>.json`. The request carries, for each
+axis, this exact descriptor:
+
+```
+axis
+count
+order_identity
+axis_manifest_identity
+relative_path
+payload_manifest_identity
+```
+
+`relative_path` is the exact contained path above. `payload_manifest_identity`
+reuses the frozen `scworkbench.operation_pack.payload_manifest.v2` tuple and
+scope `registry read payload manifest`, hashing exactly
+`{path, size, sha256}`; `sha256` is over the axis file bytes. Count, order,
+axis-manifest identity, path, size, and byte hash must all agree before
+dispatch, receipt audit, reopen, and replay. Neither an embedded alternative
+nor an omitted file is accepted.
+
 An empty selection is represented by `count = 0`, `ids = []`, and the canonical
 empty-axis identity. An individual nonempty read may not contain an empty
 fixed axis. Under `allow_zero_axis`, a zero-axis execution makes no calls and
@@ -468,8 +493,8 @@ input_descriptor_identity
 input_content_identity
 source_reference_identity
 supported_axes, chunk_axis
-cells_axis_manifest_identity
-features_axis_manifest_identity
+cells_axis                 exact staged-axis descriptor
+features_axis              exact staged-axis descriptor
 requested_chunk_size       exact normalized parameter value
 call_discipline, empty_selection_policy, duplicate_policy
 max_rows, max_columns, max_elements, max_response_bytes
@@ -484,14 +509,56 @@ only for a new run. Strict replay reconstructs the historical grant; if the
 runtime can no longer honor it, replay fails before dispatch instead of using
 a new default.
 
+`source_reference_identity` is scoped
+`scworkbench.operation_pack.typed_slice_source_reference.v1` with scope
+`source reference excluding source_reference_identity`. The bundle-backed
+form has exactly:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_source_reference.v1
+input_name
+input_reference            exact request input reference string
+source_kind                bundle_matrix
+matrix_id                  exact authenticated bundle matrix ID
+input_descriptor_identity
+input_content_identity
+transition_source_state_identity
+source_reference_identity
+```
+
+The in-memory form replaces `matrix_id` with exactly
+`source_kind = in_memory_matrix` and `private_source_payload_identity`, a
+frozen `scworkbench.operation_pack.payload_manifest.v2` identity over the
+broker-private sparse source at
+`typed_slice_sources/<grant-name>/matrix.mtx`, using the same closed Matrix
+Market rules defined for broker responses. Its `{path, size, sha256}` preimage
+is exact; the input content identity and selected axis manifests separately
+bind its semantic values and axes. The two forms are a closed `oneOf`; fields
+from the other arm and unknown/null fields are forbidden. A
+bundle-backed broker calls `wb_slice(bundle, matrix_id, ...)`. Core may retain
+one broker-private sparse source payload only when the caller already supplied
+the entire in-memory primitive; this exception never materializes a backed
+source and never crosses the Python boundary. Both arms call the same canonical
+matrix-slice backend shared by public `wb_slice()` and `wb_slice_chunks()`.
+Unsupported or ambiguous source references fail before the broker starts.
+
 The pack learns its capability from a deep-copy execution-context descriptor
-containing the grant and selected axis manifests. R and Python expose the same
+containing the grant and selected axis vectors. R and Python expose the same
 call shape, `readers[[input]](features = ..., cells = ...)` and
-`readers[input](features=..., cells=...)`. Both require explicit, unique,
-in-grant axis vectors in the granted order. The normalized
-`chunk_size_parameter` remains pack-owned algorithm metadata and durable run
-input; core checks each call against it only for
-`ordered_partition_exactly_once`. Core does not construct the partition.
+`readers[input](features=..., cells=...)`. Both require explicit, nonempty,
+unique, in-grant axis vectors preserving their relative grant order.
+
+For `ordered_partition_exactly_once`, every call supplies the complete selected
+non-chunk axis exactly. Its chunk-axis vector must be the next contiguous
+nonempty segment of the selected chunk axis, with length less than or equal to
+`requested_chunk_size`; concatenating calls must equal the selected chunk axis
+exactly. The pack chooses every boundary, so it need not use the pure helper's
+maximal partitions. For `independent_slices`, every call's chunk-axis length is
+also at most `requested_chunk_size`; overlap across calls is allowed. The
+non-chunk axis may be an ordered subset only when it is listed in
+`supported_axes`, otherwise it must equal the complete selected axis. Each
+individual request remains subject to all hard limits. Core constructs no
+algorithmic schedule.
 
 ### Genuinely bounded Python transport
 
@@ -512,6 +579,99 @@ descriptors. The broker uses a contained synchronous request/response spool:
 4. Python verifies regular-file containment, no symlinks, hashes, identities,
    dimensions, and limits before loading that one chunk, then acknowledges it.
    The broker deletes the response before accepting another request.
+
+The canonical control file contains exactly:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_control_request.v1
+request_identity
+grant_identity
+ordinal                    positive integer, prior ordinal + 1
+features                   ordered nonempty string array
+cells                      ordered nonempty string array
+authorization_token        64 lowercase hex, private and ephemeral
+control_identity
+```
+
+`control_identity` uses scheme
+`scworkbench.operation_pack.typed_slice_control_request.v1` and scope
+`control request excluding control_identity`; the token is included in that
+runtime-only preimage. Unknown/null fields are forbidden. Python writes
+`broker/request.json.pending`, closes it, then atomically renames it to
+`broker/request.json`. The broker accepts no other request filename and does
+not accept a second request until the first response is acknowledged.
+
+The response directory contains exactly `matrix.mtx`, `features.json`,
+`cells.json`, and `manifest.json`; the ready marker is the atomic rename of the
+complete temporary directory to `broker/response`. The two axis files are exact
+`typed_slice_axis_manifest.v1` objects for the returned axes. Matrix Market is
+coordinate form with one-based indices, real numeric fields, declared
+dimensions, no duplicate coordinates, and coordinates sorted by column then
+row. The closed `manifest.json` object is:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_response.v1
+request_identity
+grant_identity
+source_reference_identity
+ordinal
+dimensions                 exact [feature_count, cell_count]
+nonzero_count
+feature_axis_manifest_identity
+cell_axis_manifest_identity
+files                      exact ordered matrix_market/features_axis/cells_axis entries
+semantic_content_identity
+response_identity
+```
+
+Each `files` entry is exactly `{role, path, size, sha256}`. Roles and paths are
+respectively `matrix_market`/`matrix.mtx`,
+`features_axis`/`features.json`, and `cells_axis`/`cells.json`; sizes are
+nonnegative integer bytes and hashes are 64 lowercase hex over exact bytes.
+No extra response file, role, path, field, null, symlink, or non-regular file
+is allowed. `response_identity` uses scheme
+`scworkbench.operation_pack.typed_slice_response.v1` and scope
+`response excluding response_identity`, hashing the complete manifest object
+with only that field absent.
+
+`semantic_content_identity` is an unscoped
+`scworkbench.operation_pack.matrix_slice.content.v1` identity over canonical
+JSON of exactly:
+
+```
+schema                     scworkbench.operation_pack.matrix_slice.content.v1
+kind                       matrix
+dimensions                 [feature_count, cell_count]
+feature_id                 exact ordered strings
+cell_id                    exact ordered strings
+entries                    ordered {row, column, value} objects
+```
+
+Rows and columns are one-based positive integers within `dimensions`;
+`entries` contains every and only nonzero value exactly once in column-major,
+then row order. Values are finite canonical JSON numbers; `-0` normalizes to
+zero and is omitted. The empty matrix has `entries = []`. This identity is
+independent of Matrix Market whitespace while still binding every scientific
+value and both axes.
+
+The acknowledgement contains exactly:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_acknowledgement.v1
+request_identity, grant_identity, ordinal, response_identity
+status                     consumed
+authorization_token
+acknowledgement_identity
+```
+
+`acknowledgement_identity` uses scheme
+`scworkbench.operation_pack.typed_slice_acknowledgement.v1` and scope
+`acknowledgement excluding acknowledgement_identity`, including the ephemeral
+token in its runtime-only preimage. Python publishes it atomically at
+`broker/acknowledgement.json`; after validation the broker deletes both the
+acknowledgement and response before permitting the next ordinal. Control and
+acknowledgement objects are never durable receipt evidence and their tokens are
+never copied into a request, receipt, run, log, or published transition.
 
 `max_outstanding_responses = 1`, plus the row/column/element/byte ceilings,
 bounds both sides of the process boundary. The transition supervisor polls the
@@ -543,10 +703,12 @@ response_identity
 call_identity
 ```
 
-`call_identity` has scope `call excluding call_identity`; the response uses
-scheme `scworkbench.operation_pack.typed_slice_response.v1` and scope
-`response excluding response_identity`. The receipt adds one ordered usage
-object per grant:
+Every field is required and nonnullable; unknown fields are forbidden.
+`semantic_content_identity` and `response_identity` must be exact copies from
+the independently revalidated response. `call_identity` uses scheme
+`scworkbench.operation_pack.observed_typed_slice_call.v1` and scope
+`call excluding call_identity`. The receipt adds one ordered usage object per
+grant:
 
 ```
 schema                     scworkbench.operation_pack.typed_slice_usage.v1
@@ -560,7 +722,12 @@ coverage_status            exact | independent | empty
 usage_identity
 ```
 
-`usage_identity` has scope `usage excluding usage_identity`. Receipt audit
+Every field is required and nonnullable. `calls = []`, `call_count = 0`, zero
+counts, canonical empty-axis identity, and `coverage_status = empty` is valid
+only when an authenticated selected axis is empty and policy allows it.
+`usage_identity` uses scheme
+`scworkbench.operation_pack.typed_slice_usage.v1` and scope
+`usage excluding usage_identity`. Receipt audit
 rederives every call from broker-owned records and response manifests, checks
 the declared discipline, and rejects a pack-only unobserved read. Strict
 replay compares the exact grant and usage object. These records prove which

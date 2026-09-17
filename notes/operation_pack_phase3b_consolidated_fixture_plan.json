@@ -133,6 +133,11 @@
       "expect": "empty_axis_is_explicit_and_zero_call_while_independent_slices_may_overlap_between_calls_but_not_duplicate_ids_within_a_call"
     },
     {
+      "id": "SLICE-P06-staged-axis-and-wire-parity",
+      "capability": "typed_slice_read",
+      "expect": "R_and_Python_authenticate_identical_staged_axis_control_response_semantic_content_acknowledgement_call_and_usage_preimages"
+    },
+    {
       "id": "SLICE-N01-eager-full-matrix-staging",
       "capability": "typed_slice_read",
       "mutate": "stage_or_parse_inputs_name_payload_json_for_a_broker_enabled_matrix",
@@ -173,6 +178,30 @@
       "capability": "typed_slice_read",
       "mutate": "broker_timeout_pack_death_or_missing_acknowledgement",
       "reject": "supervisor_cleanup_with_no_surviving_child_or_transition_residue"
+    },
+    {
+      "id": "SLICE-N08-axis-representation-or-byte-tamper",
+      "capability": "typed_slice_read",
+      "mutate": "embed_axis_ids_in_request_omit_staged_file_or_change_path_size_byte_hash_manifest_identity_count_or_order_identity",
+      "reject": "schema_or_pre_dispatch_audit"
+    },
+    {
+      "id": "SLICE-N09-size-or-boundary-violation",
+      "capability": "typed_slice_read",
+      "mutate": "serve_more_than_requested_chunk_size_or_a_noncontiguous_chunk_under_ordered_partition_exactly_once",
+      "reject": "broker_before_getter_or_receipt_coverage_audit"
+    },
+    {
+      "id": "SLICE-N10-fixed-axis-substitution",
+      "capability": "typed_slice_read",
+      "mutate": "subset_reorder_or_replace_the_non_chunk_axis_when_the_discipline_requires_the_complete_selected_axis",
+      "reject": "broker_before_getter"
+    },
+    {
+      "id": "SLICE-N11-operation-shaped-declaration",
+      "capability": "typed_slice_read",
+      "mutate": "add_schedule_batches_fragment_output_merge_summary_finalizer_or_scientific_operation_fields_to_the_manifest_request_or_receipt",
+      "reject": "closed_schema_admission"
     },
     {
       "id": "ANCESTRY-P01-current-promoted-artifact",
