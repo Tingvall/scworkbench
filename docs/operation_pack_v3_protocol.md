@@ -1,7 +1,7 @@
 # Operation-pack ABI v3 protocol relationship
 
 Operation-pack ABI v3 is the explicit successor contract for bounded output
-axes, authenticated cell-axis chunks, and core-attested artifact ancestry. Its
+axes, authenticated typed matrix slices, and core-attested artifact ancestry. Its
 closed manifest, request, and receipt schemas are installed as
 `operation-pack-v3.schema.json`,
 `operation-pack-transition-request-v3.schema.json`, and
@@ -36,21 +36,27 @@ reopen, recipient validation, and replay reject missing, extra, duplicate, or
 reordered rows and keys. Zero-key behavior is declared per policy; it is never
 an unrestricted sentinel.
 
-## Cell-axis chunk schedule and finalization
+## Generic typed-slice reader
 
-A v3 `axis: cells` declaration binds a matrix input, positive chunk-size
-parameter, exact contiguous nonempty schedule, fragment terminal, summary
-terminal, deterministic key-major merge, and pure summary finalizer. Pack code
-writes one fragment per 1-based grant through `write_chunk`; it cannot publish
-either final terminal directly. Core validates every fragment, merges the
-family, and invokes the named finalizer from a fresh pack registration with
-only the merged typed family and declared authenticated metadata.
+A v3 `typed_slice_reads` declaration binds a matrix source, selected cell and
+feature axes, supported slicing axes, a positive chunk-size parameter, exact
+resource ceilings, and either ordered exactly-once or independent-call
+discipline. Packs choose their own partitions with `wb_partition_axis()` and
+publish complete scientific terminals through ordinary typed writers. Core
+does not schedule scientific work, merge pack results, or compute summaries.
 
-The receipt binds every fragment observation, merged family, finalizer
-definition, finalizer metadata, finalizer invocation, and recomputed summary.
-One-chunk and multi-chunk runs over the same scientific inputs must produce the
-same terminal content. The effective schedule remains identity-bearing replay
-evidence even when the scientific terminals are equal.
+R readers delegate every call directly to `wb_slice()`. Python readers use a
+supervised, transition-local R broker that alone holds the bundle binding and
+returns one bounded sparse Matrix Market response at a time. The Python
+process never receives a full backed matrix or a storage path. Tokens,
+transport hashes, acknowledgements, and spool paths are ephemeral; durable
+request and receipt evidence retains the source/grant identities and the
+transport-neutral semantic identity of every canonical getter result.
+
+`wb_slice_chunks()` exposes the same lazy bounded delivery to ordinary R
+clients. Historical replay retains the effective selections, requested chunk
+size, limits, ordered calls, coverage, and identities, so a later global
+resource default cannot silently repartition an accepted run.
 
 ## Core-attested artifact ancestry
 
@@ -71,15 +77,14 @@ evidence fails without transition or analytical residue.
 ## Backends and durable lifecycle
 
 R v3 packs retain the opaque `function(readers, writers, params, context)`
-runner interface and may additionally register named pure finalizers with
-`wb_operation_pack_register(..., finalizers = ...)`. Python v3 packs use the
+runner interface. Python v3 packs use the
 installed `pybench-operation-pack-v4` process protocol. Python publishes the
 same shared receipt plus a separately audited Python-owned runtime sidecar;
 the sidecar is not a fifth shared file.
 
 Both backends reuse the accepted v2 private staging and atomic directory
 publication lifecycle. Complete request, receipt, output, registry-read,
-ancestry-read, chunk, and runtime evidence is audited before publication and
+ancestry-read, typed-slice, and runtime evidence is audited before publication and
 again on reopen. Promotion copies an authenticated reopened transition into
 the same rollback-capable workspace as its analytical outputs. Finalized
 outputs and evidence remain inspectable without the pack installed; continued

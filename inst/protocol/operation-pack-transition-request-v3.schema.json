@@ -243,18 +243,18 @@
         }
       }
     },
-    "chunk_schedules": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/chunk_schedule"
-      }
-    },
     "provenance_reads": {
       "type": "array",
       "minItems": 1,
       "items": {
         "$ref": "#/$defs/provenance_read_descriptor"
+      }
+    },
+    "typed_slice_grants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/typed_slice_grant"
       }
     }
   },
@@ -3432,6 +3432,44 @@
                     }
                   }
                 }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "typed_slice_name",
+                  "reader",
+                  "grant_identity"
+                ],
+                "properties": {
+                  "typed_slice_name": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "reader": {
+                    "const": "read_typed_slices"
+                  },
+                  "grant_identity": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "scheme",
+                      "scope",
+                      "sha256"
+                    ],
+                    "properties": {
+                      "scheme": {
+                        "const": "scworkbench.operation_pack.typed_slice_grant.v1"
+                      },
+                      "scope": {
+                        "const": "grant excluding grant_identity"
+                      },
+                      "sha256": {
+                        "$ref": "#/$defs/sha256"
+                      }
+                    }
+                  }
+                }
               }
             ]
           }
@@ -3511,19 +3549,19 @@
             }
           }
         },
-        "chunk_schedule_identities": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/identity"
-          },
-          "minItems": 1
-        },
         "provenance_read_identities": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/identity"
           },
           "minItems": 1
+        },
+        "typed_slice_grant_identities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/identity"
+          }
         }
       }
     },
@@ -3833,393 +3871,6 @@
         }
       }
     },
-    "chunk_fragment_grant": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema",
-        "fragment_output",
-        "parent_cardinality_grant_identity",
-        "input_descriptor_identity",
-        "batch_index",
-        "batch_start",
-        "batch_length",
-        "batch_cell_order_identity",
-        "key_axis_count",
-        "key_axis",
-        "key_axis_order_identity",
-        "expected_row_count",
-        "row_order_identity",
-        "missing_values",
-        "fragment_grant_identity"
-      ],
-      "properties": {
-        "schema": {
-          "const": "scworkbench.operation_pack.chunk_fragment_grant.v1"
-        },
-        "fragment_output": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "parent_cardinality_grant_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "scworkbench.operation_pack.output_cardinality_grant.v1"
-            },
-            "sha256": {
-              "$ref": "#/$defs/sha256"
-            },
-            "scope": {
-              "const": "grant excluding cardinality_grant_identity"
-            }
-          }
-        },
-        "input_descriptor_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "batch_index": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "batch_start": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "batch_length": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "batch_cell_order_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "key_axis_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "key_axis": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "key_axis_order_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "expected_row_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "row_order_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "missing_values": {
-          "enum": [
-            "forbidden",
-            "canonical_null_allowed"
-          ]
-        },
-        "fragment_grant_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "scworkbench.operation_pack.chunk_fragment_grant.v1"
-            },
-            "sha256": {
-              "$ref": "#/$defs/sha256"
-            },
-            "scope": {
-              "const": "grant excluding fragment_grant_identity"
-            }
-          }
-        }
-      }
-    },
-    "summary_finalizer_definition": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema",
-        "interface",
-        "callable",
-        "isolation",
-        "merged_input",
-        "summary_output",
-        "metadata_sources",
-        "finalizer_definition_identity"
-      ],
-      "properties": {
-        "schema": {
-          "const": "scworkbench.operation_pack.summary_finalizer_definition.v1"
-        },
-        "interface": {
-          "const": "pure_summary_finalizer_v1"
-        },
-        "callable": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "isolation": {
-          "const": "fresh_pack_invocation_v1"
-        },
-        "merged_input": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "summary_output": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "metadata_sources": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "name",
-                  "source",
-                  "output"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  },
-                  "source": {
-                    "const": "resolved_key_axis"
-                  },
-                  "output": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "name",
-                  "source",
-                  "parameter"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  },
-                  "source": {
-                    "const": "normalized_parameter"
-                  },
-                  "parameter": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "name",
-                  "source",
-                  "input"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  },
-                  "source": {
-                    "const": "input_reference"
-                  },
-                  "input": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "name",
-                  "source",
-                  "input"
-                ],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  },
-                  "source": {
-                    "const": "input_descriptor"
-                  },
-                  "input": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
-                  }
-                }
-              }
-            ]
-          }
-        },
-        "finalizer_definition_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "scworkbench.operation_pack.summary_finalizer_definition.v1"
-            },
-            "sha256": {
-              "$ref": "#/$defs/sha256"
-            },
-            "scope": {
-              "const": "definition excluding finalizer_definition_identity"
-            }
-          }
-        }
-      }
-    },
-    "chunk_schedule": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema",
-        "input_name",
-        "input_descriptor_identity",
-        "axis",
-        "axis_count",
-        "axis_order_identity",
-        "requested_chunk_size",
-        "effective_chunk_size",
-        "batches",
-        "merge_policy",
-        "fragment_output",
-        "summary_output",
-        "summary_finalizer_definition",
-        "schedule_identity"
-      ],
-      "properties": {
-        "schema": {
-          "const": "scworkbench.operation_pack.cell_chunk_schedule.v1"
-        },
-        "input_name": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "input_descriptor_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "axis": {
-          "const": "cells"
-        },
-        "axis_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "axis_order_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "requested_chunk_size": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 1
-        },
-        "effective_chunk_size": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "batches": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "index",
-              "start",
-              "length",
-              "cell_order_identity",
-              "fragment_grant"
-            ],
-            "properties": {
-              "index": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "start": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "length": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "cell_order_identity": {
-                "$ref": "#/$defs/identity"
-              },
-              "fragment_grant": {
-                "$ref": "#/$defs/chunk_fragment_grant"
-              }
-            }
-          }
-        },
-        "merge_policy": {
-          "const": "row_bind_cell_vector_family_v1"
-        },
-        "fragment_output": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "summary_output": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "summary_finalizer_definition": {
-          "$ref": "#/$defs/summary_finalizer_definition"
-        },
-        "schedule_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "scworkbench.operation_pack.cell_chunk_schedule.v1"
-            },
-            "sha256": {
-              "$ref": "#/$defs/sha256"
-            },
-            "scope": {
-              "const": "schedule excluding schedule_identity"
-            }
-          }
-        }
-      }
-    },
     "provenance_read_descriptor": {
       "type": "object",
       "additionalProperties": false,
@@ -4303,6 +3954,392 @@
             },
             "scope": {
               "const": "descriptor excluding descriptor_identity"
+            }
+          }
+        }
+      }
+    },
+    "axis_descriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "axis",
+        "count",
+        "order_identity",
+        "axis_manifest_identity",
+        "relative_path",
+        "payload_manifest_identity"
+      ],
+      "properties": {
+        "axis": {
+          "enum": [
+            "cells",
+            "features"
+          ]
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "axis_manifest_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.typed_slice_axis_manifest.v1"
+            },
+            "scope": {
+              "const": "axis manifest excluding manifest_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "relative_path": {
+          "type": "string",
+          "pattern": "^typed_slice_axes/[a-z][a-z0-9_]*/(cells|features)[.]json$"
+        },
+        "payload_manifest_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.payload_manifest.v2"
+            },
+            "scope": {
+              "const": "registry read payload manifest"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "source_reference": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "input_name",
+            "input_reference",
+            "source_kind",
+            "matrix_id",
+            "input_descriptor_identity",
+            "input_content_identity",
+            "transition_source_state_identity",
+            "source_reference_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.typed_slice_source_reference.v1"
+            },
+            "input_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "input_reference": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_kind": {
+              "const": "bundle_matrix"
+            },
+            "matrix_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "input_descriptor_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "input_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "transition_source_state_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "source_reference_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.typed_slice_source_reference.v1"
+                },
+                "scope": {
+                  "const": "source reference excluding source_reference_identity"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "input_name",
+            "input_reference",
+            "source_kind",
+            "private_source_payload_identity",
+            "projected_content_identity",
+            "projection_identity",
+            "input_descriptor_identity",
+            "input_content_identity",
+            "transition_source_state_identity",
+            "source_reference_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.typed_slice_source_reference.v1"
+            },
+            "input_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "input_reference": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_kind": {
+              "const": "in_memory_selected_projection"
+            },
+            "private_source_payload_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.payload_manifest.v2"
+                },
+                "scope": {
+                  "const": "registry read payload manifest"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "projected_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "projection_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.typed_slice_source_projection.v1"
+                },
+                "scope": {
+                  "const": "projection excluding projection_identity"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            "input_descriptor_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "input_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "transition_source_state_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "source_reference_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.typed_slice_source_reference.v1"
+                },
+                "scope": {
+                  "const": "source reference excluding source_reference_identity"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "typed_slice_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "input_name",
+        "kind",
+        "reader",
+        "input_descriptor_identity",
+        "input_content_identity",
+        "source_reference",
+        "supported_axes",
+        "chunk_axis",
+        "cells_axis",
+        "features_axis",
+        "requested_chunk_size",
+        "call_discipline",
+        "empty_selection_policy",
+        "duplicate_policy",
+        "max_rows",
+        "max_columns",
+        "max_elements",
+        "max_control_bytes",
+        "max_response_bytes",
+        "max_outstanding_responses",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.typed_slice_grant.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "input_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "const": "matrix"
+        },
+        "reader": {
+          "const": "read_typed_slices"
+        },
+        "input_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "input_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_reference": {
+          "$ref": "#/$defs/source_reference"
+        },
+        "supported_axes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "cells",
+              "features"
+            ]
+          }
+        },
+        "chunk_axis": {
+          "enum": [
+            "cells",
+            "features"
+          ]
+        },
+        "cells_axis": {
+          "$ref": "#/$defs/axis_descriptor"
+        },
+        "features_axis": {
+          "$ref": "#/$defs/axis_descriptor"
+        },
+        "requested_chunk_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "call_discipline": {
+          "enum": [
+            "ordered_partition_exactly_once",
+            "independent_slices"
+          ]
+        },
+        "empty_selection_policy": {
+          "enum": [
+            "allow_zero_axis",
+            "reject"
+          ]
+        },
+        "duplicate_policy": {
+          "const": "reject"
+        },
+        "max_rows": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_columns": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_elements": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "max_control_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_response_bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_outstanding_responses": {
+          "const": 1
+        },
+        "grant_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.typed_slice_grant.v1"
+            },
+            "scope": {
+              "const": "grant excluding grant_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
             }
           }
         }
@@ -5137,5 +5174,5 @@
       "value": "bad package/name"
     }
   ],
-  "x-phase3b-design-commit": "ec395246c7b6d61836cce74327ee6e65545718c2"
+  "x-phase3b-design-commit": "483120cdc2a5cbaa60d88a19d05c45f0675cf3fe"
 }

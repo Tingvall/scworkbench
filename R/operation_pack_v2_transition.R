@@ -1289,8 +1289,17 @@
     .wb_operation_pack_v2_request_audit(request, registration, operation)
   }
   .wb_operation_pack_v2_atomic_json(request, file.path(stage, "request.json"))
-  if (python_backend) .wb_operation_pack_v2_python_stage_inputs(stage,
-    attr(request, "operation_pack_v2_transport_inputs") %||% transport_inputs)
+  if (python_backend) {
+    staged_inputs <- attr(request, "operation_pack_v2_transport_inputs") %||%
+      transport_inputs
+    if (abi_v3) {
+      typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
+        `[[`, character(1), "input_name"))
+      staged_inputs <- staged_inputs[setdiff(names(staged_inputs),
+        typed_input_names)]
+    }
+    .wb_operation_pack_v2_python_stage_inputs(stage, staged_inputs)
+  }
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "staged", transition_id = transition_id), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("staged", transition_id = transition_id)
@@ -1299,10 +1308,12 @@
     inputs, params, request$registry_reads %||% list())
   if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
     operation, inputs, source_refs, request, params)
+  if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
+    bundle, request)
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
   if (python_backend) {
     process_result <- if (abi_v3) .wb_operation_pack_v3_python_dispatch(
-      request, registration, stage) else .wb_operation_pack_v2_python_dispatch(
+      request, registration, stage, bundle = bundle) else .wb_operation_pack_v2_python_dispatch(
         request, registration, stage)
     receipt <- process_result$receipt
     unlink(file.path(stage, "inputs"), recursive = TRUE, force = TRUE)
@@ -1321,6 +1332,16 @@
       params = .wb_operation_pack_v2_deep_copy(params),
       context = list(transition_id = transition_id, session_id = session_id, run_id = run_id,
         checkpoint_generation = generation, network_policy = "deny",
+        typed_slice_reads = stats::setNames(lapply(
+          request$typed_slice_grants %||% list(), function(x) list(
+            name = x$name, input_name = x$input_name,
+            chunk_axis = x$chunk_axis,
+            requested_chunk_size = x$requested_chunk_size,
+            call_discipline = x$call_discipline,
+            cells = attr(x, "operation_pack_v3_cells"),
+            features = attr(x, "operation_pack_v3_features"))), vapply(
+              request$typed_slice_grants %||% list(), `[[`, character(1),
+              "name")),
         effective_cells = unname(as.character(effective_cells %||%
           .wb_operation_pack_v2_primitive_cells(inputs[[1]]))))), error = identity)
     if (inherits(result, "error")) {
@@ -1329,17 +1350,9 @@
       .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
         paste0("R operation-pack runner failed: ", conditionMessage(result)), "execution")
     }
-    chunk_state <- if (abi_v3) .wb_operation_pack_v3_finalize_adapter(
-      adapter, request, registration, params, source_refs) else NULL
-    reader_observation <- if (abi_v3 && !is.null(chunk_state)) list(
-      axis = "cells",
-      requested_chunk_size = chunk_state$schedule$requested_chunk_size,
-      observed_call_count = length(chunk_state$observations),
-      observed_batch_sizes = as.integer(vapply(
-        chunk_state$schedule$batches, `[[`, integer(1), "length")),
-      observed_batches = lapply(chunk_state$schedule$batches, function(x)
-        attr(x$fragment_grant, "operation_pack_v3_cells") %||% character())) else
-      if (abi_v3) NULL else .wb_operation_pack_v2_chunk_observation(operation,
+    typed_slice_usage <- if (abi_v3)
+      .wb_operation_pack_v3_typed_slice_usage(adapter, request) else list()
+    reader_observation <- if (abi_v3) NULL else .wb_operation_pack_v2_chunk_observation(operation,
         params, adapter$state$reader_calls, inputs)
     registry_read_observations <- .wb_operation_pack_v2_registry_read_observations(
       request, adapter$state$reader_calls)
@@ -1350,7 +1363,7 @@
     receipt <- if (abi_v3) .wb_operation_pack_v3_receipt(request,
       registration, operation, adapter$state$writes, preflight, inputs,
       registry_read_observations, provenance_read_observations,
-      chunk_state = chunk_state) else .wb_operation_pack_v2_receipt(request,
+      typed_slice_usage = typed_slice_usage) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
   }
@@ -1385,15 +1398,27 @@
       "operation_pack_v3_provenance_read_values") %||% list())
     provenance_payloads <- if (length(provenance_names)) paste0(
       "provenance_reads/", provenance_names, "/payload.json") else character()
+    typed_slice_axes <- unlist(lapply(request$typed_slice_grants %||% list(),
+      function(x) c(x$cells_axis$relative_path,
+        x$features_axis$relative_path)), use.names = FALSE)
+    typed_slice_sources <- vapply(Filter(function(x) identical(
+      x$source_reference$source_kind, "in_memory_selected_projection"),
+      request$typed_slice_grants %||% list()), function(x)
+        sub("^private_projection:", "typed_slice_sources/",
+          paste0(x$source_reference$input_reference, "/matrix.mtx")),
+        character(1))
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
       paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
-      registry_payloads, provenance_payloads), method = "radix")
+      registry_payloads, provenance_payloads, typed_slice_axes,
+      typed_slice_sources), method = "radix")
     if (!identical(sort(inventory, method = "radix"), expected_inventory)) .wb_operation_pack_v2_error(
       "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
       unexpected = setdiff(inventory, expected_inventory))
   }
   if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
     operation, inputs, source_refs, request, params)
+  if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
+    bundle, request)
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
   if (!isTRUE(moved) || !dir.exists(final)) .wb_operation_pack_v2_error("PYBENCH_PUBLICATION_FAILED",

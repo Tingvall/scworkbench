@@ -130,6 +130,7 @@
   # bundle location solely to resolve already-promoted artifact references
   # created after the overlay snapshot; no filesystem search is performed.
   stage_bundle$staging_source_dir <- normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
+  stage_bundle$staging_source_bundle <- bundle
   session$staging_dir <- stage_dir
   session$staging_bundle <- stage_bundle
   session$staging_source_dir <- stage_bundle$staging_source_dir

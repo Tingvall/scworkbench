@@ -264,18 +264,18 @@
         }
       }
     },
-    "chunk_executions": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/chunk_execution"
-      }
-    },
     "provenance_reads": {
       "type": "array",
       "minItems": 1,
       "items": {
         "$ref": "#/$defs/observed_provenance_read"
+      }
+    },
+    "typed_slice_usage": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/typed_slice_usage"
       }
     }
   },
@@ -5515,187 +5515,6 @@
         }
       }
     },
-    "observed_chunk_fragment": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema",
-        "index",
-        "fragment_grant_identity",
-        "observed_row_count",
-        "observed_cell_order_identity",
-        "observed_key_order_identity",
-        "observed_row_order_identity",
-        "missing_count",
-        "descriptor_identity",
-        "content_identity",
-        "semantic_validation",
-        "observed_fragment_identity"
-      ],
-      "properties": {
-        "schema": {
-          "const": "scworkbench.operation_pack.observed_chunk_fragment.v1"
-        },
-        "index": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "fragment_grant_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "scworkbench.operation_pack.chunk_fragment_grant.v1"
-            },
-            "sha256": {
-              "$ref": "#/$defs/sha256"
-            },
-            "scope": {
-              "const": "grant excluding fragment_grant_identity"
-            }
-          }
-        },
-        "observed_row_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "observed_cell_order_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "observed_key_order_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "observed_row_order_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "missing_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "descriptor_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "content_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "semantic_validation": {
-          "const": "passed"
-        },
-        "observed_fragment_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "scworkbench.operation_pack.observed_chunk_fragment.v1"
-            },
-            "sha256": {
-              "$ref": "#/$defs/sha256"
-            },
-            "scope": {
-              "const": "observation excluding observed_fragment_identity"
-            }
-          }
-        }
-      }
-    },
-    "chunk_execution": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema",
-        "request_identity",
-        "capability_identity",
-        "operation_definition_identity",
-        "schedule_identity",
-        "observed_chunks",
-        "merged_family_descriptor_identity",
-        "merged_family_content_identity",
-        "finalizer_definition_identity",
-        "finalizer_metadata_identity",
-        "finalizer_invocation_identity",
-        "summary_source_identity",
-        "summary_descriptor_identity",
-        "summary_content_identity",
-        "chunk_execution_identity"
-      ],
-      "properties": {
-        "schema": {
-          "const": "scworkbench.operation_pack.cell_chunk_observation.v1"
-        },
-        "request_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "capability_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "operation_definition_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "schedule_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "observed_chunks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/observed_chunk_fragment"
-          }
-        },
-        "merged_family_descriptor_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "merged_family_content_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "finalizer_definition_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "finalizer_metadata_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "finalizer_invocation_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "summary_source_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "summary_descriptor_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "summary_content_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "chunk_execution_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "const": "scworkbench.operation_pack.cell_chunk_observation.v1"
-            },
-            "sha256": {
-              "$ref": "#/$defs/sha256"
-            },
-            "scope": {
-              "const": "observation excluding chunk_execution_identity"
-            }
-          }
-        }
-      }
-    },
     "observed_provenance_read": {
       "type": "object",
       "additionalProperties": false,
@@ -5745,6 +5564,281 @@
             },
             "scope": {
               "const": "observation excluding observed_descriptor_identity"
+            }
+          }
+        }
+      }
+    },
+    "typed_slice_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "source_reference_identity",
+        "grant_identity",
+        "ordinal",
+        "feature_count",
+        "feature_order_identity",
+        "cell_count",
+        "cell_order_identity",
+        "dimensions",
+        "semantic_content_identity",
+        "slice_result_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.typed_slice_result.v1"
+        },
+        "source_reference_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "feature_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "feature_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "cell_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "dimensions": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "semantic_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "slice_result_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.typed_slice_result.v1"
+            },
+            "scope": {
+              "const": "slice result excluding slice_result_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "observed_typed_slice_call": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grant_identity",
+        "ordinal",
+        "feature_count",
+        "feature_order_identity",
+        "cell_count",
+        "cell_order_identity",
+        "dimensions",
+        "semantic_content_identity",
+        "schema",
+        "slice_result_identity",
+        "call_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.observed_typed_slice_call.v1"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "feature_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "feature_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "cell_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "dimensions": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "integer",
+              "minimum": 0
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "semantic_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "slice_result_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.typed_slice_result.v1"
+            },
+            "scope": {
+              "const": "slice result excluding slice_result_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        },
+        "call_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.observed_typed_slice_call.v1"
+            },
+            "scope": {
+              "const": "call excluding call_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "typed_slice_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "request_identity",
+        "capability_identity",
+        "operation_definition_identity",
+        "grant_identity",
+        "requested_chunk_size",
+        "calls",
+        "call_count",
+        "concatenated_chunk_axis_order_identity",
+        "unique_chunk_axis_count",
+        "duplicate_chunk_axis_count",
+        "coverage_status",
+        "usage_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.typed_slice_usage.v1"
+        },
+        "request_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "capability_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "operation_definition_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "requested_chunk_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/observed_typed_slice_call"
+          }
+        },
+        "call_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "concatenated_chunk_axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "unique_chunk_axis_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duplicate_chunk_axis_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "coverage_status": {
+          "enum": [
+            "exact",
+            "independent",
+            "empty"
+          ]
+        },
+        "usage_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.typed_slice_usage.v1"
+            },
+            "scope": {
+              "const": "usage excluding usage_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
             }
           }
         }
@@ -6464,5 +6558,5 @@
       "action": "add_outputs_from_success"
     }
   ],
-  "x-phase3b-design-commit": "ec395246c7b6d61836cce74327ee6e65545718c2"
+  "x-phase3b-design-commit": "483120cdc2a5cbaa60d88a19d05c45f0675cf3fe"
 }

@@ -57,7 +57,7 @@
       "name": "chunked_family",
       "qualified_name": "scwbv3reference::chunked_family",
       "title": "Cell chunk fixture",
-      "description": "Exercises authenticated cell chunks and pure finalization.",
+      "description": "Exercises the generic authenticated typed-slice reader.",
       "runner": ".chunked_family",
       "inputs": [
         {"name": "matrix", "kind": "matrix", "required": true, "alignment": "cell_and_feature_ordered"}
@@ -90,20 +90,20 @@
         },
         {"output": "summary", "policy": "data_dependent_table_v1"}
       ],
-      "chunking": {
-        "axis": "cells", "input": "matrix", "size_parameter": "chunk_size",
-        "fragment_output": "scores", "summary_output": "summary",
-        "key_axis_policy": "scores", "merge": "row_bind_cell_vector_family_v1",
-        "summary": {
-          "interface": "pure_summary_finalizer_v1", "callable": "summarize_scores",
-          "isolation": "fresh_pack_invocation_v1",
-          "metadata_sources": [
-            {"name": "keys", "source": "resolved_key_axis", "output": "scores"},
-            {"name": "chunk_size", "source": "normalized_parameter", "parameter": "chunk_size"},
-            {"name": "matrix", "source": "input_descriptor", "input": "matrix"}
-          ]
+      "typed_slice_reads": [
+        {
+          "name": "matrix_chunks", "input": "matrix",
+          "reader": "read_typed_slices", "kind": "matrix",
+          "supported_axes": ["cells"], "chunk_axis": "cells",
+          "chunk_size_parameter": "chunk_size",
+          "call_discipline": "ordered_partition_exactly_once",
+          "empty_selection_policy": "reject", "duplicate_policy": "reject",
+          "selection": {
+            "cells": {"policy": "effective_input_axis_v1"},
+            "features": {"policy": "effective_input_axis_v1"}
+          }
         }
-      },
+      ],
       "outputs": [
         {"name": "scores", "category": "terminal_artifact", "kind": "cell_vector_family", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "scores_id", "required": true, "promotion_group": "chunked", "value_kind": "continuous"},
         {"name": "summary", "category": "terminal_artifact", "kind": "obs_table", "storage_profile": "terminal_primitive_v1", "allocated_id_key": "summary_id", "required": true, "promotion_group": "chunked", "table_type": "abi_v3_chunk_summary"}

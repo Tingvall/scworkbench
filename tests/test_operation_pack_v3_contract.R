@@ -110,16 +110,19 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 8L)
+    length(fixture$cases) == 11L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
-    pure_summary_finalizer = "finalizer_definition_identity",
-    fragment_1 = "fragment_grant_identity",
-    fragment_2 = "fragment_grant_identity",
-    cell_schedule_two_batches = "schedule_identity",
+    typed_slice_cells_axis = "manifest_identity",
+    typed_slice_features_axis = "manifest_identity",
+    typed_slice_bundle_source = "source_reference_identity",
+    typed_slice_cells_grant = "grant_identity",
+    typed_slice_result_first_partition = "slice_result_identity",
+    observed_typed_slice_call_first_partition = "call_identity",
+    typed_slice_usage_one_independent_call = "usage_identity",
     source_snapshot_head = "source_snapshot_identity",
-    current_successor_artifact_ancestry = "snapshot_identity")
+    current_artifact_ancestry = "snapshot_identity")
   for (case in fixture$cases) {
     field <- identity_fields[[case$name]]
     stopifnot(!is.null(field), identical(case$preimage,
@@ -183,39 +186,122 @@ test_operation_pack_v3_one_per_cell_contract <- function() {
   TRUE
 }
 
-test_operation_pack_v3_cell_chunk_contract <- function() {
-  state <- .wb_v3_family_grant()
-  chunk <- list(axis = "cells", input = "matrix",
-    size_parameter = "chunk_size", fragment_output = "scores",
-    summary_output = "summary", key_axis_policy = "scores",
-    merge = "row_bind_cell_vector_family_v1",
-    summary = list(interface = "pure_summary_finalizer_v1",
-      callable = "summarize_scores", isolation = "fresh_pack_invocation_v1",
-      metadata_sources = list(list(name = "keys",
-        source = "resolved_key_axis", output = "scores"))))
-  schedule <- scworkbench:::.wb_operation_pack_v3_chunk_schedule(chunk,
-    list(chunk_size = 2L), state$grant, state$records$matrix)
-  stopifnot(length(schedule$batches) == 2L,
-    identical(vapply(schedule$batches, `[[`, integer(1), "start"),
-      c(1L, 3L)), identical(.wb_v3_identity(schedule, "schedule_identity"),
-      schedule$schedule_identity$sha256))
-  make <- function(batch, offset) {
-    keys <- as.character(unlist(batch$fragment_grant$key_axis))
-    cells <- attr(batch$fragment_grant, "operation_pack_v3_cells")
-    wb_prim_cell_vector_family(rep(keys, each = length(cells)),
-      rep(cells, length(keys)), seq_len(length(keys) * length(cells)) +
-        offset)
-  }
-  fragments <- list(`1` = make(schedule$batches[[1]], 0),
-    `2` = make(schedule$batches[[2]], 10))
-  merged <- scworkbench:::.wb_operation_pack_v3_merge_fragments(fragments,
-    schedule)
-  stopifnot(identical(merged$value$key,
-    rep(c("sigB", "sigA"), each = 3L)),
-    identical(merged$value$cell_id, rep(c("c2", "c1", "c3"), 2L)),
-    length(merged$observations) == 2L)
-  stopifnot(inherits(try(scworkbench:::.wb_operation_pack_v3_merge_fragments(
-    fragments[1], schedule), silent = TRUE), "try-error"))
+test_operation_pack_v3_typed_slice_getter_contract <- function() {
+  stopifnot(identical(wb_partition_axis(c("c2", "c1", "c3"), 2L),
+    list(c("c2", "c1"), "c3")),
+    identical(wb_partition_axis(character(), 2L), list()),
+    inherits(try(wb_partition_axis(c("c1", "c1"), 1L), silent = TRUE),
+      "try-error"))
+  state <- .wb_v3_bundle()
+  on.exit(.wb_v3_fixture_cleanup(bundle = state$bundle, root = state$root),
+    add = TRUE)
+  iterator <- wb_slice_chunks(state$bundle, "RNA",
+    features = c("g2", "g1"), cells = c("c2", "c1", "c3"),
+    axis = "cells", chunk_size = 2L)
+  first <- iterator$next_chunk()
+  second <- iterator$next_chunk()
+  stopifnot(identical(first$ids, c("c2", "c1")),
+    identical(second$ids, "c3"), is.null(iterator$next_chunk()),
+    identical(rownames(first$value), c("g2", "g1")),
+    identical(colnames(first$value), c("c2", "c1")))
+  TRUE
+}
+
+test_operation_pack_v3_in_memory_typed_slice_source_contract <- function() {
+  state <- .wb_v3_bundle()
+  on.exit(.wb_v3_fixture_cleanup(bundle = state$bundle, root = state$root),
+    add = TRUE)
+  input <- .wb_v3_matrix()
+  record <- .wb_v3_input_record("matrix", input)$descriptor
+  stage <- tempfile("scwb_v3_private_source_")
+  dir.create(stage)
+  on.exit(unlink(stage, recursive = TRUE, force = TRUE), add = TRUE)
+  declaration <- list(name = "matrix_chunks", input = "matrix",
+    supported_axes = list("cells"), chunk_axis = "cells",
+    chunk_size_parameter = "chunk_size",
+    call_discipline = "ordered_partition_exactly_once",
+    empty_selection_policy = "reject", selection = list(
+      cells = list(policy = "effective_input_axis_v1"),
+      features = list(policy = "effective_input_axis_v1")))
+  source_state <- scworkbench:::.wb_operation_pack_v2_identity_plain(
+    "scworkbench.scientific_state.v1",
+    scworkbench:::.wb_manifest_registry_snapshot(state$bundle$con))
+  grant <- scworkbench:::.wb_operation_pack_v3_typed_slice_grant(
+    state$bundle, declaration, input, record, list(chunk_size = 2L),
+    input$cell_id, source_state, stage)
+  source <- grant$source_reference
+  path <- file.path(stage, "typed_slice_sources", "matrix_chunks",
+    "matrix.mtx")
+  stopifnot(identical(source$source_kind,
+      "in_memory_selected_projection"), file.exists(path),
+    identical(scworkbench:::.wb_operation_pack_v3_unscoped_identity(
+      source$projected_content_identity),
+      source$projected_content_identity),
+    identical(nrow(Matrix::readMM(path)), length(input$feature_id)),
+    identical(ncol(Matrix::readMM(path)), length(input$cell_id)))
+  validated <- scworkbench:::.wb_operation_pack_v3_private_source_validate(
+    stage, grant)
+  stopifnot(identical(as.integer(dim(validated)), c(3L, 3L)))
+  first_value <- input
+  first_value$values <- input$values[, c("c2", "c1"), drop = FALSE]
+  first_value$cell_id <- c("c2", "c1")
+  first <- scworkbench:::.wb_operation_pack_v3_slice_result(grant, 1L,
+    first_value)
+  last_value <- input
+  last_value$values <- input$values[, "c3", drop = FALSE]
+  last_value$cell_id <- "c3"
+  last <- scworkbench:::.wb_operation_pack_v3_slice_result(grant, 2L,
+    last_value)
+  request <- list(typed_slice_grants = list(grant), request_identity = list(
+      scheme = "scworkbench.operation_pack.transition_request.v3",
+      sha256 = paste(rep("a", 64L), collapse = "")),
+    execution_capability = list(capability_identity = list(
+      scheme = "scworkbench.operation_pack.capability.v3",
+      sha256 = paste(rep("b", 64L), collapse = ""))),
+    operation_authentication = list(operation_definition_identity = list(
+      scheme = "scworkbench.operation_pack.definition.v3",
+      sha256 = paste(rep("c", 64L), collapse = ""))))
+  adapter <- list(state = new.env(parent = emptyenv()))
+  adapter$state$typed_slice_calls <- list(matrix_chunks = list(list(
+    result = first, chunk_values = c("c2", "c1"))))
+  partial <- try(scworkbench:::.wb_operation_pack_v3_typed_slice_usage(
+    adapter, request), silent = TRUE)
+  stopifnot(inherits(partial, "try-error"))
+  adapter$state$typed_slice_calls$matrix_chunks[[2L]] <- list(
+    result = last, chunk_values = "c3")
+  usage <- scworkbench:::.wb_operation_pack_v3_typed_slice_usage(
+    adapter, request)[[1L]]
+  stopifnot(identical(usage$coverage_status, "exact"),
+    identical(usage$call_count, 2L))
+  zero <- grant
+  attr(zero, "operation_pack_v3_cells") <- character()
+  zero_request <- request
+  zero_request$typed_slice_grants <- list(zero)
+  zero_adapter <- list(state = new.env(parent = emptyenv()))
+  zero_adapter$state$typed_slice_calls <- list(matrix_chunks = list())
+  zero_usage <- scworkbench:::.wb_operation_pack_v3_typed_slice_usage(
+    zero_adapter, zero_request)[[1L]]
+  stopifnot(identical(zero_usage$coverage_status, "empty"),
+    identical(zero_usage$call_count, 0L))
+  zero_adapter$state$typed_slice_calls$matrix_chunks <- list(list(
+    result = first, chunk_values = c("c2", "c1")))
+  stopifnot(inherits(try(
+    scworkbench:::.wb_operation_pack_v3_typed_slice_usage(zero_adapter,
+      zero_request), silent = TRUE), "try-error"))
+  mutated <- first_value
+  mutated$values[1L, 1L] <- mutated$values[1L, 1L] + 1
+  second <- scworkbench:::.wb_operation_pack_v3_slice_result(grant, 1L,
+    mutated)
+  stopifnot(!identical(first$semantic_content_identity,
+      second$semantic_content_identity),
+    !identical(first$slice_result_identity, second$slice_result_identity))
+  bytes <- readBin(path, "raw", n = file.info(path)$size)
+  bytes[[length(bytes)]] <- as.raw(bitwXor(as.integer(bytes[[length(bytes)]]),
+    1L))
+  writeBin(bytes, path)
+  stopifnot(inherits(try(
+    scworkbench:::.wb_operation_pack_v3_private_source_validate(stage, grant),
+    silent = TRUE), "try-error"))
   TRUE
 }
 
@@ -225,10 +311,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "a4f095902b5dcb71bc4d84b5b248997b3c9748ef7e51e91c7ab6b77483efee8b",
-    "9ff65685bcad2358b26a325beeed617cd6695ebf629b5c6412df3762ff929052",
-    "e6ab7b7eeac2a4b60a4da405cdd70425d417a2fc61689dca585335f3f5eec25d",
-    "31e104e2167a5c5c9b147afe280bd7b36220c3d61f1773445ded6ee9d52bbbee")
+    "f263fbcf15d3a928c5a3b7cfa41ca27b4f5d3e0f31f2b8f42cc930b1d9713ff3",
+    "9935a10ca05c5c767e739d06839b5d4fcbf53de549ea95b8cd4d1e711e8089d6",
+    "6ba0a1875100cda766cc5c5f10caa01fc654dd9688250d3ff17389bb4c561e28",
+    "ed31bcf18062d57b6ea8d8f7a787f8932138f959e5762d195b3968438d052f32")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)
@@ -292,7 +378,8 @@ test_operation_pack_v3_r_lifecycle_contract <- function() {
     ancestry$session, outputs = "smoothed", created_by = "abi-v3-contract")
   transition_id <- as.character(ancestry$run$operation_pack_transition$
     transition_id)[1]
-  record_path <- file.path(state$root, "operation_pack_v2", transition_id)
+  record_path <- file.path(scworkbench:::.wb_operation_pack_v2_store(
+    state$bundle), transition_id)
   record <- scworkbench:::.wb_operation_pack_v2_record_validate(record_path,
     load_payloads = TRUE)
   stopifnot(isTRUE(record$ok), length(record$request$provenance_reads) == 1L,
@@ -361,9 +448,39 @@ test_operation_pack_v3_chunk_replay_and_rollback_contract <- function() {
       identity(many$run$outputs$scores)),
     identical(identity(one$run$outputs$summary),
       identity(many$run$outputs$summary)))
+  wb_session_promote_current(state$bundle, many$session,
+    outputs = c("scores", "summary"), created_by = "abi-v3-typed-slice")
+  transition_id <- many$run$operation_pack_transition$transition_id
+  record_path <- file.path(state$root, "operation_pack_v2", transition_id)
+  record <- scworkbench:::.wb_operation_pack_v2_record_validate(record_path,
+    load_payloads = TRUE)
+  stopifnot(isTRUE(record$ok),
+    length(record$request$typed_slice_grants) == 1L,
+    length(record$receipt$typed_slice_usage) == 1L,
+    identical(record$receipt$typed_slice_usage[[1]]$coverage_status, "exact"),
+    identical(record$receipt$typed_slice_usage[[1]]$call_count, 2L),
+    identical(vapply(record$receipt$typed_slice_usage[[1]]$calls, `[[`,
+      integer(1), "cell_count"), c(2L, 1L)),
+    file.exists(file.path(record_path,
+      record$request$typed_slice_grants[[1]]$cells_axis$relative_path)))
+  copied <- tempfile("scwb_v3_typed_slice_record_")
+  dir.create(copied)
+  stopifnot(file.copy(list.files(record_path, full.names = TRUE,
+    all.files = TRUE, no.. = TRUE), copied, recursive = TRUE))
+  receipt_path <- file.path(copied, "receipt.json")
+  corrupted_receipt <- jsonlite::read_json(receipt_path,
+    simplifyVector = FALSE)
+  corrupted_receipt$typed_slice_usage[[1]]$calls[[1]]$cell_count <- 1L
+  scworkbench:::.wb_operation_pack_v2_atomic_json(corrupted_receipt,
+    receipt_path)
+  corrupted <- scworkbench:::.wb_operation_pack_v2_record_validate(copied,
+    load_payloads = TRUE)
+  unlink(copied, recursive = TRUE, force = TRUE)
+  stopifnot(!isTRUE(corrupted$ok))
 
-  before <- if (dir.exists(file.path(state$root, "operation_pack_v2")))
-    list.dirs(file.path(state$root, "operation_pack_v2"), recursive = FALSE,
+  store <- file.path(state$root, "operation_pack_v2")
+  before <- if (dir.exists(store))
+    list.dirs(store, recursive = FALSE,
       full.names = FALSE) else character()
   fired <- FALSE
   options(scworkbench.operation_pack_v2_test_hook = function(event, ...) {
@@ -375,8 +492,8 @@ test_operation_pack_v3_chunk_replay_and_rollback_contract <- function() {
   on.exit(options(scworkbench.operation_pack_v2_test_hook = NULL), add = TRUE)
   failed <- try(run_chunked(2L), silent = TRUE)
   options(scworkbench.operation_pack_v2_test_hook = NULL)
-  after <- if (dir.exists(file.path(state$root, "operation_pack_v2")))
-    list.dirs(file.path(state$root, "operation_pack_v2"), recursive = FALSE,
+  after <- if (dir.exists(store))
+    list.dirs(store, recursive = FALSE,
       full.names = FALSE) else character()
   stopifnot(fired, inherits(failed, "try-error"), identical(before, after),
     identical(run_chunked(2L)$run$outputs$scores$value,

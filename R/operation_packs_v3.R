@@ -1,4 +1,4 @@
-# Operation-pack ABI v3: consolidated bounded-output, cell-chunk, and
+# Operation-pack ABI v3: consolidated bounded-output, typed-slice, and
 # core-attested ancestry contracts. ABI v1/v2 readers remain frozen.
 
 .wb_operation_pack_v3_manifest_schema <- function() {
@@ -67,13 +67,11 @@
   }
   out$operations <- lapply(out$operations, function(op) {
     op$provenance_reads <- NULL
+    op$typed_slice_reads <- NULL
     op$dimension_policies <- Filter(function(x) !identical(
       as.character(x$policy %||% "")[1], "authenticated_output_axes_v1"),
       op$dimension_policies %||% list())
     if (!length(op$dimension_policies)) op$dimension_policies <- NULL
-    if (identical(as.character(op$chunking$axis %||% "")[1], "cells")) {
-      op$chunking <- NULL
-    }
     op
   })
   out
@@ -160,32 +158,33 @@
       }
     }
 
-    chunk <- operation$chunking %||% NULL
-    if (identical(as.character(chunk$axis %||% "")[1], "cells")) {
-      matrix <- inputs[[as.character(chunk$input)[1]]]
-      fragment <- outputs[[as.character(chunk$fragment_output)[1]]]
-      summary <- outputs[[as.character(chunk$summary_output)[1]]]
-      policy_index <- match(as.character(chunk$key_axis_policy)[1],
-        policy_names)
-      policy <- if (is.na(policy_index)) NULL else policies[[policy_index]]
-      size_schema <- properties[[as.character(chunk$size_parameter)[1]]]
-      types <- as.character(unlist(size_schema$type %||% character(),
-        use.names = FALSE))
-      valid <- !is.null(matrix) && identical(as.character(matrix$kind)[1],
-        "matrix") && !is.null(fragment) && identical(as.character(
-          fragment$kind)[1], "cell_vector_family") && !is.null(summary) &&
-        identical(as.character(summary$kind)[1], "obs_table") &&
-        identical(as.character(fragment$category)[1], "terminal_artifact") &&
-        identical(as.character(summary$category)[1], "terminal_artifact") &&
-        !is.null(policy) && identical(as.character(policy$output)[1],
-          as.character(chunk$fragment_output)[1]) && "integer" %in% types &&
-        all(c("pure_summary_finalizer_v1", "fresh_pack_invocation_v1") ==
-          c(as.character(chunk$summary$interface)[1],
-            as.character(chunk$summary$isolation)[1]))
+    slices <- operation$typed_slice_reads %||% list()
+    slice_names <- vapply(slices, function(x) as.character(x$name)[1],
+      character(1))
+    if (anyDuplicated(slice_names) || length(intersect(slice_names,
+        names(inputs)))) .wb_operation_pack_v3_error(
+      "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Operation '", opname,
+        "' has duplicate or colliding typed-slice capability names."),
+      "semantic_admission")
+    for (slice in slices) {
+      input <- inputs[[as.character(slice$input)[1]]]
+      parameter <- as.character(slice$chunk_size_parameter)[1]
+      axes <- as.character(unlist(slice$supported_axes, use.names = FALSE))
+      selections <- slice$selection
+      parameter_selectors <- vapply(selections, function(x)
+        identical(as.character(x$policy)[1],
+          "parameter_ordered_subset_v1"), logical(1))
+      selector_names <- vapply(selections[parameter_selectors], function(x)
+        as.character(x$parameter)[1], character(1))
+      valid <- !is.null(input) && identical(as.character(input$kind)[1],
+        "matrix") && .wb_operation_pack_v3_param_is(properties, parameter,
+          "integer") && as.character(slice$chunk_axis)[1] %in% axes &&
+        all(selector_names %in% names(properties))
       if (!valid) .wb_operation_pack_v3_error(
         "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
         paste0("Operation '", opname,
-          "' has an incompatible cell-axis chunk declaration."),
+          "' has an incompatible typed-slice reader declaration."),
         "semantic_admission")
     }
 
@@ -308,22 +307,17 @@
 .wb_operation_pack_v3_catalog_definition <- function(op) {
   projected <- op
   projected$provenance_reads <- NULL
+  projected$typed_slice_reads <- NULL
   projected$dimension_policies <- Filter(function(x) !identical(
     as.character(x$policy %||% "")[1], "authenticated_output_axes_v1"),
     projected$dimension_policies %||% list())
   if (!length(projected$dimension_policies)) projected$dimension_policies <- NULL
-  if (identical(as.character(projected$chunking$axis %||% "")[1], "cells"))
-    projected$chunking <- NULL
   definition <- .wb_operation_pack_v2_catalog_definition(projected)
   definition$pack_abi_version <- "3"
   definition$v2_definition <- NULL
   definition$v3_definition <- op
-  if (identical(as.character(op$chunking$axis %||% "")[1], "cells")) {
-    definition$chunking <- list(chunkable = TRUE, axis = "cells",
-      chunk_size_param = op$chunking$size_parameter,
-      merge = stats::setNames(list("row_bind_cell_vector_family_v1"),
-        op$chunking$fragment_output), status = "implemented_generic_v3")
-  }
+  if (length(op$typed_slice_reads %||% list()))
+    definition$typed_slice_reads <- op$typed_slice_reads
   definition
 }
 
@@ -354,7 +348,6 @@
   definitions <- stats::setNames(lapply(manifest$operations,
     .wb_operation_pack_v3_catalog_definition), expected)
   structure(list(manifest = manifest, runners = runners,
-    finalizers = attr(runners, "operation_pack_finalizers") %||% list(),
     identity = identity, definitions = definitions, protocol_version = "3",
     manifest_path = manifest_path, installed_path = installed_path,
     runtime_attestation = list(schema = "scworkbench.operation_pack.runtime.r.v3",

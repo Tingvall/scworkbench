@@ -25,18 +25,27 @@
 }
 
 .chunked_family <- function(readers, writers, params, context) {
-  matrix <- readers$matrix()
-  cells <- as.character(matrix$cell_id)
+  capability <- context$typed_slice_reads$matrix_chunks
+  cells <- as.character(capability$cells)
+  features <- as.character(capability$features)
   chunk_size <- as.integer(params$chunk_size)
   groups <- .fixture_groups(params)
-  starts <- seq.int(1L, length(cells), by = chunk_size)
-  for (i in seq_along(starts)) {
-    selected <- cells[starts[[i]]:min(length(cells),
-      starts[[i]] + chunk_size - 1L)]
-    readers$matrix(cells = selected)
-    writers$write_chunk("scores", i, .fixture_scores(groups, selected,
-      all_cells = cells))
-  }
+  chunks <- scworkbench::wb_partition_axis(cells, chunk_size)
+  pieces <- lapply(chunks, function(selected) {
+    matrix <- readers$matrix_chunks(features = features, cells = selected)
+    stopifnot(identical(as.character(matrix$cell_id), selected),
+      identical(as.character(matrix$feature_id), features))
+    .fixture_scores(groups, selected, all_cells = cells)
+  })
+  keys <- names(groups)
+  scores <- scworkbench::wb_prim_cell_vector_family(
+    rep(keys, each = length(cells)), rep(cells, length(keys)),
+    unlist(lapply(seq_along(keys), function(i) unlist(lapply(pieces,
+      function(piece) piece$value[piece$key == keys[[i]]]), use.names = FALSE)),
+      use.names = FALSE), meta = list(fixture = "abi_v3"))
+  writers$write_terminal_primitive("scores", scores)
+  writers$write_terminal_primitive("summary", .summarize_scores(scores,
+    list()))
   invisible(list(status = "ok"))
 }
 
@@ -85,7 +94,6 @@ register_operation_pack <- function() {
       `scwbv3reference::chunked_family` = .chunked_family,
       `scwbv3reference::reduce_family` = .reduce_family,
       `scwbv3reference::ancestry_family` = .ancestry_family
-    ),
-    finalizers = list(summarize_scores = .summarize_scores)
+    )
   )
 }

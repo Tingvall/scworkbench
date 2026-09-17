@@ -1138,37 +1138,28 @@ wb_operation_pack_activate <- function(manifest, runtime_identity = NULL, lib.lo
 #'   the fully qualified operation names declared by the manifest. Every runner
 #'   has formals `bundle, resolved, effective_cells, inputs, ...`, consumes only
 #'   sanctioned arguments, and returns `list(outputs = ..., params = ...)`.
-#' @param finalizers Optional named list of ABI-v3 pure summary finalizers.
-#'   Every finalizer has formals `merged_family, metadata`. Earlier ABIs reject
-#'   a nonempty value.
 #' @return A validated `wb_operation_pack_registration` object.
 #' @export
-wb_operation_pack_register <- function(manifest, operations, finalizers = list()) {
+wb_operation_pack_register <- function(manifest, operations) {
   context <- .wb_operation_pack_registry$registration_context
   .wb_operation_pack_assert(is.environment(context), "OPERATION_PACK_REGISTRATION_CONTEXT_REQUIRED",
     "wb_operation_pack_register() may only be called by an entry point invoked through wb_operation_pack_validate() or wb_operation_pack_load().")
   path <- normalizePath(.wb_operation_pack_scalar(manifest, "manifest"), winslash = "/", mustWork = TRUE)
   .wb_operation_pack_assert(identical(path, context$manifest_path), "OPERATION_PACK_MANIFEST_IDENTITY_MISMATCH",
                             "Entry point attempted to register a manifest other than the installed manifest.")
-  .wb_operation_pack_named_object(finalizers, "finalizers")
   if (identical(as.character(context$abi %||% "1")[1], "3")) {
-    attr(operations, "operation_pack_finalizers") <- finalizers
     validated <- .wb_operation_pack_v3_normalize(.wb_operation_pack_v3_read_manifest(path),
       package = context$package, package_description = context$package_description)
     registration <- .wb_operation_pack_v3_registration(validated, operations,
       package_description = context$package_description,
       installed_path = context$installed_path, manifest_path = path)
   } else if (identical(as.character(context$abi %||% "1")[1], "2")) {
-    .wb_operation_pack_assert(!length(finalizers), "OPERATION_PACK_PROTOCOL_INCOMPATIBLE",
-      "Pure summary finalizers require operation-pack ABI v3.")
     validated <- .wb_operation_pack_v2_normalize(.wb_operation_pack_v2_read_manifest(path),
       package = context$package, package_description = context$package_description)
     registration <- .wb_operation_pack_v2_registration(validated, operations,
       package_description = context$package_description, installed_path = context$installed_path,
       manifest_path = path)
   } else {
-    .wb_operation_pack_assert(!length(finalizers), "OPERATION_PACK_PROTOCOL_INCOMPATIBLE",
-      "Pure summary finalizers require operation-pack ABI v3.")
     validated <- .wb_operation_pack_validate_manifest(.wb_operation_pack_read_manifest(path),
       package = context$package, package_description = context$package_description,
       expected_backend = "R")

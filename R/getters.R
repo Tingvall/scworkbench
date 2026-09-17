@@ -758,6 +758,80 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   out
 }
 
+#' Partition an ordered axis into bounded chunks
+#'
+#' This pure helper preserves caller order and never sorts or deduplicates.
+#' Empty axes yield an empty plan. Duplicate or empty identifiers are rejected.
+#'
+#' @param ids Ordered character identifiers.
+#' @param chunk_size Positive integer maximum chunk length.
+#'
+#' @return An ordered list of nonempty character vectors.
+#' @export
+wb_partition_axis <- function(ids, chunk_size) {
+  .wb_assert(is.character(ids), "ids must be a character vector")
+  .wb_assert(!anyNA(ids) && all(nzchar(ids)),
+    "ids must contain only non-empty strings")
+  .wb_assert(!anyDuplicated(ids), "ids must not contain duplicates")
+  .wb_assert(is.numeric(chunk_size) && length(chunk_size) == 1L &&
+      !is.na(chunk_size) && is.finite(chunk_size) && chunk_size > 0 &&
+      chunk_size == as.integer(chunk_size),
+    "chunk_size must be one positive integer")
+  if (!length(ids)) return(list())
+  unname(split(ids, ceiling(seq_along(ids) / as.integer(chunk_size))))
+}
+
+#' Iterate over bounded matrix slices
+#'
+#' Creates a lazy iterator that calls [wb_slice()] for one partition at a time.
+#' It does not materialize the complete selected matrix or retain prior chunks.
+#'
+#' @param bundle Bundle handle from `wb_bundle_open()`.
+#' @param matrix_id Matrix identifier.
+#' @param features Optional ordered feature selection.
+#' @param cells Optional ordered cell selection.
+#' @param axis Axis to partition: `"cells"` or `"features"`.
+#' @param chunk_size Positive integer maximum chunk length.
+#'
+#' @return A list with `plan`, `has_next()`, and `next_chunk()` members.
+#' @export
+wb_slice_chunks <- function(bundle, matrix_id, features = NULL, cells = NULL,
+                            axis = c("cells", "features"), chunk_size) {
+  axis <- match.arg(axis)
+  .wb_assert(inherits(bundle, "scworkbench_bundle"),
+    "bundle must be a scworkbench_bundle handle")
+  selected_features <- if (is.null(features))
+    as.character(wb_feature_ids(bundle, matrix_id = matrix_id)) else
+      as.character(features)
+  selected_cells <- if (is.null(cells))
+    as.character(wb_cells(bundle, cell_set = "all")) else as.character(cells)
+  .wb_assert(!anyNA(selected_features) && all(nzchar(selected_features)) &&
+      !anyDuplicated(selected_features),
+    "features must contain unique non-empty identifiers")
+  .wb_assert(!anyNA(selected_cells) && all(nzchar(selected_cells)) &&
+      !anyDuplicated(selected_cells),
+    "cells must contain unique non-empty identifiers")
+  partitioned <- wb_partition_axis(if (axis == "cells") selected_cells else
+    selected_features, chunk_size)
+  state <- new.env(parent = emptyenv())
+  state$index <- 0L
+  next_chunk <- function() {
+    if (state$index >= length(partitioned)) return(NULL)
+    state$index <- state$index + 1L
+    ids <- partitioned[[state$index]]
+    value <- wb_slice(bundle, matrix_id,
+      features = if (axis == "features") ids else selected_features,
+      cells = if (axis == "cells") ids else selected_cells)
+    list(index = state$index, axis = axis, ids = ids, value = value)
+  }
+  structure(list(
+    plan = lapply(seq_along(partitioned), function(i) list(
+      index = as.integer(i), ids = partitioned[[i]])),
+    has_next = function() state$index < length(partitioned),
+    next_chunk = next_chunk
+  ), class = c("wb_slice_chunk_iterator", "list"))
+}
+
 
 #' Get a single feature vector across cells
 #'

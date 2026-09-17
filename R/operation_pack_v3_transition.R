@@ -301,151 +301,280 @@
   out
 }
 
-.wb_operation_pack_v3_finalizer_definition <- function(chunk) {
-  value <- list(
-    schema = "scworkbench.operation_pack.summary_finalizer_definition.v1",
-    interface = as.character(chunk$summary$interface)[1],
-    callable = as.character(chunk$summary$callable)[1],
-    isolation = as.character(chunk$summary$isolation)[1],
-    merged_input = as.character(chunk$fragment_output)[1],
-    summary_output = as.character(chunk$summary_output)[1],
-    metadata_sources = chunk$summary$metadata_sources %||% list())
-  value$finalizer_definition_identity <- .wb_operation_pack_v2_identity_scoped(
-    "scworkbench.operation_pack.summary_finalizer_definition.v1",
-    "definition excluding finalizer_definition_identity", value)
-  value
-}
-
-.wb_operation_pack_v3_fragment_grant <- function(grant, input_record,
-                                                   index, start, cells) {
-  keys <- as.character(unlist(grant$key_axis, use.names = FALSE))
-  pairs <- unlist(lapply(keys, function(key) lapply(cells,
-    function(cell) list(key = key, cell_id = cell))), recursive = FALSE)
-  value <- list(
-    schema = "scworkbench.operation_pack.chunk_fragment_grant.v1",
-    fragment_output = grant$output,
-    parent_cardinality_grant_identity = grant$cardinality_grant_identity,
-    input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
-      input_record$descriptor_identity),
-    batch_index = as.integer(index), batch_start = as.integer(start),
-    batch_length = as.integer(length(cells)),
-    batch_cell_order_identity = .wb_operation_pack_v2_identity_plain(
-      "scworkbench.cell_order.v1", unname(as.list(cells))),
-    key_axis_count = as.integer(length(keys)), key_axis = unname(as.list(keys)),
-    key_axis_order_identity = grant$key_axis_order_identity,
-    expected_row_count = as.integer(length(keys) * length(cells)),
-    row_order_identity = .wb_operation_pack_v2_identity_plain(
-      "scworkbench.row_order.v1", pairs), missing_values = grant$missing_values)
-  value$fragment_grant_identity <- .wb_operation_pack_v2_identity_scoped(
-    "scworkbench.operation_pack.chunk_fragment_grant.v1",
-    "grant excluding fragment_grant_identity", value)
-  attr(value, "operation_pack_v3_cells") <- cells
-  value
-}
-
-.wb_operation_pack_v3_chunk_schedule <- function(chunk, params, grant,
-                                                  input_record) {
-  cells <- attr(grant, "operation_pack_v3_cells") %||% character()
-  requested <- params[[as.character(chunk$size_parameter)[1]]]
-  requested <- if (is.null(requested)) NULL else as.integer(requested)[1]
-  if (!is.null(requested) && (is.na(requested) || requested < 1L))
+.wb_operation_pack_v3_axis_manifest <- function(axis, ids, name, stage_root) {
+  ids <- as.character(ids)
+  if (anyNA(ids) || any(!nzchar(ids)) || anyDuplicated(ids))
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-      "Cell chunk size must be positive or null.", "resolution")
-  effective <- if (!length(cells)) 0L else if (is.null(requested))
-    length(cells) else min(requested, length(cells))
-  starts <- if (!length(cells)) integer() else seq.int(1L, length(cells),
-    by = effective)
-  batches <- lapply(seq_along(starts), function(i) {
-    start <- starts[[i]]
-    slice <- cells[start:min(length(cells), start + effective - 1L)]
-    fragment <- .wb_operation_pack_v3_fragment_grant(grant, input_record,
-      i, start, slice)
-    list(index = as.integer(i), start = as.integer(start),
-      length = as.integer(length(slice)),
-      cell_order_identity = fragment$batch_cell_order_identity,
-      fragment_grant = fragment)
-  })
-  value <- list(
-    schema = "scworkbench.operation_pack.cell_chunk_schedule.v1",
-    input_name = as.character(chunk$input)[1],
-    input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
-      input_record$descriptor_identity),
-    axis = "cells", axis_count = as.integer(length(cells)),
-    axis_order_identity = grant$cell_axis_order_identity,
+      paste0("Typed-slice ", axis, " selection is invalid."), "resolution")
+  value <- list(schema =
+      "scworkbench.operation_pack.typed_slice_axis_manifest.v1",
+    axis = axis, count = as.integer(length(ids)), ids = unname(as.list(ids)),
+    order_identity = .wb_operation_pack_v2_identity_plain(
+      if (axis == "cells") "scworkbench.cell_order.v1" else
+        "scworkbench.feature_order.v1", unname(as.list(ids))))
+  value$manifest_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.typed_slice_axis_manifest.v1",
+    "axis manifest excluding manifest_identity", value)
+  relative <- paste0("typed_slice_axes/", name, "/", axis, ".json")
+  path <- file.path(stage_root, relative)
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  .wb_operation_pack_v2_atomic_json(value, path)
+  descriptor <- list(axis = axis, count = as.integer(length(ids)),
+    order_identity = value$order_identity,
+    axis_manifest_identity = value$manifest_identity,
+    relative_path = relative,
+    payload_manifest_identity = .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.payload_manifest.v2",
+      "registry read payload manifest", list(path = relative,
+        size = as.numeric(file.info(path)$size),
+        sha256 = .wb_operation_pack_v2_file_sha256(path))))
+  list(value = value, descriptor = descriptor)
+}
+
+.wb_operation_pack_v3_axis_selection <- function(spec, axis, input, params,
+                                                   effective_cells) {
+  available <- if (axis == "cells") as.character(effective_cells %||%
+    input$cell_id %||% character()) else as.character(input$feature_id %||%
+      character())
+  policy <- as.character(spec$policy)[1]
+  if (identical(policy, "effective_input_axis_v1")) return(available)
+  if (!identical(policy, "parameter_ordered_subset_v1"))
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Unknown typed-slice axis selection policy.", "resolution")
+  selected <- params[[as.character(spec$parameter)[1]]]
+  if (!is.list(selected) && !is.character(selected))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-slice selector parameter must be a flat string array.",
+      "resolution")
+  selected <- as.character(unlist(selected, use.names = FALSE))
+  if (anyNA(selected) || any(!nzchar(selected)) || anyDuplicated(selected) ||
+      length(setdiff(selected, available)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-slice selector is duplicate, empty, or outside the input axis.",
+      "resolution")
+  selected
+}
+
+.wb_operation_pack_v3_atomic_matrix_market <- function(values, path) {
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  temporary <- paste0(path, ".pending")
+  if (file.exists(temporary)) unlink(temporary, force = TRUE)
+  Matrix::writeMM(Matrix::Matrix(as.matrix(values), sparse = TRUE), temporary)
+  if (!file.rename(temporary, path)) {
+    unlink(temporary, force = TRUE)
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Could not atomically stage a typed-slice private source.", "staging")
+  }
+  invisible(path)
+}
+
+.wb_operation_pack_v3_typed_slice_grant <- function(bundle, declaration, input,
+    input_record, params, effective_cells, transition_source_state_identity,
+    stage_root) {
+  name <- as.character(declaration$name)[1]
+  cells <- .wb_operation_pack_v3_axis_selection(
+    declaration$selection$cells, "cells", input, params, effective_cells)
+  features <- .wb_operation_pack_v3_axis_selection(
+    declaration$selection$features, "features", input, params,
+    effective_cells)
+  empty <- !length(cells) || !length(features)
+  if (empty && identical(as.character(declaration$empty_selection_policy)[1],
+      "reject")) .wb_operation_pack_v3_error(
+    "PYBENCH_INPUT_IDENTITY_MISMATCH",
+    "Typed-slice selection is empty under reject policy.", "resolution")
+  cell_axis <- .wb_operation_pack_v3_axis_manifest("cells", cells, name,
+    stage_root)
+  feature_axis <- .wb_operation_pack_v3_axis_manifest("features", features,
+    name, stage_root)
+  chunk_axis <- as.character(declaration$chunk_axis)[1]
+  requested <- as.integer(params[[as.character(
+    declaration$chunk_size_parameter)[1]]])[1]
+  if (is.na(requested) || requested < 1L)
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-slice chunk size must be positive.", "resolution")
+  max_rows <- if (chunk_axis == "features") min(requested,
+    length(features)) else length(features)
+  max_columns <- if (chunk_axis == "cells") min(requested,
+    length(cells)) else length(cells)
+  product <- as.double(max_rows) * as.double(max_columns)
+  if (!is.finite(product) || product > 9007199254740991)
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Typed-slice element limit overflows JSON-safe integer arithmetic.",
+      "resolution")
+  input_id <- .wb_operation_pack_v3_unscoped_identity(
+    input_record$descriptor_identity)
+  content_id <- input_record$content_identity
+  matrix_id <- as.character(input$matrix_id %||% "")[1]
+  durable <- nzchar(matrix_id) && nrow(DBI::dbGetQuery(bundle$con,
+    "SELECT 1 FROM matrices WHERE matrix_id=? LIMIT 1;",
+    params = list(matrix_id))) == 1L
+  source <- list(schema =
+      "scworkbench.operation_pack.typed_slice_source_reference.v1",
+    input_name = as.character(declaration$input)[1],
+    input_reference = if (durable) paste0("matrix:", matrix_id) else
+      paste0("private_projection:", name),
+    source_kind = if (durable) "bundle_matrix" else
+      "in_memory_selected_projection")
+  if (durable) {
+    source$matrix_id <- matrix_id
+  } else {
+    selected <- input
+    selected$values <- as.matrix(input$values[match(features,
+      as.character(input$feature_id)), match(cells,
+      as.character(input$cell_id)), drop = FALSE])
+    selected$feature_id <- features
+    selected$cell_id <- cells
+    selected$dimensions <- as.integer(c(length(features), length(cells)))
+    relative <- paste0("typed_slice_sources/", name, "/matrix.mtx")
+    path <- file.path(stage_root, relative)
+    .wb_operation_pack_v3_atomic_matrix_market(selected$values, path)
+    source$private_source_payload_identity <-
+      .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.payload_manifest.v2",
+        "registry read payload manifest", list(path = relative,
+          size = as.numeric(file.info(path)$size),
+          sha256 = .wb_operation_pack_v2_file_sha256(path)))
+    source$projected_content_identity <-
+      .wb_operation_pack_v3_matrix_slice_content(selected$values,
+        features, cells)
+    projection <- list(schema =
+        "scworkbench.operation_pack.typed_slice_source_projection.v1",
+      original_input_content_identity = content_id,
+      features_axis_manifest_identity =
+        feature_axis$descriptor$axis_manifest_identity,
+      cells_axis_manifest_identity = cell_axis$descriptor$axis_manifest_identity,
+      projected_content_identity = source$projected_content_identity)
+    projection$private_source_payload_identity <-
+      source$private_source_payload_identity
+    source$projection_identity <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.typed_slice_source_projection.v1",
+      "projection excluding projection_identity", projection)
+  }
+  source$input_descriptor_identity <- input_id
+  source$input_content_identity <- content_id
+  source$transition_source_state_identity <- transition_source_state_identity
+  source$source_reference_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.typed_slice_source_reference.v1",
+    "source reference excluding source_reference_identity", source)
+  grant <- list(schema = "scworkbench.operation_pack.typed_slice_grant.v1",
+    name = name, input_name = as.character(declaration$input)[1],
+    kind = "matrix", reader = "read_typed_slices",
+    input_descriptor_identity = input_id, input_content_identity = content_id,
+    source_reference = source,
+    supported_axes = declaration$supported_axes,
+    chunk_axis = chunk_axis, cells_axis = cell_axis$descriptor,
+    features_axis = feature_axis$descriptor,
     requested_chunk_size = requested,
-    effective_chunk_size = as.integer(effective), batches = batches,
-    merge_policy = "row_bind_cell_vector_family_v1",
-    fragment_output = as.character(chunk$fragment_output)[1],
-    summary_output = as.character(chunk$summary_output)[1],
-    summary_finalizer_definition = .wb_operation_pack_v3_finalizer_definition(chunk))
-  value$schedule_identity <- .wb_operation_pack_v2_identity_scoped(
-    "scworkbench.operation_pack.cell_chunk_schedule.v1",
-    "schedule excluding schedule_identity", value)
-  value
+    call_discipline = as.character(declaration$call_discipline)[1],
+    empty_selection_policy = as.character(
+      declaration$empty_selection_policy)[1], duplicate_policy = "reject",
+    max_rows = as.integer(max_rows), max_columns = as.integer(max_columns),
+    max_elements = product, max_control_bytes = 1048576L,
+    max_response_bytes = 134217728L, max_outstanding_responses = 1L)
+  grant$grant_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.typed_slice_grant.v1",
+    "grant excluding grant_identity", grant)
+  attr(grant, "operation_pack_v3_cells") <- cells
+  attr(grant, "operation_pack_v3_features") <- features
+  grant
 }
 
-.wb_operation_pack_v3_observe_fragment <- function(value, grant, index) {
-  cardinality <- list(
-    schema = "scworkbench.operation_pack.output_cardinality_grant.v1",
-    output = grant$fragment_output, kind = "cell_vector_family",
-    policy = "authenticated_output_axes_v1", shape = "cell_key_cartesian",
-    row_order = "key_major_then_cell_v1", missing_values = grant$missing_values,
-    cell_axis_count = grant$batch_length,
-    cell_axis_order_identity = grant$batch_cell_order_identity,
-    key_axis_count = grant$key_axis_count, key_axis = grant$key_axis,
-    key_axis_order_identity = grant$key_axis_order_identity,
-    expected_row_count = grant$expected_row_count,
-    row_order_identity = grant$row_order_identity,
-    cardinality_grant_identity = grant$parent_cardinality_grant_identity)
-  attr(cardinality, "operation_pack_v3_cells") <-
-    attr(grant, "operation_pack_v3_cells")
-  observed <- .wb_operation_pack_v3_observe_cardinality(value, cardinality)
-  out <- list(
-    schema = "scworkbench.operation_pack.observed_chunk_fragment.v1",
-    index = as.integer(index),
-    fragment_grant_identity = grant$fragment_grant_identity,
-    observed_row_count = observed$observed_row_count,
-    observed_cell_order_identity = observed$observed_cell_axis_order_identity,
-    observed_key_order_identity = observed$observed_key_axis_order_identity,
-    observed_row_order_identity = observed$observed_row_order_identity,
-    missing_count = observed$missing_count,
-    descriptor_identity = .wb_operation_pack_v2_identity_plain(
-      "scworkbench.operation_pack.fragment_descriptor.v1",
-      list(index = as.integer(index), grant = grant$fragment_grant_identity)),
-    content_identity = .wb_operation_pack_v2_identity_plain(
-      "scworkbench.cell_vector_family.content.v1", unclass(value)),
-    semantic_validation = "passed")
-  out$observed_fragment_identity <- .wb_operation_pack_v2_identity_scoped(
-    "scworkbench.operation_pack.observed_chunk_fragment.v1",
-    "observation excluding observed_fragment_identity", out)
+.wb_operation_pack_v3_matrix_slice_content <- function(values, features,
+                                                         cells) {
+  dense <- as.matrix(values)
+  indices <- which(dense != 0, arr.ind = TRUE)
+  if (length(indices)) indices <- indices[order(indices[, 2L],
+    indices[, 1L]), , drop = FALSE]
+  entries <- lapply(seq_len(nrow(indices)), function(i) list(
+    row = as.integer(indices[i, 1L]), column = as.integer(indices[i, 2L]),
+    value = unname(dense[indices[i, 1L], indices[i, 2L]])))
+  value <- list(schema = "scworkbench.operation_pack.matrix_slice.content.v1",
+    kind = "matrix", dimensions = list(as.integer(length(features)),
+      as.integer(length(cells))), feature_id = unname(as.list(features)),
+    cell_id = unname(as.list(cells)), entries = entries)
+  .wb_operation_pack_v2_identity_plain(
+    "scworkbench.operation_pack.matrix_slice.content.v1", value)
+}
+
+.wb_operation_pack_v3_private_source_validate <- function(stage, grant) {
+  source <- grant$source_reference
+  if (!identical(source$source_kind, "in_memory_selected_projection"))
+    return(NULL)
+  relative <- sub("^private_projection:", "typed_slice_sources/",
+    paste0(source$input_reference, "/matrix.mtx"))
+  path <- file.path(stage, relative)
+  if (!file.exists(path) || dir.exists(path) || nzchar(Sys.readlink(path)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-slice private projection is absent, non-regular, or linked.",
+      "staging")
+  payload_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.payload_manifest.v2",
+    "registry read payload manifest", list(path = relative,
+      size = as.numeric(file.info(path)$size),
+      sha256 = .wb_operation_pack_v2_file_sha256(path)))
+  if (!identical(payload_identity, source$private_source_payload_identity))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-slice private projection bytes differ from the grant.",
+      "staging")
+  axis_ids <- function(descriptor) {
+    axis_path <- file.path(stage, descriptor$relative_path)
+    value <- jsonlite::read_json(axis_path, simplifyVector = FALSE)
+    as.character(unlist(value$ids, use.names = FALSE))
+  }
+  features <- axis_ids(grant$features_axis)
+  cells <- axis_ids(grant$cells_axis)
+  matrix <- tryCatch(as(Matrix::readMM(path), "CsparseMatrix"),
+    error = function(error) .wb_operation_pack_v3_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Typed-slice private projection is unreadable: ",
+        conditionMessage(error)), "staging"))
+  if (!identical(as.integer(dim(matrix)),
+      as.integer(c(length(features), length(cells)))))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-slice private projection dimensions differ from its axes.",
+      "staging")
+  projected <- .wb_operation_pack_v3_matrix_slice_content(matrix,
+    features, cells)
+  projection <- list(schema =
+      "scworkbench.operation_pack.typed_slice_source_projection.v1",
+    original_input_content_identity = source$input_content_identity,
+    features_axis_manifest_identity =
+      grant$features_axis$axis_manifest_identity,
+    cells_axis_manifest_identity = grant$cells_axis$axis_manifest_identity,
+    projected_content_identity = projected,
+    private_source_payload_identity = payload_identity)
+  projection$projection_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.typed_slice_source_projection.v1",
+    "projection excluding projection_identity", projection)
+  if (!identical(projected, source$projected_content_identity) ||
+      !identical(projection$projection_identity, source$projection_identity))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Typed-slice private projection content differs from its grant.",
+      "staging")
+  matrix
+}
+
+.wb_operation_pack_v3_slice_result <- function(grant, ordinal, value) {
+  features <- as.character(value$feature_id)
+  cells <- as.character(value$cell_id)
+  out <- list(schema = "scworkbench.operation_pack.typed_slice_result.v1",
+    source_reference_identity = .wb_operation_pack_v3_unscoped_identity(
+      grant$source_reference$source_reference_identity),
+    grant_identity = .wb_operation_pack_v3_unscoped_identity(
+      grant$grant_identity), ordinal = as.integer(ordinal),
+    feature_count = as.integer(length(features)),
+    feature_order_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.feature_order.v1", unname(as.list(features))),
+    cell_count = as.integer(length(cells)),
+    cell_order_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(cells))),
+    dimensions = list(as.integer(length(features)), as.integer(length(cells))),
+    semantic_content_identity = .wb_operation_pack_v3_matrix_slice_content(
+      value$values, features, cells))
+  out$slice_result_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.typed_slice_result.v1",
+    "slice result excluding slice_result_identity", out)
   out
-}
-
-.wb_operation_pack_v3_merge_fragments <- function(fragments, schedule) {
-  batches <- schedule$batches
-  if (length(fragments) != length(batches) || !identical(sort(as.integer(
-      names(fragments))), seq_along(batches)))
-    .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
-      "Chunk fragments are not a bijection with the schedule.", "receipt")
-  observations <- lapply(seq_along(batches), function(i)
-    .wb_operation_pack_v3_observe_fragment(fragments[[as.character(i)]],
-      batches[[i]]$fragment_grant, i))
-  keys <- as.character(unlist(batches[[1]]$fragment_grant$key_axis %||%
-    list(), use.names = FALSE))
-  rows <- unlist(lapply(keys, function(key) lapply(seq_along(batches),
-    function(i) {
-      fragment <- fragments[[as.character(i)]]
-      keep <- as.character(fragment$key) == key
-      list(key = as.character(fragment$key[keep]),
-        cell_id = as.character(fragment$cell_id[keep]),
-        value = fragment$value[keep])
-    })), recursive = FALSE)
-  merged <- wb_prim_cell_vector_family(
-    key = unlist(lapply(rows, `[[`, "key"), use.names = FALSE),
-    cell_id = unlist(lapply(rows, `[[`, "cell_id"), use.names = FALSE),
-    value = unlist(lapply(rows, `[[`, "value"), use.names = FALSE),
-    meta = fragments[[1]]$meta %||% list())
-  list(value = merged, observations = observations)
 }
 
 .wb_operation_pack_v3_request <- function(bundle, registration, operation,
@@ -475,6 +604,31 @@
       base$inputs[[i]]$descriptor <-
         .wb_operation_pack_v3_bind_artifact_input_descriptor(bundle,
           source_refs[[name]], inputs[[name]], base$inputs[[i]]$descriptor)
+    }
+  }
+  typed_input_names <- unique(vapply(operation$typed_slice_reads %||% list(),
+    `[[`, character(1), "input"))
+  for (i in seq_along(base$inputs)) {
+    name <- as.character(base$inputs[[i]]$name)[1]
+    value <- inputs[[name]]
+    if (name %in% typed_input_names && identical(value$kind, "matrix") &&
+        is.null(value$values) && nzchar(as.character(value$matrix_id %||%
+          "")[1])) {
+      identity_bundle <- bundle$staging_source_bundle %||% bundle
+      observed <- .wb_prov_payload_identity(identity_bundle, value)
+      if (!identical(as.character(observed$verification_status)[1],
+          "content_verified")) .wb_operation_pack_v3_error(
+        "PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Typed-slice backed source is not content verified.", "resolution")
+      descriptor <- base$inputs[[i]]$descriptor
+      descriptor$content_identity <- list(
+        scheme = as.character(observed$content_identity_scheme)[1],
+        sha256 = as.character(observed$content_sha256)[1])
+      descriptor$descriptor_identity <- NULL
+      descriptor$descriptor_identity <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.input_descriptor.v2",
+        "descriptor excluding descriptor_identity", descriptor)
+      base$inputs[[i]]$descriptor <- descriptor
     }
   }
   input_records <- stats::setNames(lapply(base$inputs, `[[`, "descriptor"),
@@ -510,20 +664,14 @@
     base$outputs[[i]]$descriptor <- descriptor
   }
 
-  schedules <- list()
-  chunk <- operation$chunking %||% NULL
-  if (identical(as.character(chunk$axis %||% "")[1], "cells")) {
-    output_name <- as.character(chunk$fragment_output)[1]
-    output_record <- base$outputs[[match(output_name,
-      vapply(base$outputs, `[[`, character(1), "name"))]]
-    grant <- output_record$descriptor$cardinality_grant
-    cells <- .wb_operation_pack_v3_effective_cell_axis(policies[[output_name]],
-      inputs, effective_cells)$cells
-    attr(grant, "operation_pack_v3_cells") <- cells
-    input_record <- input_records[[as.character(chunk$input)[1]]]
-    schedules <- list(.wb_operation_pack_v3_chunk_schedule(chunk, params,
-      grant, input_record))
-  }
+  typed_slice_grants <- lapply(operation$typed_slice_reads %||% list(),
+    function(declaration) {
+      input_name <- as.character(declaration$input)[1]
+      .wb_operation_pack_v3_typed_slice_grant(bundle, declaration,
+        inputs[[input_name]], input_records[[input_name]], params,
+        effective_cells, base$execution_capability$source_state_identity,
+        stage_root)
+    })
 
   provenance <- .wb_operation_pack_v3_provenance_read_records(bundle,
     operation, inputs, source_refs, input_records, params, stage_root)
@@ -537,7 +685,8 @@
     output_name = x$name, writer = x$descriptor$writer,
     grant_identity = x$descriptor$grant_identity))
   capability$reader_grants <- c(
-    lapply(base$inputs, function(x) list(input_name = x$name,
+    lapply(Filter(function(x) !x$name %in% vapply(typed_slice_grants, `[[`,
+      character(1), "input_name"), base$inputs), function(x) list(input_name = x$name,
       reader = x$descriptor$reader,
       descriptor_identity = x$descriptor$descriptor_identity)),
     lapply(base$registry_reads %||% list(), function(x) list(
@@ -545,10 +694,13 @@
       descriptor_identity = x$descriptor$descriptor_identity)),
     lapply(provenance$records, function(x) list(
       provenance_read_name = x$name, reader = x$reader,
-      descriptor_identity = x$descriptor_identity)))
-  if (length(schedules)) capability$chunk_schedule_identities <-
-    lapply(schedules, function(x) .wb_operation_pack_v3_unscoped_identity(
-      x$schedule_identity))
+      descriptor_identity = x$descriptor_identity)),
+    lapply(typed_slice_grants, function(x) list(
+      typed_slice_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)))
+  if (length(typed_slice_grants)) capability$typed_slice_grant_identities <-
+    lapply(typed_slice_grants, function(x)
+      .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   if (length(provenance$records)) capability$provenance_read_identities <-
     lapply(provenance$records, function(x)
       .wb_operation_pack_v3_unscoped_identity(
@@ -571,7 +723,7 @@
     entry_point = list(value = identity$entry_point,
       identity = identity$entry_point_identity))
   base$execution_capability <- capability
-  if (length(schedules)) base$chunk_schedules <- schedules
+  if (length(typed_slice_grants)) base$typed_slice_grants <- typed_slice_grants
   if (length(provenance$records)) base$provenance_reads <- provenance$records
   base$request_identity <- NULL
   base$request_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -582,6 +734,13 @@
   attr(base, "operation_pack_v2_registry_read_values") <- attr(base,
     "operation_pack_v2_registry_read_values")
   attr(base, "operation_pack_v3_provenance_read_values") <- provenance$values
+  attr(base, "operation_pack_stage_root") <- stage_root
+  attr(base, "operation_pack_v3_typed_slice_values") <-
+    stats::setNames(lapply(typed_slice_grants, function(grant) list(
+      cells = attr(grant, "operation_pack_v3_cells"),
+      features = attr(grant, "operation_pack_v3_features"),
+      input = inputs[[grant$input_name]])), vapply(typed_slice_grants, `[[`,
+        character(1), "name"))
   base
 }
 
@@ -615,16 +774,36 @@
     .wb_operation_pack_v3_assert_self_identity(descriptor, "grant_identity",
       "PYBENCH_CAPABILITY_MISMATCH", "staging")
   }
-  for (schedule in request$chunk_schedules %||% list()) {
-    for (batch in schedule$batches) .wb_operation_pack_v3_assert_self_identity(
-      batch$fragment_grant, "fragment_grant_identity",
-      "PYBENCH_CAPABILITY_MISMATCH", "staging")
-    .wb_operation_pack_v3_assert_self_identity(
-      schedule$summary_finalizer_definition,
-      "finalizer_definition_identity", "PYBENCH_CAPABILITY_MISMATCH",
-      "staging")
-    .wb_operation_pack_v3_assert_self_identity(schedule,
-      "schedule_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+  for (grant in request$typed_slice_grants %||% list()) {
+    .wb_operation_pack_v3_assert_self_identity(grant$source_reference,
+      "source_reference_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant,
+      "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    for (axis in c("cells_axis", "features_axis")) {
+      descriptor <- grant[[axis]]
+      path <- file.path(attr(request, "operation_pack_stage_root"),
+        descriptor$relative_path)
+      if (!file.exists(path)) .wb_operation_pack_v3_error(
+        "PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-slice axis manifest is absent.", "staging")
+      observed <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.payload_manifest.v2",
+        "registry read payload manifest", list(path = descriptor$relative_path,
+          size = as.numeric(file.info(path)$size),
+          sha256 = .wb_operation_pack_v2_file_sha256(path)))
+      value <- jsonlite::read_json(path, simplifyVector = FALSE)
+      .wb_operation_pack_v3_assert_self_identity(value, "manifest_identity",
+        "PYBENCH_CAPABILITY_MISMATCH", "staging")
+      if (!identical(observed, descriptor$payload_manifest_identity) ||
+          !identical(value$manifest_identity,
+            descriptor$axis_manifest_identity) ||
+          !identical(value$order_identity, descriptor$order_identity) ||
+          !identical(as.integer(value$count), as.integer(descriptor$count)))
+        .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+          "Typed-slice axis manifest differs from its grant.", "staging")
+    }
+    .wb_operation_pack_v3_private_source_validate(
+      attr(request, "operation_pack_stage_root"), grant)
   }
   for (read in request$provenance_reads %||% list())
     .wb_operation_pack_v3_assert_self_identity(read,
@@ -650,7 +829,9 @@
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "V3 capability writer grants differ from request outputs.", "staging")
   expected_readers <- c(
-    lapply(request$inputs, function(x) list(input_name = x$name,
+    lapply(Filter(function(x) !x$name %in% vapply(
+      request$typed_slice_grants %||% list(), `[[`, character(1),
+      "input_name"), request$inputs), function(x) list(input_name = x$name,
       reader = x$descriptor$reader,
       descriptor_identity = x$descriptor$descriptor_identity)),
     lapply(request$registry_reads %||% list(), function(x) list(
@@ -658,24 +839,57 @@
       descriptor_identity = x$descriptor$descriptor_identity)),
     lapply(request$provenance_reads %||% list(), function(x) list(
       provenance_read_name = x$name, reader = x$reader,
-      descriptor_identity = x$descriptor_identity)))
+      descriptor_identity = x$descriptor_identity)),
+    lapply(request$typed_slice_grants %||% list(), function(x) list(
+      typed_slice_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)))
   if (!identical(expected_readers,
       request$execution_capability$reader_grants))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "V3 capability reader grants differ from request inputs.", "staging")
-  expected_schedules <- lapply(request$chunk_schedules %||% list(),
-    function(x) .wb_operation_pack_v3_unscoped_identity(
-      x$schedule_identity))
+  expected_slices <- lapply(request$typed_slice_grants %||% list(),
+    function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   expected_provenance <- lapply(request$provenance_reads %||% list(),
     function(x) .wb_operation_pack_v3_unscoped_identity(
       x$descriptor_identity))
-  if (!identical(request$execution_capability$chunk_schedule_identities %||%
-        list(), expected_schedules) ||
+  if (!identical(request$execution_capability$typed_slice_grant_identities %||%
+        list(), expected_slices) ||
       !identical(request$execution_capability$provenance_read_identities %||%
         list(), expected_provenance))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-      "V3 capability schedule or provenance closure differs from request.",
+      "V3 capability typed-slice or provenance closure differs from request.",
       "staging")
+  invisible(TRUE)
+}
+
+.wb_operation_pack_v3_typed_slice_sources_assert_current <- function(bundle,
+                                                                       request) {
+  stage <- attr(request, "operation_pack_stage_root")
+  for (grant in Filter(function(x) identical(
+      x$source_reference$source_kind, "in_memory_selected_projection"),
+      request$typed_slice_grants %||% list()))
+    .wb_operation_pack_v3_private_source_validate(stage, grant)
+  durable <- Filter(function(x) identical(
+    x$source_reference$source_kind, "bundle_matrix"),
+    request$typed_slice_grants %||% list())
+  if (!length(durable)) return(invisible(TRUE))
+  identity_bundle <- bundle$staging_source_bundle %||% bundle
+  current_state <- .wb_operation_pack_v2_identity_plain(
+    "scworkbench.scientific_state.v1",
+    .wb_manifest_registry_snapshot(identity_bundle$con))
+  for (grant in durable) {
+    source <- grant$source_reference
+    observed <- .wb_prov_payload_identity(identity_bundle,
+      wb_prim_matrix(source$matrix_id))
+    identity <- list(scheme = as.character(
+      observed$content_identity_scheme)[1], sha256 = as.character(
+        observed$content_sha256)[1])
+    if (!identical(current_state, source$transition_source_state_identity) ||
+        !identical(identity, source$input_content_identity))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        paste0("Typed-slice source changed after authentication for '",
+          grant$name, "'."), "audit")
+  }
   invisible(TRUE)
 }
 
@@ -695,8 +909,7 @@
                                            writes, preflight, inputs,
                                            registry_reads = list(),
                                            provenance_reads = list(),
-                                           chunk_executions = list(),
-                                           chunk_state = NULL) {
+                                           typed_slice_usage = list()) {
   projected <- .wb_operation_pack_v3_v2_projection(list(
     schema_version = "scworkbench.operation_pack.v3",
     pack_abi_version = "3", identity_scheme =
@@ -710,7 +923,7 @@
   base_request$schema <- "scworkbench.operation_pack.transition_request.v2"
   base_request$process_protocol_version <- "pybench-op-v3"
   base_request$pack_abi_version <- "2"
-  base_request$chunk_schedules <- NULL
+  base_request$typed_slice_grants <- NULL
   base_request$provenance_reads <- NULL
   for (i in seq_along(base_request$outputs)) {
     base_request$outputs[[i]]$descriptor$cardinality_grant <- NULL
@@ -760,47 +973,8 @@
   receipt$capability_identity <- request$execution_capability$capability_identity
   receipt$runtime_attestation <- .wb_operation_pack_v3_runtime_attestation(
     registration, operation$qualified_name, preflight)
-  if (!is.null(chunk_state)) {
-    output_map <- stats::setNames(observed,
-      vapply(observed, `[[`, character(1), "name"))
-    fragment <- output_map[[chunk_state$schedule$fragment_output]]$descriptor
-    summary <- output_map[[chunk_state$schedule$summary_output]]$descriptor
-    invocation <- chunk_state$invocation
-    execution <- list(
-      schema = "scworkbench.operation_pack.cell_chunk_observation.v1",
-      request_identity = .wb_operation_pack_v3_unscoped_identity(
-        request$request_identity),
-      capability_identity = .wb_operation_pack_v3_unscoped_identity(
-        request$execution_capability$capability_identity),
-      operation_definition_identity = .wb_operation_pack_v3_unscoped_identity(
-        request$operation_authentication$operation_definition_identity),
-      schedule_identity = .wb_operation_pack_v3_unscoped_identity(
-        chunk_state$schedule$schedule_identity),
-      observed_chunks = chunk_state$observations,
-      merged_family_descriptor_identity =
-        .wb_operation_pack_v3_unscoped_identity(
-          fragment$observed_descriptor_identity),
-      merged_family_content_identity = fragment$content_identity,
-      finalizer_definition_identity =
-        .wb_operation_pack_v3_unscoped_identity(chunk_state$schedule$
-          summary_finalizer_definition$finalizer_definition_identity),
-      finalizer_metadata_identity = .wb_operation_pack_v3_unscoped_identity(
-        chunk_state$metadata$finalizer_metadata_identity),
-      finalizer_invocation_identity =
-        .wb_operation_pack_v3_unscoped_identity(
-          invocation$finalizer_invocation_identity),
-      summary_source_identity = fragment$content_identity,
-      summary_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
-        summary$observed_descriptor_identity),
-      summary_content_identity = summary$content_identity)
-    execution$chunk_execution_identity <-
-      .wb_operation_pack_v2_identity_scoped(
-        "scworkbench.operation_pack.cell_chunk_observation.v1",
-        "observation excluding chunk_execution_identity", execution)
-    chunk_executions <- list(execution)
-  }
   if (length(provenance_reads)) receipt$provenance_reads <- provenance_reads
-  if (length(chunk_executions)) receipt$chunk_executions <- chunk_executions
+  if (length(typed_slice_usage)) receipt$typed_slice_usage <- typed_slice_usage
   receipt$receipt_identity <- NULL
   receipt$receipt_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_receipt.v3",
@@ -846,9 +1020,35 @@
           "Observed cardinality refers to the wrong grant.", "receipt")
     }
   }
-  for (execution in receipt$chunk_executions %||% list())
-    .wb_operation_pack_v3_assert_self_identity(execution,
-      "chunk_execution_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+  slice_grants <- request$typed_slice_grants %||% list()
+  usages <- receipt$typed_slice_usage %||% list()
+  if (length(slice_grants) != length(usages))
+    .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+      "Typed-slice usage is not a bijection with grants.", "receipt")
+  for (i in seq_along(usages)) {
+    usage <- usages[[i]]
+    grant <- slice_grants[[i]]
+    .wb_operation_pack_v3_assert_self_identity(usage,
+      "usage_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+    if (!identical(usage$grant_identity,
+        .wb_operation_pack_v3_unscoped_identity(grant$grant_identity)) ||
+        !identical(as.integer(usage$call_count),
+          as.integer(length(usage$calls))))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "Typed-slice usage differs from its exact grant.", "receipt")
+    for (call in usage$calls) {
+      .wb_operation_pack_v3_assert_self_identity(call,
+        "call_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+      result <- call
+      result$schema <- "scworkbench.operation_pack.typed_slice_result.v1"
+      result$source_reference_identity <-
+        .wb_operation_pack_v3_unscoped_identity(
+          grant$source_reference$source_reference_identity)
+      result$call_identity <- NULL
+      .wb_operation_pack_v3_assert_self_identity(result,
+        "slice_result_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+    }
+  }
   for (read in receipt$provenance_reads %||% list())
     .wb_operation_pack_v3_assert_self_identity(read,
       "observed_descriptor_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
@@ -928,60 +1128,61 @@
     if (!isTRUE(valid)) return(fail("v3_output_grant_mismatch", name))
   }
 
-  schedules <- request$chunk_schedules %||% list()
-  executions <- receipt$chunk_executions %||% list()
-  if (length(schedules) != length(executions))
-    return(fail("v3_chunk_bijection_mismatch"))
-  for (i in seq_along(schedules)) {
-    schedule <- schedules[[i]]; execution <- executions[[i]]
+  slice_grants <- request$typed_slice_grants %||% list()
+  usages <- receipt$typed_slice_usage %||% list()
+  if (length(slice_grants) != length(usages))
+    return(fail("v3_typed_slice_bijection_mismatch"))
+  for (i in seq_along(slice_grants)) {
+    grant <- slice_grants[[i]]; usage <- usages[[i]]
     valid <- tryCatch({
-      for (batch in schedule$batches)
-        .wb_operation_pack_v3_assert_self_identity(batch$fragment_grant,
-          "fragment_grant_identity", "PYBENCH_REOPEN_VALIDATION_FAILED",
-          "reopen")
-      .wb_operation_pack_v3_assert_self_identity(
-        schedule$summary_finalizer_definition,
-        "finalizer_definition_identity",
-        "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
-      .wb_operation_pack_v3_assert_self_identity(schedule,
-        "schedule_identity", "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
-      .wb_operation_pack_v3_assert_self_identity(execution,
-        "chunk_execution_identity", "PYBENCH_REOPEN_VALIDATION_FAILED",
+      .wb_operation_pack_v3_assert_self_identity(grant$source_reference,
+        "source_reference_identity", "PYBENCH_REOPEN_VALIDATION_FAILED",
         "reopen")
-      for (fragment in execution$observed_chunks)
-        .wb_operation_pack_v3_assert_self_identity(fragment,
-          "observed_fragment_identity", "PYBENCH_REOPEN_VALIDATION_FAILED",
+      .wb_operation_pack_v3_assert_self_identity(grant, "grant_identity",
+        "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
+      .wb_operation_pack_v3_assert_self_identity(usage, "usage_identity",
+        "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
+      for (call in usage$calls) {
+        .wb_operation_pack_v3_assert_self_identity(call, "call_identity",
+          "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
+        result <- call
+        result$schema <- "scworkbench.operation_pack.typed_slice_result.v1"
+        result$source_reference_identity <-
+          .wb_operation_pack_v3_unscoped_identity(
+            grant$source_reference$source_reference_identity)
+        result$call_identity <- NULL
+        .wb_operation_pack_v3_assert_self_identity(result,
+          "slice_result_identity", "PYBENCH_REOPEN_VALIDATION_FAILED",
           "reopen")
-      expected_fragments <- vapply(schedule$batches, function(x)
-        x$fragment_grant$fragment_grant_identity$sha256, character(1))
-      observed_fragments <- vapply(execution$observed_chunks, function(x)
-        x$fragment_grant_identity$sha256, character(1))
-      fragment_output <- observation_map[[schedule$fragment_output]]$descriptor
-      summary_output <- observation_map[[schedule$summary_output]]$descriptor
-      identical(execution$schedule_identity,
-        .wb_operation_pack_v3_unscoped_identity(
-          schedule$schedule_identity)) &&
-        identical(execution$request_identity,
+      }
+      identical(usage$request_identity,
           .wb_operation_pack_v3_unscoped_identity(
             request$request_identity)) &&
-        identical(execution$capability_identity,
+        identical(usage$capability_identity,
           .wb_operation_pack_v3_unscoped_identity(
             request$execution_capability$capability_identity)) &&
-        identical(expected_fragments, observed_fragments) &&
-        identical(execution$merged_family_descriptor_identity,
+        identical(usage$operation_definition_identity,
           .wb_operation_pack_v3_unscoped_identity(
-            fragment_output$observed_descriptor_identity)) &&
-        identical(execution$merged_family_content_identity,
-          fragment_output$content_identity) &&
-        identical(execution$summary_descriptor_identity,
-          .wb_operation_pack_v3_unscoped_identity(
-            summary_output$observed_descriptor_identity)) &&
-        identical(execution$summary_content_identity,
-          summary_output$content_identity) &&
-        identical(execution$summary_source_identity,
-          fragment_output$content_identity)
+            request$operation_authentication$operation_definition_identity)) &&
+        identical(usage$grant_identity,
+          .wb_operation_pack_v3_unscoped_identity(grant$grant_identity)) &&
+        identical(as.integer(usage$call_count),
+          as.integer(length(usage$calls)))
     }, error = function(error) FALSE)
-    if (!isTRUE(valid)) return(fail("v3_chunk_evidence_mismatch"))
+    if (!isTRUE(valid)) return(fail("v3_typed_slice_evidence_mismatch"))
+    for (axis in c("cells_axis", "features_axis")) {
+      descriptor <- grant[[axis]]
+      payload <- file.path(path, descriptor$relative_path)
+      if (!file.exists(payload)) return(fail(
+        "v3_typed_slice_axis_manifest_missing", grant$name))
+      observed_manifest <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.payload_manifest.v2",
+        "registry read payload manifest", list(path = descriptor$relative_path,
+          size = as.numeric(file.info(payload)$size),
+          sha256 = .wb_operation_pack_v2_file_sha256(payload)))
+      if (!identical(observed_manifest, descriptor$payload_manifest_identity))
+        return(fail("v3_typed_slice_axis_manifest_mismatch", grant$name))
+    }
   }
 
   reads <- request$provenance_reads %||% list()
@@ -1422,7 +1623,12 @@
   base <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs,
     stage_root, bundle = bundle, registry_read_values = registry_read_values)
   state <- base$state
-  state$fragments <- list()
+  typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
+    `[[`, character(1), "input_name"))
+  base$readers <- base$readers[setdiff(names(base$readers), typed_input_names)]
+  state$typed_slice_calls <- stats::setNames(vector("list", length(
+    request$typed_slice_grants %||% list())), vapply(
+      request$typed_slice_grants %||% list(), `[[`, character(1), "name"))
   provenance_readers <- stats::setNames(lapply(names(provenance_read_values),
     function(name) {
       force(name)
@@ -1444,137 +1650,164 @@
       }
     }), names(provenance_read_values))
   base$readers <- c(base$readers, provenance_readers)
-  schedules <- request$chunk_schedules %||% list()
-  schedule <- if (length(schedules)) schedules[[1]] else NULL
-  fragment_output <- as.character(schedule$fragment_output %||% "")[1]
-  summary_output <- as.character(schedule$summary_output %||% "")[1]
-  original_terminal <- base$writers$write_terminal_primitive
-  if (!is.null(schedule)) {
-    base$writers$write_terminal_primitive <- function(name, value,
-        semantic_metadata = list()) {
-      if (as.character(name)[1] %in% c(fragment_output, summary_output))
-        .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-          "Chunk terminals are adapter-owned; use write_chunk and the declared finalizer.",
-          "execution")
-      original_terminal(name, value, semantic_metadata)
-    }
-    base$writers$write_chunk <- function(name, index, value) {
+  slice_values <- attr(request, "operation_pack_v3_typed_slice_values") %||%
+    list()
+  typed_slice_readers <- stats::setNames(lapply(
+    request$typed_slice_grants %||% list(), function(grant) {
+      name <- as.character(grant$name)[1]
+      force(name); force(grant)
+      function(features = NULL, cells = NULL) {
       if (isTRUE(state$used)) .wb_operation_pack_v3_error(
         "PYBENCH_CAPABILITY_MISMATCH",
         "Capability has already been consumed.", "execution")
-      name <- as.character(name)[1]; index <- as.integer(index)[1]
-      if (!identical(name, fragment_output) || is.na(index) || index < 1L ||
-          index > length(schedule$batches)) .wb_operation_pack_v3_error(
-        "PYBENCH_CAPABILITY_MISMATCH",
-        "Chunk writer name or batch index is outside the schedule.",
+      source <- slice_values[[name]]
+      allowed_features <- as.character(source$features)
+      allowed_cells <- as.character(source$cells)
+      if (is.null(features) || is.null(cells))
+        .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+          "Typed-slice calls require explicit feature and cell vectors.",
+          "execution")
+      features <- if (is.null(features)) allowed_features else
+        as.character(features)
+      cells <- if (is.null(cells)) allowed_cells else as.character(cells)
+      if (!length(features) || !length(cells))
+        .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+          "Each typed-slice call requires two nonempty explicit axes.",
+          "execution")
+      valid_axis <- function(selected, allowed) !anyNA(selected) &&
+        !any(!nzchar(selected)) && !anyDuplicated(selected) &&
+        !length(setdiff(selected, allowed)) && identical(selected,
+          allowed[match(selected, allowed)])
+      if (!valid_axis(features, allowed_features) ||
+          !valid_axis(cells, allowed_cells)) .wb_operation_pack_v3_error(
+        "PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Typed-slice selection is duplicate, unknown, or out of order.",
         "execution")
-      key <- as.character(index)
-      if (!is.null(state$fragments[[key]])) .wb_operation_pack_v3_error(
-        "PYBENCH_RECEIPT_MISMATCH",
-        "A scheduled chunk fragment was written more than once.", "receipt")
-      .wb_assert_kind(value, "cell_vector_family",
-        where = " for ABI v3 chunk fragment")
-      observation <- .wb_operation_pack_v3_observe_fragment(value,
-        schedule$batches[[index]]$fragment_grant, index)
-      state$fragments[[key]] <- .wb_operation_pack_v2_deep_copy(value)
-      invisible(list(name = name, index = index,
-        fragment_grant_identity = schedule$batches[[index]]$
-          fragment_grant$fragment_grant_identity,
-        observed_fragment_identity = observation$observed_fragment_identity))
+      if (length(features) > as.integer(grant$max_rows) ||
+          length(cells) > as.integer(grant$max_columns) ||
+          as.double(length(features)) * as.double(length(cells)) >
+            as.double(grant$max_elements)) .wb_operation_pack_v3_error(
+        "PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-slice request exceeds its authenticated resource limits.",
+        "execution")
+      prior <- state$typed_slice_calls[[name]] %||% list()
+      chunk_axis <- as.character(grant$chunk_axis)[1]
+      chunk_values <- if (chunk_axis == "cells") cells else features
+      nonchunk_values <- if (chunk_axis == "cells") features else cells
+      allowed_chunk <- if (chunk_axis == "cells") allowed_cells else
+        allowed_features
+      allowed_nonchunk <- if (chunk_axis == "cells") allowed_features else
+        allowed_cells
+      if (identical(grant$call_discipline,
+          "ordered_partition_exactly_once")) {
+        consumed <- sum(vapply(prior, function(x) if (chunk_axis == "cells")
+          x$result$cell_count else x$result$feature_count, integer(1)))
+        expected <- if (length(chunk_values)) allowed_chunk[seq.int(
+          consumed + 1L, consumed + length(chunk_values))] else character()
+        if (!identical(nonchunk_values, allowed_nonchunk) ||
+            !identical(chunk_values, expected) ||
+            length(chunk_values) > as.integer(grant$requested_chunk_size))
+          .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+            "Typed-slice calls violate ordered exactly-once partitioning.",
+            "execution")
+      } else {
+        supported <- as.character(unlist(grant$supported_axes,
+          use.names = FALSE))
+        if (!(chunk_axis %in% supported) ||
+            (!(if (chunk_axis == "cells") "features" else "cells") %in%
+              supported && !identical(nonchunk_values, allowed_nonchunk)))
+          .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+            "Independent typed-slice call exceeds its supported axes.",
+            "execution")
+      }
+      input <- source$input
+      values <- if (identical(grant$source_reference$source_kind,
+          "bundle_matrix")) {
+        if (is.null(bundle)) .wb_operation_pack_v3_error(
+          "PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Typed-slice bundle source has no core binding.", "execution")
+        wb_slice(bundle, matrix_id = grant$source_reference$matrix_id,
+          features = features, cells = cells)
+      } else input$values[match(features, as.character(input$feature_id)),
+        match(cells, as.character(input$cell_id)), drop = FALSE]
+      values <- as.matrix(values)
+      dimnames(values) <- list(features, cells)
+      value <- structure(list(kind = "matrix",
+        matrix_id = input$matrix_id %||% NULL, values = values,
+        dimensions = as.integer(c(length(features), length(cells))),
+        feature_id = features, cell_id = cells,
+        storage_profile = "matrix_ordinary_v1", meta = input$meta %||% list()),
+        class = "wb_primitive")
+      result <- .wb_operation_pack_v3_slice_result(grant,
+        length(prior) + 1L, value)
+      state$typed_slice_calls[[name]][[length(prior) + 1L]] <- list(
+        result = result, chunk_values = chunk_values)
+      state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
+        category = "typed_slice", name = name,
+        slice_result_identity = result$slice_result_identity)
+      .wb_operation_pack_v2_deep_copy(value)
     }
-  }
-  base$v3 <- list(schedule = schedule, original_terminal = original_terminal,
-    fragment_output = fragment_output, summary_output = summary_output)
+  }), vapply(request$typed_slice_grants %||% list(), `[[`, character(1),
+    "name"))
+  base$readers <- c(base$readers, typed_slice_readers)
   base
 }
 
-.wb_operation_pack_v3_finalizer_metadata <- function(definition, request,
-                                                       params, source_refs) {
-  outputs <- stats::setNames(request$outputs,
-    vapply(request$outputs, `[[`, character(1), "name"))
-  inputs <- stats::setNames(request$inputs,
-    vapply(request$inputs, `[[`, character(1), "name"))
-  values <- lapply(definition$metadata_sources, function(source) {
-    kind <- as.character(source$source)[1]
-    value <- switch(kind,
-      resolved_key_axis = outputs[[as.character(source$output)[1]]]$
-        descriptor$cardinality_grant$key_axis_resolution,
-      normalized_parameter = params[[as.character(source$parameter)[1]]],
-      input_reference = source_refs[[as.character(source$input)[1]]],
-      input_descriptor = inputs[[as.character(source$input)[1]]]$descriptor,
-      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-        paste0("Unknown finalizer metadata source: ", kind), "execution"))
-    list(name = as.character(source$name)[1],
-      value = .wb_operation_pack_v2_deep_copy(value))
+.wb_operation_pack_v3_typed_slice_usage <- function(adapter, request) {
+  lapply(request$typed_slice_grants %||% list(), function(grant) {
+    records <- adapter$state$typed_slice_calls[[grant$name]] %||% list()
+    chunk_axis <- as.character(grant$chunk_axis)[1]
+    selected <- unlist(lapply(records, `[[`, "chunk_values"),
+      use.names = FALSE)
+    allowed <- attr(grant, paste0("operation_pack_v3_", chunk_axis)) %||%
+      character()
+    zero_axis <- !length(attr(grant, "operation_pack_v3_cells") %||%
+        character()) || !length(attr(grant,
+          "operation_pack_v3_features") %||% character())
+    if (zero_axis && length(records))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "A zero-axis typed-slice grant must make no calls.", "receipt")
+    if (!zero_axis && identical(grant$call_discipline,
+        "ordered_partition_exactly_once") && !identical(selected, allowed))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "Typed-slice execution did not cover its ordered axis exactly once.",
+        "receipt")
+    calls <- lapply(records, function(record) {
+      call <- record$result
+      call$schema <- "scworkbench.operation_pack.observed_typed_slice_call.v1"
+      call$source_reference_identity <- NULL
+      call$call_identity <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.observed_typed_slice_call.v1",
+        "call excluding call_identity", call)
+      call
+    })
+    usage <- list(schema =
+        "scworkbench.operation_pack.typed_slice_usage.v1",
+      request_identity = .wb_operation_pack_v3_unscoped_identity(
+        request$request_identity),
+      capability_identity = .wb_operation_pack_v3_unscoped_identity(
+        request$execution_capability$capability_identity),
+      operation_definition_identity = .wb_operation_pack_v3_unscoped_identity(
+        request$operation_authentication$operation_definition_identity),
+      grant_identity = .wb_operation_pack_v3_unscoped_identity(
+        grant$grant_identity),
+      requested_chunk_size = as.integer(grant$requested_chunk_size),
+      calls = calls, call_count = as.integer(length(calls)),
+      concatenated_chunk_axis_order_identity =
+        .wb_operation_pack_v2_identity_plain(
+          if (chunk_axis == "cells") "scworkbench.cell_order.v1" else
+            "scworkbench.feature_order.v1", unname(as.list(selected))),
+      unique_chunk_axis_count = as.integer(length(unique(selected))),
+      duplicate_chunk_axis_count = as.integer(length(selected) -
+        length(unique(selected))),
+      coverage_status = if (zero_axis) "empty" else if (identical(
+        grant$call_discipline, "ordered_partition_exactly_once")) "exact" else
+        "independent")
+    usage$usage_identity <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.typed_slice_usage.v1",
+      "usage excluding usage_identity", usage)
+    usage
   })
-  metadata <- list(
-    schema = "scworkbench.operation_pack.summary_finalizer_metadata.v1",
-    finalizer_definition_identity =
-      definition$finalizer_definition_identity, values = values)
-  metadata$finalizer_metadata_identity <-
-    .wb_operation_pack_v2_identity_scoped(
-      "scworkbench.operation_pack.summary_finalizer_metadata.v1",
-      "metadata excluding finalizer_metadata_identity", metadata)
-  metadata
-}
-
-.wb_operation_pack_v3_fresh_finalizer <- function(registration, callable) {
-  if (!identical(as.character(registration$identity$backend)[1], "R"))
-    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-      "R finalizer resolution was requested for a non-R pack.", "execution")
-  fresh <- .wb_operation_pack_v3_invoke(
-    as.character(registration$manifest$package$name)[1],
-    lib.loc = dirname(registration$installed_path))
-  finalizer <- fresh$finalizers[[as.character(callable)[1]]]
-  if (!is.function(finalizer) || !identical(names(formals(finalizer)),
-      c("merged_family", "metadata")))
-    .wb_operation_pack_v3_error("OPERATION_PACK_ENTRY_POINT_INVALID",
-      "V3 pure finalizer must have formals merged_family, metadata.",
-      "authentication")
-  finalizer
-}
-
-.wb_operation_pack_v3_finalize_adapter <- function(adapter, request,
-    registration, params, source_refs = list()) {
-  schedule <- adapter$v3$schedule
-  if (is.null(schedule)) return(NULL)
-  fragments <- adapter$state$fragments
-  if (length(fragments) != length(schedule$batches))
-    .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
-      "Not every scheduled chunk produced one fragment.", "receipt")
-  merged <- .wb_operation_pack_v3_merge_fragments(fragments, schedule)
-  definition <- schedule$summary_finalizer_definition
-  metadata <- .wb_operation_pack_v3_finalizer_metadata(definition, request,
-    params, source_refs)
-  finalizer <- .wb_operation_pack_v3_fresh_finalizer(registration,
-    definition$callable)
-  summary <- tryCatch(finalizer(
-    merged_family = .wb_operation_pack_v2_deep_copy(merged$value),
-    metadata = .wb_operation_pack_v2_deep_copy(metadata)), error = identity)
-  if (inherits(summary, "error")) .wb_operation_pack_v3_error(
-    "PYBENCH_PROCESS_FAILED",
-    paste0("Fresh ABI v3 summary finalizer failed: ",
-      conditionMessage(summary)), "execution")
-  .wb_assert_kind(summary, "obs_table", where = " for ABI v3 summary finalizer")
-  adapter$v3$original_terminal(schedule$fragment_output, merged$value)
-  adapter$v3$original_terminal(schedule$summary_output, summary)
-  merged_identity <- .wb_operation_pack_v2_identity_plain(
-    "scworkbench.cell_vector_family.content.v1", unclass(merged$value))
-  summary_identity <- .wb_operation_pack_v2_identity_plain(
-    "scworkbench.obs_table.content.v1", unclass(summary))
-  invocation <- list(
-    schema = "scworkbench.operation_pack.summary_finalizer_invocation.v1",
-    finalizer_definition_identity = definition$finalizer_definition_identity,
-    merged_family_content_identity = merged_identity,
-    finalizer_metadata_identity = metadata$finalizer_metadata_identity,
-    summary_content_identity = summary_identity)
-  invocation$finalizer_invocation_identity <-
-    .wb_operation_pack_v2_identity_scoped(
-      "scworkbench.operation_pack.summary_finalizer_invocation.v1",
-      "invocation excluding finalizer_invocation_identity", invocation)
-  list(schedule = schedule, observations = merged$observations,
-    merged = merged$value, summary = summary,
-    metadata = metadata, invocation = invocation)
 }
 
 .wb_operation_pack_v3_runner <- function(op_name) {
@@ -1582,14 +1815,30 @@
   function(bundle, resolved, effective_cells, inputs, ...) {
     binding <- bundle$pybench_session_binding %||% list()
     source_refs <- inputs[names(resolved)]
-    bound <- .wb_operation_pack_v2_bind_inputs(bundle, resolved,
-      effective_cells)
+    operation <- .wb_operation_pack_registry$operations[[op_name]]$definition$
+      v3_definition
+    typed_inputs <- unique(vapply(operation$typed_slice_reads %||% list(),
+      `[[`, character(1), "input"))
+    bound <- stats::setNames(lapply(names(resolved), function(name) {
+      value <- resolved[[name]]
+      if (!name %in% typed_inputs || !identical(value$kind, "matrix") ||
+          !is.null(value$values)) return(.wb_operation_pack_v2_bind_inputs(
+            bundle, stats::setNames(list(value), name),
+            effective_cells)[[name]])
+      out <- .wb_operation_pack_v2_deep_copy(value)
+      available <- wb_cells_with_matrix(bundle, value$matrix_id)
+      out$cell_id <- as.character(effective_cells)[as.character(
+        effective_cells) %in% available]
+      out$feature_id <- wb_feature_ids(bundle, value$matrix_id)
+      out$dimensions <- as.integer(c(length(out$feature_id),
+        length(out$cell_id)))
+      out$storage_profile <- "matrix_backed_chunked_v1"
+      out
+    }), names(resolved))
     attr(bound, "operation_pack_v3_source_refs") <- source_refs
     all_inputs <- inputs
     params <- inputs[setdiff(names(inputs), c(names(resolved),
       names(.wb_op_engine_input_specs())))]
-    definition <- .wb_operation_pack_registry$operations[[op_name]]$definition
-    operation <- definition$v3_definition
     mutation_context <- .wb_current_mutation_context(bundle$con, bundle$dir)
     .wb_operation_pack_assert(!is.null(mutation_context) &&
         identical(as.character(mutation_context$route)[1],

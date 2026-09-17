@@ -1975,210 +1975,6 @@
         }
       ]
     },
-    "chunking": {
-      "oneOf": [
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "axis",
-            "input",
-            "sequence_parameter",
-            "size_parameter",
-            "output",
-            "merge",
-            "adjust_parameter"
-          ],
-          "properties": {
-            "axis": {
-              "const": "features"
-            },
-            "input": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "sequence_parameter": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "size_parameter": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "output": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "merge": {
-              "const": "row_bind_then_global_p_adjust_v1"
-            },
-            "adjust_parameter": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "axis",
-            "input",
-            "size_parameter",
-            "fragment_output",
-            "summary_output",
-            "key_axis_policy",
-            "merge",
-            "summary"
-          ],
-          "properties": {
-            "axis": {
-              "const": "cells"
-            },
-            "input": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "size_parameter": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "fragment_output": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "summary_output": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "key_axis_policy": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "merge": {
-              "const": "row_bind_cell_vector_family_v1"
-            },
-            "summary": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": [
-                "interface",
-                "callable",
-                "isolation",
-                "metadata_sources"
-              ],
-              "properties": {
-                "interface": {
-                  "const": "pure_summary_finalizer_v1"
-                },
-                "callable": {
-                  "type": "string",
-                  "pattern": "^[a-z][a-z0-9_]*$"
-                },
-                "isolation": {
-                  "const": "fresh_pack_invocation_v1"
-                },
-                "metadata_sources": {
-                  "type": "array",
-                  "items": {
-                    "oneOf": [
-                      {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "name",
-                          "source",
-                          "output"
-                        ],
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          },
-                          "source": {
-                            "const": "resolved_key_axis"
-                          },
-                          "output": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          }
-                        }
-                      },
-                      {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "name",
-                          "source",
-                          "parameter"
-                        ],
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          },
-                          "source": {
-                            "const": "normalized_parameter"
-                          },
-                          "parameter": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          }
-                        }
-                      },
-                      {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "name",
-                          "source",
-                          "input"
-                        ],
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          },
-                          "source": {
-                            "const": "input_reference"
-                          },
-                          "input": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          }
-                        }
-                      },
-                      {
-                        "type": "object",
-                        "additionalProperties": false,
-                        "required": [
-                          "name",
-                          "source",
-                          "input"
-                        ],
-                        "properties": {
-                          "name": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          },
-                          "source": {
-                            "const": "input_descriptor"
-                          },
-                          "input": {
-                            "type": "string",
-                            "pattern": "^[a-z][a-z0-9_]*$"
-                          }
-                        }
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
     "retained_parameter": {
       "type": "object",
       "additionalProperties": false,
@@ -2295,9 +2091,6 @@
             "$ref": "#/$defs/dimension_policy"
           }
         },
-        "chunking": {
-          "$ref": "#/$defs/chunking"
-        },
         "retained_parameters": {
           "type": "array",
           "uniqueItems": true,
@@ -2352,6 +2145,14 @@
           "uniqueItems": true,
           "items": {
             "$ref": "#/$defs/provenance_read"
+          }
+        },
+        "typed_slice_reads": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/typed_slice_read"
           }
         }
       }
@@ -2408,6 +2209,136 @@
             "snapshot_id": {
               "type": "string",
               "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        }
+      }
+    },
+    "axis_selection": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "policy"
+          ],
+          "properties": {
+            "policy": {
+              "const": "effective_input_axis_v1"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "policy",
+            "parameter",
+            "unknown",
+            "duplicates",
+            "order"
+          ],
+          "properties": {
+            "policy": {
+              "const": "parameter_ordered_subset_v1"
+            },
+            "parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "unknown": {
+              "const": "error"
+            },
+            "duplicates": {
+              "const": "reject"
+            },
+            "order": {
+              "const": "parameter_order"
+            }
+          }
+        }
+      ]
+    },
+    "typed_slice_read": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "input",
+        "reader",
+        "kind",
+        "supported_axes",
+        "chunk_axis",
+        "chunk_size_parameter",
+        "call_discipline",
+        "empty_selection_policy",
+        "duplicate_policy",
+        "selection"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "input": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "reader": {
+          "const": "read_typed_slices"
+        },
+        "kind": {
+          "const": "matrix"
+        },
+        "supported_axes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "cells",
+              "features"
+            ]
+          }
+        },
+        "chunk_axis": {
+          "enum": [
+            "cells",
+            "features"
+          ]
+        },
+        "chunk_size_parameter": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "call_discipline": {
+          "enum": [
+            "ordered_partition_exactly_once",
+            "independent_slices"
+          ]
+        },
+        "empty_selection_policy": {
+          "enum": [
+            "allow_zero_axis",
+            "reject"
+          ]
+        },
+        "duplicate_policy": {
+          "const": "reject"
+        },
+        "selection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cells",
+            "features"
+          ],
+          "properties": {
+            "cells": {
+              "$ref": "#/$defs/axis_selection"
+            },
+            "features": {
+              "$ref": "#/$defs/axis_selection"
             }
           }
         }
@@ -2834,5 +2765,5 @@
       "expected_code": "OPERATION_PACK_PARAM_SCHEMA_INVALID"
     }
   ],
-  "x-phase3b-design-commit": "ec395246c7b6d61836cce74327ee6e65545718c2"
+  "x-phase3b-design-commit": "483120cdc2a5cbaa60d88a19d05c45f0675cf3fe"
 }

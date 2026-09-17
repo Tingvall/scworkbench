@@ -92,7 +92,7 @@
   runners <- stats::setNames(rep(list(noop), length(expected)), expected)
   definitions <- stats::setNames(lapply(manifest$operations,
     .wb_operation_pack_v3_catalog_definition), expected)
-  structure(list(manifest = manifest, runners = runners, finalizers = list(),
+  structure(list(manifest = manifest, runners = runners,
     identity = discovery$identity, definitions = definitions,
     protocol_version = "3", manifest_path = manifest_path,
     installed_path = dirname(dirname(manifest_path)),
@@ -178,9 +178,18 @@
     paste0("registry_reads/", x$name, "/payload.json"), character(1))
   provenance_paths <- vapply(request$provenance_reads %||% list(), function(x)
     paste0("provenance_reads/", x$name, "/payload.json"), character(1))
+  typed_slice_axes <- unlist(lapply(request$typed_slice_grants %||% list(),
+    function(x) c(x$cells_axis$relative_path,
+      x$features_axis$relative_path)), use.names = FALSE)
+  typed_slice_sources <- vapply(Filter(function(x) identical(
+    x$source_reference$source_kind, "in_memory_selected_projection"),
+    request$typed_slice_grants %||% list()), function(x)
+      sub("^private_projection:", "typed_slice_sources/",
+        paste0(x$source_reference$input_reference, "/matrix.mtx")),
+      character(1))
   expected_inventory <- sort(c("python-runtime.json", "receipt.json",
     "request.json", "state.json", output_paths, registry_paths,
-    provenance_paths), method = "radix")
+    provenance_paths, typed_slice_axes, typed_slice_sources), method = "radix")
   if (!identical(inventory, expected_inventory))
     .wb_operation_pack_v3_error("PYBENCH_OUT_OF_SCOPE_MUTATION",
       "Python v4 private stage contains undeclared files.", "audit",
@@ -196,17 +205,123 @@
   invisible(TRUE)
 }
 
+.wb_operation_pack_v3_python_supervised_run <- function(request, registration,
+    stage, bundle, args) {
+  config <- registration$runtime_config
+  token <- digest::digest(.wb_allocate_identifier("broker_", 32L,
+    purpose = "operation-pack v3 typed-slice broker"), algo = "sha256",
+    serialize = FALSE)
+  timeout <- as.numeric(config$timeout_seconds)
+  broker_script <- paste0(
+    "scworkbench:::.wb_operation_pack_v3_broker_main(",
+    "commandArgs(TRUE)[1],commandArgs(TRUE)[2],commandArgs(TRUE)[3])")
+  source_dir <- as.character(bundle$staging_source_dir %||% bundle$dir)[1]
+  broker_args <- c("-e", broker_script, stage, bundle$dir, source_dir)
+  broker_env <- c(PYBENCH_OPERATION_PACK_BROKER_TOKEN = token,
+    PYBENCH_OPERATION_PACK_BROKER_TIMEOUT = as.character(timeout))
+  python_env <- c(PYBENCH_OPERATION_PACK_BROKER_TOKEN = token,
+    PYBENCH_OPERATION_PACK_BROKER_ROOT = file.path(stage, "broker"))
+  broker <- tryCatch(processx::process$new(file.path(R.home("bin"),
+    "Rscript"), broker_args, stdout = "|", stderr = "|",
+    env = broker_env, cleanup_tree = TRUE), error = identity)
+  if (inherits(broker, "error")) .wb_operation_pack_v2_error(
+    "OPERATION_PACK_RUNTIME_UNAVAILABLE",
+    paste0("Could not start the typed-slice broker: ",
+      conditionMessage(broker)), "execution")
+  python <- tryCatch(processx::process$new(config$python, args,
+    stdout = "|", stderr = "|", env = python_env, cleanup_tree = TRUE),
+    error = identity)
+  if (inherits(python, "error")) {
+    if (broker$is_alive()) broker$kill_tree()
+    .wb_operation_pack_v2_error("OPERATION_PACK_RUNTIME_UNAVAILABLE",
+      paste0("Could not start Python ABI v3 execution: ",
+        conditionMessage(python)), "execution")
+  }
+  python_stdout <- character(); python_stderr <- character()
+  broker_stdout <- character(); broker_stderr <- character()
+  cleanup <- function() {
+    if (python$is_alive()) python$kill_tree()
+    if (broker$is_alive()) broker$kill_tree()
+    try(python$wait(timeout = 2000), silent = TRUE)
+    try(broker$wait(timeout = 2000), silent = TRUE)
+    unlink(file.path(stage, "broker"), recursive = TRUE, force = TRUE)
+  }
+  on.exit(cleanup(), add = TRUE)
+  deadline <- Sys.time() + timeout
+  while (python$is_alive()) {
+    python_stdout <- c(python_stdout, python$read_output_lines())
+    python_stderr <- c(python_stderr, python$read_error_lines())
+    broker_stdout <- c(broker_stdout, broker$read_output_lines())
+    broker_stderr <- c(broker_stderr, broker$read_error_lines())
+    if (!broker$is_alive()) {
+      python$kill_tree()
+      error <- tryCatch(jsonlite::read_json(file.path(stage,
+        "broker-error.json"), simplifyVector = FALSE), error = function(e)
+          list(message = paste(broker_stderr, collapse = "\n")))
+      .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
+        paste0("Typed-slice broker exited before Python: ",
+          error$message %||% "unknown broker failure"), "execution")
+    }
+    if (Sys.time() > deadline) {
+      python$kill_tree(); broker$kill_tree()
+      .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
+        "Python ABI v3 supervised execution timed out.", "execution",
+        timed_out = TRUE)
+    }
+    Sys.sleep(0.02)
+  }
+  python$wait()
+  python_stdout <- c(python_stdout, python$read_all_output_lines())
+  python_stderr <- c(python_stderr, python$read_all_error_lines())
+  .wb_operation_pack_v2_atomic_json(list(stop = TRUE),
+    file.path(stage, "broker", "stop.json"))
+  broker$wait(timeout = min(10000, timeout * 1000))
+  broker_stdout <- c(broker_stdout, broker$read_all_output_lines())
+  broker_stderr <- c(broker_stderr, broker$read_all_error_lines())
+  if (broker$is_alive()) .wb_operation_pack_v2_error(
+    "PYBENCH_PROCESS_FAILED", "Typed-slice broker did not stop cleanly.",
+    "execution")
+  if (!identical(as.integer(broker$get_exit_status()), 0L)) {
+    error <- tryCatch(jsonlite::read_json(file.path(stage,
+      "broker-error.json"), simplifyVector = FALSE), error = function(e)
+        list(message = paste(broker_stderr, collapse = "\n")))
+    .wb_operation_pack_v2_error("PYBENCH_PROCESS_FAILED",
+      paste0("Typed-slice broker failed: ", error$message %||%
+        "unknown broker failure"), "execution")
+  }
+  list(status = python$get_exit_status(), stdout = paste(python_stdout,
+    collapse = "\n"), stderr = paste(python_stderr, collapse = "\n"))
+}
+
 .wb_operation_pack_v3_python_dispatch <- function(request, registration,
-                                                   stage) {
+                                                   stage, bundle = NULL) {
   config <- registration$runtime_config
   receipt_path <- file.path(stage, "receipt.json")
   runtime_path <- file.path(stage, "python-runtime.json")
-  result <- .wb_operation_pack_v2_python_run(config$python, c(
+  args <- c(
     "-m", "pybench.operation_pack_v4_cli", "--manifest",
     config$manifest_path, "--request", file.path(stage, "request.json"),
     "--stage-root", stage, "--receipt", receipt_path,
-    "--python-runtime", runtime_path), config$timeout_seconds, "execution",
-    error_path = receipt_path)
+    "--python-runtime", runtime_path)
+  result <- if (length(request$typed_slice_grants %||% list())) {
+    .wb_operation_pack_assert(!is.null(bundle),
+      "PYBENCH_CAPABILITY_MISMATCH",
+      "Python typed-slice execution requires a trusted bundle binding.",
+      class = "wb_operation_pack_v3_error")
+    supervised <- .wb_operation_pack_v3_python_supervised_run(request,
+      registration, stage, bundle, args)
+    if (!identical(as.integer(supervised$status), 0L)) {
+      record <- tryCatch(jsonlite::read_json(receipt_path,
+        simplifyVector = FALSE), error = function(e) NULL)
+      error <- record$error %||% record %||% list()
+      .wb_operation_pack_v2_error(as.character(error$code %||%
+          "PYBENCH_PROCESS_FAILED")[1], as.character(error$message %||%
+          paste0("Python ABI v3 exited with status ", supervised$status,
+            "."))[1], as.character(error$phase %||% "execution")[1])
+    }
+    supervised
+  } else .wb_operation_pack_v2_python_run(config$python, args,
+    config$timeout_seconds, "execution", error_path = receipt_path)
   .wb_operation_pack_v2_fault("python_process_completed", stage = stage)
   receipt <- tryCatch(jsonlite::read_json(receipt_path,
     simplifyVector = FALSE), error = function(e) NULL)
@@ -217,6 +332,42 @@
     "Python v4 process did not publish receipt and runtime sidecar.",
     class = "wb_operation_pack_v3_error")
   .wb_operation_pack_v3_python_sidecar_audit(runtime, registration, request)
+  if (length(request$typed_slice_grants %||% list())) {
+    observations_path <- file.path(stage, "broker-observations.json")
+    observations <- tryCatch(jsonlite::read_json(observations_path,
+      simplifyVector = FALSE), error = function(e) NULL)
+    .wb_operation_pack_assert(is.list(observations),
+      "PYBENCH_RECEIPT_MISMATCH",
+      "Typed-slice broker did not retain its call observations.",
+      class = "wb_operation_pack_v3_error")
+    state <- new.env(parent = emptyenv())
+    names_grants <- vapply(request$typed_slice_grants, `[[`, character(1),
+      "name")
+    state$typed_slice_calls <- stats::setNames(vector("list",
+      length(names_grants)), names_grants)
+    for (item in observations) {
+      name <- as.character(item$name)[1]
+      if (!name %in% names_grants) .wb_operation_pack_v3_error(
+        "PYBENCH_RECEIPT_MISMATCH",
+        "Broker observation names an undeclared typed-slice grant.",
+        "receipt")
+      state$typed_slice_calls[[name]][[length(
+        state$typed_slice_calls[[name]]) + 1L]] <- list(result = item$result,
+          chunk_values = as.character(unlist(item$chunk_values,
+            use.names = FALSE)))
+    }
+    expected_usage <- .wb_operation_pack_v3_typed_slice_usage(
+      list(state = state), request)
+    if (!identical(.wb_operation_pack_canonical_json(expected_usage),
+        .wb_operation_pack_canonical_json(receipt$typed_slice_usage %||%
+          list()))) .wb_operation_pack_v3_error(
+      "PYBENCH_RECEIPT_MISMATCH",
+      "Python typed-slice receipt differs from broker-owned evidence.",
+      "receipt")
+    unlink(observations_path, force = TRUE)
+    unlink(file.path(stage, "broker-error.json"), force = TRUE)
+    unlink(file.path(stage, "broker"), recursive = TRUE, force = TRUE)
+  }
   list(receipt = receipt, sidecar = runtime, process = result,
     reader_observation = NULL)
 }
