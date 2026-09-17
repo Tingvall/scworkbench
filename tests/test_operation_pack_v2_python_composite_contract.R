@@ -16,13 +16,13 @@
   "SCWORKBENCH_PHASE2C_PYTHON_PACK_MANIFEST, and SCWORKBENCH_PYBENCH_PYTHON"))
 
 .wb_phase2c_pybench_commit <-
-  "874af6b72a4b5ebdcf30449ef0052416ca0be21b"
+  "3e02ea266862adc3ffa96c5d0d99e817f1e43e06"
 
 .wb_phase2c_shared_sha256 <- c(
-  "b871ee6b7ead0012907a5586f3457ae4f5913c44d771a4646770945686c4f2ee",
-  "2d2e663ecc61fc2b82d3378f4363d76d9b5e70ebd7c92552defc9296df7c3882",
-  "c4406842983475e1a833b2e37cf882ee863409a2657469e88815dde42df964c4",
-  "d2ad42db06c03332c94345d014eeff18145f317e46026d531da976139c5c98cd"
+  "e4ca57a6a40d87a62865aae43597646f5b6a3f5ca15dec65b89d163033acd8ec",
+  "700665a2ba03a69c6df75f9640bf09b9be86b443c61060ffdf0381dcc24bcae5",
+  "3e9f07c342fa929806e3747f36ef59f43838921b98907cf5d4ceeede1a1f0a15",
+  "36f5f5c73b561420477a9f46c6a0fcad7e2121d85349859ceb3310db8342b52e"
 )
 
 .wb_phase2c_assert_pin <- function(root, expected = .wb_phase2c_pybench_commit) {
@@ -341,7 +341,7 @@ test_operation_pack_v2_python_activation_contract <- function() {
     identical(wb_operation_catalog_identity(), before$identity))
   activated <- wb_operation_pack_activate(context$manifest, python = context$python)
   stopifnot(identical(activated$identity$backend, "Python"),
-    length(wb_list_ops()) == 57L)
+    length(wb_list_ops()) == 59L)
   TRUE
 }
 
@@ -893,5 +893,294 @@ test_operation_pack_v2_python_legacy_cell_set_acceptance_contract <- function() 
       "cell_1"))
   wb_close_bundle(bundle)
   unlink(root, recursive = TRUE, force = TRUE)
+  TRUE
+}
+
+.wb_phase2c_registry_fixture <- function(label) {
+  root <- tempfile(paste0("scwb_phase2c_registry_", label, "_"))
+  bundle <- wb_init_bundle(root, overwrite = TRUE)
+  cells <- c("cell_2", "cell_1")
+  features <- c("gene_c", "gene_a", "gene_b", "gene_d")
+  values <- Matrix::Matrix(matrix(seq_len(8L), nrow = 4L,
+    dimnames = list(features, cells)), sparse = TRUE)
+  wb_define_cells(bundle, cells)
+  wb_attach_matrix(bundle, "RNA_counts", values, feature_type = "gene")
+  wb_feature_set_replace(bundle, "SET_B", "RNA_counts",
+    c("gene_b", "gene_a"), namespace = "ns_beta", organism = "mouse",
+    source_id = "source_beta", source_version = "2", origin = "fixture",
+    recipe = list(n_genes_raw = 3L, method = "fixture"), is_readonly = TRUE,
+    description = "Beta set", created_by = "composite", strict = TRUE)
+  wb_feature_set_replace(bundle, "SET_A", "RNA_counts",
+    c("gene_c", "gene_a", "gene_d"), namespace = "ns_alpha",
+    organism = "mouse", source_id = "source_alpha", source_version = "1",
+    origin = "fixture", recipe = list(n_genes_raw = 4L, method = "fixture"),
+    is_readonly = TRUE, description = "Alpha set", created_by = "composite",
+    strict = TRUE)
+  list(root = root, bundle = bundle, cells = cells, features = features)
+}
+
+.wb_phase2c_registry_inputs <- function(fixture) {
+  scworkbench:::.wb_operation_pack_v2_bind_inputs(fixture$bundle,
+    list(matrix = wb_prim_matrix("RNA_counts")), fixture$cells)
+}
+
+.wb_phase2c_registry_params <- function(namespace = NULL,
+    namespaces = NULL, selected_sets = NULL) {
+  list(namespace = namespace, namespaces = namespaces,
+    selected_sets = selected_sets)
+}
+
+.wb_phase2c_registry_state <- function(fixture) {
+  transition_root <- file.path(fixture$root, "operation_pack_v2")
+  transitions <- if (dir.exists(transition_root)) sort(list.dirs(
+    transition_root, recursive = FALSE, full.names = FALSE), method = "radix") else
+    character()
+  list(
+    fingerprint = scworkbench:::.wb_session_source_identity(fixture$bundle)$
+      scientific_state_fingerprint,
+    registry = scworkbench:::.wb_manifest_registry_snapshot(fixture$bundle$con),
+    artifacts = wb_art_list(fixture$bundle, include_history = TRUE),
+    receipts = wb_operation_pack_registry_receipts(fixture$bundle),
+    transitions = transitions)
+}
+
+.wb_phase2c_registry_assert_no_residue <- function(fixture, before) {
+  stopifnot(identical(.wb_phase2c_registry_state(fixture), before))
+  pending <- scworkbench:::.wb_operation_pack_v2_pending_root(fixture$bundle)
+  stopifnot(!dir.exists(pending) || !length(list.dirs(pending,
+    recursive = FALSE)))
+  invisible(TRUE)
+}
+
+test_operation_pack_v2_python_feature_set_registry_lifecycle_contract <- function() {
+  context <- .wb_phase2c_context(); if (is.null(context)) return(.wb_phase2c_skip())
+  guard <- .wb_phase2c_registry_guard()
+  on.exit(.wb_phase2c_registry_restore(guard), add = TRUE)
+  wb_operation_pack_activate(context$manifest, python = context$python)
+  cases <- list(
+    zero = .wb_phase2c_registry_params(namespace = "missing"),
+    one = .wb_phase2c_registry_params(namespace = "ns_alpha",
+      selected_sets = list("SET_A")),
+    many = .wb_phase2c_registry_params())
+  expected_counts <- c(zero = 0L, one = 1L, many = 2L)
+  observed_identity_fields <- c("content_identity", "source_identity",
+    "ancestry_identity", "payload_manifest_identity")
+  for (name in names(cases)) {
+    fixture <- .wb_phase2c_registry_fixture(name)
+    result <- scworkbench:::.wb_operation_pack_v2_execute(fixture$bundle,
+      "scwbpyv2reference::registry_probe",
+      .wb_phase2c_registry_inputs(fixture), cases[[name]])
+    request <- result$request$registry_reads[[1]]$descriptor
+    observed <- result$receipt$registry_reads[[1]]$descriptor
+    matrix_grant <- result$request$inputs[[which(vapply(result$request$inputs,
+      `[[`, character(1), "name") == "matrix")]]$descriptor
+    published <- wb_operation_pack_transition_registry_reads(fixture$bundle,
+      result$transition_id)$feature_sets
+    stopifnot(
+      identical(result$state, "reopened"),
+      identical(as.integer(result$outputs$summary$table$set_count),
+        expected_counts[[name]]),
+      identical(result$request$transition$transition_identity,
+        result$receipt$transition_identity),
+      identical(result$request$request_identity,
+        result$receipt$request_identity),
+      identical(as.integer(observed$use_count), 1L),
+      identical(observed$descriptor_identity,
+        request$descriptor_identity),
+      all(vapply(observed_identity_fields, function(field)
+        identical(request[[field]], observed[[field]]), logical(1))),
+      identical(published$descriptor, request),
+      identical(published$observation, observed),
+      identical(published$snapshot$matrix_id, "RNA_counts"),
+      identical(request$matrix_id, "RNA_counts"),
+      is.null(matrix_grant$matrix_id),
+      identical(request$matrix_content_identity,
+        matrix_grant$content_identity),
+      identical(request$feature_order_identity,
+        matrix_grant$feature_order_identity),
+      identical(unlist(published$snapshot$feature_universe, use.names = FALSE),
+        fixture$features),
+      identical(as.integer(result$receipt$mutation_manifest$entry_count), 1L))
+    if (identical(name, "one")) {
+      set <- published$snapshot$sets[[1]]
+      stopifnot(identical(set$feature_set, "SET_A"),
+        identical(set$namespace, "ns_alpha"),
+        identical(set$source_id, "source_alpha"),
+        identical(set$source_version, "1"),
+        identical(set$origin, "fixture"),
+        identical(set$description, "Alpha set"),
+        identical(set$created_by, "composite"),
+        identical(vapply(set$memberships, `[[`, character(1), "feature_id"),
+          c("gene_c", "gene_a", "gene_d")),
+        identical(vapply(set$memberships, function(x) as.integer(x$rank),
+          integer(1)), 1:3))
+    }
+    wb_close_bundle(fixture$bundle)
+    unlink(fixture$root, recursive = TRUE, force = TRUE)
+  }
+
+  fixture <- .wb_phase2c_registry_fixture("durable")
+  on.exit({ try(wb_close_bundle(fixture$bundle), silent = TRUE)
+    unlink(fixture$root, recursive = TRUE, force = TRUE) }, add = TRUE)
+  run <- wb_session_run_op(wb_session_new(), fixture$bundle,
+    "scwbpyv2reference::registry_probe", inputs = list(
+      matrix = wb_prim_matrix("RNA_counts"), namespace = NULL,
+      namespaces = c("ns_beta", "ns_alpha"), selected_sets = NULL,
+      cell_set = "all", min_cells = 1L))
+  transition_id <- as.character(
+    run$run$operation_pack_transition$transition_id)[1]
+  promoted <- wb_session_promote_current(fixture$bundle, run$session,
+    outputs = "summary", created_by = "phase2c_registry_composite")
+  stopifnot(nrow(promoted$promoted) == 1L)
+  wb_finalize_recipient_bundle(fixture$bundle)
+  wb_close_bundle(fixture$bundle)
+  before <- .wb_phase2c_tree_identity(fixture$root)
+  repo <- normalizePath(".", winslash = "/")
+  expression <- paste0(
+    "a<-commandArgs(TRUE);devtools::load_all(a[1],quiet=TRUE);",
+    "stopifnot(nrow(wb_operation_packs())==0L);",
+    "b<-wb_open_bundle(a[2],read_only=TRUE);",
+    "r<-wb_operation_pack_transition_registry_reads(b,a[3]);",
+    "v<-wb_bundle_validation_report(a[2],level='recipient');",
+    "stopifnot(isTRUE(v$ok),identical(names(r),'feature_sets'),",
+    "length(r$feature_sets$snapshot$sets)==2L,",
+    "as.integer(r$feature_sets$observation$use_count)==1L);",
+    "wb_close_bundle(b);cat('pack_free_registry_recipient_ok sets=2\\n')")
+  recipient <- processx::run(file.path(R.home("bin"), "Rscript"),
+    c("--vanilla", "-e", expression, repo, fixture$root, transition_id),
+    echo = FALSE, error_on_status = FALSE, timeout = 180)
+  if (recipient$status != 0L) stop(paste(recipient$stdout, recipient$stderr,
+    collapse = "\n"), call. = FALSE)
+  stopifnot(grepl("pack_free_registry_recipient_ok sets=2",
+    recipient$stdout, fixed = TRUE),
+    identical(before, .wb_phase2c_tree_identity(fixture$root)))
+  fixture$bundle <- NULL
+  TRUE
+}
+
+test_operation_pack_v2_python_feature_set_registry_failure_contract <- function() {
+  context <- .wb_phase2c_context(); if (is.null(context)) return(.wb_phase2c_skip())
+  guard <- .wb_phase2c_registry_guard()
+  on.exit(.wb_phase2c_registry_restore(guard), add = TRUE)
+  on.exit({ options(scworkbench.operation_pack_v2_test_hook = NULL)
+    Sys.unsetenv("SCWBPYV2_REGISTRY_PROBE_FAULT") }, add = TRUE)
+  wb_operation_pack_activate(context$manifest, python = context$python)
+  fixture <- .wb_phase2c_registry_fixture("failure")
+  on.exit({ try(wb_close_bundle(fixture$bundle), silent = TRUE)
+    unlink(fixture$root, recursive = TRUE, force = TRUE) }, add = TRUE)
+  inputs <- .wb_phase2c_registry_inputs(fixture)
+  params <- .wb_phase2c_registry_params()
+  run <- function(op = "scwbpyv2reference::registry_probe", p = params) {
+    scworkbench:::.wb_operation_pack_v2_execute(fixture$bundle, op, inputs, p)
+  }
+  expect_clean <- function(expr, codes) {
+    before <- .wb_phase2c_registry_state(fixture)
+    error <- tryCatch(force(expr), error = identity)
+    stopifnot(inherits(error, "wb_operation_pack_error"),
+      as.character(error$code) %in% codes)
+    .wb_phase2c_registry_assert_no_residue(fixture, before)
+    invisible(error)
+  }
+
+  expect_clean(run("scwbpyv2reference::registry_probe_strict",
+    .wb_phase2c_registry_params(namespace = "missing")),
+    "PYBENCH_INPUT_IDENTITY_MISMATCH")
+
+  payload_faults <- list(
+    wrong_matrix = function(x) { x$matrix_id <- "other"; x },
+    wrong_feature_order = function(x) { x$feature_universe <-
+      rev(x$feature_universe); x },
+    wrong_namespace = function(x) { x$sets[[1]]$namespace <- "wrong"; x },
+    duplicate_member = function(x) { x$sets[[1]]$memberships[[2]]$feature_id <-
+      x$sets[[1]]$memberships[[1]]$feature_id; x },
+    foreign_member = function(x) { x$sets[[1]]$memberships[[1]]$feature_id <-
+      "foreign"; x },
+    altered_rank = function(x) { x$sets[[1]]$memberships[[1]]$rank <- 9L; x },
+    altered_metadata = function(x) { x$sets[[1]]$description <- "changed"; x })
+  for (mutate in payload_faults) {
+    options(scworkbench.operation_pack_v2_test_hook = local({ change <- mutate
+      function(event, transition_id = NULL, ...) if (identical(event,
+          "before_dispatch")) {
+        path <- file.path(
+          scworkbench:::.wb_operation_pack_v2_pending_root(fixture$bundle),
+          transition_id, "registry_reads", "feature_sets", "payload.json")
+        value <- jsonlite::read_json(path, simplifyVector = FALSE)
+        scworkbench:::.wb_operation_pack_v2_atomic_json(change(value), path)
+      }
+    }))
+    expect_clean(run(), "PYBENCH_INPUT_IDENTITY_MISMATCH")
+    options(scworkbench.operation_pack_v2_test_hook = NULL)
+  }
+
+  for (fault in c("missing_reader", "duplicate_reader", "undeclared_reader")) {
+    Sys.setenv(SCWBPYV2_REGISTRY_PROBE_FAULT = fault)
+    expect_clean(run(), c("PYBENCH_PROCESS_FAILED", "PYBENCH_CAPABILITY_MISMATCH"))
+    Sys.unsetenv("SCWBPYV2_REGISTRY_PROBE_FAULT")
+  }
+
+  rehash_receipt <- function(value) {
+    value$receipt_identity <- NULL
+    value$receipt_identity <- scworkbench:::.wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.transition_receipt.v2",
+      "receipt excluding receipt_identity", value)
+    value
+  }
+  receipt_faults <- list(
+    missing = function(x) { x$registry_reads <- list(); rehash_receipt(x) },
+    extra = function(x) { extra <- x$registry_reads[[1]]; extra$name <- "extra"
+      x$registry_reads[[2]] <- extra; rehash_receipt(x) },
+    forged = function(x) {
+      observed <- x$registry_reads[[1]]$descriptor
+      observed$content_identity$sha256 <- strrep("0", 64L)
+      observed$observed_descriptor_identity <- NULL
+      observed$observed_descriptor_identity <-
+        scworkbench:::.wb_operation_pack_v2_identity_scoped(
+          "scworkbench.operation_pack.observed_registry_read.v2",
+          "descriptor excluding observed_descriptor_identity", observed)
+      x$registry_reads[[1]]$descriptor <- observed
+      rehash_receipt(x)
+    })
+  for (mutate in receipt_faults) {
+    options(scworkbench.operation_pack_v2_test_hook = local({ change <- mutate
+      function(event, stage = NULL, ...) if (identical(event,
+          "python_process_completed")) {
+        path <- file.path(stage, "receipt.json")
+        value <- jsonlite::read_json(path, simplifyVector = FALSE)
+        scworkbench:::.wb_operation_pack_v2_atomic_json(change(value), path)
+      }
+    }))
+    expect_clean(run(), "PYBENCH_RECEIPT_MISMATCH")
+    options(scworkbench.operation_pack_v2_test_hook = NULL)
+  }
+
+  before <- .wb_phase2c_registry_state(fixture)
+  options(scworkbench.operation_pack_v2_test_hook = function(event, ...) {
+    if (identical(event, "staged")) {
+      DBI::dbExecute(fixture$bundle$con,
+        paste("UPDATE feature_sets SET description = ?",
+          "WHERE matrix_id = ? AND feature_set = ?"),
+        params = list("changed after preflight", "RNA_counts", "SET_A"))
+    }
+  })
+  error <- tryCatch(run(), error = identity)
+  options(scworkbench.operation_pack_v2_test_hook = NULL)
+  DBI::dbExecute(fixture$bundle$con,
+    paste("UPDATE feature_sets SET description = ?",
+      "WHERE matrix_id = ? AND feature_set = ?"),
+    params = list("Alpha set", "RNA_counts", "SET_A"))
+  stopifnot(inherits(error, "wb_operation_pack_error"),
+    identical(as.character(error$code), "PYBENCH_INPUT_IDENTITY_MISMATCH"))
+  .wb_phase2c_registry_assert_no_residue(fixture, before)
+
+  Sys.setenv(SCWBPYV2_REGISTRY_PROBE_FAULT = "mutate_private_copy")
+  private <- run()
+  Sys.unsetenv("SCWBPYV2_REGISTRY_PROBE_FAULT")
+  retained <- wb_operation_pack_transition_registry_reads(fixture$bundle,
+    private$transition_id)$feature_sets$snapshot
+  stopifnot(as.integer(private$outputs$summary$table$set_count) == 0L,
+    length(retained$sets) == 2L)
+  retry <- run()
+  stopifnot(identical(retry$state, "reopened"),
+    as.integer(retry$outputs$summary$table$set_count) == 2L)
   TRUE
 }
