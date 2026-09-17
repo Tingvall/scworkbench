@@ -62,6 +62,7 @@ test_geneprograms_promotion_reopen_replay_recipient_contract <- function() {
   stopifnot(isTRUE(replay$summary$valid),
     isTRUE(wb_finalize_recipient_bundle(b)$ready))
   artifacts <- wb_art_list(b); stopifnot(nrow(artifacts) >= 8L)
+  fourth$session <- wb_session_discard(fourth$session)
   wb_close_bundle(b); b <- NULL
 
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
@@ -96,6 +97,7 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
   promoted <- wb_session_promote_current(b, score$session,
     outputs = "module_scores", created_by = "composite")
   artifact <- promoted$promoted$artifact_id[[1L]]
+  score$session <- wb_session_discard(score$session)
   omitted <- wb_session_run_op(wb_session_new(), b,
     "cell_vector_family_graph_smooth", inputs = list(
       signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
@@ -115,5 +117,7 @@ test_geneprograms_graph_ancestry_omitted_explicit_contract <- function() {
       signal = wb_ref_artifact(artifact, "module_scores"), space = f$space,
       k = 2L, source_run_id = "run_wrong", min_cells = 1L)), error = identity)
   stopifnot(inherits(stale, "wb_operation_pack_error"))
+  omitted$session <- wb_session_discard(omitted$session)
+  explicit$session <- wb_session_discard(explicit$session)
   TRUE
 }
