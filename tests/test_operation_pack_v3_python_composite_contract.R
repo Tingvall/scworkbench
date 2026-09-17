@@ -17,13 +17,13 @@
   "SCWORKBENCH_PYBENCH_PYTHON"))
 
 .wb_phase3b_pybench_commit <-
-  "c85bf4136be6db92d8f1ffabbfdcdb2571869805"
+  "16d523c71b7fa906c4bc6eca57c304cdeb79b472"
 
 .wb_phase3b_shared_sha256 <- c(
-  "a4f095902b5dcb71bc4d84b5b248997b3c9748ef7e51e91c7ab6b77483efee8b",
-  "9ff65685bcad2358b26a325beeed617cd6695ebf629b5c6412df3762ff929052",
-  "e6ab7b7eeac2a4b60a4da405cdd70425d417a2fc61689dca585335f3f5eec25d",
-  "31e104e2167a5c5c9b147afe280bd7b36220c3d61f1773445ded6ee9d52bbbee")
+  "f263fbcf15d3a928c5a3b7cfa41ca27b4f5d3e0f31f2b8f42cc930b1d9713ff3",
+  "9935a10ca05c5c767e739d06839b5d4fcbf53de549ea95b8cd4d1e711e8089d6",
+  "6ba0a1875100cda766cc5c5f10caa01fc654dd9688250d3ff17389bb4c561e28",
+  "ed31bcf18062d57b6ea8d8f7a787f8932138f959e5762d195b3968438d052f32")
 
 .wb_phase3b_registry_guard <- function() {
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
@@ -111,32 +111,18 @@ test_operation_pack_v3_python_composite_lifecycle_contract <- function() {
   wb_attach_matrix(bundle, "RNA", values, feature_type = "gene")
   family <- wb_prim_cell_vector_family(rep(c("sigB", "sigA"), each = 3L),
     rep(cells, 2L), c(1, 2, 3, 4, 5, 6), meta = list(fixture = "phase3b"))
-  source <- wb_new_run("phase3b_fixture_source",
-    inputs = list(cell_set = "all", parents = character(),
-      provenance_refs = list(), user_inputs = list()), params = list(),
-    outputs = list(signals = family))
-  session <- wb_session_add_run(wb_session_new(), source)
+  session <- wb_session_new()
 
   run_family <- function(session_value = session) wb_session_run_op(
     session_value, bundle, "scwbpyv3reference::cardinality_family_probe",
-    inputs = list(signals = wb_ref_run(source$run_id, "signals"),
+    inputs = list(signals = family,
       cell_set = "all", min_cells = 1L))
   bounded <- run_family()
-  cat("PHASE3B_COMPOSITE bounded\n")
   scores <- bounded$run$outputs$scores
   stopifnot(identical(as.character(scores$key),
       rep(c("sigB", "sigA"), each = 3L)),
     identical(as.character(scores$cell_id), rep(cells, 2L)),
     identical(as.numeric(scores$value), as.numeric(family$value)))
-
-  reduced <- wb_session_run_op(bounded$session, bundle,
-    "scwbpyv3reference::cardinality_reduction_probe", inputs = list(
-      signals = wb_ref_run(bounded$run$run_id, "scores"),
-      cell_set = "all", min_cells = 1L))
-  stopifnot(identical(as.character(reduced$run$outputs$reduced$cell_id),
-      cells), identical(as.numeric(reduced$run$outputs$reduced$value),
-      c(5, 7, 9)))
-  cat("PHASE3B_COMPOSITE reduced\n")
 
   # A changed staged family payload is rejected before publication and leaves
   # neither a published transition nor a pending staging directory.
@@ -150,20 +136,47 @@ test_operation_pack_v3_python_composite_lifecycle_contract <- function() {
   options(scworkbench.operation_pack_v2_test_hook = NULL)
   stopifnot(fired(), inherits(failed, "try-error"),
     identical(before, .wb_phase3b_transition_inventory(root)))
-  cat("PHASE3B_COMPOSITE cardinality_fault\n")
 
-  run_chunk <- function(size) wb_session_run_op(session, bundle,
-    "scwbpyv3reference::cell_chunk_probe", inputs = list(matrix = "RNA",
-      cell_set = "all", min_cells = 1L, features = c("g2", "g1"),
-      name = "Module", chunk_size = as.integer(size)))
+  bounded_promotion <- wb_session_promote_current(bundle, bounded$session,
+    outputs = "scores", created_by = "phase3b-composite")
+  source_artifact <- as.character(bounded_promotion$promoted$artifact_id[[1]])
+  reduced <- wb_session_run_op(wb_session_new(), bundle,
+    "scwbpyv3reference::cardinality_reduction_probe", inputs = list(
+      signals = wb_ref_artifact(source_artifact, "scores"),
+      cell_set = "all", min_cells = 1L))
+  stopifnot(identical(as.character(reduced$run$outputs$reduced$cell_id),
+      cells), identical(as.numeric(reduced$run$outputs$reduced$value),
+      c(5, 7, 9)))
+
+  run_chunk <- function(size, matrix_input = "RNA",
+      session_value = session) wb_session_run_op(session_value, bundle,
+    "scwbpyv3reference::cell_chunk_probe", inputs = list(matrix = matrix_input,
+      cell_set = "all", min_cells = 1L,
+      features = list(module1 = c("g2", "g1")),
+      slice_features = c("g2", "g1"), name = "Module",
+      chunk_size = as.integer(size)))
   one <- run_chunk(3L)
-  cat("PHASE3B_COMPOSITE chunk_one\n")
   many <- run_chunk(2L)
-  cat("PHASE3B_COMPOSITE chunk_many\n")
   stopifnot(identical(.wb_phase3b_identity(one$run$outputs$scores),
       .wb_phase3b_identity(many$run$outputs$scores)),
     identical(.wb_phase3b_identity(one$run$outputs$summary),
       .wb_phase3b_identity(many$run$outputs$summary)))
+  inline_matrix <- structure(list(kind = "matrix",
+    values = as.matrix(values), dimensions = as.integer(dim(values)),
+    cell_id = cells, feature_id = features,
+    storage_profile = "matrix_ordinary_v1", meta = list()),
+    class = "wb_primitive")
+  inline <- run_chunk(2L, inline_matrix, wb_session_new())
+  stopifnot(identical(.wb_phase3b_identity(inline$run$outputs$scores),
+      .wb_phase3b_identity(many$run$outputs$scores)),
+    identical(.wb_phase3b_identity(inline$run$outputs$summary),
+      .wb_phase3b_identity(many$run$outputs$summary)))
+  zero <- wb_session_run_op(wb_session_new(), bundle,
+    "scwbpyv3reference::zero_axis_probe", inputs = list(matrix = "RNA",
+      cell_set = "all", min_cells = 1L, slice_features = character(),
+      chunk_size = 2L))
+  stopifnot(identical(as.integer(
+    zero$run$outputs$summary$table$typed_slice_calls), 0L))
   before <- .wb_phase3b_transition_inventory(root)
   fired <- .wb_phase3b_mutate_python_payload("outputs/summary/payload.json",
     function(value) {
@@ -175,15 +188,12 @@ test_operation_pack_v3_python_composite_lifecycle_contract <- function() {
   stopifnot(fired(), inherits(failed, "try-error"),
     identical(before, .wb_phase3b_transition_inventory(root)))
 
-  bounded_promotion <- wb_session_promote_current(bundle, bounded$session,
-    outputs = "scores", created_by = "phase3b-composite")
-  source_artifact <- as.character(bounded_promotion$promoted$artifact_id[[1]])
   ancestry <- wb_session_run_op(wb_session_new(), bundle,
     "scwbpyv3reference::ancestry_probe", inputs = list(
       signals = wb_ref_artifact(source_artifact, "scores"),
       cell_set = "all", min_cells = 1L))
   stopifnot(identical(as.character(
-    ancestry$run$outputs$summary$rows$artifact_id), source_artifact))
+    ancestry$run$outputs$summary$table$artifact_id), source_artifact))
   before <- .wb_phase3b_transition_inventory(root)
   fired <- .wb_phase3b_mutate_python_payload(
     "provenance_reads/ancestry/payload.json", function(value) {
@@ -202,10 +212,36 @@ test_operation_pack_v3_python_composite_lifecycle_contract <- function() {
     outputs = "reduced", created_by = "phase3b-composite")
   chunk_promotion <- wb_session_promote_current(bundle, many$session,
     outputs = "scores", created_by = "phase3b-composite")
+  wb_session_promote_current(bundle, inline$session,
+    outputs = "scores", created_by = "phase3b-composite-inline")
+  zero_promotion <- wb_session_promote_current(bundle, zero$session,
+    outputs = "summary", created_by = "phase3b-composite")
   ancestry_promotion <- wb_session_promote_current(bundle, ancestry$session,
     outputs = "summary", created_by = "phase3b-composite")
+  chunk_record_path <- file.path(root, "operation_pack_v2",
+    inline$run$operation_pack_transition$transition_id)
+  chunk_record <- scworkbench:::.wb_operation_pack_v2_record_validate(
+    chunk_record_path, load_payloads = TRUE)
+  stopifnot(isTRUE(chunk_record$ok), identical(
+      chunk_record$request$typed_slice_grants[[1]]$source_reference$
+        source_kind, "in_memory_selected_projection"),
+    identical(chunk_record$receipt$typed_slice_usage[[1]]$coverage_status,
+      "exact"),
+    !dir.exists(file.path(chunk_record_path, "broker")),
+    !file.exists(file.path(chunk_record_path,
+      "broker-observations.json")))
+  zero_record <- scworkbench:::.wb_operation_pack_v2_record_validate(
+    file.path(root, "operation_pack_v2",
+      zero$run$operation_pack_transition$transition_id),
+    load_payloads = TRUE)
+  stopifnot(isTRUE(zero_record$ok), identical(
+      zero_record$receipt$typed_slice_usage[[1]]$calls, list()),
+    identical(zero_record$receipt$typed_slice_usage[[1]]$call_count, 0L),
+    identical(zero_record$receipt$typed_slice_usage[[1]]$coverage_status,
+      "empty"))
   for (snapshot in c(reduced_promotion$provenance_snapshot_id,
       chunk_promotion$provenance_snapshot_id,
+      zero_promotion$provenance_snapshot_id,
       ancestry_promotion$provenance_snapshot_id)) {
     replay <- wb_prov_validate_replay(bundle, snapshot_id = snapshot,
       mode = "symbolic", profile = "strict", strict = TRUE)
@@ -239,6 +275,6 @@ test_operation_pack_v3_python_composite_lifecycle_contract <- function() {
     identical(as.character(reduced_loaded$cell_id), cells),
     identical(as.numeric(reduced_loaded$value), c(5, 7, 9)),
     identical(as.character(scores_loaded$cell_id), cells),
-    identical(as.character(summary_loaded$rows$artifact_id), source_artifact))
+    identical(as.character(summary_loaded$table$artifact_id), source_artifact))
   TRUE
 }

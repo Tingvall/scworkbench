@@ -318,7 +318,7 @@
   relative <- paste0("typed_slice_axes/", name, "/", axis, ".json")
   path <- file.path(stage_root, relative)
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  .wb_operation_pack_v2_atomic_json(value, path)
+  .wb_operation_pack_v3_atomic_canonical_json(value, path)
   descriptor <- list(axis = axis, count = as.integer(length(ids)),
     order_identity = value$order_identity,
     axis_manifest_identity = value$manifest_identity,
@@ -329,6 +329,20 @@
         size = as.numeric(file.info(path)$size),
         sha256 = .wb_operation_pack_v2_file_sha256(path))))
   list(value = value, descriptor = descriptor)
+}
+
+.wb_operation_pack_v3_atomic_canonical_json <- function(value, path) {
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  temporary <- paste0(path, ".tmp-", .wb_allocate_identifier("", 12L,
+    purpose = "operation-pack v3 canonical JSON publication"))
+  on.exit(if (file.exists(temporary)) unlink(temporary, force = TRUE),
+    add = TRUE)
+  writeBin(charToRaw(.wb_operation_pack_canonical_json(value)), temporary)
+  if (!file.rename(temporary, path))
+    .wb_operation_pack_v3_error("PYBENCH_PUBLICATION_FAILED",
+      paste0("Could not publish canonical ", basename(path), "."),
+      "staging")
+  invisible(path)
 }
 
 .wb_operation_pack_v3_axis_selection <- function(spec, axis, input, params,
@@ -359,7 +373,23 @@
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   temporary <- paste0(path, ".pending")
   if (file.exists(temporary)) unlink(temporary, force = TRUE)
-  Matrix::writeMM(Matrix::Matrix(as.matrix(values), sparse = TRUE), temporary)
+  dense <- as.matrix(values)
+  storage.mode(dense) <- "double"
+  if (any(!is.finite(dense))) .wb_operation_pack_v3_error(
+    "PYBENCH_CAPABILITY_MISMATCH",
+    "Typed-slice Matrix Market values must be finite.", "staging")
+  indices <- which(dense != 0, arr.ind = TRUE)
+  if (length(indices)) indices <- indices[order(indices[, 2L],
+    indices[, 1L]), , drop = FALSE]
+  entries <- if (!nrow(indices)) character() else
+    vapply(seq_len(nrow(indices)), function(i) paste(
+      as.integer(indices[i, 1L]), as.integer(indices[i, 2L]),
+      .wb_operation_pack_canonical_number(.wb_operation_pack_number_token(
+        dense[indices[i, 1L], indices[i, 2L]]))), character(1))
+  lines <- c("%%MatrixMarket matrix coordinate real general",
+    paste(nrow(dense), ncol(dense), nrow(indices)), entries)
+  writeBin(charToRaw(paste0(paste(lines, collapse = "\n"), "\n")),
+    temporary)
   if (!file.rename(temporary, path)) {
     unlink(temporary, force = TRUE)
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -792,9 +822,13 @@
           size = as.numeric(file.info(path)$size),
           sha256 = .wb_operation_pack_v2_file_sha256(path)))
       value <- jsonlite::read_json(path, simplifyVector = FALSE)
+      raw <- readChar(path, nchars = file.info(path)$size, useBytes = TRUE)
       .wb_operation_pack_v3_assert_self_identity(value, "manifest_identity",
         "PYBENCH_CAPABILITY_MISMATCH", "staging")
-      if (!identical(observed, descriptor$payload_manifest_identity) ||
+      if (!setequal(names(value), c("schema", "axis", "count", "ids",
+            "order_identity", "manifest_identity")) ||
+          !identical(raw, .wb_operation_pack_canonical_json(value)) ||
+          !identical(observed, descriptor$payload_manifest_identity) ||
           !identical(value$manifest_identity,
             descriptor$axis_manifest_identity) ||
           !identical(value$order_identity, descriptor$order_identity) ||
@@ -1220,6 +1254,7 @@
     manifest <- .wb_operation_pack_v2_identity_plain(
       "scworkbench.operation_pack.payload_manifest.v2",
       list(path = paste0("provenance_reads/", name, "/payload.json"),
+        size = as.numeric(file.info(payload)$size),
         sha256 = .wb_operation_pack_v2_file_sha256(payload)))
     if (!identical(manifest, read$payload_manifest_identity))
       return(fail("v3_provenance_read_payload_identity_mismatch", name))
@@ -1422,9 +1457,19 @@
       "content_verified")) .wb_operation_pack_v3_error(
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
     "Artifact producer output is not content-verified.", "resolution")
-  stored_content <- list(scheme = .wb_operation_pack_v3_scalar_db(
+  provenance_output_identity <- list(scheme = .wb_operation_pack_v3_scalar_db(
     output$content_identity_scheme), sha256 = .wb_operation_pack_v3_scalar_db(
       output$content_sha256))
+  if (!nzchar(provenance_output_identity$scheme) ||
+      !grepl("^[0-9a-f]{64}$", provenance_output_identity$sha256))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Artifact producer output has an invalid durable identity.",
+      "resolution")
+  # The provenance output identity authenticates the durable artifact record,
+  # whereas the reader grant authenticates the rehydrated typed primitive.
+  # The ancestry snapshot's content fields bind the latter so independently
+  # authored runtimes compare like-for-like scientific content identities.
+  stored_content <- input_record$content_identity
   run_id <- .wb_operation_pack_v3_scalar_db(output$run_id)
   run <- DBI::dbGetQuery(con,
     "SELECT * FROM prov_runs WHERE snapshot_id=? AND run_id=?;",
@@ -1494,6 +1539,7 @@
     manifest <- .wb_operation_pack_v2_identity_plain(
       "scworkbench.operation_pack.payload_manifest.v2",
       list(path = relative,
+        size = as.numeric(file.info(path)$size),
         sha256 = .wb_operation_pack_v2_file_sha256(path)))
     descriptor <- list(
       schema = "scworkbench.operation_pack.provenance_read_descriptor.v1",
@@ -1821,11 +1867,28 @@
       `[[`, character(1), "input"))
     bound <- stats::setNames(lapply(names(resolved), function(name) {
       value <- resolved[[name]]
-      if (!name %in% typed_inputs || !identical(value$kind, "matrix") ||
-          !is.null(value$values)) return(.wb_operation_pack_v2_bind_inputs(
+      if (!name %in% typed_inputs || !identical(value$kind, "matrix"))
+        return(.wb_operation_pack_v2_bind_inputs(
             bundle, stats::setNames(list(value), name),
             effective_cells)[[name]])
       out <- .wb_operation_pack_v2_deep_copy(value)
+      if (!is.null(value$values)) {
+        cells <- as.character(effective_cells)
+        input_cells <- as.character(value$cell_id)
+        input_features <- as.character(value$feature_id)
+        indices <- match(cells, input_cells)
+        if (anyNA(indices)) .wb_operation_pack_v3_error(
+          "PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "In-memory typed-slice input does not cover effective cells.",
+          "resolution")
+        out$values <- value$values[, indices, drop = FALSE]
+        out$cell_id <- cells
+        out$feature_id <- input_features
+        out$dimensions <- as.integer(c(length(input_features),
+          length(cells)))
+        out$storage_profile <- "matrix_ordinary_v1"
+        return(out)
+      }
       available <- wb_cells_with_matrix(bundle, value$matrix_id)
       out$cell_id <- as.character(effective_cells)[as.character(
         effective_cells) %in% available]

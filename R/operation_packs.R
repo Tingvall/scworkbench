@@ -420,7 +420,7 @@
 .wb_operation_pack_validate_param <- function(param, op_name) {
   .wb_operation_pack_named_object(param, paste0(op_name, "$params[]"), allow_empty = FALSE)
   allowed <- c("name", "type", "default", "required", "nullable", "allow_non_finite",
-               "min", "max", "choices", "help")
+               "allow_empty", "min", "max", "choices", "help")
   extra <- setdiff(names(param), allowed)
   .wb_operation_pack_assert(!length(extra), "OPERATION_PACK_PARAMETER_INVALID",
     paste0("Operation '", op_name, "' parameter contains unsupported fields: ", paste(extra, collapse = ", "), "."),
@@ -434,6 +434,15 @@
   .wb_operation_pack_assert(type %in% supported, "OPERATION_PACK_PARAMETER_INVALID",
     paste0("Operation '", op_name, "' parameter '", name, "' has unsupported type '", type, "'."),
     operation = op_name, parameter = name)
+  if ("allow_empty" %in% names(param)) {
+    .wb_operation_pack_assert(is.logical(param$allow_empty) &&
+      length(param$allow_empty) == 1L && !is.na(param$allow_empty) &&
+      type %in% c("string_vec", "string_array", "cell_ids"),
+      "OPERATION_PACK_PARAMETER_INVALID",
+      paste0("Operation '", op_name, "' parameter '", name,
+        "' has an invalid allow_empty declaration."),
+      operation = op_name, parameter = name)
+  }
   if (identical(type, "choice")) {
     choices <- unlist(param$choices %||% list(), use.names = FALSE)
     .wb_operation_pack_assert(is.character(choices) && length(choices) && !anyNA(choices) &&

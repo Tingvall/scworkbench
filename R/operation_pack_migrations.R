@@ -25,8 +25,8 @@
         paste(sort(candidates, method = "radix"), collapse = ", "), ". Use a qualified name."),
       operation = op_name, candidates = sort(candidates, method = "radix"),
       class = "wb_operation_pack_ambiguous")
-    target <- .wb_operation_pack_migrated_map()[[op_name]]
-    if (!is.null(target)) .wb_operation_pack_abort(
+    target <- unname(.wb_operation_pack_migrated_map()[op_name])
+    if (length(target) && !is.na(target)) .wb_operation_pack_abort(
       "OPERATION_PACK_REQUIRED",
       paste0("Operation '", op_name, "' moved to '", target,
         "'. Install and explicitly activate scwbStatistics."),
@@ -45,6 +45,7 @@
 
 .wb_operation_pack_params_transport <- function(value) {
   if (is.factor(value)) value <- as.character(value)
+  if (is.atomic(value) && !length(value)) return(list())
   if (is.atomic(value) && length(value) > 1L) return(unname(as.list(value)))
   if (is.list(value)) {
     out <- lapply(value, .wb_operation_pack_params_transport)

@@ -670,6 +670,8 @@
     metadata <- if (is.na(public_index)) NULL else public[[public_index]]
     type <- as.character(metadata$type %||% .wb_operation_pack_v2_catalog_param_type(item))[1]
     out <- list(name = name, type = type)
+    if (identical(type, "string_vec") &&
+        as.numeric(item$minItems %||% 0) == 0) out$allow_empty <- TRUE
     if ("default" %in% names(item)) out["default"] <- list(if (type %in% c("int", "dbl"))
       as.numeric(item$default) else item$default)
     if (!is.null(item$minimum)) out$min <- as.numeric(item$minimum)

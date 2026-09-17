@@ -134,7 +134,11 @@
   } else if (type %in% c("string", "path", "cell_set", "choice")) {
     value <- .wb_assert_nonempty_character(value, label, scalar = TRUE)
   } else if (type %in% c("string_vec", "string_array", "cell_ids")) {
-    value <- .wb_assert_nonempty_character(value, label)
+    if (isTRUE(param$allow_empty) && is.character(value) && !length(value)) {
+      value <- character()
+    } else {
+      value <- .wb_assert_nonempty_character(value, label)
+    }
   } else if (identical(type, "metadata_field")) {
     if (.wb_is_metadata_field_ref(value)) value <- .wb_validate_metadata_field_ref(value, label)
     else value <- .wb_assert_nonempty_character(value, label, scalar = TRUE)

@@ -179,9 +179,21 @@ wb_cells_with_matrix <- function(bundle, matrix_id) {
   source_id <- NULL
   dims <- NULL
   if (kind == "matrix") {
-    source_id <- as.character(primitive$matrix_id)[1]
-    cells <- wb_cells_with_matrix(bundle, source_id)
-    .wb_assert(length(cells) > 0L, paste0("Resolved matrix input '", name, "' has no registered cell coverage."))
+    if (!is.null(primitive$values)) {
+      cells <- as.character(primitive$cell_id %||%
+        colnames(primitive$values) %||% character())
+      .wb_assert(ncol(primitive$values) == length(cells), paste0(
+        "Resolved in-memory matrix input '", name,
+        "' has inconsistent cell-axis length."))
+      cells <- .wb_coverage_validate_ids(cells, canonical, paste0(
+        "Resolved in-memory matrix input '", name, "'"))
+      dims <- as.integer(dim(primitive$values))
+    } else {
+      source_id <- as.character(primitive$matrix_id)[1]
+      cells <- wb_cells_with_matrix(bundle, source_id)
+      .wb_assert(length(cells) > 0L, paste0("Resolved matrix input '",
+        name, "' has no registered cell coverage."))
+    }
   } else if (kind %in% c("space", "space_2d")) {
     source_id <- as.character(primitive$space_id)[1]
     dims <- .wb_coverage_dims(name, kind, primitive, inputs)

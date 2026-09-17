@@ -178,9 +178,9 @@
   feature_axis <- .wb_operation_pack_v3_broker_axis_value("features",
     features)
   cell_axis <- .wb_operation_pack_v3_broker_axis_value("cells", cells)
-  .wb_operation_pack_v2_atomic_json(feature_axis,
+  .wb_operation_pack_v3_atomic_canonical_json(feature_axis,
     file.path(pending, "features.json"))
-  .wb_operation_pack_v2_atomic_json(cell_axis,
+  .wb_operation_pack_v3_atomic_canonical_json(cell_axis,
     file.path(pending, "cells.json"))
   primitive <- structure(list(kind = "matrix", values = values,
     feature_id = features, cell_id = cells), class = "wb_primitive")
@@ -207,7 +207,7 @@
   manifest$response_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.typed_slice_response.v1",
     "response excluding response_identity", manifest)
-  .wb_operation_pack_v2_atomic_json(manifest,
+  .wb_operation_pack_v3_atomic_canonical_json(manifest,
     file.path(pending, "manifest.json"))
   response_size <- sum(file.info(list.files(pending, full.names = TRUE))$size)
   if (response_size > as.numeric(grant$max_response_bytes) ||

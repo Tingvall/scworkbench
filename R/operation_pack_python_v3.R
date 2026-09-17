@@ -217,10 +217,17 @@
     "commandArgs(TRUE)[1],commandArgs(TRUE)[2],commandArgs(TRUE)[3])")
   source_dir <- as.character(bundle$staging_source_dir %||% bundle$dir)[1]
   broker_args <- c("-e", broker_script, stage, bundle$dir, source_dir)
+  broker_root <- file.path(stage, "broker")
+  dir.create(broker_root, recursive = TRUE, showWarnings = FALSE)
+  if (!dir.exists(broker_root) || nzchar(Sys.readlink(broker_root)))
+    .wb_operation_pack_v2_error("OPERATION_PACK_RUNTIME_UNAVAILABLE",
+      "Could not create the typed-slice broker endpoint.", "execution")
   broker_env <- c(PYBENCH_OPERATION_PACK_BROKER_TOKEN = token,
-    PYBENCH_OPERATION_PACK_BROKER_TIMEOUT = as.character(timeout))
+    PYBENCH_OPERATION_PACK_BROKER_TIMEOUT = as.character(timeout),
+    R_LIBS = paste(.libPaths(), collapse = .Platform$path.sep))
   python_env <- c(PYBENCH_OPERATION_PACK_BROKER_TOKEN = token,
-    PYBENCH_OPERATION_PACK_BROKER_ROOT = file.path(stage, "broker"))
+    PYBENCH_OPERATION_PACK_BROKER_ROOT = broker_root,
+    PYBENCH_OPERATION_PACK_BROKER_TIMEOUT_SECONDS = as.character(timeout))
   broker <- tryCatch(processx::process$new(file.path(R.home("bin"),
     "Rscript"), broker_args, stdout = "|", stderr = "|",
     env = broker_env, cleanup_tree = TRUE), error = identity)
@@ -273,6 +280,17 @@
   python$wait()
   python_stdout <- c(python_stdout, python$read_all_output_lines())
   python_stderr <- c(python_stderr, python$read_all_error_lines())
+  python_status <- as.integer(python$get_exit_status())
+  if (!identical(python_status, 0L)) {
+    if (broker$is_alive()) broker$kill_tree()
+    try(broker$wait(timeout = 2000), silent = TRUE)
+    broker_stdout <- c(broker_stdout, tryCatch(
+      broker$read_all_output_lines(), error = function(error) character()))
+    broker_stderr <- c(broker_stderr, tryCatch(
+      broker$read_all_error_lines(), error = function(error) character()))
+    return(list(status = python_status, stdout = paste(python_stdout,
+      collapse = "\n"), stderr = paste(python_stderr, collapse = "\n")))
+  }
   .wb_operation_pack_v2_atomic_json(list(stop = TRUE),
     file.path(stage, "broker", "stop.json"))
   broker$wait(timeout = min(10000, timeout * 1000))
@@ -289,7 +307,7 @@
       paste0("Typed-slice broker failed: ", error$message %||%
         "unknown broker failure"), "execution")
   }
-  list(status = python$get_exit_status(), stdout = paste(python_stdout,
+  list(status = python_status, stdout = paste(python_stdout,
     collapse = "\n"), stderr = paste(python_stderr, collapse = "\n"))
 }
 
@@ -313,11 +331,14 @@
     if (!identical(as.integer(supervised$status), 0L)) {
       record <- tryCatch(jsonlite::read_json(receipt_path,
         simplifyVector = FALSE), error = function(e) NULL)
-      error <- record$error %||% record %||% list()
-      .wb_operation_pack_v2_error(as.character(error$code %||%
-          "PYBENCH_PROCESS_FAILED")[1], as.character(error$message %||%
-          paste0("Python ABI v3 exited with status ", supervised$status,
-            "."))[1], as.character(error$phase %||% "execution")[1])
+      error <- if (is.list(record$error %||% NULL)) record$error else
+        if (is.list(record)) record else list()
+      .wb_operation_pack_v2_error(as.character(error$error_code %||%
+          error$code %||% "PYBENCH_PROCESS_FAILED")[1],
+        as.character(error$message %||% if (nzchar(supervised$stderr))
+          supervised$stderr else paste0("Python ABI v3 exited with status ",
+            supervised$status, "."))[1],
+        as.character(error$phase %||% "execution")[1])
     }
     supervised
   } else .wb_operation_pack_v2_python_run(config$python, args,
