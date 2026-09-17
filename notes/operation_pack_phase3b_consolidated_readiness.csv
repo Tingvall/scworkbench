@@ -1,6 +1,6 @@
 operation,current_generic_status,new_generic_capabilities,method_specific_comparator_remaining,fixture_groups,migration_authorized
 addmodulescore,blocked_variable_family_grant,authenticated_output_axes_v1:cell_key_cartesian,"control sampling; selected cells; canonical score identity",CARD;LIFE,no
-ucell,blocked_family_grant_and_cell_chunking,"authenticated_output_axes_v1:cell_key_cartesian; cell_chunk_schedule_v1; row_bind_cell_vector_family_v1; pure_summary_finalizer_v1:fresh_pack_invocation_v1","UCell numerical equivalence; score and summary exact terminals",CARD;CHUNK;LIFE,no
+ucell,blocked_family_grant_and_bounded_matrix_reader,"authenticated_output_axes_v1:cell_key_cartesian; typed_slice_read_v1:matrix:cells:ordered_partition_exactly_once","UCell-owned partition work merge and summary; one-vs-many and backed-vs-memory numerical equivalence; score and summary exact terminals",CARD;SLICE;LIFE,no
 cell_vector_family_reduce,blocked_distinct_cell_vector_grant,authenticated_output_axes_v1:one_per_cell,"tie and abstention rules; one-key behavior; NA score and margin semantics",CARD;LIFE,no
 cell_vector_family_calibrate,blocked_selected_key_family_grant,authenticated_output_axes_v1:cell_key_cartesian,"NA policy; random-tie determinism; calibration summary",CARD;LIFE,no
 cell_vector_family_qc,generic_capabilities_available,none,"zero/one/many keys; absent grouping; pairwise cardinality; exact three-table equivalence",METHOD;LIFE,no

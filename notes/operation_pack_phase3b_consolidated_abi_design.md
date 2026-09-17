@@ -1,12 +1,14 @@
 # Phase 3B consolidated ABI successor design ledger
 
-Status: **DESIGN ACCEPTED FOR SCHEMA FREEZE; IMPLEMENTATION AUTHORIZED**
+Status: **CORRECTED JOINT DESIGN; SABLE REVIEW REQUIRED BEFORE SCHEMA FREEZE**
 
 This is the joint Forge/Quill design checkpoint required before any shared
 schema is frozen. It contains no runtime implementation and authorizes no
 GenePrograms migration. The feature-set-registry pair has independent
-acceptance and Sable has accepted this ledger, so the exact implementation
-base recorded below is now authorized.
+acceptance. Controller commit `9c784db1097c8d671ad98ab610f6624787b586c3`
+supersedes the previously accepted operation-shaped chunk schedule, merge, and
+summary-finalizer design. Sable must accept this corrected ledger before the
+successor protocol is frozen or implementation resumes.
 
 ## Inputs and gates
 
@@ -21,7 +23,9 @@ base recorded below is now authorized.
   `3e02ea266862adc3ffa96c5d0d99e817f1e43e06`; Meridian-9 audit commit
   `969b6d5299496f06cee126aef6919eb5960c1aec` records `ACCEPTED` for this exact pair.
 - Implementation starts from exactly that accepted pair.
-- Sable accepted this design for schema freeze on 2026-09-17.
+- Sable accepted the cardinality and ancestry portions on 2026-09-17. Its
+  earlier chunk disposition is superseded by the controller correction and is
+  not schema-freeze authority for the typed reader below.
 
 The amendment is generic. No rule selects an operation by name, pack namespace,
 or implementation language. A pack opts into the successor explicitly; no v1
@@ -88,14 +92,12 @@ The only new identity schemes are:
 - `scworkbench.operation_pack.observed_output.v3`
 - `scworkbench.operation_pack.runtime.v3`
 - `scworkbench.operation_pack.output_cardinality_grant.v1`
-- `scworkbench.operation_pack.chunk_fragment_grant.v1`
-- `scworkbench.operation_pack.observed_chunk_fragment.v1`
 - `scworkbench.operation_pack.observed_output_cardinality.v1`
-- `scworkbench.operation_pack.cell_chunk_schedule.v1`
-- `scworkbench.operation_pack.cell_chunk_observation.v1`
-- `scworkbench.operation_pack.summary_finalizer_definition.v1`
-- `scworkbench.operation_pack.summary_finalizer_metadata.v1`
-- `scworkbench.operation_pack.summary_finalizer_invocation.v1`
+- `scworkbench.operation_pack.typed_slice_grant.v1`
+- `scworkbench.operation_pack.typed_slice_axis_manifest.v1`
+- `scworkbench.operation_pack.typed_slice_response.v1`
+- `scworkbench.operation_pack.observed_typed_slice_call.v1`
+- `scworkbench.operation_pack.typed_slice_usage.v1`
 - `scworkbench.artifact_ancestry.snapshot.v1`
 - `scworkbench.operation_pack.provenance_read_descriptor.v1`
 - `scworkbench.operation_pack.observed_provenance_read.v1`
@@ -112,12 +114,13 @@ only the declarations and evidence defined here. The embedded outer
 self-identities use exact scopes `capability excluding capability_identity`,
 `request excluding request_identity`, and
 `receipt excluding receipt_identity`. Each preimage is its complete v3 object
-with only that self-identity field absent. The request adds `chunk_schedules`
-and `provenance_reads` only when declared, and nests cardinality grants in the
-affected output descriptors. The receipt adds `chunk_executions` and observed
-`provenance_reads` only when expected, and nests observed cardinality in the
-affected output descriptors. These conditional members are absent, never null.
-The capability binds every nested grant/descriptor/schedule identity.
+with only that self-identity field absent. The request adds
+`typed_slice_grants` and `provenance_reads` only when declared, and nests
+cardinality grants in the affected output descriptors. The receipt adds
+`typed_slice_usage` and observed `provenance_reads` only when expected, and
+nests observed cardinality in the affected output descriptors. These
+conditional members are absent, never null. The capability binds every nested
+grant and descriptor identity.
 
 The other changed containing identities are closed as follows:
 
@@ -158,8 +161,8 @@ The other changed containing identities are closed as follows:
   interpreter, seed, and device shapes are byte-for-byte those of the frozen
   v3 sidecar; all fields are required and none is nullable except inherited
   `seed.value` when its status is `not_declared`. There is no optional chunk
-  field. Cell-chunk evidence is authoritative only in the
-  shared receipt. This Python-owned schema hash is recorded during composite
+  field. Typed-slice usage evidence is authoritative only in the shared
+  receipt. This Python-owned schema hash is recorded during composite
   qualification but is not a fifth cross-language shared protocol file.
 
 Unchanged entry-point, installed-content, input-descriptor, dependency,
@@ -384,231 +387,192 @@ and key axis `[sigB,sigA]`. Its family rows are
 `[(sigB,c2),(sigB,c1),(sigB,c3),(sigA,c2),(sigA,c1),(sigA,c3)]`;
 reduction produces `[(c2),(c1),(c3)]`.
 
-## Capability 2: authenticated cell-axis chunks and two-terminal merge
+## Capability 2: generic authenticated typed-slice delivery
 
-### Manifest declaration
+Controller commit `9c784db1097c8d671ad98ab610f6624787b586c3`
+requires the pack-facing reader to be a grant-scoped adapter over the ordinary
+public getter. It explicitly forbids an operation-shaped core schedule,
+fragment writer, scientific merge, or summary finalizer. UCell owns all of
+those algorithmic choices and emits its ordinary granted terminal primitives.
 
-The existing feature-axis form remains unchanged. A second closed form of the
-optional `chunking` object is:
+### Public getter and manifest declaration
 
-```
-axis                      cells
-input                     declared matrix input
-size_parameter            normalized positive integer or nullable disable
-fragment_output           declared cell_vector_family terminal
-summary_output            declared obs_table terminal
-key_axis_policy           reference to authenticated_output_axes_v1
-merge                     row_bind_cell_vector_family_v1
-summary.interface         pure_summary_finalizer_v1
-summary.callable          authenticated pack-local callable name
-summary.isolation         fresh_pack_invocation_v1
-summary.metadata_sources  ordered closed source projections
-```
+The public pure helper `wb_partition_axis(ids, chunk_size)` preserves the
+caller-supplied unique order and returns consecutive nonempty partitions; an
+empty axis produces zero partitions. The public `wb_slice_chunks()` iterator
+uses that helper and calls `wb_slice()` once for each requested matrix slice.
+It never preloads all chunks. Ordinary clients may instead call `wb_slice()`
+repeatedly with the same partitions. The pack adapter delegates every actual
+read to that exact `wb_slice()` backend; there is no pack-only storage reader.
 
-Both outputs must be declared terminals. The family must use
-`cell_key_cartesian` against the same matrix input. No operation name is part
-of validation. Each `summary.metadata_sources` entry has exactly
-`{name, source}` plus the named selector required by its source. The closed
-sources are `resolved_key_axis` plus `output`, `normalized_parameter` plus
-`parameter`, `input_reference` plus `input`, and `input_descriptor` plus
-`input`. All names must resolve in the admitted operation; arbitrary literal
-metadata and callbacks receiving ambient context are forbidden.
-
-### Schedule identity
-
-Core resolves the effective ordered cell axis and effective chunk size before
-dispatch. A disabled/null size is represented as one chunk for a non-empty
-axis and zero chunks for an empty axis. The schedule is compact and does not
-repeat cell identifiers:
+The first closed typed-reader version supports only `kind = matrix`, axes
+`cells` and `features`, and sparse numeric values with exact ordered feature
+and cell IDs. Other primitive kinds are rejected rather than projected through
+new storage code. A v3 operation opts in with ordered `typed_slice_reads`:
 
 ```
-schema                    scworkbench.operation_pack.cell_chunk_schedule.v1
-input_name
+name                       unique capability name
+input                      declared matrix input
+reader                     read_typed_slices
+supported_axes             nonempty subset of [cells, features]
+chunk_axis                 one supported axis
+chunk_size_parameter       normalized positive-integer parameter
+call_discipline            ordered_partition_exactly_once | independent_slices
+empty_selection_policy     allow_zero_axis | reject
+duplicate_policy           reject
+selection.cells            authenticated effective input cells or declared selector
+selection.features         authenticated effective input features or declared selector
+```
+
+The declaration names no output, merge, summary, operation, or scientific
+algorithm. `ordered_partition_exactly_once` requires the concatenated served
+IDs on `chunk_axis` to equal the authenticated selected axis exactly, but the
+pack chooses the requested chunk size, boundaries, call order, computation,
+merge, and summary. `independent_slices` permits repeated or overlapping calls
+between requests while still rejecting duplicate IDs within one axis vector.
+
+### Grant, selected axes, and resource bounds
+
+Core resolves both selected axes before dispatch from the authenticated input
+and declared selector. Selection preserves source or explicit selector order,
+contains no duplicates, and cannot add IDs. Each axis is staged as a canonical
+manifest so the pack can learn the exact available IDs without placing a
+bundle handle, database handle, storage path, or full matrix in its input:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_axis_manifest.v1
+axis                       cells | features
+count
+ids                        exact ordered strings
+order_identity             cell_order.v1 or feature_order.v1
+manifest_identity
+```
+
+`manifest_identity` has scope `axis manifest excluding manifest_identity`.
+The request embeds the complete small fixture form and may use a separately
+staged byte-identical axis manifest for large axes; in either form count,
+order identity, manifest byte identity, and content identity are request-bound.
+An empty selection is represented by `count = 0`, `ids = []`, and the canonical
+empty-axis identity. An individual nonempty read may not contain an empty
+fixed axis. Under `allow_zero_axis`, a zero-axis execution makes no calls and
+returns no implicit scientific result; ordinary output grants still decide
+whether an operation can publish outputs.
+
+Each request grant is exactly:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_grant.v1
+name, input_name, kind     capability/input/matrix
+reader                     read_typed_slices
 input_descriptor_identity
-axis                       cells
-axis_count
-axis_order_identity        scworkbench.cell_order.v1
-requested_chunk_size       positive integer or explicit JSON null
-effective_chunk_size
-batches[]                  ordered {index, start, length, cell_order_identity,
-                           fragment_grant}
-merge_policy, fragment_output, summary_output
-summary_finalizer_definition
-schedule_identity          scworkbench.operation_pack.cell_chunk_schedule.v1
+input_content_identity
+source_reference_identity
+supported_axes, chunk_axis
+cells_axis_manifest_identity
+features_axis_manifest_identity
+requested_chunk_size       exact normalized parameter value
+call_discipline, empty_selection_policy, duplicate_policy
+max_rows, max_columns, max_elements, max_response_bytes
+max_outstanding_responses  1
+grant_identity
 ```
 
-`schedule_identity` has exact scope
-`schedule excluding schedule_identity`; its preimage is every preceding field
-with only that field absent. `requested_chunk_size = null` means disabled. For
-a nonempty axis, `effective_chunk_size` is the axis count when disabled and the
-minimum of the requested size and axis count otherwise. For an empty axis it is
-zero and `batches` is empty.
+`grant_identity` has scope `grant excluding grant_identity`. Limits are
+positive integers fixed in the request. A call above any limit fails; core
+never silently shrinks or repartitions it. A global default may select limits
+only for a new run. Strict replay reconstructs the historical grant; if the
+runtime can no longer honor it, replay fails before dispatch instead of using
+a new default.
 
-Each batch's `fragment_grant` is exactly:
+The pack learns its capability from a deep-copy execution-context descriptor
+containing the grant and selected axis manifests. R and Python expose the same
+call shape, `readers[[input]](features = ..., cells = ...)` and
+`readers[input](features=..., cells=...)`. Both require explicit, unique,
+in-grant axis vectors in the granted order. The normalized
+`chunk_size_parameter` remains pack-owned algorithm metadata and durable run
+input; core checks each call against it only for
+`ordered_partition_exactly_once`. Core does not construct the partition.
 
-```
-schema                       scworkbench.operation_pack.chunk_fragment_grant.v1
-fragment_output
-parent_cardinality_grant_identity
-input_descriptor_identity
-batch_index
-batch_start
-batch_length
-batch_cell_order_identity
-key_axis_count
-key_axis                     exact full ordered keys
-key_axis_order_identity
-expected_row_count           batch_length * key_axis_count
-row_order_identity           exact key-major batch-cell pairs
-missing_values
-fragment_grant_identity
-```
+### Genuinely bounded Python transport
 
-`fragment_grant_identity` has scope
-`grant excluding fragment_grant_identity`; its preimage is every preceding
-field with only that field absent. It deliberately omits `schedule_identity`,
-avoiding a hash cycle. The enclosing schedule authenticates the complete
-ordered batch and grant, while `parent_cardinality_grant_identity` binds the
-fragment back to the full terminal grant. Both runtimes independently derive
-and compare every fragment grant before dispatch.
+Broker-enabled matrices are not written to `inputs/<name>/payload.json`.
+Core starts a supervised read-only R broker child before Python dispatch. The
+bundle path is passed only to that trusted child. The Python adapter receives
+only a private transition-local endpoint token and the public grant/axis
+descriptors. The broker uses a contained synchronous request/response spool:
 
-Starts and indices are 1-based integers, lengths are positive, batches are
-contiguous/non-overlapping, the first start is 1, each next start is the prior
-start plus length, and the final batch ends at `axis_count`. Python may
-convert `start - 1` only internally while slicing. `cell_order_identity` hashes
-the actual ordered cell IDs for that slice with
-`scworkbench.cell_order.v1`. Schedule identity is bound
-into the request, execution capability, run evidence, receipt, and replay
-comparison. Parameter or source mutation after preflight is rejected before
-dispatch or publication.
+1. Python atomically publishes one canonical control request with token, grant
+   identity, monotonically increasing ordinal, and bounded feature/cell IDs.
+2. The broker validates containment, token, ordinal, identities, subset/order,
+   dimensions, product, and source currentness before calling `wb_slice()`.
+3. It writes one response directory containing a Matrix Market sparse payload,
+   canonical axis JSON, and a closed manifest of dimensions, byte hashes,
+   semantic typed-payload identity, source/grant identities, and response
+   identity. A ready marker is renamed into place only after all files close.
+4. Python verifies regular-file containment, no symlinks, hashes, identities,
+   dimensions, and limits before loading that one chunk, then acknowledges it.
+   The broker deletes the response before accepting another request.
 
-### Reader, fragment writer, merge, and finalizer
+`max_outstanding_responses = 1`, plus the row/column/element/byte ceilings,
+bounds both sides of the process boundary. The transition supervisor polls the
+pack and broker, propagates either child's failure, enforces timeouts, and on
+all exits terminates, then kills and waits for a surviving child. Request,
+response, temporary, ready, acknowledgement, and token material are private
+workspace data and are deleted before publication. A malformed or out-of-order
+request, limit overflow, unexpected file, hash/axis mismatch, broker or pack
+death, missing acknowledgement, getter error, or source mutation aborts the
+transition with zero public residue.
 
-The adapter exposes only scheduled cell slices through the declared matrix
-reader and `write_chunk(fragment_output, index, value)`. For each
-schedule batch, the pack must read that exact slice and return exactly one
-family fragment with the complete authorized key axis and key-major/cell-minor
-rows for that slice. Missing, duplicate, overlapping, reordered, empty, or
-unscheduled reads/fragments fail.
+The spool is transport, not a second getter: only the broker reads retained
+state and every read calls canonical `wb_slice()`. Matrix Market bytes are
+transport-authenticated but not scientific identity; semantic identity covers
+the typed sparse values and exact axes.
 
-The adapter—not operation-specific core code—validates fragments and performs
-the deterministic merge. It iterates keys in the authenticated key order and,
-within each key, chunks in schedule order, producing the same key-major/cell-
-minor family as an unchunked run. It does not select a first row, sort arbitrary
-pack output, or trust a pack-reported aggregate.
+### Durable usage and scientific boundary
 
-After all chunks pass, the adapter stages the merged family privately and
-starts a fresh invocation of the same authenticated pack distribution. This
-invocation receives only a deep, read-only copy of the merged family and the
-declared `finalizer_metadata` projection. It receives no chunk fragments,
-prior process memory, reader/writer map, bundle/session handle, transition
-workspace, or ambient operation context. The adapter invokes the authenticated
-`summary.callable` once and accepts exactly one returned `summary_output`.
-Early summary writes, a summary from the chunk process, extra outputs, or a
-finalizer that requests undeclared state fail before ordinary staging.
-
-The summary-finalizer definition is:
+Every served response records one call:
 
 ```
-schema                        scworkbench.operation_pack.summary_finalizer_definition.v1
-interface                     pure_summary_finalizer_v1
-callable
-isolation                     fresh_pack_invocation_v1
-merged_input                  fragment_output name
-summary_output
-metadata_sources              exact ordered manifest entries
-finalizer_definition_identity
+schema                     scworkbench.operation_pack.observed_typed_slice_call.v1
+ordinal, grant_identity
+feature_count, feature_order_identity
+cell_count, cell_order_identity
+dimensions
+semantic_content_identity
+response_identity
+call_identity
 ```
 
-Its identity scope is
-`definition excluding finalizer_definition_identity`. The adapter constructs:
+`call_identity` has scope `call excluding call_identity`; the response uses
+scheme `scworkbench.operation_pack.typed_slice_response.v1` and scope
+`response excluding response_identity`. The receipt adds one ordered usage
+object per grant:
 
 ```
-schema                        scworkbench.operation_pack.summary_finalizer_metadata.v1
-finalizer_definition_identity
-values                        ordered [{name, value}, ...]
-finalizer_metadata_identity
+schema                     scworkbench.operation_pack.typed_slice_usage.v1
+request_identity, capability_identity, operation_definition_identity
+grant_identity, requested_chunk_size
+calls[]
+call_count
+concatenated_chunk_axis_order_identity
+unique_chunk_axis_count, duplicate_chunk_axis_count
+coverage_status            exact | independent | empty
+usage_identity
 ```
 
-with scope `metadata excluding finalizer_metadata_identity`, then records:
+`usage_identity` has scope `usage excluding usage_identity`. Receipt audit
+rederives every call from broker-owned records and response manifests, checks
+the declared discipline, and rejects a pack-only unobserved read. Strict
+replay compares the exact grant and usage object. These records prove which
+bounded core getter reads occurred; they do not prove UCell arithmetic.
 
-```
-schema                        scworkbench.operation_pack.summary_finalizer_invocation.v1
-finalizer_definition_identity
-merged_family_content_identity
-finalizer_metadata_identity
-summary_content_identity
-finalizer_invocation_identity
-```
-
-with scope `invocation excluding finalizer_invocation_identity`. These three
-objects forbid unknown or optional fields. The schedule embeds the complete
-definition object; the request identity therefore authenticates it.
-`callable` is a nonempty language-neutral pack export key matching
-`^[a-z][a-z0-9_]*$`. A metadata `value` may be null only when its named,
-authenticated source value is null; the `{name, value}` object itself is never
-omitted.
-
-This proves schedule completeness, deterministic merge, isolated post-merge
-invocation, and exact input/result binding. It does **not** prove arbitrary
-UCell numerical summary correctness. Exact old-core/new-pack equality for
-summary fields, order, missing values, quantiles, and one-versus-many chunks
-remains a mandatory UCell method comparator. No UCell-specific summary
-algorithm is frozen into core by this amendment.
-
-The receipt adds exactly one `chunk_execution` tuple:
-
-```
-schema                     scworkbench.operation_pack.cell_chunk_observation.v1
-request_identity
-capability_identity
-operation_definition_identity
-schedule_identity
-observed_chunks[]          ordered observed-chunk-fragment objects
-merged_family_descriptor_identity
-merged_family_content_identity
-finalizer_definition_identity
-finalizer_metadata_identity
-finalizer_invocation_identity
-summary_source_identity    exact merged_family_content_identity
-summary_descriptor_identity
-summary_content_identity
-chunk_execution_identity   scworkbench.operation_pack.cell_chunk_observation.v1
-```
-
-`chunk_execution_identity` has exact scope
-`observation excluding chunk_execution_identity`; its preimage is every
-preceding field with only that field absent. `observed_chunks` is in numeric
-batch order and is bijective with the schedule.
-
-Each observed-chunk-fragment object is exactly:
-
-```
-schema                       scworkbench.operation_pack.observed_chunk_fragment.v1
-index
-fragment_grant_identity
-observed_row_count
-observed_cell_order_identity
-observed_key_order_identity
-observed_row_order_identity
-missing_count
-descriptor_identity
-content_identity
-semantic_validation          passed
-observed_fragment_identity
-```
-
-`observed_fragment_identity` has scope
-`observation excluding observed_fragment_identity`; its preimage is every
-preceding field with only that field absent. Receipt audit independently
-rederives it from the staged fragment and requires exact agreement with the
-schedule's batch-specific grant.
-
-Receipt audit requires the schedule and every observation to agree, the merged
-family and summary-source identities to be identical, and both terminal
-outputs to match their ordinary grants. One chunk and several chunks must yield
-the same two canonical terminal identities. A pack-private loop with no
-observations cannot satisfy this contract.
+UCell may partition cells, score each chunk, merge key-major results, and form
+its summary entirely in its pack process, then write the complete family and
+table through ordinary generic output grants. The later method comparator must
+show one versus several chunks, backed versus in-memory input, identical
+terminal identities, feature matching, missing values, and summary numbers.
+Any difference is a method-migration failure, not a reason to move scientific
+merge or summary code into core.
 
 ## Capability 3: core-attested artifact ancestry
 
@@ -789,17 +753,16 @@ callback:
 | Capability | R handler | Python handler |
 | --- | --- | --- |
 | bounded terminal | existing `writers$write_terminal_primitive(name, value, semantic_metadata)` | existing `writers.write_terminal_primitive(name, value, semantic_metadata)` |
-| chunk fragment | `writers$write_chunk(name, index, value)` | `writers.write_chunk(name, index, value)` |
-| deterministic merge | adapter-private | adapter-private |
-| pure summary finalizer | `finalizers[[callable]](merged_family, metadata)` in a fresh invocation | `finalizers[callable](merged_family, metadata)` in a fresh invocation |
+| typed matrix slice | `readers[[name]](features = ..., cells = ...)`, direct `wb_slice()` delegation | `readers[name](features=..., cells=...)`, bounded broker delegation to `wb_slice()` |
+| pure partition helper | `wb_partition_axis(ids, chunk_size)` | `partition_axis(ids, chunk_size)` |
 | ancestry | `readers[[name]]()` | `readers[name]()` |
 
 All new methods are adapter-owned closures scoped to one execution capability.
-Handlers cannot construct grants, finalize their own fragments, name a source
-artifact, obtain an underlying bundle, or publish. A finalizer is invoked by
-the adapter and receives no handler closure. R and Python independently
-validate their canonical tuples; core revalidates all staged payloads and
-receipt evidence before publication.
+Handlers cannot construct grants, name a source artifact, obtain an underlying
+bundle or storage path, or publish. Packs own partitioning, chunk work,
+scientific merge, and summary formation. R and Python independently validate
+their canonical tuples; core revalidates all broker records, staged payloads,
+and receipt evidence before publication.
 
 ## Atomic lifecycle shared by all three capabilities
 
@@ -816,8 +779,8 @@ the preimage. Retry starts a new transition and capability.
 Successful publication makes both terminal outputs and their complete receipt
 set observable together. Pack-free reopen and recipient validation recompute
 all descriptor/content identities. Strict replay authenticates the exact
-operation definition, normalized parameters, input descriptors, resolved axes,
-chunk schedule/execution, ancestry reads, outputs, and receipts.
+operation definition, normalized parameters, input descriptors, typed-slice
+grants and exact usage, ancestry reads, outputs, and receipts.
 
 ## Ten-method reconciliation
 
@@ -829,10 +792,9 @@ The exact machine-readable ledger is
   needs only the family axis/cardinality policy.
 - `ucell` uses parameter groups `features`, matrix input `matrix`, prefix
   `name`, missing policy parameter `missing_features_policy`, empty-group
-  `error`, and zero-key `error`; it also needs the cell-chunk/two-terminal
-  contract. Its finalizer metadata is exactly the resolved key-axis object for
-  `signature_scores`, the `matrix` input reference, and normalized
-  `missing_features_policy`; no other state is admitted.
+  `error`, and zero-key `error`; it additionally needs the generic matrix
+  typed-slice reader with cell-axis `ordered_partition_exactly_once`. The pack,
+  not core, owns chunk partitioning, score-family merge, and summary formation.
 - `cell_vector_family_reduce` uses the distinct-first-occurrence cell axis of
   `signal` and needs one-per-cell vector cardinality.
 - `cell_vector_family_qc` and `cell_vector_winners` need no new generic ABI;
@@ -841,8 +803,8 @@ The exact machine-readable ledger is
   input-family resolver on `signal` with selector `signal_keys`, unknown-key
   `error`, and zero-key `error`; calibration's NA/tie semantics remain a method
   comparator.
-- `cell_vector_family_graph_smooth` additionally needs artifact
-  ancestry; query chunking remains method-private and is not this ABI schedule.
+- `cell_vector_family_graph_smooth` additionally needs artifact ancestry;
+  query chunking remains method-private and is not a typed-reader declaration.
 - `winner_cell_sets` uses the accepted family admission, but migration
   atomicity/equivalence remains unproven.
 - `feature_set_overlap_qc` and `pathway_enrich` depend on the separately
@@ -866,14 +828,17 @@ Sable review must explicitly decide:
 
 1. whether the explicit v3/`pybench-op-v4` successor and compatibility matrix
    preserve every frozen v1/v2 byte and identity;
-2. whether compact chunk ranges plus authenticated slice identities are
-   sufficient without duplicating the complete cell axis in JSON;
-3. whether adapter-owned family merge plus a fresh, pure finalizer invocation,
-   together with the mandatory method comparator for numerical values, proves
-   UCell's two-terminal contract without adding scientific core code;
-4. whether `require_current` is the correct closed policy for implicit
+2. whether the matrix-only axes, exact selected-axis manifests, limits, call
+   disciplines, and usage identities form a closed generic reader grant;
+3. whether the supervised one-response spool is genuinely bounded across the
+   Python process boundary and delegates all retained-state reads to
+   `wb_slice()` without exposing a bundle or storage path;
+4. whether leaving UCell partitioning, merge, summary, and one-versus-many
+   equivalence entirely to pack code plus its mandatory method comparator is
+   the correct scientific boundary;
+5. whether `require_current` is the correct closed policy for implicit
    artifact ancestry; and
-5. whether any fixture lacks a fail-before-publication or zero-residue check.
+6. whether any fixture lacks a fail-before-publication or zero-residue check.
 
 No implementation, full suite, package check, pack migration, release pin,
 merge, push, tag, release, publication, bundle edit, container build, or Phase

@@ -1,6 +1,6 @@
 {
   "schema": "scworkbench.operation_pack.phase3b_consolidated_fixture_plan.v1",
-  "status": "design_accepted_for_schema_freeze",
+  "status": "corrected_joint_design_pending_sable_review",
   "implementation_gate": {
     "registry_pair": {
       "scworkbench_candidate": "957af89e8825f5c1b299e0703eba5e2312a16c8c",
@@ -8,7 +8,7 @@
       "status": "independently_accepted",
       "audit_commit": "969b6d5299496f06cee126aef6919eb5960c1aec"
     },
-    "sable_design_disposition": "accepted_for_schema_freeze",
+    "sable_design_disposition": "review_required_after_controller_9c784db_correction",
     "implementation_base": {
       "scworkbench": "957af89e8825f5c1b299e0703eba5e2312a16c8c",
       "pybench": "3e02ea266862adc3ffa96c5d0d99e817f1e43e06"
@@ -30,7 +30,7 @@
       ["sigA", "c2"], ["sigA", "c1"], ["sigA", "c3"]
     ],
     "reduced_rows": ["c2", "c1", "c3"],
-    "cell_chunks_size_2": [
+    "cell_partitions_size_2": [
       {"index": 1, "start": 1, "length": 2, "cells": ["c2", "c1"]},
       {"index": 2, "start": 3, "length": 1, "cells": ["c3"]}
     ]
@@ -108,73 +108,71 @@
       "reject": "before_dispatch_or_receipt_audit"
     },
     {
-      "id": "CHUNK-P01-single-chunk",
-      "capability": "cell_axis_chunking",
-      "expect": "one_observed_fragment_then_merge_then_summary_finalizer"
+      "id": "SLICE-P01-public-getter-single-chunk",
+      "capability": "typed_slice_read",
+      "expect": "public_partition_helper_and_wb_slice_chunks_return_one_bounded_sparse_matrix_in_requested_axis_order"
     },
     {
-      "id": "CHUNK-P02-multiple-chunks",
-      "capability": "cell_axis_chunking",
-      "expect": "size_2_schedule_over_three_cells_produces_two_ordered_fragments"
+      "id": "SLICE-P02-r-pack-multiple-chunks",
+      "capability": "typed_slice_read",
+      "expect": "R_pack_chooses_size_2_partition_and_each_read_delegates_to_wb_slice_with_exact_usage_evidence"
     },
     {
-      "id": "CHUNK-P03-one-versus-several-equivalence",
-      "capability": "cell_axis_chunking",
-      "expect": "identical_family_and_summary_terminal_content_identities"
+      "id": "SLICE-P03-python-broker-multiple-chunks",
+      "capability": "typed_slice_read",
+      "expect": "Python_receives_only_one_bounded_broker_response_at_a_time_and_no_full_matrix_payload_is_staged"
     },
     {
-      "id": "CHUNK-N01-partial-or-missing-chunk",
-      "capability": "cell_axis_chunking",
-      "mutate": "omit_the_second_reader_call_or_fragment",
+      "id": "SLICE-P04-one-versus-several-method-equivalence",
+      "capability": "typed_slice_read",
+      "expect": "pack_owned_one_and_multiple_chunk_algorithms_produce_identical_generic_terminal_identities_for_backed_and_in_memory_inputs"
+    },
+    {
+      "id": "SLICE-P05-empty-and-independent-policies",
+      "capability": "typed_slice_read",
+      "expect": "empty_axis_is_explicit_and_zero_call_while_independent_slices_may_overlap_between_calls_but_not_duplicate_ids_within_a_call"
+    },
+    {
+      "id": "SLICE-N01-eager-full-matrix-staging",
+      "capability": "typed_slice_read",
+      "mutate": "stage_or_parse_inputs_name_payload_json_for_a_broker_enabled_matrix",
+      "reject": "transport_preflight"
+    },
+    {
+      "id": "SLICE-N02-out-of-grant-or-duplicate-axis",
+      "capability": "typed_slice_read",
+      "mutate": "request_foreign_out_of_order_or_duplicate_cell_or_feature_ids",
+      "reject": "broker_before_getter"
+    },
+    {
+      "id": "SLICE-N03-partition-coverage",
+      "capability": "typed_slice_read",
+      "mutate": "omit_repeat_overlap_or_reorder_calls_under_ordered_partition_exactly_once",
       "reject": "execution_or_receipt_audit"
     },
     {
-      "id": "CHUNK-N02-duplicate-overlap-or-reorder",
-      "capability": "cell_axis_chunking",
-      "mutate": "duplicate_overlap_or_reverse_schedule_entries",
-      "reject": "execution_or_receipt_audit"
+      "id": "SLICE-N04-resource-limit",
+      "capability": "typed_slice_read",
+      "mutate": "exceed_row_column_element_response_byte_or_outstanding_response_limit",
+      "reject": "broker_without_silent_repartition"
     },
     {
-      "id": "CHUNK-N03-wrong-slice-identity",
-      "capability": "cell_axis_chunking",
-      "mutate": "bind_a_valid_range_to_different_cell_ids",
-      "reject": "reader_observation_audit"
+      "id": "SLICE-N05-grant-source-or-replay-default-substitution",
+      "capability": "typed_slice_read",
+      "mutate": "forge_grant_change_source_axis_after_preflight_or_change_default_limit_on_replay",
+      "reject": "before_dispatch_or_before_publish"
     },
     {
-      "id": "CHUNK-N04-private-loop-without-observations",
-      "capability": "cell_axis_chunking",
-      "mutate": "return_final_outputs_without_scheduled_reads_and_fragments",
-      "reject": "receipt_audit"
+      "id": "SLICE-N06-response-corruption",
+      "capability": "typed_slice_read",
+      "mutate": "corrupt_sparse_payload_axis_manifest_response_manifest_hash_or_identity",
+      "reject": "Python_adapter_and_receipt_audit"
     },
     {
-      "id": "CHUNK-N05-mismatched-summary",
-      "capability": "cell_axis_chunking",
-      "mutate": "return_a_numerically_wrong_but_self_consistent_summary_from_the_pure_finalizer",
-      "reject": "mandatory_old_core_new_pack_method_comparator_before_migration_acceptance"
-    },
-    {
-      "id": "CHUNK-N06-effective-parameter-or-source-mutation",
-      "capability": "cell_axis_chunking",
-      "mutate": "change_chunk_size_or_input_cell_axis_after_preflight",
-      "reject": "before_dispatch_or_publish"
-    },
-    {
-      "id": "CHUNK-N07-nonisolated-or-early-summary",
-      "capability": "cell_axis_chunking",
-      "mutate": "write_summary_in_chunk_process_or_invoke_finalizer_before_merge_or_with_fragment_state",
-      "reject": "adapter_capability_or_finalizer_isolation"
-    },
-    {
-      "id": "CHUNK-N08-finalizer-binding-substitution",
-      "capability": "cell_axis_chunking",
-      "mutate": "substitute_finalizer_definition_metadata_merged_input_result_or_invocation_identity",
-      "reject": "receipt_audit"
-    },
-    {
-      "id": "CHUNK-N09-fragment-grant-substitution",
-      "capability": "cell_axis_chunking",
-      "mutate": "use_full_output_grant_or_change_batch_start_length_cells_keys_row_count_order_or_parent_grant_in_a_fragment",
-      "reject": "before_fragment_stage_or_receipt_audit"
+      "id": "SLICE-N07-broker-or-pack-crash",
+      "capability": "typed_slice_read",
+      "mutate": "broker_timeout_pack_death_or_missing_acknowledgement",
+      "reject": "supervisor_cleanup_with_no_surviving_child_or_transition_residue"
     },
     {
       "id": "ANCESTRY-P01-current-promoted-artifact",
@@ -246,7 +244,7 @@
     {
       "id": "LIFE-N01-fault-matrix-zero-residue",
       "capability": "all",
-      "mutate": "fail_before_write_between_fragment_writes_after_receipt_before_commit_and_during_payload_publication",
+      "mutate": "fail_before_write_between_output_writes_after_receipt_before_commit_during_payload_publication_and_during_broker_cleanup",
       "reject": "atomic_rollback_and_retryable_source_only_destination"
     },
     {
@@ -268,7 +266,7 @@
   ],
   "fixture_group_definitions": {
     "CARD": "all fixture ids beginning CARD-",
-    "CHUNK": "all fixture ids beginning CHUNK-",
+    "SLICE": "all fixture ids beginning SLICE-",
     "ANCESTRY": "all fixture ids beginning ANCESTRY-",
     "LIFE": "all fixture ids beginning LIFE- plus every fixture id beginning COMPAT-",
     "METHOD": "the exact old-core/new-pack method comparator named in the ten-row readiness CSV",
@@ -276,7 +274,7 @@
   },
   "method_fixture_group_requirements": {
     "addmodulescore": ["CARD", "LIFE"],
-    "ucell": ["CARD", "CHUNK", "LIFE"],
+    "ucell": ["CARD", "SLICE", "LIFE"],
     "cell_vector_family_reduce": ["CARD", "LIFE"],
     "cell_vector_family_calibrate": ["CARD", "LIFE"],
     "cell_vector_family_qc": ["METHOD", "LIFE"],
