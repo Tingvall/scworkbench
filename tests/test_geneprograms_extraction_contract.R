@@ -22,5 +22,14 @@ test_geneprograms_extraction_contract <- function() {
     "wb_cell_vector_winners_from_artifact", "wb_register_winner_cell_sets",
     "wb_op_feature_set_overlap_qc", "wb_op_pathway_enrich")
   stopifnot(!any(retired %in% exports))
+  retired_runners <- paste0(".wb_runner_", moved)
+  ns <- asNamespace("scworkbench")
+  stopifnot(!any(vapply(
+    retired_runners,
+    exists,
+    logical(1),
+    envir = ns,
+    inherits = FALSE
+  )))
   TRUE
 }
