@@ -133,14 +133,19 @@
       "expect": "empty_axis_is_explicit_and_zero_call_while_independent_slices_may_overlap_between_calls_but_not_duplicate_ids_within_a_call"
     },
     {
-      "id": "SLICE-P06-staged-axis-and-wire-parity",
+      "id": "SLICE-P06-shared-result-evidence-parity",
       "capability": "typed_slice_read",
-      "expect": "R_and_Python_authenticate_identical_staged_axis_control_response_semantic_content_acknowledgement_call_and_usage_preimages"
+      "expect": "R_and_Python_authenticate_identical_staged_axis_semantic_content_slice_result_call_and_usage_preimages_without_transport_fields"
     },
     {
       "id": "SLICE-P07-in-memory-subset-projection",
       "capability": "typed_slice_read",
       "expect": "noncanonical_feature_and_cell_subsets_project_an_in_memory_input_to_exact_selected_axes_and_match_the_bundle_backed_slice_identity"
+    },
+    {
+      "id": "SLICE-P08-python-broker-wire-conformance",
+      "capability": "typed_slice_read",
+      "expect": "Python_only_control_response_and_acknowledgement_preimages_validate_ephemerally_and_response_binds_the_shared_slice_result_identity"
     },
     {
       "id": "SLICE-N01-eager-full-matrix-staging",

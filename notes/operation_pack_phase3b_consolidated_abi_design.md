@@ -98,6 +98,7 @@ The only new identity schemes are:
 - `scworkbench.operation_pack.typed_slice_source_reference.v1`
 - `scworkbench.operation_pack.typed_slice_source_projection.v1`
 - `scworkbench.operation_pack.matrix_slice.content.v1`
+- `scworkbench.operation_pack.typed_slice_result.v1`
 - `scworkbench.operation_pack.typed_slice_control_request.v1`
 - `scworkbench.operation_pack.typed_slice_response.v1`
 - `scworkbench.operation_pack.typed_slice_acknowledgement.v1`
@@ -673,6 +674,7 @@ feature_axis_manifest_identity
 cell_axis_manifest_identity
 files                      exact ordered matrix_market/features_axis/cells_axis entries
 semantic_content_identity
+slice_result_identity
 response_identity
 ```
 
@@ -684,7 +686,9 @@ No extra response file, role, path, field, null, symlink, or non-regular file
 is allowed. `response_identity` uses scheme
 `scworkbench.operation_pack.typed_slice_response.v1` and scope
 `response excluding response_identity`, hashing the complete manifest object
-with only that field absent.
+with only that field absent. `slice_result_identity` is the transport-neutral
+identity defined below and binds this response to the same scientific result
+an R reader computes directly.
 
 `semantic_content_identity` is an unscoped
 `scworkbench.operation_pack.matrix_slice.content.v1` identity over canonical
@@ -706,6 +710,30 @@ zero and is omitted. The empty matrix has `entries = []`. This identity is
 independent of Matrix Market whitespace while still binding every scientific
 value and both axes.
 
+Both R and Python independently construct this transport-neutral result after
+each canonical getter read:
+
+```
+schema                     scworkbench.operation_pack.typed_slice_result.v1
+source_reference_identity
+grant_identity
+ordinal
+feature_count, feature_order_identity
+cell_count, cell_order_identity
+dimensions
+semantic_content_identity
+slice_result_identity
+```
+
+All fields are required and nonnullable; unknown fields are forbidden.
+`slice_result_identity` uses scheme
+`scworkbench.operation_pack.typed_slice_result.v1` and scope
+`slice result excluding slice_result_identity`. The R adapter computes it from
+the direct `wb_slice()` result. The Python adapter computes it after validating
+the broker response and requires exact agreement with the response manifest.
+No transport file, byte hash, token, or endpoint participates in this shared
+identity.
+
 The acknowledgement contains exactly:
 
 ```
@@ -724,6 +752,11 @@ token in its runtime-only preimage. Python publishes it atomically at
 acknowledgement and response before permitting the next ordinal. Control and
 acknowledgement objects are never durable receipt evidence and their tokens are
 never copied into a request, receipt, run, log, or published transition.
+The control, response, and acknowledgement schemas are Python-broker transport
+contracts, not members of the shared manifest/request/receipt schema. Their
+identities are checked during execution and may appear only in a scrubbed
+Python transport diagnostic that is removed with the broker workspace; shared
+receipt evidence contains only `slice_result_identity`, call, and usage.
 
 `max_outstanding_responses = 1`, plus the row/column/element/byte ceilings,
 bounds both sides of the process boundary. The transition supervisor polls the
@@ -742,7 +775,7 @@ the typed sparse values and exact axes.
 
 ### Durable usage and scientific boundary
 
-Every served response records one call:
+Every canonical getter read records one transport-neutral call:
 
 ```
 schema                     scworkbench.operation_pack.observed_typed_slice_call.v1
@@ -751,13 +784,13 @@ feature_count, feature_order_identity
 cell_count, cell_order_identity
 dimensions
 semantic_content_identity
-response_identity
+slice_result_identity
 call_identity
 ```
 
 Every field is required and nonnullable; unknown fields are forbidden.
-`semantic_content_identity` and `response_identity` must be exact copies from
-the independently revalidated response. `call_identity` uses scheme
+The fields and `slice_result_identity` must reproduce the independently
+revalidated transport-neutral result. `call_identity` uses scheme
 `scworkbench.operation_pack.observed_typed_slice_call.v1` and scope
 `call excluding call_identity`. The receipt adds one ordered usage object per
 grant:
@@ -779,9 +812,10 @@ counts, canonical empty-axis identity, and `coverage_status = empty` is valid
 only when an authenticated selected axis is empty and policy allows it.
 `usage_identity` uses scheme
 `scworkbench.operation_pack.typed_slice_usage.v1` and scope
-`usage excluding usage_identity`. Receipt audit
-rederives every call from broker-owned records and response manifests, checks
-the declared discipline, and rejects a pack-only unobserved read. Strict
+`usage excluding usage_identity`. Receipt audit rederives every R call from its
+direct getter result and every Python call from broker-owned records plus
+response manifests, checks the declared discipline, and rejects a pack-only
+unobserved read. Strict
 replay compares the exact grant and usage object. These records prove which
 bounded core getter reads occurred; they do not prove UCell arithmetic.
 
