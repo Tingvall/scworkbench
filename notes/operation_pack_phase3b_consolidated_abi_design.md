@@ -952,8 +952,8 @@ explicit policy rather than weakening `require_current`.
 The canonical snapshot JSON is staged read-only at
 `provenance_reads/<name>/payload.json`. Its manifest identity uses the existing
 payload-manifest scheme over exactly
-`{path: "provenance_reads/<name>/payload.json", sha256: <file bytes>}`. The
-request carries this exact descriptor:
+`{path: "provenance_reads/<name>/payload.json", size: <byte count>, sha256:
+<file bytes>}`. The request carries this exact descriptor:
 
 ```
 schema                    scworkbench.operation_pack.provenance_read_descriptor.v1
