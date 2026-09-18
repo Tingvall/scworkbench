@@ -54,27 +54,15 @@ test_feature_set_namespace_transfer_contract <- function() {
     created_by = "test"
   )
 
-  r_norm <- wb_session_run_op(
-    session = wb_session_new(),
-    bundle = b,
-    op_name = "matrix_log_normalize",
-    inputs = list(
-      matrix = "RNA_counts",
-      cell_set = "all",
-      min_cells = 1L,
-      output_matrix_id = "RNA_log_norm",
-      scale_factor = 10000,
-      overwrite = TRUE
-    )
-  )
-  stopifnot(identical(as.character(r_norm$run$outputs$matrix$matrix_id), "RNA_log_norm"))
+  wb_attach_matrix(b, matrix_id = "RNA_log_norm", mat = mat,
+    feature_type = "gene")
 
   iface <- wb_op_interface("feature_set_namespace_transfer")
   stopifnot(is.list(iface))
   stopifnot(identical(as.character(iface$produces$transfer_manifest$kind), "obs_table"))
   stopifnot("feature_set_namespace_transfer" %in% wb_list_ops())
 
-  s <- r_norm$session
+  s <- wb_session_new()
   r <- wb_session_run_op(
     session = s,
     bundle = b,

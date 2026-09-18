@@ -905,7 +905,13 @@
   dynamic_dimensions <- dynamic_dimensions || (identical(kind,
     "cell_vector_family") && length(expected_dimensions) == 2L &&
     identical(expected_dimensions[[1]], 0L))
-  if (!dynamic_dimensions && !identical(as.integer(dimensions), expected_dimensions)) .wb_operation_pack_v2_error(
+  parameter_table_dimensions <- !is.null(
+    descriptor$parameter_axis_grant_identity) &&
+    length(expected_dimensions) == 2L && expected_dimensions[[2]] == 0L &&
+    length(dimensions) == 2L && as.integer(dimensions[[1]]) ==
+      expected_dimensions[[1]]
+  if (!dynamic_dimensions && !parameter_table_dimensions &&
+      !identical(as.integer(dimensions), expected_dimensions)) .wb_operation_pack_v2_error(
     "PYBENCH_OUTPUT_INVALID", paste0("Output '", grant$name, "' dimensions do not match its grant."),
     "audit", output = grant$name, expected = descriptor$expected_dimensions, observed = dimensions)
   cells <- if (identical(kind, "cell_set_admission")) value$cells else .wb_operation_pack_v2_primitive_cells(value)
@@ -1089,10 +1095,42 @@
     manifest <- item$descriptor$payload_manifest_identity %||% NULL
     if (!is.null(manifest)) {
       expected <- manifest$sha256
-      actual <- .wb_operation_pack_sha256(list(path = paste0(payload_root, "/",
+      fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
+      actual <- if (!is.null(fragment_manifest)) {
+        .wb_operation_pack_sha256(list(
+          fragment_manifest_identity =
+            fragment_manifest$fragment_manifest_identity,
+          fragment_payload_identities = lapply(
+            fragment_manifest$fragments, `[[`,
+            "payload_manifest_identity")))
+      } else .wb_operation_pack_sha256(list(path = paste0(payload_root, "/",
         item$name, "/", if (python_payload) "payload.json" else "payload.rds"),
         size = as.numeric(file.info(payload)$size), sha256 = .wb_operation_pack_v2_file_sha256(payload)))
       if (!identical(expected, actual)) return(list(ok = FALSE, code = "payload_identity_mismatch", output = item$name))
+      if (!is.null(fragment_manifest)) {
+        fragment_ok <- tryCatch({
+          .wb_operation_pack_v3_assert_self_identity(fragment_manifest,
+            "fragment_manifest_identity",
+            "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
+          for (fragment in fragment_manifest$fragments) {
+            tree <- file.path(path, "outputs", item$name, "fragments",
+              sprintf("part_%06d", as.integer(fragment$ordinal)))
+            if (!dir.exists(tree)) stop("matrix fragment payload missing")
+            observed <- .wb_operation_pack_v2_identity_scoped(
+              "scworkbench.operation_pack.payload_manifest.v2",
+              "matrix fragment payload tree", list(
+                path = file.path("outputs", item$name, "fragments",
+                  sprintf("part_%06d", as.integer(fragment$ordinal))),
+                sha256 = .wb_prov_file_tree_sha256(tree)))
+            if (!identical(observed,
+                fragment$payload_manifest_identity))
+              stop("matrix fragment payload identity mismatch")
+          }
+          TRUE
+        }, error = function(error) FALSE)
+        if (!isTRUE(fragment_ok)) return(list(ok = FALSE,
+          code = "fragment_payload_identity_mismatch", output = item$name))
+      }
     }
     if (isTRUE(load_payloads)) {
       value <- tryCatch(if (python_payload) {
@@ -1101,7 +1139,21 @@
         .wb_operation_pack_parse_canonical_json(raw)
       } else readRDS(payload), error = identity)
       if (inherits(value, "error")) return(list(ok = FALSE, code = "payload_unreadable", output = item$name))
-      actual <- if (identical(as.character(item$descriptor$kind)[1],
+      fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
+      actual <- if (!is.null(fragment_manifest)) {
+        value_manifest <- value$fragment_manifest %||% NULL
+        if (is.null(value_manifest) || !identical(
+            .wb_operation_pack_canonical_json(value_manifest),
+            .wb_operation_pack_canonical_json(fragment_manifest)))
+          return(list(ok = FALSE, code = "fragment_manifest_mismatch",
+            output = item$name))
+        .wb_operation_pack_sha256(list(
+          dimensions = fragment_manifest$dimensions,
+          feature_order_identity = fragment_manifest$feature_order_identity,
+          cell_order_identity = fragment_manifest$cell_order_identity,
+          fragment_content_identities = lapply(
+            fragment_manifest$fragments, `[[`, "content_identity")))
+      } else if (identical(as.character(item$descriptor$kind)[1],
           "cell_set_family_admission")) {
         # The writer has already stored the normalized family payload; bundle
         # universe validation is repeated by staging, promotion and recipient
@@ -1378,6 +1430,12 @@
             features = attr(x, "operation_pack_v3_features"))), vapply(
               request$typed_slice_grants %||% list(), `[[`, character(1),
               "name")),
+        input_ids = stats::setNames(lapply(inputs, function(value) {
+          kind <- as.character(value$kind %||% "")[1]
+          if (kind == "matrix") as.character(value$matrix_id %||% "")[1]
+          else if (kind %in% c("space", "space_2d"))
+            as.character(value$space_id %||% "")[1] else NULL
+        }), names(inputs)),
         effective_cells = unname(as.character(effective_cells %||%
           .wb_operation_pack_v2_primitive_cells(inputs[[1]]))))), error = identity)
     if (inherits(result, "error")) {
@@ -1447,9 +1505,16 @@
       paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
       registry_payloads, provenance_payloads, typed_slice_axes,
       typed_slice_sources), method = "radix")
-    if (!identical(sort(inventory, method = "radix"), expected_inventory)) .wb_operation_pack_v2_error(
+    fragment_roots <- paste0("outputs/", names(Filter(function(x)
+      !is.null(x$value$fragment_manifest), adapter$state$writes)),
+      "/fragments/")
+    allowed_fragment <- if (length(fragment_roots)) vapply(inventory,
+      function(path) any(startsWith(path, fragment_roots)), logical(1)) else
+      rep(FALSE, length(inventory))
+    observed_fixed <- sort(inventory[!allowed_fragment], method = "radix")
+    if (!identical(observed_fixed, expected_inventory)) .wb_operation_pack_v2_error(
       "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
-      unexpected = setdiff(inventory, expected_inventory))
+      unexpected = setdiff(observed_fixed, expected_inventory))
   }
   if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
     operation, inputs, source_refs, request, params)
@@ -1470,7 +1535,6 @@
   .wb_operation_pack_v2_atomic_json(list(schema = "scworkbench.operation_pack.transition_state.v2",
     state = "reopened", transition_id = transition_id, receipt_identity = receipt$receipt_identity), file.path(final, "state.json"))
   .wb_operation_pack_v2_fault("reopened", transition_id = transition_id)
-  published <- TRUE
   values <- stats::setNames(lapply(receipt$outputs %||% list(), function(item) {
     if (python_backend) {
       raw <- jsonlite::read_json(file.path(final, "outputs", item$name,
@@ -1486,7 +1550,7 @@
     } else readRDS(file.path(final, "outputs", item$name, "payload.rds"))
   }), vapply(receipt$registry_requests %||% list(), `[[`, character(1),
     "name"))
-  list(transition_id = transition_id, request = request, receipt = receipt,
+  result <- list(transition_id = transition_id, request = request, receipt = receipt,
     outputs = values, registry_requests = receipt$registry_requests %||% list(),
     registry_request_values = registry_values,
     runtime_sidecar = if (python_backend) process_result$sidecar else NULL,
@@ -1494,6 +1558,10 @@
       process_result$reader_observation
     } else reader_observation,
     state = "reopened", path = final)
+  if (abi_v3) result <- .wb_operation_pack_v3_publish_materializations(bundle,
+    result)
+  published <- TRUE
+  result
 }
 
 .wb_operation_pack_v2_bind_parameters <- function(bundle, operation, params,
@@ -1513,6 +1581,44 @@
       # selection contains one identifier. Preserve that shape explicitly;
       # the generic scalar transport cannot infer it from length alone.
       params[[parameter]] <- unname(as.list(resolved))
+    } else if (identical(policy, "input_id_with_numeric_suffix_v1")) {
+      current <- as.character(params[[parameter]] %||% "")[1]
+      if (!nzchar(current)) {
+        kind <- as.character(input$kind %||% "")[1]
+        input_id <- if (kind == "matrix") input$matrix_id else input$space_id
+        number <- suppressWarnings(as.numeric(params[[as.character(
+          binding$numeric_parameter)[1]]])[1])
+        .wb_operation_pack_assert(nzchar(as.character(input_id)[1]) &&
+            is.finite(number), "PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Derived target identifier input or numeric suffix is invalid.",
+          phase = "resolution", class = "wb_operation_pack_v3_error")
+        params[[parameter]] <- paste0(as.character(input_id)[1],
+          as.character(binding$affix)[1],
+          format(number, scientific = FALSE, trim = TRUE))
+      }
+    } else if (identical(policy,
+        "feature_ids_from_table_or_matrix_v1")) {
+      value <- params[[parameter]]
+      if (is.null(value)) {
+        table_input <- bound[[as.character(binding$table_input)[1]]]
+        table <- table_input$table %||% NULL
+        if (is.data.frame(table)) {
+          field <- as.character(binding$field)[1]
+          selected_field <- as.character(binding$selected_field %||% "")[1]
+          keep <- if (nzchar(selected_field) && selected_field %in%
+              names(table)) as.logical(table[[selected_field]]) else
+            rep(TRUE, nrow(table))
+          value <- as.character(table[[field]][keep])
+        } else value <- as.character(input$feature_id)
+      }
+      value <- as.character(unlist(value, use.names = FALSE))
+      available <- as.character(input$feature_id)
+      if (anyNA(value) || any(!nzchar(value)) || anyDuplicated(value) ||
+          length(setdiff(value, available)))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Resolved PCA feature axis is invalid or outside its matrix.",
+          "resolution")
+      params[[parameter]] <- unname(as.list(value))
     }
   }
   # Binding policies must see the caller's symbolic scalar (for example a
@@ -1550,6 +1656,7 @@
       parameter_supplied = !is.null(original[[as.character(item$parameter)[1]]]),
       parameter_count = length(unlist(effective[[as.character(item$parameter)[1]]], use.names = FALSE)),
       parameter_value = original[[as.character(item$parameter)[1]]],
+      effective_parameter_value = effective[[as.character(item$parameter)[1]]],
       NULL)
     if (is.null(value) && isTRUE(item$required %||% TRUE)) .wb_operation_pack_v2_error(
       "PYBENCH_RECEIPT_MISMATCH", paste0("Required retained parameter '", item$name,

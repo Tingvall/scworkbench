@@ -443,31 +443,9 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(identical(as.integer(tenx_report$duplicate_cell_id_rows[1]), 2L))
   stopifnot(identical(as.character(tenx_report$duplicate_feature_id_policy[1]), "error"))
 
-  tenx_norm <- wb_session_run_op(
-    session = wb_session_new(),
-    bundle = b10x,
-    op_name = "matrix_log_normalize",
-    inputs = list(
-      matrix = "RNA_counts",
-      cell_set = "all",
-      min_cells = 1L,
-      output_matrix_id = "RNA_log1p_cp10k",
-      scale_factor = 10000,
-      overwrite = TRUE
-    )
-  )
-  tenx_source <- cbind(as.matrix(mat_a), as.matrix(mat_b))
-  tenx_expected <- log1p(t(t(tenx_source) / Matrix::colSums(tenx_source) * 10000))
-  tenx_view <- wb_session_view(tenx_norm$session)
-  tenx_got <- as.matrix(wb_slice(tenx_view, "RNA_log1p_cp10k", rownames(mat_a), tenx_cells))
-  stopifnot(isTRUE(all.equal(tenx_got, tenx_expected, tolerance = 1e-8, check.attributes = FALSE)))
-  stopifnot(any(tenx_got != 0))
-
-  stopifnot(any(apply(tenx_got, 1L, stats::var) > 0))
-
   # A one-library Matrix Market import is a single physical fragment. BPCells
-  # payload dimnames are optional here, so normalization must use the fragment
-  # registry rather than colnames() to align library sizes with cell IDs.
+  # payload dimnames are optional; the fragment registry remains the canonical
+  # source of cell order for pack-owned matrix transforms.
   one_tenx_root <- tempfile("wb_10x_one_library_")
   p_one <- write_10x_triplet(one_tenx_root, "GSM1_R1_Pupa", mat_a)
   one_st <- data.frame(
@@ -497,51 +475,10 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   names(legacy_sizes) <- colnames(one_raw_without_names)
   legacy_sizes <- legacy_sizes[match(one_cells, names(legacy_sizes))]
   stopifnot(all(is.na(legacy_sizes)))
-  stopifnot(identical(
-    .wb_matrix_single_fragment_cell_ids(
-      b10x_one,
-      "RNA_counts",
-      one_raw_without_names,
-      one_cells
-    ),
-    one_cells
-  ))
-  wrong_order <- try(
-    .wb_matrix_single_fragment_cell_ids(
-      b10x_one,
-      "RNA_counts",
-      one_raw_without_names,
-      rev(one_cells)
-    ),
-    silent = TRUE
-  )
-  stopifnot(inherits(wrong_order, "try-error"))
-
-  one_norm <- wb_session_run_op(
-    session = wb_session_new(),
-    bundle = b10x_one,
-    op_name = "matrix_log_normalize",
-    inputs = list(
-      matrix = "RNA_counts",
-      cell_set = "all",
-      min_cells = 1L,
-      output_matrix_id = "RNA_log1p_cp10k",
-      scale_factor = 10000,
-      overwrite = TRUE
-    )
-  )
-  one_expected <- log1p(t(t(as.matrix(mat_a)) / Matrix::colSums(mat_a) * 10000))
-  one_view <- wb_session_view(one_norm$session)
-  one_got <- as.matrix(wb_slice(one_view, "RNA_log1p_cp10k", rownames(mat_a), one_cells))
-  one_summary <- one_norm$run$outputs$summary$table
-  one_info <- wb_matrix_info(one_view, "RNA_log1p_cp10k")
-  one_path <- file.path(one_view$dir, as.character(one_info$path[1]))
-  stopifnot(isTRUE(all.equal(one_got, one_expected, tolerance = 1e-8, check.attributes = FALSE)))
-  stopifnot(any(one_got != 0))
-  stopifnot(identical(as.integer(one_summary$n_zero_library_cells[1]), 0L))
-  stopifnot(identical(BPCells::matrix_type(.wb_bp_open_matrix_dir(one_path)), "double"))
-
-  stopifnot(any(apply(one_got, 1L, stats::var) > 0))
+  one_fragment <- wb_matrix_fragments(b10x_one, "RNA_counts")
+  stopifnot(nrow(one_fragment) == 1L,
+    identical(as.character(jsonlite::fromJSON(
+      one_fragment$cell_ids_json[[1L]])), one_cells))
 
   tenx_dup_feature_root <- tempfile("wb_10x_dup_feature_")
   dup_feature_mat <- mat_a

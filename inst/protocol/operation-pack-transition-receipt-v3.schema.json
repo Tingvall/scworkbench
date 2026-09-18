@@ -277,6 +277,13 @@
       "items": {
         "$ref": "#/$defs/typed_slice_usage"
       }
+    },
+    "publication_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/publication_observation"
+      },
+      "minItems": 1
     }
   },
   "allOf": [
@@ -1012,6 +1019,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -1313,6 +1330,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -1592,6 +1619,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -1871,6 +1908,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2149,6 +2196,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2427,6 +2484,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2741,6 +2808,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -3016,6 +3093,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -3295,6 +3382,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -3574,6 +3671,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -3853,6 +3960,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -4110,6 +4227,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -4389,6 +4516,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -4690,6 +4827,16 @@
             },
             "observed_cardinality": {
               "$ref": "#/$defs/observed_cardinality"
+            },
+            "observed_parameter_axis": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "matrix_fragment_manifest": {
+              "$ref": "#/$defs/matrix_fragment_manifest"
+            },
+            "matrix_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         }
@@ -5146,13 +5293,24 @@
           ],
           "properties": {
             "category": {
-              "enum": ["authenticated_core_registry_snapshot", "authenticated_core_axis_snapshot"]
+              "enum": [
+                "authenticated_core_registry_snapshot",
+                "authenticated_core_axis_snapshot"
+              ]
             },
             "kind": {
-              "enum": ["feature_set_registry", "session_cell_axis", "matrix_feature_annotations"]
+              "enum": [
+                "feature_set_registry",
+                "session_cell_axis",
+                "matrix_feature_annotations"
+              ]
             },
             "reader": {
-              "enum": ["read_feature_set_registry", "read_session_cell_axis", "read_matrix_feature_annotations"]
+              "enum": [
+                "read_feature_set_registry",
+                "read_session_cell_axis",
+                "read_matrix_feature_annotations"
+              ]
             },
             "descriptor_identity": {
               "$ref": "#/$defs/identity"
@@ -5483,11 +5641,17 @@
         },
         "observed_key_axis": {
           "type": "array",
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "selected_optional_groups": {
           "type": "array",
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "selected_optional_groups_identity": {
           "$ref": "#/$defs/identity"
@@ -5853,6 +6017,178 @@
               "$ref": "#/$defs/sha256"
             }
           }
+        }
+      }
+    },
+    "matrix_fragment_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "source_fragment_schedule_identity",
+        "dimensions",
+        "feature_order_identity",
+        "cell_order_identity",
+        "fragment_count",
+        "fragments",
+        "fragment_manifest_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.matrix_fragment_manifest.v1"
+        },
+        "source_fragment_schedule_identity": {
+          "$ref": "#/$defs/self_identity"
+        },
+        "dimensions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "feature_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "fragment_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fragments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ordinal",
+              "source_fragment_ordinal",
+              "source_fragment_identity",
+              "part_ordinal",
+              "cell_start",
+              "cell_count",
+              "dimensions",
+              "feature_order_identity",
+              "cell_order_identity",
+              "content_identity",
+              "payload_manifest_identity"
+            ],
+            "properties": {
+              "ordinal": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "source_fragment_ordinal": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "source_fragment_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "part_ordinal": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cell_start": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cell_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "dimensions": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "feature_order_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "cell_order_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "content_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "payload_manifest_identity": {
+                "$ref": "#/$defs/self_identity"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "fragment_manifest_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "publication_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "publication_grant_identity",
+        "mode",
+        "preimage_identity",
+        "output_observed_descriptor_identity",
+        "closure_output_identities",
+        "status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.observed_materialization_publication.v1"
+        },
+        "publication_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "mode": {
+          "enum": [
+            "add",
+            "replace"
+          ]
+        },
+        "preimage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "output_observed_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "closure_output_identities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "observed_descriptor_identity"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "observed_descriptor_identity": {
+                "$ref": "#/$defs/identity"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "status": {
+          "const": "validated_not_published"
+        },
+        "observation_identity": {
+          "$ref": "#/$defs/self_identity"
         }
       }
     }

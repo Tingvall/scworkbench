@@ -2,7 +2,8 @@ test_rna_methods_are_pack_owned_contract <- function() {
   migrated <- c(
     cell_suffix_label = "scwbrna::cell_suffix_label",
     rna_qc_metrics = "scwbrna::rna_qc_metrics",
-    hvg_select = "scwbrna::hvg_select"
+    hvg_select = "scwbrna::hvg_select",
+    matrix_log_normalize = "scwbrna::matrix_log_normalize"
   )
   ops_before <- wb_list_ops()
   packs_before <- wb_operation_packs()

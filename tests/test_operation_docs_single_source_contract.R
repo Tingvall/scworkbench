@@ -35,7 +35,6 @@ test_operation_docs_single_source_contract <- function() {
     # wrapper documents its concrete cell-id inputs, while wb_op_interface()
     # remains the canonical typed surface for symbolic group/set references.
     session_only_params <- list(
-      matrix_log_normalize = "cell_set",
       metadata_cell_vector = "cell_set"
     )
     allowed_session_only <- session_only_params[[op_name]] %||% character()

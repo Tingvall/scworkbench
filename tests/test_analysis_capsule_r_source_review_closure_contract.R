@@ -10,17 +10,17 @@ test_analysis_capsule_r_source_review_closure_contract <- function() {
   writeLines(c(
     "f <- function(x, column, row) { x[, column]; x[row, ]; x[] }",
     "formula <- response ~ nested(a + b)",
-    "message <- \"pca_fit and wb_op_pca_fit() are prose\"",
+    "message <- \"umap_fit and wb_op_umap_fit() are prose\"",
     "# wb_session_run_op(s, b, op_name='umap_fit') is a comment"
   ),ordinary)
   stopifnot(!length(scworkbench:::.wb_capsule_r_registered_ops(ordinary,wb_list_ops())))
   bypasses<-list(
-    "wb_session_run_op(s,b,op_name='pca_fit')",
+    "wb_session_run_op(s,b,op_name='umap_fit')",
     "wb_session_run_op(s,b,'umap_fit')",
     "scworkbench::wb_session_run_op(s,b,op_name='scvi_train')",
-    "scworkbench:::wb_op_pca_fit(b)"
+    "scworkbench:::wb_op_umap_fit(b)"
   )
-  expected<-c("pca_fit","umap_fit","scvi_train","pca_fit")
+  expected<-c("umap_fit","umap_fit","scvi_train","umap_fit")
   for(i in seq_along(bypasses)) {
     path<-file.path(work,paste0("bypass",i,".R"));writeLines(bypasses[[i]],path)
     stopifnot(expected[[i]]%in%scworkbench:::.wb_capsule_r_registered_ops(path,wb_list_ops()))

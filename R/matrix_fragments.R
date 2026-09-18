@@ -281,3 +281,7 @@ wb_register_matrix_fragment <- function(
 
   invisible(TRUE)
 }
+.wb_matrix_id_path_safe <- function(x) {
+  x <- gsub("[^A-Za-z0-9_.-]+", "_", as.character(x %||% "")[1])
+  if (!nzchar(x)) "matrix" else x
+}

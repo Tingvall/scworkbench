@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 15L)
+    length(fixture$cases) == 19L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -126,7 +126,11 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     session_cell_axis_snapshot = "content_identity",
     matrix_feature_annotations_snapshot = "content_identity",
     bounded_grouped_cardinality = "cardinality_grant_identity",
-    observed_bounded_grouped_cardinality = "observed_cardinality_identity")
+    observed_bounded_grouped_cardinality = "observed_cardinality_identity",
+    parameter_axis_three_of_five = "grant_identity",
+    source_fragment_schedule_two = "schedule_identity",
+    matrix_fragment_manifest_two = "fragment_manifest_identity",
+    materialization_publication_add = "publication_grant_identity")
   for (case in fixture$cases) {
     field <- identity_fields[[case$name]]
     stopifnot(!is.null(field), identical(case$preimage,
@@ -309,16 +313,83 @@ test_operation_pack_v3_in_memory_typed_slice_source_contract <- function() {
   TRUE
 }
 
+test_operation_pack_v3_phase4c_generic_grants_contract <- function() {
+  typed <- list(name = "matrix_chunks", grant_identity = list(
+    scheme = "scworkbench.operation_pack.typed_slice_grant.v1",
+    sha256 = paste(rep("a", 64L), collapse = "")))
+  attr(typed, "operation_pack_v3_cells") <- c("c2", "c1", "c3", "c4")
+  attr(typed, "operation_pack_v3_features") <- paste0("g", 1:5)
+  axis <- scworkbench:::.wb_operation_pack_v3_parameter_axis_grant(list(
+    name = "principal_components", parameter = "n_components",
+    minimum = 1L, maximum = list(typed_slice_read = "matrix_chunks",
+      cell_offset = -1L, feature_offset = 0L),
+    labels = list(prefix = "PC")), list(n_components = 3L),
+    list(matrix_chunks = typed))
+  stopifnot(identical(axis$value, 3L),
+    identical(as.character(unlist(axis$labels)), c("PC1", "PC2", "PC3")),
+    inherits(try(scworkbench:::.wb_operation_pack_v3_parameter_axis_grant(
+      list(name = "principal_components", parameter = "n_components",
+        minimum = 1L, maximum = list(typed_slice_read = "matrix_chunks",
+          cell_offset = -1L, feature_offset = 0L),
+        labels = list(prefix = "PC")), list(n_components = 4L),
+      list(matrix_chunks = typed)), silent = TRUE), "try-error"))
+
+  scores <- structure(list(kind = "space", space_id = "pca",
+    values = matrix(seq_len(12L), nrow = 4L,
+      dimnames = list(c("c2", "c1", "c3", "c4"),
+        c("PC1", "PC2", "PC3"))), dimensions = c(4L, 3L),
+    cell_id = c("c2", "c1", "c3", "c4"),
+    storage_profile = "space_file_backed_hdf5_v1", meta = list()),
+    class = "wb_primitive")
+  observed <- scworkbench:::.wb_operation_pack_v3_parameter_axis_observe(
+    scores, list(policy = "cell_by_parameter_axis_v1"), axis)
+  stopifnot(identical(as.integer(unlist(observed$dimensions)), c(4L, 3L)))
+  wrong <- scores
+  colnames(wrong$values)[[3L]] <- "PC4"
+  stopifnot(inherits(try(
+    scworkbench:::.wb_operation_pack_v3_parameter_axis_observe(wrong,
+      list(policy = "cell_by_parameter_axis_v1"), axis), silent = TRUE),
+    "try-error"))
+
+  fragment_grant <- list(
+    source_fragment_schedule = list(schedule_identity = list(
+      scheme = "scworkbench.operation_pack.source_fragment_schedule.v1",
+      sha256 = paste(rep("b", 64L), collapse = ""))),
+    feature_order_identity = scworkbench:::.wb_operation_pack_v2_identity_plain(
+      "scworkbench.feature_order.v1", as.list(paste0("g", 1:5))),
+    cell_order_identity = scworkbench:::.wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", as.list(c("c2", "c1", "c3", "c4"))))
+  attr(fragment_grant, "operation_pack_v3_features") <- paste0("g", 1:5)
+  attr(fragment_grant, "operation_pack_v3_cells") <- c("c2", "c1", "c3", "c4")
+  identity <- function(letter) list(scheme = "fixture.v1",
+    sha256 = paste(rep(letter, 64L), collapse = ""))
+  parts <- list(
+    list(ordinal = 1L, content_identity = identity("c"),
+      payload_manifest_identity = identity("d")),
+    list(ordinal = 2L, content_identity = identity("e"),
+      payload_manifest_identity = identity("f")))
+  manifest <- scworkbench:::.wb_operation_pack_v3_fragment_manifest(
+    fragment_grant, parts)
+  reversed <- scworkbench:::.wb_operation_pack_v3_fragment_manifest(
+    fragment_grant, rev(parts))
+  stopifnot(identical(manifest$fragment_count, 2L),
+    identical(.wb_v3_identity(manifest, "fragment_manifest_identity"),
+      manifest$fragment_manifest_identity$sha256),
+    !identical(manifest$fragment_manifest_identity,
+      reversed$fragment_manifest_identity))
+  TRUE
+}
+
 test_operation_pack_v3_shared_schema_drift_contract <- function() {
   files <- c("operation-pack-v3.schema.json",
     "operation-pack-transition-request-v3.schema.json",
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "2003a7b359054e46dc23ba5c3f4512ed276932498f53ccd5ff49df04f2f36974",
-    "979089dfaf971e7f41cb88dd1fb0beffda1c25be8466a7e9526ad0197533b1c1",
-    "e266a949f8ef20d81c4e8164af0058360c911fb9220aaef2227c1d3d7a84608e",
-    "9549a955029e9ef46cfd7c088fdf4486a424d42209d22f167c9c341d9437e09d")
+    "3dcf92408b3dfd163075beae9d10507b973b2caecb6a0e970234673e1fa17c02",
+    "1094c78351205c3d5696262fe067ec374f2d9869af29af65abf939381a6d1bad",
+    "9d3e931228d58803a1e55289259d5139f76ffde3c9e82cb21cf7bd02682d6137",
+    "c6c97b396e1a92627b28da4b26988cb1aae38f7f07ff8989e07a7d3f0f0fe31b")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)

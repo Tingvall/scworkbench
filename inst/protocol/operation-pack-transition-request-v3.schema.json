@@ -256,6 +256,13 @@
       "items": {
         "$ref": "#/$defs/typed_slice_grant"
       }
+    },
+    "parameter_axis_grants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/parameter_axis_grant"
+      },
+      "minItems": 1
     }
   },
   "$defs": {
@@ -1425,192 +1432,330 @@
         },
         "descriptor": {
           "oneOf": [
-          {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "category",
-            "kind",
-            "reader",
-            "matrix_input",
-            "selector_binding",
-            "matrix_id",
-            "dimensions",
-            "matrix_content_identity",
-            "feature_order_identity",
-            "selection_identity",
-            "content_identity",
-            "source_identity",
-            "ancestry_identity",
-            "payload_manifest_identity",
-            "descriptor_identity"
-          ],
-          "properties": {
-            "category": {
-              "const": "authenticated_core_registry_snapshot"
-            },
-            "kind": {
-              "const": "feature_set_registry"
-            },
-            "reader": {
-              "const": "read_feature_set_registry"
-            },
-            "matrix_input": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "selector_binding": {
+            {
               "type": "object",
               "additionalProperties": false,
               "required": [
-                "namespace_parameter",
-                "namespaces_parameter",
-                "feature_sets_parameter",
-                "no_selector_policy",
-                "empty_match_policy"
+                "category",
+                "kind",
+                "reader",
+                "matrix_input",
+                "selector_binding",
+                "matrix_id",
+                "dimensions",
+                "matrix_content_identity",
+                "feature_order_identity",
+                "selection_identity",
+                "content_identity",
+                "source_identity",
+                "ancestry_identity",
+                "payload_manifest_identity",
+                "descriptor_identity"
               ],
               "properties": {
-                "namespace_parameter": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
+                "category": {
+                  "const": "authenticated_core_registry_snapshot"
+                },
+                "kind": {
+                  "const": "feature_set_registry"
+                },
+                "reader": {
+                  "const": "read_feature_set_registry"
+                },
+                "matrix_input": {
+                  "type": "string",
                   "pattern": "^[a-z][a-z0-9_]*$"
                 },
-                "namespaces_parameter": {
-                  "type": [
-                    "string",
-                    "null"
+                "selector_binding": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "namespace_parameter",
+                    "namespaces_parameter",
+                    "feature_sets_parameter",
+                    "no_selector_policy",
+                    "empty_match_policy"
                   ],
-                  "pattern": "^[a-z][a-z0-9_]*$"
+                  "properties": {
+                    "namespace_parameter": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "namespaces_parameter": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "feature_sets_parameter": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "no_selector_policy": {
+                      "const": "all_namespaces"
+                    },
+                    "empty_match_policy": {
+                      "enum": [
+                        "allow",
+                        "error"
+                      ]
+                    }
+                  }
                 },
-                "feature_sets_parameter": {
-                  "type": [
-                    "string",
-                    "null"
+                "matrix_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "dimensions": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0
+                    }
                   ],
-                  "pattern": "^[a-z][a-z0-9_]*$"
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
                 },
-                "no_selector_policy": {
-                  "const": "all_namespaces"
+                "matrix_content_identity": {
+                  "$ref": "#/$defs/identity"
                 },
-                "empty_match_policy": {
-                  "enum": [
-                    "allow",
-                    "error"
-                  ]
+                "feature_order_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "selection_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "content_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "source_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "ancestry_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "payload_manifest_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "descriptor_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "scope",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.registry_read_descriptor.v2"
+                    },
+                    "scope": {
+                      "const": "descriptor excluding descriptor_identity"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
                 }
               }
             },
-            "matrix_id": {
-              "type": "string",
-              "minLength": 1
-            },
-            "dimensions": {
-              "type": "array",
-              "prefixItems": [
-                {
-                  "type": "integer",
-                  "minimum": 0
-                },
-                {
-                  "type": "integer",
-                  "minimum": 0
-                }
-              ],
-              "items": false,
-              "minItems": 2,
-              "maxItems": 2
-            },
-            "matrix_content_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "feature_order_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "selection_identity": {
-              "$ref": "#/$defs/self_identity"
-            },
-            "content_identity": {
-              "$ref": "#/$defs/self_identity"
-            },
-            "source_identity": {
-              "$ref": "#/$defs/self_identity"
-            },
-            "ancestry_identity": {
-              "$ref": "#/$defs/self_identity"
-            },
-            "payload_manifest_identity": {
-              "$ref": "#/$defs/self_identity"
-            },
-            "descriptor_identity": {
+            {
               "type": "object",
               "additionalProperties": false,
               "required": [
-                "scheme",
-                "scope",
-                "sha256"
+                "category",
+                "kind",
+                "reader",
+                "selection_policy",
+                "coverage_policy",
+                "session_id",
+                "run_id",
+                "checkpoint_generation",
+                "transition_source_state_identity",
+                "dimensions",
+                "cell_order_identity",
+                "selection_identity",
+                "content_identity",
+                "source_identity",
+                "ancestry_identity",
+                "payload_manifest_identity",
+                "descriptor_identity"
               ],
               "properties": {
-                "scheme": {
-                  "const": "scworkbench.operation_pack.registry_read_descriptor.v2"
+                "category": {
+                  "const": "authenticated_core_axis_snapshot"
                 },
-                "scope": {
-                  "const": "descriptor excluding descriptor_identity"
+                "kind": {
+                  "const": "session_cell_axis"
                 },
-                "sha256": {
-                  "$ref": "#/$defs/sha256"
+                "reader": {
+                  "const": "read_session_cell_axis"
+                },
+                "selection_policy": {
+                  "const": "effective_session_cells_v1"
+                },
+                "coverage_policy": {
+                  "const": "exact_complete_order_v1"
+                },
+                "session_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "run_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "checkpoint_generation": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "transition_source_state_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "dimensions": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "cell_order_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "selection_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "content_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "source_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "ancestry_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "payload_manifest_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "descriptor_identity": {
+                  "$ref": "#/$defs/self_identity"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "category",
+                "kind",
+                "reader",
+                "matrix_input",
+                "fields",
+                "row_order",
+                "missing_annotation_policy",
+                "matrix_id",
+                "dimensions",
+                "input_descriptor_identity",
+                "input_content_identity",
+                "feature_order_identity",
+                "content_identity",
+                "source_identity",
+                "ancestry_identity",
+                "payload_manifest_identity",
+                "descriptor_identity"
+              ],
+              "properties": {
+                "category": {
+                  "const": "authenticated_core_registry_snapshot"
+                },
+                "kind": {
+                  "const": "matrix_feature_annotations"
+                },
+                "reader": {
+                  "const": "read_matrix_feature_annotations"
+                },
+                "matrix_input": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "fields": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "const": "feature_type"
+                  }
+                },
+                "row_order": {
+                  "const": "matrix_feature_order_v1"
+                },
+                "missing_annotation_policy": {
+                  "const": "preserve_null"
+                },
+                "matrix_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "dimensions": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  ],
+                  "items": false,
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "input_descriptor_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "input_content_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "feature_order_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "content_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "source_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "ancestry_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "payload_manifest_identity": {
+                  "$ref": "#/$defs/self_identity"
+                },
+                "descriptor_identity": {
+                  "$ref": "#/$defs/self_identity"
                 }
               }
             }
-          }
-          },
-          {
-            "type": "object", "additionalProperties": false,
-            "required": ["category", "kind", "reader", "selection_policy", "coverage_policy", "session_id", "run_id", "checkpoint_generation", "transition_source_state_identity", "dimensions", "cell_order_identity", "selection_identity", "content_identity", "source_identity", "ancestry_identity", "payload_manifest_identity", "descriptor_identity"],
-            "properties": {
-              "category": {"const": "authenticated_core_axis_snapshot"},
-              "kind": {"const": "session_cell_axis"},
-              "reader": {"const": "read_session_cell_axis"},
-              "selection_policy": {"const": "effective_session_cells_v1"},
-              "coverage_policy": {"const": "exact_complete_order_v1"},
-              "session_id": {"type": "string", "minLength": 1},
-              "run_id": {"type": "string", "minLength": 1},
-              "checkpoint_generation": {"type": "string", "minLength": 1},
-              "transition_source_state_identity": {"$ref": "#/$defs/identity"},
-              "dimensions": {"type": "array", "prefixItems": [{"type": "integer", "minimum": 1}], "items": false, "minItems": 1, "maxItems": 1},
-              "cell_order_identity": {"$ref": "#/$defs/identity"},
-              "selection_identity": {"$ref": "#/$defs/self_identity"},
-              "content_identity": {"$ref": "#/$defs/self_identity"},
-              "source_identity": {"$ref": "#/$defs/self_identity"},
-              "ancestry_identity": {"$ref": "#/$defs/self_identity"},
-              "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
-              "descriptor_identity": {"$ref": "#/$defs/self_identity"}
-            }
-          },
-          {
-            "type": "object", "additionalProperties": false,
-            "required": ["category", "kind", "reader", "matrix_input", "fields", "row_order", "missing_annotation_policy", "matrix_id", "dimensions", "input_descriptor_identity", "input_content_identity", "feature_order_identity", "content_identity", "source_identity", "ancestry_identity", "payload_manifest_identity", "descriptor_identity"],
-            "properties": {
-              "category": {"const": "authenticated_core_registry_snapshot"},
-              "kind": {"const": "matrix_feature_annotations"},
-              "reader": {"const": "read_matrix_feature_annotations"},
-              "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-              "fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"const": "feature_type"}},
-              "row_order": {"const": "matrix_feature_order_v1"},
-              "missing_annotation_policy": {"const": "preserve_null"},
-              "matrix_id": {"type": "string", "minLength": 1},
-              "dimensions": {"type": "array", "prefixItems": [{"type": "integer", "minimum": 1}, {"type": "integer", "minimum": 1}], "items": false, "minItems": 2, "maxItems": 2},
-              "input_descriptor_identity": {"$ref": "#/$defs/identity"},
-              "input_content_identity": {"$ref": "#/$defs/identity"},
-              "feature_order_identity": {"$ref": "#/$defs/identity"},
-              "content_identity": {"$ref": "#/$defs/self_identity"},
-              "source_identity": {"$ref": "#/$defs/self_identity"},
-              "ancestry_identity": {"$ref": "#/$defs/self_identity"},
-              "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
-              "descriptor_identity": {"$ref": "#/$defs/self_identity"}
-            }
-          }
           ]
         }
       }
@@ -1716,6 +1861,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -1796,6 +1953,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -1872,6 +2041,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -1948,6 +2129,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2024,6 +2217,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2100,6 +2305,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2176,6 +2393,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2252,6 +2481,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2328,6 +2569,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2404,6 +2657,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2480,6 +2745,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2552,6 +2829,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2628,6 +2917,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2708,6 +3009,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2780,6 +3093,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         },
@@ -2852,6 +3177,18 @@
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
+            },
+            "publication_grant": {
+              "$ref": "#/$defs/materialization_publication_grant"
+            },
+            "matrix_fragment_grant": {
+              "$ref": "#/$defs/matrix_fragment_grant"
+            },
+            "parameter_axis_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "expected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
             }
           }
         }
@@ -3421,7 +3758,11 @@
                     "pattern": "^[a-z][a-z0-9_]*$"
                   },
                   "reader": {
-                    "enum": ["read_feature_set_registry", "read_session_cell_axis", "read_matrix_feature_annotations"]
+                    "enum": [
+                      "read_feature_set_registry",
+                      "read_session_cell_axis",
+                      "read_matrix_feature_annotations"
+                    ]
                   },
                   "descriptor_identity": {
                     "$ref": "#/$defs/self_identity"
@@ -3595,6 +3936,13 @@
           "items": {
             "$ref": "#/$defs/identity"
           }
+        },
+        "parameter_axis_grant_identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1
         }
       }
     },
@@ -3653,35 +4001,55 @@
         },
         "cell_axis_source": {
           "oneOf": [
-          {
-            "type": "object", "additionalProperties": false,
-            "required": ["input_name", "input_descriptor_identity", "derivation"],
-            "properties": {
-            "input_name": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "input_name",
+                "input_descriptor_identity",
+                "derivation"
+              ],
+              "properties": {
+                "input_name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "input_descriptor_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "derivation": {
+                  "enum": [
+                    "effective_cells_v1",
+                    "distinct_input_cells_first_occurrence_v1"
+                  ]
+                }
+              }
             },
-            "input_descriptor_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "derivation": {
-              "enum": [
-                "effective_cells_v1",
-                "distinct_input_cells_first_occurrence_v1"
-              ]
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source",
+                "registry_read",
+                "descriptor_identity",
+                "selection_identity"
+              ],
+              "properties": {
+                "source": {
+                  "const": "session_cell_axis_read_v1"
+                },
+                "registry_read": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "descriptor_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "selection_identity": {
+                  "$ref": "#/$defs/self_identity"
+                }
+              }
             }
-            }
-          },
-          {
-            "type": "object", "additionalProperties": false,
-            "required": ["source", "registry_read", "descriptor_identity", "selection_identity"],
-            "properties": {
-              "source": {"const": "session_cell_axis_read_v1"},
-              "registry_read": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-              "descriptor_identity": {"$ref": "#/$defs/identity"},
-              "selection_identity": {"$ref": "#/$defs/self_identity"}
-            }
-          }
           ]
         },
         "cell_axis_count": {
@@ -3880,14 +4248,60 @@
               }
             },
             {
-              "type": "object", "additionalProperties": false,
-              "required": ["source", "required_keys", "optional_groups", "selection_owner", "group_order"],
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source",
+                "required_keys",
+                "optional_groups",
+                "selection_owner",
+                "group_order"
+              ],
               "properties": {
-                "source": {"const": "declared_bounded_key_groups_v1"},
-                "required_keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-                "optional_groups": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["name", "keys"], "properties": {"name": {"type": "string", "minLength": 1}, "keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}}},
-                "selection_owner": {"const": "operation_pack_v1"},
-                "group_order": {"const": "manifest_order_v1"}
+                "source": {
+                  "const": "declared_bounded_key_groups_v1"
+                },
+                "required_keys": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "optional_groups": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "name",
+                      "keys"
+                    ],
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "keys": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    }
+                  }
+                },
+                "selection_owner": {
+                  "const": "operation_pack_v1"
+                },
+                "group_order": {
+                  "const": "manifest_order_v1"
+                }
               }
             }
           ]
@@ -3899,10 +4313,22 @@
           "type": "integer",
           "minimum": 0
         },
-        "minimum_key_count": {"type": "integer", "minimum": 1},
-        "maximum_key_count": {"type": "integer", "minimum": 1},
-        "minimum_row_count": {"type": "integer", "minimum": 1},
-        "maximum_row_count": {"type": "integer", "minimum": 1},
+        "minimum_key_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maximum_key_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum_row_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maximum_row_count": {
+          "type": "integer",
+          "minimum": 1
+        },
         "row_order_identity": {
           "$ref": "#/$defs/identity"
         },
@@ -4399,6 +4825,362 @@
               "$ref": "#/$defs/sha256"
             }
           }
+        }
+      }
+    },
+    "materialization_publication_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "output",
+        "promotion_group",
+        "closure_outputs",
+        "target_kind",
+        "target_id",
+        "mode",
+        "conflict_policy",
+        "preimage",
+        "publication_grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.materialization_publication_grant.v1"
+        },
+        "output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "promotion_group": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "closure_outputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "target_kind": {
+          "enum": [
+            "matrix",
+            "space"
+          ]
+        },
+        "target_id": {
+          "$ref": "#/$defs/id"
+        },
+        "mode": {
+          "enum": [
+            "add",
+            "replace"
+          ]
+        },
+        "conflict_policy": {
+          "enum": [
+            "require_absent_v1",
+            "replace_exact_preimage_v1"
+          ]
+        },
+        "preimage": {
+          "type": "object",
+          "minProperties": 2
+        },
+        "publication_grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "source_fragment_schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "input_descriptor_identity",
+        "matrix_content_identity",
+        "source_fragment_manifest_identity",
+        "fragments",
+        "schedule_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.source_fragment_schedule.v1"
+        },
+        "input_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "matrix_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_fragment_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "fragments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ordinal",
+              "source_fragment_identity",
+              "cell_start",
+              "cell_count",
+              "cell_order_identity"
+            ],
+            "properties": {
+              "ordinal": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "source_fragment_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "cell_start": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cell_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cell_order_identity": {
+                "$ref": "#/$defs/identity"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "schedule_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "matrix_fragment_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "source_input",
+        "typed_slice_grant_identity",
+        "expected_dimensions",
+        "feature_order_identity",
+        "cell_order_identity",
+        "source_fragment_schedule",
+        "fragment_policy",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.matrix_fragment_grant.v1"
+        },
+        "source_input": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "typed_slice_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "expected_dimensions": {
+          "$ref": "#/$defs/dimensions_2"
+        },
+        "feature_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_fragment_schedule": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "input_descriptor_identity",
+            "matrix_content_identity",
+            "source_fragment_manifest_identity",
+            "fragments",
+            "schedule_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.source_fragment_schedule.v1"
+            },
+            "input_descriptor_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "matrix_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "source_fragment_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "fragments": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "ordinal",
+                  "source_fragment_identity",
+                  "cell_start",
+                  "cell_count",
+                  "cell_order_identity"
+                ],
+                "properties": {
+                  "ordinal": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "source_fragment_identity": {
+                    "$ref": "#/$defs/identity"
+                  },
+                  "cell_start": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "cell_count": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "cell_order_identity": {
+                    "$ref": "#/$defs/identity"
+                  }
+                }
+              },
+              "minItems": 1
+            },
+            "schedule_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
+        },
+        "fragment_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "policy",
+            "source_input",
+            "source_typed_slice_read",
+            "fragment_axis",
+            "feature_coverage",
+            "cell_coverage",
+            "source_fragment_binding",
+            "fragment_order",
+            "minimum_fragment_count"
+          ],
+          "properties": {
+            "policy": {
+              "const": "staged_matrix_fragments_v1"
+            },
+            "source_input": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "source_typed_slice_read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "fragment_axis": {
+              "const": "cells"
+            },
+            "feature_coverage": {
+              "const": "exact_source_feature_order_v1"
+            },
+            "cell_coverage": {
+              "const": "exact_source_cell_order_partition_v1"
+            },
+            "source_fragment_binding": {
+              "const": "single_parent_no_crossing_v1"
+            },
+            "fragment_order": {
+              "const": "source_fragment_then_part_v1"
+            },
+            "minimum_fragment_count": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "parameter_axis_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "parameter",
+        "value",
+        "minimum",
+        "maximum",
+        "labels",
+        "source",
+        "axis_order_identity",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.parameter_axis_grant.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "parameter": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "value": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minimum": {
+          "type": "integer"
+        },
+        "maximum": {
+          "type": "integer"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "typed_slice_grant_identity",
+            "cell_axis_count",
+            "feature_axis_count"
+          ],
+          "properties": {
+            "typed_slice_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "cell_axis_count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "feature_axis_count": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/self_identity"
         }
       }
     }

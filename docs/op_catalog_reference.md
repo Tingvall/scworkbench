@@ -4,76 +4,10 @@
 
 Generated at: source-controlled
 
-Operation count: 39
+Operation count: 37
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
-
-## `matrix_log_normalize`
-
-Title: Log-normalize count matrix
-
-Intent: matrix, normalize, rna, transform
-
-Description: Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
-
-Consumes:
-- `matrix`: matrix
-- `cell_set`: select
-
-Produces:
-- `matrix`: matrix [materialization; committed by: summary] - Reference to the newly registered log-normalized matrix.
-- `summary`: obs_table [terminal artifact] - Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.
-
-Promotable outputs: summary
-
-Replay equivalence:
-- `matrix`: `exact_canonical_value`
-- `summary`: `exact_canonical_value`
-
-Key parameters:
-- `output_matrix_id` (string, default=NULL): Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.
-- `scale_factor` (dbl, default=10000): Per-cell target count scale before log1p; 10000 is the common CP10K convention.
-- `overwrite` (bool, default=FALSE): If TRUE, replace an existing output matrix with the same id.
-- `cell_set` (cell_set, default=all): Must be 'all' because the output matrix is registered as a full bundle matrix.
-
-## `pca_fit`
-
-Title: PCA Fit
-
-Intent: matrix, pca, space, rna, dimension_reduction
-
-Description: Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.
-
-Consumes:
-- `matrix`: matrix
-- `features`: feature_table
-- `cell_set`: select
-
-Produces:
-- `space`: space [materialization; committed by: loadings, variance, fit_summary] - Reference to the persisted PCA space.
-- `loadings`: feature_table [terminal artifact] - Feature loadings per principal component.
-- `variance`: obs_table [terminal artifact] - Per-PC standard deviation and variance explained.
-- `fit_summary`: obs_table [terminal artifact] - Input matrix, feature count, backend, component count, and output space id.
-
-Promotable outputs: loadings, variance, fit_summary
-
-Replay equivalence:
-- `space`: `exact_canonical_value`
-- `loadings`: `exact_canonical_value`
-- `variance`: `exact_canonical_value`
-- `fit_summary`: `exact_canonical_value`
-
-Key parameters:
-- `feature_ids` (string_vec, default=NULL): Optional explicit feature IDs when not passing features as a feature_table reference.
-- `n_components` (int, default=50): Number of principal components to compute.
-- `center` (bool, default=TRUE): Center features before PCA.
-- `scale` (bool, default=TRUE): Scale features before PCA.
-- `backend` (choice, default=irlba): PCA backend. 'irlba' is recommended for large sparse/backed matrices.
-- `seed` (int, default=1): Random seed.
-- `space_id_out` (string, default=rna.pca): Bundle space id to create.
-- `overwrite` (bool, default=FALSE): Replace an existing space_id_out if present.
-- `max_dense_gb` (dbl, default=8): Approximate dense selected-block size guard for dense backends.
 
 ## `umap_fit`
 

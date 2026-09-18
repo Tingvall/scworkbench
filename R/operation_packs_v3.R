@@ -68,12 +68,31 @@
   out$operations <- lapply(out$operations, function(op) {
     op$provenance_reads <- NULL
     op$typed_slice_reads <- NULL
+    op$publication_policies <- NULL
+    op$parameter_axes <- NULL
+    op$parameter_bindings <- Filter(function(binding)
+      !as.character(binding$policy %||% "")[1] %in% c(
+        "input_id_with_numeric_suffix_v1",
+        "feature_ids_from_table_or_matrix_v1"),
+      op$parameter_bindings %||% list())
+    if (!length(op$parameter_bindings)) op$parameter_bindings <- NULL
+    op$retained_parameters <- Filter(function(item) !identical(
+      as.character(item$source %||% "")[1], "effective_parameter_value"),
+      op$retained_parameters %||% list())
+    if (!length(op$retained_parameters)) op$retained_parameters <- NULL
+    op$outputs <- lapply(op$outputs, function(output) {
+      output$fragment_policy <- NULL
+      output
+    })
     op$registry_reads <- Filter(function(x) identical(
       as.character(x$kind %||% "")[1], "feature_set_registry"),
       op$registry_reads %||% list())
     if (!length(op$registry_reads)) op$registry_reads <- NULL
-    op$dimension_policies <- Filter(function(x) !identical(
-      as.character(x$policy %||% "")[1], "authenticated_output_axes_v1"),
+    op$dimension_policies <- Filter(function(x) !as.character(
+      x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+        "cell_by_parameter_axis_v1",
+        "feature_parameter_axis_cartesian_v1",
+        "one_per_parameter_axis_v1", "singleton_parameter_echo_v1"),
       op$dimension_policies %||% list())
     if (!length(op$dimension_policies)) op$dimension_policies <- NULL
     op
@@ -115,6 +134,30 @@
       paste0("Operation '", opname, "' repeats a dimension-policy output."),
       "semantic_admission")
     for (policy in policies) {
+      if (as.character(policy$policy)[1] %in% c(
+          "cell_by_parameter_axis_v1",
+          "feature_parameter_axis_cartesian_v1",
+          "one_per_parameter_axis_v1", "singleton_parameter_echo_v1")) {
+        output <- outputs[[as.character(policy$output)[1]]]
+        axes <- stats::setNames(operation$parameter_axes %||% list(),
+          vapply(operation$parameter_axes %||% list(), function(x)
+            as.character(x$name)[1], character(1)))
+        axis_name <- as.character(policy$dimension_axis %||%
+          policy$parameter_axis %||% "")[1]
+        axis <- axes[[axis_name]]
+        expected_kind <- switch(as.character(policy$policy)[1],
+          cell_by_parameter_axis_v1 = "space",
+          feature_parameter_axis_cartesian_v1 = "feature_table",
+          "obs_table")
+        if (is.null(output) || is.null(axis) ||
+            !identical(as.character(output$kind)[1], expected_kind))
+          .wb_operation_pack_v3_error(
+            "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+            paste0("Operation '", opname,
+              "' has an invalid parameter-bound output declaration."),
+            "semantic_admission")
+        next
+      }
       if (!identical(as.character(policy$policy)[1],
           "authenticated_output_axes_v1")) next
       output <- outputs[[as.character(policy$output)[1]]]
@@ -190,6 +233,83 @@
             "' has an incompatible authenticated key-axis resolver."),
           "semantic_admission")
       }
+    }
+
+    publication <- operation$publication_policies %||% list()
+    publication_names <- vapply(publication, function(x)
+      as.character(x$output)[1], character(1))
+    if (anyDuplicated(publication_names)) .wb_operation_pack_v3_error(
+      "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Operation '", opname,
+        "' repeats a publication-policy output."), "semantic_admission")
+    for (item in publication) {
+      output <- outputs[[as.character(item$output)[1]]]
+      target <- properties[[as.character(item$target_id_parameter)[1]]]
+      overwrite <- properties[[as.character(item$overwrite_parameter)[1]]]
+      if (is.null(output) || !identical(as.character(output$category)[1],
+          "materialization") || !identical(as.character(output$kind)[1],
+          as.character(item$target_kind)[1]) ||
+          !.wb_operation_pack_v3_param_is(properties,
+            item$target_id_parameter, "string") ||
+          !.wb_operation_pack_v3_param_is(properties,
+            item$overwrite_parameter, "boolean"))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid add/replace publication declaration."),
+          "semantic_admission")
+    }
+    axes <- operation$parameter_axes %||% list()
+    axis_names <- vapply(axes, function(x) as.character(x$name)[1],
+      character(1))
+    if (anyDuplicated(axis_names)) .wb_operation_pack_v3_error(
+      "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Operation '", opname, "' repeats a parameter axis."),
+      "semantic_admission")
+    slice_names <- vapply(operation$typed_slice_reads %||% list(),
+      function(x) as.character(x$name)[1], character(1))
+    for (axis in axes) {
+      maximum <- axis$maximum
+      if (!.wb_operation_pack_v3_param_is(properties, axis$parameter,
+          "integer") || !as.character(maximum$typed_slice_read)[1] %in%
+          slice_names)
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid parameter-axis declaration."),
+          "semantic_admission")
+    }
+    for (binding in Filter(function(x) identical(as.character(
+        x$policy %||% "")[1], "input_id_with_numeric_suffix_v1"),
+        operation$parameter_bindings %||% list())) {
+      input <- inputs[[as.character(binding$input)[1]]]
+      if (is.null(input) || !as.character(input$kind)[1] %in%
+          c("matrix", "space") ||
+          !.wb_operation_pack_v3_param_is(properties, binding$parameter,
+            "string", nullable = TRUE) ||
+          !.wb_operation_pack_v3_param_is(properties,
+            binding$numeric_parameter, "number"))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid derived target identifier binding."),
+          "semantic_admission")
+    }
+    for (binding in Filter(function(x) identical(as.character(
+        x$policy %||% "")[1], "feature_ids_from_table_or_matrix_v1"),
+        operation$parameter_bindings %||% list())) {
+      input <- inputs[[as.character(binding$input)[1]]]
+      table_input <- inputs[[as.character(binding$table_input)[1]]]
+      if (is.null(input) || !identical(as.character(input$kind)[1],
+          "matrix") || is.null(table_input) ||
+          !identical(as.character(table_input$kind)[1], "feature_table") ||
+          !.wb_operation_pack_v3_param_is(properties, binding$parameter,
+            "array", nullable = TRUE))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid feature-axis binding."),
+          "semantic_admission")
     }
 
     new_reads <- .wb_operation_pack_v3_new_registry_declarations(operation)
@@ -375,8 +495,28 @@
   projected <- op
   projected$provenance_reads <- NULL
   projected$typed_slice_reads <- NULL
-  projected$dimension_policies <- Filter(function(x) !identical(
-    as.character(x$policy %||% "")[1], "authenticated_output_axes_v1"),
+  projected$publication_policies <- NULL
+  projected$parameter_axes <- NULL
+  projected$parameter_bindings <- Filter(function(binding)
+    !as.character(binding$policy %||% "")[1] %in% c(
+      "input_id_with_numeric_suffix_v1",
+      "feature_ids_from_table_or_matrix_v1"),
+    projected$parameter_bindings %||% list())
+  if (!length(projected$parameter_bindings))
+    projected$parameter_bindings <- NULL
+  projected$retained_parameters <- Filter(function(item) !identical(
+    as.character(item$source %||% "")[1], "effective_parameter_value"),
+    projected$retained_parameters %||% list())
+  if (!length(projected$retained_parameters))
+    projected$retained_parameters <- NULL
+  projected$outputs <- lapply(projected$outputs, function(output) {
+    output$fragment_policy <- NULL
+    output
+  })
+  projected$dimension_policies <- Filter(function(x) !as.character(
+    x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+      "cell_by_parameter_axis_v1", "feature_parameter_axis_cartesian_v1",
+      "one_per_parameter_axis_v1", "singleton_parameter_echo_v1"),
     projected$dimension_policies %||% list())
   if (!length(projected$dimension_policies)) projected$dimension_policies <- NULL
   definition <- .wb_operation_pack_v2_catalog_definition(projected)

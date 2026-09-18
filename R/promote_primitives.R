@@ -305,10 +305,10 @@ wb_promote_analysis <- function(bundle,
     !is.null(target_reproduction_receipts)
   materializations <- tryCatch({
     if (!is.null(staging_bundle)) {
-      prepared_materializations <- .wb_stage_prepare_materializations(
-        staging_bundle, bundle, workspace, runs, topo, commit_id)
       .wb_operation_pack_v2_prepare_transition_payloads(
         staging_bundle, bundle, workspace, runs, topo)
+      prepared_materializations <- .wb_stage_prepare_materializations(
+        staging_bundle, bundle, workspace, runs, topo, commit_id)
       prepared_materializations
     } else {
       .wb_prepare_materialization_payloads(workspace, runs, topo, commit_id)
@@ -345,7 +345,9 @@ wb_promote_analysis <- function(bundle,
       for (rid in topo) {
         if (.wb_run_is_committed(bundle, rid)) next
         for (prim in unname(runs[[rid]]$outputs %||% list())) {
-          if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id)
+          if (.wb_is_primitive(prim) && identical(prim$kind, "matrix"))
+            .wb_stage_commit_matrix(staging_bundle, bundle, prim$matrix_id,
+              prim = prim, workspace = workspace)
           if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) {
             space_id <- as.character(prim$space_id)[1]
             if (space_id %in% committed_space_ids || !space_id %in% copied_new_space_ids) {

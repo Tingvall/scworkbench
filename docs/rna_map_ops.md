@@ -1,10 +1,11 @@
 # RNA Map Ops
 
 The independently installed provisional `scwbRNA` operation pack supplies
-`scwbrna::hvg_select`; core scworkbench supplies the surrounding normalization,
-PCA, and UMAP operations. The pack currently contains only
-`cell_suffix_label`, `rna_qc_metrics`, and `hvg_select` and is not a complete
-RNA package. Installation is inert: activate its installed
+`scwbrna::matrix_log_normalize` and `scwbrna::hvg_select`; the provisional
+`scwbRepresentation` pack supplies `scwbrepresentation::pca_fit`. Core
+scworkbench supplies UMAP and the generic authenticated slice, staged
+publication, parameter-axis, promotion, and provenance boundaries. Pack
+installation is inert: activate each installed
 `inst/scworkbench/operation-pack.json` explicitly before execution.
 
 Together they support a first-pass RNA map workflow for matrix-only bundles:
@@ -59,7 +60,7 @@ coordinates as a normal scworkbench `space`.
 rr_pca <- wb_session_run_op(
   rr$session,
   bundle,
-  "pca_fit",
+  "scwbrepresentation::pca_fit",
   inputs = list(
     matrix = "RNA_log_norm",
     features = wb_ref_run(rr$run$run_id, "selected_features"),
@@ -124,13 +125,15 @@ where optional packages differ from the development workstation.
 `hvg_select` reads the input matrix in feature chunks and avoids full matrix
 materialization.
 
-`matrix_log_normalize` supports both single-fragment and multi-fragment BPCells
-matrices. It persists normalized continuous values as uncompressed BPCells
-double matrices, verifies that nonzero source signal remains nonzero after the
-write, and only then registers the output. Multi-fragment logical matrices are
-normalized fragment-by-fragment and retain the same cell partitions.
+`scwbrna::matrix_log_normalize` supports both single-fragment and
+multi-fragment BPCells matrices. The pack chooses bounded output fragments;
+core validates the exact authenticated axes, source-fragment parentage,
+complete ordered manifest, content identities, and add/replace preimage before
+atomic promotion with the terminal summary.
 
-`pca_fit` reads only the selected feature block. The default backend is
+`scwbrepresentation::pca_fit` reads only the selected feature block. The
+requested component axis is bounded by authenticated matrix rank and closes
+the space, loadings, variance, and summary outputs together. The default backend is
 `irlba::prcomp_irlba()`, which is the intended path for large sparse/backed
 matrices. The selected block size is recorded in `fit_summary` as
 `approx_dense_gb`; dense backends are guarded by `max_dense_gb`.

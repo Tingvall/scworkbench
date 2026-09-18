@@ -78,6 +78,19 @@
   .wb_assert(isTRUE(status$ok), paste0(status$code, ": unsafe staged payload path"))
   rel_path <- status$relative
   src <- status$absolute
+  parents <- names(workspace$mappings)[vapply(names(workspace$mappings),
+    function(path) startsWith(rel_path, paste0(path, "/")), logical(1))]
+  if (length(parents)) {
+    parent <- parents[[which.max(nchar(parents))]]
+    mapped_root <- as.character(workspace$mappings[[parent]]$source %||% "")[1]
+    suffix <- substring(rel_path, nchar(parent) + 2L)
+    expected <- normalizePath(file.path(mapped_root, suffix), winslash = "/",
+      mustWork = TRUE)
+    observed <- normalizePath(src, winslash = "/", mustWork = TRUE)
+    .wb_assert(identical(expected, observed), paste0(
+      "Promotion payload ancestry collision for '", rel_path, "'."))
+    return(invisible(rel_path))
+  }
   existing <- workspace$mappings[[rel_path]]
   if (!is.null(existing)) {
     mapped_source <- normalizePath(as.character(existing$source %||% "")[1], winslash = "/", mustWork = FALSE)
@@ -154,11 +167,39 @@
   invisible(workspace)
 }
 
-.wb_stage_commit_matrix <- function(staging_bundle, bundle, matrix_id) {
+.wb_stage_assert_publication_replace <- function(bundle, prim, kind, id) {
+  grant <- prim$publication_grant %||% NULL
+  .wb_assert(is.list(grant) && identical(as.character(grant$schema)[1],
+      "scworkbench.operation_pack.materialization_publication_grant.v1") &&
+      identical(as.character(grant$mode)[1], "replace") &&
+      identical(as.character(grant$target_kind)[1], kind) &&
+      identical(as.character(grant$target_id)[1], id), paste0(
+        "Cannot replace committed ", kind, " without its exact authenticated publication grant: ", id))
+  current <- .wb_operation_pack_v3_materialization_preimage(bundle, kind,
+    id, grant$preimage$transition_source_state_identity)
+  .wb_assert(identical(.wb_operation_pack_canonical_json(current),
+      .wb_operation_pack_canonical_json(grant$preimage)), paste0(
+        "Committed ", kind, " changed after the replacement grant was issued: ", id))
+  invisible(grant)
+}
+
+.wb_stage_commit_matrix <- function(staging_bundle, bundle, matrix_id,
+                                    prim = NULL, workspace = NULL) {
   src <- staging_bundle$con
   dst <- bundle$con
   exists <- DBI::dbGetQuery(dst, "SELECT matrix_id FROM matrices WHERE matrix_id = ?;", params = list(matrix_id))
-  if (nrow(exists)) return(invisible(FALSE))
+  old_paths <- character()
+  if (nrow(exists)) {
+    .wb_stage_assert_publication_replace(bundle, prim, "matrix", matrix_id)
+    old_paths <- unique(c(as.character(DBI::dbGetQuery(dst,
+      "SELECT path FROM matrices WHERE matrix_id=?;", params = list(matrix_id))$path),
+      as.character(DBI::dbGetQuery(dst,
+        "SELECT path FROM matrix_fragments WHERE matrix_id=?;",
+        params = list(matrix_id))$path)))
+    .wb_operation_pack_v3_retire_materialization_binding(dst, "matrix",
+      matrix_id)
+    .wb_operation_pack_v3_delete_matrix_registry(dst, matrix_id)
+  }
   row <- DBI::dbGetQuery(src, "SELECT * FROM matrices WHERE matrix_id = ?;", params = list(matrix_id))
   .wb_assert(nrow(row) == 1L, paste0("Staged matrix is missing: ", matrix_id))
   frags <- DBI::dbGetQuery(src, "SELECT * FROM matrix_fragments WHERE matrix_id = ? ORDER BY fragment_id;", params = list(matrix_id))
@@ -167,6 +208,11 @@
   .wb_copy_db_rows(src, dst, "matrix_fragments", "matrix_id = ?", list(matrix_id))
   if (nrow(frags)) {
     .wb_stage_copy_fragment_memberships(src, dst, frags)
+  }
+  if (!is.null(workspace) && length(old_paths)) {
+    new_paths <- unique(c(as.character(row$path), as.character(frags$path)))
+    for (path in setdiff(old_paths[nzchar(old_paths)], new_paths))
+      .wb_promotion_workspace_retire_after_commit(workspace, path)
   }
   invisible(TRUE)
 }
@@ -223,22 +269,16 @@
     for (prim in unname(runs[[rid]]$outputs %||% list())) {
       if (.wb_is_primitive(prim) && identical(prim$kind, "matrix")) {
         exists <- DBI::dbGetQuery(bundle$con, "SELECT matrix_id FROM matrices WHERE matrix_id = ?;", params = list(prim$matrix_id))
-        .wb_assert(!nrow(exists), paste0(
-          "Cannot promote staged matrix over committed matrix_id='", prim$matrix_id,
-          "'. Use a new output matrix ID to preserve immutable lineage."
-        ))
+        if (nrow(exists)) .wb_stage_assert_publication_replace(bundle, prim,
+          "matrix", as.character(prim$matrix_id)[1])
         .wb_stage_prepare_matrix_payloads(staging_bundle, workspace, prim$matrix_id)
       }
       if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) {
         exists <- DBI::dbGetQuery(bundle$con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(prim$space_id))
         if (nrow(exists)) {
-          .wb_assert(
-            identical(as.character(prim$promotion_mode %||% "")[1], "merge_space_2d"),
-            paste0(
-              "Cannot promote staged space over committed space_id='", prim$space_id,
-              "' without an explicit merge contract. Use a new output space ID."
-            )
-          )
+          if (!identical(as.character(prim$promotion_mode %||% "")[1],
+              "merge_space_2d")) .wb_stage_assert_publication_replace(bundle,
+                prim, "space", as.character(prim$space_id)[1])
         }
         .wb_stage_prepare_space_payloads(staging_bundle, workspace, prim$space_id)
       }
@@ -340,11 +380,18 @@
   dst <- bundle$con
   exists <- DBI::dbGetQuery(dst, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id))
   if (nrow(exists)) {
-    .wb_assert(
-      .wb_is_primitive(prim) && identical(as.character(prim$promotion_mode %||% "")[1], "merge_space_2d"),
-      paste0("Cannot replace committed space during promotion: ", space_id)
-    )
-    .wb_entity_assert_replaceable(bundle, "space", space_id, action = "merge into")
+    replacement <- .wb_is_primitive(prim) && !is.null(
+      prim$publication_grant) && identical(as.character(
+        prim$publication_grant$mode)[1], "replace")
+    if (replacement) .wb_stage_assert_publication_replace(bundle, prim,
+      "space", space_id) else .wb_assert(.wb_is_primitive(prim) &&
+        identical(as.character(prim$promotion_mode %||% "")[1],
+          "merge_space_2d"), paste0(
+            "Cannot replace committed space during promotion: ", space_id))
+    if (!replacement) .wb_entity_assert_replaceable(bundle, "space", space_id,
+      action = "merge into")
+    if (replacement) .wb_operation_pack_v3_retire_materialization_binding(
+      dst, "space", space_id)
     staged_space <- DBI::dbGetQuery(src, "SELECT * FROM spaces WHERE space_id = ?;", params = list(space_id))
     staged_payload <- DBI::dbGetQuery(src, "SELECT * FROM space_payloads WHERE space_id = ?;", params = list(space_id))
     .wb_assert(nrow(staged_space) == 1L && nrow(staged_payload) == 1L,

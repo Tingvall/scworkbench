@@ -771,6 +771,22 @@
   policies <- .wb_operation_pack_v3_policy_map(operation)
   outputs <- stats::setNames(operation$outputs,
     vapply(operation$outputs, `[[`, character(1), "name"))
+  typed_slice_grants <- lapply(operation$typed_slice_reads %||% list(),
+    function(declaration) {
+      input_name <- as.character(declaration$input)[1]
+      .wb_operation_pack_v3_typed_slice_grant(bundle, declaration,
+        inputs[[input_name]], input_records[[input_name]], params,
+        effective_cells, base$execution_capability$source_state_identity,
+        stage_root)
+    })
+  typed_slice_grants <- stats::setNames(typed_slice_grants,
+    vapply(typed_slice_grants, `[[`, character(1), "name"))
+  parameter_axis_grants <- lapply(operation$parameter_axes %||% list(),
+    .wb_operation_pack_v3_parameter_axis_grant, params = params,
+    typed_grants = typed_slice_grants)
+  parameter_axis_grants <- stats::setNames(parameter_axis_grants,
+    vapply(parameter_axis_grants, `[[`, character(1), "name"))
+  publication_policies <- .wb_operation_pack_v3_publication_map(operation)
   for (i in seq_along(base$outputs)) {
     name <- as.character(base$outputs[[i]]$name)[1]
     descriptor <- base$outputs[[i]]$descriptor
@@ -797,21 +813,49 @@
             "scworkbench.cell_order.v1", unname(as.list(output_cells)))
       }
     }
+    if (!is.null(policy) && as.character(policy$policy)[1] %in% c(
+        "cell_by_parameter_axis_v1",
+        "feature_parameter_axis_cartesian_v1",
+        "one_per_parameter_axis_v1", "singleton_parameter_echo_v1")) {
+      axis_name <- as.character(policy$dimension_axis %||%
+        policy$parameter_axis)[1]
+      axis <- parameter_axis_grants[[axis_name]]
+      descriptor$parameter_axis_grant_identity <-
+        .wb_operation_pack_v3_unscoped_identity(axis$grant_identity)
+      descriptor$expected_dimensions <- switch(as.character(policy$policy)[1],
+        cell_by_parameter_axis_v1 = list(as.integer(length(attr(axis,
+          "operation_pack_v3_cells"))), as.integer(axis$value)),
+        feature_parameter_axis_cartesian_v1 = list(as.integer(axis$value *
+          length(attr(axis, "operation_pack_v3_features"))), 0L),
+        one_per_parameter_axis_v1 = list(as.integer(axis$value), 0L),
+        singleton_parameter_echo_v1 = list(1L, 0L))
+      descriptor$expected_cell_order_identity <- if (identical(
+          as.character(policy$policy)[1], "cell_by_parameter_axis_v1"))
+        .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1",
+          unname(as.list(attr(axis, "operation_pack_v3_cells")))) else NULL
+      descriptor$expected_dimension_order_identity <- if (identical(
+          as.character(policy$policy)[1], "cell_by_parameter_axis_v1"))
+        axis$axis_order_identity else NULL
+    }
+    publication_policy <- publication_policies[[name]]
+    if (!is.null(publication_policy)) {
+      publication <- .wb_operation_pack_v3_publication_grant(bundle,
+        publication_policy, operation, params,
+        base$execution_capability$source_state_identity)
+      descriptor$publication_grant <- publication
+      base$outputs[[i]]$allocated_id <- publication$target_id
+    }
+    if (!is.null(outputs[[name]]$fragment_policy)) {
+      descriptor$matrix_fragment_grant <-
+        .wb_operation_pack_v3_matrix_fragment_grant(bundle, outputs[[name]],
+          inputs, input_records, typed_slice_grants)
+    }
     descriptor$grant_identity <- NULL
     descriptor$grant_identity <- .wb_operation_pack_v2_identity_scoped(
       "scworkbench.operation_pack.output_grant.v3",
       "descriptor excluding grant_identity", descriptor)
     base$outputs[[i]]$descriptor <- descriptor
   }
-
-  typed_slice_grants <- lapply(operation$typed_slice_reads %||% list(),
-    function(declaration) {
-      input_name <- as.character(declaration$input)[1]
-      .wb_operation_pack_v3_typed_slice_grant(bundle, declaration,
-        inputs[[input_name]], input_records[[input_name]], params,
-        effective_cells, base$execution_capability$source_state_identity,
-        stage_root)
-    })
 
   provenance <- .wb_operation_pack_v3_provenance_read_records(bundle,
     operation, inputs, source_refs, input_records, params, stage_root)
@@ -824,7 +868,7 @@
   capability$writer_grants <- lapply(base$outputs, function(x) list(
     output_name = x$name, writer = x$descriptor$writer,
     grant_identity = x$descriptor$grant_identity))
-  capability$reader_grants <- c(
+  capability$reader_grants <- unname(c(
     lapply(Filter(function(x) !x$name %in% vapply(typed_slice_grants, `[[`,
       character(1), "input_name"), base$inputs), function(x) list(input_name = x$name,
       reader = x$descriptor$reader,
@@ -837,10 +881,14 @@
       descriptor_identity = x$descriptor_identity)),
     lapply(typed_slice_grants, function(x) list(
       typed_slice_name = x$name, reader = x$reader,
-      grant_identity = x$grant_identity)))
+      grant_identity = x$grant_identity))))
   if (length(typed_slice_grants)) capability$typed_slice_grant_identities <-
-    lapply(typed_slice_grants, function(x)
-      .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
+    unname(lapply(typed_slice_grants, function(x)
+      .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(parameter_axis_grants))
+    capability$parameter_axis_grant_identities <- unname(lapply(
+      parameter_axis_grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
   if (length(provenance$records)) capability$provenance_read_identities <-
     lapply(provenance$records, function(x)
       .wb_operation_pack_v3_unscoped_identity(
@@ -863,7 +911,10 @@
     entry_point = list(value = identity$entry_point,
       identity = identity$entry_point_identity))
   base$execution_capability <- capability
-  if (length(typed_slice_grants)) base$typed_slice_grants <- typed_slice_grants
+  if (length(typed_slice_grants))
+    base$typed_slice_grants <- unname(typed_slice_grants)
+  if (length(parameter_axis_grants))
+    base$parameter_axis_grants <- unname(parameter_axis_grants)
   if (length(provenance$records)) base$provenance_reads <- provenance$records
   base$request_identity <- NULL
   base$request_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -1060,6 +1111,12 @@
                                            registry_reads = list(),
                                            provenance_reads = list(),
                                            typed_slice_usage = list()) {
+  hook <- getOption("scworkbench.operation_pack_v3_output_test_hook", NULL)
+  if (is.function(hook)) {
+    replacement <- hook(writes = writes, request = request,
+      operation = operation)
+    if (!is.null(replacement)) writes <- replacement
+  }
   projected <- .wb_operation_pack_v3_v2_projection(list(
     schema_version = "scworkbench.operation_pack.v3",
     pack_abi_version = "3", identity_scheme =
@@ -1085,6 +1142,9 @@
   grants <- stats::setNames(request$outputs,
     vapply(request$outputs, `[[`, character(1), "name"))
   policies <- .wb_operation_pack_v3_policy_map(operation)
+  axis_grants <- stats::setNames(request$parameter_axis_grants %||% list(),
+    vapply(request$parameter_axis_grants %||% list(), function(x)
+      as.character(x$name)[1], character(1)))
   observed <- c(receipt$outputs %||% list(),
     receipt$registry_requests %||% list())
   for (i in seq_along(observed)) {
@@ -1105,6 +1165,41 @@
       descriptor$dimensions <- unname(as.list(
         .wb_operation_pack_v2_dimensions(writes[[name]]$value,
           as.character(descriptor$kind)[1])))
+    }
+    policy <- policies[[name]]
+    if (!is.null(policy) && as.character(policy$policy)[1] %in% c(
+        "cell_by_parameter_axis_v1",
+        "feature_parameter_axis_cartesian_v1",
+        "one_per_parameter_axis_v1", "singleton_parameter_echo_v1")) {
+      axis_name <- as.character(policy$dimension_axis %||%
+        policy$parameter_axis)[1]
+      descriptor$observed_parameter_axis <-
+        .wb_operation_pack_v3_parameter_axis_observe(
+          writes[[name]]$value, policy, axis_grants[[axis_name]])
+      descriptor$dimensions <- descriptor$observed_parameter_axis$dimensions
+    }
+    fragment_manifest <- writes[[name]]$value$fragment_manifest %||% NULL
+    if (!is.null(fragment_manifest)) {
+      descriptor$matrix_fragment_manifest <- fragment_manifest
+      descriptor$matrix_fragment_manifest_identity <-
+        .wb_operation_pack_v3_unscoped_identity(
+          fragment_manifest$fragment_manifest_identity)
+      descriptor$content_identity <-
+        .wb_operation_pack_v2_identity_plain(
+          "scworkbench.matrix.content.v1", list(
+            dimensions = fragment_manifest$dimensions,
+            feature_order_identity = fragment_manifest$feature_order_identity,
+            cell_order_identity = fragment_manifest$cell_order_identity,
+            fragment_content_identities = lapply(
+              fragment_manifest$fragments, `[[`, "content_identity")))
+      descriptor$payload_manifest_identity <-
+        .wb_operation_pack_v2_identity_plain(
+          "scworkbench.operation_pack.payload_manifest.v2", list(
+            fragment_manifest_identity =
+              fragment_manifest$fragment_manifest_identity,
+            fragment_payload_identities = lapply(
+              fragment_manifest$fragments, `[[`,
+              "payload_manifest_identity")))
     }
     descriptor$observed_descriptor_identity <- NULL
     observed_scheme <- if (identical(as.character(descriptor$category)[1],
@@ -1133,6 +1228,41 @@
     registration, operation$qualified_name, preflight)
   if (length(provenance_reads)) receipt$provenance_reads <- provenance_reads
   if (length(typed_slice_usage)) receipt$typed_slice_usage <- typed_slice_usage
+  publication_observations <- lapply(Filter(function(x)
+    !is.null(x$descriptor$publication_grant), request$outputs), function(grant) {
+      output <- observed[[match(grant$name, vapply(observed, `[[`,
+        character(1), "name"))]]
+      closure <- as.character(unlist(grant$descriptor$publication_grant$
+        closure_outputs, use.names = FALSE))
+      closure_records <- lapply(sort(closure, method = "radix"), function(name) {
+        item <- observed[[match(name, vapply(observed, `[[`, character(1),
+          "name"))]]
+        list(name = name, observed_descriptor_identity =
+          .wb_operation_pack_v3_unscoped_identity(
+            item$descriptor$observed_descriptor_identity))
+      })
+      preimage <- grant$descriptor$publication_grant$preimage
+      preimage_identity <- .wb_operation_pack_v2_identity_plain(
+        "scworkbench.operation_pack.materialization_preimage.v1", preimage)
+      value <- list(schema =
+          "scworkbench.operation_pack.observed_materialization_publication.v1",
+        publication_grant_identity =
+          .wb_operation_pack_v3_unscoped_identity(grant$descriptor$
+            publication_grant$publication_grant_identity),
+        mode = grant$descriptor$publication_grant$mode,
+        preimage_identity = preimage_identity,
+        output_observed_descriptor_identity =
+          .wb_operation_pack_v3_unscoped_identity(
+            output$descriptor$observed_descriptor_identity),
+        closure_output_identities = closure_records,
+        status = "validated_not_published")
+      value$observation_identity <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.observed_materialization_publication.v1",
+        "observation excluding observation_identity", value)
+      value
+    })
+  if (length(publication_observations))
+    receipt$publication_observations <- publication_observations
   receipt$receipt_identity <- NULL
   receipt$receipt_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_receipt.v3",
@@ -1177,6 +1307,41 @@
         .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
           "Observed cardinality refers to the wrong grant.", "receipt")
     }
+    if (!is.null(grant$parameter_axis_grant_identity) &&
+        !identical(item$descriptor$observed_parameter_axis$
+          parameter_axis_grant_identity,
+          grant$parameter_axis_grant_identity))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "Observed output refers to the wrong parameter-axis grant.",
+        "receipt")
+    if (!is.null(grant$matrix_fragment_grant)) {
+      .wb_operation_pack_v3_assert_self_identity(
+        item$descriptor$matrix_fragment_manifest,
+        "fragment_manifest_identity", "PYBENCH_RECEIPT_MISMATCH",
+        "receipt")
+      if (!identical(item$descriptor$matrix_fragment_manifest$
+          source_fragment_schedule_identity,
+          grant$matrix_fragment_grant$source_fragment_schedule$
+            schedule_identity))
+        .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+          "Matrix fragment receipt refers to the wrong source schedule.",
+          "receipt")
+    }
+  }
+  publication_grants <- Filter(function(x)
+    !is.null(x$descriptor$publication_grant), request$outputs)
+  observations <- receipt$publication_observations %||% list()
+  if (length(publication_grants) != length(observations))
+    .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+      "Publication observations are not a bijection with grants.",
+      "receipt")
+  for (observation in observations) {
+    .wb_operation_pack_v3_assert_self_identity(observation,
+      "observation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+    if (!identical(as.character(observation$status)[1],
+        "validated_not_published"))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "Pack receipt may not claim durable publication.", "receipt")
   }
   slice_grants <- request$typed_slice_grants %||% list()
   usages <- receipt$typed_slice_usage %||% list()
@@ -1792,6 +1957,8 @@
     provenance_read_values = list()) {
   base <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs,
     stage_root, bundle = bundle, registry_read_values = registry_read_values)
+  base <- .wb_operation_pack_v3_fragment_writers(base, request, operation,
+    stage_root)
   state <- base$state
   typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
     `[[`, character(1), "input_name"))

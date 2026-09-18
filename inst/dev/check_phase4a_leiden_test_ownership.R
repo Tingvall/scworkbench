@@ -18,7 +18,7 @@ stopifnot(
 default_files <- sort(list.files(file.path(root, "tests"),
   pattern = "^test_.*\\.R$", full.names = TRUE, recursive = FALSE))
 composite_files <- sort(list.files(file.path(root, "tests", "composite"),
-  pattern = "^test_.*\\.R$", full.names = TRUE, recursive = FALSE))
+  pattern = "^test_.*\\.R$", full.names = TRUE, recursive = TRUE))
 stopifnot(length(default_files) > 0L, length(composite_files) > 0L,
   !length(intersect(default_files, composite_files)))
 
@@ -60,16 +60,19 @@ scan_file <- function(path, function_name) {
 dispatches <- do.call(rbind, lapply(default_files, scan_file,
   function_name = "wb_session_run_op"))
 leiden_dispatches <- dispatches[dispatches$operation == "leiden", , drop = FALSE]
+pca_dispatches <- dispatches[dispatches$operation == "pca_fit", , drop = FALSE]
 stopifnot(
   nrow(leiden_dispatches) == 1L,
-  identical(leiden_dispatches$file, "test_representation_extraction_contract.R")
+  identical(leiden_dispatches$file, "test_representation_extraction_contract.R"),
+  nrow(pca_dispatches) == 1L,
+  identical(pca_dispatches$file, "test_representation_extraction_contract.R")
 )
 synthetic_runs <- do.call(rbind, lapply(default_files, scan_file,
   function_name = "wb_new_run"))
-stopifnot(!any(synthetic_runs$operation == "leiden"))
+stopifnot(!any(synthetic_runs$operation %in% c("leiden", "pca_fit")))
 golden_runs <- scan_file(file.path(root, "inst", "golden_bundle",
   "create_golden_bundle.R"), "wb_new_run")
-stopifnot(!any(golden_runs$operation == "leiden"))
+stopifnot(!any(golden_runs$operation %in% c("leiden", "pca_fit")))
 
 negative <- paste(readLines(file.path(root, "tests",
   "test_representation_extraction_contract.R"), warn = FALSE), collapse = "\n")
@@ -88,4 +91,5 @@ stopifnot(all(expected_composite %in% basename(composite_files)),
 cat("PHASE4A LEIDEN TEST OWNERSHIP OK ledger_rows=", nrow(ledger),
   " default_files=", length(default_files),
   " default_leiden_dispatches=", nrow(leiden_dispatches),
-  " expected_negative_dispatches=1 composite_moved=2\n", sep = "")
+  " default_pca_dispatches=", nrow(pca_dispatches),
+  " expected_negative_dispatches=2 composite_moved=2\n", sep = "")

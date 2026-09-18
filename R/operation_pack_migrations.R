@@ -20,9 +20,11 @@
     feature_set_overlap_qc = "scwbgeneprograms::feature_set_overlap_qc",
     pathway_enrich = "scwbgeneprograms::pathway_enrich",
     leiden = "scwbrepresentation::leiden",
+    pca_fit = "scwbrepresentation::pca_fit",
     cell_suffix_label = "scwbrna::cell_suffix_label",
     rna_qc_metrics = "scwbrna::rna_qc_metrics",
-    hvg_select = "scwbrna::hvg_select"
+    hvg_select = "scwbrna::hvg_select",
+    matrix_log_normalize = "scwbrna::matrix_log_normalize"
   )
 }
 

@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 309
+Record count: 307
 
-Graph edges: 783
+Graph edges: 764
 
 ## artifact_type
 
@@ -991,18 +991,6 @@ Title: Capsule Output Path
 Description: Resolve and content-verify one relocatable bundle-owned capsule output path.
 
 ## op
-
-### `op:matrix_log_normalize`
-
-Title: Log-normalize count matrix
-
-Description: Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
-
-### `op:pca_fit`
-
-Title: PCA Fit
-
-Description: Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.
 
 ### `op:umap_fit`
 

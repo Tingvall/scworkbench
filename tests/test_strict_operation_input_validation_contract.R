@@ -53,10 +53,10 @@ test_strict_operation_input_validation_contract <- function() {
 
   # Unknown names are rejected before execution and close typos are actionable.
   typo <- expect_error(
-    scworkbench:::.wb_validate_op_inputs_contract("pca_fit", list(n_component = 10L), session_for("pca_fit")),
-    "Unknown input 'n_component'"
+    scworkbench:::.wb_validate_op_inputs_contract("umap_fit", list(n_neighbor = 10L), session_for("umap_fit")),
+    "Unknown input 'n_neighbor'"
   )
-  stopifnot(grepl("Did you mean 'n_components'?", as.character(typo), fixed = TRUE))
+  stopifnot(grepl("Did you mean 'n_neighbors'?", as.character(typo), fixed = TRUE))
 
   for (op_name in names(catalog)) {
     op <- scworkbench:::.wb_op(op_name)
@@ -165,10 +165,10 @@ test_strict_operation_input_validation_contract <- function() {
   expect_error(scworkbench:::.wb_validate_op_inputs_contract("metadata_cell_vector", list(
     source_column = "group", vector_name = "group", min_cells = 1.2
   ), wb_session_new()), "mathematically integral")
-  canonical <- scworkbench:::.wb_validate_op_inputs_contract("pca_fit",
-    list(n_components = 12), session_for("pca_fit"))
-  stopifnot(identical(canonical$inputs$n_components, 12L),
-    identical(canonical$params$n_components, 12L))
+  canonical <- scworkbench:::.wb_validate_op_inputs_contract("umap_fit",
+    list(n_neighbors = 12), session_for("umap_fit"))
+  stopifnot(identical(canonical$inputs$n_neighbors, 12L),
+    identical(canonical$params$n_neighbors, 12L))
 
   TRUE
 }

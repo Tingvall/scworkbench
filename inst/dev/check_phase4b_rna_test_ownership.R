@@ -2,11 +2,12 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 root <- normalizePath(if (length(args)) args[[1L]] else ".", mustWork = TRUE)
-moved <- c("cell_suffix_label", "rna_qc_metrics", "hvg_select")
+moved <- c("cell_suffix_label", "rna_qc_metrics", "hvg_select",
+  "matrix_log_normalize")
 default_files <- sort(list.files(file.path(root, "tests"),
   pattern = "^test_.*[.]R$", full.names = TRUE, recursive = FALSE))
 composite_files <- sort(list.files(file.path(root, "tests", "composite"),
-  pattern = "^test_.*[.]R$", full.names = TRUE, recursive = FALSE))
+  pattern = "^test_.*[.]R$", full.names = TRUE, recursive = TRUE))
 
 file_text <- function(path) paste(readLines(path, warn = FALSE), collapse = "\n")
 literal_dispatch_count <- function(operation, files) sum(vapply(files,
@@ -33,6 +34,7 @@ stopifnot(grepl("OPERATION_PACK_REQUIRED", negative, fixed = TRUE),
   grepl("durable_before", negative, fixed = TRUE),
   grepl("wb_operation_catalog_identity", negative, fixed = TRUE),
   composite_counts[["hvg_select"]] >= 1L,
+  composite_counts[["matrix_log_normalize"]] >= 1L,
   file.exists(file.path(root, "tests", "composite",
     "test_scwbrna_targeted_reproduction_plan_contract.R")))
 

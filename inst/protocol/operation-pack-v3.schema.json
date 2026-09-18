@@ -981,6 +981,53 @@
                 "type": "string",
                 "pattern": "^[a-z][a-z0-9_]*$"
               }
+            },
+            "fragment_policy": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "policy",
+                "source_input",
+                "source_typed_slice_read",
+                "fragment_axis",
+                "feature_coverage",
+                "cell_coverage",
+                "source_fragment_binding",
+                "fragment_order",
+                "minimum_fragment_count"
+              ],
+              "properties": {
+                "policy": {
+                  "const": "staged_matrix_fragments_v1"
+                },
+                "source_input": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "source_typed_slice_read": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "fragment_axis": {
+                  "const": "cells"
+                },
+                "feature_coverage": {
+                  "const": "exact_source_feature_order_v1"
+                },
+                "cell_coverage": {
+                  "const": "exact_source_cell_order_partition_v1"
+                },
+                "source_fragment_binding": {
+                  "const": "single_parent_no_crossing_v1"
+                },
+                "fragment_order": {
+                  "const": "source_fragment_then_part_v1"
+                },
+                "minimum_fragment_count": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
             }
           }
         },
@@ -1687,105 +1734,244 @@
       }
     },
     "parameter_binding": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "parameter",
-        "policy",
-        "input"
-      ],
-      "properties": {
-        "parameter": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "parameter",
+            "policy",
+            "input"
+          ],
+          "properties": {
+            "parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "enum": [
+                "cell_ids_or_set_v1",
+                "feature_ids_or_all_v1"
+              ]
+            },
+            "input": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
         },
-        "policy": {
-          "enum": [
-            "cell_ids_or_set_v1",
-            "feature_ids_or_all_v1"
-          ]
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "parameter",
+            "policy",
+            "input",
+            "numeric_parameter",
+            "affix"
+          ],
+          "properties": {
+            "parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "input_id_with_numeric_suffix_v1"
+            },
+            "input": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "numeric_parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "affix": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         },
-        "input": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "parameter",
+            "policy",
+            "input",
+            "table_input",
+            "field",
+            "selected_field"
+          ],
+          "properties": {
+            "parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "feature_ids_from_table_or_matrix_v1"
+            },
+            "input": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "table_input": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "field": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "selected_field": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
         }
-      }
+      ]
     },
     "registry_read": {
       "oneOf": [
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["name", "category", "kind", "reader", "matrix_input", "no_selector_policy", "empty_match_policy"],
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "reader",
+            "matrix_input",
+            "no_selector_policy",
+            "empty_match_policy"
+          ],
           "properties": {
-        "name": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "category": {
-          "const": "authenticated_core_registry_snapshot"
-        },
-        "kind": {
-          "const": "feature_set_registry"
-        },
-        "reader": {
-          "const": "read_feature_set_registry"
-        },
-        "matrix_input": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "namespace_parameter": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "namespaces_parameter": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "feature_sets_parameter": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "no_selector_policy": {
-          "const": "all_namespaces"
-        },
-        "empty_match_policy": {
-          "enum": [
-            "allow",
-            "error"
-          ]
-          }
-          }
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["name", "category", "kind", "reader", "selection_policy", "coverage_policy", "call_discipline"],
-          "properties": {
-            "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-            "category": {"const": "authenticated_core_axis_snapshot"},
-            "kind": {"const": "session_cell_axis"},
-            "reader": {"const": "read_session_cell_axis"},
-            "selection_policy": {"const": "effective_session_cells_v1"},
-            "coverage_policy": {"const": "exact_complete_order_v1"},
-            "call_discipline": {"const": "single_use"}
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "authenticated_core_registry_snapshot"
+            },
+            "kind": {
+              "const": "feature_set_registry"
+            },
+            "reader": {
+              "const": "read_feature_set_registry"
+            },
+            "matrix_input": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "namespace_parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "namespaces_parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "feature_sets_parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "no_selector_policy": {
+              "const": "all_namespaces"
+            },
+            "empty_match_policy": {
+              "enum": [
+                "allow",
+                "error"
+              ]
+            }
           }
         },
         {
           "type": "object",
           "additionalProperties": false,
-          "required": ["name", "category", "kind", "reader", "matrix_input", "fields", "row_order", "missing_annotation_policy", "call_discipline"],
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "reader",
+            "selection_policy",
+            "coverage_policy",
+            "call_discipline"
+          ],
           "properties": {
-            "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-            "category": {"const": "authenticated_core_registry_snapshot"},
-            "kind": {"const": "matrix_feature_annotations"},
-            "reader": {"const": "read_matrix_feature_annotations"},
-            "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
-            "fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"const": "feature_type"}},
-            "row_order": {"const": "matrix_feature_order_v1"},
-            "missing_annotation_policy": {"const": "preserve_null"},
-            "call_discipline": {"const": "single_use"}
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "authenticated_core_axis_snapshot"
+            },
+            "kind": {
+              "const": "session_cell_axis"
+            },
+            "reader": {
+              "const": "read_session_cell_axis"
+            },
+            "selection_policy": {
+              "const": "effective_session_cells_v1"
+            },
+            "coverage_policy": {
+              "const": "exact_complete_order_v1"
+            },
+            "call_discipline": {
+              "const": "single_use"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "category",
+            "kind",
+            "reader",
+            "matrix_input",
+            "fields",
+            "row_order",
+            "missing_annotation_policy",
+            "call_discipline"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "category": {
+              "const": "authenticated_core_registry_snapshot"
+            },
+            "kind": {
+              "const": "matrix_feature_annotations"
+            },
+            "reader": {
+              "const": "read_matrix_feature_annotations"
+            },
+            "matrix_input": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "fields": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "const": "feature_type"
+              }
+            },
+            "row_order": {
+              "const": "matrix_feature_order_v1"
+            },
+            "missing_annotation_policy": {
+              "const": "preserve_null"
+            },
+            "call_discipline": {
+              "const": "single_use"
+            }
           }
         }
       ]
@@ -1838,19 +2024,40 @@
             "cell_axis": {
               "oneOf": [
                 {
-                  "type": "object", "additionalProperties": false,
-                  "required": ["source", "input"],
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "input"
+                  ],
                   "properties": {
-                    "source": {"enum": ["effective_cells_v1", "distinct_input_cells_first_occurrence_v1"]},
-                    "input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+                    "source": {
+                      "enum": [
+                        "effective_cells_v1",
+                        "distinct_input_cells_first_occurrence_v1"
+                      ]
+                    },
+                    "input": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    }
                   }
                 },
                 {
-                  "type": "object", "additionalProperties": false,
-                  "required": ["source", "registry_read"],
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "registry_read"
+                  ],
                   "properties": {
-                    "source": {"const": "session_cell_axis_read_v1"},
-                    "registry_read": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+                    "source": {
+                      "const": "session_cell_axis_read_v1"
+                    },
+                    "registry_read": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    }
                   }
                 }
               ]
@@ -1985,14 +2192,60 @@
                   }
                 },
                 {
-                  "type": "object", "additionalProperties": false,
-                  "required": ["source", "required_keys", "optional_groups", "selection_owner", "group_order"],
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "required_keys",
+                    "optional_groups",
+                    "selection_owner",
+                    "group_order"
+                  ],
                   "properties": {
-                    "source": {"const": "declared_bounded_key_groups_v1"},
-                    "required_keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
-                    "optional_groups": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["name", "keys"], "properties": {"name": {"type": "string", "minLength": 1}, "keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}}},
-                    "selection_owner": {"const": "operation_pack_v1"},
-                    "group_order": {"const": "manifest_order_v1"}
+                    "source": {
+                      "const": "declared_bounded_key_groups_v1"
+                    },
+                    "required_keys": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "optional_groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "keys"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "keys": {
+                            "type": "array",
+                            "minItems": 1,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "selection_owner": {
+                      "const": "operation_pack_v1"
+                    },
+                    "group_order": {
+                      "const": "manifest_order_v1"
+                    }
                   }
                 }
               ]
@@ -2009,6 +2262,176 @@
                 "forbidden",
                 "canonical_null_allowed"
               ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
+            "policy",
+            "cell_axis",
+            "dimension_axis",
+            "row_order",
+            "column_order"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "cell_by_parameter_axis_v1"
+            },
+            "cell_axis": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source",
+                "typed_slice_read"
+              ],
+              "properties": {
+                "source": {
+                  "const": "typed_slice_read_v1"
+                },
+                "typed_slice_read": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                }
+              }
+            },
+            "dimension_axis": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "row_order": {
+              "const": "typed_slice_cell_order_v1"
+            },
+            "column_order": {
+              "const": "parameter_axis_order_v1"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
+            "policy",
+            "feature_axis",
+            "parameter_axis",
+            "row_order",
+            "feature_field",
+            "axis_label_field",
+            "axis_index_field"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "feature_parameter_axis_cartesian_v1"
+            },
+            "feature_axis": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source",
+                "typed_slice_read"
+              ],
+              "properties": {
+                "source": {
+                  "const": "typed_slice_read_v1"
+                },
+                "typed_slice_read": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                }
+              }
+            },
+            "parameter_axis": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "row_order": {
+              "const": "parameter_axis_then_feature_v1"
+            },
+            "feature_field": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+            },
+            "axis_label_field": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+            },
+            "axis_index_field": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
+            "policy",
+            "parameter_axis",
+            "row_order",
+            "axis_label_field",
+            "axis_index_field"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "one_per_parameter_axis_v1"
+            },
+            "parameter_axis": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "row_order": {
+              "const": "parameter_axis_order_v1"
+            },
+            "axis_label_field": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+            },
+            "axis_index_field": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
+            "policy",
+            "parameter_axis",
+            "count_field"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "singleton_parameter_echo_v1"
+            },
+            "parameter_axis": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "count_field": {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
             }
           }
         }
@@ -2034,7 +2457,8 @@
             "input_feature_count",
             "parameter_supplied",
             "parameter_count",
-            "parameter_value"
+            "parameter_value",
+            "effective_parameter_value"
           ]
         },
         "output": {
@@ -2193,6 +2617,125 @@
           "items": {
             "$ref": "#/$defs/typed_slice_read"
           }
+        },
+        "publication_policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "output",
+              "policy",
+              "target_kind",
+              "target_id_parameter",
+              "overwrite_parameter",
+              "transaction_scope"
+            ],
+            "properties": {
+              "output": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "policy": {
+                "const": "authenticated_add_or_replace_v1"
+              },
+              "target_kind": {
+                "enum": [
+                  "matrix",
+                  "space"
+                ]
+              },
+              "target_id_parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "overwrite_parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "transaction_scope": {
+                "const": "promotion_group_v1"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "parameter_axes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "policy",
+              "parameter",
+              "minimum",
+              "maximum",
+              "labels"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "policy": {
+                "const": "integer_parameter_axis_v1"
+              },
+              "parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "minimum": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "maximum": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "source",
+                  "typed_slice_read",
+                  "cell_offset",
+                  "feature_offset"
+                ],
+                "properties": {
+                  "source": {
+                    "const": "typed_slice_rank_upper_bound_v1"
+                  },
+                  "typed_slice_read": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "cell_offset": {
+                    "type": "integer",
+                    "maximum": 0
+                  },
+                  "feature_offset": {
+                    "type": "integer",
+                    "maximum": 0
+                  }
+                }
+              },
+              "labels": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "policy",
+                  "prefix"
+                ],
+                "properties": {
+                  "policy": {
+                    "const": "prefix_one_based_v1"
+                  },
+                  "prefix": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          },
+          "minItems": 1
         }
       }
     },

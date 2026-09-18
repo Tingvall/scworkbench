@@ -33,7 +33,8 @@ source(file.path(core_source, "inst", "tests", "contract_test_runner.R"),
 Sys.setenv(SCWBRNA_SOURCE = rna_source,
   SCWBREPRESENTATION_SOURCE = representation_source)
 inventory <- contract_test_discover(file.path(core_source, "tests", "composite"),
-  files = c("test_scwb_representation_transitive_promotion_contract.R",
+  files = c("test_phase4c_matrix_pca_composite_contract.R",
+    "test_scwb_representation_transitive_promotion_contract.R",
     "test_scwbrna_targeted_reproduction_plan_contract.R"))
 run <- contract_test_execute(inventory)
 contract_test_assert_success(run)

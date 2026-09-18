@@ -81,17 +81,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudobulk_table` (`feature_table`): Feature-level pseudobulk values keyed by query cell.; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_matrix_log_normalize
-#' @aliases wb_op_matrix_log_normalize
-#' @description Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param output_matrix_id Matrix id to create, for example RNA_log1p_cp10k. Defaults to <source>_log1p_cp<scale_factor>.
-#' @param scale_factor Per-cell target count scale before log1p; 10000 is the common CP10K convention.
-#' @param overwrite If TRUE, replace an existing output matrix with the same id.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$matrix` (`matrix`): Reference to the newly registered log-normalized matrix.; `outputs$summary` (`obs_table`): Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_metadata_cell_vector
 #' @aliases wb_op_metadata_cell_vector
 #' @description Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
@@ -187,25 +176,6 @@ NULL
 #' @param python_bin Python executable used for an optional pybench-backed runtime.
 #' @param ... Additional engine-specific arguments accepted by this wrapper.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Palantir-style smoothed branch trajectories projected into the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_pca_fit
-#' @aliases wb_op_pca_fit
-#' @description Compute PCA from a matrix and selected features, then persist the cell coordinates as a bundle space.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param feature_table Feature-table data frame or primitive supplying selected features and annotations.
-#' @param feature_ids Optional explicit feature IDs when not passing features as a feature_table reference.
-#' @param n_components Number of principal components to compute.
-#' @param center Center features before PCA.
-#' @param scale Scale features before PCA.
-#' @param backend PCA backend. 'irlba' is recommended for large sparse/backed matrices.
-#' @param seed Integer random seed used to make stochastic computation reproducible.
-#' @param space_id_out Bundle space id to create.
-#' @param overwrite Replace an existing space_id_out if present.
-#' @param max_dense_gb Approximate dense selected-block size guard for dense backends.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Reference to the persisted PCA space.; `outputs$loadings` (`feature_table`): Feature loadings per principal component.; `outputs$variance` (`obs_table`): Per-PC standard deviation and variance explained.; `outputs$fit_summary` (`obs_table`): Input matrix, feature count, backend, component count, and output space id.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_peakvi_project
