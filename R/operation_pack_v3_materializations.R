@@ -2,7 +2,17 @@
 
 .wb_matrix_write_continuous <- function(mat, out_dir) {
   .wb_require_pkg("BPCells", "continuous matrix fragment publication")
-  typed <- BPCells::convert_matrix_type(mat, "double")
+  # Matrix() preserves structural classes such as dtCMatrix, dsCMatrix, and
+  # ddiMatrix when their values happen to be triangular, symmetric, or
+  # diagonal.  Those are valid fragment values, but BPCells accepts a general
+  # compressed sparse matrix at this boundary.  Normalize the representation,
+  # not the values or axes, so chunk shape cannot select a storage class.
+  sparse <- Matrix::Matrix(mat, sparse = TRUE)
+  if (!inherits(sparse, "dgCMatrix"))
+    sparse <- methods::as(sparse, "generalMatrix")
+  .wb_assert(inherits(sparse, "dgCMatrix"),
+    "Continuous matrix fragments must normalize to dgCMatrix storage.")
+  typed <- BPCells::convert_matrix_type(sparse, "double")
   BPCells::write_matrix_dir(typed, out_dir, compress = FALSE)
   .wb_bp_open_matrix_dir(out_dir)
 }
@@ -383,8 +393,7 @@
       path <- file.path(stage_root, relative)
       dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
       dimnames(matrix) <- list(features, cell_ids)
-      persisted <- tryCatch(.wb_matrix_write_continuous(
-        Matrix::Matrix(matrix, sparse = TRUE), path),
+      persisted <- tryCatch(.wb_matrix_write_continuous(matrix, path),
         error = function(error) {
           if (dir.exists(path)) unlink(path, recursive = TRUE, force = TRUE)
           stop(error)
