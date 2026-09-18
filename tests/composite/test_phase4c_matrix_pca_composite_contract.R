@@ -27,7 +27,10 @@ test_phase4c_matrix_pca_composite_contract <- function() {
       min_cells = 1L))
   promoted <- wb_session_promote_current(bundle, pca$session,
     outputs = "fit_summary", created_by = "phase4c-composite")
-  stopifnot(all(promoted$promoted$status == "ok"),
+  stopifnot(all(promoted$promoted$status[
+      promoted$promoted$output == "fit_summary"] == "ok"),
+    any(promoted$promoted$op_name == "scwbrna::matrix_log_normalize" &
+      promoted$promoted$status == "skipped"),
     "RNA_log" %in% wb_matrices(bundle)$matrix_id,
     "pca" %in% wb_spaces(bundle)$space_id,
     identical(dim(wb_space(bundle, "pca")), c(8L, 3L)))
