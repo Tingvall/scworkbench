@@ -1498,16 +1498,6 @@
 
 .wb_operation_pack_v2_bind_parameters <- function(bundle, operation, params,
                                                    bound, effective_cells) {
-  properties <- operation$params_schema$properties %||% list()
-  for (parameter in intersect(names(params), names(properties))) {
-    types <- as.character(unlist(properties[[parameter]]$type %||%
-      character(), use.names = FALSE))
-    value <- params[[parameter]]
-    if ("object" %in% types && is.atomic(value) && length(value) &&
-        !is.null(names(value))) params[[parameter]] <- as.list(value)
-    if ("array" %in% types && is.atomic(value) && length(value))
-      params[[parameter]] <- unname(as.list(value))
-  }
   for (binding in operation$parameter_bindings %||% list()) {
     parameter <- as.character(binding$parameter)[1]
     policy <- as.character(binding$policy)[1]
@@ -1524,6 +1514,21 @@
       # the generic scalar transport cannot infer it from length alone.
       params[[parameter]] <- unname(as.list(resolved))
     }
+  }
+  # Binding policies must see the caller's symbolic scalar (for example a
+  # named cell-set token) before parameters are normalized to their declared
+  # JSON container shape.
+  properties <- operation$params_schema$properties %||% list()
+  for (parameter in intersect(names(params), names(properties))) {
+    types <- as.character(unlist(properties[[parameter]]$type %||%
+      character(), use.names = FALSE))
+    value <- params[[parameter]]
+    if ("object" %in% types && is.atomic(value) && length(value) &&
+        !is.null(names(value))) params[[parameter]] <- as.list(value)
+    if ("array" %in% types &&
+        !any(types %in% c("string", "number", "integer", "boolean")) &&
+        is.atomic(value) && length(value))
+      params[[parameter]] <- unname(as.list(value))
   }
   .wb_operation_pack_params_transport(params)
 }

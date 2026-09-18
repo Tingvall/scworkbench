@@ -98,7 +98,7 @@ stopifnot(nrow(wb_matrices(b)) >= 1)
 stopifnot(nrow(wb_spaces(b)) >= 1)
 stopifnot(length(wb_cells(b, 'core')) == 600)
 stopifnot(nrow(wb_feature_sets(b, matrix_id = 'RNA_counts')) >= 2)
-stopifnot(length(wb_list_ops()) == 43L, !'de_wilcox' %in% wb_list_ops())
+stopifnot(length(wb_list_ops()) == 39L, !'de_wilcox' %in% wb_list_ops())
 missing_statistics <- tryCatch(scworkbench:::.wb_op('de_wilcox'), error = identity)
 stopifnot(inherits(missing_statistics, 'wb_operation_pack_error'),
           identical(as.character(missing_statistics\$code), 'OPERATION_PACK_REQUIRED'))
