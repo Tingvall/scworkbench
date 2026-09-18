@@ -109,8 +109,8 @@
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
     "Matrix feature annotations require a durable matrix identifier.",
     "resolution")
-  info <- tryCatch(wb_features(bundle$staging_source_bundle %||% bundle,
-      matrix_id), error = function(error) .wb_operation_pack_v3_error(
+  info <- tryCatch(wb_features(bundle, matrix_id),
+    error = function(error) .wb_operation_pack_v3_error(
         "PYBENCH_INPUT_IDENTITY_MISMATCH", conditionMessage(error),
         "resolution"))
   fields <- as.character(unlist(declaration$fields, use.names = FALSE))

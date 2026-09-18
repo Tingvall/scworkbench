@@ -688,6 +688,14 @@
   out
 }
 
+.wb_operation_pack_v3_matrix_identity_bundle <- function(bundle, matrix_id) {
+  source <- bundle$staging_source_bundle %||% NULL
+  if (inherits(source, "scworkbench_bundle") &&
+      nrow(DBI::dbGetQuery(source$con,
+        "SELECT 1 FROM matrices WHERE matrix_id=? LIMIT 1;",
+        params = list(as.character(matrix_id)[1]))) == 1L) source else bundle
+}
+
 .wb_operation_pack_v3_request <- function(bundle, registration, operation,
                                             inputs, params, transition_id,
                                             session_id, run_id, generation,
@@ -725,7 +733,12 @@
     if (name %in% typed_input_names && identical(value$kind, "matrix") &&
         is.null(value$values) && nzchar(as.character(value$matrix_id %||%
           "")[1])) {
-      identity_bundle <- bundle$staging_source_bundle %||% bundle
+      # A committed source payload is verified at its durable root because a
+      # session view may contain containment-safe overlay links to it. A
+      # predecessor materialization that exists only in this checkpoint is
+      # verified directly in the authenticated session view.
+      identity_bundle <- .wb_operation_pack_v3_matrix_identity_bundle(bundle,
+        value$matrix_id)
       observed <- .wb_prov_payload_identity(identity_bundle, value)
       if (!identical(as.character(observed$verification_status)[1],
           "content_verified")) .wb_operation_pack_v3_error(
@@ -1007,12 +1020,15 @@
     x$source_reference$source_kind, "bundle_matrix"),
     request$typed_slice_grants %||% list())
   if (!length(durable)) return(invisible(TRUE))
-  identity_bundle <- bundle$staging_source_bundle %||% bundle
+  # The request authenticates the complete session-view registry, including
+  # predecessor materializations in the current checkpoint generation.
   current_state <- .wb_operation_pack_v2_identity_plain(
     "scworkbench.scientific_state.v1",
-    .wb_manifest_registry_snapshot(identity_bundle$con))
+    .wb_manifest_registry_snapshot(bundle$con))
   for (grant in durable) {
     source <- grant$source_reference
+    identity_bundle <- .wb_operation_pack_v3_matrix_identity_bundle(bundle,
+      source$matrix_id)
     observed <- .wb_prov_payload_identity(identity_bundle,
       wb_prim_matrix(source$matrix_id))
     identity <- list(scheme = as.character(

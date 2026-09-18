@@ -75,17 +75,24 @@ test_targeted_reproduction_execute_contract <- function() {
   )
   install_status <- as.integer(attr(install_output, "status") %||% 0L)
   if (install_status != 0L) stop(paste(install_output, collapse = "\n"))
+  rna_library <- normalizePath(.contract_test_rna_state$library,
+    winslash = "/", mustWork = TRUE)
   run_emitted <- function(script, prelude = character()) {
     path <- tempfile(fileext=".R"); wrapper <- tempfile(fileext=".R")
     writeLines(script,path)
     writeLines(c(
-      paste0(".libPaths(c('", normalizePath(installed_library, winslash = "/"), "', .libPaths()))"),
-      "library(scworkbench)", prelude, paste0("source('",path,"')")
+      paste0(".libPaths(c('", normalizePath(installed_library, winslash = "/"),
+        "', '", rna_library, "', .libPaths()))"),
+      "library(scworkbench)",
+      paste0("wb_operation_pack_load('scwbRNA', lib.loc='", rna_library,
+        "')"),
+      prelude, paste0("source('",path,"')")
     ),wrapper)
     out <- suppressWarnings(system2(
       file.path(R.home("bin"),"Rscript"), c("--vanilla", wrapper),
       stdout=TRUE, stderr=TRUE,
-      env = paste0("R_LIBS=", installed_library)
+      env = paste0("R_LIBS=", paste(c(installed_library, rna_library),
+        collapse = .Platform$path.sep))
     ))
     list(status=as.integer(attr(out,"status") %||% 0L), output=out)
   }
