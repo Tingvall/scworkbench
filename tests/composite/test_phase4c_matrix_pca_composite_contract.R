@@ -34,9 +34,20 @@ test_phase4c_matrix_pca_composite_contract <- function() {
     "RNA_log" %in% wb_matrices(bundle)$matrix_id,
     "pca" %in% wb_spaces(bundle)$space_id,
     identical(dim(wb_space(bundle, "pca")), c(8L, 3L)))
-  wb_operation_pack_unload("scwbrna")
-  wb_operation_pack_unload("scwbrepresentation")
   wb_close_bundle(bundle)
+  registry <- scworkbench:::.wb_operation_pack_registry
+  saved <- registry$packs[c("scwbrna", "scwbrepresentation")]
+  saved_operations <- unlist(lapply(saved, function(pack)
+    pack$operation_names), use.names = FALSE)
+  saved_catalog <- registry$operations[saved_operations]
+  on.exit({
+    registry$packs[names(saved)] <- saved
+    registry$operations[names(saved_catalog)] <- saved_catalog
+  }, add = TRUE)
+  for (name in saved_operations) registry$operations[[name]] <- NULL
+  registry$packs$scwbrna <- NULL
+  registry$packs$scwbrepresentation <- NULL
+  stopifnot(!any(c("matrix_log_normalize", "pca_fit") %in% wb_list_ops()))
   bundle <- wb_open_bundle(root, read_only = TRUE)
   stopifnot(isTRUE(wb_bundle_validation_report(root, "content")$ok),
     identical(dim(wb_space(bundle, "pca")), c(8L, 3L)))
