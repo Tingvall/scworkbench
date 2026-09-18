@@ -51,6 +51,7 @@ meta <- data.frame(
   sample = rep(c("sample_A", "sample_B"), each = n_cells / 2L),
   lineage = rep(c("naive", "transition", "effector"), each = n_cells / 3L),
   batch = rep(c("batch_1", "batch_2", "batch_3"), length.out = length(cells)),
+  golden_cluster = rep(c("golden_A", "golden_B", "golden_C"), each = n_cells / 3L),
   stringsAsFactors = FALSE
 )
 
@@ -197,29 +198,21 @@ wb_feature_set_replace(
 
 # Add one promoted artifact so the generated fixture exercises artifact
 # registry, primitive load, promotion, and persisted provenance contracts.
-cluster_labels <- setNames(
-  rep(c("golden_A", "golden_B", "golden_C"), each = n_cells / 3L),
-  cells
-)
-cluster_run <- wb_new_run(
-  op_name = "leiden",
+cluster_result <- wb_session_run_op(
+  session = wb_session_new(),
+  bundle = b,
+  op_name = "metadata_cell_vector",
   inputs = list(
+    source_column = "golden_cluster",
+    vector_name = "golden_clusters",
+    value_type = "categorical",
+    missing_policy = "error",
     cell_set = "core",
-    effective_n = length(cells),
-    parents = character(0),
-    provenance_refs = list(),
-    user_inputs = list(space_id = "umap_golden")
-  ),
-  params = list(
-    space_id = "umap_golden",
-    resolution = 0.10,
-    fixture = TRUE
-  ),
-  outputs = list(
-    clusters = wb_prim_cell_vector(cluster_labels, value_type = "categorical")
+    min_cells = 1L
   ),
   notes = "golden bundle promoted artifact fixture"
 )
+cluster_run <- cluster_result$run
 runs <- list()
 runs[[cluster_run$run_id]] <- cluster_run
 invisible(wb_promote_analysis(

@@ -13,18 +13,9 @@ test_op_slingshot_promoted_model_project_contract <- function(bundle_dir) {
   stopifnot(length(cell_ids) >= 100)
 
   s <- wb_session_new()
-  x1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = cell_set,
-      cell_ids = cell_ids,
-      space = wb_prim_space("peakvi_space"),
-      k = 20,
-      resolution = 0.25
-    ),
-    notes = "test slingshot promoted model: leiden"
+  x1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cell_ids,
+    notes = "test slingshot promoted model: synthetic seed clusters"
   )
   s <- x1$session
 
@@ -36,7 +27,7 @@ test_op_slingshot_promoted_model_project_contract <- function(bundle_dir) {
       cell_set = cell_set,
       cell_ids = cell_ids,
       fit_space = wb_prim_space("peakvi_space"),
-      clusters = wb_ref_run(x1$run$run_id, "clusters")
+      clusters = wb_ref_run(x1$run$run_id, "vector")
     ),
     notes = "test slingshot promoted model: fit"
   )

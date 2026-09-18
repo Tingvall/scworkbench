@@ -40,18 +40,9 @@ test_op_trajectory_smooth_contract <- function(bundle_dir) {
   stopifnot(nzchar(fit_space_id))
 
   s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test trajectory_smooth: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test trajectory_smooth: synthetic seed clusters"
   )
   s <- r1$session
   r2 <- wb_session_run_op(
@@ -62,7 +53,7 @@ test_op_trajectory_smooth_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "test trajectory_smooth: slingshot fit"
   )
@@ -158,18 +149,9 @@ test_op_trajectory_signature_smooth_contract <- function(bundle_dir) {
   stopifnot(nzchar(fit_space_id))
 
   s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test trajectory_signature_smooth: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test trajectory_signature_smooth: synthetic seed clusters"
   )
   s <- r1$session
   r2 <- wb_session_run_op(
@@ -180,7 +162,7 @@ test_op_trajectory_signature_smooth_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "test trajectory_signature_smooth: slingshot fit"
   )
@@ -265,18 +247,9 @@ test_op_trajectory_vector_smooth_contract <- function(bundle_dir) {
   stopifnot(nzchar(fit_space_id))
 
   s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test trajectory_vector_smooth: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test trajectory_vector_smooth: synthetic seed clusters"
   )
   s <- r1$session
   r2 <- wb_session_run_op(
@@ -287,7 +260,7 @@ test_op_trajectory_vector_smooth_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "test trajectory_vector_smooth: slingshot fit"
   )
@@ -383,18 +356,9 @@ test_op_trajectory_signal_dynamics_contract <- function(bundle_dir) {
   stopifnot(nzchar(fit_space_id))
 
   s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test trajectory_signal_dynamics: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test trajectory_signal_dynamics: synthetic seed clusters"
   )
   r2 <- wb_session_run_op(
     session = r1$session,
@@ -404,7 +368,7 @@ test_op_trajectory_signal_dynamics_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "test trajectory_signal_dynamics: slingshot fit"
   )
@@ -559,18 +523,9 @@ test_op_trajectory_signal_dynamics_promoted_contract <- function(bundle_dir) {
 
   prom_name <- paste0(".__test_trajectory_signal_promoted__.", as.integer(Sys.time()))
   s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test promoted trajectory_signal_dynamics: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test promoted trajectory_signal_dynamics: synthetic seed clusters"
   )
   r2 <- wb_session_run_op(
     session = r1$session,
@@ -580,7 +535,7 @@ test_op_trajectory_signal_dynamics_promoted_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "test promoted trajectory_signal_dynamics: slingshot fit"
   )
@@ -741,18 +696,9 @@ test_op_trajectory_geneset_dynamics_contract <- function(bundle_dir) {
   stopifnot(nzchar(fit_space_id))
 
   s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test trajectory_geneset_dynamics: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test trajectory_geneset_dynamics: synthetic seed clusters"
   )
   r2 <- wb_session_run_op(
     session = r1$session,
@@ -762,7 +708,7 @@ test_op_trajectory_geneset_dynamics_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "test trajectory_geneset_dynamics: slingshot fit"
   )
@@ -901,18 +847,9 @@ test_op_trajectory_geneset_dynamics_promoted_contract <- function(bundle_dir) {
   stopifnot(nzchar(fit_space_id))
 
   s <- wb_session_new()
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test promoted trajectory_geneset_dynamics: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test promoted trajectory_geneset_dynamics: synthetic seed clusters"
   )
   r2 <- wb_session_run_op(
     session = r1$session,
@@ -922,7 +859,7 @@ test_op_trajectory_geneset_dynamics_promoted_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "test promoted trajectory_geneset_dynamics: slingshot fit"
   )

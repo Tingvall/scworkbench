@@ -3,7 +3,7 @@ test_session_dag_contract <- function(bundle_dir = NULL) {
 
   cl <- c("A" = "c1", "B" = "c1", "C" = "c2")
   r1 <- wb_new_run(
-    op_name = "leiden",
+    op_name = "synthetic_core_categorical_labels",
     inputs = list(
       cell_set = "all",
       effective_n = 3L,

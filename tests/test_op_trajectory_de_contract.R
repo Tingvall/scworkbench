@@ -50,18 +50,9 @@ test_op_trajectory_de_contract <- function(bundle_dir) {
   )
 
   s <- wb_session_new()
-  x1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cells,
-      space = wb_prim_space(fit_space_id),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "test trajectory_de: leiden seed clusters"
+  x1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cells,
+    notes = "test trajectory_de: synthetic seed clusters"
   )
   s <- x1$session
 
@@ -73,7 +64,7 @@ test_op_trajectory_de_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cells,
       fit_space = wb_prim_space(fit_space_id),
-      clusters = wb_ref_run(x1$run$run_id, "clusters")
+      clusters = wb_ref_run(x1$run$run_id, "vector")
     ),
     notes = "test trajectory_de: slingshot fit"
   )

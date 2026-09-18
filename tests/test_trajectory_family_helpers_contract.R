@@ -9,18 +9,9 @@ test_trajectory_family_helpers_contract <- function(bundle_dir) {
 
   s <- wb_session_new()
 
-  r1 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "leiden",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cell_ids,
-      space = wb_prim_space("peakvi_space"),
-      k = 20,
-      resolution = 0.3
-    ),
-    notes = "trajectory family helper test: leiden"
+  r1 <- contract_test_add_core_metadata_labels(
+    session = s, bundle = b, cells = cell_ids,
+    notes = "trajectory family helper test: synthetic seed clusters"
   )
   s <- r1$session
 
@@ -32,7 +23,7 @@ test_trajectory_family_helpers_contract <- function(bundle_dir) {
       cell_set = "all",
       cell_ids = cell_ids,
       fit_space = wb_prim_space("peakvi_space"),
-      clusters = wb_ref_run(r1$run$run_id, "clusters")
+      clusters = wb_ref_run(r1$run$run_id, "vector")
     ),
     notes = "trajectory family helper test: slingshot_fit"
   )

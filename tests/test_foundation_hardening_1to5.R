@@ -225,17 +225,16 @@ test_foundation_hardening_1to5 <- function(bundle_dir) {
   stopifnot(identical(prim_run$kind, "cell_vector"))
 
   # Artifact reference path: promote one tiny known-op run and resolve by ref
-  run_promote <- wb_new_run(
-    op_name = "leiden",
-    inputs = list(cell_set = "all", parents = character(0), provenance_refs = list(), user_inputs = list()),
-    params = list(),
-    outputs = list(clusters = wb_prim_cell_vector(setNames(rep("A", length(vv_cells)), vv_cells), value_type = "categorical")),
+  promote_result <- wb_session_run_op(
+    session = wb_session_new(), bundle = b, op_name = "metadata_cell_vector",
+    inputs = list(source_column = "lineage", vector_name = "foundation_labels",
+      value_type = "categorical", missing_policy = "error", cell_set = "all",
+      cell_ids = vv_cells, min_cells = 1L),
     notes = "foundation hardening promote test"
   )
+  run_promote <- promote_result$run
 
-  s2 <- wb_session_new()
-  s2 <- wb_session_add_run(s2, run_promote)
-  s2$head_run_id <- run_promote$run_id
+  s2 <- promote_result$session
   prom <- wb_session_promote_current(
     bundle = b,
     session = s2,

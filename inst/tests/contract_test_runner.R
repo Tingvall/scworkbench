@@ -233,6 +233,42 @@ contract_test_activate_core_conformance_pack <- function() {
   invisible(TRUE)
 }
 
+# Engine-owned trajectory and wrangler contracts need a deterministic,
+# provenance-valid categorical primitive, not a dependency on a clustering
+# pack. The golden fixture's lineage metadata supplies that state through the
+# real core operation and therefore remains replayable after promotion.
+contract_test_add_core_metadata_labels <- function(session, bundle, cells,
+                                                   source_column = "lineage",
+                                                   notes = NULL) {
+  cells <- as.character(cells)
+  if (length(cells) < 2L || anyNA(cells) || any(!nzchar(cells)) || anyDuplicated(cells)) {
+    stop("Core metadata labels require at least two unique, non-empty cell IDs.",
+      call. = FALSE)
+  }
+  result <- wb_session_run_op(
+    session = session,
+    bundle = bundle,
+    op_name = "metadata_cell_vector",
+    inputs = list(
+      source_column = source_column,
+      vector_name = "core_test_lineage_labels",
+      value_type = "categorical",
+      missing_policy = "error",
+      cell_set = "all",
+      cell_ids = cells,
+      min_cells = 2L
+    ),
+    notes = notes %||% "core metadata categorical-label fixture"
+  )
+  vector <- result$run$outputs$vector
+  stopifnot(
+    identical(vector$cell_id, cells),
+    identical(vector$value_type, "categorical"),
+    length(unique(as.character(vector$value))) >= 2L
+  )
+  result
+}
+
 contract_test_execute <- function(inventory, baseline_bundle_dir = NULL, reporter = TRUE) {
   if (!inherits(inventory, "scworkbench_contract_inventory")) {
     stop("inventory must come from contract_test_discover().", call. = FALSE)

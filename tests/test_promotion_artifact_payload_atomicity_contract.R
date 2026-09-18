@@ -7,7 +7,9 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
     unlink(root, recursive = TRUE, force = TRUE)
   }, add = TRUE)
   cells <- paste0("c", seq_len(3L))
-  wb_define_cells(b, cells)
+  wb_define_cells(b, cells, metadata = data.frame(
+    cell_id = cells, cluster = c("A", "B", "A"), stringsAsFactors = FALSE
+  ))
   before_heads <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_heads;")$n[1]
   before_commits <- DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")$n[1]
 
@@ -22,12 +24,12 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
   }
   model_a <- make_model_run("a")
   model_b <- make_model_run("b")
-  vector_run <- wb_new_run(
-    op_name = "leiden",
-    inputs = list(cell_set = "all", parents = character(0), user_inputs = list()),
-    params = list(),
-    outputs = list(clusters = wb_prim_cell_vector(stats::setNames(c("A", "B", "A"), cells)))
-  )
+  vector_run <- wb_session_run_op(
+    wb_session_new(), b, "metadata_cell_vector",
+    inputs = list(source_column = "cluster", vector_name = "atomicity_labels",
+      value_type = "categorical", missing_policy = "error", cell_set = "all",
+      min_cells = 1L)
+  )$run
   runs <- setNames(list(model_a, model_b, vector_run), c(model_a$run_id, model_b$run_id, vector_run$run_id))
 
   calls <- 0L
@@ -37,7 +39,7 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
   })
   failed <- try(wb_promote_analysis(
     b, runs, head_run_id = c(model_a$run_id, model_b$run_id, vector_run$run_id),
-    outputs = c("model", "clusters")
+    outputs = c("model", "vector")
   ), silent = TRUE)
   stopifnot(inherits(failed, "try-error"), calls >= 5L)
   stopifnot(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM artifacts;")$n[1] == 0L)
@@ -52,7 +54,7 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
   options(scworkbench.promotion_workspace_publish_hook = NULL)
   success <- wb_promote_analysis(
     b, setNames(list(model_a, vector_run), c(model_a$run_id, vector_run$run_id)),
-    head_run_id = c(model_a$run_id, vector_run$run_id), outputs = c("model", "clusters")
+    head_run_id = c(model_a$run_id, vector_run$run_id), outputs = c("model", "vector")
   )
   model_artifact <- success$promoted[
     as.character(success$promoted$output) == "model" & as.character(success$promoted$status) == "ok",

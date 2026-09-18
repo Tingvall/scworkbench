@@ -235,18 +235,9 @@ test_plot_wranglers_contract <- function(bundle_dir) {
     )
 
     s <- wb_session_new()
-    r1 <- wb_session_run_op(
-      session = s,
-      bundle = b,
-      op_name = "leiden",
-      inputs = list(
-        cell_set = "all",
-        cell_ids = cells,
-        space = wb_prim_space(fit_space_id),
-        k = 20,
-        resolution = 0.3
-      ),
-      notes = "plot wrangler test: leiden"
+    r1 <- contract_test_add_core_metadata_labels(
+      session = s, bundle = b, cells = cells,
+      notes = "plot wrangler test: synthetic seed clusters"
     )
     s <- r1$session
     r2 <- wb_session_run_op(
@@ -257,7 +248,7 @@ test_plot_wranglers_contract <- function(bundle_dir) {
         cell_set = "all",
         cell_ids = cells,
         fit_space = wb_prim_space(fit_space_id),
-        clusters = wb_ref_run(r1$run$run_id, "clusters")
+        clusters = wb_ref_run(r1$run$run_id, "vector")
       ),
       notes = "plot wrangler test: slingshot_fit"
     )

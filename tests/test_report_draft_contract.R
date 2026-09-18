@@ -5,7 +5,7 @@ test_report_draft_contract <- function(bundle_dir) {
   s <- wb_session_new()
 
   r1 <- wb_new_run(
-    op_name = "leiden",
+    op_name = "synthetic_core_categorical_labels",
     inputs = list(
       cell_set = "all",
       effective_n = 100L,
@@ -43,7 +43,7 @@ test_report_draft_contract <- function(bundle_dir) {
   stopifnot(is.list(m))
   stopifnot(is.character(m$text), length(m$text) == 1)
   stopifnot(length(m$lines) >= 2)
-  stopifnot(any(grepl("leiden", m$text, fixed = TRUE)))
+  stopifnot(any(grepl("synthetic_core_categorical_labels", m$text, fixed = TRUE)))
   stopifnot(any(grepl("synthetic_named_terminal_report", m$text, fixed = TRUE)))
   stopifnot(is.data.frame(m$run_table), nrow(m$run_table) >= 2)
 
