@@ -28,7 +28,8 @@ test_recipient_audit_external_source_contract <- function() {
   stopifnot(isTRUE(ro$read_only), nrow(wb_matrices(ro))==1L, nrow(wb_art_list(ro))>=1L,
             sum(as.character(ro_inputs$checksum_status) == "checksummed") == 54L,
             nrow(wb_prov_bundle_dag(ro)$nodes)>0L, !inherits(try(wb_art_load(ro, art), silent=TRUE), "try-error"),
-            inherits(try(wb_session_run_op(wb_session_new(), ro, "hvg_select", inputs=list(matrix="RNA_counts", n_features=2L)), silent=TRUE), "try-error"))
+            inherits(try(wb_session_run_op(wb_session_new(), ro, "matrix_log_normalize",
+              inputs=list(matrix="RNA_counts", output_matrix_id="readonly_forbidden")), silent=TRUE), "try-error"))
   wb_close_bundle(ro); stopifnot(identical(before, file.info(file.path(root, "db", "app.sqlite"))$mtime))
   TRUE
 }

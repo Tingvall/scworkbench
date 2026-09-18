@@ -108,9 +108,9 @@ test_exclusive_bundle_writer_lock_contract <- function(bundle_dir) {
   stage_root <- scworkbench:::.wb_session_stage_root()
   stage_before <- sort(list.files(stage_root, full.names = TRUE, all.files = TRUE, no.. = TRUE))
   blocked_snapshot <- try(wb_session_run_op(
-    wb_session_new(), b, "hvg_select", inputs = list(
-      matrix = matrix_id, min_cells = 1L,
-      n_features = min(5L, length(features)), cell_set = "all"
+    wb_session_new(), b, "matrix_log_normalize", inputs = list(
+      matrix = matrix_id, min_cells = 1L, output_matrix_id = "writer_lock_blocked",
+      cell_set = "all"
     )
   ), silent = TRUE)
   stopifnot(
@@ -138,9 +138,9 @@ test_exclusive_bundle_writer_lock_contract <- function(bundle_dir) {
   # another owner holds the bundle. The failed attempt leaves no commit,
   # artifact, payload, or manifest delta; it succeeds once exclusion ends.
   session <- wb_session_new()
-  executed <- wb_session_run_op(session, b, "hvg_select", inputs = list(
-    matrix = matrix_id, min_cells = 1L,
-    n_features = min(5L, length(features)), cell_set = "all"
+  executed <- wb_session_run_op(session, b, "matrix_log_normalize", inputs = list(
+    matrix = matrix_id, min_cells = 1L, output_matrix_id = "writer_lock_normalized",
+    cell_set = "all"
   ))
   before_counts <- c(
     commits = as.integer(DBI::dbGetQuery(b$con, "SELECT COUNT(*) AS n FROM prov_commits;")[[1]][1]),
@@ -154,7 +154,7 @@ test_exclusive_bundle_writer_lock_contract <- function(bundle_dir) {
   manifest_before <- unname(tools::md5sum(manifest_path))
   promotion_worker <- start_worker("hold")
   blocked_promotion <- try(wb_session_promote_current(
-    b, executed$session, outputs = "selected_features", name_prefix = "writer_lock_contract"
+    b, executed$session, outputs = "summary", name_prefix = "writer_lock_contract"
   ), silent = TRUE)
   stopifnot(inherits(blocked_promotion, "try-error"), grepl("Timed out", as.character(blocked_promotion), fixed = TRUE))
   after_counts <- c(
@@ -167,7 +167,7 @@ test_exclusive_bundle_writer_lock_contract <- function(bundle_dir) {
   )
   release_worker(promotion_worker)
   promoted <- wb_session_promote_current(
-    b, executed$session, outputs = "selected_features", name_prefix = "writer_lock_contract"
+    b, executed$session, outputs = "summary", name_prefix = "writer_lock_contract"
   )
   stopifnot(any(promoted$promoted$status == "ok"), nrow(wb_art_list(b)) > before_counts[["artifacts"]])
 

@@ -94,15 +94,15 @@ test_large_materialization_promotion_rollback_contract <- function() {
   },add=TRUE)
   options(warn=2)
   payload <- strrep("large-materialization-payload-",350000L)
-  prim <- wb_prim_obs_table(data.frame(metric="payload",value=payload,stringsAsFactors=FALSE),table_type="hvg_select_summary",entity_kind="analysis_summary")
-  run <- wb_new_run("hvg_select",inputs=list(parents=character(),user_inputs=list()),params=list(n_features=2000L),outputs=list(fit_summary=prim))
+  prim <- wb_prim_obs_table(data.frame(metric="payload",value=payload,stringsAsFactors=FALSE),table_type="matrix_log_normalize_summary",entity_kind="analysis_summary")
+  run <- wb_new_run("matrix_log_normalize",inputs=list(parents=character(),user_inputs=list()),params=list(scale_factor=10000),outputs=list(summary=prim))
   s <- wb_session_new(); s$runs <- stats::setNames(list(run),run$run_id); s$head_run_id <- run$run_id
   baseline <- .large_hash_state(b)
 
   options(scworkbench.provenance_digest_test_hook=function(domain,n_bytes) {
     if (identical(domain,"materialization-v2")) stop("forced large materialization digest failure",call.=FALSE)
   })
-  failed_digest <- try(wb_session_promote_current(b,s,outputs="fit_summary"),silent=TRUE)
+  failed_digest <- try(wb_session_promote_current(b,s,outputs="summary"),silent=TRUE)
   stopifnot(inherits(failed_digest,"try-error"),grepl("forced large materialization digest failure",as.character(failed_digest),fixed=TRUE),identical(.large_hash_state(b),baseline),!length(.large_hash_pending_paths(root)))
   wb_close_bundle(b); b <- NULL
   stopifnot(!isTRUE(wb_bundle_writer_lock_info(root)$locked))
@@ -110,14 +110,14 @@ test_large_materialization_promotion_rollback_contract <- function() {
 
   options(scworkbench.provenance_digest_test_hook=NULL,
           scworkbench.promotion_workspace_publish_hook=function(workspace,final_rel) stop("forced publication boundary failure",call.=FALSE))
-  failed_publish <- try(wb_session_promote_current(b,s,outputs="fit_summary"),silent=TRUE)
+  failed_publish <- try(wb_session_promote_current(b,s,outputs="summary"),silent=TRUE)
   stopifnot(inherits(failed_publish,"try-error"),grepl("forced publication boundary failure",as.character(failed_publish),fixed=TRUE),identical(.large_hash_state(b),baseline),!length(.large_hash_pending_paths(root)))
   wb_close_bundle(b); b <- NULL
   stopifnot(!isTRUE(wb_bundle_writer_lock_info(root)$locked))
   b <- wb_open_bundle(root)
 
   options(scworkbench.promotion_workspace_publish_hook=NULL)
-  promoted <- wb_session_promote_current(b,s,outputs="fit_summary")
+  promoted <- wb_session_promote_current(b,s,outputs="summary")
   stopifnot(all(promoted$promoted$status=="ok"))
   mats <- DBI::dbGetQuery(b$con,"SELECT output_hash,output_hash_scheme,content_sha256 FROM prov_materializations;")
   runs <- DBI::dbGetQuery(b$con,"SELECT run_hash,run_hash_scheme,contract_hash,contract_hash_scheme FROM prov_runs;")
@@ -149,7 +149,8 @@ test_mixed_legacy_new_provenance_identity_contract <- function() {
   b <- wb_init_bundle(root,overwrite=TRUE)
   on.exit({try(wb_close_bundle(b),silent=TRUE);unlink(c(root,clone_parent),recursive=TRUE,force=TRUE)},add=TRUE)
   cells <- paste0("c",1:12); features <- paste0("g",1:8)
-  wb_define_cells(b,cells)
+  wb_define_cells(b,cells,metadata=data.frame(cell_id=cells,
+    mixed_group=rep(c("a","b"),length.out=length(cells)),stringsAsFactors=FALSE))
   counts <- Matrix::Matrix(matrix(as.integer(seq_len(96L)%%11L),8L,dimnames=list(features,cells)),sparse=TRUE)
   wb_attach_matrix(b,"RNA_counts",counts,feature_type="gene",source="mixed_hash_fixture")
   .large_hash_make_legacy_runs(b)
@@ -160,10 +161,12 @@ test_mixed_legacy_new_provenance_identity_contract <- function() {
   legacy <- unname(scworkbench:::.wb_identity_schemes()[["legacy"]])
   stopifnot(all(nchar(migrated$run_hash)==16L),all(migrated$run_hash_scheme==legacy),all(migrated$contract_hash_scheme[!is.na(migrated$contract_hash)]==legacy))
   session <- wb_session_new()
-  hvg <- wb_session_run_op(session,b,"hvg_select",inputs=list(matrix="RNA_counts",n_features=4L,min_cells=1L,method="vst"))
-  promoted <- wb_session_promote_current(b,hvg$session,outputs="selected_features",created_by="mixed-hash-contract")
+  vector <- wb_session_run_op(session,b,"metadata_cell_vector",inputs=list(
+    source_column="mixed_group",vector_name="mixed_hash_group",
+    value_type="categorical",missing_policy="error",overwrite=TRUE,min_cells=1L))
+  promoted <- wb_session_promote_current(b,vector$session,outputs="vector",created_by="mixed-hash-contract")
   sid <- as.character(promoted$provenance_snapshot_id)[1]
-  artifact_id <- as.character(promoted$promoted$artifact_id[promoted$promoted$output=="selected_features"])[1]
+  artifact_id <- as.character(promoted$promoted$artifact_id[promoted$promoted$output=="vector"])[1]
   all_runs <- DBI::dbGetQuery(b$con,"SELECT run_hash,run_hash_scheme,contract_hash,contract_hash_scheme FROM prov_runs;")
   schemes <- scworkbench:::.wb_identity_schemes()
   stopifnot(any(all_runs$run_hash_scheme==legacy),any(all_runs$run_hash_scheme==schemes[["run"]]),all(nchar(all_runs$run_hash[all_runs$run_hash_scheme==schemes[["run"]]])==64L))

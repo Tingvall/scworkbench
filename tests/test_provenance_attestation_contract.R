@@ -35,8 +35,9 @@ test_provenance_attestation_contract <- function() {
             identical(as.character(detail$run$contract$interface$produces$matrix$durability_role), "materialization"),
             identical(as.character(detail$run$contract$interface$promotion_terminals), "summary"))
   Sys.unsetenv("SCWORKBENCH_RUNTIME_IMAGE_SHA256")
-  rr2 <- wb_session_run_op(wb_session_new(), b, "hvg_select", inputs=list(matrix="RNA_counts", n_features=2L, min_cells=1L))
-  p2 <- wb_session_promote_current(b, rr2$session, outputs="selected_features")
+  rr2 <- wb_session_run_op(wb_session_new(), b, "matrix_log_normalize", inputs=list(
+    matrix="RNA_counts", output_matrix_id="RNA_log_unattested", min_cells=1L))
+  p2 <- wb_session_promote_current(b, rr2$session, outputs="summary")
   d2 <- wb_prov_run_details(b, rr2$run$run_id, p2$provenance_snapshot_id)
   stopifnot(identical(as.character(d2$run$runtime_fingerprint$image$status), "unavailable"))
   legacy <- wb_init_bundle(tempfile("scwb_legacy_"), overwrite=TRUE)

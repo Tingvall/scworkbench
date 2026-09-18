@@ -22,7 +22,26 @@
 }
 
 .wb_operation_pack_v3_effective_cell_axis <- function(policy, inputs,
-                                                        effective_cells = NULL) {
+                                                        effective_cells = NULL,
+                                                        registry_records = list()) {
+  source <- as.character(policy$cell_axis$source)[1]
+  if (identical(source, "session_cell_axis_read_v1")) {
+    read_name <- as.character(policy$cell_axis$registry_read)[1]
+    record <- registry_records[[read_name]]
+    descriptor <- record$descriptor %||% list()
+    cells <- as.character(effective_cells %||% character())
+    observed <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(cells)))
+    if (!length(cells) || anyDuplicated(cells) ||
+        !identical(as.character(descriptor$kind %||% "")[1],
+          "session_cell_axis") ||
+        !identical(observed, descriptor$cell_order_identity))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Session-cell output axis differs from its authenticated core snapshot.",
+        "resolution")
+    return(list(input_name = NULL, registry_read = read_name, cells = cells,
+      derivation = source, descriptor = descriptor))
+  }
   input_name <- as.character(policy$cell_axis$input)[1]
   value <- inputs[[input_name]]
   if (is.null(value)) .wb_operation_pack_v3_error(
@@ -31,7 +50,6 @@
     "resolution")
   available <- .wb_operation_pack_v3_distinct_first(
     .wb_operation_pack_v2_primitive_cells(value))
-  source <- as.character(policy$cell_axis$source)[1]
   cells <- if (identical(source, "effective_cells_v1")) {
     selected <- as.character(effective_cells %||% available)
     if (length(setdiff(selected, available)) || anyDuplicated(selected))
@@ -177,28 +195,43 @@
 .wb_operation_pack_v3_cardinality_grant <- function(policy, output,
                                                       inputs, params,
                                                       input_records,
-                                                      effective_cells = NULL) {
+                                                      effective_cells = NULL,
+                                                      registry_records = list()) {
   cell_axis <- .wb_operation_pack_v3_effective_cell_axis(policy, inputs,
-    effective_cells)
+    effective_cells, registry_records)
   shape <- as.character(policy$shape)[1]
-  input_record <- input_records[[cell_axis$input_name]]
+  input_record <- if (is.null(cell_axis$input_name)) NULL else
+    input_records[[cell_axis$input_name]]
   value <- list(
     schema = "scworkbench.operation_pack.output_cardinality_grant.v1",
     output = as.character(output$name)[1], kind = as.character(output$kind)[1],
     policy = "authenticated_output_axes_v1", shape = shape,
     row_order = as.character(policy$row_order)[1],
     missing_values = as.character(policy$missing_values)[1],
-    cell_axis_source = list(input_name = cell_axis$input_name,
-      input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
-        input_record$descriptor_identity),
-      derivation = cell_axis$derivation),
+    cell_axis_source = if (!is.null(cell_axis$registry_read)) list(
+      source = cell_axis$derivation,
+      registry_read = cell_axis$registry_read,
+      descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
+        cell_axis$descriptor$descriptor_identity),
+      selection_identity = cell_axis$descriptor$selection_identity) else list(
+        input_name = cell_axis$input_name,
+        input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
+          input_record$descriptor_identity), derivation = cell_axis$derivation),
     cell_axis_count = as.integer(length(cell_axis$cells)),
     cell_axis_order_identity = .wb_operation_pack_v2_identity_plain(
       "scworkbench.cell_order.v1", unname(as.list(cell_axis$cells))))
   keys <- character()
-  if (identical(shape, "cell_key_cartesian")) {
+  if (shape %in% c("cell_key_cartesian",
+      "bounded_grouped_cell_key_cartesian")) {
     spec <- policy$key_axis
-    key_state <- if (identical(as.character(spec$source)[1],
+    bounded <- identical(as.character(spec$source)[1],
+      "declared_bounded_key_groups_v1")
+    key_state <- if (bounded) list(keys = character(), resolution = list(
+      source = "declared_bounded_key_groups_v1",
+      required_keys = spec$required_keys,
+      optional_groups = spec$optional_groups,
+      selection_owner = spec$selection_owner,
+      group_order = spec$group_order)) else if (identical(as.character(spec$source)[1],
         "resolved_parameter_feature_groups_v1"))
       .wb_operation_pack_v3_parameter_key_axis(spec, inputs, params,
         input_records) else .wb_operation_pack_v3_input_key_axis(spec, inputs,
@@ -211,14 +244,26 @@
         "resolution")
     pairs <- unlist(lapply(keys, function(key) lapply(cell_axis$cells,
       function(cell) list(key = key, cell_id = cell))), recursive = FALSE)
-    value$key_axis_count <- as.integer(length(keys))
-    value$key_axis <- unname(as.list(keys))
+    if (bounded) {
+      required <- as.character(unlist(spec$required_keys, use.names = FALSE))
+      optional <- unlist(lapply(spec$optional_groups, function(x)
+        as.character(unlist(x$keys, use.names = FALSE))), use.names = FALSE)
+      value$minimum_key_count <- as.integer(length(required))
+      value$maximum_key_count <- as.integer(length(c(required, optional)))
+      value$minimum_row_count <- as.integer(length(required) * length(cell_axis$cells))
+      value$maximum_row_count <- as.integer(length(c(required, optional)) * length(cell_axis$cells))
+    } else {
+      value$key_axis_count <- as.integer(length(keys))
+      value$key_axis <- unname(as.list(keys))
+    }
     value$key_axis_resolution <- key_state$resolution
-    value$key_axis_order_identity <- .wb_operation_pack_v2_identity_plain(
-      "scworkbench.row_order.v1", unname(as.list(keys)))
-    value$expected_row_count <- as.integer(length(keys) * length(cell_axis$cells))
-    value$row_order_identity <- .wb_operation_pack_v2_identity_plain(
-      "scworkbench.row_order.v1", pairs)
+    if (!bounded) {
+      value$key_axis_order_identity <- .wb_operation_pack_v2_identity_plain(
+        "scworkbench.row_order.v1", unname(as.list(keys)))
+      value$expected_row_count <- as.integer(length(keys) * length(cell_axis$cells))
+      value$row_order_identity <- .wb_operation_pack_v2_identity_plain(
+        "scworkbench.row_order.v1", pairs)
+    }
   } else {
     value$expected_row_count <- as.integer(length(cell_axis$cells))
     value$row_order_identity <- .wb_operation_pack_v2_identity_plain(
@@ -246,23 +291,51 @@
   if (anyNA(cell_id) || any(!nzchar(cell_id))) .wb_operation_pack_v3_error(
     "PYBENCH_OUTPUT_INVALID", "Authenticated output has invalid cell IDs.",
     "audit")
-  if (identical(shape, "cell_key_cartesian")) {
+  if (shape %in% c("cell_key_cartesian",
+      "bounded_grouped_cell_key_cartesian")) {
     key <- as.character(value$key %||% character())
     expected_cells <- attr(grant, "operation_pack_v3_cells") %||%
       rep(NA_character_, as.integer(grant$cell_axis_count))
-    expected_pairs <- unlist(lapply(as.character(unlist(grant$key_axis,
-      use.names = FALSE)), function(k) lapply(expected_cells,
+    bounded <- identical(shape, "bounded_grouped_cell_key_cartesian")
+    observed_keys <- .wb_operation_pack_v3_distinct_first(key)
+    selected_groups <- character()
+    expected_keys <- if (bounded) {
+      resolution <- grant$key_axis_resolution
+      required <- as.character(unlist(resolution$required_keys,
+        use.names = FALSE))
+      groups <- resolution$optional_groups %||% list()
+      cursor <- length(required) + 1L
+      for (group in groups) {
+        group_keys <- as.character(unlist(group$keys, use.names = FALSE))
+        if (length(observed_keys) >= cursor &&
+            identical(observed_keys[cursor:min(length(observed_keys),
+              cursor + length(group_keys) - 1L)], group_keys)) {
+          selected_groups <- c(selected_groups, as.character(group$name)[1])
+          cursor <- cursor + length(group_keys)
+        }
+      }
+      expected <- c(required, unlist(lapply(groups[vapply(groups,
+        function(x) as.character(x$name)[1] %in% selected_groups,
+        logical(1))], function(x) as.character(unlist(x$keys,
+          use.names = FALSE))), use.names = FALSE))
+      if (!identical(observed_keys, expected))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Cell-vector-family keys are not complete declared bounded groups in manifest order.",
+          "audit")
+      expected
+    } else as.character(unlist(grant$key_axis, use.names = FALSE))
+    expected_pairs <- unlist(lapply(expected_keys, function(k) lapply(expected_cells,
         function(cell) list(key = k, cell_id = cell))), recursive = FALSE)
     observed_pairs <- unname(Map(function(k, cell) list(key = k,
       cell_id = cell), key, cell_id))
-    if (length(key) != as.integer(grant$expected_row_count) ||
+    expected_row_count <- length(expected_keys) * length(expected_cells)
+    if (length(key) != expected_row_count ||
         anyDuplicated(paste(key, cell_id, sep = "\034")) ||
         !identical(observed_pairs, expected_pairs))
       .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
         "Cell-vector-family rows are not the exact granted Cartesian product in key-major order.",
         "audit")
     observed_cells <- .wb_operation_pack_v3_distinct_first(cell_id)
-    observed_keys <- .wb_operation_pack_v3_distinct_first(key)
     out <- list(
       schema = "scworkbench.operation_pack.observed_output_cardinality.v1",
       cardinality_grant_identity = grant$cardinality_grant_identity,
@@ -276,6 +349,14 @@
       observed_row_order_identity = .wb_operation_pack_v2_identity_plain(
         "scworkbench.row_order.v1", observed_pairs),
       missing_count = as.integer(missing), semantic_validation = "passed")
+    if (bounded) {
+      out$observed_key_axis <- unname(as.list(observed_keys))
+      out$selected_optional_groups <- unname(as.list(selected_groups))
+      out$selected_optional_groups_identity <-
+        .wb_operation_pack_v2_identity_plain(
+          "scworkbench.operation_pack.selected_optional_groups.v1",
+          out$selected_optional_groups)
+    }
   } else {
     expected_cells <- attr(grant, "operation_pack_v3_cells") %||%
       rep(NA_character_, as.integer(grant$cell_axis_count))
@@ -663,6 +744,17 @@
   }
   input_records <- stats::setNames(lapply(base$inputs, `[[`, "descriptor"),
     vapply(base$inputs, `[[`, character(1), "name"))
+  v3_registry <- .wb_operation_pack_v3_registry_read_records(bundle,
+    operation, inputs, input_records, stage_root, effective_cells, session_id,
+    run_id, generation, base$execution_capability$source_state_identity)
+  if (length(v3_registry$records)) {
+    base$registry_reads <- c(base$registry_reads %||% list(),
+      v3_registry$records)
+    base$registry_reads <- base$registry_reads[order(vapply(
+      base$registry_reads, `[[`, character(1), "name"), method = "radix")]
+  }
+  registry_records <- stats::setNames(base$registry_reads %||% list(),
+    vapply(base$registry_reads %||% list(), `[[`, character(1), "name"))
   policies <- .wb_operation_pack_v3_policy_map(operation)
   outputs <- stats::setNames(operation$outputs,
     vapply(operation$outputs, `[[`, character(1), "name"))
@@ -673,19 +765,24 @@
     if (!is.null(policy) && identical(as.character(policy$policy)[1],
         "authenticated_output_axes_v1")) {
       grant <- .wb_operation_pack_v3_cardinality_grant(policy,
-        outputs[[name]], inputs, params, input_records, effective_cells)
+        outputs[[name]], inputs, params, input_records, effective_cells,
+        registry_records)
       descriptor$cardinality_grant <- grant
       descriptor$expected_dimensions <- if (identical(grant$shape,
-          "cell_key_cartesian")) list(grant$expected_row_count, 3L) else
-        list(grant$expected_row_count)
+          "bounded_grouped_cell_key_cartesian")) list(0L, 3L) else if (
+          identical(grant$shape, "cell_key_cartesian"))
+        list(grant$expected_row_count, 3L) else list(grant$expected_row_count)
       granted_cells <- attr(grant, "operation_pack_v3_cells") %||%
         character()
-      output_cells <- if (identical(grant$shape,
-          "cell_key_cartesian")) rep(granted_cells,
-        times = as.integer(grant$key_axis_count)) else granted_cells
-      descriptor$expected_cell_order_identity <-
-        .wb_operation_pack_v2_identity_plain(
-          "scworkbench.cell_order.v1", unname(as.list(output_cells)))
+      if (!identical(grant$shape,
+          "bounded_grouped_cell_key_cartesian")) {
+        output_cells <- if (identical(grant$shape,
+            "cell_key_cartesian")) rep(granted_cells,
+          times = as.integer(grant$key_axis_count)) else granted_cells
+        descriptor$expected_cell_order_identity <-
+          .wb_operation_pack_v2_identity_plain(
+            "scworkbench.cell_order.v1", unname(as.list(output_cells)))
+      }
     }
     descriptor$grant_identity <- NULL
     descriptor$grant_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -763,6 +860,9 @@
     "operation_pack_v2_transport_inputs")
   attr(base, "operation_pack_v2_registry_read_values") <- attr(base,
     "operation_pack_v2_registry_read_values")
+  attr(base, "operation_pack_v2_registry_read_values") <- c(
+    attr(base, "operation_pack_v2_registry_read_values") %||% list(),
+    v3_registry$values)
   attr(base, "operation_pack_v3_provenance_read_values") <- provenance$values
   attr(base, "operation_pack_stage_root") <- stage_root
   attr(base, "operation_pack_v3_typed_slice_values") <-
@@ -977,8 +1077,11 @@
     descriptor$grant_identity <- grants[[name]]$descriptor$grant_identity
     cardinality <- grants[[name]]$descriptor$cardinality_grant %||% NULL
     if (!is.null(cardinality)) {
+      registry_records <- stats::setNames(request$registry_reads %||% list(),
+        vapply(request$registry_reads %||% list(), `[[`, character(1), "name"))
       cells <- .wb_operation_pack_v3_effective_cell_axis(policies[[name]],
-        inputs)$cells
+        inputs, registry_records = registry_records,
+        effective_cells = attr(cardinality, "operation_pack_v3_cells"))$cells
       attr(cardinality, "operation_pack_v3_cells") <- cells
       descriptor$observed_cardinality <-
         .wb_operation_pack_v3_observe_cardinality(writes[[name]]$value,

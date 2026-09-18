@@ -68,6 +68,10 @@
   out$operations <- lapply(out$operations, function(op) {
     op$provenance_reads <- NULL
     op$typed_slice_reads <- NULL
+    op$registry_reads <- Filter(function(x) identical(
+      as.character(x$kind %||% "")[1], "feature_set_registry"),
+      op$registry_reads %||% list())
+    if (!length(op$registry_reads)) op$registry_reads <- NULL
     op$dimension_policies <- Filter(function(x) !identical(
       as.character(x$policy %||% "")[1], "authenticated_output_axes_v1"),
       op$dimension_policies %||% list())
@@ -100,6 +104,9 @@
     outputs <- stats::setNames(operation$outputs,
       vapply(operation$outputs, `[[`, character(1), "name"))
     properties <- operation$params_schema$properties %||% list()
+    registry_reads <- stats::setNames(operation$registry_reads %||% list(),
+      vapply(operation$registry_reads %||% list(), function(x)
+        as.character(x$name)[1], character(1)))
     policies <- operation$dimension_policies %||% list()
     policy_names <- vapply(policies, function(x) as.character(x$output)[1],
       character(1))
@@ -111,24 +118,36 @@
       if (!identical(as.character(policy$policy)[1],
           "authenticated_output_axes_v1")) next
       output <- outputs[[as.character(policy$output)[1]]]
-      input <- inputs[[as.character(policy$cell_axis$input)[1]]]
+      cell_source <- as.character(policy$cell_axis$source)[1]
+      input <- inputs[[as.character(policy$cell_axis$input %||% "")[1]]]
+      axis_read <- registry_reads[[as.character(
+        policy$cell_axis$registry_read %||% "")[1]]]
       shape <- as.character(policy$shape)[1]
-      valid <- !is.null(output) && !is.null(input) &&
-        as.character(input$kind)[1] %in% c("matrix", "cell_vector_family", "space") &&
-        ((identical(shape, "cell_key_cartesian") &&
+      cell_source_valid <- (!is.null(input) && cell_source %in% c(
+        "effective_cells_v1", "distinct_input_cells_first_occurrence_v1") &&
+        as.character(input$kind)[1] %in% c("matrix", "cell_vector_family", "space")) ||
+        (identical(cell_source, "session_cell_axis_read_v1") &&
+          identical(as.character(axis_read$kind %||% "")[1],
+            "session_cell_axis"))
+      valid <- !is.null(output) && cell_source_valid &&
+        ((shape %in% c("cell_key_cartesian",
+            "bounded_grouped_cell_key_cartesian") &&
           identical(as.character(output$kind)[1], "cell_vector_family") &&
           identical(as.character(policy$row_order)[1],
             "key_major_then_cell_v1") && !is.null(policy$key_axis)) ||
          (identical(shape, "one_per_cell") &&
           identical(as.character(output$kind)[1], "cell_vector") &&
-          identical(as.character(policy$row_order)[1], "input_cell_order_v1") &&
+          identical(as.character(policy$row_order)[1],
+            if (identical(cell_source, "session_cell_axis_read_v1"))
+              "session_cell_axis_order_v1" else "input_cell_order_v1") &&
           is.null(policy$key_axis)))
       if (!valid) .wb_operation_pack_v3_error(
         "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
         paste0("Operation '", opname,
           "' has an incompatible authenticated output-axis declaration."),
         "semantic_admission")
-      if (identical(shape, "cell_key_cartesian")) {
+      if (shape %in% c("cell_key_cartesian",
+          "bounded_grouped_cell_key_cartesian")) {
         key_axis <- policy$key_axis
         source <- as.character(key_axis$source %||% "")[1]
         if (identical(source, "resolved_parameter_feature_groups_v1")) {
@@ -149,13 +168,53 @@
           valid <- !is.null(bound) && identical(as.character(bound$kind)[1],
             "cell_vector_family") && (!nzchar(selector) ||
             !is.null(properties[[selector]]))
+        } else if (identical(source, "declared_bounded_key_groups_v1")) {
+          required <- as.character(unlist(key_axis$required_keys,
+            use.names = FALSE))
+          groups <- key_axis$optional_groups %||% list()
+          group_names <- vapply(groups, function(x) as.character(x$name)[1],
+            character(1))
+          group_keys <- unlist(lapply(groups, function(x)
+            as.character(unlist(x$keys, use.names = FALSE))), use.names = FALSE)
+          all_keys <- c(required, group_keys)
+          valid <- length(required) > 0L && !anyNA(all_keys) &&
+            all(nzchar(all_keys)) && !anyDuplicated(all_keys) &&
+            !anyDuplicated(group_names) && all(nzchar(group_names))
         } else valid <- FALSE
+        valid <- valid && identical(shape,
+          "bounded_grouped_cell_key_cartesian") == identical(source,
+            "declared_bounded_key_groups_v1")
         if (!valid) .wb_operation_pack_v3_error(
           "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
           paste0("Operation '", opname,
             "' has an incompatible authenticated key-axis resolver."),
           "semantic_admission")
       }
+    }
+
+    new_reads <- .wb_operation_pack_v3_new_registry_declarations(operation)
+    new_names <- vapply(new_reads, function(x) as.character(x$name)[1],
+      character(1))
+    if (anyDuplicated(new_names)) .wb_operation_pack_v3_error(
+      "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Operation '", opname,
+        "' repeats an authenticated core snapshot name."),
+      "semantic_admission")
+    for (read in new_reads) {
+      kind <- as.character(read$kind)[1]
+      valid <- if (identical(kind, "session_cell_axis")) {
+        identical(as.character(read$reader)[1], "read_session_cell_axis")
+      } else {
+        input <- inputs[[as.character(read$matrix_input)[1]]]
+        identical(as.character(read$reader)[1],
+          "read_matrix_feature_annotations") && !is.null(input) &&
+          identical(as.character(input$kind)[1], "matrix")
+      }
+      if (!valid) .wb_operation_pack_v3_error(
+        "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+        paste0("Operation '", opname,
+          "' has an invalid authenticated core snapshot declaration."),
+        "semantic_admission")
     }
 
     slices <- operation$typed_slice_reads %||% list()
@@ -208,6 +267,14 @@
           "' has an invalid artifact-ancestry input or parameter assertion."),
         "semantic_admission")
     }
+    reader_names <- c(names(inputs), vapply(operation$registry_reads %||%
+      list(), function(x) as.character(x$name)[1], character(1)),
+      slice_names, read_names)
+    if (anyDuplicated(reader_names)) .wb_operation_pack_v3_error(
+      "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Operation '", opname,
+        "' has colliding reader capability names."),
+      "semantic_admission")
   }
   invisible(TRUE)
 }

@@ -32,12 +32,9 @@ test_generic_entity_certificate_contract <- function() {
   norm <- wb_session_run_op(wb_session_new(), b, "matrix_log_normalize", inputs = list(
     matrix = "RNA_counts", cell_set = "all", min_cells = 2L,
     output_matrix_id = "RNA_log_norm.certificate", overwrite = TRUE))
-  hvg <- wb_session_run_op(norm$session, b, "hvg_select", inputs = list(
-    matrix = wb_ref_run(norm$run$run_id, "matrix"), cell_set = "all", min_cells = 2L,
-    n_features = 10L, method = "vst", chunk_size = 4L))
-  pca <- wb_session_run_op(hvg$session, b, "pca_fit", inputs = list(
+  pca <- wb_session_run_op(norm$session, b, "pca_fit", inputs = list(
     matrix = wb_ref_run(norm$run$run_id, "matrix"),
-    features = wb_ref_run(hvg$run$run_id, "selected_features"), cell_set = "all",
+    feature_ids = genes[seq_len(10L)], cell_set = "all",
     min_cells = 2L, n_components = 4L, backend = "irlba", seed = 11L,
     space_id_out = "rna.pca.certificate", overwrite = TRUE, max_dense_gb = 1))
   pca_promoted <- wb_session_promote_current(b, pca$session,

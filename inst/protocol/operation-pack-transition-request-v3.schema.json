@@ -1424,6 +1424,8 @@
           "pattern": "^[a-z][a-z0-9_]*$"
         },
         "descriptor": {
+          "oneOf": [
+          {
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -1562,6 +1564,54 @@
               }
             }
           }
+          },
+          {
+            "type": "object", "additionalProperties": false,
+            "required": ["category", "kind", "reader", "selection_policy", "coverage_policy", "session_id", "run_id", "checkpoint_generation", "transition_source_state_identity", "dimensions", "cell_order_identity", "selection_identity", "content_identity", "source_identity", "ancestry_identity", "payload_manifest_identity", "descriptor_identity"],
+            "properties": {
+              "category": {"const": "authenticated_core_axis_snapshot"},
+              "kind": {"const": "session_cell_axis"},
+              "reader": {"const": "read_session_cell_axis"},
+              "selection_policy": {"const": "effective_session_cells_v1"},
+              "coverage_policy": {"const": "exact_complete_order_v1"},
+              "session_id": {"type": "string", "minLength": 1},
+              "run_id": {"type": "string", "minLength": 1},
+              "checkpoint_generation": {"type": "string", "minLength": 1},
+              "transition_source_state_identity": {"$ref": "#/$defs/identity"},
+              "dimensions": {"type": "array", "prefixItems": [{"type": "integer", "minimum": 1}], "items": false, "minItems": 1, "maxItems": 1},
+              "cell_order_identity": {"$ref": "#/$defs/identity"},
+              "selection_identity": {"$ref": "#/$defs/self_identity"},
+              "content_identity": {"$ref": "#/$defs/self_identity"},
+              "source_identity": {"$ref": "#/$defs/self_identity"},
+              "ancestry_identity": {"$ref": "#/$defs/self_identity"},
+              "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
+              "descriptor_identity": {"$ref": "#/$defs/self_identity"}
+            }
+          },
+          {
+            "type": "object", "additionalProperties": false,
+            "required": ["category", "kind", "reader", "matrix_input", "fields", "row_order", "missing_annotation_policy", "matrix_id", "dimensions", "input_descriptor_identity", "input_content_identity", "feature_order_identity", "content_identity", "source_identity", "ancestry_identity", "payload_manifest_identity", "descriptor_identity"],
+            "properties": {
+              "category": {"const": "authenticated_core_registry_snapshot"},
+              "kind": {"const": "matrix_feature_annotations"},
+              "reader": {"const": "read_matrix_feature_annotations"},
+              "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"const": "feature_type"}},
+              "row_order": {"const": "matrix_feature_order_v1"},
+              "missing_annotation_policy": {"const": "preserve_null"},
+              "matrix_id": {"type": "string", "minLength": 1},
+              "dimensions": {"type": "array", "prefixItems": [{"type": "integer", "minimum": 1}, {"type": "integer", "minimum": 1}], "items": false, "minItems": 2, "maxItems": 2},
+              "input_descriptor_identity": {"$ref": "#/$defs/identity"},
+              "input_content_identity": {"$ref": "#/$defs/identity"},
+              "feature_order_identity": {"$ref": "#/$defs/identity"},
+              "content_identity": {"$ref": "#/$defs/self_identity"},
+              "source_identity": {"$ref": "#/$defs/self_identity"},
+              "ancestry_identity": {"$ref": "#/$defs/self_identity"},
+              "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
+              "descriptor_identity": {"$ref": "#/$defs/self_identity"}
+            }
+          }
+          ]
         }
       }
     },
@@ -3371,27 +3421,10 @@
                     "pattern": "^[a-z][a-z0-9_]*$"
                   },
                   "reader": {
-                    "const": "read_feature_set_registry"
+                    "enum": ["read_feature_set_registry", "read_session_cell_axis", "read_matrix_feature_annotations"]
                   },
                   "descriptor_identity": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "required": [
-                      "scheme",
-                      "scope",
-                      "sha256"
-                    ],
-                    "properties": {
-                      "scheme": {
-                        "const": "scworkbench.operation_pack.registry_read_descriptor.v2"
-                      },
-                      "scope": {
-                        "const": "descriptor excluding descriptor_identity"
-                      },
-                      "sha256": {
-                        "$ref": "#/$defs/sha256"
-                      }
-                    }
+                    "$ref": "#/$defs/self_identity"
                   }
                 }
               },
@@ -3579,8 +3612,6 @@
         "cell_axis_source",
         "cell_axis_count",
         "cell_axis_order_identity",
-        "expected_row_count",
-        "row_order_identity",
         "cardinality_grant_identity"
       ],
       "properties": {
@@ -3603,13 +3634,15 @@
         "shape": {
           "enum": [
             "cell_key_cartesian",
+            "bounded_grouped_cell_key_cartesian",
             "one_per_cell"
           ]
         },
         "row_order": {
           "enum": [
             "key_major_then_cell_v1",
-            "input_cell_order_v1"
+            "input_cell_order_v1",
+            "session_cell_axis_order_v1"
           ]
         },
         "missing_values": {
@@ -3619,14 +3652,11 @@
           ]
         },
         "cell_axis_source": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "input_name",
-            "input_descriptor_identity",
-            "derivation"
-          ],
-          "properties": {
+          "oneOf": [
+          {
+            "type": "object", "additionalProperties": false,
+            "required": ["input_name", "input_descriptor_identity", "derivation"],
+            "properties": {
             "input_name": {
               "type": "string",
               "pattern": "^[a-z][a-z0-9_]*$"
@@ -3640,7 +3670,19 @@
                 "distinct_input_cells_first_occurrence_v1"
               ]
             }
+            }
+          },
+          {
+            "type": "object", "additionalProperties": false,
+            "required": ["source", "registry_read", "descriptor_identity", "selection_identity"],
+            "properties": {
+              "source": {"const": "session_cell_axis_read_v1"},
+              "registry_read": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "descriptor_identity": {"$ref": "#/$defs/identity"},
+              "selection_identity": {"$ref": "#/$defs/self_identity"}
+            }
           }
+          ]
         },
         "cell_axis_count": {
           "type": "integer",
@@ -3836,6 +3878,17 @@
                   }
                 }
               }
+            },
+            {
+              "type": "object", "additionalProperties": false,
+              "required": ["source", "required_keys", "optional_groups", "selection_owner", "group_order"],
+              "properties": {
+                "source": {"const": "declared_bounded_key_groups_v1"},
+                "required_keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+                "optional_groups": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["name", "keys"], "properties": {"name": {"type": "string", "minLength": 1}, "keys": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}}}},
+                "selection_owner": {"const": "operation_pack_v1"},
+                "group_order": {"const": "manifest_order_v1"}
+              }
             }
           ]
         },
@@ -3846,6 +3899,10 @@
           "type": "integer",
           "minimum": 0
         },
+        "minimum_key_count": {"type": "integer", "minimum": 1},
+        "maximum_key_count": {"type": "integer", "minimum": 1},
+        "minimum_row_count": {"type": "integer", "minimum": 1},
+        "maximum_row_count": {"type": "integer", "minimum": 1},
         "row_order_identity": {
           "$ref": "#/$defs/identity"
         },

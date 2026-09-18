@@ -23,7 +23,10 @@ expected_methods <- sort(c("cell_suffix_label", "rna_qc_metrics", "hvg_select",
   "knn_neighbors", "knn_pseudobulk"))
 stopifnot(identical(methods, expected_methods), !"leiden" %in% methods)
 anchors <- unique(unlist(strsplit(ledger$source_anchors, ";", fixed = TRUE)))
-stopifnot(all(file.exists(file.path(root, anchors))))
+present <- file.exists(file.path(root, anchors))
+extracted_phase4b <- c("R/op_cell_suffix_label.R", "R/op_rna_qc_metrics.R")
+stopifnot(setequal(anchors[!present], extracted_phase4b),
+  file.exists(file.path(root, "notes", "phase4b_rna_test_ownership.csv")))
 records <- lapply(seq_len(nrow(ledger)), function(i) {
   row <- as.list(ledger[i, , drop = FALSE])
   row$order <- as.integer(row$order)

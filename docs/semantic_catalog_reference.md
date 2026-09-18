@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 313
+Record count: 309
 
-Graph edges: 809
+Graph edges: 783
 
 ## artifact_type
 
@@ -992,29 +992,11 @@ Description: Resolve and content-verify one relocatable bundle-owned capsule out
 
 ## op
 
-### `op:leiden`
-
-Title: Leiden clustering
-
-Description: Graph clustering on a kNN graph derived from an embedding space.
-
-### `op:rna_qc_metrics`
-
-Title: Calculate per-cell RNA QC metrics
-
-Description: Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.
-
 ### `op:matrix_log_normalize`
 
 Title: Log-normalize count matrix
 
 Description: Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.
-
-### `op:hvg_select`
-
-Title: Highly Variable Feature Selection
-
-Description: Select highly variable features from a matrix using chunked feature-wise summaries.
 
 ### `op:pca_fit`
 
@@ -1051,12 +1033,6 @@ Description: Import GMT/RDS/table feature-set libraries into the bundle feature-
 Title: Feature-Set Namespace Transfer
 
 Description: Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics.
-
-### `op:cell_suffix_label`
-
-Title: Cell Labels From ID Suffix
-
-Description: Build a categorical cell vector by parsing cell_id suffix tokens.
 
 ### `op:cell_set_derive`
 

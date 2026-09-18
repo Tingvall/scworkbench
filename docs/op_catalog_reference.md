@@ -4,74 +4,10 @@
 
 Generated at: source-controlled
 
-Operation count: 43
+Operation count: 39
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
-
-## `leiden`
-
-Title: Leiden clustering
-
-Intent: cluster
-
-Description: Graph clustering on a kNN graph derived from an embedding space.
-
-Consumes:
-- `space`: space
-- `cell_set`: select
-
-Produces:
-- `clusters`: cell_vector [terminal artifact] - Cluster label per cell (categorical cell vector).
-
-Promotable outputs: clusters
-
-Replay equivalence:
-- `clusters`: `exact_canonical_value`
-
-Key parameters:
-- `dims` (int_range, default=NULL): Optional dimensions of the space to use (1-indexed); defaults to all available dimensions.
-- `k` (int, default=30): Number of neighbors for kNN graph.
-- `resolution` (dbl, default=1): Leiden resolution parameter.
-- `n_iterations` (int, default=2): Number of Leiden optimization iterations.
-- `seed` (int, default=1): Random seed.
-- `weight` (bool, default=TRUE): Whether to weight graph edges during clustering.
-
-## `rna_qc_metrics`
-
-Title: Calculate per-cell RNA QC metrics
-
-Intent: matrix, rna, quality_control, cell_metrics
-
-Description: Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.
-
-Consumes:
-- `matrix`: matrix
-- `cell_set`: select
-
-Produces:
-- `metrics`: cell_vector_family [terminal artifact] - Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics.
-- `qc_features`: feature_table [terminal artifact] - Exact feature membership and explicit/pattern selection source for each optional QC feature group.
-- `summary`: obs_table [terminal artifact] - Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries.
-
-Promotable outputs: metrics, qc_features, summary
-
-Replay equivalence:
-- `metrics`: `exact_canonical_value`
-- `qc_features`: `exact_canonical_value`
-- `summary`: `exact_canonical_value`
-
-Key parameters:
-- `mitochondrial_features` (string_vec, default=NULL): Optional explicit mitochondrial feature ids.
-- `mitochondrial_pattern` (string, default=NULL): Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols.
-- `ribosomal_features` (string_vec, default=NULL): Optional explicit ribosomal feature ids.
-- `ribosomal_pattern` (string, default=NULL): Optional regular expression matched against feature ids.
-- `pattern_ignore_case` (bool, default=FALSE): Whether feature-id regular-expression matching ignores case.
-- `missing_feature_policy` (choice, default=error): Whether absent explicitly supplied feature ids fail or are recorded and dropped.
-- `require_integer_counts` (bool, default=TRUE): Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression.
-- `integer_tolerance` (dbl, default=1e-08): Absolute tolerance used for integer-like count validation.
-- `chunk_size` (int, default=2000): Number of cells read per backed-matrix chunk.
-- `cell_set` (cell_set, default=all): Named bundle cell set defining the cells for which metrics are calculated.
 
 ## `matrix_log_normalize`
 
@@ -100,40 +36,6 @@ Key parameters:
 - `scale_factor` (dbl, default=10000): Per-cell target count scale before log1p; 10000 is the common CP10K convention.
 - `overwrite` (bool, default=FALSE): If TRUE, replace an existing output matrix with the same id.
 - `cell_set` (cell_set, default=all): Must be 'all' because the output matrix is registered as a full bundle matrix.
-
-## `hvg_select`
-
-Title: Highly Variable Feature Selection
-
-Intent: matrix, feature_selection, rna, hvg
-
-Description: Select highly variable features from a matrix using chunked feature-wise summaries.
-
-Consumes:
-- `matrix`: matrix
-- `cell_set`: select
-
-Produces:
-- `selected_features`: feature_table [terminal artifact] - Feature-wise mean, variance, dispersion, score, rank, and selected flag.
-- `fit_summary`: obs_table [terminal artifact] - Input matrix, method, filters, dimensions, and selection counts.
-
-Promotable outputs: selected_features, fit_summary
-
-Replay equivalence:
-- `selected_features`: `exact_canonical_value`
-- `fit_summary`: `exact_canonical_value`
-
-Key parameters:
-- `n_features` (int, default=2000): Number of highly variable features to mark selected.
-- `method` (choice, default=vst): Feature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean).
-- `min_mean` (dbl, default=NULL): Optional minimum feature mean filter.
-- `max_mean` (dbl, default=NULL): Optional maximum feature mean filter.
-- `min_dispersion` (dbl, default=NULL): Optional minimum HVG score filter.
-- `batch_key` (string, default=NULL): Reserved for future batch-aware HVG; currently unsupported if non-null.
-- `exclude_features` (string_vec, default=NULL): Optional feature IDs to exclude before ranking.
-- `feature_type` (string, default=NULL): Optional feature_type filter from the bundle feature registry.
-- `seed` (int, default=1): Random seed reserved for deterministic future methods.
-- `chunk_size` (int, default=256): Feature chunk size for backed matrix reads.
 
 ## `pca_fit`
 
@@ -353,32 +255,6 @@ Key parameters:
 - `min_retained_fraction` (dbl, default=0): Minimum fraction of source members retained on the target matrix.
 - `created_by` (string, default=NULL): Optional created_by metadata for transferred registry rows.
 - `notes` (string, default=NULL): Optional provenance note. This op is not for gene-to-peak, peak-to-gene, motif-to-TF, ortholog, or synonym mapping.
-
-## `cell_suffix_label`
-
-Title: Cell Labels From ID Suffix
-
-Intent: annotation, metadata
-
-Description: Build a categorical cell vector by parsing cell_id suffix tokens.
-
-Consumes:
-- `cell_set`: select
-
-Produces:
-- `labels`: cell_vector [terminal artifact] - Categorical label per cell from suffix parsing.
-- `label_table`: obs_table [terminal artifact] - Per-cell suffix/label table.
-
-Promotable outputs: labels, label_table
-
-Replay equivalence:
-- `labels`: `exact_canonical_value`
-- `label_table`: `exact_canonical_value`
-
-Key parameters:
-- `sep` (string, default=-): Separator used in cell IDs before suffix token.
-- `mapping` (string_vec, default=NULL): Optional named mapping suffix->label.
-- `default_label` (string, default=UNKNOWN): Fallback label for unmapped suffixes.
 
 ## `cell_set_derive`
 

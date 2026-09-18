@@ -1,6 +1,13 @@
 # RNA Map Ops
 
-scworkbench supports a first-pass RNA map workflow for matrix-only bundles:
+The independently installed provisional `scwbRNA` operation pack supplies
+`scwbrna::hvg_select`; core scworkbench supplies the surrounding normalization,
+PCA, and UMAP operations. The pack currently contains only
+`cell_suffix_label`, `rna_qc_metrics`, and `hvg_select` and is not a complete
+RNA package. Installation is inert: activate its installed
+`inst/scworkbench/operation-pack.json` explicitly before execution.
+
+Together they support a first-pass RNA map workflow for matrix-only bundles:
 
 ```r
 RNA_counts -> matrix_log_normalize -> hvg_select -> pca_fit -> umap_fit
@@ -19,7 +26,7 @@ promotable `feature_table`.
 rr <- wb_session_run_op(
   session,
   bundle,
-  "hvg_select",
+  "scwbrna::hvg_select",
   inputs = list(
     matrix = "RNA_log_norm",
     n_features = 2000,

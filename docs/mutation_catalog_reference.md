@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 139
+Record count: 135
 
 Meaningful public transformations: 64
 
@@ -11,20 +11,6 @@ Exported directly guarded functions: 27
 Exactly-one-route invariant: PASS
 
 ## `wb_op_catalog_semantic`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_cell_suffix_label`
 
 Category: operation_implementation
 
@@ -304,20 +290,6 @@ Boundary: `guarded_implementation`
 
 Supported route: `registered_session_execution_and_promotion`
 
-## `wb_op_hvg_select`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
 ## `wb_op_interface`
 
 Category: operation_implementation
@@ -361,20 +333,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_knn_pseudobulk`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_leiden`
 
 Category: operation_implementation
 
@@ -527,20 +485,6 @@ Durable mutation: true
 Boundary: `guarded_implementation`
 
 Supported route: `registered_session_execution_and_promotion`
-
-## `wb_op_rna_qc_metrics`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
 
 ## `wb_op_slingshot`
 

@@ -108,10 +108,13 @@ test_public_cell_metadata_import_contract <- function() {
     created_by="contract",promote_manifest=TRUE
   )
   downstream <- wb_session_run_op(
-    wb_session_new(),b,"cell_suffix_label",
-    inputs=list(cell_set="set:imported_high",min_cells=1L,sep="_",default_label="none")
+    wb_session_new(),b,"metadata_cell_vector",
+    inputs=list(source_column=wb_ref_metadata_field(stable_ids[[1L]]),
+                vector_name="imported_label",value_type="categorical",
+                missing_policy="drop",cell_set="set:imported_high",min_cells=1L)
   )
-  stopifnot(length(wb_cells(b,"set:imported_high"))>=1L,nrow(downstream$run$outputs$label_table$table)>=1L)
+  stopifnot(length(wb_cells(b,"set:imported_high"))>=1L,
+            length(downstream$run$outputs$vector$cell_id)>=1L)
   graph2 <- wb_prov_bundle_dag(b)
   stopifnot(
     any(graph2$edges$from==paste0("metadata_field:",stable_ids[[2L]]) & graph2$edges$to==paste0("run:",vector_run$run$run_id)),

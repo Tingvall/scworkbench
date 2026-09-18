@@ -86,11 +86,11 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
   )
 
   # Exported pure computation remains directly usable on committed state.
-  hvg <- wb_op_hvg_select(
-    b, matrix_id, cells = cells, n_features = 3L, method = "variance"
+  mean_expression <- wb_op_meanexpr(
+    b, matrix_id, features = head(features, 3L), cells = cells
   )
   stopifnot(
-    identical(hvg$outputs$selected_features$kind, "feature_table"),
+    identical(mean_expression$kind, "feature_table"),
     identical(before, scientific_state(b))
   )
 

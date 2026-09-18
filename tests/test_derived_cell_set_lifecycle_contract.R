@@ -96,18 +96,20 @@ test_derived_cell_set_lifecycle_contract <- function() {
   r_label <- wb_session_run_op(
     session = s,
     bundle = b,
-    op_name = "cell_suffix_label",
+    op_name = "metadata_cell_vector",
     inputs = list(
+      source_column = "lineage",
+      vector_name = "derived_lineage",
+      value_type = "categorical",
+      missing_policy = "error",
       cell_set = "set:test_claim_universe",
-      min_cells = 1L,
-      sep = "c",
-      default_label = "unknown"
+      min_cells = 1L
     ),
     notes = "downstream op consuming derived set"
   )
-  label_tbl <- r_label$run$outputs$label_table$table
-  stopifnot(nrow(label_tbl) == 3L)
-  stopifnot(setequal(as.character(label_tbl$cell_id), c("c3", "c5", "c8")))
+  labels <- r_label$run$outputs$vector
+  stopifnot(length(labels$cell_id) == 3L)
+  stopifnot(setequal(as.character(labels$cell_id), c("c3", "c5", "c8")))
 
   r_derive <- wb_session_run_op(
     session = wb_session_new(),

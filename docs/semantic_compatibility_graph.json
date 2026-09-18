@@ -1,32 +1,14 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 313,
-  "edge_count": 809,
+  "node_count": 309,
+  "edge_count": 783,
   "nodes": [
-    {
-      "record_id": "op:leiden",
-      "record_type": "op",
-      "name": "leiden",
-      "title": "Leiden clustering"
-    },
-    {
-      "record_id": "op:rna_qc_metrics",
-      "record_type": "op",
-      "name": "rna_qc_metrics",
-      "title": "Calculate per-cell RNA QC metrics"
-    },
     {
       "record_id": "op:matrix_log_normalize",
       "record_type": "op",
       "name": "matrix_log_normalize",
       "title": "Log-normalize count matrix"
-    },
-    {
-      "record_id": "op:hvg_select",
-      "record_type": "op",
-      "name": "hvg_select",
-      "title": "Highly Variable Feature Selection"
     },
     {
       "record_id": "op:pca_fit",
@@ -63,12 +45,6 @@
       "record_type": "op",
       "name": "feature_set_namespace_transfer",
       "title": "Feature-Set Namespace Transfer"
-    },
-    {
-      "record_id": "op:cell_suffix_label",
-      "record_type": "op",
-      "name": "cell_suffix_label",
-      "title": "Cell Labels From ID Suffix"
     },
     {
       "record_id": "op:cell_set_derive",
@@ -1885,90 +1861,6 @@
   ],
   "edges": [
     {
-      "from": "primitive:space",
-      "to": "op:leiden",
-      "edge_type": "consumed_by",
-      "label": "input:space"
-    },
-    {
-      "from": "op:leiden",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:space"
-    },
-    {
-      "from": "op:leiden",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:leiden",
-      "to": "parameter:seed",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:seed"
-    },
-    {
-      "from": "op:leiden",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:clusters"
-    },
-    {
-      "from": "op:leiden",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:clusters"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:rna_qc_metrics",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:rna_qc_metrics",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:rna_qc_metrics",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:rna_qc_metrics",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:cell_set"
-    },
-    {
-      "from": "op:rna_qc_metrics",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:metrics"
-    },
-    {
-      "from": "op:rna_qc_metrics",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:qc_features"
-    },
-    {
-      "from": "op:rna_qc_metrics",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:summary"
-    },
-    {
-      "from": "op:rna_qc_metrics",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:metrics"
-    },
-    {
       "from": "primitive:matrix",
       "to": "op:matrix_log_normalize",
       "edge_type": "consumed_by",
@@ -2021,42 +1913,6 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:summary"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:hvg_select",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:hvg_select",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:hvg_select",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:hvg_select",
-      "to": "parameter:seed",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:seed"
-    },
-    {
-      "from": "op:hvg_select",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:selected_features"
-    },
-    {
-      "from": "op:hvg_select",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:fit_summary"
     },
     {
       "from": "primitive:matrix",
@@ -2417,30 +2273,6 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:transfer_rejected"
-    },
-    {
-      "from": "op:cell_suffix_label",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:cell_suffix_label",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:labels"
-    },
-    {
-      "from": "op:cell_suffix_label",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:label_table"
-    },
-    {
-      "from": "op:cell_suffix_label",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:labels"
     },
     {
       "from": "op:cell_set_derive",
@@ -6509,18 +6341,6 @@
       "to": "recipe:de_to_pathway_report",
       "edge_type": "produced_by_recipe",
       "label": "recipe:de_to_pathway_report"
-    },
-    {
-      "from": "recipe:cluster_markers_pathways",
-      "to": "op:leiden",
-      "edge_type": "uses",
-      "label": "op:leiden"
-    },
-    {
-      "from": "op:leiden",
-      "to": "recipe:cluster_markers_pathways",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:cluster_markers_pathways"
     },
     {
       "from": "recipe:cluster_markers_pathways",

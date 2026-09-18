@@ -2,17 +2,6 @@
 # Source: .wb_op_catalog() via wb_op_interface().
 # Regenerate: Rscript inst/dev/generate_operation_docs.R
 
-#' @name wb_op_cell_suffix_label
-#' @aliases wb_op_cell_suffix_label
-#' @description Build a categorical cell vector by parsing cell_id suffix tokens.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param sep Separator used in cell IDs before suffix token.
-#' @param mapping Optional named mapping suffix->label.
-#' @param default_label Fallback label for unmapped suffixes.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$labels` (`cell_vector`): Categorical label per cell from suffix parsing.; `outputs$label_table` (`obs_table`): Per-cell suffix/label table.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_chromvar
 #' @aliases wb_op_chromvar
 #' @description Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
@@ -63,25 +52,6 @@ NULL
 #' @param origin Human-readable origin label recorded for imported source material.
 #' @param is_readonly Whether imported feature sets are marked read-only after registration.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$import_summary` (`obs_table`): One-row summary of parsed/imported/skipped/rejected set counts.; `outputs$import_manifest` (`obs_table`): One row per parsed feature set with target namespace, overlap counts, and import status.; `outputs$rejected_sets` (`obs_table`): Feature sets rejected during import, typically because no genes mapped to the matrix.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_hvg_select
-#' @aliases wb_op_hvg_select
-#' @description Select highly variable features from a matrix using chunked feature-wise summaries.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param n_features Number of highly variable features to mark selected.
-#' @param method Feature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean).
-#' @param min_mean Optional minimum feature mean filter.
-#' @param max_mean Optional maximum feature mean filter.
-#' @param min_dispersion Optional minimum HVG score filter.
-#' @param batch_key Reserved for future batch-aware HVG; currently unsupported if non-null.
-#' @param exclude_features Optional feature IDs to exclude before ranking.
-#' @param feature_type Optional feature_type filter from the bundle feature registry.
-#' @param seed Integer random seed used to make stochastic computation reproducible.
-#' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$selected_features` (`feature_table`): Feature-wise mean, variance, dispersion, score, rank, and selected flag.; `outputs$fit_summary` (`obs_table`): Input matrix, method, filters, dimensions, and selection counts.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_knn_neighbors
@@ -251,24 +221,6 @@ NULL
 #' @param python_bin Python executable used for an optional pybench-backed runtime.
 #' @param cell_set Named bundle cell set used to resolve the analysis universe.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.; `outputs$fit_summary` (`obs_table`): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_rna_qc_metrics
-#' @aliases wb_op_rna_qc_metrics
-#' @description Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param mitochondrial_features Optional explicit mitochondrial feature ids.
-#' @param mitochondrial_pattern Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols.
-#' @param ribosomal_features Optional explicit ribosomal feature ids.
-#' @param ribosomal_pattern Optional regular expression matched against feature ids.
-#' @param pattern_ignore_case Whether feature-id regular-expression matching ignores case.
-#' @param missing_feature_policy Whether absent explicitly supplied feature ids fail or are recorded and dropped.
-#' @param require_integer_counts Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression.
-#' @param integer_tolerance Absolute tolerance used for integer-like count validation.
-#' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$metrics` (`cell_vector_family`): Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics.; `outputs$qc_features` (`feature_table`): Exact feature membership and explicit/pattern selection source for each optional QC feature group.; `outputs$summary` (`obs_table`): Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_slingshot

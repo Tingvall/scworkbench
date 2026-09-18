@@ -30,13 +30,9 @@ test_file_backed_dense_space_staged_workflow_contract <- function() {
     matrix = "RNA_counts", cell_set = "all", min_cells = 2L,
     output_matrix_id = "RNA_log_norm", overwrite = TRUE
   )); s <- norm$session
-  hvg <- wb_session_run_op(s, b, "hvg_select", inputs = list(
-    matrix = wb_ref_run(norm$run$run_id, "matrix"), cell_set = "all", min_cells = 2L,
-    n_features = 8L, method = "vst", chunk_size = 4L
-  )); s <- hvg$session
   pca <- wb_session_run_op(s, b, "pca_fit", inputs = list(
     matrix = wb_ref_run(norm$run$run_id, "matrix"),
-    features = wb_ref_run(hvg$run$run_id, "selected_features"),
+    feature_ids = genes[seq_len(8L)],
     cell_set = "all", min_cells = 2L, n_components = 4L,
     backend = "irlba", seed = 7L, space_id_out = "rna.pca.workflow",
     overwrite = TRUE, max_dense_gb = 1
@@ -55,7 +51,7 @@ test_file_backed_dense_space_staged_workflow_contract <- function() {
     stop("workflow promotion failed: ", paste(capture.output(print(promoted$promoted)), collapse = "\n"), call. = FALSE)
   }
   stopifnot(all(promoted$promoted$status[terminal_rows] == "ok"),
-            all(c(norm$run$run_id, hvg$run$run_id, pca$run$run_id, umap$run$run_id) %in%
+            all(c(norm$run$run_id, pca$run$run_id, umap$run$run_id) %in%
                   DBI::dbGetQuery(b$con, "SELECT run_id FROM prov_runs")$run_id))
   snapshot <- as.character(promoted$provenance_snapshot_id)[1L]
   wb_close_bundle(b); b <- wb_open_bundle(root)

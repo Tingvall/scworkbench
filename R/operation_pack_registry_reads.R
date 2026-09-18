@@ -383,11 +383,18 @@ wb_operation_pack_transition_registry_reads <- function(bundle, transition_id) {
     payload <- file.path(path, "registry_reads", name, "payload.json")
     snapshot <- .wb_operation_pack_parse_canonical_json(readChar(
       payload, nchars = file.info(payload)$size, useBytes = TRUE))
-    snapshot <- .wb_operation_pack_v2_feature_set_registry_snapshot_validate(
-      snapshot)
+    kind <- as.character(requests[[i]]$descriptor$kind)[1]
+    snapshot <- if (identical(kind, "feature_set_registry"))
+      .wb_operation_pack_v2_feature_set_registry_snapshot_validate(snapshot) else
+      .wb_operation_pack_v3_registry_snapshot_validate(snapshot, kind)
+    classes <- switch(kind,
+      session_cell_axis = "wb_operation_pack_session_cell_axis",
+      matrix_feature_annotations =
+        "wb_operation_pack_matrix_feature_annotations",
+      "wb_operation_pack_feature_set_registry")
     out[[i]] <- list(
       snapshot = structure(snapshot,
-        class = c("wb_operation_pack_feature_set_registry", "list")),
+        class = c(classes, "list")),
       descriptor = requests[[i]]$descriptor,
       observation = observations[[i]]$descriptor
     )

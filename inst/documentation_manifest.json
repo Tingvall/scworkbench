@@ -2961,17 +2961,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_op_cell_suffix_label.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_op_cells_all.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -3181,17 +3170,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_op_hvg_select.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_op_interface.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -3226,17 +3204,6 @@
     },
     {
       "path": "man/wb_op_knn_pseudobulk.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_leiden.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",
@@ -3347,17 +3314,6 @@
     },
     {
       "path": "man/wb_op_peakvi_project.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_rna_qc_metrics.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

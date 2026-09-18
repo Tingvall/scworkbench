@@ -5146,13 +5146,13 @@
           ],
           "properties": {
             "category": {
-              "const": "authenticated_core_registry_snapshot"
+              "enum": ["authenticated_core_registry_snapshot", "authenticated_core_axis_snapshot"]
             },
             "kind": {
-              "const": "feature_set_registry"
+              "enum": ["feature_set_registry", "session_cell_axis", "matrix_feature_annotations"]
             },
             "reader": {
-              "const": "read_feature_set_registry"
+              "enum": ["read_feature_set_registry", "read_session_cell_axis", "read_matrix_feature_annotations"]
             },
             "descriptor_identity": {
               "$ref": "#/$defs/identity"
@@ -5462,6 +5462,7 @@
         "shape": {
           "enum": [
             "cell_key_cartesian",
+            "bounded_grouped_cell_key_cartesian",
             "one_per_cell"
           ]
         },
@@ -5479,6 +5480,17 @@
         "observed_key_axis_count": {
           "type": "integer",
           "minimum": 0
+        },
+        "observed_key_axis": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "selected_optional_groups": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "selected_optional_groups_identity": {
+          "$ref": "#/$defs/identity"
         },
         "observed_key_axis_order_identity": {
           "$ref": "#/$defs/identity"

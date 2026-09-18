@@ -463,20 +463,7 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(isTRUE(all.equal(tenx_got, tenx_expected, tolerance = 1e-8, check.attributes = FALSE)))
   stopifnot(any(tenx_got != 0))
 
-  tenx_hvg <- wb_session_run_op(
-    session = tenx_norm$session,
-    bundle = b10x,
-    op_name = "hvg_select",
-    inputs = list(
-      matrix = "RNA_log1p_cp10k",
-      cell_set = "all",
-      min_cells = 1L,
-      n_features = 3L,
-      method = "variance"
-    )
-  )
-  tenx_hvg_table <- tenx_hvg$run$outputs$selected_features$table
-  stopifnot(any(tenx_hvg_table$variance > 0))
+  stopifnot(any(apply(tenx_got, 1L, stats::var) > 0))
 
   # A one-library Matrix Market import is a single physical fragment. BPCells
   # payload dimnames are optional here, so normalization must use the fragment
@@ -554,19 +541,7 @@ test_bundle_ingest_containers_contract <- function(bundle_dir = NULL) {
   stopifnot(identical(as.integer(one_summary$n_zero_library_cells[1]), 0L))
   stopifnot(identical(BPCells::matrix_type(.wb_bp_open_matrix_dir(one_path)), "double"))
 
-  one_hvg <- wb_session_run_op(
-    session = one_norm$session,
-    bundle = b10x_one,
-    op_name = "hvg_select",
-    inputs = list(
-      matrix = "RNA_log1p_cp10k",
-      cell_set = "all",
-      min_cells = 1L,
-      n_features = 3L,
-      method = "variance"
-    )
-  )
-  stopifnot(any(one_hvg$run$outputs$selected_features$table$variance > 0))
+  stopifnot(any(apply(one_got, 1L, stats::var) > 0))
 
   tenx_dup_feature_root <- tempfile("wb_10x_dup_feature_")
   dup_feature_mat <- mat_a

@@ -20,56 +20,6 @@
   raw
 }
 
-.wb_runner_rna_qc_metrics <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "rna_qc_metrics runner: missing resolved$matrix.")
-  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
-  .wb_assert(nzchar(matrix_id), "rna_qc_metrics runner: resolved matrix primitive missing matrix_id.")
-
-  raw <- wb_op_rna_qc_metrics(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    cells = as.character(effective_cells),
-    mitochondrial_features = inputs$mitochondrial_features %||% NULL,
-    mitochondrial_pattern = inputs$mitochondrial_pattern %||% NULL,
-    ribosomal_features = inputs$ribosomal_features %||% NULL,
-    ribosomal_pattern = inputs$ribosomal_pattern %||% NULL,
-    pattern_ignore_case = inputs$pattern_ignore_case %||% FALSE,
-    missing_feature_policy = inputs$missing_feature_policy %||% "error",
-    require_integer_counts = inputs$require_integer_counts %||% TRUE,
-    integer_tolerance = inputs$integer_tolerance %||% 1e-8,
-    chunk_size = inputs$chunk_size %||% 2000L
-  )
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "rna_qc_metrics must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
-.wb_runner_hvg_select <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "hvg_select runner: missing resolved$matrix.")
-  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
-  .wb_assert(nzchar(matrix_id), "hvg_select runner: resolved matrix primitive missing matrix_id.")
-
-  raw <- wb_op_hvg_select(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    cells = as.character(effective_cells),
-    n_features = inputs$n_features %||% 2000L,
-    method = inputs$method %||% "vst",
-    min_mean = inputs$min_mean %||% NULL,
-    max_mean = inputs$max_mean %||% NULL,
-    min_dispersion = inputs$min_dispersion %||% NULL,
-    batch_key = inputs$batch_key %||% NULL,
-    exclude_features = inputs$exclude_features %||% NULL,
-    feature_type = inputs$feature_type %||% NULL,
-    seed = inputs$seed %||% 1L,
-    chunk_size = inputs$chunk_size %||% 256L
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "hvg_select must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_pca_fit <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "pca_fit runner: missing resolved$matrix.")
   matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
@@ -753,18 +703,6 @@
   raw
 }
 
-.wb_runner_cell_suffix_label <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  raw <- wb_op_cell_suffix_label(
-    bundle = bundle,
-    cells = as.character(effective_cells),
-    sep = inputs$sep %||% "-",
-    mapping = inputs$mapping %||% NULL,
-    default_label = inputs$default_label %||% "UNKNOWN"
-  )
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "cell_suffix_label must return list(outputs=<list>, params=<list>).")
-  raw
-}
 
 .wb_runner_cell_set_derive <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   target_cell_set <- as.character(inputs$target_cell_set %||% "")[1]
@@ -1133,64 +1071,6 @@
 # Add new ops in one place only: contract + wrangler + interface metadata.
 .wb_op_catalog <- function() {
   catalog <- list(
-    rna_qc_metrics = list(
-      op_name = "rna_qc_metrics",
-      title = "Calculate per-cell RNA QC metrics",
-      description = "Calculate count depth, detected-feature count, and explicitly defined mitochondrial/ribosomal metrics without selecting or filtering cells.",
-      semantics = list(
-        scope = "fact calculation only; threshold choice and cell filtering are separate operations",
-        percentages = "100 * feature-group counts / total counts; stored as zero for zero-count cells and disclosed in the summary",
-        feature_groups = "explicit feature ids and/or recorded regular-expression matches"
-      ),
-      intent = c("matrix", "rna", "quality_control", "cell_metrics"),
-      requires = list(matrix = "matrix"),
-      produces = list(
-        metrics = "cell_vector_family",
-        qc_features = "feature_table",
-        summary = "obs_table"
-      ),
-      promotable = c("metrics", "qc_features", "summary"),
-      runner = .wb_runner_rna_qc_metrics,
-      inputs = list(matrix = list(required = TRUE, kind = "matrix")),
-      params = list(
-        list(name = "mitochondrial_features", type = "string_vec", default = NULL,
-             help = "Optional explicit mitochondrial feature ids."),
-        list(name = "mitochondrial_pattern", type = "string", default = NULL,
-             help = "Optional regular expression matched against feature ids, for example ^mt- for mouse gene symbols."),
-        list(name = "ribosomal_features", type = "string_vec", default = NULL,
-             help = "Optional explicit ribosomal feature ids."),
-        list(name = "ribosomal_pattern", type = "string", default = NULL,
-             help = "Optional regular expression matched against feature ids."),
-        list(name = "pattern_ignore_case", type = "bool", default = FALSE,
-             help = "Whether feature-id regular-expression matching ignores case."),
-        list(name = "missing_feature_policy", type = "choice", default = "error", choices = c("error", "drop"),
-             help = "Whether absent explicitly supplied feature ids fail or are recorded and dropped."),
-        list(name = "require_integer_counts", type = "bool", default = TRUE,
-             help = "Require non-negative matrix values to be integer-like, guarding against accidental use of normalized expression."),
-        list(name = "integer_tolerance", type = "dbl", default = 1e-8, min = 0,
-             help = "Absolute tolerance used for integer-like count validation."),
-        list(name = "chunk_size", type = "int", default = 2000L, min = 1, max = 1000000,
-             help = "Number of cells read per backed-matrix chunk."),
-        list(name = "cell_set", type = "cell_set", default = "all",
-             help = "Named bundle cell set defining the cells for which metrics are calculated.")
-      ),
-      interface_produces = list(
-        metrics = list(
-          kind = "cell_vector_family",
-          description = "Per-cell total counts, detected features, and any requested mitochondrial/ribosomal count and percentage metrics."
-        ),
-        qc_features = list(
-          kind = "feature_table",
-          table_type = "rna_qc_feature_membership",
-          description = "Exact feature membership and explicit/pattern selection source for each optional QC feature group."
-        ),
-        summary = list(
-          kind = "obs_table",
-          table_type = "rna_qc_metrics_summary",
-          description = "Long-form metric summaries and recorded feature-matching and no-threshold-selection boundaries."
-        )
-      )
-    ),
     matrix_log_normalize = list(
       op_name = "matrix_log_normalize",
       title = "Log-normalize count matrix",
@@ -1230,64 +1110,6 @@
           kind = "obs_table",
           table_type = "matrix_log_normalize_summary",
           description = "Transform parameters, source/output matrix ids, dimensions, library-size diagnostics, and storage path."
-        )
-      )
-    ),
-    hvg_select = list(
-      op_name = "hvg_select",
-      title = "Highly Variable Feature Selection",
-      description = "Select highly variable features from a matrix using chunked feature-wise summaries.",
-      intent = c("matrix", "feature_selection", "rna", "hvg"),
-      requires = list(matrix = "matrix"),
-      produces = list(
-        selected_features = "feature_table",
-        fit_summary = "obs_table"
-      ),
-      promotable = c("selected_features", "fit_summary"),
-      chunking = list(
-        chunkable = TRUE,
-        axis = "features",
-        chunk_size_param = "chunk_size",
-        chunk_size_default = 256L,
-        status = "implemented_op_internal"
-      ),
-      runner = .wb_runner_hvg_select,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix")
-      ),
-      params = list(
-        list(name = "n_features", type = "int", default = 2000L, min = 1, max = 1000000,
-             help = "Number of highly variable features to mark selected."),
-        list(name = "method", type = "choice", default = "vst",
-             choices = c("vst", "dispersion", "variance"),
-             help = "Feature scoring method. 'vst' is a lightweight stabilized dispersion score log1p(variance / mean)."),
-        list(name = "min_mean", type = "dbl", default = NULL, min = 0,
-             help = "Optional minimum feature mean filter."),
-        list(name = "max_mean", type = "dbl", default = NULL, min = 0,
-             help = "Optional maximum feature mean filter."),
-        list(name = "min_dispersion", type = "dbl", default = NULL, min = 0,
-             help = "Optional minimum HVG score filter."),
-        list(name = "batch_key", type = "string", default = NULL,
-             help = "Reserved for future batch-aware HVG; currently unsupported if non-null."),
-        list(name = "exclude_features", type = "string_vec", default = NULL,
-             help = "Optional feature IDs to exclude before ranking."),
-        list(name = "feature_type", type = "string", default = NULL,
-             help = "Optional feature_type filter from the bundle feature registry."),
-        list(name = "seed", type = "int", default = 1L,
-             help = "Random seed reserved for deterministic future methods."),
-        list(name = "chunk_size", type = "int", default = 256L, min = 1, max = 100000,
-             help = "Feature chunk size for backed matrix reads.")
-      ),
-      interface_produces = list(
-        selected_features = list(
-          kind = "feature_table",
-          table_type = "feature_selection_table",
-          description = "Feature-wise mean, variance, dispersion, score, rank, and selected flag."
-        ),
-        fit_summary = list(
-          kind = "obs_table",
-          table_type = "hvg_select_summary",
-          description = "Input matrix, method, filters, dimensions, and selection counts."
         )
       )
     ),
@@ -1617,36 +1439,6 @@
           kind = "obs_table",
           table_type = "feature_set_transfer_rejected",
           description = "Feature sets rejected during intersect transfer because retained members failed thresholds."
-        )
-      )
-    ),
-    cell_suffix_label = list(
-      op_name = "cell_suffix_label",
-      title = "Cell Labels From ID Suffix",
-      description = "Build a categorical cell vector by parsing cell_id suffix tokens.",
-      intent = c("annotation", "metadata"),
-      requires = list(),
-      produces = list(labels = "cell_vector", label_table = "obs_table"),
-      promotable = c("labels", "label_table"),
-      runner = .wb_runner_cell_suffix_label,
-      inputs = list(),
-      params = list(
-        list(name = "sep", type = "string", default = "-",
-             help = "Separator used in cell IDs before suffix token."),
-        list(name = "mapping", type = "string_vec", default = NULL,
-             help = "Optional named mapping suffix->label."),
-        list(name = "default_label", type = "string", default = "UNKNOWN",
-             help = "Fallback label for unmapped suffixes.")
-      ),
-      interface_produces = list(
-        labels = list(
-          kind = "cell_vector",
-          value_kind = "categorical",
-          description = "Categorical label per cell from suffix parsing."
-        ),
-        label_table = list(
-          kind = "obs_table",
-          description = "Per-cell suffix/label table."
         )
       )
     ),

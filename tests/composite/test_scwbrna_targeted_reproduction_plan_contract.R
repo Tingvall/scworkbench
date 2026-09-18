@@ -47,6 +47,7 @@ test_targeted_reproduction_plan_contract <- function() {
 # Executable cross-snapshot closure: durable string/entity inputs must pull
 # their producing runs into the plan, then replay into a source-only clone.
 test_targeted_reproduction_execute_contract <- function() {
+  contract_test_activate_rna_pack()
   required <- c("BPCells", "irlba", "uwot")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) {
@@ -358,7 +359,7 @@ test_targeted_reproduction_execute_contract <- function() {
             all(grepl("^[0-9a-f]{64}$",eq$replayed_content_sha256)),
             !is.null(wb_load_space_model(cb,"rna_umap")),
             identical(as.character(replay_runs$op_name),
-                      c("matrix_log_normalize", "hvg_select", "pca_fit", "umap_fit")),
+                      c("matrix_log_normalize", "scwbrna::hvg_select", "pca_fit", "umap_fit")),
             nrow(replay_edges) >= 3L,
             all(c("depends_on_run", "input_run_ref") %in% replay_edges$edge_type),
             identical(as.character(payload_rows$space_id), c("rna_pca", "rna_umap")),

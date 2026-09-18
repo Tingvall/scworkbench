@@ -116,7 +116,7 @@ explicit and recorded; adjust these patterns to the actual feature namespace.
 
 ```r
 qc <- wb_session_run_op(
-  wb_session_new(), parse, "rna_qc_metrics",
+  wb_session_new(), parse, "scwbrna::rna_qc_metrics",
   inputs = list(
     matrix = "RNA_counts",
     cell_set = "all",

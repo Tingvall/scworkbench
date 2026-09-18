@@ -96,8 +96,8 @@ test_rng_independent_run_collision_rollback_contract <- function() {
   .wb_allocate_identifier("run_", 12L, purpose = "occupy candidate")
   error <- .identifier_expect_error(
     wb_session_run_op(
-      wb_session_new(), b, "hvg_select",
-      inputs = list(matrix = "RNA", n_features = 3L, min_cells = 2L)
+      wb_session_new(), b, "matrix_log_normalize",
+      inputs = list(matrix = "RNA", output_matrix_id = "collision_output", min_cells = 2L)
     ),
     "SCWORKBENCH_IDENTIFIER_COLLISION_EXHAUSTED"
   )
@@ -123,12 +123,8 @@ test_rng_independent_scientific_chain_contract <- function() {
   run_branch <- function(label, n_features) {
     s <- wb_session_new()
     set.seed(1L)
-    hvg <- wb_session_run_op(s, b, "hvg_select", inputs = list(
-      matrix = "RNA", n_features = n_features, method = "vst", seed = 1L,
-      min_cells = 10L)); s <- hvg$session
-    set.seed(1L)
     pca <- wb_session_run_op(s, b, "pca_fit", inputs = list(
-      matrix = "RNA", features = wb_ref_run(hvg$run$run_id, "selected_features"),
+      matrix = "RNA", feature_ids = features[seq_len(n_features)],
       n_components = 5L, space_id_out = paste0("pca_", label), seed = 1L,
       min_cells = 10L)); s <- pca$session
     set.seed(1L)
@@ -137,7 +133,7 @@ test_rng_independent_scientific_chain_contract <- function() {
       dims = 1:5, n_neighbors = 5L, nn_method = "annoy", seed = 1L,
       min_cells = 10L)); s <- umap$session
     promoted <- wb_session_promote_current(
-      b, s, outputs = c("selected_features", "space_2d"),
+      b, s, outputs = c("loadings", "space_2d"),
       name_prefix = label, created_by = "identifier-test"
     )
     snapshot <- as.character(promoted$provenance_snapshot_id)[1]
@@ -149,8 +145,8 @@ test_rng_independent_scientific_chain_contract <- function() {
       b$con, "SELECT path FROM space_payloads WHERE space_id IN (?, ?) ORDER BY space_id;",
       params = list(paste0("pca_", label), paste0("umap_", label))
     )$path
-    list(run_ids = c(hvg$run$run_id, pca$run$run_id, umap$run$run_id),
-         hvg = hvg$run$outputs$selected_features,
+    list(run_ids = c(pca$run$run_id, umap$run$run_id),
+         selected_features = features[seq_len(n_features)],
          pca = pca$run$outputs$space,
          umap = umap$run$outputs$space_2d,
          artifact_ids = {
@@ -180,12 +176,11 @@ test_rng_independent_scientific_chain_contract <- function() {
   # Same scientific parameters and seed reproduce numerical results while
   # administrative IDs remain distinct.
   set.seed(1L)
-  repeat_hvg <- wb_session_run_op(wb_session_new(), b, "hvg_select", inputs = list(
-    matrix = "RNA", n_features = 20L, method = "vst", seed = 1L,
-    min_cells = 10L))
-  stopifnot(identical(branch2000$hvg$feature_id,
-                      repeat_hvg$run$outputs$selected_features$feature_id),
-            !repeat_hvg$run$run_id %in% c(branch2000$run_ids, branch1000$run_ids),
+  repeat_pca <- wb_session_run_op(wb_session_new(), b, "pca_fit", inputs = list(
+    matrix = "RNA", feature_ids = features[seq_len(20L)], n_components = 5L,
+    space_id_out = "pca_repeat", seed = 1L, min_cells = 10L))
+  stopifnot(identical(branch2000$selected_features, features[seq_len(20L)]),
+            !repeat_pca$run$run_id %in% c(branch2000$run_ids, branch1000$run_ids),
             all(vapply(c(branch2000$run_ids, branch1000$run_ids), nzchar, logical(1))))
   TRUE
 }
@@ -205,8 +200,8 @@ test_rng_independent_process_replacement_concurrency_contract <- function() {
 
   s <- wb_session_create(b, workspace_root)
   set.seed(1L)
-  first <- wb_session_run_op(s, b, "hvg_select", inputs = list(
-    matrix = "RNA", n_features = 5L, seed = 1L, min_cells = 2L))
+  first <- wb_session_run_op(s, b, "matrix_log_normalize", inputs = list(
+    matrix = "RNA", output_matrix_id = "RNA_first", min_cells = 2L))
   workspace <- first$session$durable$workspace
   first_id <- first$run$run_id
   wb_close_bundle(first$session$staging_bundle)
@@ -219,7 +214,7 @@ test_rng_independent_process_replacement_concurrency_contract <- function() {
     sprintf("b <- wb_open_bundle(%s)", r_string(root)),
     sprintf("s <- wb_session_resume(b, %s)", r_string(workspace)),
     "set.seed(1L)",
-    "rr <- wb_session_run_op(s, b, 'hvg_select', inputs=list(matrix='RNA', n_features=4L, seed=1L, min_cells=2L))",
+    "rr <- wb_session_run_op(s, b, 'matrix_log_normalize', inputs=list(matrix='RNA', output_matrix_id='RNA_child', min_cells=2L))",
     "wb_close_bundle(rr$session$staging_bundle)",
     "wb_close_bundle(b)"
   ), script)

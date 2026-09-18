@@ -14,7 +14,10 @@ test_atomic_authoritative_manifest_contract <- function() {
   manifest_path <- file.path(root, "manifest.json")
   cells <- paste0("cell", seq_len(12L))
   features <- paste0("gene", seq_len(5L))
-  wb_define_cells(b, cells, dataset_id = "dataset_1")
+  wb_define_cells(b, cells, dataset_id = "dataset_1", metadata = data.frame(
+    cell_id = cells, atomic_group = rep(c("a", "b"), length.out = length(cells)),
+    stringsAsFactors = FALSE
+  ))
   wb_attach_matrix(
     b, "RNA_counts",
     Matrix::Matrix(
@@ -125,12 +128,14 @@ test_atomic_authoritative_manifest_contract <- function() {
   # Promotion publishes artifact/provenance registries only after their
   # coordinator transaction commits.
   executed <- wb_session_run_op(
-    wb_session_new(), b, "hvg_select",
-    inputs = list(matrix = "RNA_counts", cell_set = "all", min_cells = 1L, n_features = 3L)
+    wb_session_new(), b, "metadata_cell_vector",
+    inputs = list(source_column = "atomic_group", vector_name = "atomic_group_1",
+      value_type = "categorical", missing_policy = "error",
+      cell_set = "all", min_cells = 1L)
   )
   before_promotion <- wb_manifest(b)$current_state$fingerprint
   promoted <- wb_session_promote_current(
-    b, executed$session, outputs = "selected_features",
+    b, executed$session, outputs = "vector",
     name_prefix = "atomic_manifest_contract"
   )
   stopifnot(any(promoted$promoted$status == "ok"))
@@ -140,11 +145,13 @@ test_atomic_authoritative_manifest_contract <- function() {
   # A second promoted artifact can supersede the first without stale lifecycle
   # or supersession state in the durable manifest.
   executed_2 <- wb_session_run_op(
-    wb_session_new(), b, "hvg_select",
-    inputs = list(matrix = "RNA_counts", cell_set = "all", min_cells = 1L, n_features = 4L)
+    wb_session_new(), b, "metadata_cell_vector",
+    inputs = list(source_column = "atomic_group", vector_name = "atomic_group_2",
+      value_type = "categorical", missing_policy = "error",
+      cell_set = "all", min_cells = 1L)
   )
   promoted_2 <- wb_session_promote_current(
-    b, executed_2$session, outputs = "selected_features",
+    b, executed_2$session, outputs = "vector",
     name_prefix = "atomic_manifest_contract_successor"
   )
   predecessor <- as.character(promoted$promoted$artifact_id[promoted$promoted$status == "ok"])[1]

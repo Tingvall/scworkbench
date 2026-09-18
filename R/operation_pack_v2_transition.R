@@ -899,6 +899,12 @@
   dynamic_dimensions <- (kind %in% c("feature_table", "obs_table") ||
     identical(kind, "cell_set_family_admission")) &&
     identical(expected_dimensions, c(0L, 0L))
+  dynamic_dimensions <- dynamic_dimensions || identical(as.character(
+    descriptor$cardinality_grant$shape %||% "")[1],
+    "bounded_grouped_cell_key_cartesian")
+  dynamic_dimensions <- dynamic_dimensions || (identical(kind,
+    "cell_vector_family") && length(expected_dimensions) == 2L &&
+    identical(expected_dimensions[[1]], 0L))
   if (!dynamic_dimensions && !identical(as.integer(dimensions), expected_dimensions)) .wb_operation_pack_v2_error(
     "PYBENCH_OUTPUT_INVALID", paste0("Output '", grant$name, "' dimensions do not match its grant."),
     "audit", output = grant$name, expected = descriptor$expected_dimensions, observed = dimensions)
@@ -1160,18 +1166,23 @@
       }, error = identity)
       if (inherits(value, "error")) return(list(ok = FALSE,
         code = "registry_read_payload_unreadable", output = name))
-      validated <- tryCatch(
-        .wb_operation_pack_v2_feature_set_registry_snapshot_validate(value),
+      kind <- as.character(request_read$descriptor$kind)[1]
+      validated <- tryCatch(if (identical(kind, "feature_set_registry"))
+        .wb_operation_pack_v2_feature_set_registry_snapshot_validate(value) else
+        .wb_operation_pack_v3_registry_snapshot_validate(value, kind),
         error = identity)
       if (inherits(validated, "error")) return(list(ok = FALSE,
         code = "registry_read_payload_invalid", output = name))
-      content <- .wb_operation_pack_v2_identity_scoped(
-        "scworkbench.feature_set_registry.snapshot.v1",
-        "canonical matrix-bound registry snapshot", value)
-      source <- .wb_operation_pack_v2_identity_scoped(
-        "scworkbench.feature_set_registry.source.v1",
-        "ordered registry source state", list(matrix_id = value$matrix_id,
-          feature_universe = value$feature_universe, sets = value$sets))
+      identities <- if (identical(kind, "feature_set_registry")) list(
+        content = .wb_operation_pack_v2_identity_scoped(
+          "scworkbench.feature_set_registry.snapshot.v1",
+          "canonical matrix-bound registry snapshot", value),
+        source = .wb_operation_pack_v2_identity_scoped(
+          "scworkbench.feature_set_registry.source.v1",
+          "ordered registry source state", list(matrix_id = value$matrix_id,
+            feature_universe = value$feature_universe, sets = value$sets))) else
+        .wb_operation_pack_v3_registry_snapshot_identities(value, kind)
+      content <- identities$content; source <- identities$source
       if (!identical(content, request_read$descriptor$content_identity) ||
           !identical(source, request_read$descriptor$source_identity) ||
           !identical(receipt_read$descriptor$content_identity, content) ||
@@ -1255,7 +1266,7 @@
   declarations <- stats::setNames(operation$inputs, vapply(operation$inputs, `[[`, character(1), "name"))
   required <- vapply(operation$inputs, function(x) isTRUE(x$required), logical(1))
   required_names <- vapply(operation$inputs[required], `[[`, character(1), "name")
-  if (!is.list(inputs) || is.null(names(inputs)) || !all(required_names %in% names(inputs)) ||
+  if (!is.list(inputs) || (length(inputs) && is.null(names(inputs))) || !all(required_names %in% names(inputs)) ||
       any(!names(inputs) %in% names(declarations)) || anyDuplicated(names(inputs))) {
     .wb_operation_pack_v2_error("PYBENCH_INPUT_IDENTITY_MISMATCH", "Resolved input closure does not match the manifest.", "resolution")
   }
@@ -1327,8 +1338,10 @@
     state = "staged", transition_id = transition_id), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("staged", transition_id = transition_id)
   .wb_operation_pack_v2_dynamic_reread(operation, inputs, preflight)
-  .wb_operation_pack_v2_registry_reads_assert_current(bundle, operation,
-    inputs, params, request$registry_reads %||% list())
+  if (abi_v3) .wb_operation_pack_v3_registry_reads_assert_current(bundle,
+    operation, inputs, params, request, effective_cells, session_id, run_id,
+    generation) else .wb_operation_pack_v2_registry_reads_assert_current(
+      bundle, operation, inputs, params, request$registry_reads %||% list())
   if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
     operation, inputs, source_refs, request, params)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
@@ -1485,6 +1498,16 @@
 
 .wb_operation_pack_v2_bind_parameters <- function(bundle, operation, params,
                                                    bound, effective_cells) {
+  properties <- operation$params_schema$properties %||% list()
+  for (parameter in intersect(names(params), names(properties))) {
+    types <- as.character(unlist(properties[[parameter]]$type %||%
+      character(), use.names = FALSE))
+    value <- params[[parameter]]
+    if ("object" %in% types && is.atomic(value) && length(value) &&
+        !is.null(names(value))) params[[parameter]] <- as.list(value)
+    if ("array" %in% types && is.atomic(value) && length(value))
+      params[[parameter]] <- unname(as.list(value))
+  }
   for (binding in operation$parameter_bindings %||% list()) {
     parameter <- as.character(binding$parameter)[1]
     policy <- as.character(binding$policy)[1]

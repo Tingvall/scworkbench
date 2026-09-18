@@ -53,10 +53,10 @@ test_strict_operation_input_validation_contract <- function() {
 
   # Unknown names are rejected before execution and close typos are actionable.
   typo <- expect_error(
-    scworkbench:::.wb_validate_op_inputs_contract("hvg_select", list(n_feature = 10L), session_for("hvg_select")),
-    "Unknown input 'n_feature'"
+    scworkbench:::.wb_validate_op_inputs_contract("pca_fit", list(n_component = 10L), session_for("pca_fit")),
+    "Unknown input 'n_component'"
   )
-  stopifnot(grepl("Did you mean 'n_features'?", as.character(typo), fixed = TRUE))
+  stopifnot(grepl("Did you mean 'n_components'?", as.character(typo), fixed = TRUE))
 
   for (op_name in names(catalog)) {
     op <- scworkbench:::.wb_op(op_name)
@@ -159,10 +159,16 @@ test_strict_operation_input_validation_contract <- function() {
   }
 
   # Non-empty and canonical provenance-sensitive engine controls are strict too.
-  expect_error(scworkbench:::.wb_validate_op_inputs_contract("cell_suffix_label", list(cell_ids = character()), wb_session_new()), "non-empty")
-  expect_error(scworkbench:::.wb_validate_op_inputs_contract("cell_suffix_label", list(min_cells = 1.2), wb_session_new()), "mathematically integral")
-  canonical <- scworkbench:::.wb_validate_op_inputs_contract("hvg_select", list(n_features = 12), session_for("hvg_select"))
-  stopifnot(identical(canonical$inputs$n_features, 12L), identical(canonical$params$n_features, 12L))
+  expect_error(scworkbench:::.wb_validate_op_inputs_contract("metadata_cell_vector", list(
+    source_column = "group", vector_name = "group", cell_ids = character()
+  ), wb_session_new()), "non-empty")
+  expect_error(scworkbench:::.wb_validate_op_inputs_contract("metadata_cell_vector", list(
+    source_column = "group", vector_name = "group", min_cells = 1.2
+  ), wb_session_new()), "mathematically integral")
+  canonical <- scworkbench:::.wb_validate_op_inputs_contract("pca_fit",
+    list(n_components = 12), session_for("pca_fit"))
+  stopifnot(identical(canonical$inputs$n_components, 12L),
+    identical(canonical$params$n_components, 12L))
 
   TRUE
 }

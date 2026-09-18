@@ -183,6 +183,33 @@ contract_test_activate_geneprograms_pack <- function() {
 
 .contract_test_representation_state <- new.env(parent = emptyenv())
 
+.contract_test_rna_state <- new.env(parent = emptyenv())
+
+contract_test_activate_rna_pack <- function() {
+  source <- Sys.getenv("SCWBRNA_SOURCE", unset = "")
+  if (!nzchar(source) || !dir.exists(source)) {
+    stop("Set SCWBRNA_SOURCE to the provisional scwbRNA source repository.",
+      call. = FALSE)
+  }
+  if (is.null(.contract_test_rna_state$library)) {
+    library <- tempfile("scwbRNA-contract-library-", tmpdir = "/tmp")
+    dir.create(library, recursive = TRUE)
+    log <- tempfile("scwbRNA-contract-install-", fileext = ".log")
+    status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      paste0("--library=", shQuote(library)), shQuote(normalizePath(source))),
+      stdout = log, stderr = log)
+    if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE), collapse = "\n"),
+      call. = FALSE)
+    .contract_test_rna_state$library <- library
+    .libPaths(c(library, .libPaths()))
+    existing <- Sys.getenv("R_LIBS", unset = "")
+    Sys.setenv(R_LIBS = paste(c(library, if (nzchar(existing)) existing else character()),
+      collapse = .Platform$path.sep))
+  }
+  wb_operation_pack_load("scwbRNA", lib.loc = .contract_test_rna_state$library)
+  invisible(TRUE)
+}
+
 contract_test_activate_representation_pack <- function() {
   source <- Sys.getenv("SCWBREPRESENTATION_SOURCE", unset = "")
   if (!nzchar(source) || !dir.exists(source)) {

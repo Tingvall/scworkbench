@@ -19,7 +19,10 @@
     winner_cell_sets = "scwbgeneprograms::winner_cell_sets",
     feature_set_overlap_qc = "scwbgeneprograms::feature_set_overlap_qc",
     pathway_enrich = "scwbgeneprograms::pathway_enrich",
-    leiden = "scwbrepresentation::leiden"
+    leiden = "scwbrepresentation::leiden",
+    cell_suffix_label = "scwbrna::cell_suffix_label",
+    rna_qc_metrics = "scwbrna::rna_qc_metrics",
+    hvg_select = "scwbrna::hvg_select"
   )
 }
 

@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 11L)
+    length(fixture$cases) == 15L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -122,7 +122,11 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     observed_typed_slice_call_first_partition = "call_identity",
     typed_slice_usage_one_independent_call = "usage_identity",
     source_snapshot_head = "source_snapshot_identity",
-    current_artifact_ancestry = "snapshot_identity")
+    current_artifact_ancestry = "snapshot_identity",
+    session_cell_axis_snapshot = "content_identity",
+    matrix_feature_annotations_snapshot = "content_identity",
+    bounded_grouped_cardinality = "cardinality_grant_identity",
+    observed_bounded_grouped_cardinality = "observed_cardinality_identity")
   for (case in fixture$cases) {
     field <- identity_fields[[case$name]]
     stopifnot(!is.null(field), identical(case$preimage,
@@ -311,10 +315,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "f263fbcf15d3a928c5a3b7cfa41ca27b4f5d3e0f31f2b8f42cc930b1d9713ff3",
-    "9935a10ca05c5c767e739d06839b5d4fcbf53de549ea95b8cd4d1e711e8089d6",
-    "6ba0a1875100cda766cc5c5f10caa01fc654dd9688250d3ff17389bb4c561e28",
-    "ed31bcf18062d57b6ea8d8f7a787f8932138f959e5762d195b3968438d052f32")
+    "2003a7b359054e46dc23ba5c3f4512ed276932498f53ccd5ff49df04f2f36974",
+    "979089dfaf971e7f41cb88dd1fb0beffda1c25be8466a7e9526ad0197533b1c1",
+    "e266a949f8ef20d81c4e8164af0058360c911fb9220aaef2227c1d3d7a84608e",
+    "9549a955029e9ef46cfd7c088fdf4486a424d42209d22f167c9c341d9437e09d")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)
@@ -635,5 +639,124 @@ test_operation_pack_v3_chunk_replay_and_rollback_contract <- function() {
   stopifnot(fired, inherits(failed, "try-error"), identical(before, after),
     identical(run_chunked(2L)$run$outputs$scores$value,
       many$run$outputs$scores$value))
+  TRUE
+}
+
+test_operation_pack_v3_session_annotation_and_bounded_axes_contract <- function() {
+  fixture <- .wb_v3_bundle()
+  on.exit(.wb_v3_fixture_cleanup(bundle = fixture$bundle,
+    root = fixture$root), add = TRUE)
+  matrix <- wb_prim_matrix("RNA")
+  matrix$cell_id <- fixture$cells
+  matrix$feature_id <- fixture$features
+  matrix$dimensions <- c(length(fixture$features), length(fixture$cells))
+  records <- list(matrix = .wb_v3_input_record("matrix", matrix))
+  operation <- list(registry_reads = list(
+    list(name = "session_cells", category = "authenticated_core_axis_snapshot",
+      kind = "session_cell_axis", reader = "read_session_cell_axis",
+      selection_policy = "effective_session_cells_v1",
+      coverage_policy = "exact_complete_order_v1", call_discipline = "single_use"),
+    list(name = "feature_annotations",
+      category = "authenticated_core_registry_snapshot",
+      kind = "matrix_feature_annotations",
+      reader = "read_matrix_feature_annotations", matrix_input = "matrix",
+      fields = list("feature_type"), row_order = "matrix_feature_order_v1",
+      missing_annotation_policy = "preserve_null",
+      call_discipline = "single_use")))
+  stage <- tempfile("scwb_v3_axes_"); dir.create(stage)
+  on.exit(unlink(stage, recursive = TRUE, force = TRUE), add = TRUE)
+  state_id <- scworkbench:::.wb_operation_pack_v2_identity_plain(
+    "scworkbench.scientific_state.v1",
+    scworkbench:::.wb_manifest_registry_snapshot(fixture$bundle$con))
+  made <- scworkbench:::.wb_operation_pack_v3_registry_read_records(
+    fixture$bundle, operation, list(matrix = matrix), records, stage,
+    fixture$cells, "session_test", "run_test", "ephemeral", state_id)
+  stopifnot(length(made$records) == 2L,
+    identical(made$values$session_cells$cell_id,
+      unname(as.list(fixture$cells))),
+    identical(vapply(made$values$feature_annotations$rows, `[[`,
+      character(1), "feature_id"), fixture$features))
+
+  record_map <- stats::setNames(made$records, vapply(made$records, `[[`,
+    character(1), "name"))
+  axis_policy <- list(output = "labels",
+    policy = "authenticated_output_axes_v1", shape = "one_per_cell",
+    cell_axis = list(source = "session_cell_axis_read_v1",
+      registry_read = "session_cells"),
+    row_order = "session_cell_axis_order_v1", missing_values = "forbidden")
+  axis_grant <- scworkbench:::.wb_operation_pack_v3_cardinality_grant(
+    axis_policy, list(name = "labels", kind = "cell_vector"), list(),
+    list(), list(), fixture$cells, record_map)
+  good_axis <- wb_prim_cell_vector(stats::setNames(c("a", "b", "a"),
+    fixture$cells), value_type = "categorical")
+  stopifnot(identical(scworkbench:::.wb_operation_pack_v3_observe_cardinality(
+    good_axis, axis_grant)$semantic_validation, "passed"))
+  bad_axis <- good_axis; bad_axis$cell_id <- rev(bad_axis$cell_id)
+  stopifnot(inherits(try(scworkbench:::.wb_operation_pack_v3_observe_cardinality(
+    bad_axis, axis_grant), silent = TRUE), "try-error"))
+  for (cells in list(c("c2", "c1"), c("c2", "c1", "c1"),
+      c("c2", "c1", "foreign"))) {
+    adversarial <- good_axis
+    adversarial$cell_id <- cells
+    adversarial$value <- rep(adversarial$value, length.out = length(cells))
+    stopifnot(inherits(try(
+      scworkbench:::.wb_operation_pack_v3_observe_cardinality(
+        adversarial, axis_grant), silent = TRUE), "try-error"))
+  }
+
+  bounded_policy <- list(output = "metrics",
+    policy = "authenticated_output_axes_v1",
+    shape = "bounded_grouped_cell_key_cartesian",
+    cell_axis = list(source = "effective_cells_v1", input = "matrix"),
+    key_axis = list(source = "declared_bounded_key_groups_v1",
+      required_keys = list("total", "detected"), optional_groups = list(
+        list(name = "mito", keys = list("mito_count", "mito_percent")),
+        list(name = "ribo", keys = list("ribo_count", "ribo_percent"))),
+      selection_owner = "operation_pack_v1",
+      group_order = "manifest_order_v1"),
+    row_order = "key_major_then_cell_v1", missing_values = "forbidden")
+  grant <- scworkbench:::.wb_operation_pack_v3_cardinality_grant(
+    bounded_policy, list(name = "metrics", kind = "cell_vector_family"),
+    list(matrix = matrix), list(), records, fixture$cells)
+  make_family <- function(keys) wb_prim_cell_vector_family(
+    rep(keys, each = length(fixture$cells)),
+    rep(fixture$cells, length(keys)),
+    seq_len(length(keys) * length(fixture$cells)), value_type = "continuous")
+  for (keys in list(c("total", "detected"),
+      c("total", "detected", "mito_count", "mito_percent"),
+      c("total", "detected", "ribo_count", "ribo_percent"),
+      c("total", "detected", "mito_count", "mito_percent", "ribo_count",
+        "ribo_percent")))
+    stopifnot(identical(scworkbench:::.wb_operation_pack_v3_observe_cardinality(
+      make_family(keys), grant)$semantic_validation, "passed"))
+  for (keys in list(c("total", "detected", "mito_count"),
+      c("total", "detected", "ribo_count", "ribo_percent", "mito_count",
+        "mito_percent"), c("total", "unknown")))
+    stopifnot(inherits(try(scworkbench:::.wb_operation_pack_v3_observe_cardinality(
+      make_family(keys), grant), silent = TRUE), "try-error"))
+
+  mutation <- made$values$feature_annotations
+  mutation$rows[[1]]$values$feature_type <- "peak"
+  observed <- scworkbench:::.wb_operation_pack_v3_registry_snapshot_identities(
+    mutation, "matrix_feature_annotations")
+  expected <- record_map$feature_annotations$descriptor
+  stopifnot(!identical(observed$content, expected$content_identity),
+    !identical(observed$source, expected$source_identity))
+  reordered <- made$values$feature_annotations
+  reordered$rows <- rev(reordered$rows)
+  reordered$feature_order_identity <-
+    scworkbench:::.wb_operation_pack_v2_identity_plain(
+      "scworkbench.feature_order.v1", lapply(reordered$rows, `[[`,
+        "feature_id"))
+  reordered_ids <- scworkbench:::.wb_operation_pack_v3_registry_snapshot_identities(
+    reordered, "matrix_feature_annotations")
+  stopifnot(!identical(reordered_ids$content, expected$content_identity),
+    !identical(reordered_ids$source, expected$source_identity))
+  substituted <- made$values$feature_annotations
+  substituted$matrix_id <- "foreign_matrix"
+  substituted_ids <- scworkbench:::.wb_operation_pack_v3_registry_snapshot_identities(
+    substituted, "matrix_feature_annotations")
+  stopifnot(!identical(substituted_ids$content, expected$content_identity),
+    !identical(substituted_ids$source, expected$source_identity))
   TRUE
 }
