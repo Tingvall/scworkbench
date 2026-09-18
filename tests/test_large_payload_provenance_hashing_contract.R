@@ -95,7 +95,7 @@ test_large_materialization_promotion_rollback_contract <- function() {
   options(warn=2)
   payload <- strrep("large-materialization-payload-",350000L)
   prim <- wb_prim_obs_table(data.frame(metric="payload",value=payload,stringsAsFactors=FALSE),table_type="matrix_log_normalize_summary",entity_kind="analysis_summary")
-  run <- wb_new_run("matrix_log_normalize",inputs=list(parents=character(),user_inputs=list()),params=list(scale_factor=10000),outputs=list(summary=prim))
+  run <- wb_new_run("large_materialization_fixture",inputs=list(parents=character(),user_inputs=list()),params=list(scale_factor=10000),outputs=list(summary=prim))
   s <- wb_session_new(); s$runs <- stats::setNames(list(run),run$run_id); s$head_run_id <- run$run_id
   baseline <- .large_hash_state(b)
 
