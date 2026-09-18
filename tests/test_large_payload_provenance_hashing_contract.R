@@ -95,14 +95,14 @@ test_large_materialization_promotion_rollback_contract <- function() {
   options(warn=2)
   payload <- strrep("large-materialization-payload-",350000L)
   prim <- wb_prim_obs_table(data.frame(metric="payload",value=payload,stringsAsFactors=FALSE),table_type="matrix_log_normalize_summary",entity_kind="analysis_summary")
-  run <- wb_new_run("large_materialization_fixture",inputs=list(parents=character(),user_inputs=list()),params=list(scale_factor=10000),outputs=list(summary=prim))
+  run <- wb_new_run("feature_set_import",inputs=list(parents=character(),user_inputs=list()),params=list(scale_factor=10000),outputs=list(import_summary=prim))
   s <- wb_session_new(); s$runs <- stats::setNames(list(run),run$run_id); s$head_run_id <- run$run_id
   baseline <- .large_hash_state(b)
 
   options(scworkbench.provenance_digest_test_hook=function(domain,n_bytes) {
     if (identical(domain,"materialization-v2")) stop("forced large materialization digest failure",call.=FALSE)
   })
-  failed_digest <- try(wb_session_promote_current(b,s,outputs="summary"),silent=TRUE)
+  failed_digest <- try(wb_session_promote_current(b,s,outputs="import_summary"),silent=TRUE)
   stopifnot(inherits(failed_digest,"try-error"),grepl("forced large materialization digest failure",as.character(failed_digest),fixed=TRUE),identical(.large_hash_state(b),baseline),!length(.large_hash_pending_paths(root)))
   wb_close_bundle(b); b <- NULL
   stopifnot(!isTRUE(wb_bundle_writer_lock_info(root)$locked))
@@ -110,14 +110,14 @@ test_large_materialization_promotion_rollback_contract <- function() {
 
   options(scworkbench.provenance_digest_test_hook=NULL,
           scworkbench.promotion_workspace_publish_hook=function(workspace,final_rel) stop("forced publication boundary failure",call.=FALSE))
-  failed_publish <- try(wb_session_promote_current(b,s,outputs="summary"),silent=TRUE)
+  failed_publish <- try(wb_session_promote_current(b,s,outputs="import_summary"),silent=TRUE)
   stopifnot(inherits(failed_publish,"try-error"),grepl("forced publication boundary failure",as.character(failed_publish),fixed=TRUE),identical(.large_hash_state(b),baseline),!length(.large_hash_pending_paths(root)))
   wb_close_bundle(b); b <- NULL
   stopifnot(!isTRUE(wb_bundle_writer_lock_info(root)$locked))
   b <- wb_open_bundle(root)
 
   options(scworkbench.promotion_workspace_publish_hook=NULL)
-  promoted <- wb_session_promote_current(b,s,outputs="summary")
+  promoted <- wb_session_promote_current(b,s,outputs="import_summary")
   stopifnot(all(promoted$promoted$status=="ok"))
   mats <- DBI::dbGetQuery(b$con,"SELECT output_hash,output_hash_scheme,content_sha256 FROM prov_materializations;")
   runs <- DBI::dbGetQuery(b$con,"SELECT run_hash,run_hash_scheme,contract_hash,contract_hash_scheme FROM prov_runs;")
