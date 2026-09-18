@@ -158,7 +158,7 @@ test_typed_effective_cell_coverage_contract <- function() {
 
   matrix_cov <- wb_cell_coverage(
     b, "all", inputs = list(), resolved = list(matrix = wb_prim_matrix("partial_matrix")),
-    requirements = list(matrix = "matrix"), op_name = "matrix_log_normalize"
+    requirements = list(matrix = "matrix"), op_name = "chromvar"
   )
   stopifnot(
     identical(matrix_cov$effective, 8L),
