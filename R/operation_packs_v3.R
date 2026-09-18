@@ -114,7 +114,7 @@
       input <- inputs[[as.character(policy$cell_axis$input)[1]]]
       shape <- as.character(policy$shape)[1]
       valid <- !is.null(output) && !is.null(input) &&
-        as.character(input$kind)[1] %in% c("matrix", "cell_vector_family") &&
+        as.character(input$kind)[1] %in% c("matrix", "cell_vector_family", "space") &&
         ((identical(shape, "cell_key_cartesian") &&
           identical(as.character(output$kind)[1], "cell_vector_family") &&
           identical(as.character(policy$row_order)[1],

@@ -181,6 +181,31 @@ contract_test_activate_geneprograms_pack <- function() {
   invisible(TRUE)
 }
 
+.contract_test_representation_state <- new.env(parent = emptyenv())
+
+contract_test_activate_representation_pack <- function() {
+  source <- Sys.getenv("SCWBREPRESENTATION_SOURCE", unset = "")
+  if (!nzchar(source) || !dir.exists(source)) {
+    stop("Set SCWBREPRESENTATION_SOURCE to the provisional scwbRepresentation source repository.",
+      call. = FALSE)
+  }
+  if (is.null(.contract_test_representation_state$library)) {
+    library <- tempfile("scwbRepresentation-contract-library-", tmpdir = "/tmp")
+    dir.create(library, recursive = TRUE)
+    log <- tempfile("scwbRepresentation-contract-install-", fileext = ".log")
+    status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      paste0("--library=", shQuote(library)), shQuote(normalizePath(source))),
+      stdout = log, stderr = log)
+    if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE), collapse = "\n"),
+      call. = FALSE)
+    .contract_test_representation_state$library <- library
+    .libPaths(c(library, .libPaths()))
+  }
+  wb_operation_pack_load("scwbRepresentation",
+    lib.loc = .contract_test_representation_state$library)
+  invisible(TRUE)
+}
+
 .contract_test_core_conformance_state <- new.env(parent = emptyenv())
 
 contract_test_activate_core_conformance_pack <- function() {

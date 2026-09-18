@@ -1,13 +1,12 @@
 # R/ops_geometry.R
-# scworkbench: Geometry ops (kNN graph + Leiden clustering)
+# scworkbench: Geometry ops (kNN graph)
 #
 # Exports:
 # - wb_op_knn_graph
-# - wb_op_leiden
 #
 # Notes:
 # - Space-driven: works on any space_id (LSI, PeakVI, UMAP, etc.)
-# - Ephemeral: returns results in memory; no persistence here.
+# - Ephemeral: returns graph results in memory; no persistence here.
 # - Uses Suggests: igraph, RANN
 
 .wb_select_dims <- function(X, dims = NULL) {
@@ -132,111 +131,6 @@ wb_op_knn_graph <- function(bundle,
     graph = g,
     cells = cells,
     params = list(space_id = space_id, k = k, dims = dims, metric = metric, weight = weight)
-  )
-}
-
-
-#' Leiden clustering on a space
-#'
-#' Runs Leiden clustering using a kNN graph constructed from `space_id`.
-#' Returns per-cell cluster labels (ephemeral).
-#'
-#' @param bundle Bundle handle
-#' @param space_id Which space to use
-#' @param cells Optional cell_ids (default all)
-#' @param k kNN parameter for graph construction
-#' @param dims Optional dims to use (e.g. 1:30)
-#' @param resolution Leiden resolution parameter
-#' @param n_iterations Number of Leiden iterations (-1 for until convergence)
-#' @param seed Optional seed for reproducibility
-#' @param weight Use distance-derived edge weights?
-#' @return A list with:
-#'   - labels: data.frame(cell_id, cluster)
-#'   - graph: igraph graph used
-#'   - params: list(space_id,k,dims,resolution,n_iterations,seed,weight)
-#' @export
-wb_op_leiden <- function(bundle,
-                         space_id,
-                         cells = NULL,
-                         cell_set = "core",
-                         k = 30,
-                         dims = NULL,
-                         resolution = 1.0,
-                         n_iterations = 2,
-                         seed = NULL,
-                         weight = TRUE) {
-  .wb_require_pkg("igraph", "Leiden clustering")
-
-  .wb_assert(!missing(cells) && length(cells) > 0,
-             "Internal: wb_op_leiden() must be called with 'cells' (use wb_session_run_op).")
-
-  .wb_assert(is.numeric(resolution) && length(resolution) == 1 && resolution > 0,
-             "resolution must be a single positive number")
-
-  if (is.null(cells)) {
-    cells <- .wb_resolve_effective_cells_for_op(
-      bundle  = bundle,
-      op_name = "leiden",
-      cell_set = cell_set,
-      inputs = list(space_id = space_id, dims = dims),
-      min_cells = 10
-    )
-  }
-
-  if (!is.null(seed)) {
-    old <- if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) .Random.seed else NULL
-    on.exit({ if (!is.null(old)) .Random.seed <<- old }, add = TRUE)
-    set.seed(as.integer(seed))
-  }
-
-  knn <- wb_op_knn_graph(
-    bundle = bundle,
-    space_id = space_id,
-    cells = as.character(cells),
-    k = k,
-    dims = dims,
-    weight = weight
-  )
-
-  g <- knn$graph
-  use_w <- isTRUE(weight) && "weight" %in% igraph::edge_attr_names(g)
-
-  cl <- igraph::cluster_leiden(
-    g,
-    weights = if (use_w) igraph::E(g)$weight else NULL,
-    resolution_parameter = resolution,
-    n_iterations = as.integer(n_iterations),
-    objective_function = "modularity"
-  )
-
-  memb <- igraph::membership(cl)
-  cell_ids <- igraph::V(g)$name
-  clusters <- as.character(as.integer(memb))
-
-  # ---- primitive output ----
-  clusters_vec <- wb_prim_cell_vector(
-    x = setNames(as.character(clusters), as.character(cell_ids)),
-    value_type = "categorical",
-    meta = list(label = "Leiden clusters")
-  )
-
-
-  list(
-    outputs = list(
-      clusters = clusters_vec
-    ),
-    # keep if you want debug access; session/promotion can ignore
-    graph = g,
-    params = list(
-      space_id = space_id,
-      cell_set_n = length(cells),
-      k = k,
-      dims = dims,
-      resolution = resolution,
-      n_iterations = n_iterations,
-      seed = seed,
-      weight = weight
-    )
   )
 }
 

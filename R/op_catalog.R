@@ -1,26 +1,3 @@
-.wb_runner_leiden <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$space), "leiden runner: missing resolved$space (space primitive).")
-  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
-             "leiden runner: effective_cells is empty.")
-
-  space_id <- resolved$space$space_id
-  raw <- wb_op_leiden(
-    bundle = bundle,
-    space_id = space_id,
-    cells = as.character(effective_cells),
-    k = inputs$k %||% 30,
-    dims = inputs$dims %||% NULL,
-    resolution = inputs$resolution %||% 1.0,
-    n_iterations = inputs$n_iterations %||% 2,
-    seed = inputs$seed %||% NULL,
-    weight = inputs$weight %||% TRUE
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "leiden must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_matrix_log_normalize <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "matrix_log_normalize runner: missing resolved$matrix.")
   matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
@@ -1156,42 +1133,6 @@
 # Add new ops in one place only: contract + wrangler + interface metadata.
 .wb_op_catalog <- function() {
   catalog <- list(
-    leiden = list(
-      op_name = "leiden",
-      title = "Leiden clustering",
-      description = "Graph clustering on a kNN graph derived from an embedding space.",
-      intent = c("cluster"),
-      requires = list(space = "space"),
-      produces = list(clusters = "cell_vector"),
-      promotable = c("clusters"),
-      runner = .wb_runner_leiden,
-      inputs = list(
-        space = list(required = TRUE, must_be_2d = FALSE, dims_min = 2)
-      ),
-      params = list(
-        list(name = "dims", type = "int_range", default = NULL,
-             help = "Optional dimensions of the space to use (1-indexed); defaults to all available dimensions."),
-        list(name = "k", type = "int", default = 30, min = 5, max = 200,
-             help = "Number of neighbors for kNN graph."),
-        list(name = "resolution", type = "dbl", default = 1.0, min = 0.01, max = 10,
-             help = "Leiden resolution parameter."),
-        list(name = "n_iterations", type = "int", default = 2L, min = 1,
-             help = "Number of Leiden optimization iterations."),
-        list(name = "seed", type = "int", default = 1,
-             help = "Random seed."),
-        list(name = "weight", type = "bool", default = TRUE,
-             help = "Whether to weight graph edges during clustering.")
-      ),
-      interface_produces = list(
-        clusters = list(
-          kind = "cell_vector",
-          description = "Cluster label per cell (categorical cell vector).",
-          colorable = TRUE,
-          color_type = "categorical",
-          label = "Leiden clusters"
-        )
-      )
-    ),
     rna_qc_metrics = list(
       op_name = "rna_qc_metrics",
       title = "Calculate per-cell RNA QC metrics",

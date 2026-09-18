@@ -111,22 +111,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudobulk_table` (`feature_table`): Feature-level pseudobulk values keyed by query cell.; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_leiden
-#' @aliases wb_op_leiden
-#' @description Graph clustering on a kNN graph derived from an embedding space.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param space_id Registered coordinate-space identifier consumed by this operation.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param cell_set Named bundle cell set used to resolve the analysis universe.
-#' @param k Number of neighbors for kNN graph.
-#' @param dims Optional dimensions of the space to use (1-indexed); defaults to all available dimensions.
-#' @param resolution Leiden resolution parameter.
-#' @param n_iterations Number of optimization or clustering iterations.
-#' @param seed Integer random seed used to make stochastic computation reproducible.
-#' @param weight Whether weighted nearest-neighbor relationships are used by the engine.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$clusters` (`cell_vector`): Cluster label per cell (categorical cell vector).. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_matrix_log_normalize
 #' @aliases wb_op_matrix_log_normalize
 #' @description Create a reusable log1p(counts / library_size * scale_factor) BPCells matrix in the bundle.

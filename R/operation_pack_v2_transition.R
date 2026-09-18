@@ -123,6 +123,29 @@
       value$cell_id <- as.character(value$cell_id[index])
       value$value <- value$value[index]
       if (!is.null(names(value$value))) names(value$value) <- value$cell_id
+    } else if (kind %in% c("space", "space_2d")) {
+      coordinates <- value$values
+      if (is.null(coordinates)) {
+        space_id <- as.character(value$space_id %||% "")[1]
+        .wb_operation_pack_assert(nzchar(space_id),
+          "PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Space input is missing its symbolic space_id.", phase = "resolution")
+        coordinates <- wb_space(bundle, space_id)
+      }
+      .wb_operation_pack_assert(is.matrix(coordinates) &&
+          !is.null(rownames(coordinates)), "PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Space input must resolve to a row-named coordinate matrix.",
+        phase = "resolution")
+      index <- match(cells, rownames(coordinates))
+      .wb_operation_pack_assert(!anyNA(index),
+        "PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Space input does not cover every effective cell.",
+        phase = "resolution")
+      value$values <- coordinates[index, , drop = FALSE]
+      rownames(value$values) <- cells
+      value$cell_id <- cells
+      value$dimensions <- as.integer(dim(value$values))
+      value$storage_profile <- value$storage_profile %||% "space_dense_v1"
     } else if (kind %in% c("cell_vector_family", "relation_family")) {
       index <- match(cells, unique(as.character(value$cell_id)))
       retained <- cells[!is.na(index)]
@@ -1503,7 +1526,10 @@
     if (is.null(value) && isTRUE(item$required %||% TRUE)) .wb_operation_pack_v2_error(
       "PYBENCH_RECEIPT_MISMATCH", paste0("Required retained parameter '", item$name,
         "' is absent from the declared source."), "receipt")
-    if (!is.null(value)) out[[as.character(item$name)[1]]] <- value
+    name <- as.character(item$name)[1]
+    if (is.null(value) && !isTRUE(item$required %||% TRUE)) {
+      out[name] <- list(NULL)
+    } else if (!is.null(value)) out[[name]] <- value
   }
   out
 }

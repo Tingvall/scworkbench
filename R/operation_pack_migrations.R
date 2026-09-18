@@ -18,7 +18,8 @@
     cell_vector_winners = "scwbgeneprograms::cell_vector_winners",
     winner_cell_sets = "scwbgeneprograms::winner_cell_sets",
     feature_set_overlap_qc = "scwbgeneprograms::feature_set_overlap_qc",
-    pathway_enrich = "scwbgeneprograms::pathway_enrich"
+    pathway_enrich = "scwbgeneprograms::pathway_enrich",
+    leiden = "scwbrepresentation::leiden"
   )
 }
 
