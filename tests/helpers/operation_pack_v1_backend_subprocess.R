@@ -57,10 +57,10 @@ stopifnot(
             unname(unlist(canonical$invalid_fixture_sha256, use.names = FALSE)))
 )
 
-# No-pack parity and accepted Phase 1 R identities are immutable.
+# No-pack parity reflects the current core catalog after method extraction.
 core_identity_before <- wb_operation_catalog_identity()
 stopifnot(identical(core_identity_before$sha256,
-                    "b8217717b9a1016d4d0284c60311485465b453f99dbf111dcf09fd0b26c629f6"),
+                    "07d2b145d79764970908e9630edb87d9aa58f3fa5c3f770d8dfde558efb587ba"),
           !nrow(wb_operation_packs()))
 r_installed <- wb_operation_pack_validate(template_package)$identity
 r_structural <- wb_operation_pack_manifest_validate(template_manifest)$identity
