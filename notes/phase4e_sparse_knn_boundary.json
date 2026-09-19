@@ -1,0 +1,111 @@
+{
+  "schema": "scworkbench.operation_pack.sparse_knn_boundary.v1",
+  "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "manifest": {
+    "typed_space_reads": {
+      "reader": "read_typed_space",
+      "kind": "space",
+      "selection_policy": "core_cell_selector_parameter_v1",
+      "duplicate_policy": "reject",
+      "unknown_policy": "error",
+      "order": "resolved_selector_order_v1",
+      "call_discipline": "ordered_partition_exactly_once"
+    },
+    "sparse_membership_policy": {
+      "policy": "authenticated_sparse_key_cell_membership_v1",
+      "shape": "bounded_sparse_key_cell_membership",
+      "row_order": "query_then_rank_v1",
+      "distance_policy": "finite_nonnegative_v1"
+    },
+    "pseudobulk_policy": {
+      "policy": "authenticated_sparse_membership_pseudobulk_v1",
+      "row_order": "query_then_feature_v1",
+      "aggregate_values": ["sum", "mean"],
+      "zero_neighbor_policy": "zero_v1"
+    }
+  },
+  "request": {
+    "typed_space_grants": [
+      "query_axis",
+      "candidate_axis"
+    ],
+    "grant_identity_fields": [
+      "input_descriptor_identity",
+      "input_content_identity",
+      "source_state_identity",
+      "cell_axis_manifest_identity",
+      "dimension_axis_identity",
+      "requested_chunk_size",
+      "maximum_elements"
+    ],
+    "sparse_membership_grant_fields": [
+      "query_axis_grant_identity",
+      "candidate_axis_grant_identity",
+      "k",
+      "include_query",
+      "per_query_maximum",
+      "maximum_edge_count",
+      "row_order",
+      "distance_policy"
+    ]
+  },
+  "receipt": {
+    "typed_space_usage": "exact ordered partition with per-call identities",
+    "sparse_membership_observation_fields": [
+      "grant_identity",
+      "edge_count",
+      "query_count",
+      "edge_ledger_identity",
+      "query_order_identity",
+      "status"
+    ],
+    "neighbor_output_agreement": "neighbors and neighbor_distance expose the identical edge ledger identity",
+    "pseudobulk_binding_fields": [
+      "membership_edge_ledger_identity",
+      "feature_axis_identity",
+      "aggregate",
+      "zero_neighbor_policy",
+      "query_order_identity",
+      "row_count",
+      "status"
+    ]
+  },
+  "edge_ledger": {
+    "schema": "scworkbench.operation_pack.sparse_membership_ledger.v1",
+    "ordered_fields": [
+      "query_cell_id",
+      "neighbor_rank",
+      "candidate_cell_id",
+      "distance"
+    ],
+    "constraints": [
+      "query and candidate identifiers belong to their authenticated axes",
+      "query-candidate pairs are unique",
+      "ranks are contiguous from one within each query",
+      "rows are ordered by authenticated query order then rank",
+      "distances are finite and nonnegative",
+      "per-query cardinality does not exceed k or eligible candidate count",
+      "include_query controls only self edges where a query is also a candidate"
+    ]
+  },
+  "authority": {
+    "core": [
+      "selector resolution",
+      "axis and source authentication",
+      "bounded typed exchange",
+      "receipt and output agreement validation",
+      "atomic publication"
+    ],
+    "pack": [
+      "distance computation",
+      "neighbor ordering within the authenticated boundary",
+      "chunking",
+      "sum or mean aggregation"
+    ],
+    "prohibited": [
+      "bundle handle",
+      "SQL handle",
+      "committed payload path"
+    ]
+  }
+}
