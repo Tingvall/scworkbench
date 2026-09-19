@@ -42,6 +42,29 @@
   tryCatch(jsonlite::fromJSON(as.character(x)[1], simplifyVector = FALSE), error = function(e) NULL)
 }
 
+.wb_validation_model_payload_path <- function(con, model_space_id) {
+  id <- as.character(model_space_id %||% "")[1]
+  if (.wb_table_exists(con, "artifact_model_ref") &&
+      .wb_db_has_column(con, "artifact_model_ref",
+        "model_tree_manifest_json")) {
+    retained <- DBI::dbGetQuery(con, paste0(
+      "SELECT model_path FROM artifact_model_ref ",
+      "WHERE model_space_id=? AND model_tree_manifest_json IS NOT NULL ",
+      "AND model_tree_manifest_json<>'' ORDER BY artifact_id;"),
+      params = list(id))
+    paths <- unique(as.character(retained$model_path %||% character()))
+    paths <- paths[nzchar(paths)]
+    if (length(paths) == 1L) return(paths[[1L]])
+  }
+  if (.wb_table_exists(con, "space_models")) {
+    row <- DBI::dbGetQuery(con,
+      "SELECT model_path FROM space_models WHERE space_id=?;",
+      params = list(id))
+    if (nrow(row) == 1L) return(as.character(row$model_path[[1L]]))
+  }
+  ""
+}
+
 .wb_validation_process_memory <- function() {
   status <- "/proc/self/status"
   if (!file.exists(status)) return(list(rss_mb=NA_real_, peak_rss_mb=NA_real_))
@@ -1106,10 +1129,8 @@ wb_bundle_validation_report <- function(bundle_dir,
                   resolved <- .wb_model_ref_physical_presence(bundle, id, allow_pending = FALSE)
                   if (isTRUE(resolved$present)) candidate <- as.character(resolved$model_path)
                 }
-                if (!.wb_validation_nonempty(candidate) && kind == "model" && has("space_models")) {
-                  mr <- DBI::dbGetQuery(con, "SELECT model_path FROM space_models WHERE space_id=?;", params=list(id))
-                  if (nrow(mr)) candidate <- as.character(mr$model_path[1])
-                }
+                if (!.wb_validation_nonempty(candidate) && kind == "model")
+                  candidate <- .wb_validation_model_payload_path(con, id)
                 if (!.wb_validation_nonempty(candidate)) candidate <- bound_path
                 checked <- if (.wb_path_is_absolute(candidate)) list(ok=FALSE,absolute=NA_character_) else .wb_validation_path(root, candidate, "either")
                 if (isTRUE(checked$ok)) .wb_prov_path_identity(checked$absolute) else NULL
@@ -1393,7 +1414,7 @@ wb_bundle_validation_report <- function(bundle_dir,
           identities <- tryCatch({
             if(kind=="matrix") list(.wb_prov_payload_identity(bundle,wb_prim_matrix(id)))
             else if(kind=="space") { sr<-DBI::dbGetQuery(con,"SELECT dims FROM spaces WHERE space_id=?;",params=list(id)); if(nrow(sr)&&identical(as.integer(sr$dims[1]),2L)) list(.wb_prov_payload_identity(bundle,wb_prim_space(id)),.wb_prov_payload_identity(bundle,wb_prim_space_2d(id))) else list(.wb_prov_payload_identity(bundle,wb_prim_space(id))) }
-            else if(kind=="model") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM space_models WHERE space_id=?;",params=list(id)); if(nrow(mr)){ checked<-.wb_validation_path(root,mr$model_path[1],"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list() }
+            else if(kind=="model") { model_path<-.wb_validation_model_payload_path(con,id); if(nzchar(model_path)){ checked<-.wb_validation_path(root,model_path,"either"); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list() }
             else if(kind=="artifact") { at<-DBI::dbGetQuery(con,"SELECT type FROM artifacts WHERE artifact_id=?;",params=list(id))$type[1]; if(as.character(at)%in%c("feature_table","obs_table")) list(list(content_sha256=.wb_prov_stored_table_content_sha256(con,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["table"]]))) else if(as.character(at)=="model_ref") { mr<-DBI::dbGetQuery(con,"SELECT model_path FROM artifact_model_ref WHERE artifact_id=?;",params=list(id)); checked<-if(nrow(mr)) .wb_validation_path(root,mr$model_path[1],"either") else list(ok=FALSE); if(isTRUE(checked$ok)) list(.wb_prov_path_identity(checked$absolute)) else list() } else list(.wb_prov_payload_identity(bundle,wb_art_load(bundle,id))) }
             else if(kind%in%c("cell_set","feature_set")) list(list(content_sha256=.wb_registry_entity_content_hash(bundle,kind,id),content_identity_scheme=unname(.wb_content_identity_schemes()[["registry"]])))
             else if(kind=="metadata_field") list(.wb_metadata_field_content_identity(con,id))

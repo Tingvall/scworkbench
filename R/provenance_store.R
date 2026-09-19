@@ -655,6 +655,14 @@
   } else if (nzchar(path)) .wb_path_status(bundle$dir, path, expected_type="either", must_exist=TRUE, purpose="replay model") else list(ok=FALSE)
   if (!isTRUE(status$ok)) return(list(ok = FALSE, message = "Model payload is missing or outside the bundle trust boundary."))
   path <- status$absolute
+  if (!is.null(prim$model_tree_manifest)) {
+    primary <- as.character(prim$model_primary_path %||%
+      prim$model_tree_manifest$primary_path %||% "")[1]
+    if (!.wb_operation_pack_v3_safe_model_entry(primary) ||
+        !dir.exists(path)) return(list(ok = FALSE,
+          message = "Contained model tree primary path is invalid."))
+    path <- file.path(path, primary)
+  }
   loaded <- tryCatch({
     if (identical(engine, "uwot")) {
       .wb_require_pkg("uwot", "UMAP replay-equivalence validation")
@@ -1497,7 +1505,15 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
             resolved <- normalizePath(binding_path,winslash="/",mustWork=FALSE)
             roots <- c(.wb_bundle_root(bundle),as.character(bundle$staging_source_dir %||% character()))
             roots <- roots[nzchar(roots)]
-            if (any(vapply(roots,function(root) .wb_path_inside(resolved,normalizePath(root,winslash="/",mustWork=TRUE)),logical(1)))) resolved else ""
+            normalized_roots <- vapply(roots, normalizePath, character(1),
+              winslash = "/", mustWork = TRUE)
+            inside <- vapply(normalized_roots, function(root)
+              .wb_path_inside(resolved, root), logical(1))
+            if (any(inside)) {
+              owner <- normalized_roots[[which(inside)[[1L]]]]
+              binding_path <- substring(resolved, nchar(owner) + 2L)
+              resolved
+            } else ""
           } else tryCatch(.wb_bundle_path_require(bundle,binding_path,expected_type="either",purpose="model provenance input"),error=function(e) "")
           if (nzchar(absolute) && (file.exists(absolute) || dir.exists(absolute))) .wb_prov_path_identity(absolute) else list(content_sha256=NA_character_,content_identity_scheme=NA_character_)
         } else list(content_sha256=NA_character_,content_identity_scheme=NA_character_)

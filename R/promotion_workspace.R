@@ -76,10 +76,14 @@
 }
 
 .wb_promotion_workspace_final_rel_for_source <- function(workspace, source_path) {
-  source_path <- normalizePath(as.character(source_path %||% "")[1], winslash = "/", mustWork = FALSE)
-  if (!nzchar(source_path)) return(NULL)
+  raw <- gsub("\\\\", "/", as.character(source_path %||% "")[1])
+  if (!nzchar(raw)) return(NULL)
+  source_path <- normalizePath(raw, winslash = "/", mustWork = FALSE)
   for (final_rel in names(workspace$mappings)) {
     mapped <- as.character(workspace$mappings[[final_rel]]$source %||% "")[1]
+    if (!.wb_path_is_absolute(raw) && nzchar(mapped) &&
+        endsWith(gsub("\\\\", "/", mapped), paste0("/", raw)))
+      return(final_rel)
     if (nzchar(mapped) && identical(mapped, source_path)) return(final_rel)
     if (nzchar(mapped) && dir.exists(mapped) &&
         startsWith(source_path, paste0(mapped, "/"))) {

@@ -705,11 +705,29 @@
       "PYBENCH_PUBLICATION_FAILED",
       "Contained model transition is outside the session bundle.",
       "publication")
-    result$outputs[[name]]$model_path <- file.path(root_rel,
-      write_grant$relative_root, write_grant$primary_path)
+    tree_root <- file.path(result$path, write_grant$relative_root)
+    tree <- .wb_operation_pack_v3_model_tree_manifest(tree_root,
+      write_grant$engine, write_grant$model_type, write_grant$primary_path,
+      write_grant$limits$maximum_file_count,
+      write_grant$limits$maximum_total_bytes,
+      code = "PYBENCH_PUBLICATION_FAILED", phase = "publication")
+    observed <- result$receipt$outputs[[match(name, vapply(
+      result$receipt$outputs, `[[`, character(1), "name"))]]$descriptor
+    if (!identical(.wb_operation_pack_v3_unscoped_identity(
+        tree$manifest_identity), observed$contained_model_tree$
+          tree_manifest_identity) || !identical(
+            .wb_operation_pack_v3_model_payload_identity(tree),
+            observed$payload_manifest_identity))
+      .wb_operation_pack_v3_error("PYBENCH_PUBLICATION_FAILED",
+        "Published contained model tree differs from its audited receipt.",
+        "publication")
+    durable_root <- file.path(root_rel, write_grant$relative_root)
+    result$outputs[[name]]$model_path <- durable_root
+    result$outputs[[name]]$model_tree_root <- durable_root
+    result$outputs[[name]]$model_primary_path <- tree$primary_path
+    result$outputs[[name]]$model_tree_manifest <- tree
     result$outputs[[name]]$model_payload_manifest_identity <-
-      result$receipt$outputs[[match(name, vapply(result$receipt$outputs,
-        `[[`, character(1), "name"))]]$descriptor$payload_manifest_identity
+      observed$payload_manifest_identity
   }
   for (name in names(result$outputs)) {
     publication <- grants[[name]]$descriptor$publication_grant %||% NULL
@@ -845,7 +863,9 @@
           jsonlite::toJSON(result$request$params, auto_unbox = TRUE,
             null = "null", digits = NA),
           as.integer(result$request$params$seed %||% NA_integer_),
-          as.character(model$model_path)[1],
+          file.path(as.character(model$model_tree_root %||%
+            model$model_path)[1], as.character(model$model_primary_path %||%
+              "")[1]),
           format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
           jsonlite::toJSON(list(model_linkage = model$model_linkage,
             payload_manifest_identity =

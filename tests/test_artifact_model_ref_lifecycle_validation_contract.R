@@ -82,8 +82,10 @@ test_artifact_model_ref_lifecycle_validation_contract <- function() {
   umap_presence <- .wb_model_ref_physical_presence(b, umap_id)
   stopifnot(isTRUE(scvi_presence$present), identical(scvi_presence$storage, "artifact_model_ref"),
             identical(scvi_presence$artifact_id, scvi_artifact),
-            isTRUE(umap_presence$present), identical(umap_presence$storage, "space_models"),
-            file.exists(umap_presence$absolute_model_path))
+            isTRUE(umap_presence$present),
+            identical(umap_presence$storage, "artifact_model_ref"),
+            identical(umap_presence$artifact_id, umap_artifact),
+            dir.exists(umap_presence$absolute_model_path))
 
   # Exercise distinct artifact-backed identity shapes/writer routes for PeakVI
   # and Palantir through ordinary analysis promotion.

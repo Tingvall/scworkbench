@@ -70,6 +70,30 @@
                     must_exist = TRUE, purpose = purpose)
   }
 
+  # Only an output-bound retained tree supersedes a compatible space_models
+  # row. Input-only/historical artifact registry rows can coexist with the
+  # authoritative space-model payload and must not redirect lifecycle
+  # validation into a provenance binding that they do not own.
+  artifact_candidate_exists <- all(vapply(c(
+    "artifact_model_ref", "artifacts", "prov_run_entity_bindings",
+    "prov_run_outputs"),
+    function(table) .wb_table_exists(con, table), logical(1))) &&
+    .wb_db_has_column(con, "artifact_model_ref", "model_tree_manifest_json") &&
+    nrow(DBI::dbGetQuery(con, paste0(
+      "SELECT 1 FROM artifact_model_ref amr JOIN artifacts a ",
+      "ON a.artifact_id=amr.artifact_id AND a.type='model_ref' ",
+      "JOIN prov_run_entity_bindings b ON b.entity_kind='model_ref' ",
+      "AND b.entity_id=? AND b.direction='output' ",
+      "AND b.relationship_type='MATERIALIZES' ",
+      "JOIN prov_run_outputs o ON o.snapshot_id=b.snapshot_id ",
+      "AND o.run_id=b.run_id AND o.output_name=b.binding_name ",
+      "AND o.artifact_id=amr.artifact_id ",
+      "WHERE amr.engine=? AND amr.model_space_id=? ",
+      "AND COALESCE(amr.in_space_id,'')=? ",
+      "AND COALESCE(amr.model_tree_manifest_json,'')<>'' LIMIT 1;"), params = list(
+        identity$id, identity$engine, identity$model_space_id,
+        identity$in_space_id))) > 0L
+
   # A reference is space-model-backed when one row matches its destination,
   # engine/model type, and (when declared) input space. This includes uwot and
   # legacy/custom fitted space-model engines; other engines continue to the
@@ -78,7 +102,7 @@
     con, "SELECT * FROM space_models WHERE space_id = ?;",
     params = list(identity$model_space_id)
   ) else data.frame()
-  if (nrow(space_rows)) {
+  if (nrow(space_rows) && !artifact_candidate_exists) {
     model_types <- as.character(space_rows$model_type)
     compatible <- model_types == identity$engine |
       startsWith(model_types, paste0(identity$engine, "_"))
@@ -104,7 +128,7 @@
                   "space_models row does not match the model engine/input-space identity",
                   storage = "space_models"))
     }
-  } else if (identical(identity$engine, "uwot")) {
+  } else if (!artifact_candidate_exists && identical(identity$engine, "uwot")) {
     return(fail("MODEL_REF_SPACE_MODEL_MISSING",
                 "uwot model_ref has no matching space_models row", storage = "space_models"))
   }
@@ -143,6 +167,37 @@
                   "owning model_ref artifact has no artifact_model_ref payload row",
                   storage = "artifact_model_ref",
                   artifact_id = as.character(bound_owners$artifact_id[[1L]])))
+    }
+    input_paths <- DBI::dbGetQuery(con, "
+      SELECT DISTINCT path
+      FROM prov_run_entity_bindings
+      WHERE entity_kind='model_ref' AND entity_id=? AND direction='input'
+        AND relationship_type='CONSUMES'
+        AND path IS NOT NULL AND path<>''
+      ORDER BY path;
+    ", params = list(identity$id))
+    if (nrow(input_paths) > 1L) {
+      return(fail("MODEL_REF_INPUT_PATH_AMBIGUOUS",
+                  "contained model_ref input bindings disagree on the durable payload path",
+                  storage = "prov_run_entity_bindings"))
+    }
+    if (nrow(input_paths) == 1L) {
+      input_path <- as.character(input_paths$path[[1L]])
+      input_status <- check_path(input_path,
+        "contained model input lifecycle payload")
+      if (!isTRUE(input_status$ok)) {
+        return(fail("MODEL_REF_INPUT_PAYLOAD_INVALID",
+                    paste0(input_status$code,
+                      ": contained model input payload is missing or not contained"),
+                    storage = "prov_run_entity_bindings",
+                    model_path = input_path))
+      }
+      return(list(present = TRUE, code = "OK",
+                  message = "contained model input payload present",
+                  storage = "prov_run_entity_bindings", identity = identity,
+                  artifact_id = NA_character_, model_path = input_path,
+                  materialization_path = NA_character_,
+                  absolute_model_path = as.character(input_status$absolute)))
     }
     return(fail("MODEL_REF_ARTIFACT_IDENTITY_MISMATCH",
                 "no artifact_model_ref row matches engine, model space, and input space",

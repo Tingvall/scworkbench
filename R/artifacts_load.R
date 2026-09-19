@@ -285,11 +285,17 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
 
     # ---- generic model_ref artifacts (engine-tagged, e.g. slingshot/uwot) ----
     "model_ref" = {
+      optional_model_column <- function(column) if (
+          .wb_db_has_column(con, "artifact_model_ref", column)) column else
+            paste0("NULL AS ", column)
       df <- DBI::dbGetQuery(
         con,
-        "SELECT engine, model_space_id, in_space_id, model_type, model_path, linkage_json
-         FROM artifact_model_ref
-         WHERE artifact_id = ?;",
+        paste0("SELECT engine, model_space_id, in_space_id, model_type, ",
+          "model_path, ", optional_model_column("linkage_json"), ", ",
+          optional_model_column("model_primary_path"), ", ",
+          optional_model_column("model_tree_manifest_json"), ", ",
+          optional_model_column("payload_manifest_identity_json"), " ",
+          "FROM artifact_model_ref WHERE artifact_id = ?;"),
         params = list(artifact_id)
       )
       .wb_assert(nrow(df) == 1, paste0("wb_art_load(): no row in artifact_model_ref for ", artifact_id))
@@ -320,6 +326,32 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       if (!is.na(linkage_json) && nzchar(linkage_json))
         p$model_linkage <- jsonlite::fromJSON(linkage_json,
           simplifyVector = FALSE)
+      tree_json <- as.character(df$model_tree_manifest_json[[1]] %||% "")[1]
+      if (!is.na(tree_json) && nzchar(tree_json)) {
+        tree <- tryCatch(jsonlite::fromJSON(tree_json,
+          simplifyVector = FALSE), error = function(e) NULL)
+        .wb_operation_pack_v3_assert_model_tree_manifest(tree, engine,
+          p$model_type, code = "PYBENCH_INPUT_IDENTITY_MISMATCH",
+          phase = "resolution")
+        primary <- as.character(df$model_primary_path[[1]] %||% "")[1]
+        .wb_assert(identical(primary, tree$primary_path),
+          "wb_art_load(): durable model primary path differs from its tree manifest.")
+        observed <- .wb_operation_pack_v3_model_tree_manifest(model_path,
+          engine, p$model_type, primary,
+          code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "resolution")
+        payload <- .wb_operation_pack_v3_model_payload_identity(observed)
+        payload_json <- as.character(
+          df$payload_manifest_identity_json[[1]] %||% "")[1]
+        declared_payload <- if (!is.na(payload_json) && nzchar(payload_json))
+          jsonlite::fromJSON(payload_json, simplifyVector = FALSE) else NULL
+        .wb_assert(identical(observed, tree) &&
+            !is.null(declared_payload) && identical(payload, declared_payload),
+          "wb_art_load(): durable contained model tree failed authenticated reconstruction.")
+        p$model_tree_root <- model_path
+        p$model_primary_path <- primary
+        p$model_tree_manifest <- tree
+        p$model_payload_manifest_identity <- payload
+      }
       lifecycle <- if (.wb_table_exists(con, "entity_lifecycle")) {
         wb_entity_lifecycle(bundle, "artifact", artifact_id)
       } else data.frame()

@@ -86,17 +86,79 @@
       entry_payload_identities = entry_ids))
 }
 
-.wb_operation_pack_v3_copy_model_file <- function(source, root, primary) {
-  if (!file.exists(source) || dir.exists(source) || nzchar(Sys.readlink(source)))
+.wb_operation_pack_v3_assert_model_tree_manifest <- function(manifest,
+    engine = NULL, model_type = NULL,
+    code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "resolution") {
+  fail <- function(message) .wb_operation_pack_v3_error(code, message, phase)
+  required <- c("schema", "engine", "model_type", "primary_path",
+    "file_count", "total_size", "entries", "manifest_identity")
+  if (!is.list(manifest) || !all(required %in% names(manifest)) ||
+      !identical(as.character(manifest$schema)[1],
+        "scworkbench.operation_pack.contained_model_tree_manifest.v1"))
+    fail("Contained model tree manifest is absent or malformed.")
+  if (!is.null(engine) && !identical(as.character(manifest$engine)[1],
+      as.character(engine)[1])) fail("Contained model tree engine changed.")
+  if (!is.null(model_type) && !identical(
+      as.character(manifest$model_type)[1], as.character(model_type)[1]))
+    fail("Contained model tree model type changed.")
+  entries <- manifest$entries
+  if (!is.list(entries) || !length(entries) ||
+      any(!vapply(entries, is.list, logical(1))))
+    fail("Contained model tree manifest has no authenticated entries.")
+  paths <- vapply(entries, function(entry)
+    as.character(entry$path %||% "")[1], character(1))
+  sizes <- vapply(entries, function(entry)
+    as.numeric(entry$size %||% NA_real_)[1], numeric(1))
+  hashes <- vapply(entries, function(entry)
+    as.character(entry$sha256 %||% "")[1], character(1))
+  if (any(!vapply(paths, .wb_operation_pack_v3_safe_model_entry,
+      logical(1))) || anyDuplicated(paths) ||
+      !identical(paths, sort(paths, method = "radix")) || anyNA(sizes) ||
+      any(sizes <= 0) || any(sizes != floor(sizes)) ||
+      any(!grepl("^[a-f0-9]{64}$", hashes)))
+    fail("Contained model tree entries are unsafe, duplicated, unordered, or malformed.")
+  primary <- as.character(manifest$primary_path %||% "")[1]
+  if (!.wb_operation_pack_v3_safe_model_entry(primary) ||
+      !primary %in% paths)
+    fail("Contained model tree primary path is not an authenticated entry.")
+  if (!identical(as.integer(manifest$file_count), as.integer(length(entries))) ||
+      !identical(as.numeric(manifest$total_size), sum(sizes)))
+    fail("Contained model tree counts do not match its entries.")
+  expected <- manifest
+  expected$manifest_identity <- NULL
+  identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+    "manifest excluding manifest_identity", expected)
+  if (!identical(manifest$manifest_identity, identity))
+    fail("Contained model tree manifest identity is invalid.")
+  invisible(TRUE)
+}
+
+.wb_operation_pack_v3_copy_model_tree <- function(source_root, manifest,
+    target_root) {
+  .wb_operation_pack_v3_assert_model_tree_manifest(manifest)
+  if (!dir.exists(source_root) || nzchar(Sys.readlink(source_root)))
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-      "Contained model source is absent, non-regular, or linked.", "resolution")
-  target <- file.path(root, primary)
-  dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
-  if (!isTRUE(file.copy(source, target, copy.mode = FALSE, copy.date = FALSE)))
-    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-      "Contained model payload could not be copied privately.", "staging")
-  Sys.chmod(target, mode = "0444")
-  target
+      "Contained model tree root is absent or linked.", "resolution")
+  dir.create(target_root, recursive = TRUE, showWarnings = FALSE)
+  for (entry in manifest$entries) {
+    relative <- as.character(entry$path)[1]
+    source <- file.path(source_root, relative)
+    target <- file.path(target_root, relative)
+    status <- .wb_path_status(source_root, relative, expected_type = "file",
+      must_exist = TRUE, purpose = "authenticated contained model entry")
+    if (!isTRUE(status$ok) || nzchar(Sys.readlink(source)))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Contained model tree entry is missing, escaped, or linked.",
+        "resolution")
+    dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
+    if (!isTRUE(file.copy(source, target, copy.mode = FALSE,
+        copy.date = FALSE)))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Contained model tree could not be copied privately.", "staging")
+    Sys.chmod(target, mode = "0444")
+  }
+  invisible(target_root)
 }
 
 .wb_operation_pack_v3_model_path <- function(bundle, value) {
@@ -121,6 +183,89 @@
     must_exist = TRUE, purpose = "contained model input")
 }
 
+.wb_operation_pack_v3_model_tree_source <- function(bundle, value, engine,
+    model_type) {
+  declared <- value$model_tree_manifest %||% NULL
+  if (!is.null(declared)) {
+    .wb_operation_pack_v3_assert_model_tree_manifest(declared, engine,
+      model_type)
+    raw_root <- as.character(value$model_tree_root %||%
+      value$model_path %||% "")[1]
+    if (!nzchar(raw_root)) .wb_operation_pack_v3_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Contained model tree has no durable root.", "resolution")
+    root <- if (.wb_path_is_absolute(raw_root)) {
+      absolute <- normalizePath(raw_root, winslash = "/", mustWork = FALSE)
+      roots <- unique(c(normalizePath(bundle$dir, winslash = "/",
+        mustWork = TRUE), if (nzchar(as.character(
+          bundle$staging_source_dir %||% "")[1])) normalizePath(
+            bundle$staging_source_dir, winslash = "/", mustWork = TRUE) else
+              character()))
+      if (!any(vapply(roots, function(candidate)
+          .wb_path_inside(absolute, candidate), logical(1))) ||
+          !dir.exists(absolute)) .wb_operation_pack_v3_error(
+            "PYBENCH_INPUT_IDENTITY_MISMATCH",
+            "Contained model tree is outside the authenticated bundle boundary.",
+            "resolution")
+      absolute
+    } else .wb_bundle_path_require(bundle, raw_root,
+      expected_type = "directory", must_exist = TRUE,
+      purpose = "contained model tree")
+    observed <- .wb_operation_pack_v3_model_tree_manifest(root, engine,
+      model_type, declared$primary_path,
+      code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "resolution")
+    payload <- .wb_operation_pack_v3_model_payload_identity(observed)
+    if (!identical(observed, declared) ||
+        (!is.null(value$model_payload_manifest_identity) &&
+          !identical(payload, value$model_payload_manifest_identity)))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Durable contained model tree differs from its authenticated manifest.",
+        "resolution")
+    return(list(root = root, manifest = observed,
+      payload_manifest_identity = payload, historical = FALSE))
+  }
+
+  # Historical artifacts did not retain a tree manifest. Present a contained
+  # single-file model as a one-entry tree at the reader boundary without
+  # rewriting durable state. A legacy directory is accepted only when its
+  # primary file is unambiguous.
+  source <- .wb_operation_pack_v3_model_path(bundle, value)
+  if (dir.exists(source)) {
+    candidates <- list.files(source, recursive = TRUE, all.files = TRUE,
+      include.dirs = FALSE, no.. = TRUE)
+    primary <- as.character(value$model_primary_path %||% "")[1]
+    if (!nzchar(primary) && "model.uwot" %in% candidates)
+      primary <- "model.uwot"
+    if (!nzchar(primary) && length(candidates) == 1L)
+      primary <- candidates[[1L]]
+    if (!nzchar(primary)) .wb_operation_pack_v3_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Historical model directory has no unambiguous primary file.",
+      "resolution")
+    manifest <- .wb_operation_pack_v3_model_tree_manifest(source, engine,
+      model_type, primary, code = "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      phase = "resolution")
+    return(list(root = source, manifest = manifest,
+      payload_manifest_identity =
+        .wb_operation_pack_v3_model_payload_identity(manifest),
+      historical = TRUE))
+  }
+  temporary <- tempfile("scwb-model-single-file-")
+  dir.create(temporary, recursive = TRUE, showWarnings = FALSE)
+  primary <- basename(source)
+  if (!isTRUE(file.copy(source, file.path(temporary, primary),
+      copy.mode = FALSE, copy.date = FALSE)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Historical model file could not be normalized.", "staging")
+  manifest <- .wb_operation_pack_v3_model_tree_manifest(temporary, engine,
+    model_type, primary, code = "PYBENCH_INPUT_IDENTITY_MISMATCH",
+    phase = "resolution")
+  list(root = temporary, manifest = manifest,
+    payload_manifest_identity =
+      .wb_operation_pack_v3_model_payload_identity(manifest),
+    historical = TRUE, temporary = TRUE)
+}
+
 .wb_operation_pack_v3_model_linkage <- function(engine, model_type,
     source_space_id, dimensions) {
   value <- list(engine = as.character(engine)[1],
@@ -137,6 +282,9 @@
 .wb_operation_pack_v3_prepare_model_reads <- function(bundle, operation,
     inputs, input_records, params, stage_root) {
   grants <- list(); values <- list(); records <- input_records
+  temporary_roots <- character()
+  on.exit(for (path in unique(temporary_roots))
+    unlink(path, recursive = TRUE, force = TRUE), add = TRUE)
   for (declaration in operation$contained_model_reads %||% list()) {
     name <- as.character(declaration$name)[1]
     input_name <- as.character(declaration$input)[1]
@@ -158,16 +306,25 @@
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
         "Contained model fitted dimensions, engine, or source linkage differ from the query space.",
         "resolution")
+    source_tree <- .wb_operation_pack_v3_model_tree_source(bundle, model,
+      engine, model_type)
+    if (isTRUE(source_tree$temporary))
+      temporary_roots <- c(temporary_roots, source_tree$root)
     root_rel <- paste0("model_payload_reads/", name, "/tree")
     root <- file.path(stage_root, root_rel)
-    dir.create(root, recursive = TRUE, showWarnings = FALSE)
-    primary <- "model.uwot"
-    .wb_operation_pack_v3_copy_model_file(
-      .wb_operation_pack_v3_model_path(bundle, model), root, primary)
+    .wb_operation_pack_v3_copy_model_tree(source_tree$root,
+      source_tree$manifest, root)
+    primary <- source_tree$manifest$primary_path
     tree <- .wb_operation_pack_v3_model_tree_manifest(root, engine,
       model_type, primary, code = "PYBENCH_INPUT_IDENTITY_MISMATCH",
       phase = "staging")
     payload_identity <- .wb_operation_pack_v3_model_payload_identity(tree)
+    if (!identical(tree, source_tree$manifest) ||
+        !identical(payload_identity,
+          source_tree$payload_manifest_identity))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Private contained-model tree copy changed during staging.",
+        "staging")
     descriptor <- records[[input_name]]
     descriptor$content_identity <- .wb_operation_pack_v2_identity_plain(
       "scworkbench.model_ref.content.v1", list(

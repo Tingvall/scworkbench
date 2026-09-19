@@ -130,7 +130,8 @@
   if (!.wb_is_primitive(prim) || !identical(as.character(prim$kind), "model_ref") || !is.null(prim$model_obj)) {
     return(invisible(workspace))
   }
-  model_path <- as.character(prim$model_path %||% "")[1]
+  model_path <- as.character(prim$model_tree_root %||%
+    prim$model_path %||% "")[1]
   if (!nzchar(model_path)) return(invisible(workspace))
 
   candidate <- if (.wb_path_is_absolute(model_path)) model_path else .wb_bundle_path_require(staging_bundle, model_path, expected_type="either", purpose="staged model_ref")
@@ -138,14 +139,42 @@
     "Staged model_ref payload does not exist: ", model_path
   ))
   source_abs <- normalizePath(candidate, winslash = "/", mustWork = TRUE)
+  tree <- prim$model_tree_manifest %||% NULL
+  if (!is.null(tree)) {
+    .wb_operation_pack_v3_assert_model_tree_manifest(tree,
+      as.character(prim$engine %||% "")[1],
+      as.character(prim$model_type %||% prim$engine %||% "")[1],
+      code = "PYBENCH_OUTPUT_INVALID", phase = "promotion")
+    observed <- .wb_operation_pack_v3_model_tree_manifest(source_abs,
+      tree$engine, tree$model_type, tree$primary_path,
+      code = "PYBENCH_OUTPUT_INVALID", phase = "promotion")
+    .wb_assert(identical(observed, tree),
+      "Contained model tree changed before promotion staging.")
+    payload <- .wb_operation_pack_v3_model_payload_identity(observed)
+    .wb_assert(is.null(prim$model_payload_manifest_identity) || identical(
+      payload, prim$model_payload_manifest_identity),
+      "Contained model payload identity changed before promotion staging.")
+    already <- names(workspace$mappings)[vapply(workspace$mappings,
+      function(mapping) identical(as.character(mapping$source %||% "")[1],
+        source_abs), logical(1))]
+    if (length(already)) return(invisible(workspace))
+    final_rel <- file.path("artifact_models", workspace$commit_id,
+      paste0("model_tree_", tree$manifest_identity$sha256))
+    pending <- .wb_promotion_workspace_path(workspace, final_rel)
+    workspace$mappings[[final_rel]]$source <- source_abs
+    .wb_operation_pack_v3_copy_model_tree(source_abs, tree, pending)
+    return(invisible(workspace))
+  }
+  stage_rel <- .wb_path_relative_to_root(source_abs, staging_bundle$dir)
+  if (!is.null(stage_rel) && nzchar(stage_rel)) {
+    .wb_prepare_staged_payload(staging_bundle, workspace, stage_rel)
+    return(invisible(workspace))
+  }
   base_rel <- .wb_path_relative_to_root(source_abs, bundle$dir)
   if (!is.null(base_rel)) return(invisible(workspace))
-
-  stage_rel <- .wb_path_relative_to_root(source_abs, staging_bundle$dir)
   .wb_assert(!is.null(stage_rel) && nzchar(stage_rel), paste0(
     "model_ref promotion may only retain bundle-owned or session-staged payloads: ", model_path
   ))
-  .wb_prepare_staged_payload(staging_bundle, workspace, stage_rel)
   invisible(workspace)
 }
 
@@ -164,6 +193,12 @@
   if (nrow(sm) && "model_path" %in% names(sm)) {
     paths <- unique(as.character(sm$model_path))
     for (path in paths[nzchar(paths)]) {
+      staged <- tryCatch(.wb_bundle_path_require(staging_bundle, path,
+        expected_type = "either", must_exist = TRUE,
+        purpose = "staged space model"), error = function(e) NULL)
+      if (!is.null(staged) && !is.null(
+          .wb_promotion_workspace_final_rel_for_source(workspace, staged)))
+        next
       durable <- tryCatch(.wb_bundle_path_require(bundle, path,
         expected_type = "either", must_exist = TRUE,
         purpose = "durable space model"), error = function(e) NULL)
@@ -319,7 +354,8 @@
 
 .wb_materialization_primitive <- function(workspace, prim) {
   if (!.wb_is_primitive(prim) || !identical(as.character(prim$kind), "model_ref")) return(prim)
-  model_path <- as.character(prim$model_path %||% "")[1]
+  model_path <- as.character(prim$model_tree_root %||%
+    prim$model_path %||% "")[1]
   if (!nzchar(model_path)) return(prim)
 
   mapped_rel <- .wb_promotion_workspace_final_rel_for_source(workspace, model_path)
@@ -334,6 +370,8 @@
     "Could not map model_ref payload into durable bundle storage: ", model_path
   ))
   prim$model_path <- as.character(mapped_rel)[1]
+  if (!is.null(prim$model_tree_manifest))
+    prim$model_tree_root <- as.character(mapped_rel)[1]
   prim
 }
 
@@ -446,6 +484,18 @@
   if (isTRUE(staged_model)) .wb_ensure_space_models_table(dst)
   .wb_copy_db_rows(src, dst, "spaces", "space_id = ?", list(space_id))
   .wb_copy_db_rows(src, dst, "space_payloads", "space_id = ?", list(space_id))
-  .wb_copy_db_rows(src, dst, "space_models", "space_id = ?", list(space_id))
+  if (isTRUE(staged_model)) {
+    model <- DBI::dbGetQuery(src,
+      "SELECT * FROM space_models WHERE space_id = ?;", params = list(space_id))
+    if (!is.null(workspace)) {
+      staged_path <- .wb_bundle_path_require(staging_bundle,
+        as.character(model$model_path[[1L]]), expected_type = "either",
+        must_exist = TRUE, purpose = "staged space model")
+      mapped <- .wb_promotion_workspace_final_rel_for_source(workspace,
+        staged_path)
+      if (!is.null(mapped)) model$model_path[[1L]] <- mapped
+    }
+    .wb_db_append_chunked(dst, "space_models", model)
+  }
   invisible(TRUE)
 }

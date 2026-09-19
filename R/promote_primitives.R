@@ -1069,10 +1069,44 @@ wb_promote_analysis <- function(bundle,
 
   artifact_id <- .wb_new_artifact_id("model_ref", bundle)
   model_path <- as.character(prim$model_path %||% "")[1]
+  tree_manifest <- prim$model_tree_manifest %||% NULL
+  tree_root <- as.character(prim$model_tree_root %||% model_path)[1]
+  primary_path <- as.character(prim$model_primary_path %||% "")[1]
+  payload_manifest_identity <- prim$model_payload_manifest_identity %||% NULL
   if (!is.null(prim$model_obj)) {
     .wb_assert(inherits(workspace, "wb_promotion_workspace"), "In-memory model_ref promotion requires a promotion workspace.")
     stored_model_path <- file.path("artifact_models", paste0(artifact_id, ".rds"))
     saveRDS(prim$model_obj, .wb_promotion_workspace_path(workspace, stored_model_path), version = 3)
+  } else if (!is.null(tree_manifest)) {
+    .wb_assert(inherits(workspace, "wb_promotion_workspace"),
+      "Contained model tree promotion requires a promotion workspace.")
+    .wb_operation_pack_v3_assert_model_tree_manifest(tree_manifest,
+      engine, if (nzchar(model_type)) model_type else engine,
+      code = "PYBENCH_OUTPUT_INVALID", phase = "promotion")
+    .wb_assert(nzchar(tree_root),
+      "Contained model tree promotion requires its authenticated root.")
+    mapped_rel <- .wb_promotion_workspace_final_rel_for_source(workspace,
+      tree_root)
+    if (is.null(mapped_rel) && !.wb_path_is_absolute(tree_root) &&
+        !is.null(workspace$mappings[[tree_root]])) mapped_rel <- tree_root
+    .wb_assert(!is.null(mapped_rel) && nzchar(mapped_rel),
+      "Contained model tree root was not staged into durable storage.")
+    pending <- workspace$mappings[[mapped_rel]]$pending %||% NULL
+    .wb_assert(!is.null(pending) && dir.exists(pending),
+      "Contained model tree pending payload is missing.")
+    observed <- .wb_operation_pack_v3_model_tree_manifest(pending, engine,
+      if (nzchar(model_type)) model_type else engine,
+      tree_manifest$primary_path,
+      code = "PYBENCH_OUTPUT_INVALID", phase = "promotion")
+    .wb_assert(identical(observed, tree_manifest),
+      "Contained model tree changed before durable promotion.")
+    observed_payload <- .wb_operation_pack_v3_model_payload_identity(observed)
+    .wb_assert(is.null(payload_manifest_identity) || identical(
+      observed_payload, payload_manifest_identity),
+      "Contained model payload identity changed before durable promotion.")
+    stored_model_path <- mapped_rel
+    primary_path <- tree_manifest$primary_path
+    payload_manifest_identity <- observed_payload
   } else {
     if (!nzchar(model_path) && identical(engine, "uwot") && inherits(workspace, "wb_promotion_workspace")) {
       sm <- DBI::dbGetQuery(con, "SELECT model_path FROM space_models WHERE space_id = ?;", params = list(space_id))
@@ -1149,6 +1183,14 @@ wb_promote_analysis <- function(bundle,
     linkage_json = if (is.null(prim$model_linkage)) NA_character_ else
       jsonlite::toJSON(prim$model_linkage, auto_unbox = TRUE, null = "null",
         digits = NA),
+    model_primary_path = if (is.null(tree_manifest)) NA_character_ else
+      primary_path,
+    model_tree_manifest_json = if (is.null(tree_manifest)) NA_character_ else
+      jsonlite::toJSON(tree_manifest, auto_unbox = TRUE, null = "null",
+        digits = NA),
+    payload_manifest_identity_json = if (is.null(tree_manifest))
+      NA_character_ else jsonlite::toJSON(payload_manifest_identity,
+        auto_unbox = TRUE, null = "null", digits = NA),
     stringsAsFactors = FALSE
   ), chunk_size = 1000L)
 

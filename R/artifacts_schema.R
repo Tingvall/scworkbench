@@ -1,4 +1,20 @@
 .wb_create_artifacts_schema <- function(con) {
+  ensure_model_tree_columns <- function() {
+    columns <- c(
+      model_primary_path = "TEXT",
+      model_tree_manifest_json = "TEXT",
+      payload_manifest_identity_json = "TEXT"
+    )
+    for (column in names(columns)) {
+      if (!.wb_db_has_column(con, "artifact_model_ref", column)) {
+        DBI::dbExecute(con, paste0(
+          "ALTER TABLE artifact_model_ref ADD COLUMN ", column, " ",
+          columns[[column]], ";"
+        ))
+      }
+    }
+    invisible(TRUE)
+  }
   if (.wb_schema_component_is_current(con, c(
     "artifacts", "artifact_labels", "artifact_pseudotime", "artifact_relation_rows",
     "artifact_curves_2d", "artifact_space_path_meta", "artifact_space_path_rows",
@@ -8,6 +24,7 @@
     if (!.wb_db_has_column(con, "artifact_model_ref", "linkage_json"))
       DBI::dbExecute(con,
         "ALTER TABLE artifact_model_ref ADD COLUMN linkage_json TEXT;")
+    ensure_model_tree_columns()
     return(invisible(TRUE))
   }
   # core artifacts registry
@@ -141,6 +158,7 @@
     DBI::dbExecute(con,
       "ALTER TABLE artifact_model_ref ADD COLUMN linkage_json TEXT;")
   }
+  ensure_model_tree_columns()
 
   # generic tabular outputs (feature_table / obs_table)
   DBI::dbExecute(con, "

@@ -42,6 +42,27 @@ self-identity. Its payload-manifest identity uses
 identity and ordered `scworkbench.operation_pack.payload_file.v1` entry
 identities. Physical byte identity is not replay equivalence.
 
+## Durable promotion and transfer
+
+The complete authenticated tree is the durable payload unit. Promotion copies
+every manifest entry into commit-owned `artifact_models/` storage and retains
+the tree root, primary relative path, complete manifest, payload-manifest
+identity, and model linkage. Artifact reload recomputes the tree and payload
+identities before returning a `model_ref`; paths outside those retained
+records are not trusted. Absolute execution or staging paths are convenience
+locations only and never enter the manifest, payload, linkage, descriptor, or
+replay identities.
+
+Successor execution copies every retained entry, preserving relative paths,
+into a new private read tree and revalidates the complete manifest before and
+after pack dispatch. The pack learns the retained primary relative path and
+can access only declared entries in that private copy. Historical single-file
+`model_ref` artifacts are presented as one-entry trees at this reader boundary
+without rewriting their bundle rows. Missing, extra, corrupt, escaped,
+duplicated, substituted, or linked entries and an unauthenticated primary path
+fail before dispatch and publication. Consequently the contract survives a
+physical bundle relocation without any identity change.
+
 ## Request grants
 
 - `contained_model_write_grant.v1` binds the output, engine/model type,
