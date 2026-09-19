@@ -13,22 +13,22 @@
 test_geneprograms_catalog_activation_orders_contract <- function() {
   baseline <- .geneprograms_registry_snapshot()
   on.exit(.geneprograms_registry_restore(baseline), add = TRUE)
-  stopifnot(length(wb_list_ops()) == 39L)
+  stopifnot(length(wb_list_ops()) == 37L)
   none <- wb_operation_catalog_identity()
 
   contract_test_activate_statistics_pack()
-  stopifnot(length(wb_list_ops()) == 45L)
+  stopifnot(length(wb_list_ops()) == 43L)
   statistics <- wb_operation_catalog_identity()
   contract_test_activate_geneprograms_pack()
-  stopifnot(length(wb_list_ops()) == 55L)
+  stopifnot(length(wb_list_ops()) == 53L)
   statistics_then_geneprograms <- wb_operation_catalog_identity()
 
   .geneprograms_registry_restore(baseline)
   contract_test_activate_geneprograms_pack()
-  stopifnot(length(wb_list_ops()) == 49L)
+  stopifnot(length(wb_list_ops()) == 47L)
   geneprograms <- wb_operation_catalog_identity()
   contract_test_activate_statistics_pack()
-  stopifnot(length(wb_list_ops()) == 55L)
+  stopifnot(length(wb_list_ops()) == 53L)
   geneprograms_then_statistics <- wb_operation_catalog_identity()
   stopifnot(identical(statistics_then_geneprograms,
       geneprograms_then_statistics),
@@ -47,7 +47,7 @@ test_geneprograms_catalog_activation_orders_contract <- function() {
     lib.loc = .contract_test_geneprograms_state$library)
   stopifnot(identical(duplicate$identity$pack_sha256,
     wb_operation_pack_inspect("scwbgeneprograms")$identity$pack_sha256),
-    length(wb_list_ops()) == 55L)
+    length(wb_list_ops()) == 53L)
   TRUE
 }
 
