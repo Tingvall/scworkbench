@@ -32,18 +32,19 @@ test_space_cell_identity_contract <- function() {
   long_default <- wb_space(b, "long_identity")
   stopifnot(identical(rownames(long_default), present), nrow(long_default) == 3L, !anyNA(long_default))
   converted <- .wb_as_coord_matrix(wide_default)
-  pseudobulk_converted <- .wb_space_to_matrix(wide_default, requested_cells = rev(present))
+  typed_space_converted <- .wb_operation_pack_v3_space_matrix(
+    wb_space(b, "wide_identity", cells = rev(present)))
   scvi_converted <- .wb_scvi_space_matrix(b, "wide_identity", rev(present))
   stopifnot(
     identical(rownames(converted), present),
-    identical(rownames(pseudobulk_converted), rev(present)),
+    identical(rownames(typed_space_converted), rev(present)),
     identical(rownames(scvi_converted), rev(present)),
-    is.numeric(converted), is.numeric(pseudobulk_converted), is.numeric(scvi_converted)
+    is.numeric(converted), is.numeric(typed_space_converted),
+    is.numeric(scvi_converted)
   )
 
   # Consumer audit: every distinct wb_space conversion route is either the
-  # canonical converter, the tested kNN-pseudobulk adapter, or explicit
-  # cell-id alignment at the Python handoff boundary.
+  # canonical converter or explicit cell-id alignment at a typed handoff.
   converter_consumers <- list(
     geometry = wb_op_knn_graph,
     slingshot_fit = .wb_slingshot_prepare_fit,
