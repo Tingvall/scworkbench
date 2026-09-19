@@ -4,7 +4,12 @@
     "artifact_curves_2d", "artifact_space_path_meta", "artifact_space_path_rows",
     "artifact_umap_model", "artifact_model_ref", "artifact_tables",
     "artifact_table_rows"
-  ))) return(invisible(TRUE))
+  ))) {
+    if (!.wb_db_has_column(con, "artifact_model_ref", "linkage_json"))
+      DBI::dbExecute(con,
+        "ALTER TABLE artifact_model_ref ADD COLUMN linkage_json TEXT;")
+    return(invisible(TRUE))
+  }
   # core artifacts registry
   DBI::dbExecute(con, "
     CREATE TABLE IF NOT EXISTS artifacts (
@@ -132,6 +137,10 @@
   ")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_model_ref_engine ON artifact_model_ref(engine);")
   DBI::dbExecute(con, "CREATE INDEX IF NOT EXISTS idx_art_model_ref_space ON artifact_model_ref(model_space_id);")
+  if (!.wb_db_has_column(con, "artifact_model_ref", "linkage_json")) {
+    DBI::dbExecute(con,
+      "ALTER TABLE artifact_model_ref ADD COLUMN linkage_json TEXT;")
+  }
 
   # generic tabular outputs (feature_table / obs_table)
   DBI::dbExecute(con, "

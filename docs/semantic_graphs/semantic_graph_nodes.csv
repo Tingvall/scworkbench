@@ -197,8 +197,6 @@
 "op:trajectory_smooth","op","trajectory_smooth","Trajectory Feature Smoothing","Summarize per-feature expression along trajectory pseudotime into reusable trend tables."
 "op:trajectory_space_path_segment","op","trajectory_space_path_segment","Trajectory space-path segment","Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership."
 "op:trajectory_vector_smooth","op","trajectory_vector_smooth","Trajectory Signal Smoothing","Summarize cell-level signal families along trajectory pseudotime into reusable trend tables."
-"op:umap_fit","op","umap_fit","UMAP fit (train model)","Fit a UMAP model on a space and store it for future projection."
-"op:umap_transform","op","umap_transform","UMAP transform (project cells)","Project cells into an existing UMAP using a stored model."
 "parameter:bootstrap_n","parameter","bootstrap_n","Bootstrap Replicate Count","Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals."
 "parameter:cell_set","parameter","cell_set","Cell Set / Analysis Universe","Restricts the cells considered by an op. A durable named set is a typed scientific input with role-specific source/effective membership identity, not a cosmetic filter."
 "parameter:ci_level","parameter","ci_level","Confidence Interval Level","Nominal confidence level for bootstrap confidence bands."

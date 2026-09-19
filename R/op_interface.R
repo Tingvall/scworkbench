@@ -92,6 +92,7 @@ wb_list_ops <- function() {
 #' @export
 wb_op_interface <- function(op_name, bundle = NULL) {
   op_name <- .wb_operation_name_resolve(op_name)
+  operation_short_name <- sub("^.*::", "", op_name)
   reg <- .wb_op_interface_registry()
 
   if (!op_name %in% names(reg)) {
@@ -104,7 +105,7 @@ wb_op_interface <- function(op_name, bundle = NULL) {
   if (is.null(spec$inputs)) spec$inputs <- list()
 
   # ---- kill legacy umap_transform fields (old spec) ----
-  if (identical(op_name, "umap_transform")) {
+  if (identical(operation_short_name, "umap_transform")) {
 
     # If old input block exists, remove it (we use model_space_id instead)
     spec$inputs$model_space <- NULL
@@ -144,7 +145,7 @@ wb_op_interface <- function(op_name, bundle = NULL) {
   spec$inputs$cell_set$non_empty <- TRUE
 
   # ---- op-specific dynamic inputs (bundle-aware) ----
-  if (!is.null(bundle) && identical(op_name, "umap_transform")) {
+  if (!is.null(bundle) && identical(operation_short_name, "umap_transform")) {
 
     # 1) model choices: spaces that have a stored model
     model_spaces <- character(0)
@@ -166,7 +167,10 @@ wb_op_interface <- function(op_name, bundle = NULL) {
       spec$inputs$model$default <- if (length(model_spaces)) model_spaces[1] else ""
     }
     if (!length(model_spaces) && is.null(spec$inputs$model$help)) {
-      spec$inputs$model$help <- "No stored space models found in this bundle. Run umap_fit first."
+      spec$inputs$model$help <- paste0(
+        "No stored space models found in this bundle. Run ",
+        "scwbrepresentation::umap_fit from an activated representation pack first."
+      )
     }
 
   }

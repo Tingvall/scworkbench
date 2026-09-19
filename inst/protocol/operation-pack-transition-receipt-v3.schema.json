@@ -284,6 +284,13 @@
         "$ref": "#/$defs/publication_observation"
       },
       "minItems": 1
+    },
+    "model_payload_reads": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contained_model_read_observation"
+      },
+      "minItems": 1
     }
   },
   "allOf": [
@@ -2818,6 +2825,9 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "contained_model_tree": {
+              "$ref": "#/$defs/contained_model_tree_observation"
             }
           }
         },
@@ -6132,6 +6142,186 @@
       }
     },
     "publication_observation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "publication_grant_identity",
+            "mode",
+            "preimage_identity",
+            "output_observed_descriptor_identity",
+            "closure_output_identities",
+            "status",
+            "observation_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.observed_materialization_publication.v1"
+            },
+            "publication_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "mode": {
+              "enum": [
+                "add",
+                "replace"
+              ]
+            },
+            "preimage_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "output_observed_descriptor_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "closure_output_identities": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "observed_descriptor_identity"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "observed_descriptor_identity": {
+                    "$ref": "#/$defs/identity"
+                  }
+                }
+              },
+              "minItems": 1
+            },
+            "status": {
+              "const": "validated_not_published"
+            },
+            "observation_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/space_2d_publication_observation"
+        }
+      ]
+    },
+    "contained_model_tree_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "engine",
+        "model_type",
+        "primary_path",
+        "file_count",
+        "total_size",
+        "tree_manifest_identity",
+        "payload_manifest_identity",
+        "source_space_binding_identity",
+        "paired_space_observed_descriptor_identity",
+        "status",
+        "observation_identity"
+      ],
+      "properties": {
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "total_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tree_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_space_binding_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "paired_space_observed_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "status": {
+          "const": "validated_not_published"
+        },
+        "observation_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "contained_model_read_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "grant_identity",
+        "input_descriptor_identity",
+        "model_linkage_identity",
+        "payload_manifest_identity",
+        "engine",
+        "model_type",
+        "use_count",
+        "integrity_status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.observed_contained_model_read.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "input_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_linkage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "use_count": {
+          "const": 1
+        },
+        "integrity_status": {
+          "const": "unchanged"
+        },
+        "observation_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "space_2d_publication_observation": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -6139,14 +6329,17 @@
         "publication_grant_identity",
         "mode",
         "preimage_identity",
-        "output_observed_descriptor_identity",
+        "source_model_binding_identity",
+        "candidate_observed_descriptor_identity",
+        "selected_cell_order_identity",
+        "expected_final_cell_order_identity",
         "closure_output_identities",
         "status",
         "observation_identity"
       ],
       "properties": {
         "schema": {
-          "const": "scworkbench.operation_pack.observed_materialization_publication.v1"
+          "const": "scworkbench.operation_pack.observed_space_2d_publication.v1"
         },
         "publication_grant_identity": {
           "$ref": "#/$defs/identity"
@@ -6154,13 +6347,23 @@
         "mode": {
           "enum": [
             "add",
-            "replace"
+            "selected_cell_merge",
+            "full_replace"
           ]
         },
         "preimage_identity": {
           "$ref": "#/$defs/identity"
         },
-        "output_observed_descriptor_identity": {
+        "source_model_binding_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "candidate_observed_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "selected_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "expected_final_cell_order_identity": {
           "$ref": "#/$defs/identity"
         },
         "closure_output_identities": {

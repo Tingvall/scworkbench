@@ -52,8 +52,6 @@ test_space_cell_identity_contract <- function() {
     monocle3_project = wb_op_monocle3_project,
     palantir_project = wb_op_palantir_project,
     space_path = .wb_space_path_coord_matrix,
-    umap_fit = wb_op_umap_fit,
-    umap_transform = wb_op_umap_transform,
     peakvi_fit = wb_op_peakvi_fit,
     peakvi_project = wb_op_peakvi_project,
     scvi = .wb_scvi_space_matrix

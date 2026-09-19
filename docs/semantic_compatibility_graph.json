@@ -1,21 +1,9 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 307,
-  "edge_count": 764,
+  "node_count": 305,
+  "edge_count": 749,
   "nodes": [
-    {
-      "record_id": "op:umap_fit",
-      "record_type": "op",
-      "name": "umap_fit",
-      "title": "UMAP fit (train model)"
-    },
-    {
-      "record_id": "op:umap_transform",
-      "record_type": "op",
-      "name": "umap_transform",
-      "title": "UMAP transform (project cells)"
-    },
     {
       "record_id": "op:chromvar",
       "record_type": "op",
@@ -1848,96 +1836,6 @@
     }
   ],
   "edges": [
-    {
-      "from": "primitive:space",
-      "to": "op:umap_fit",
-      "edge_type": "consumed_by",
-      "label": "input:space"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:space"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "parameter:seed",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:seed"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "primitive:model_ref",
-      "edge_type": "produces",
-      "label": "output:model"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "primitive:space_2d",
-      "edge_type": "produces",
-      "label": "output:space_2d"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "artifact_type:space_2d",
-      "edge_type": "promotes_as",
-      "label": "promotable:space_2d"
-    },
-    {
-      "from": "op:umap_fit",
-      "to": "artifact_type:model_ref",
-      "edge_type": "promotes_as",
-      "label": "promotable:model"
-    },
-    {
-      "from": "primitive:model_ref",
-      "to": "op:umap_transform",
-      "edge_type": "consumed_by",
-      "label": "input:model"
-    },
-    {
-      "from": "op:umap_transform",
-      "to": "parameter:model",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:model"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:umap_transform",
-      "edge_type": "consumed_by",
-      "label": "input:in_space"
-    },
-    {
-      "from": "op:umap_transform",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:umap_transform",
-      "to": "parameter:overwrite",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:overwrite"
-    },
-    {
-      "from": "op:umap_transform",
-      "to": "primitive:space_2d",
-      "edge_type": "produces",
-      "label": "output:space_2d"
-    },
-    {
-      "from": "op:umap_transform",
-      "to": "artifact_type:space_2d",
-      "edge_type": "promotes_as",
-      "label": "promotable:space_2d"
-    },
     {
       "from": "primitive:matrix",
       "to": "op:chromvar",

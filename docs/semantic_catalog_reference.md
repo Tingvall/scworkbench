@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 307
+Record count: 305
 
-Graph edges: 764
+Graph edges: 749
 
 ## artifact_type
 
@@ -991,18 +991,6 @@ Title: Capsule Output Path
 Description: Resolve and content-verify one relocatable bundle-owned capsule output path.
 
 ## op
-
-### `op:umap_fit`
-
-Title: UMAP fit (train model)
-
-Description: Fit a UMAP model on a space and store it for future projection.
-
-### `op:umap_transform`
-
-Title: UMAP transform (project cells)
-
-Description: Project cells into an existing UMAP using a stored model.
 
 ### `op:chromvar`
 

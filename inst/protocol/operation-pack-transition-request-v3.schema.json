@@ -263,6 +263,13 @@
         "$ref": "#/$defs/parameter_axis_grant"
       },
       "minItems": 1
+    },
+    "model_payload_grants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contained_model_read_grant"
+      },
+      "minItems": 1
     }
   },
   "$defs": {
@@ -2405,6 +2412,9 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "contained_model_write_grant": {
+              "$ref": "#/$defs/contained_model_write_grant"
             }
           }
         },
@@ -3844,6 +3854,27 @@
                     }
                   }
                 }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "model_payload_name",
+                  "reader",
+                  "grant_identity"
+                ],
+                "properties": {
+                  "model_payload_name": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "reader": {
+                    "const": "read_contained_model_payload"
+                  },
+                  "grant_identity": {
+                    "$ref": "#/$defs/self_identity"
+                  }
+                }
               }
             ]
           }
@@ -3938,6 +3969,13 @@
           }
         },
         "parameter_axis_grant_identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1
+        },
+        "model_payload_grant_identities": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/identity"
@@ -4829,70 +4867,77 @@
       }
     },
     "materialization_publication_grant": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema",
-        "output",
-        "promotion_group",
-        "closure_outputs",
-        "target_kind",
-        "target_id",
-        "mode",
-        "conflict_policy",
-        "preimage",
-        "publication_grant_identity"
-      ],
-      "properties": {
-        "schema": {
-          "const": "scworkbench.operation_pack.materialization_publication_grant.v1"
-        },
-        "output": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "promotion_group": {
-          "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$"
-        },
-        "closure_outputs": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^[a-z][a-z0-9_]*$"
-          },
-          "minItems": 1,
-          "uniqueItems": true
-        },
-        "target_kind": {
-          "enum": [
-            "matrix",
-            "space"
-          ]
-        },
-        "target_id": {
-          "$ref": "#/$defs/id"
-        },
-        "mode": {
-          "enum": [
-            "add",
-            "replace"
-          ]
-        },
-        "conflict_policy": {
-          "enum": [
-            "require_absent_v1",
-            "replace_exact_preimage_v1"
-          ]
-        },
-        "preimage": {
+      "oneOf": [
+        {
           "type": "object",
-          "minProperties": 2
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "output",
+            "promotion_group",
+            "closure_outputs",
+            "target_kind",
+            "target_id",
+            "mode",
+            "conflict_policy",
+            "preimage",
+            "publication_grant_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.materialization_publication_grant.v1"
+            },
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "promotion_group": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "closure_outputs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "target_kind": {
+              "enum": [
+                "matrix",
+                "space"
+              ]
+            },
+            "target_id": {
+              "$ref": "#/$defs/id"
+            },
+            "mode": {
+              "enum": [
+                "add",
+                "replace"
+              ]
+            },
+            "conflict_policy": {
+              "enum": [
+                "require_absent_v1",
+                "replace_exact_preimage_v1"
+              ]
+            },
+            "preimage": {
+              "type": "object",
+              "minProperties": 2
+            },
+            "publication_grant_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
         },
-        "publication_grant_identity": {
-          "$ref": "#/$defs/self_identity"
+        {
+          "$ref": "#/$defs/space_2d_publication_grant"
         }
-      }
+      ]
     },
     "source_fragment_schedule": {
       "type": "object",
@@ -5180,6 +5225,542 @@
           "$ref": "#/$defs/identity"
         },
         "grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "contained_model_tree_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "engine",
+        "model_type",
+        "primary_path",
+        "file_count",
+        "total_size",
+        "entries",
+        "manifest_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.contained_model_tree_manifest.v1"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "total_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "size",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "manifest_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "contained_model_write_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "output",
+        "engine",
+        "model_type",
+        "primary_path",
+        "relative_root",
+        "source_space",
+        "paired_space_output",
+        "limits",
+        "write_grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.contained_model_write_grant.v1"
+        },
+        "output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+        },
+        "relative_root": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+        },
+        "source_space": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input_name",
+            "input_descriptor_identity",
+            "content_identity",
+            "cell_order_identity",
+            "dimensions",
+            "selected_dimension_count",
+            "selected_dimension_order_identity"
+          ],
+          "properties": {
+            "input_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "input_descriptor_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "selected_dimension_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "selected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        "paired_space_output": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "allocated_id",
+            "expected_dimensions",
+            "expected_cell_order_identity"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "allocated_id": {
+              "$ref": "#/$defs/id"
+            },
+            "expected_dimensions": {
+              "$ref": "#/$defs/dimensions_2"
+            },
+            "expected_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maximum_file_count",
+            "maximum_total_bytes"
+          ],
+          "properties": {
+            "maximum_file_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "maximum_total_bytes": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "write_grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "contained_model_read_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "input_name",
+        "reader",
+        "engine",
+        "model_type",
+        "input_descriptor_identity",
+        "model_content_identity",
+        "model_linkage_identity",
+        "contained_payload_identity",
+        "payload_manifest_identity",
+        "tree_manifest",
+        "source_space_binding",
+        "relative_root",
+        "access",
+        "call_discipline",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.contained_model_read_grant.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "input_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "reader": {
+          "const": "read_contained_model_payload"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "input_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_linkage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "contained_payload_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "tree_manifest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "engine",
+            "model_type",
+            "primary_path",
+            "file_count",
+            "total_size",
+            "entries",
+            "manifest_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.contained_model_tree_manifest.v1"
+            },
+            "engine": {
+              "type": "string",
+              "minLength": 1
+            },
+            "model_type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "primary_path": {
+              "type": "string",
+              "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+            },
+            "file_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "total_size": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "path",
+                  "size",
+                  "sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string",
+                    "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+                  },
+                  "size": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "sha256": {
+                    "$ref": "#/$defs/sha256"
+                  }
+                }
+              },
+              "minItems": 1
+            },
+            "manifest_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
+        },
+        "source_space_binding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input_name",
+            "input_descriptor_identity",
+            "selected_dimension_count",
+            "selected_dimension_order_identity"
+          ],
+          "properties": {
+            "input_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "input_descriptor_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "selected_dimension_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "selected_dimension_order_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        "relative_root": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+        },
+        "access": {
+          "const": "verified_private_copy_read_only_v1"
+        },
+        "call_discipline": {
+          "const": "exactly_once"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "space_2d_publication_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "output",
+        "promotion_group",
+        "closure_outputs",
+        "target_kind",
+        "target_id",
+        "mode",
+        "conflict_policy",
+        "overwrite_existing_cells",
+        "selected_cells",
+        "recipient_cell_axis_identity",
+        "expected_final_cell_order_identity",
+        "source_model_binding",
+        "preimage",
+        "publication_grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.space_2d_publication_grant.v1"
+        },
+        "output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "promotion_group": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "closure_outputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "target_kind": {
+          "const": "space_2d"
+        },
+        "target_id": {
+          "$ref": "#/$defs/id"
+        },
+        "mode": {
+          "enum": [
+            "add",
+            "selected_cell_merge",
+            "full_replace"
+          ]
+        },
+        "conflict_policy": {
+          "enum": [
+            "require_absent_v1",
+            "merge_exact_preimage_v1",
+            "replace_exact_preimage_v1"
+          ]
+        },
+        "overwrite_existing_cells": {
+          "type": "boolean"
+        },
+        "selected_cells": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "order_identity",
+            "membership_identity"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "membership_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        "recipient_cell_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "expected_final_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_model_binding": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source",
+                "name",
+                "engine",
+                "model_type",
+                "model_linkage_identity",
+                "contained_payload_identity"
+              ],
+              "properties": {
+                "source": {
+                  "const": "input"
+                },
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "engine": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "model_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "model_linkage_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "contained_payload_identity": {
+                  "$ref": "#/$defs/identity"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source",
+                "name",
+                "allocated_id",
+                "engine",
+                "model_type",
+                "source_space_binding_identity"
+              ],
+              "properties": {
+                "source": {
+                  "const": "sibling_output"
+                },
+                "name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "allocated_id": {
+                  "$ref": "#/$defs/id"
+                },
+                "engine": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "model_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source_space_binding_identity": {
+                  "$ref": "#/$defs/identity"
+                }
+              }
+            }
+          ]
+        },
+        "preimage": {
+          "type": "object",
+          "minProperties": 2
+        },
+        "publication_grant_identity": {
           "$ref": "#/$defs/self_identity"
         }
       }

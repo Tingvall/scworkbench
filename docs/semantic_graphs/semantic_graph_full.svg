@@ -50,7 +50,6 @@
 <line x1="1690" y1="391" x2="960" y2="2335" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:trajectory_signature_smooth</title></line>
 <line x1="1690" y1="391" x2="960" y2="2407" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:trajectory_smooth</title></line>
 <line x1="1690" y1="391" x2="960" y2="2551" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:trajectory_vector_smooth</title></line>
-<line x1="1690" y1="391" x2="960" y2="2695" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:umap_transform</title></line>
 <line x1="1690" y1="463" x2="960" y2="607" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:obs_table consumed_by op:model_bound_latent_union</title></line>
 <line x1="1690" y1="535" x2="960" y2="2047" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:path_2d_family consumed_by op:trajectory_segment_from_artifacts</title></line>
 <line x1="1690" y1="535" x2="960" y2="2479" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:path_2d_family consumed_by op:trajectory_space_path_segment</title></line>
@@ -68,8 +67,6 @@
 <line x1="1690" y1="679" x2="960" y2="1327" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:slingshot_fit</title></line>
 <line x1="1690" y1="679" x2="960" y2="1543" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:space_path_define</title></line>
 <line x1="1690" y1="679" x2="960" y2="1687" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:space_path_score</title></line>
-<line x1="1690" y1="679" x2="960" y2="2623" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:umap_fit</title></line>
-<line x1="1690" y1="679" x2="960" y2="2695" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:umap_transform</title></line>
 <line x1="1690" y1="751" x2="960" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:monocle3_project</title></line>
 <line x1="1690" y1="751" x2="960" y2="895" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:palantir_project</title></line>
 <line x1="1690" y1="751" x2="960" y2="1183" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:slingshot</title></line>
@@ -276,12 +273,6 @@
 <line x1="960" y1="2551" x2="1030" y2="1975" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth has_parameter_semantics parameter:n_bins</title></line>
 <line x1="960" y1="2551" x2="1030" y2="3055" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth has_parameter_semantics parameter:signal_keys</title></line>
 <line x1="960" y1="2551" x2="1030" y2="3847" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth has_parameter_semantics parameter:summary_fun</title></line>
-<line x1="960" y1="2623" x2="1030" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:cell_set</title></line>
-<line x1="960" y1="2623" x2="1030" y2="2983" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:seed</title></line>
-<line x1="960" y1="2623" x2="1030" y2="3559" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit has_parameter_semantics parameter:space</title></line>
-<line x1="960" y1="2695" x2="1030" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform has_parameter_semantics parameter:cell_set</title></line>
-<line x1="960" y1="2695" x2="1030" y2="1831" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform has_parameter_semantics parameter:model</title></line>
-<line x1="960" y1="2695" x2="1030" y2="2335" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform has_parameter_semantics parameter:overwrite</title></line>
 <line x1="1620" y1="103" x2="1690" y2="103" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>artifact_type:cell_vector loads_as primitive:cell_vector</title></line>
 <line x1="1620" y1="175" x2="1690" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>artifact_type:cell_vector_family loads_as primitive:cell_vector_family</title></line>
 <line x1="1620" y1="247" x2="1690" y2="247" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>artifact_type:feature_table:cell_vector_assoc loads_as primitive:feature_table</title></line>
@@ -483,9 +474,6 @@
 <line x1="960" y1="2479" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment produces primitive:obs_table</title></line>
 <line x1="960" y1="2551" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth produces primitive:obs_table</title></line>
 <line x1="960" y1="2551" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth produces primitive:obs_table</title></line>
-<line x1="960" y1="2623" x2="1690" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit produces primitive:model_ref</title></line>
-<line x1="960" y1="2623" x2="1690" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit produces primitive:space_2d</title></line>
-<line x1="960" y1="2695" x2="1690" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform produces primitive:space_2d</title></line>
 <line x1="960" y1="175" x2="1360" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:chromvar promotes_as artifact_type:cell_vector_family</title></line>
 <line x1="960" y1="175" x2="1360" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:chromvar promotes_as artifact_type:cell_vector_family</title></line>
 <line x1="960" y1="391" x2="1360" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:knn_neighbors promotes_as artifact_type:cell_vector_family</title></line>
@@ -526,9 +514,6 @@
 <line x1="960" y1="2479" x2="1360" y2="103" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment promotes_as artifact_type:cell_vector</title></line>
 <line x1="960" y1="2479" x2="1360" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment promotes_as artifact_type:cell_vector_family</title></line>
 <line x1="960" y1="2479" x2="1360" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment promotes_as artifact_type:cell_vector_family</title></line>
-<line x1="960" y1="2623" x2="1360" y2="823" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit promotes_as artifact_type:model_ref</title></line>
-<line x1="960" y1="2623" x2="1360" y2="5575" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit promotes_as artifact_type:space_2d</title></line>
-<line x1="960" y1="2695" x2="1360" y2="5575" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform promotes_as artifact_type:space_2d</title></line>
 <line x1="300" y1="103" x2="1360" y2="103" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:cluster_markers_pathways recipe_produces artifact_type:cell_vector</title></line>
 <line x1="300" y1="103" x2="1360" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:cluster_markers_pathways recipe_produces artifact_type:feature_table:markers_topn</title></line>
 <line x1="300" y1="103" x2="1360" y2="3199" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:cluster_markers_pathways recipe_produces artifact_type:obs_table:pathway_enrich</title></line>
@@ -1170,10 +1155,6 @@ Summarize per-feature expression along trajectory pseudotime into reusable trend
 Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.</title><rect x="700" y="2456" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="710" y="2474" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Trajectory space-path segment</text><text x="710" y="2490" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:trajectory_space_path_segment</text></g>
 <g><title>op:trajectory_vector_smooth
 Summarize cell-level signal families along trajectory pseudotime into reusable trend tables.</title><rect x="700" y="2528" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="710" y="2546" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Trajectory Signal Smoothing</text><text x="710" y="2562" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:trajectory_vector_smooth</text></g>
-<g><title>op:umap_fit
-Fit a UMAP model on a space and store it for future projection.</title><rect x="700" y="2600" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="710" y="2618" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">UMAP fit (train model)</text><text x="710" y="2634" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:umap_fit</text></g>
-<g><title>op:umap_transform
-Project cells into an existing UMAP using a stored model.</title><rect x="700" y="2672" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="710" y="2690" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">UMAP transform (project cells)</text><text x="710" y="2706" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:umap_transform</text></g>
 <g><title>parameter:bootstrap_n
 Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals.</title><rect x="1030" y="80" width="260" height="46" rx="8" fill="#f3b6c6" stroke="#555" stroke-opacity="0.55"/><text x="1040" y="98" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Bootstrap Replicate Count</text><text x="1040" y="114" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">parameter:bootstrap_n</text></g>
 <g><title>parameter:cell_set

@@ -1,4 +1,7 @@
 test_durable_session_scvi_recovery_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   required <- c("BPCells", "Matrix")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
@@ -46,6 +49,7 @@ test_durable_session_scvi_recovery_contract <- function() {
   esc <- function(x) gsub("'", "\\\\'", x)
   code <- paste0(
     "devtools::load_all('", esc(normalizePath(".", winslash = "/", mustWork = TRUE)), "',quiet=TRUE);",
+    "wb_operation_pack_load('scwbRepresentation',lib.loc=.libPaths());",
     "b<-wb_open_bundle('", esc(bundle_dir), "');s<-wb_session_resume(b,'", esc(workspace), "');",
     "stopifnot(identical(names(s$runs),'", run_id, "'),",
     "all(c('space','model','fit_summary')%in%names(s$runs[['", run_id, "']]$outputs)));",
@@ -87,6 +91,9 @@ test_durable_session_scvi_recovery_contract <- function() {
 }
 
 test_durable_typed_scvi_umap_sibling_recovery_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   required <- c("BPCells", "Matrix", "uwot")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
@@ -155,8 +162,7 @@ test_durable_typed_scvi_umap_sibling_recovery_contract <- function() {
   parent_promotion <- wb_session_promote_current(b, parent_umap$session, outputs = list(
     wb_ref_run(parent_scvi$run$run_id, "model"),
     wb_ref_run(parent_scvi$run$run_id, "fit_summary"),
-    wb_ref_run(parent_umap$run$run_id, "model"),
-    wb_ref_run(parent_umap$run$run_id, "space_2d")
+    wb_ref_run(parent_umap$run$run_id, "model")
   ), created_by = "typed-sibling-parent")
   stopifnot(all(parent_promotion$promoted$status == "ok"))
   sid <- parent_promotion$provenance_snapshot_id
@@ -198,13 +204,14 @@ test_durable_typed_scvi_umap_sibling_recovery_contract <- function() {
   esc <- function(x) gsub("'", "\\\\'", x)
   code <- paste0(
     "devtools::load_all('", esc(normalizePath(".", winslash = "/", mustWork = TRUE)), "',quiet=TRUE);",
+    "wb_operation_pack_load('scwbRepresentation',lib.loc=.libPaths());",
     "b<-wb_open_bundle('", esc(bundle_dir), "');s<-wb_session_resume(b,'", esc(workspace), "');",
     "u<-wb_prov_run_replay_inputs(b,'", parent_umap$run$run_id, "','", sid, "')$inputs;",
     "u$space<-wb_ref_run('", sibling_scvi_id, "','space');u$space_id_out<-'rna.umap.sample_aware';",
     "fit<-wb_session_run_op(s,b,'umap_fit',inputs=u);",
     "p<-wb_session_promote_current(b,fit$session,outputs=list(",
     "wb_ref_run('", sibling_scvi_id, "','model'),wb_ref_run('", sibling_scvi_id, "','fit_summary'),",
-    "wb_ref_run(fit$run$run_id,'model'),wb_ref_run(fit$run$run_id,'space_2d')),created_by='typed-sibling-recovery');",
+    "wb_ref_run(fit$run$run_id,'model')),created_by='typed-sibling-recovery');",
     "wb_close_bundle(b);v<-wb_validate_bundle('", esc(bundle_dir), "',read_only=TRUE);",
     "b<-wb_open_bundle('", esc(bundle_dir), "',read_only=TRUE);saveRDS(list(run=fit$run,promotion=p,validation=v),'", esc(result_path), "');wb_close_bundle(b)"
   )

@@ -2287,15 +2287,19 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
                                  "Persisted replay params must be named.")
 
   op_name <- as.character(op_name %||% "")[1]
-  if (nzchar(op_name) && op_name %in% names(.wb_operation_catalog())) {
-    inputs <- .wb_prov_rehydrate_named_inputs(inputs, op_name)
-    params <- .wb_prov_rehydrate_named_inputs(params, op_name)
+  resolved_op_name <- if (nzchar(op_name)) {
+    tryCatch(.wb_operation_name_resolve(op_name), error = function(...) op_name)
+  } else op_name
+  if (nzchar(resolved_op_name) &&
+      resolved_op_name %in% names(.wb_operation_catalog())) {
+    inputs <- .wb_prov_rehydrate_named_inputs(inputs, resolved_op_name)
+    params <- .wb_prov_rehydrate_named_inputs(params, resolved_op_name)
   }
 
   # JSON/R deparsing of optional NULL parameters in older snapshots can leave
   # the literal string "NA" in runner diagnostics.  It is not an executable
   # value for a catalog parameter whose public default is NULL.
-  op_spec <- .wb_operation_catalog()[[op_name]]
+  op_spec <- .wb_operation_catalog()[[resolved_op_name]]
   if (!is.null(op_spec)) {
     op_params <- op_spec$params %||% list()
     # Runner parameter records include output diagnostics (for example PCA's
@@ -2341,13 +2345,13 @@ wb_prov_source_inputs <- function(bundle, run_id = NULL) {
     }
     merged[[nm]] <- params[[nm]]
   }
-  required_names <- if (!is.null(op_spec)) names(.wb_op(op_name)$requires %||% list()) else character()
+  required_names <- if (!is.null(op_spec)) names(.wb_op(resolved_op_name)$requires %||% list()) else character()
   has_required <- all(vapply(required_names, function(nm) {
     alias <- .wb_op_input_alias(nm)
     any(c(nm, alias, paste0(nm, "_ref"), if (!is.null(alias)) paste0(alias, "_ref") else NULL) %in% names(merged))
   }, logical(1)))
   if (!is.null(op_spec) && has_required) {
-    merged <- .wb_validate_op_inputs_contract(op_name, merged)$inputs
+    merged <- .wb_validate_op_inputs_contract(resolved_op_name, merged)$inputs
   }
   merged
 }

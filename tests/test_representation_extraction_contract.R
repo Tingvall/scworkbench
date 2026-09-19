@@ -1,6 +1,8 @@
 test_representation_methods_are_pack_owned_contract <- function() {
   migrated <- c(leiden = "scwbrepresentation::leiden",
-    pca_fit = "scwbrepresentation::pca_fit")
+    pca_fit = "scwbrepresentation::pca_fit",
+    umap_fit = "scwbrepresentation::umap_fit",
+    umap_transform = "scwbrepresentation::umap_transform")
   ops_before <- wb_list_ops()
   packs_before <- wb_operation_packs()
   identity_before <- wb_operation_catalog_identity()
@@ -26,6 +28,10 @@ test_representation_methods_are_pack_owned_contract <- function() {
   pca_dispatch <- tryCatch(wb_session_run_op(wb_session_new(), bundle,
     op_name = "pca_fit", inputs = list(matrix = "absent", min_cells = 1L)),
     error = identity)
+  umap_fit_error <- tryCatch(getFromNamespace(".wb_op", "scworkbench")(
+    "umap_fit"), error = identity)
+  umap_transform_error <- tryCatch(getFromNamespace(".wb_op", "scworkbench")(
+    "umap_transform"), error = identity)
   stopifnot(inherits(leiden_error, "wb_operation_pack_error"),
     identical(leiden_error$code, "OPERATION_PACK_REQUIRED"),
     identical(leiden_error$required_operation, migrated[["leiden"]]),
@@ -35,7 +41,12 @@ test_representation_methods_are_pack_owned_contract <- function() {
     identical(pca_error$code, "OPERATION_PACK_REQUIRED"),
     identical(pca_error$required_operation, migrated[["pca_fit"]]),
     inherits(pca_dispatch, "wb_operation_pack_error"),
-    identical(pca_dispatch$code, "OPERATION_PACK_REQUIRED"))
+    identical(pca_dispatch$code, "OPERATION_PACK_REQUIRED"),
+    inherits(umap_fit_error, "wb_operation_pack_error"),
+    identical(umap_fit_error$required_operation, migrated[["umap_fit"]]),
+    inherits(umap_transform_error, "wb_operation_pack_error"),
+    identical(umap_transform_error$required_operation,
+      migrated[["umap_transform"]]))
   stopifnot(
     identical(durable_before, getFromNamespace(
       ".wb_manifest_registry_snapshot", "scworkbench")(

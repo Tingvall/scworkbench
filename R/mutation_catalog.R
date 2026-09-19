@@ -1,8 +1,7 @@
 # Semantic inventory of scientific-state mutation ownership.
 
 .wb_mutating_op_implementations <- function() c(
-  "wb_op_umap_fit",
-  "wb_op_umap_transform", "wb_op_palantir_fit", "wb_op_palantir_project",
+  "wb_op_palantir_fit", "wb_op_palantir_project",
   "wb_op_peakvi_project", "wb_op_model_bound_latent_union", "wb_op_feature_set_import"
 )
 

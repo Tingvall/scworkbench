@@ -24,7 +24,8 @@
 }
 
 .wb_op_param_records <- function(op_name) {
-  op <- .wb_operation_catalog()[[as.character(op_name)[1]]] %||% list()
+  resolved_name <- .wb_operation_name_resolve(as.character(op_name)[1])
+  op <- .wb_operation_catalog()[[resolved_name]] %||% list()
   params <- op$params %||% list()
   if (!length(params)) return(stats::setNames(list(), character(0)))
   out <- list()

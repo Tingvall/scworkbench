@@ -21,6 +21,8 @@
     pathway_enrich = "scwbgeneprograms::pathway_enrich",
     leiden = "scwbrepresentation::leiden",
     pca_fit = "scwbrepresentation::pca_fit",
+    umap_fit = "scwbrepresentation::umap_fit",
+    umap_transform = "scwbrepresentation::umap_transform",
     cell_suffix_label = "scwbrna::cell_suffix_label",
     rna_qc_metrics = "scwbrna::rna_qc_metrics",
     hvg_select = "scwbrna::hvg_select",

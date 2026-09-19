@@ -572,37 +572,3 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$signal_table` (`obs_table`): Per-signal binned summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage signal smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_umap_fit
-#' @aliases wb_op_umap_fit
-#' @description Fit a UMAP model on a space and store it for future projection.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param source_space_id Registered source coordinate space used for fitting.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param cell_set Named bundle cell set used to resolve the analysis universe.
-#' @param dims Dims to use (e.g. 2:30).
-#' @param space_id_out Output 2D space id. Defaults to umap.<source_space>.
-#' @param n_neighbors UMAP neighborhood size.
-#' @param min_dist UMAP minimum distance.
-#' @param metric Distance metric passed to uwot.
-#' @param nn_method Nearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.
-#' @param spread UMAP spread parameter.
-#' @param seed Integer random seed used to make stochastic computation reproducible.
-#' @param verbose Whether the underlying engine emits progress output.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$model` (`model_ref`): Reference to the fitted UMAP model.; `outputs$space_2d` (`space_2d`): The fitted 2D embedding space id.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_umap_transform
-#' @aliases wb_op_umap_transform
-#' @description Project cells into an existing UMAP using a stored model.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param model_space_id Registered model-space identifier used to locate a stored projection model.
-#' @param in_space_id Registered input-space identifier expected by the stored projection model.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param cell_set Named bundle cell set used to resolve the analysis universe.
-#' @param dims Dims to use from the input space (e.g. 2:30).
-#' @param space_id_out New output space ID. Required when the fitted space already participates in promoted provenance.
-#' @param overwrite Overwrite existing projected coordinates only in unbound staging/development space.
-#' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space_2d` (`space_2d`): Projected x/y in the target UMAP space.. Promotion eligibility is declared by the operation catalog.
-NULL
-

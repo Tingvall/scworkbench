@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 133
+Record count: 131
 
-Meaningful public transformations: 62
+Meaningful public transformations: 60
 
-Exported directly guarded functions: 25
+Exported directly guarded functions: 23
 
 Exactly-one-route invariant: PASS
 
@@ -737,34 +737,6 @@ Durable mutation: false
 Boundary: `pure`
 
 Supported route: `direct_pure_computation`
-
-## `wb_op_umap_fit`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `guarded_implementation`
-
-Supported route: `registered_session_execution_and_promotion`
-
-## `wb_op_umap_transform`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `guarded_implementation`
-
-Supported route: `registered_session_execution_and_promotion`
 
 ## `wb_set_create`
 

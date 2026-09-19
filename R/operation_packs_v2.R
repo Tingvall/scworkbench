@@ -669,6 +669,13 @@
       vapply(public, `[[`, character(1), "name"))
     metadata <- if (is.na(public_index)) NULL else public[[public_index]]
     type <- as.character(metadata$type %||% .wb_operation_pack_v2_catalog_param_type(item))[1]
+    # JSON array parameters cross the protocol as lists, while the public R
+    # operator boundary should retain ordinary integral-vector ergonomics.
+    # This is a catalog projection only; wire validation remains schema-owned.
+    if (identical(type, "list") && "array" %in% as.character(unlist(
+        item$type %||% character(), use.names = FALSE)) &&
+        identical(as.character(item$items$type %||% "")[1], "integer"))
+      type <- "int_range"
     out <- list(name = name, type = type)
     if (identical(type, "string_vec") &&
         as.numeric(item$minItems %||% 0) == 0) out$allow_empty <- TRUE

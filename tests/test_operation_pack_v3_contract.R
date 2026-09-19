@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 19L)
+    length(fixture$cases) == 28L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -130,7 +130,16 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     parameter_axis_three_of_five = "grant_identity",
     source_fragment_schedule_two = "schedule_identity",
     matrix_fragment_manifest_two = "fragment_manifest_identity",
-    materialization_publication_add = "publication_grant_identity")
+    materialization_publication_add = "publication_grant_identity",
+    contained_model_tree_manifest = "manifest_identity",
+    contained_model_payload_manifest = "identity",
+    contained_model_write_grant = "write_grant_identity",
+    contained_model_read_grant = "grant_identity",
+    space_2d_publication_sibling_add = "publication_grant_identity",
+    space_2d_publication_input_merge = "publication_grant_identity",
+    contained_model_tree_observation = "observation_identity",
+    contained_model_read_observation = "observation_identity",
+    space_2d_publication_observation = "observation_identity")
   for (case in fixture$cases) {
     field <- identity_fields[[case$name]]
     stopifnot(!is.null(field), identical(case$preimage,
@@ -386,10 +395,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "3dcf92408b3dfd163075beae9d10507b973b2caecb6a0e970234673e1fa17c02",
-    "1094c78351205c3d5696262fe067ec374f2d9869af29af65abf939381a6d1bad",
-    "9d3e931228d58803a1e55289259d5139f76ffde3c9e82cb21cf7bd02682d6137",
-    "c6c97b396e1a92627b28da4b26988cb1aae38f7f07ff8989e07a7d3f0f0fe31b")
+    "185e900e222747787b8d5f2cb560dd0d30cd2d377d7c921982edf4e8772dbb6f",
+    "d6c19736f0e8a9d5d328cde695aebab1bf4b118ef752e97a6f229ca23d388626",
+    "94416a60f22c45efb73273a5f7117d8d5d275ce5997182f8f342c41d8098223f",
+    "20da3b49c59d26b55b4a67ed19f39ddc3d9cf5b4d508e77629ea24917f4e16ce")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)

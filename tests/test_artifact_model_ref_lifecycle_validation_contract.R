@@ -1,4 +1,7 @@
 test_artifact_model_ref_lifecycle_validation_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   required <- c("BPCells", "Matrix")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   python <- .wb_pybench_default_python()
@@ -52,8 +55,7 @@ test_artifact_model_ref_lifecycle_validation_contract <- function() {
     outputs = list(
       wb_ref_run(scvi_run_id, "model"),
       wb_ref_run(scvi_run_id, "fit_summary"),
-      wb_ref_run(umap_run_id, "model"),
-      wb_ref_run(umap_run_id, "space_2d")
+      wb_ref_run(umap_run_id, "model")
     )
   )
   stopifnot(all(promoted$promoted$status == "ok"))

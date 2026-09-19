@@ -231,7 +231,7 @@ joint <- wb_session_run_op(
 )
 
 display <- wb_session_run_op(
-  joint$session, integration, "umap_fit",
+  joint$session, integration, "scwbrepresentation::umap_fit",
   inputs = list(
     space = "peakvi.bdev_ko_joint",
     cell_set = "all",
@@ -248,6 +248,9 @@ after checking disjoint cells, equal dimensions, complete coverage and shared
 model identity. It does not refit or transform either group. The joint UMAP is
 a downstream display embedding; it does not itself establish biological
 mapping quality.
+
+This display step requires the independently installed and explicitly
+activated `scwbRepresentation` operation pack; it is not a core operation.
 
 ## Current boundaries
 

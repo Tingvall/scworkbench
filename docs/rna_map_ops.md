@@ -2,9 +2,10 @@
 
 The independently installed provisional `scwbRNA` operation pack supplies
 `scwbrna::matrix_log_normalize` and `scwbrna::hvg_select`; the provisional
-`scwbRepresentation` pack supplies `scwbrepresentation::pca_fit`. Core
-scworkbench supplies UMAP and the generic authenticated slice, staged
-publication, parameter-axis, promotion, and provenance boundaries. Pack
+`scwbRepresentation` pack supplies `scwbrepresentation::pca_fit`,
+`scwbrepresentation::umap_fit`, and `scwbrepresentation::umap_transform`.
+Core scworkbench supplies the generic authenticated slice, contained-model,
+staged publication, parameter-axis, promotion, and provenance boundaries. Pack
 installation is inert: activate each installed
 `inst/scworkbench/operation-pack.json` explicitly before execution.
 
@@ -99,7 +100,7 @@ The PCA space can be consumed by UMAP:
 wb_session_run_op(
   rr_pca$session,
   bundle,
-  "umap_fit",
+  "scwbrepresentation::umap_fit",
   inputs = list(
     space = "rna.pca",
     dims = 1:30,
@@ -109,7 +110,7 @@ wb_session_run_op(
 )
 ```
 
-`umap_fit` defaults to `nn_method = "nndescent"`, which requires the R package
+`scwbrepresentation::umap_fit` defaults to `nn_method = "nndescent"`, which requires the R package
 `rnndescent`. The op preflights this dependency before calling `uwot`. Supported
 nearest-neighbor backends are:
 

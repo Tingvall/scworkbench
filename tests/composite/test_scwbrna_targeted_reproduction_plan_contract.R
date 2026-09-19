@@ -1,4 +1,5 @@
 test_targeted_reproduction_plan_contract <- function() {
+  contract_test_activate_representation_pack()
   if (!requireNamespace("uwot", quietly = TRUE)) return(contract_test_skip("uwot is not installed."))
   root <- tempfile("scwb_target_plan_")
   b <- wb_init_bundle(root, overwrite = TRUE)
@@ -8,7 +9,7 @@ test_targeted_reproduction_plan_contract <- function() {
   source_plan <- wb_target_reproduction_plan(b, "space:pca_source")
   stopifnot(inherits(source_plan, "wb_target_reproduction_plan"), identical(source_plan$status, "source_state"), !source_plan$reproducible)
   res <- wb_session_run_op(wb_session_new(), b, "umap_fit", inputs=list(space="pca_source", cell_set="all", min_cells=1L, dims=1:4, space_id_out="umap_target", n_neighbors=3L, min_dist=.1, metric="euclidean", nn_method="annoy", seed=1L))
-  promoted <- wb_session_promote_current(b, res$session, outputs=c("model","space_2d"))
+  promoted <- wb_session_promote_current(b, res$session, outputs="model")
   plan <- wb_target_reproduction_plan(b, "space:umap_target")
   policy <- setNames(plan$terminal_outputs$replay_equivalence_policy, plan$terminal_outputs$output_name)
   stopifnot(identical(plan$status,"ok"), identical(plan$run_order, res$run$run_id), all(c("model","space_2d") %in% plan$terminal_outputs$output_name), all(plan$terminal_outputs$verification_level == "content"), identical(policy[["model"]], "loadable_reference"), identical(policy[["space_2d"]], "cell_aligned_embedding"))
@@ -39,7 +40,7 @@ test_targeted_reproduction_plan_contract <- function() {
       logical(1)
     ))
   )
-  stopifnot(nrow(promoted$promoted) >= 2L,
+  stopifnot(nrow(promoted$promoted) >= 1L,
             !"wb_target_reproduction_branch_template" %in% getNamespaceExports("scworkbench"))
   TRUE
 }
@@ -48,6 +49,7 @@ test_targeted_reproduction_plan_contract <- function() {
 # their producing runs into the plan, then replay into a source-only clone.
 test_targeted_reproduction_execute_contract <- function() {
   contract_test_activate_rna_pack()
+  contract_test_activate_representation_pack()
   required <- c("BPCells", "irlba", "uwot")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) {
@@ -77,21 +79,28 @@ test_targeted_reproduction_execute_contract <- function() {
   if (install_status != 0L) stop(paste(install_output, collapse = "\n"))
   rna_library <- normalizePath(.contract_test_rna_state$library,
     winslash = "/", mustWork = TRUE)
+  representation_library <- normalizePath(
+    .contract_test_representation_state$library,
+    winslash = "/", mustWork = TRUE)
   run_emitted <- function(script, prelude = character()) {
     path <- tempfile(fileext=".R"); wrapper <- tempfile(fileext=".R")
     writeLines(script,path)
     writeLines(c(
       paste0(".libPaths(c('", normalizePath(installed_library, winslash = "/"),
-        "', '", rna_library, "', .libPaths()))"),
+        "', '", rna_library, "', '", representation_library,
+        "', .libPaths()))"),
       "library(scworkbench)",
       paste0("wb_operation_pack_load('scwbRNA', lib.loc='", rna_library,
         "')"),
+      paste0("wb_operation_pack_load('scwbRepresentation', lib.loc='",
+        representation_library, "')"),
       prelude, paste0("source('",path,"')")
     ),wrapper)
     out <- suppressWarnings(system2(
       file.path(R.home("bin"),"Rscript"), c("--vanilla", wrapper),
       stdout=TRUE, stderr=TRUE,
-      env = paste0("R_LIBS=", paste(c(installed_library, rna_library),
+      env = paste0("R_LIBS=", paste(c(installed_library, rna_library,
+        representation_library),
         collapse = .Platform$path.sep))
     ))
     list(status=as.integer(attr(out,"status") %||% 0L), output=out)
@@ -118,7 +127,7 @@ test_targeted_reproduction_execute_contract <- function() {
   pp <- wb_session_promote_current(b,p$session,outputs=c("loadings","variance","fit_summary"))
   wb_close_bundle(b); b <- wb_open_bundle(root)
   u <- wb_session_run_op(wb_session_new(),b,"umap_fit",inputs=list(space="rna_pca",cell_set="all",min_cells=1L,dims=1:2,space_id_out="rna_umap",n_neighbors=3L,min_dist=.1,metric="euclidean",nn_method="annoy",seed=1L))
-  wb_session_promote_current(b,u$session,outputs=c("model","space_2d"))
+  wb_session_promote_current(b,u$session,outputs="model")
   plan <- wb_target_reproduction_plan(b,"space:rna_umap")
   run_ids <- c(n$run$run_id,h$run$run_id,p$run$run_id,u$run$run_id)
   snapshots <- DBI::dbGetQuery(b$con,paste0("SELECT DISTINCT run_id, snapshot_id FROM prov_runs WHERE run_id IN (",paste(rep("?",4),collapse=","),")"),params=as.list(run_ids))

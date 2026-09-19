@@ -287,7 +287,7 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
     "model_ref" = {
       df <- DBI::dbGetQuery(
         con,
-        "SELECT engine, model_space_id, in_space_id, model_type, model_path
+        "SELECT engine, model_space_id, in_space_id, model_type, model_path, linkage_json
          FROM artifact_model_ref
          WHERE artifact_id = ?;",
         params = list(artifact_id)
@@ -316,6 +316,10 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       )
       p$model_type <- as.character(df$model_type[[1]] %||% engine)
       p$model_path <- model_path
+      linkage_json <- as.character(df$linkage_json[[1]] %||% "")[1]
+      if (!is.na(linkage_json) && nzchar(linkage_json))
+        p$model_linkage <- jsonlite::fromJSON(linkage_json,
+          simplifyVector = FALSE)
       lifecycle <- if (.wb_table_exists(con, "entity_lifecycle")) {
         wb_entity_lifecycle(bundle, "artifact", artifact_id)
       } else data.frame()

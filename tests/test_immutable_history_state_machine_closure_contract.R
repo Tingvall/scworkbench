@@ -1,4 +1,7 @@
 test_immutable_history_state_machine_closure_contract <- function(bundle_dir) {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   stopifnot(
     requireNamespace("BPCells", quietly = TRUE),
     requireNamespace("uwot", quietly = TRUE),
@@ -237,7 +240,7 @@ test_immutable_history_state_machine_closure_contract <- function(bundle_dir) {
 
   # Produce a genuine stored model, then retain it and its space as terminal
   # history. Direct getters must still resolve both payloads.
-  model_id <- ".__closure_umap_model__."
+  model_id <- "closure_umap_model"
   fitted <- wb_session_run_op(
     wb_session_new(), b, "umap_fit",
     inputs = list(
@@ -247,7 +250,7 @@ test_immutable_history_state_machine_closure_contract <- function(bundle_dir) {
     )
   )
   wb_session_promote_current(
-    b, fitted$session, outputs = c("model", "space_2d"),
+    b, fitted$session, outputs = "model",
     name_prefix = "closure_model", created_by = "contract"
   )
   model_path <- wb_space_model_path(b, model_id)

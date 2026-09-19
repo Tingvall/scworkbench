@@ -10,6 +10,9 @@
 }
 
 test_public_typed_run_branch_inputs_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   required <- c("BPCells", "uwot", "Matrix")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) return(contract_test_skip(paste("Missing runtime dependencies:", paste(missing, collapse = ", "))))
@@ -38,7 +41,7 @@ test_public_typed_run_branch_inputs_contract <- function() {
     cell_set = "all", min_cells = 2L
   ))
   promoted <- wb_session_promote_current(
-    b, fit$session, outputs = c("model", "space_2d"), created_by = "typed-replay-contract"
+    b, fit$session, outputs = "model", created_by = "typed-replay-contract"
   )
   stopifnot(all(promoted$promoted$status == "ok"))
   sid <- promoted$provenance_snapshot_id

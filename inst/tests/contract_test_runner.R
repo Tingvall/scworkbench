@@ -227,6 +227,9 @@ contract_test_activate_representation_pack <- function() {
       call. = FALSE)
     .contract_test_representation_state$library <- library
     .libPaths(c(library, .libPaths()))
+    existing <- Sys.getenv("R_LIBS", unset = "")
+    Sys.setenv(R_LIBS = paste(c(library, if (nzchar(existing)) existing else character()),
+      collapse = .Platform$path.sep))
   }
   wb_operation_pack_load("scwbRepresentation",
     lib.loc = .contract_test_representation_state$library)

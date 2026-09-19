@@ -9,6 +9,11 @@ Target workflow:
 RNA_counts -> scvi_train -> rna.scvi -> umap_fit
 ```
 
+The UMAP steps in this document require an independently installed and
+explicitly activated `scwbRepresentation` operation pack. Core retains the
+generic contained-model and atomic publication contracts, but does not ship a
+UMAP implementation.
+
 ## Purpose
 
 The op trains a count-aware RNA latent model from a raw/count-like matrix and
@@ -171,15 +176,20 @@ fit <- wb_session_run_op(s, b, "scvi_train", inputs = scvi_inputs)
 s <- wb_session_resume(b, fit$session$durable$workspace)
 umap_inputs$space <- wb_ref_run(fit$run$run_id, "space")
 umap_inputs$space_id_out <- "rna.umap.sample_aware"
-umap <- wb_session_run_op(s, b, "umap_fit", inputs = umap_inputs)
+umap <- wb_session_run_op(
+  s, b, "scwbrepresentation::umap_fit", inputs = umap_inputs
+)
 
 promotion <- wb_session_promote_current(
   b, umap$session,
   outputs = list(
     wb_ref_run(fit$run$run_id, "model"),
     wb_ref_run(fit$run$run_id, "fit_summary"),
-    wb_ref_run(umap$run$run_id, "model"),
-    wb_ref_run(umap$run$run_id, "space_2d")
+    wb_ref_run(umap$run$run_id, "model")
   )
 )
 ```
+
+The UMAP model is the terminal output. Promoting it atomically materializes
+its paired `space_2d`; the materialization is not selected as a separate
+terminal artifact.

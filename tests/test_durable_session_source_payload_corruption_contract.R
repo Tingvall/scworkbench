@@ -1,4 +1,7 @@
 test_durable_session_source_payload_corruption_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   if (!requireNamespace("uwot", quietly = TRUE)) return(contract_test_skip("uwot is not installed."))
   bundle_dir <- tempfile("scwb_durable_corruption_bundle_")
   workspace_root <- tempfile("scwb_durable_corruption_sessions_")

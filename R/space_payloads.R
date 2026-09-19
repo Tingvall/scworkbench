@@ -206,7 +206,8 @@
 
 .wb_space_payload_write <- function(bundle, space_id, coords, source = "analysis",
                                     description = NULL, overwrite = FALSE,
-                                    provenance_identity = NULL) {
+                                    provenance_identity = NULL,
+                                    authenticated_replace = FALSE) {
   .wb_assert_bundle_writable(bundle, "dense-space payload mutation")
   .wb_space_payload_require_runtime()
   mat <- .wb_space_payload_normalize(coords)
@@ -276,7 +277,9 @@
     if (nrow(existing) && !isTRUE(overwrite)) {
       stop("space_id already exists: ", space_id, " (set overwrite=TRUE to replace)", call. = FALSE)
     }
-    if (nrow(existing)) .wb_entity_assert_replaceable(bundle, "space", space_id, action = "overwrite")
+    if (nrow(existing) && !isTRUE(authenticated_replace))
+      .wb_entity_assert_replaceable(bundle, "space", space_id,
+        action = "overwrite")
     .wb_assert(isTRUE(file.rename(pending, final)), "Failed atomic publication of dense-space payload.")
     published <<- TRUE
     old_path <- if (nrow(existing)) {

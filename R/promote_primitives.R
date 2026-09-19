@@ -1092,6 +1092,15 @@ wb_promote_analysis <- function(bundle,
       stored_model_path <- mapped_rel
     } else if (inherits(workspace, "wb_promotion_workspace") && !.wb_path_is_absolute(model_path) && !is.null(workspace$mappings[[model_path]])) {
       stored_model_path <- model_path
+    } else if (inherits(workspace, "wb_promotion_workspace") &&
+        !.wb_path_is_absolute(model_path) && any(vapply(
+          names(workspace$mappings), function(parent)
+            startsWith(model_path, paste0(parent, "/")), logical(1)))) {
+      # Transition payloads are prepared as one authenticated directory tree.
+      # A contained model may point at a file below that mapped tree; retain
+      # the same bundle-relative descendant rather than requiring a duplicate
+      # file-level workspace mapping.
+      stored_model_path <- model_path
     } else {
       .wb_assert(nzchar(model_path) && file.exists(model_path),
                  paste0("model_ref promotion requires an existing model file or in-memory model_obj (engine=", engine, ")."))
@@ -1137,6 +1146,9 @@ wb_promote_analysis <- function(bundle,
     in_space_id = in_space_id,
     model_type = if (nzchar(model_type)) model_type else engine,
     model_path = stored_model_path,
+    linkage_json = if (is.null(prim$model_linkage)) NA_character_ else
+      jsonlite::toJSON(prim$model_linkage, auto_unbox = TRUE, null = "null",
+        digits = NA),
     stringsAsFactors = FALSE
   ), chunk_size = 1000L)
 

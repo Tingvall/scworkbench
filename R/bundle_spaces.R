@@ -5,8 +5,9 @@
 #' Writes coordinates through the canonical file-backed dense-space payload
 #' contract. SQLite stores only registry, shape, path, and content identity.
 #'
-#' Prefer a fitting operation such as `pca_fit` or `umap_fit` for ordinary
-#' analysis. This low-level writer is for controlled bundle assembly.
+#' Prefer a fitting operation from an explicitly activated representation
+#' operation pack for ordinary analysis. This low-level writer is for
+#' controlled bundle assembly.
 #'
 #' @param bundle Bundle handle (from wb_open_bundle())
 #' @param space_id String id for the space (user-defined)

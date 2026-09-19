@@ -53,7 +53,8 @@ test_scwb_representation_transitive_promotion_pbmc_vertical_slice_contract <- fu
   ); s <- r_pca$session
   r_umap <- wb_session_run_op(
     s, b, "umap_fit",
-    inputs = list(space = "pca", space_id_out = "umap", nn_method = "annoy", n_neighbors = 5L, seed = 1L)
+    inputs = list(space = "pca", dims = 1:3, space_id_out = "umap",
+      nn_method = "annoy", n_neighbors = 5L, seed = 1L)
   ); s <- r_umap$session
   r_leiden <- wb_session_run_op(
     s, b, "scwbrepresentation::leiden",
@@ -68,25 +69,23 @@ test_scwb_representation_transitive_promotion_pbmc_vertical_slice_contract <- fu
   stopifnot(!"pca" %in% as.character(wb_spaces(b)$space_id))
   stopifnot(!"umap" %in% as.character(wb_spaces(b)$space_id))
 
-  # The session API requires explicit selection for the multi-output UMAP head.
-  ambiguous <- try(wb_session_promote_current(b, r_umap$session), silent = TRUE)
-  stopifnot(inherits(ambiguous, "try-error"))
-
   promoted <- wb_session_promote_current(
-    b, s, outputs = c("selected_features", "space_2d", "clusters", "result"), created_by = "test"
+    b, s, outputs = c("selected_features", "model", "clusters", "result"), created_by = "test"
   )
   ok <- promoted$promoted[as.character(promoted$promoted$status) == "ok", , drop = FALSE]
-  stopifnot(setequal(as.character(ok$output), c("selected_features", "space_2d", "clusters", "result")))
+  stopifnot(setequal(as.character(ok$output), c("selected_features", "model", "clusters", "result")))
   arts <- wb_art_list(b)
   stopifnot(nrow(arts) == 5L)
-  stopifnot(setequal(as.character(arts$source_op), c("ingest_apply", "scwbrna::hvg_select", "umap_fit", "scwbrepresentation::leiden", "scwbv2reference::feature_table_from_matrix")))
+  stopifnot(setequal(as.character(arts$source_op), c("ingest_apply", "scwbrna::hvg_select", "scwbrepresentation::umap_fit", "scwbrepresentation::leiden", "scwbv2reference::feature_table_from_matrix")))
   stopifnot(all(as.character(ok$lineage_status) == "complete"))
   stopifnot("RNA_log" %in% as.character(wb_matrices(b)$matrix_id))
   stopifnot(all(c("pca", "umap") %in% as.character(wb_spaces(b)$space_id)))
 
   sid <- as.character(promoted$provenance_snapshot_id)
   runs <- DBI::dbGetQuery(b$con, "SELECT run_id, op_name, runtime_fingerprint_json FROM prov_runs WHERE snapshot_id = ?;", params = list(sid))
-  stopifnot(setequal(as.character(runs$op_name), c("matrix_log_normalize", "scwbrna::hvg_select", "pca_fit", "umap_fit", "scwbrepresentation::leiden", "scwbv2reference::feature_table_from_matrix")))
+  expected_run_ops <- vapply(list(r_norm, r_hvg, r_pca, r_umap,
+    r_leiden, r_markers), function(x) as.character(x$run$op_name), character(1))
+  stopifnot(setequal(as.character(runs$op_name), expected_run_ops))
   stopifnot(all(nzchar(as.character(runs$runtime_fingerprint_json))))
   mats <- DBI::dbGetQuery(b$con, "SELECT * FROM prov_materializations WHERE commit_id = ?;", params = list(DBI::dbGetQuery(b$con, "SELECT commit_id FROM prov_heads WHERE snapshot_id = ?;", params = list(sid))$commit_id[1]))
   stopifnot(nrow(mats) >= 6L, all(file.exists(file.path(b$dir, mats$path))))

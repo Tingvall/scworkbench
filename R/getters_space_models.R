@@ -97,7 +97,8 @@ wb_load_space_model <- function(bundle, space_id,
 wb_spaces_with_model <- function(bundle, model_type = NULL, include_history = FALSE) {
   con <- bundle$con
   .wb_assert(DBI::dbExistsTable(con, "space_models"),
-             "space_models table not found in bundle. Have you run umap_fit?")
+             paste0("space_models table not found in bundle. Have you run a ",
+               "model-producing operation from an activated operation pack?"))
 
   where <- character(0)
   params <- list()

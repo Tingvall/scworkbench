@@ -3522,28 +3522,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_op_umap_fit.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_umap_transform.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_open_bundle.Rd",
       "class": "generated_public_reference",
       "audience": "public",

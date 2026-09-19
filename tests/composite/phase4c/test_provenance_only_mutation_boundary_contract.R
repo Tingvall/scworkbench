@@ -50,13 +50,6 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
       b, matrix_id, cells = cells, feature_ids = head(wb_feature_ids(b, matrix_id), 10L),
       n_components = 2L, backend = "prcomp", space_id_out = ".__blocked_pca__."
     ),
-    umap_fit = function() wb_op_umap_fit(
-      b, source_space_id = source_space, cells = cells,
-      space_id_out = ".__blocked_umap__."
-    ),
-    umap_transform = function() wb_op_umap_transform(
-      b, model_space_id = ".__absent_model__.", in_space_id = source_space, cells = cells
-    ),
     scvi = function() scworkbench:::wb_op_scvi_train(
       b, matrix_id = matrix_id, cells = cells, output_space_id = ".__blocked_scvi__."
     ),

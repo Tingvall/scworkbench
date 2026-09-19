@@ -81,6 +81,11 @@
   for (final_rel in names(workspace$mappings)) {
     mapped <- as.character(workspace$mappings[[final_rel]]$source %||% "")[1]
     if (nzchar(mapped) && identical(mapped, source_path)) return(final_rel)
+    if (nzchar(mapped) && dir.exists(mapped) &&
+        startsWith(source_path, paste0(mapped, "/"))) {
+      suffix <- substring(source_path, nchar(mapped) + 2L)
+      return(file.path(final_rel, suffix))
+    }
   }
   NULL
 }

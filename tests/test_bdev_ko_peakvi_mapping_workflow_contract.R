@@ -1,4 +1,7 @@
 test_bdev_ko_peakvi_mapping_workflow_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   required <- c("BPCells", "Matrix", "uwot")
   missing <- required[!vapply(required, requireNamespace, logical(1), quietly = TRUE)]
   if (length(missing)) {
@@ -140,7 +143,6 @@ test_bdev_ko_peakvi_mapping_workflow_contract <- function() {
       wb_ref_run(fit$run$run_id, "model"),
       wb_ref_run(projected$run$run_id, "fit_summary"),
       wb_ref_run(union$run$run_id, "union_summary"),
-      wb_ref_run(umap$run$run_id, "space_2d"),
       wb_ref_run(umap$run$run_id, "model")
     ),
     name_prefix = "Bdev KO PeakVI mapping fixture",

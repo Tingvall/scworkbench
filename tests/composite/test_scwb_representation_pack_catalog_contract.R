@@ -20,8 +20,9 @@ test_representation_catalog_activation_identity_contract <- function() {
   contract_test_activate_representation_pack()
   after_ops <- wb_list_ops()
   after_identity <- wb_operation_catalog_identity()
-  stopifnot(setequal(setdiff(after_ops, before_ops),
-      "scwbrepresentation::leiden"),
+  expected <- paste0("scwbrepresentation::", c("leiden", "pca_fit",
+    "umap_fit", "umap_transform"))
+  stopifnot(setequal(setdiff(after_ops, before_ops), expected),
     identical(wb_op_interface("leiden")$op_name,
       "scwbrepresentation::leiden"),
     !identical(before_identity$sha256, after_identity$sha256))
@@ -29,7 +30,7 @@ test_representation_catalog_activation_identity_contract <- function() {
   stopifnot(identical(manifest$manifest$pack_abi_version, "3"),
     identical(manifest$manifest$namespace, "scwbrepresentation"),
     identical(vapply(manifest$manifest$operations, `[[`, "", "name"),
-      "leiden"))
+      c("leiden", "pca_fit", "umap_fit", "umap_transform")))
   TRUE
 }
 

@@ -1,6 +1,6 @@
 test_promotion_output_contract <- function() {
   stopifnot(isTRUE(.wb_validate_promotion_output_contract()))
-  for (op in c("scvi_train", "peakvi_project", "umap_fit")) {
+  for (op in c("scvi_train", "peakvi_project")) {
     x <- wb_op_interface(op)$produces
     stopifnot(all(vapply(x, function(y) all(c("output_name","primitive_kind","durability_role","promotable_directly","materialized_by_terminals") %in% names(y)), logical(1))))
   }

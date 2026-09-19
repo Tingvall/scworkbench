@@ -4,68 +4,10 @@
 
 Generated at: source-controlled
 
-Operation count: 37
+Operation count: 35
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
-
-## `umap_fit`
-
-Title: UMAP fit (train model)
-
-Intent: umap, fit
-
-Description: Fit a UMAP model on a space and store it for future projection.
-
-Consumes:
-- `space`: space
-- `cell_set`: select
-
-Produces:
-- `model`: model_ref [terminal artifact] - Reference to the fitted UMAP model.
-- `space_2d`: space_2d [terminal artifact] - The fitted 2D embedding space id.
-
-Promotable outputs: space_2d, model
-
-Replay equivalence:
-- `model`: `loadable_reference`
-- `space_2d`: `cell_aligned_embedding`
-
-Key parameters:
-- `dims` (int_range, default=NULL): Dims to use (e.g. 2:30).
-- `space_id_out` (string, default=NULL): Output 2D space id. Defaults to umap.<source_space>.
-- `n_neighbors` (int, default=30): UMAP neighborhood size.
-- `min_dist` (dbl, default=0.3): UMAP minimum distance.
-- `metric` (string, default=euclidean): Distance metric passed to uwot.
-- `nn_method` (choice, default=nndescent): Nearest-neighbor backend. 'nndescent' requires rnndescent; 'fnn' requires FNN; 'annoy' uses uwot's Annoy backend.
-- `spread` (dbl, default=1): UMAP spread parameter.
-- `seed` (int, default=1): Random seed.
-
-## `umap_transform`
-
-Title: UMAP transform (project cells)
-
-Intent: projection, umap
-
-Description: Project cells into an existing UMAP using a stored model.
-
-Consumes:
-- `model`: model_ref - Constrains cells to the fitted source space unless an explicit query in_space is supplied.
-- `in_space`: space
-- `cell_set`: select
-
-Produces:
-- `space_2d`: space_2d [terminal artifact] - Projected x/y in the target UMAP space.
-
-Promotable outputs: space_2d
-
-Replay equivalence:
-- `space_2d`: `exact_canonical_value`
-
-Key parameters:
-- `dims` (int_range, default=NULL): Dims to use from the input space (e.g. 2:30).
-- `space_id_out` (string, default=NULL): New output space ID. Required when the fitted space already participates in promoted provenance.
-- `overwrite` (bool, default=TRUE): Overwrite existing projected coordinates only in unbound staging/development space.
 
 ## `chromvar`
 

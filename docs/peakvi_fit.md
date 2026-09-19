@@ -14,7 +14,8 @@ rather than an external script step.
 
 Primary downstream uses:
 
-- run `umap_fit` on the learned latent space
+- run `scwbrepresentation::umap_fit` from an installed, explicitly activated
+  `scwbRepresentation` pack on the learned latent space
 - run trajectory methods on the learned latent space
 - compare `lsi` and PeakVI representations
 - reuse the saved model with `peakvi_project`

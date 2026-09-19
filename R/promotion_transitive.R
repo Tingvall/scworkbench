@@ -149,7 +149,8 @@
   invisible(workspace)
 }
 
-.wb_stage_prepare_space_payloads <- function(staging_bundle, workspace, space_id) {
+.wb_stage_prepare_space_payloads <- function(staging_bundle, bundle, workspace,
+                                              space_id) {
   payload <- if (.wb_table_exists(staging_bundle$con, "space_payloads")) {
     DBI::dbGetQuery(staging_bundle$con, "SELECT path FROM space_payloads WHERE space_id = ?;",
                     params = list(space_id))
@@ -162,21 +163,44 @@
   } else data.frame()
   if (nrow(sm) && "model_path" %in% names(sm)) {
     paths <- unique(as.character(sm$model_path))
-    for (path in paths[nzchar(paths)]) .wb_prepare_staged_payload(staging_bundle, workspace, path)
+    for (path in paths[nzchar(paths)]) {
+      durable <- tryCatch(.wb_bundle_path_require(bundle, path,
+        expected_type = "either", must_exist = TRUE,
+        purpose = "durable space model"), error = function(e) NULL)
+      if (is.null(durable))
+        .wb_prepare_staged_payload(staging_bundle, workspace, path)
+    }
   }
   invisible(workspace)
 }
 
 .wb_stage_assert_publication_replace <- function(bundle, prim, kind, id) {
   grant <- prim$publication_grant %||% NULL
-  .wb_assert(is.list(grant) && identical(as.character(grant$schema)[1],
-      "scworkbench.operation_pack.materialization_publication_grant.v1") &&
-      identical(as.character(grant$mode)[1], "replace") &&
-      identical(as.character(grant$target_kind)[1], kind) &&
+  schema <- as.character(grant$schema %||% "")[1]
+  ordinary <- identical(schema,
+    "scworkbench.operation_pack.materialization_publication_grant.v1")
+  space2d <- identical(schema,
+    "scworkbench.operation_pack.space_2d_publication_grant.v1")
+  valid_mode <- if (ordinary) identical(as.character(grant$mode)[1],
+    "replace") else space2d && as.character(grant$mode)[1] %in%
+      c("selected_cell_merge", "full_replace")
+  valid_kind <- identical(as.character(grant$target_kind)[1], kind) ||
+    (space2d && identical(kind, "space") &&
+      identical(as.character(grant$target_kind)[1], "space_2d"))
+  .wb_assert(is.list(grant) && valid_mode && valid_kind &&
       identical(as.character(grant$target_id)[1], id), paste0(
         "Cannot replace committed ", kind, " without its exact authenticated publication grant: ", id))
-  current <- .wb_operation_pack_v3_materialization_preimage(bundle, kind,
+  preimage_kind <- if (space2d) "space_2d" else kind
+  current <- .wb_operation_pack_v3_materialization_preimage(bundle,
+    preimage_kind,
     id, grant$preimage$transition_source_state_identity)
+  if (space2d && identical(current$state, "present")) {
+    value <- wb_space(bundle, id)
+    if (is.data.frame(value)) value <- .wb_as_coord_matrix(value)
+    current$cell_order_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(rownames(value))))
+    current$coordinate_dimensions <- 2L
+  }
   .wb_assert(identical(.wb_operation_pack_canonical_json(current),
       .wb_operation_pack_canonical_json(grant$preimage)), paste0(
         "Committed ", kind, " changed after the replacement grant was issued: ", id))
@@ -275,12 +299,15 @@
       }
       if (.wb_is_primitive(prim) && prim$kind %in% c("space", "space_2d")) {
         exists <- DBI::dbGetQuery(bundle$con, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(prim$space_id))
-        if (nrow(exists)) {
-          if (!identical(as.character(prim$promotion_mode %||% "")[1],
-              "merge_space_2d")) .wb_stage_assert_publication_replace(bundle,
-                prim, "space", as.character(prim$space_id)[1])
-        }
-        .wb_stage_prepare_space_payloads(staging_bundle, workspace, prim$space_id)
+        if (nrow(exists) && !is.null(prim$publication_grant))
+          .wb_stage_assert_publication_replace(bundle, prim, "space",
+            as.character(prim$space_id)[1])
+        else if (nrow(exists) && !identical(as.character(
+            prim$promotion_mode %||% "")[1], "merge_space_2d"))
+          .wb_stage_assert_publication_replace(bundle, prim, "space",
+            as.character(prim$space_id)[1])
+        .wb_stage_prepare_space_payloads(staging_bundle, bundle, workspace,
+          prim$space_id)
       }
       if (.wb_is_primitive(prim) && identical(prim$kind, "model_ref")) {
         .wb_stage_prepare_model_payload(staging_bundle, bundle, workspace, prim)
@@ -381,8 +408,9 @@
   exists <- DBI::dbGetQuery(dst, "SELECT space_id FROM spaces WHERE space_id = ?;", params = list(space_id))
   if (nrow(exists)) {
     replacement <- .wb_is_primitive(prim) && !is.null(
-      prim$publication_grant) && identical(as.character(
-        prim$publication_grant$mode)[1], "replace")
+      prim$publication_grant) && as.character(
+        prim$publication_grant$mode)[1] %in% c("replace",
+          "selected_cell_merge", "full_replace")
     if (replacement) .wb_stage_assert_publication_replace(bundle, prim,
       "space", space_id) else .wb_assert(.wb_is_primitive(prim) &&
         identical(as.character(prim$promotion_mode %||% "")[1],

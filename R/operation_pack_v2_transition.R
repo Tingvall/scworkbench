@@ -1096,7 +1096,21 @@
     if (!is.null(manifest)) {
       expected <- manifest$sha256
       fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
-      actual <- if (!is.null(fragment_manifest)) {
+      model_tree <- item$descriptor$contained_model_tree %||% NULL
+      actual <- if (!is.null(model_tree)) {
+        tree_root <- file.path(path, "outputs", item$name, "model_tree")
+        tree_manifest <- tryCatch(.wb_operation_pack_v3_model_tree_manifest(
+          tree_root, model_tree$engine, model_tree$model_type,
+          model_tree$primary_path,
+          code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen"),
+          error = identity)
+        if (inherits(tree_manifest, "error") || !identical(
+            .wb_operation_pack_v3_unscoped_identity(
+              tree_manifest$manifest_identity),
+            model_tree$tree_manifest_identity)) return(list(ok = FALSE,
+              code = "model_tree_identity_mismatch", output = item$name))
+        .wb_operation_pack_v3_model_payload_identity(tree_manifest)$sha256
+      } else if (!is.null(fragment_manifest)) {
         .wb_operation_pack_sha256(list(
           fragment_manifest_identity =
             fragment_manifest$fragment_manifest_identity,
@@ -1140,7 +1154,13 @@
       } else readRDS(payload), error = identity)
       if (inherits(value, "error")) return(list(ok = FALSE, code = "payload_unreadable", output = item$name))
       fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
-      actual <- if (!is.null(fragment_manifest)) {
+      model_tree <- item$descriptor$contained_model_tree %||% NULL
+      actual <- if (!is.null(model_tree)) {
+        .wb_operation_pack_sha256(list(
+          engine = model_tree$engine, model_type = model_tree$model_type,
+          linkage_identity = item$descriptor$model_linkage_identity,
+          tree_manifest_identity = model_tree$tree_manifest_identity))
+      } else if (!is.null(fragment_manifest)) {
         value_manifest <- value$fragment_manifest %||% NULL
         if (is.null(value_manifest) || !identical(
             .wb_operation_pack_canonical_json(value_manifest),
@@ -1453,11 +1473,15 @@
     provenance_read_observations <- if (abi_v3)
       .wb_operation_pack_v3_provenance_observations(request,
         adapter$state$reader_calls) else list()
+    model_read_observations <- if (abi_v3)
+      .wb_operation_pack_v3_model_read_observations(request,
+        adapter$state) else list()
     adapter$consume()
     receipt <- if (abi_v3) .wb_operation_pack_v3_receipt(request,
       registration, operation, adapter$state$writes, preflight, inputs,
       registry_read_observations, provenance_read_observations,
-      typed_slice_usage = typed_slice_usage) else .wb_operation_pack_v2_receipt(request,
+      typed_slice_usage = typed_slice_usage,
+      model_payload_reads = model_read_observations) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
   }
@@ -1501,17 +1525,24 @@
         sub("^private_projection:", "typed_slice_sources/",
           paste0(x$source_reference$input_reference, "/matrix.mtx")),
         character(1))
+    model_read_files <- unlist(lapply(request$model_payload_grants %||%
+      list(), function(grant) c(vapply(grant$tree_manifest$entries,
+        function(entry) file.path(grant$relative_root, entry$path),
+        character(1)))), use.names = FALSE)
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
       paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
       registry_payloads, provenance_payloads, typed_slice_axes,
-      typed_slice_sources), method = "radix")
+      typed_slice_sources, model_read_files), method = "radix")
     fragment_roots <- paste0("outputs/", names(Filter(function(x)
       !is.null(x$value$fragment_manifest), adapter$state$writes)),
       "/fragments/")
-    allowed_fragment <- if (length(fragment_roots)) vapply(inventory,
-      function(path) any(startsWith(path, fragment_roots)), logical(1)) else
-      rep(FALSE, length(inventory))
-    observed_fixed <- sort(inventory[!allowed_fragment], method = "radix")
+    model_roots <- paste0("outputs/", names(Filter(function(x)
+      !is.null(x$tree_manifest), adapter$state$writes)), "/model_tree/")
+    allowed_dynamic <- if (length(c(fragment_roots, model_roots)))
+      vapply(inventory, function(path) any(startsWith(path,
+        c(fragment_roots, model_roots))), logical(1)) else
+        rep(FALSE, length(inventory))
+    observed_fixed <- sort(inventory[!allowed_dynamic], method = "radix")
     if (!identical(observed_fixed, expected_inventory)) .wb_operation_pack_v2_error(
       "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
       unexpected = setdiff(observed_fixed, expected_inventory))
@@ -1619,6 +1650,27 @@
           "Resolved PCA feature axis is invalid or outside its matrix.",
           "resolution")
       params[[parameter]] <- unname(as.list(value))
+    } else if (identical(policy, "input_id_with_literal_affix_v1")) {
+      current <- as.character(params[[parameter]] %||% "")[1]
+      if (!nzchar(current)) {
+        id <- as.character(input$space_id %||% "")[1]
+        .wb_operation_pack_assert(nzchar(id),
+          "PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Derived space target has no symbolic input identifier.",
+          phase = "resolution", class = "wb_operation_pack_v3_error")
+        params[[parameter]] <- paste0(as.character(binding$affix)[1], id)
+      }
+    } else if (identical(policy, "model_space_id_v1")) {
+      current <- as.character(params[[parameter]] %||% "")[1]
+      if (!nzchar(current)) {
+        id <- as.character(input$model_space_id %||% input$space_id %||%
+          "")[1]
+        .wb_operation_pack_assert(nzchar(id),
+          "PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Derived model target has no fitted-space identifier.",
+          phase = "resolution", class = "wb_operation_pack_v3_error")
+        params[[parameter]] <- id
+      }
     }
   }
   # Binding policies must see the caller's symbolic scalar (for example a

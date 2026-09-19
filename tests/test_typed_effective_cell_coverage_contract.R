@@ -1,4 +1,7 @@
 test_typed_effective_cell_coverage_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   contract_test_activate_core_conformance_pack()
   root <- tempfile("scwb_typed_coverage_")
   b <- wb_init_bundle(root, overwrite = TRUE)

@@ -87,7 +87,13 @@
 }
 
 .wb_operation_pack_v3_publication_grant <- function(bundle, policy, operation,
-    params, source_state_identity) {
+    params, source_state_identity, inputs = list(), input_records = list(),
+    base_outputs = list()) {
+  if (identical(as.character(policy$policy)[1],
+      "authenticated_space_2d_publication_v1"))
+    return(.wb_operation_pack_v3_space2d_publication_grant(bundle, policy,
+      operation, params, source_state_identity, inputs, input_records,
+      base_outputs))
   output_name <- as.character(policy$output)[1]
   outputs <- stats::setNames(operation$outputs,
     vapply(operation$outputs, `[[`, character(1), "name"))
@@ -117,6 +123,119 @@
     preimage = preimage)
   grant$publication_grant_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.materialization_publication_grant.v1",
+    "grant excluding publication_grant_identity", grant)
+  grant
+}
+
+.wb_operation_pack_v3_space2d_publication_grant <- function(bundle, policy,
+    operation, params, source_state_identity, inputs, input_records,
+    base_outputs) {
+  output_name <- as.character(policy$output)[1]
+  outputs <- stats::setNames(operation$outputs, vapply(operation$outputs,
+    `[[`, character(1), "name"))
+  output <- outputs[[output_name]]
+  target_id <- as.character(params[[as.character(
+    policy$target_id_parameter)[1]]])[1]
+  preimage <- .wb_operation_pack_v3_materialization_preimage(bundle,
+    "space_2d", target_id, source_state_identity)
+  selected <- as.character(inputs[[as.character(policy$cell_axis_input)[1]]]$
+    cell_id %||% rownames(inputs[[as.character(policy$cell_axis_input)[1]]]$
+      values))
+  .wb_operation_pack_assert(length(selected) && !anyNA(selected) &&
+      all(nzchar(selected)) && !anyDuplicated(selected),
+    "PYBENCH_CAPABILITY_MISMATCH",
+    "Authenticated space_2d publication has an invalid selected-cell axis.",
+    phase = "resolution", class = "wb_operation_pack_v3_error")
+  old_cells <- if (identical(preimage$state, "present")) {
+    value <- wb_space(bundle, target_id)
+    if (is.data.frame(value)) value <- .wb_as_coord_matrix(value)
+    as.character(rownames(value))
+  } else character()
+  if (identical(preimage$state, "present")) {
+    preimage$cell_order_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(old_cells)))
+    preimage$coordinate_dimensions <- 2L
+  }
+  mode_policy <- as.character(policy$mode$policy)[1]
+  overwrite <- if (identical(mode_policy, "add_only_v1")) FALSE else
+    isTRUE(params[[as.character(policy$mode$overwrite_parameter)[1]]])
+  if (identical(mode_policy, "add_only_v1") &&
+      identical(preimage$state, "present"))
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      paste0("Authenticated add-only space_2d target already exists: ",
+        target_id), "resolution")
+  overlap <- intersect(old_cells, selected)
+  if (length(overlap) && !overwrite)
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Selected-cell merge overlaps the target while overwrite is false.",
+      "resolution")
+  mode <- if (!length(old_cells)) "add" else if (setequal(old_cells,
+    selected) && length(old_cells) == length(selected)) "full_replace" else
+    "selected_cell_merge"
+  recipient <- wb_cells(bundle, cell_set = "all")
+  union_cells <- union(old_cells, selected)
+  final_cells <- recipient[recipient %in% union_cells]
+  if (!setequal(final_cells, union_cells))
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Selected-cell publication contains cells outside the recipient axis.",
+      "resolution")
+  binding <- policy$model_binding
+  binding_name <- as.character(binding$name)[1]
+  if (identical(as.character(binding$source)[1], "input")) {
+    model <- inputs[[binding_name]]
+    model_record <- input_records[[binding_name]]
+    source_model <- list(source = "input", name = binding_name,
+      engine = as.character(model$engine)[1],
+      model_type = as.character(model$model_type %||% model$engine)[1],
+      model_linkage_identity = model_record$model_linkage_identity,
+      contained_payload_identity = model_record$contained_payload_identity)
+  } else {
+    model_output <- outputs[[binding_name]]
+    model_policy <- model_output$contained_model_policy
+    source <- inputs[[as.character(model_policy$source_space_input)[1]]]
+    dims <- .wb_operation_pack_v3_selected_dimensions(source, params,
+      model_policy$dimensions_parameter)
+    allocated <- base_outputs[[match(binding_name, vapply(base_outputs,
+      `[[`, character(1), "name"))]]$allocated_id
+    source_model <- list(source = "sibling_output", name = binding_name,
+      allocated_id = as.character(allocated)[1],
+      engine = as.character(model_policy$engine)[1],
+      model_type = as.character(model_policy$model_type)[1],
+      source_space_binding_identity = .wb_operation_pack_v2_identity_plain(
+        "scworkbench.operation_pack.model_source_space.v1", list(
+          input_name = as.character(model_policy$source_space_input)[1],
+          input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
+            input_records[[as.character(model_policy$source_space_input)[1]]]$
+              descriptor_identity),
+          selected_dimension_count = as.integer(dims$count),
+          selected_dimension_order_identity = dims$identity)))
+  }
+  group <- as.character(output$promotion_group)[1]
+  closure <- sort(vapply(Filter(function(x) identical(as.character(
+    x$promotion_group)[1], group), operation$outputs), `[[`, character(1),
+    "name"), method = "radix")
+  grant <- list(schema =
+      "scworkbench.operation_pack.space_2d_publication_grant.v1",
+    output = output_name, promotion_group = group,
+    closure_outputs = unname(as.list(closure)), target_kind = "space_2d",
+    target_id = target_id, mode = mode,
+    conflict_policy = switch(mode, add = "require_absent_v1",
+      selected_cell_merge = "merge_exact_preimage_v1",
+      full_replace = "replace_exact_preimage_v1"),
+    overwrite_existing_cells = overwrite,
+    selected_cells = list(count = as.integer(length(selected)),
+      order_identity = .wb_operation_pack_v2_identity_plain(
+        "scworkbench.cell_order.v1", unname(as.list(selected))),
+      membership_identity = .wb_operation_pack_v2_identity_plain(
+        "scworkbench.cell_membership.v1",
+        unname(as.list(sort(selected, method = "radix"))))),
+    recipient_cell_axis_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(recipient))),
+    expected_final_cell_order_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(final_cells))),
+    source_model_binding = source_model, preimage = preimage)
+  grant$publication_grant_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.space_2d_publication_grant.v1",
     "grant excluding publication_grant_identity", grant)
   grant
 }
@@ -574,13 +693,39 @@
 .wb_operation_pack_v3_publish_materializations <- function(bundle, result) {
   grants <- stats::setNames(result$request$outputs,
     vapply(result$request$outputs, `[[`, character(1), "name"))
+  # Bind a closed model tree to its private transition record before any
+  # registry publication. The returned primitive is the only value exposed to
+  # session promotion; the pack never receives this bundle-relative path.
+  for (name in names(result$outputs)) {
+    write_grant <- grants[[name]]$descriptor$contained_model_write_grant %||%
+      NULL
+    if (is.null(write_grant)) next
+    root_rel <- .wb_path_relative_to_root(result$path, bundle$dir)
+    if (is.null(root_rel)) .wb_operation_pack_v3_error(
+      "PYBENCH_PUBLICATION_FAILED",
+      "Contained model transition is outside the session bundle.",
+      "publication")
+    result$outputs[[name]]$model_path <- file.path(root_rel,
+      write_grant$relative_root, write_grant$primary_path)
+    result$outputs[[name]]$model_payload_manifest_identity <-
+      result$receipt$outputs[[match(name, vapply(result$receipt$outputs,
+        `[[`, character(1), "name"))]]$descriptor$payload_manifest_identity
+  }
   for (name in names(result$outputs)) {
     publication <- grants[[name]]$descriptor$publication_grant %||% NULL
     if (is.null(publication)) next
     value <- result$outputs[[name]]
     value$publication_grant <- publication
+    if (identical(publication$schema,
+        "scworkbench.operation_pack.space_2d_publication_grant.v1") &&
+        !identical(publication$mode, "add"))
+      value$promotion_mode <- "merge_space_2d"
     result$outputs[[name]] <- value
-    if (identical(publication$target_kind, "matrix")) {
+    if (identical(publication$schema,
+        "scworkbench.operation_pack.space_2d_publication_grant.v1")) {
+      .wb_operation_pack_v3_publish_space2d(bundle, result, name, value,
+        publication)
+    } else if (identical(publication$target_kind, "matrix")) {
       .wb_operation_pack_v3_register_matrix_output(bundle, result, name,
         value, publication)
     } else {
@@ -602,4 +747,121 @@
     }
   }
   result
+}
+
+.wb_operation_pack_v3_publish_space2d <- function(bundle, result, output,
+    value, grant) {
+  target <- as.character(grant$target_id)[1]
+  candidate <- value$values
+  if (!is.matrix(candidate) || ncol(candidate) != 2L ||
+      any(!is.finite(candidate)) || is.null(rownames(candidate)) ||
+      anyDuplicated(rownames(candidate)) ||
+      !identical(.wb_operation_pack_v2_identity_plain(
+        "scworkbench.cell_order.v1", unname(as.list(rownames(candidate)))),
+        grant$selected_cells$order_identity))
+    .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+      "space_2d candidate has wrong dimensions, values, or selected-cell order.",
+      "audit")
+  current <- .wb_operation_pack_v3_materialization_preimage(bundle,
+    "space_2d", target,
+    result$request$execution_capability$source_state_identity)
+  if (identical(current$state, "present")) {
+    old <- wb_space(bundle, target)
+    if (is.data.frame(old)) old <- .wb_as_coord_matrix(old)
+    current$cell_order_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(rownames(old))))
+    current$coordinate_dimensions <- 2L
+  } else old <- NULL
+  if (!identical(.wb_operation_pack_canonical_json(current),
+      .wb_operation_pack_canonical_json(grant$preimage)))
+    .wb_operation_pack_v3_error("PYBENCH_PUBLICATION_FAILED",
+      "space_2d publication preimage changed before locked publication.",
+      "publication")
+  final <- if (is.null(old)) candidate else {
+    dimnames(candidate)[[2L]] <- colnames(old)
+    by_cell <- rbind(old[!rownames(old) %in% rownames(candidate), ,
+      drop = FALSE], candidate)
+    recipient <- wb_cells(bundle, cell_set = "all")
+    final_cells <- recipient[recipient %in% rownames(by_cell)]
+    by_cell[match(final_cells, rownames(by_cell)), , drop = FALSE]
+  }
+  observed_final <- .wb_operation_pack_v2_identity_plain(
+    "scworkbench.cell_order.v1", unname(as.list(rownames(final))))
+  if (!identical(observed_final, grant$expected_final_cell_order_identity))
+    .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+      "space_2d merged cell order differs from its authenticated grant.",
+      "audit")
+  sibling <- if (identical(grant$source_model_binding$source,
+      "sibling_output")) as.character(grant$source_model_binding$name)[1] else
+    NULL
+  collector <- new.env(parent = emptyenv()); collector$new <- character()
+  collector$retire <- character()
+  old_option <- getOption("scworkbench.space_payload_transaction_collector",
+    NULL)
+  options(scworkbench.space_payload_transaction_collector = collector)
+  on.exit(options(scworkbench.space_payload_transaction_collector =
+    old_option), add = TRUE)
+  ok <- FALSE
+  tryCatch(DBI::dbWithTransaction(bundle$con, {
+    .wb_space_payload_write(bundle, target, final,
+      source = "operation_pack_v3",
+      description = paste0("Operation-pack space ", target),
+      overwrite = !is.null(old), provenance_identity =
+        grant$publication_grant_identity$sha256,
+      authenticated_replace = !is.null(old))
+    if (!is.null(sibling)) {
+      model <- result$outputs[[sibling]]
+      observed_source_binding <- .wb_operation_pack_v2_identity_plain(
+        "scworkbench.operation_pack.model_source_space.v1", list(
+          input_name = result$request$outputs[[match(sibling, vapply(
+            result$request$outputs, `[[`, character(1), "name"))]]$descriptor$
+              contained_model_write_grant$source_space$input_name,
+          input_descriptor_identity = result$request$outputs[[match(sibling,
+            vapply(result$request$outputs, `[[`, character(1), "name"))]]$
+              descriptor$contained_model_write_grant$source_space$
+                input_descriptor_identity,
+          selected_dimension_count = result$request$outputs[[match(sibling,
+            vapply(result$request$outputs, `[[`, character(1), "name"))]]$
+              descriptor$contained_model_write_grant$source_space$
+                selected_dimension_count,
+          selected_dimension_order_identity = result$request$outputs[[match(
+            sibling, vapply(result$request$outputs, `[[`, character(1),
+              "name"))]]$descriptor$contained_model_write_grant$source_space$
+                selected_dimension_order_identity))
+      if (is.null(model) || !identical(observed_source_binding,
+          grant$source_model_binding$source_space_binding_identity))
+        .wb_operation_pack_v3_error("PYBENCH_PUBLICATION_FAILED",
+          "Paired model output is missing or has incompatible linkage.",
+          "publication")
+      .wb_ensure_space_models_table(bundle$con)
+      DBI::dbExecute(bundle$con, paste0(
+        "INSERT INTO space_models(space_id,model_type,source_space_id,",
+        "dims_json,cell_set,uwot_args_json,seed,model_path,created_at,provenance_json) ",
+        "VALUES(?,?,?,?,?,?,?,?,?,?);"), params = list(target,
+          as.character(model$model_type)[1],
+          as.character(model$in_space_id)[1],
+          jsonlite::toJSON(as.list(result$request$params$dims),
+            auto_unbox = TRUE), "authenticated_selection",
+          jsonlite::toJSON(result$request$params, auto_unbox = TRUE,
+            null = "null", digits = NA),
+          as.integer(result$request$params$seed %||% NA_integer_),
+          as.character(model$model_path)[1],
+          format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+          jsonlite::toJSON(list(model_linkage = model$model_linkage,
+            payload_manifest_identity =
+              model$model_payload_manifest_identity), auto_unbox = TRUE,
+            null = "null", digits = NA)))
+    }
+  }), error = function(error) {
+    for (path in collector$new) if (file.exists(path)) unlink(path,
+      force = TRUE)
+    if (inherits(error, "wb_operation_pack_v3_error")) stop(error)
+    .wb_operation_pack_v3_error("PYBENCH_PUBLICATION_FAILED",
+      paste0("Atomic space_2d/model publication failed: ",
+        conditionMessage(error)), "publication")
+  })
+  ok <- TRUE
+  if (ok) for (path in collector$retire) if (file.exists(path)) unlink(path,
+    force = TRUE)
+  invisible(TRUE)
 }

@@ -40,6 +40,7 @@ Writes coordinates through the canonical file-backed dense-space payload
 contract. SQLite stores only registry, shape, path, and content identity.
 }
 \details{
-Prefer a fitting operation such as \code{pca_fit} or \code{umap_fit} for ordinary
-analysis. This low-level writer is for controlled bundle assembly.
+Prefer a fitting operation from an explicitly activated representation
+operation pack for ordinary analysis. This low-level writer is for
+controlled bundle assembly.
 }

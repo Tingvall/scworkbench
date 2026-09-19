@@ -71,6 +71,12 @@ identities. Physical byte identity is not replay equivalence.
   overwrite false, selected/preimage overlap is rejected before dispatch.
   Final order is recipient canonical order filtered to the union of old and
   selected cells, so untouched relative order and coordinates are preserved.
+  The source-model binding is a closed union: the input arm binds name,
+  engine/model type, model-linkage identity and contained-payload identity;
+  the sibling-output arm binds name, allocated ID, engine/model type and the
+  source-space binding identity. The sibling arm deliberately carries no
+  predicted payload identity or grant identity, avoiding both a false
+  pre-dispatch byte claim and a hash cycle.
 
 ## Receipt observations
 

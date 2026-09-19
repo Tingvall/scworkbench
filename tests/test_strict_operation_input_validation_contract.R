@@ -1,4 +1,7 @@
 test_strict_operation_input_validation_contract <- function() {
+  contract_test_activate_representation_pack()
+  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+    add = TRUE)
   catalog <- scworkbench:::.wb_op_catalog()
 
   expect_error <- function(expr, pattern = NULL) {

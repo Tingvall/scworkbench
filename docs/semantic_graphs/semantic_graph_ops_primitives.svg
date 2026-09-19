@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="740" height="2824" viewBox="0 0 740 2824">
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="2680" viewBox="0 0 740 2680">
 <rect width="100%" height="100%" fill="white"/>
 <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#555"/></marker></defs>
 <text x="40" y="34" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700">Ops, Primitives, And Operation I/O</text>
@@ -44,7 +44,6 @@
 <line x1="370" y1="391" x2="300" y2="2335" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:trajectory_signature_smooth</title></line>
 <line x1="370" y1="391" x2="300" y2="2407" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:trajectory_smooth</title></line>
 <line x1="370" y1="391" x2="300" y2="2551" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:trajectory_vector_smooth</title></line>
-<line x1="370" y1="391" x2="300" y2="2695" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:umap_transform</title></line>
 <line x1="370" y1="463" x2="300" y2="607" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:obs_table consumed_by op:model_bound_latent_union</title></line>
 <line x1="370" y1="535" x2="300" y2="2047" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:path_2d_family consumed_by op:trajectory_segment_from_artifacts</title></line>
 <line x1="370" y1="535" x2="300" y2="2479" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:path_2d_family consumed_by op:trajectory_space_path_segment</title></line>
@@ -62,8 +61,6 @@
 <line x1="370" y1="679" x2="300" y2="1327" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:slingshot_fit</title></line>
 <line x1="370" y1="679" x2="300" y2="1543" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:space_path_define</title></line>
 <line x1="370" y1="679" x2="300" y2="1687" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:space_path_score</title></line>
-<line x1="370" y1="679" x2="300" y2="2623" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:umap_fit</title></line>
-<line x1="370" y1="679" x2="300" y2="2695" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:umap_transform</title></line>
 <line x1="370" y1="751" x2="300" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:monocle3_project</title></line>
 <line x1="370" y1="751" x2="300" y2="895" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:palantir_project</title></line>
 <line x1="370" y1="751" x2="300" y2="1183" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:slingshot</title></line>
@@ -161,9 +158,6 @@
 <line x1="300" y1="2479" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_space_path_segment produces primitive:obs_table</title></line>
 <line x1="300" y1="2551" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth produces primitive:obs_table</title></line>
 <line x1="300" y1="2551" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:trajectory_vector_smooth produces primitive:obs_table</title></line>
-<line x1="300" y1="2623" x2="370" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit produces primitive:model_ref</title></line>
-<line x1="300" y1="2623" x2="370" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_fit produces primitive:space_2d</title></line>
-<line x1="300" y1="2695" x2="370" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:umap_transform produces primitive:space_2d</title></line>
 <g><title>op:cell_set_derive
 Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.</title><rect x="40" y="80" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="98" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Derived Cell Set</text><text x="50" y="114" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:cell_set_derive</text></g>
 <g><title>op:chromvar
@@ -234,10 +228,6 @@ Summarize per-feature expression along trajectory pseudotime into reusable trend
 Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.</title><rect x="40" y="2456" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="2474" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Trajectory space-path segment</text><text x="50" y="2490" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:trajectory_space_path_segment</text></g>
 <g><title>op:trajectory_vector_smooth
 Summarize cell-level signal families along trajectory pseudotime into reusable trend tables.</title><rect x="40" y="2528" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="2546" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Trajectory Signal Smoothing</text><text x="50" y="2562" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:trajectory_vector_smooth</text></g>
-<g><title>op:umap_fit
-Fit a UMAP model on a space and store it for future projection.</title><rect x="40" y="2600" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="2618" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">UMAP fit (train model)</text><text x="50" y="2634" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:umap_fit</text></g>
-<g><title>op:umap_transform
-Project cells into an existing UMAP using a stored model.</title><rect x="40" y="2672" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="2690" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">UMAP transform (project cells)</text><text x="50" y="2706" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:umap_transform</text></g>
 <g><title>primitive:cell_vector
 One value per cell, continuous or categorical.</title><rect x="370" y="80" width="260" height="46" rx="8" fill="#bde8bf" stroke="#555" stroke-opacity="0.55"/><text x="380" y="98" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Cell Vector</text><text x="380" y="114" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">primitive:cell_vector</text></g>
 <g><title>primitive:cell_vector_family

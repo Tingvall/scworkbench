@@ -68,12 +68,14 @@
   out$operations <- lapply(out$operations, function(op) {
     op$provenance_reads <- NULL
     op$typed_slice_reads <- NULL
+    op$contained_model_reads <- NULL
     op$publication_policies <- NULL
     op$parameter_axes <- NULL
     op$parameter_bindings <- Filter(function(binding)
       !as.character(binding$policy %||% "")[1] %in% c(
         "input_id_with_numeric_suffix_v1",
-        "feature_ids_from_table_or_matrix_v1"),
+        "feature_ids_from_table_or_matrix_v1",
+        "input_id_with_literal_affix_v1", "model_space_id_v1"),
       op$parameter_bindings %||% list())
     if (!length(op$parameter_bindings)) op$parameter_bindings <- NULL
     op$retained_parameters <- Filter(function(item) !identical(
@@ -82,6 +84,7 @@
     if (!length(op$retained_parameters)) op$retained_parameters <- NULL
     op$outputs <- lapply(op$outputs, function(output) {
       output$fragment_policy <- NULL
+      output$contained_model_policy <- NULL
       output
     })
     op$registry_reads <- Filter(function(x) identical(
@@ -245,6 +248,49 @@
     for (item in publication) {
       output <- outputs[[as.character(item$output)[1]]]
       target <- properties[[as.character(item$target_id_parameter)[1]]]
+      policy_name <- as.character(item$policy)[1]
+      if (identical(policy_name,
+          "authenticated_space_2d_publication_v1")) {
+        axis <- inputs[[as.character(item$cell_axis_input)[1]]]
+        binding <- item$model_binding
+        model <- if (identical(as.character(binding$source)[1], "input"))
+          inputs[[as.character(binding$name)[1]]] else
+          outputs[[as.character(binding$name)[1]]]
+        overwrite_name <- as.character(item$mode$overwrite_parameter %||%
+          "")[1]
+        overwrite_valid <- !nzchar(overwrite_name) ||
+          .wb_operation_pack_v3_param_is(properties, overwrite_name,
+            "boolean")
+        model_valid <- !is.null(model) && identical(as.character(
+          model$kind)[1], "model_ref")
+        binding_source <- as.character(binding$source)[1]
+        mode_policy <- as.character(item$mode$policy)[1]
+        mode_binding_valid <- if (identical(mode_policy, "add_only_v1")) {
+          identical(binding_source, "sibling_output") &&
+            !is.null(model$contained_model_policy)
+        } else if (identical(mode_policy,
+            "selected_merge_or_full_replace_v1")) {
+          identical(binding_source, "input")
+        } else FALSE
+        same_group <- identical(as.character(binding$source)[1], "input") ||
+          (!is.null(output) && !is.null(model) &&
+            identical(as.character(output$promotion_group)[1],
+              as.character(model$promotion_group)[1]))
+        if (is.null(output) || !identical(as.character(output$category)[1],
+            "materialization") || !identical(as.character(output$kind)[1],
+            "space_2d") || !identical(as.character(item$target_kind)[1],
+            "space_2d") || !.wb_operation_pack_v3_param_is(properties,
+              item$target_id_parameter, "string") || is.null(axis) ||
+            !as.character(axis$kind)[1] %in% c("space", "space_2d") ||
+            !model_valid || !same_group || !overwrite_valid ||
+            !mode_binding_valid)
+          .wb_operation_pack_v3_error(
+            "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+            paste0("Operation '", opname,
+              "' has an invalid authenticated space_2d publication declaration."),
+            "semantic_admission")
+        next
+      }
       overwrite <- properties[[as.character(item$overwrite_parameter)[1]]]
       if (is.null(output) || !identical(as.character(output$category)[1],
           "materialization") || !identical(as.character(output$kind)[1],
@@ -257,6 +303,47 @@
           "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
           paste0("Operation '", opname,
             "' has an invalid add/replace publication declaration."),
+          "semantic_admission")
+    }
+
+    model_outputs <- Filter(function(x) !is.null(x$contained_model_policy),
+      operation$outputs)
+    for (output in model_outputs) {
+      policy <- output$contained_model_policy
+      source <- inputs[[as.character(policy$source_space_input)[1]]]
+      paired <- outputs[[as.character(policy$paired_space_output)[1]]]
+      if (!identical(as.character(output$kind)[1], "model_ref") ||
+          is.null(source) || !identical(as.character(source$kind)[1],
+            "space") || is.null(paired) || !identical(as.character(
+              paired$kind)[1], "space_2d") || !identical(as.character(
+              paired$category)[1], "materialization") ||
+          !identical(as.character(output$promotion_group)[1],
+            as.character(paired$promotion_group)[1]) ||
+          is.null(properties[[as.character(policy$dimensions_parameter)[1]]]))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid contained-model output declaration."),
+          "semantic_admission")
+    }
+    model_reads <- operation$contained_model_reads %||% list()
+    read_names <- vapply(model_reads, function(x) as.character(x$name)[1],
+      character(1))
+    if (anyDuplicated(read_names)) .wb_operation_pack_v3_error(
+      "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Operation '", opname,
+        "' repeats a contained-model read name."), "semantic_admission")
+    for (read in model_reads) {
+      model <- inputs[[as.character(read$input)[1]]]
+      source <- inputs[[as.character(read$source_space_input)[1]]]
+      if (is.null(model) || !identical(as.character(model$kind)[1],
+          "model_ref") || is.null(source) || !identical(as.character(
+            source$kind)[1], "space") ||
+          is.null(properties[[as.character(read$dimensions_parameter)[1]]]))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid contained-model read declaration."),
           "semantic_admission")
     }
     axes <- operation$parameter_axes %||% list()
@@ -309,6 +396,22 @@
           "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
           paste0("Operation '", opname,
             "' has an invalid feature-axis binding."),
+          "semantic_admission")
+    }
+    for (binding in Filter(function(x) as.character(
+        x$policy %||% "")[1] %in% c("input_id_with_literal_affix_v1",
+          "model_space_id_v1"), operation$parameter_bindings %||% list())) {
+      input <- inputs[[as.character(binding$input)[1]]]
+      policy <- as.character(binding$policy)[1]
+      expected_kind <- if (identical(policy, "model_space_id_v1"))
+        "model_ref" else "space"
+      if (is.null(input) || !identical(as.character(input$kind)[1],
+          expected_kind) || !.wb_operation_pack_v3_param_is(properties,
+            binding$parameter, "string", nullable = TRUE))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an invalid derived identifier binding."),
           "semantic_admission")
     }
 
@@ -525,6 +628,12 @@
   definition$v3_definition <- op
   if (length(op$typed_slice_reads %||% list()))
     definition$typed_slice_reads <- op$typed_slice_reads
+  if (length(op$contained_model_reads %||% list())) {
+    model_inputs <- vapply(op$contained_model_reads, function(x)
+      as.character(x$input)[1], character(1))
+    definition$coverage[model_inputs] <-
+      rep("model_associated_unless_query_space", length(model_inputs))
+  }
   definition
 }
 
