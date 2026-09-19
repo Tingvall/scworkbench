@@ -684,6 +684,39 @@
       "installed_relative_path": "protocol/fixtures/operation-pack-v3/identities.json"
     },
     {
+      "path": "inst/protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/operation-pack.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/operation-pack.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/operation-pack.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/receipt.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/receipt.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/receipt.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/request.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/request.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/request.json"
+    },
+    {
       "path": "inst/onboarding/AGENT_BIOLOGIST_GUIDE.md",
       "class": "public_canonical",
       "audience": "operator",
@@ -3182,28 +3215,6 @@
     },
     {
       "path": "man/wb_op_knn_graph.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_knn_neighbors.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_knn_pseudobulk.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

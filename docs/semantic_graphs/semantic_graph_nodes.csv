@@ -166,8 +166,6 @@
 "op:chromvar","op","chromvar","chromVAR deviations","Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog."
 "op:feature_set_import","op","feature_set_import","Feature-Set Library Import","Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables."
 "op:feature_set_namespace_transfer","op","feature_set_namespace_transfer","Feature-Set Namespace Transfer","Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics."
-"op:knn_neighbors","op","knn_neighbors","kNN neighbors around query cell(s)","Find nearest neighbors in a latent space without requiring matrix aggregation."
-"op:knn_pseudobulk","op","knn_pseudobulk","kNN Pseudobulk Around Query Cell(s)","Find k nearest neighbors in latent space around query cells and aggregate matrix values."
 "op:metadata_cell_vector","op","metadata_cell_vector","Metadata Cell Vector","Materialize an imported cell metadata column as a typed, provenance-backed cell vector."
 "op:model_bound_latent_union","op","model_bound_latent_union","Model-Bound Latent-Space Union","Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity."
 "op:monocle3_fit","op","monocle3_fit","Monocle3 fit (hybrid space)","Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot."

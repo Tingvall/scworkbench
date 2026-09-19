@@ -31,7 +31,7 @@ source(file.path(core_source, "inst", "tests", "contract_test_runner.R"),
 Sys.setenv(SCWBREPRESENTATION_SOURCE = representation_source)
 core <- contract_test_discover(file.path(core_source, "tests"), files = c(
   "test_representation_extraction_contract.R",
-  "test_op_knn_pseudobulk_positive_contract.R"))
+  "test_operation_pack_v3_sparse_membership_contract.R"))
 core_run <- contract_test_execute(core)
 contract_test_assert_success(core_run)
 composite <- contract_test_discover(file.path(core_source, "tests", "composite"),

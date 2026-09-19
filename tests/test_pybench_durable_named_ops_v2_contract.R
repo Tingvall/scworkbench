@@ -32,9 +32,9 @@ test_pybench_durable_peakvi_fit_v2_contract <- function() {
   p <- wb_session_promote_current(b, wb_session_resume(b, ws), outputs="model", created_by="named-v2")
   id <- as.character(p$promoted$artifact_id[p$promoted$output=="model"])[1]
   model <- wb_art_load(b,id,"model_ref")
-  downstream <- wb_op_knn_neighbors(b,"peakvi.mock",x$cells[[1L]],x$cells[-1L],k=2L,include_query=FALSE)
+  downstream <- wb_space(b,"peakvi.mock",cells=x$cells)
   stopifnot(p$session$durable$state=="promoted", "peakvi.mock" %in% wb_spaces(b)$space_id,
-            identical(model$engine,"peakvi"), nrow(downstream$outputs$neighbors$table)==2L,
+            identical(model$engine,"peakvi"), nrow(downstream)==length(x$cells),
             identical(expected$space$content_sha256,.wb_prov_payload_identity(b,wb_prim_space("peakvi.mock"))$content_sha256),
             identical(expected$model$content_sha256,.wb_prov_payload_identity(b,model)$content_sha256))
   TRUE
@@ -68,10 +68,10 @@ test_pybench_durable_peakvi_project_v2_contract <- function() {
   p <- wb_session_promote_current(b,wb_session_resume(b,ws),outputs="fit_summary",created_by="named-v2")
   summary_id <- as.character(p$promoted$artifact_id[p$promoted$output=="fit_summary"])[1]
   summary <- wb_art_load(b,summary_id,"obs_table")
-  downstream <- wb_op_knn_neighbors(b,"peakvi.projected.mock",x$cells[[1L]],x$cells[-1L],k=2L,include_query=FALSE)
+  downstream <- wb_space(b,"peakvi.projected.mock",cells=x$cells)
   stopifnot(all(p$promoted$status[p$promoted$output=="fit_summary"]=="ok"),
             "peakvi.projected.mock" %in% wb_spaces(b)$space_id,
-            nrow(downstream$outputs$neighbors$table)==2L,
+            nrow(downstream)==length(x$cells),
             identical(expected$space$content_sha256,.wb_prov_payload_identity(b,wb_prim_space("peakvi.projected.mock"))$content_sha256),
             identical(expected$fit_summary$content_sha256,.wb_prov_payload_identity(b,summary)$content_sha256))
   TRUE

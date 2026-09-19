@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 35
+Operation count: 33
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -503,65 +503,6 @@ Key parameters:
 - `bootstrap_seed` (int, default=1): Random seed for bootstrap confidence bands.
 - `ci_level` (dbl, default=0.95): Confidence level for bootstrap bands.
 - `class_min_amplitude` (dbl, default=0): Minimum amplitude required before assigning non-flat curve classes.
-
-## `knn_pseudobulk`
-
-Title: kNN Pseudobulk Around Query Cell(s)
-
-Intent: pseudobulk, neighbors, projection
-
-Description: Find k nearest neighbors in latent space around query cells and aggregate matrix values.
-
-Consumes:
-- `matrix`: matrix
-- `space`: space
-- `cell_set`: select
-
-Produces:
-- `pseudobulk_table`: feature_table [terminal artifact] - Feature-level pseudobulk values keyed by query cell.
-- `neighbor_distance`: cell_vector_family [terminal artifact] - Neighbor distances per query cell.
-
-Promotable outputs: pseudobulk_table, neighbor_distance
-
-Replay equivalence:
-- `pseudobulk_table`: `exact_canonical_value`
-- `neighbor_distance`: `exact_canonical_value`
-
-Key parameters:
-- `query_cells` (cell_ids_or_set, default=NULL): Query cells: explicit IDs or 'set:<name>'
-- `candidate_cells` (cell_ids_or_set, default=NULL): Optional candidate neighbor pool; defaults to all cells.
-- `features` (string_vec, default=NULL): Optional feature subset for pseudobulk output.
-- `k` (int, default=100): Nearest neighbors per query cell.
-- `include_query` (bool, default=FALSE): Include query cells themselves when they are in candidate pool.
-- `aggregate` (string, default=sum): Aggregation mode: sum or mean.
-
-## `knn_neighbors`
-
-Title: kNN neighbors around query cell(s)
-
-Intent: neighbors, geometry, projection
-
-Description: Find nearest neighbors in a latent space without requiring matrix aggregation.
-
-Consumes:
-- `space`: space
-- `cell_set`: select
-
-Produces:
-- `neighbors`: obs_table [terminal artifact] - Per-query neighbor table (cell_id, rank, distance).
-- `neighbor_distance`: cell_vector_family [terminal artifact] - Neighbor distances per query cell.
-
-Promotable outputs: neighbors, neighbor_distance
-
-Replay equivalence:
-- `neighbors`: `exact_canonical_value`
-- `neighbor_distance`: `exact_canonical_value`
-
-Key parameters:
-- `query_cells` (cell_ids_or_set, default=NULL): Query cells: explicit IDs or 'set:<name>'
-- `candidate_cells` (cell_ids_or_set, default=NULL): Optional candidate neighbor pool; defaults to all cells.
-- `k` (int, default=100): Nearest neighbors per query cell.
-- `include_query` (bool, default=FALSE): Include query cells themselves when they are in candidate pool.
 
 ## `slingshot`
 

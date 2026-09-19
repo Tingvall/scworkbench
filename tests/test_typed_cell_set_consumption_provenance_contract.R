@@ -55,21 +55,6 @@ test_typed_cell_set_consumption_provenance_contract <- function() {
   de_sid <- as.character(de_promoted$provenance_snapshot_id)
   de_artifact <- as.character(de_promoted$promoted$artifact_id[de_promoted$promoted$output=="result"])[1]
 
-  named_knn <- wb_session_run_op(wb_session_new(),b,"knn_neighbors",inputs=list(
-    space="latent",cell_set="set:universe",query_cells="set:query",
-    candidate_cells="set:candidates",k=2L,min_cells=2L
-  ))
-  stopifnot(setequal(vapply(named_knn$run$inputs$cell_set_resolutions,`[[`,character(1),"binding_name"),c("cell_set","query_cells","candidate_cells")))
-  named_promotion <- wb_session_promote_current(b,named_knn$session,outputs="neighbors",created_by="test")
-
-  explicit_knn <- wb_session_run_op(wb_session_new(),b,"knn_neighbors",inputs=list(
-    space="latent",cell_set="all",query_cells=cells[1:2],candidate_cells=cells[3:10],k=2L,min_cells=2L
-  ))
-  stopifnot(!length(explicit_knn$run$inputs$cell_set_resolutions))
-  explicit_promotion <- wb_session_promote_current(b,explicit_knn$session,outputs="neighbors",created_by="test")
-  explicit_bindings <- DBI::dbGetQuery(b$con,"SELECT * FROM prov_run_entity_bindings WHERE run_id=? AND entity_kind='cell_set';",params=list(explicit_knn$run$run_id))
-  stopifnot(!nrow(explicit_bindings))
-
   persisted <- DBI::dbGetQuery(b$con,"SELECT * FROM prov_run_entity_bindings WHERE snapshot_id=? AND run_id=? AND entity_kind='cell_set' ORDER BY binding_name;",params=list(de_sid,de$run$run_id))
   stopifnot(identical(as.character(persisted$binding_name),c("cell_set","left_cells","right_cells")),
             identical(as.character(persisted$entity_id),c("set:universe","set:group_a","set:group_b")),
@@ -144,7 +129,8 @@ test_typed_cell_set_consumption_provenance_contract <- function() {
     }
     audited[[op_name]] <- unique(expected)
   }
-  stopifnot(all(c("scwbv2reference::grouped_feature_table","knn_neighbors","trajectory_space_path_segment") %in% names(audited)))
+  stopifnot(all(c("scwbv2reference::grouped_feature_table",
+    "trajectory_space_path_segment") %in% names(audited)))
   explicit_endpoint <- .wb_named_cell_set_selectors(b,"trajectory_space_path_segment",list(
     cell_set="all",start_endpoint=list(x=0,y=0,cell_set="set:group_a"),
     start_cell_set="set:group_b"

@@ -2539,6 +2539,91 @@
               "pattern": "^[A-Za-z][A-Za-z0-9_]*$"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
+            "policy",
+            "representation",
+            "partner_output",
+            "query_space_read",
+            "candidate_space_read",
+            "k_parameter"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "authenticated_sparse_membership_v1"
+            },
+            "representation": {
+              "enum": [
+                "obs_table",
+                "cell_vector_family"
+              ]
+            },
+            "partner_output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "query_space_read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "candidate_space_read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "k_parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
+            "policy",
+            "membership_output",
+            "query_space_read",
+            "matrix_slice_read",
+            "aggregate_parameter",
+            "zero_neighbor_policy"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "authenticated_pseudobulk_v1"
+            },
+            "membership_output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "query_space_read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "matrix_slice_read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "aggregate_parameter": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "zero_neighbor_policy": {
+              "const": "zero_rows_forbidden_v1"
+            }
+          }
         }
       ]
     },
@@ -2985,6 +3070,103 @@
               },
               "call_discipline": {
                 "const": "exactly_once"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "cell_selector_axes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "parameter",
+              "role",
+              "default_all_cells",
+              "include_query_parameter"
+            ],
+            "properties": {
+              "parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "role": {
+                "enum": [
+                  "query",
+                  "candidate"
+                ]
+              },
+              "default_all_cells": {
+                "type": "boolean"
+              },
+              "include_query_parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              }
+            }
+          },
+          "minItems": 2
+        },
+        "typed_space_reads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "input",
+              "reader",
+              "kind",
+              "role",
+              "selection",
+              "chunk_size_parameter",
+              "call_discipline"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "input": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "reader": {
+                "const": "read_typed_space"
+              },
+              "kind": {
+                "const": "space"
+              },
+              "role": {
+                "enum": [
+                  "query",
+                  "candidate"
+                ]
+              },
+              "selection": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "policy",
+                  "parameter"
+                ],
+                "properties": {
+                  "policy": {
+                    "const": "parameter_cell_selector_v1"
+                  },
+                  "parameter": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  }
+                }
+              },
+              "chunk_size_parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "call_discipline": {
+                "const": "ordered_partition_exactly_once"
               }
             }
           },

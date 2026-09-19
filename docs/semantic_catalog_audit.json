@@ -14,7 +14,7 @@
   "missing_required_recipes": [],
   "unknown_op_kinds": [],
   "bad_edge_count": 0,
-  "known_table_type_count": 67,
-  "record_count": 305,
-  "edge_count": 749
+  "known_table_type_count": 65,
+  "record_count": 303,
+  "edge_count": 735
 }

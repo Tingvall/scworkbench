@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 305,
-  "edge_count": 749,
+  "node_count": 303,
+  "edge_count": 735,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -81,18 +81,6 @@
       "record_type": "op",
       "name": "trajectory_signal_dynamics",
       "title": "Trajectory Signal Dynamics"
-    },
-    {
-      "record_id": "op:knn_pseudobulk",
-      "record_type": "op",
-      "name": "knn_pseudobulk",
-      "title": "kNN Pseudobulk Around Query Cell(s)"
-    },
-    {
-      "record_id": "op:knn_neighbors",
-      "record_type": "op",
-      "name": "knn_neighbors",
-      "title": "kNN neighbors around query cell(s)"
     },
     {
       "record_id": "op:slingshot",
@@ -2951,90 +2939,6 @@
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:fit_summary"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:knn_pseudobulk",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:knn_pseudobulk",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:knn_pseudobulk",
-      "edge_type": "consumed_by",
-      "label": "input:space"
-    },
-    {
-      "from": "op:knn_pseudobulk",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:space"
-    },
-    {
-      "from": "op:knn_pseudobulk",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:knn_pseudobulk",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:pseudobulk_table"
-    },
-    {
-      "from": "op:knn_pseudobulk",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:neighbor_distance"
-    },
-    {
-      "from": "op:knn_pseudobulk",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:neighbor_distance"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:knn_neighbors",
-      "edge_type": "consumed_by",
-      "label": "input:space"
-    },
-    {
-      "from": "op:knn_neighbors",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:space"
-    },
-    {
-      "from": "op:knn_neighbors",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:knn_neighbors",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:neighbors"
-    },
-    {
-      "from": "op:knn_neighbors",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:neighbor_distance"
-    },
-    {
-      "from": "op:knn_neighbors",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:neighbor_distance"
     },
     {
       "from": "primitive:space",

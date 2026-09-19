@@ -1354,6 +1354,16 @@
         inputs[[as.character(binding$input)[1]]]$feature_id %||% character())))
     }
   }
+  if (abi_v3 && length(operation$cell_selector_axes %||% list())) {
+    params <- .wb_operation_pack_v3_bind_cell_selectors(bundle, operation,
+      params)
+    params_result <- .wb_json_schema_validate_2020(params,
+      operation$params_schema)
+    if (!isTRUE(params_result$ok)) .wb_operation_pack_v2_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Resolved cell selectors fail the admitted schema at ",
+        params_result$path, ": ", params_result$message), "resolution")
+  }
   transition_id <- .wb_allocate_identifier("transition_", 16L, purpose = "operation-pack v2 transition")
   session_id <- as.character(session_id %||% .wb_allocate_identifier("session_", 12L, purpose = "operation-pack v2 session"))[1]
   run_id <- as.character(run_id %||% .wb_allocate_identifier("run_", 12L, purpose = "operation-pack v2 run"))[1]
@@ -1401,6 +1411,9 @@
     if (abi_v3) {
       typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
         `[[`, character(1), "input_name"))
+      typed_input_names <- unique(c(typed_input_names, vapply(
+        request$typed_space_grants %||% list(), `[[`, character(1),
+        "input_name")))
       staged_inputs <- staged_inputs[setdiff(names(staged_inputs),
         typed_input_names)]
     }
@@ -1450,6 +1463,15 @@
             features = attr(x, "operation_pack_v3_features"))), vapply(
               request$typed_slice_grants %||% list(), `[[`, character(1),
               "name")),
+        typed_space_reads = stats::setNames(lapply(
+          request$typed_space_grants %||% list(), function(x) list(
+            name = x$name, input_name = x$input_name, role = x$role,
+            requested_chunk_size = x$requested_chunk_size,
+            call_discipline = x$call_discipline,
+            cells = attr(x, "operation_pack_v3_cells"),
+            dimension_count = x$dimension_count)), vapply(
+              request$typed_space_grants %||% list(), `[[`, character(1),
+              "name")),
         input_ids = stats::setNames(lapply(inputs, function(value) {
           kind <- as.character(value$kind %||% "")[1]
           if (kind == "matrix") as.character(value$matrix_id %||% "")[1]
@@ -1466,6 +1488,8 @@
     }
     typed_slice_usage <- if (abi_v3)
       .wb_operation_pack_v3_typed_slice_usage(adapter, request) else list()
+    typed_space_usage <- if (abi_v3)
+      .wb_operation_pack_v3_typed_space_usage(adapter, request) else list()
     reader_observation <- if (abi_v3) NULL else .wb_operation_pack_v2_chunk_observation(operation,
         params, adapter$state$reader_calls, inputs)
     registry_read_observations <- .wb_operation_pack_v2_registry_read_observations(
@@ -1481,6 +1505,7 @@
       registration, operation, adapter$state$writes, preflight, inputs,
       registry_read_observations, provenance_read_observations,
       typed_slice_usage = typed_slice_usage,
+      typed_space_usage = typed_space_usage,
       model_payload_reads = model_read_observations) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
@@ -1519,6 +1544,8 @@
     typed_slice_axes <- unlist(lapply(request$typed_slice_grants %||% list(),
       function(x) c(x$cells_axis$relative_path,
         x$features_axis$relative_path)), use.names = FALSE)
+    typed_space_axes <- vapply(request$typed_space_grants %||% list(),
+      function(x) as.character(x$cells_axis$relative_path)[1], character(1))
     typed_slice_sources <- vapply(Filter(function(x) identical(
       x$source_reference$source_kind, "in_memory_selected_projection"),
       request$typed_slice_grants %||% list()), function(x)
@@ -1532,6 +1559,7 @@
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
       paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
       registry_payloads, provenance_payloads, typed_slice_axes,
+      typed_space_axes,
       typed_slice_sources, model_read_files), method = "radix")
     fragment_roots <- paste0("outputs/", names(Filter(function(x)
       !is.null(x$value$fragment_manifest), adapter$state$writes)),

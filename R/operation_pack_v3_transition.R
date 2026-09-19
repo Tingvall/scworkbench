@@ -788,6 +788,15 @@
     })
   typed_slice_grants <- stats::setNames(typed_slice_grants,
     vapply(typed_slice_grants, `[[`, character(1), "name"))
+  typed_space_grants <- lapply(operation$typed_space_reads %||% list(),
+    function(declaration) {
+      input_name <- as.character(declaration$input)[1]
+      .wb_operation_pack_v3_typed_space_grant(declaration,
+        inputs[[input_name]], input_records[[input_name]], params,
+        base$execution_capability$source_state_identity, stage_root)
+    })
+  typed_space_grants <- stats::setNames(typed_space_grants,
+    vapply(typed_space_grants, `[[`, character(1), "name"))
   parameter_axis_grants <- lapply(operation$parameter_axes %||% list(),
     .wb_operation_pack_v3_parameter_axis_grant, params = params,
     typed_grants = typed_slice_grants)
@@ -819,6 +828,28 @@
           .wb_operation_pack_v2_identity_plain(
             "scworkbench.cell_order.v1", unname(as.list(output_cells)))
       }
+    }
+    if (!is.null(policy) && identical(as.character(policy$policy)[1],
+        "authenticated_sparse_membership_v1")) {
+      descriptor$sparse_membership_grant <-
+        .wb_operation_pack_v3_sparse_grant(policy, outputs[[name]], params,
+          typed_space_grants)
+      descriptor$expected_dimensions <- if (identical(as.character(
+        policy$representation)[1], "obs_table")) list(0L, 0L) else
+          list(0L, 3L)
+      if (identical(as.character(policy$representation)[1],
+          "cell_vector_family")) descriptor$expected_cell_order_identity <-
+        descriptor$sparse_membership_grant$candidate_axis_identity else
+          descriptor$expected_cell_order_identity <- NULL
+    }
+    if (!is.null(policy) && identical(as.character(policy$policy)[1],
+        "authenticated_pseudobulk_v1")) {
+      descriptor$pseudobulk_grant <-
+        .wb_operation_pack_v3_pseudobulk_grant(policy, outputs[[name]],
+          params, typed_space_grants, typed_slice_grants)
+      descriptor$expected_dimensions <- list(0L, 0L)
+      descriptor$expected_feature_order_identity <-
+        descriptor$pseudobulk_grant$feature_axis_identity
     }
     if (!is.null(policy) && as.character(policy$policy)[1] %in% c(
         "cell_by_parameter_axis_v1",
@@ -891,6 +922,7 @@
     grant_identity = x$descriptor$grant_identity))
   private_input_names <- unique(c(
     vapply(typed_slice_grants, `[[`, character(1), "input_name"),
+    vapply(typed_space_grants, `[[`, character(1), "input_name"),
     vapply(model_reads$grants, `[[`, character(1), "input_name")))
   capability$reader_grants <- unname(c(
     lapply(Filter(function(x) !x$name %in% private_input_names,
@@ -908,9 +940,15 @@
       grant_identity = x$grant_identity)),
     lapply(typed_slice_grants, function(x) list(
       typed_slice_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
+    lapply(typed_space_grants, function(x) list(
+      typed_space_name = x$name, reader = x$reader,
       grant_identity = x$grant_identity))))
   if (length(typed_slice_grants)) capability$typed_slice_grant_identities <-
     unname(lapply(typed_slice_grants, function(x)
+      .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(typed_space_grants)) capability$typed_space_grant_identities <-
+    unname(lapply(typed_space_grants, function(x)
       .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
   if (length(parameter_axis_grants))
     capability$parameter_axis_grant_identities <- unname(lapply(
@@ -944,6 +982,8 @@
   base$execution_capability <- capability
   if (length(typed_slice_grants))
     base$typed_slice_grants <- unname(typed_slice_grants)
+  if (length(typed_space_grants))
+    base$typed_space_grants <- unname(typed_space_grants)
   if (length(parameter_axis_grants))
     base$parameter_axis_grants <- unname(parameter_axis_grants)
   if (length(provenance$records)) base$provenance_reads <- provenance$records
@@ -968,6 +1008,11 @@
       cells = attr(grant, "operation_pack_v3_cells"),
       features = attr(grant, "operation_pack_v3_features"),
       input = inputs[[grant$input_name]])), vapply(typed_slice_grants, `[[`,
+        character(1), "name"))
+  attr(base, "operation_pack_v3_typed_space_values") <-
+    stats::setNames(lapply(typed_space_grants, function(grant) list(
+      cells = attr(grant, "operation_pack_v3_cells"),
+      input = inputs[[grant$input_name]])), vapply(typed_space_grants, `[[`,
         character(1), "name"))
   base
 }
@@ -998,6 +1043,14 @@
     if (!is.null(descriptor$cardinality_grant))
       .wb_operation_pack_v3_assert_self_identity(
         descriptor$cardinality_grant, "cardinality_grant_identity",
+        "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    if (!is.null(descriptor$sparse_membership_grant))
+      .wb_operation_pack_v3_assert_self_identity(
+        descriptor$sparse_membership_grant, "grant_identity",
+        "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    if (!is.null(descriptor$pseudobulk_grant))
+      .wb_operation_pack_v3_assert_self_identity(
+        descriptor$pseudobulk_grant, "grant_identity",
         "PYBENCH_CAPABILITY_MISMATCH", "staging")
     if (!is.null(descriptor$contained_model_write_grant))
       .wb_operation_pack_v3_assert_self_identity(
@@ -1041,6 +1094,23 @@
     .wb_operation_pack_v3_private_source_validate(
       attr(request, "operation_pack_stage_root"), grant)
   }
+  for (grant in request$typed_space_grants %||% list()) {
+    .wb_operation_pack_v3_assert_self_identity(grant$source_reference,
+      "source_reference_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant,
+      "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    descriptor <- grant$cells_axis
+    path <- file.path(attr(request, "operation_pack_stage_root"),
+      descriptor$relative_path)
+    value <- jsonlite::read_json(path, simplifyVector = FALSE)
+    .wb_operation_pack_v3_assert_self_identity(value, "manifest_identity",
+      "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    if (!identical(value$manifest_identity,
+        descriptor$axis_manifest_identity) ||
+        !identical(value$order_identity, descriptor$order_identity))
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-space axis manifest differs from its grant.", "staging")
+  }
   for (read in request$provenance_reads %||% list())
     .wb_operation_pack_v3_assert_self_identity(read,
       "descriptor_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH", "resolution")
@@ -1074,6 +1144,8 @@
       "V3 capability writer grants differ from request outputs.", "staging")
   private_input_names <- unique(c(vapply(
     request$typed_slice_grants %||% list(), `[[`, character(1), "input_name"),
+    vapply(request$typed_space_grants %||% list(), `[[`, character(1),
+      "input_name"),
     vapply(request$model_payload_grants %||% list(), `[[`, character(1),
       "input_name")))
   expected_readers <- c(
@@ -1092,12 +1164,17 @@
       grant_identity = x$grant_identity)),
     lapply(request$typed_slice_grants %||% list(), function(x) list(
       typed_slice_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
+    lapply(request$typed_space_grants %||% list(), function(x) list(
+      typed_space_name = x$name, reader = x$reader,
       grant_identity = x$grant_identity)))
   if (!identical(expected_readers,
       request$execution_capability$reader_grants))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "V3 capability reader grants differ from request inputs.", "staging")
   expected_slices <- lapply(request$typed_slice_grants %||% list(),
+    function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
+  expected_spaces <- lapply(request$typed_space_grants %||% list(),
     function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   expected_provenance <- lapply(request$provenance_reads %||% list(),
     function(x) .wb_operation_pack_v3_unscoped_identity(
@@ -1106,6 +1183,8 @@
     function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   if (!identical(request$execution_capability$typed_slice_grant_identities %||%
         list(), expected_slices) ||
+      !identical(request$execution_capability$typed_space_grant_identities %||%
+        list(), expected_spaces) ||
       !identical(request$execution_capability$provenance_read_identities %||%
         list(), expected_provenance) ||
       !identical(request$execution_capability$model_payload_grant_identities %||%
@@ -1126,7 +1205,8 @@
   durable <- Filter(function(x) identical(
     x$source_reference$source_kind, "bundle_matrix"),
     request$typed_slice_grants %||% list())
-  if (!length(durable)) return(invisible(TRUE))
+  spaces <- request$typed_space_grants %||% list()
+  if (!length(durable) && !length(spaces)) return(invisible(TRUE))
   # The request authenticates the complete session-view registry, including
   # predecessor materializations in the current checkpoint generation.
   current_state <- .wb_operation_pack_v2_identity_plain(
@@ -1145,6 +1225,21 @@
         !identical(identity, source$input_content_identity))
       .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
         paste0("Typed-slice source changed after authentication for '",
+          grant$name, "'."), "audit")
+  }
+  for (grant in spaces) {
+    source <- grant$source_reference
+    cells <- attr(grant, "operation_pack_v3_cells") %||% character()
+    observed <- tryCatch(wb_space(bundle, source$space_id, cells = cells),
+      error = identity)
+    observed_matrix <- if (inherits(observed, "error")) NULL else
+      tryCatch(.wb_operation_pack_v3_space_matrix(observed), error = function(e) NULL)
+    identity <- if (is.null(observed_matrix)) NULL else
+      .wb_operation_pack_v3_space_content(observed_matrix, cells)
+    if (is.null(identity) || !identical(rownames(observed_matrix), cells) ||
+        !identical(identity, source$selected_content_identity))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        paste0("Typed-space source changed after authentication for '",
           grant$name, "'."), "audit")
   }
   invisible(TRUE)
@@ -1167,6 +1262,7 @@
                                            registry_reads = list(),
                                            provenance_reads = list(),
                                            typed_slice_usage = list(),
+                                           typed_space_usage = list(),
                                            model_payload_reads = list()) {
   hook <- getOption("scworkbench.operation_pack_v3_output_test_hook", NULL)
   if (is.function(hook)) {
@@ -1188,9 +1284,12 @@
   base_request$process_protocol_version <- "pybench-op-v3"
   base_request$pack_abi_version <- "2"
   base_request$typed_slice_grants <- NULL
+  base_request$typed_space_grants <- NULL
   base_request$provenance_reads <- NULL
   for (i in seq_along(base_request$outputs)) {
     base_request$outputs[[i]]$descriptor$cardinality_grant <- NULL
+    base_request$outputs[[i]]$descriptor$sparse_membership_grant <- NULL
+    base_request$outputs[[i]]$descriptor$pseudobulk_grant <- NULL
     base_request$outputs[[i]]$descriptor$grant_identity$scheme <-
       "scworkbench.operation_pack.output_grant.v2"
   }
@@ -1204,6 +1303,7 @@
       as.character(x$name)[1], character(1)))
   observed <- c(receipt$outputs %||% list(),
     receipt$registry_requests %||% list())
+  sparse_observations <- list()
   for (i in seq_along(observed)) {
     name <- as.character(observed[[i]]$name)[1]
     descriptor <- observed[[i]]$descriptor
@@ -1219,6 +1319,28 @@
       descriptor$observed_cardinality <-
         .wb_operation_pack_v3_observe_cardinality(writes[[name]]$value,
           cardinality)
+      descriptor$dimensions <- unname(as.list(
+        .wb_operation_pack_v2_dimensions(writes[[name]]$value,
+          as.character(descriptor$kind)[1])))
+    }
+    sparse_grant <- grants[[name]]$descriptor$sparse_membership_grant %||%
+      NULL
+    if (!is.null(sparse_grant)) {
+      query_name <- as.character(sparse_grant$output)[1]
+      policy <- policies[[query_name]]
+      space_map <- stats::setNames(request$typed_space_grants %||% list(),
+        vapply(request$typed_space_grants %||% list(), `[[`, character(1),
+          "name"))
+      attr(sparse_grant, "operation_pack_v3_query_cells") <- attr(
+        space_map[[as.character(policy$query_space_read)[1]]],
+        "operation_pack_v3_cells")
+      attr(sparse_grant, "operation_pack_v3_candidate_cells") <- attr(
+        space_map[[as.character(policy$candidate_space_read)[1]]],
+        "operation_pack_v3_cells")
+      sparse_observations[[name]] <-
+        .wb_operation_pack_v3_sparse_ledger(writes[[name]]$value,
+          sparse_grant)
+      descriptor$observed_sparse_membership <- sparse_observations[[name]]
       descriptor$dimensions <- unname(as.list(
         .wb_operation_pack_v2_dimensions(writes[[name]]$value,
           as.character(descriptor$kind)[1])))
@@ -1312,6 +1434,39 @@
         "descriptor excluding observed_descriptor_identity", descriptor)
     observed[[i]]$descriptor <- descriptor
   }
+  if (length(sparse_observations)) {
+    for (name in names(sparse_observations)) {
+      partner <- as.character(grants[[name]]$descriptor$
+        sparse_membership_grant$partner_output)[1]
+      if (is.null(sparse_observations[[partner]]) ||
+          !identical(sparse_observations[[name]]$edge_ledger_identity,
+            sparse_observations[[partner]]$edge_ledger_identity) ||
+          !identical(sparse_observations[[name]]$edge_ledger,
+            sparse_observations[[partner]]$edge_ledger))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Sparse membership outputs do not expose the same edge ledger.",
+          "audit")
+    }
+  }
+  for (i in seq_along(observed)) {
+    name <- as.character(observed[[i]]$name)[1]
+    grant <- grants[[name]]$descriptor$pseudobulk_grant %||% NULL
+    if (is.null(grant)) next
+    membership <- sparse_observations[[as.character(
+      grant$membership_output)[1]]]
+    if (is.null(membership)) .wb_operation_pack_v3_error(
+      "PYBENCH_OUTPUT_INVALID",
+      "Pseudobulk output has no validated membership companion.", "audit")
+    observed[[i]]$descriptor$observed_pseudobulk <-
+      .wb_operation_pack_v3_pseudobulk_observe(writes[[name]]$value,
+        grant, membership)
+    observed[[i]]$descriptor$observed_descriptor_identity <- NULL
+    observed[[i]]$descriptor$observed_descriptor_identity <-
+      .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.operation_pack.observed_output.v3",
+        "descriptor excluding observed_descriptor_identity",
+        observed[[i]]$descriptor)
+  }
   # Close the model/embedding observation only after both descriptors exist,
   # avoiding a sibling grant or observation hash cycle.
   observed_names <- vapply(observed, `[[`, character(1), "name")
@@ -1353,6 +1508,7 @@
     registration, operation$qualified_name, preflight)
   if (length(provenance_reads)) receipt$provenance_reads <- provenance_reads
   if (length(typed_slice_usage)) receipt$typed_slice_usage <- typed_slice_usage
+  if (length(typed_space_usage)) receipt$typed_space_usage <- typed_space_usage
   if (length(model_payload_reads))
     receipt$model_payload_reads <- model_payload_reads
   publication_observations <- lapply(Filter(function(x)
@@ -1458,6 +1614,22 @@
         .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
           "Observed cardinality refers to the wrong grant.", "receipt")
     }
+    if (!is.null(grant$sparse_membership_grant)) {
+      .wb_operation_pack_v3_assert_self_identity(
+        item$descriptor$observed_sparse_membership,
+        "observation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+      if (!identical(item$descriptor$observed_sparse_membership$grant_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            grant$sparse_membership_grant$grant_identity)))
+        .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+          "Sparse-membership observation refers to the wrong grant.",
+          "receipt")
+    }
+    if (!is.null(grant$pseudobulk_grant)) {
+      .wb_operation_pack_v3_assert_self_identity(
+        item$descriptor$observed_pseudobulk, "observation_identity",
+        "PYBENCH_RECEIPT_MISMATCH", "receipt")
+    }
     if (!is.null(grant$parameter_axis_grant_identity) &&
         !identical(item$descriptor$observed_parameter_axis$
           parameter_axis_grant_identity,
@@ -1530,6 +1702,25 @@
       .wb_operation_pack_v3_assert_self_identity(result,
         "slice_result_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
     }
+  }
+  space_grants <- request$typed_space_grants %||% list()
+  space_usages <- receipt$typed_space_usage %||% list()
+  if (length(space_grants) != length(space_usages))
+    .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+      "Typed-space usage is not a bijection with grants.", "receipt")
+  for (i in seq_along(space_usages)) {
+    usage <- space_usages[[i]]; grant <- space_grants[[i]]
+    .wb_operation_pack_v3_assert_self_identity(usage,
+      "usage_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+    if (!identical(usage$grant_identity,
+        .wb_operation_pack_v3_unscoped_identity(grant$grant_identity)) ||
+        !identical(as.integer(usage$call_count),
+          as.integer(length(usage$calls))))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "Typed-space usage differs from its exact grant.", "receipt")
+    for (call in usage$calls)
+      .wb_operation_pack_v3_assert_self_identity(call, "call_identity",
+        "PYBENCH_RECEIPT_MISMATCH", "receipt")
   }
   for (read in receipt$provenance_reads %||% list())
     .wb_operation_pack_v3_assert_self_identity(read,
@@ -2142,6 +2333,9 @@
   state <- base$state
   typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
     `[[`, character(1), "input_name"))
+  typed_input_names <- unique(c(typed_input_names, vapply(
+    request$typed_space_grants %||% list(), `[[`, character(1),
+    "input_name")))
   base$readers <- base$readers[setdiff(names(base$readers), typed_input_names)]
   state$typed_slice_calls <- stats::setNames(vector("list", length(
     request$typed_slice_grants %||% list())), vapply(
@@ -2267,7 +2461,7 @@
   }), vapply(request$typed_slice_grants %||% list(), `[[`, character(1),
     "name"))
   base$readers <- c(base$readers, typed_slice_readers)
-  base
+  .wb_operation_pack_v3_add_typed_space_readers(base, request)
 }
 
 .wb_operation_pack_v3_typed_slice_usage <- function(adapter, request) {
@@ -2353,15 +2547,34 @@
     }
     typed_inputs <- unique(vapply(operation$typed_slice_reads %||% list(),
       `[[`, character(1), "input"))
+    typed_space_inputs <- unique(vapply(operation$typed_space_reads %||%
+      list(), `[[`, character(1), "input"))
     bound <- stats::setNames(lapply(names(resolved), function(name) {
       value <- resolved[[name]]
+      if (name %in% typed_space_inputs && identical(value$kind, "space")) {
+        out <- .wb_operation_pack_v2_deep_copy(value)
+        coordinates <- value$values
+        if (is.null(coordinates)) coordinates <- wb_space(bundle,
+          as.character(value$space_id)[1])
+        coordinates <- .wb_operation_pack_v3_space_matrix(coordinates)
+        if (!nrow(coordinates) || is.null(rownames(coordinates)) ||
+            anyDuplicated(rownames(coordinates)))
+          .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+            "Typed-space input has no unique durable cell axis.",
+            "resolution")
+        out$values <- coordinates
+        out$cell_id <- rownames(coordinates)
+        out$dimensions <- as.integer(dim(coordinates))
+        out$storage_profile <- "space_dense_v1"
+        return(out)
+      }
       if (!name %in% typed_inputs || !identical(value$kind, "matrix"))
         return(.wb_operation_pack_v2_bind_inputs(
             bundle, stats::setNames(list(value), name),
             effective_cells)[[name]])
       out <- .wb_operation_pack_v2_deep_copy(value)
       if (!is.null(value$values)) {
-        cells <- as.character(effective_cells)
+        cells <- as.character(value$cell_id %||% colnames(value$values))
         input_cells <- as.character(value$cell_id)
         input_features <- as.character(value$feature_id)
         indices <- match(cells, input_cells)
@@ -2378,8 +2591,7 @@
         return(out)
       }
       available <- wb_cells_with_matrix(bundle, value$matrix_id)
-      out$cell_id <- as.character(effective_cells)[as.character(
-        effective_cells) %in% available]
+      out$cell_id <- as.character(available)
       out$feature_id <- wb_feature_ids(bundle, value$matrix_id)
       out$dimensions <- as.integer(c(length(out$feature_id),
         length(out$cell_id)))
@@ -2400,6 +2612,8 @@
       phase = "execution", class = "wb_operation_pack_v3_error")
     params <- .wb_operation_pack_v2_bind_parameters(bundle, operation,
       params, bound, effective_cells)
+    params <- .wb_operation_pack_v3_bind_cell_selectors(bundle, operation,
+      params)
     result <- .wb_operation_pack_v2_execute(bundle, op_name, bound,
       params = params, session_id = binding$session_id %||% NULL,
       run_id = as.character(mutation_context$run_id)[1],

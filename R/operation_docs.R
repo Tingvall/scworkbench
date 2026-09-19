@@ -54,33 +54,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$import_summary` (`obs_table`): One-row summary of parsed/imported/skipped/rejected set counts.; `outputs$import_manifest` (`obs_table`): One row per parsed feature set with target namespace, overlap counts, and import status.; `outputs$rejected_sets` (`obs_table`): Feature sets rejected during import, typically because no genes mapped to the matrix.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_knn_neighbors
-#' @aliases wb_op_knn_neighbors
-#' @description Find nearest neighbors in a latent space without requiring matrix aggregation.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param space_id Registered coordinate-space identifier consumed by this operation.
-#' @param query_cells Query cells: explicit IDs or 'set:<name>'
-#' @param candidate_cells Optional candidate neighbor pool; defaults to all cells.
-#' @param k Nearest neighbors per query cell.
-#' @param include_query Include query cells themselves when they are in candidate pool.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$neighbors` (`obs_table`): Per-query neighbor table (cell_id, rank, distance).; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_knn_pseudobulk
-#' @aliases wb_op_knn_pseudobulk
-#' @description Find k nearest neighbors in latent space around query cells and aggregate matrix values.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param space_id Registered coordinate-space identifier consumed by this operation.
-#' @param query_cells Query cells: explicit IDs or 'set:<name>'
-#' @param candidate_cells Optional candidate neighbor pool; defaults to all cells.
-#' @param features Optional feature subset for pseudobulk output.
-#' @param k Nearest neighbors per query cell.
-#' @param include_query Include query cells themselves when they are in candidate pool.
-#' @param aggregate Aggregation mode: sum or mean.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudobulk_table` (`feature_table`): Feature-level pseudobulk values keyed by query cell.; `outputs$neighbor_distance` (`cell_vector_family`): Neighbor distances per query cell.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_metadata_cell_vector
 #' @aliases wb_op_metadata_cell_vector
 #' @description Materialize an imported cell metadata column as a typed, provenance-backed cell vector.

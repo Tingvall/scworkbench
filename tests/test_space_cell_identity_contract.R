@@ -58,7 +58,5 @@ test_space_cell_identity_contract <- function() {
   )
   bodies <- vapply(converter_consumers, function(fn) paste(deparse(body(fn)), collapse = "\n"), character(1))
   stopifnot(all(grepl(".wb_as_coord_matrix", bodies, fixed = TRUE)))
-  knn_body <- paste(deparse(body(.wb_knn_neighbors_in_space)), collapse = "\n")
-  stopifnot(grepl(".wb_space_to_matrix", knn_body, fixed = TRUE))
   TRUE
 }

@@ -291,6 +291,13 @@
         "$ref": "#/$defs/contained_model_read_observation"
       },
       "minItems": 1
+    },
+    "typed_space_usage": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/typed_space_usage"
+      },
+      "minItems": 1
     }
   },
   "allOf": [
@@ -1036,6 +1043,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -1347,6 +1360,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -1636,6 +1655,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -1925,6 +1950,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -2213,6 +2244,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -2501,6 +2538,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -2828,6 +2871,12 @@
             },
             "contained_model_tree": {
               "$ref": "#/$defs/contained_model_tree_observation"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -3113,6 +3162,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -3402,6 +3457,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -3691,6 +3752,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -3980,6 +4047,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -4247,6 +4320,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -4536,6 +4615,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         },
@@ -4847,6 +4932,12 @@
             },
             "matrix_fragment_manifest_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "observed_sparse_membership": {
+              "$ref": "#/$defs/sparse_membership_observation"
+            },
+            "observed_pseudobulk": {
+              "$ref": "#/$defs/pseudobulk_observation"
             }
           }
         }
@@ -6391,6 +6482,213 @@
           "const": "validated_not_published"
         },
         "observation_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "sparse_membership_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "grant_identity",
+        "edge_count",
+        "edge_ledger",
+        "edge_ledger_identity",
+        "status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.sparse_membership_observation.v1"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "edge_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "edge_ledger": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "query_cell_id",
+              "neighbor_rank",
+              "cell_id",
+              "distance"
+            ],
+            "properties": {
+              "query_cell_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "neighbor_rank": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cell_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "distance": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "edge_ledger_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "status": {
+          "const": "validated"
+        },
+        "observation_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "pseudobulk_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "grant_identity",
+        "edge_ledger_identity",
+        "row_count",
+        "aggregate",
+        "status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.pseudobulk_observation.v1"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "edge_ledger_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "row_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "aggregate": {
+          "enum": [
+            "sum",
+            "mean"
+          ]
+        },
+        "status": {
+          "const": "validated"
+        },
+        "observation_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "typed_space_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "request_identity",
+        "capability_identity",
+        "operation_definition_identity",
+        "grant_identity",
+        "calls",
+        "call_count",
+        "concatenated_cell_order_identity",
+        "coverage_status",
+        "usage_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.typed_space_usage.v1"
+        },
+        "request_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "capability_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "operation_definition_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "schema",
+              "grant_identity",
+              "ordinal",
+              "cell_count",
+              "cell_order_identity",
+              "dimensions",
+              "semantic_content_identity",
+              "space_result_identity",
+              "call_identity"
+            ],
+            "properties": {
+              "schema": {
+                "const": "scworkbench.operation_pack.observed_typed_space_call.v1"
+              },
+              "grant_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "ordinal": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cell_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cell_order_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "dimensions": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "semantic_content_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "space_result_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "call_identity": {
+                "$ref": "#/$defs/self_identity"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "call_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "concatenated_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "coverage_status": {
+          "const": "exact"
+        },
+        "usage_identity": {
           "$ref": "#/$defs/self_identity"
         }
       }

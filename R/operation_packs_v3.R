@@ -66,8 +66,18 @@
     out$compatibility$process_protocol$maximum <- "pybench-op-v3"
   }
   out$operations <- lapply(out$operations, function(op) {
+    selector_parameters <- vapply(op$cell_selector_axes %||% list(),
+      function(x) as.character(x$parameter)[1], character(1))
+    for (parameter in selector_parameters) {
+      types <- as.character(unlist(op$params_schema$properties[[parameter]]$
+        type, use.names = FALSE))
+      op$params_schema$properties[[parameter]]$type <- unname(as.list(
+        setdiff(types, "string")))
+    }
     op$provenance_reads <- NULL
     op$typed_slice_reads <- NULL
+    op$typed_space_reads <- NULL
+    op$cell_selector_axes <- NULL
     op$contained_model_reads <- NULL
     op$publication_policies <- NULL
     op$parameter_axes <- NULL
@@ -93,6 +103,8 @@
     if (!length(op$registry_reads)) op$registry_reads <- NULL
     op$dimension_policies <- Filter(function(x) !as.character(
       x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+        "authenticated_sparse_membership_v1",
+        "authenticated_pseudobulk_v1",
         "cell_by_parameter_axis_v1",
         "feature_parameter_axis_cartesian_v1",
         "one_per_parameter_axis_v1", "singleton_parameter_echo_v1"),
@@ -470,6 +482,70 @@
         "semantic_admission")
     }
 
+    selectors <- operation$cell_selector_axes %||% list()
+    selector_parameters <- vapply(selectors, function(x)
+      as.character(x$parameter)[1], character(1))
+    selector_roles <- vapply(selectors, function(x)
+      as.character(x$role)[1], character(1))
+    if (length(selectors) && (anyDuplicated(selector_parameters) ||
+        !setequal(selector_roles, c("query", "candidate")) ||
+        !all(selector_parameters %in% names(properties))))
+      .wb_operation_pack_v3_error(
+        "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+        paste0("Operation '", opname,
+          "' has invalid generic cell-selector axes."),
+        "semantic_admission")
+    space_reads <- operation$typed_space_reads %||% list()
+    space_names <- vapply(space_reads, function(x)
+      as.character(x$name)[1], character(1))
+    if (anyDuplicated(space_names) || length(intersect(space_names,
+        c(names(inputs), slice_names)))) .wb_operation_pack_v3_error(
+      "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      paste0("Operation '", opname,
+        "' has duplicate or colliding typed-space capability names."),
+      "semantic_admission")
+    for (read in space_reads) {
+      input <- inputs[[as.character(read$input)[1]]]
+      parameter <- as.character(read$selection$parameter)[1]
+      chunk <- as.character(read$chunk_size_parameter)[1]
+      if (is.null(input) || !identical(as.character(input$kind)[1],
+          "space") || !parameter %in% selector_parameters ||
+          !.wb_operation_pack_v3_param_is(properties, chunk, "integer"))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has an incompatible typed-space reader declaration."),
+          "semantic_admission")
+    }
+    for (policy in policies) {
+      policy_name <- as.character(policy$policy)[1]
+      output <- outputs[[as.character(policy$output)[1]]]
+      if (identical(policy_name, "authenticated_sparse_membership_v1")) {
+        expected <- if (identical(as.character(policy$representation)[1],
+          "obs_table")) "obs_table" else "cell_vector_family"
+        if (is.null(output) || !identical(as.character(output$kind)[1],
+            expected) || !as.character(policy$query_space_read)[1] %in%
+            space_names || !as.character(policy$candidate_space_read)[1] %in%
+            space_names || !.wb_operation_pack_v3_param_is(properties,
+              policy$k_parameter, "integer"))
+          .wb_operation_pack_v3_error(
+            "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+            paste0("Operation '", opname,
+              "' has an incompatible sparse-membership declaration."),
+            "semantic_admission")
+      } else if (identical(policy_name, "authenticated_pseudobulk_v1")) {
+        if (is.null(output) || !identical(as.character(output$kind)[1],
+            "feature_table") ||
+            !as.character(policy$query_space_read)[1] %in% space_names ||
+            !as.character(policy$matrix_slice_read)[1] %in% slice_names)
+          .wb_operation_pack_v3_error(
+            "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+            paste0("Operation '", opname,
+              "' has an incompatible pseudobulk declaration."),
+            "semantic_admission")
+      }
+    }
+
     reads <- operation$provenance_reads %||% list()
     read_names <- vapply(reads, function(x) as.character(x$name)[1],
       character(1))
@@ -596,8 +672,18 @@
 
 .wb_operation_pack_v3_catalog_definition <- function(op) {
   projected <- op
+  selector_parameters <- vapply(projected$cell_selector_axes %||% list(),
+    function(x) as.character(x$parameter)[1], character(1))
+  for (parameter in selector_parameters) {
+    types <- as.character(unlist(projected$params_schema$properties[[parameter]]$
+      type, use.names = FALSE))
+    projected$params_schema$properties[[parameter]]$type <- unname(as.list(
+      setdiff(types, "string")))
+  }
   projected$provenance_reads <- NULL
   projected$typed_slice_reads <- NULL
+  projected$typed_space_reads <- NULL
+  projected$cell_selector_axes <- NULL
   projected$publication_policies <- NULL
   projected$parameter_axes <- NULL
   projected$parameter_bindings <- Filter(function(binding)
@@ -618,6 +704,8 @@
   })
   projected$dimension_policies <- Filter(function(x) !as.character(
     x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+      "authenticated_sparse_membership_v1",
+      "authenticated_pseudobulk_v1",
       "cell_by_parameter_axis_v1", "feature_parameter_axis_cartesian_v1",
       "one_per_parameter_axis_v1", "singleton_parameter_echo_v1"),
     projected$dimension_policies %||% list())
@@ -628,6 +716,8 @@
   definition$v3_definition <- op
   if (length(op$typed_slice_reads %||% list()))
     definition$typed_slice_reads <- op$typed_slice_reads
+  if (length(op$typed_space_reads %||% list()))
+    definition$typed_space_reads <- op$typed_space_reads
   if (length(op$contained_model_reads %||% list())) {
     model_inputs <- vapply(op$contained_model_reads, function(x)
       as.character(x$input)[1], character(1))

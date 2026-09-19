@@ -417,8 +417,6 @@ wb_write_primitive_catalog_reference <- function(path_md = "docs/primitive_catal
     c("feature_trend_spearman", "feature_table"),
     c("generic", "obs_table"),
     c("ingest_report", "obs_table"),
-    c("knn_neighbors", "obs_table"),
-    c("knn_pseudobulk", "feature_table"),
     c("matrix_log_normalize_summary", "obs_table"),
     c("markers_topn", "feature_table"),
     c("pathway_enrich", "obs_table"),

@@ -1,0 +1,38 @@
+{
+  "schema": "scworkbench.phase4e.sparse_knn_implementation.v1",
+  "bases": {
+    "scworkbench": "c95f95d5c7fa6b121636408e4cf42f0ab578dd43",
+    "scwbRepresentation": "26955cff6fab743c6cd31a0bf3f490d4fe4c8dff",
+    "scwbRNA": "5ceb7a3fd45ed56154131498a067eb1f5982c668",
+    "PyBench": "9337ed55477ae8063579afe5b2c0a752343b2b8d"
+  },
+  "resolved_gap": "sparse_query_candidate_neighbor_axis",
+  "core_operations_removed": [
+    "knn_neighbors",
+    "knn_pseudobulk"
+  ],
+  "pack_operations_added": [
+    "scwbrepresentation::knn_neighbors",
+    "scwbrepresentation::knn_pseudobulk"
+  ],
+  "terminal_kinds": [
+    "obs_table",
+    "feature_table",
+    "cell_vector_family"
+  ],
+  "contracts": {
+    "cell_axes": "ordered unique identity-bearing query and candidate axes",
+    "space_reads": "capability-scoped ordered typed-space partitions",
+    "matrix_reads": "bounded authenticated feature-by-candidate slices",
+    "sparse_membership": "unique query-candidate pairs in query/rank order with finite nonnegative distances",
+    "atomicity": "neighbor table/family and pseudobulk table/family publish only as complete agreeing closures",
+    "pack_free_reopen": true
+  },
+  "shared_fixture": "inst/protocol/fixtures/operation-pack-v3/phase4e-sparse-knn",
+  "old_core_fixture_commit": "c95f95d5c7fa6b121636408e4cf42f0ab578dd43",
+  "protocol_sha256": {
+    "operation-pack-v3.schema.json": "37df891924ab3571dc7017b47fe57fb3d23ef5beb44dea70d046a5d61c7f23b4",
+    "operation-pack-transition-request-v3.schema.json": "54cc2c32f839d30ef34e5306192f4d62a5cce416a837ee65fd56843250c8d1a4",
+    "operation-pack-transition-receipt-v3.schema.json": "0ddcec47702287e29158c8b69501f158b0ae02b214c4d7b1cf1e548a1f2256ab"
+  }
+}

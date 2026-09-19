@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 305
+Record count: 303
 
-Graph edges: 749
+Graph edges: 735
 
 ## artifact_type
 
@@ -1069,18 +1069,6 @@ Description: Summarize cell-level signal families along trajectory pseudotime in
 Title: Trajectory Signal Dynamics
 
 Description: Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.
-
-### `op:knn_pseudobulk`
-
-Title: kNN Pseudobulk Around Query Cell(s)
-
-Description: Find k nearest neighbors in latent space around query cells and aggregate matrix values.
-
-### `op:knn_neighbors`
-
-Title: kNN neighbors around query cell(s)
-
-Description: Find nearest neighbors in a latent space without requiring matrix aggregation.
 
 ### `op:slingshot`
 

@@ -67,7 +67,9 @@ Pattern:
 ## 4. Neighbor-Based Pseudobulk
 
 Pattern:
-1. `knn_neighbors` or `knn_pseudobulk` using latent space.
+1. Activate `scwbRepresentation`, then run
+   `scwbrepresentation::knn_neighbors` or
+   `scwbrepresentation::knn_pseudobulk` using latent space.
 2. Optional candidate pool defaults to all cells.
 3. Promote pseudobulk table + neighbor diagnostics.
 

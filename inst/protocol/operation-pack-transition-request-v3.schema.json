@@ -270,6 +270,13 @@
         "$ref": "#/$defs/contained_model_read_grant"
       },
       "minItems": 1
+    },
+    "typed_space_grants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/typed_space_grant"
+      },
+      "minItems": 1
     }
   },
   "$defs": {
@@ -1880,6 +1887,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -1972,6 +1985,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2060,6 +2079,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2148,6 +2173,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2236,6 +2267,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2324,6 +2361,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2415,6 +2458,12 @@
             },
             "contained_model_write_grant": {
               "$ref": "#/$defs/contained_model_write_grant"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2503,6 +2552,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2591,6 +2646,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2679,6 +2740,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2767,6 +2834,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2851,6 +2924,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -2939,6 +3018,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -3031,6 +3116,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -3115,6 +3206,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         },
@@ -3199,6 +3296,12 @@
             },
             "expected_dimension_order_identity": {
               "$ref": "#/$defs/identity"
+            },
+            "sparse_membership_grant": {
+              "$ref": "#/$defs/sparse_membership_grant"
+            },
+            "pseudobulk_grant": {
+              "$ref": "#/$defs/pseudobulk_grant"
             }
           }
         }
@@ -3875,6 +3978,27 @@
                     "$ref": "#/$defs/self_identity"
                   }
                 }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "typed_space_name",
+                  "reader",
+                  "grant_identity"
+                ],
+                "properties": {
+                  "typed_space_name": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "reader": {
+                    "const": "read_typed_space"
+                  },
+                  "grant_identity": {
+                    "$ref": "#/$defs/self_identity"
+                  }
+                }
               }
             ]
           }
@@ -3976,6 +4100,13 @@
           "minItems": 1
         },
         "model_payload_grant_identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1
+        },
+        "typed_space_grant_identities": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/identity"
@@ -5761,6 +5892,261 @@
           "minProperties": 2
         },
         "publication_grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "typed_space_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "input_name",
+        "reader",
+        "kind",
+        "role",
+        "selector_parameter",
+        "source_reference",
+        "cells_axis",
+        "dimension_count",
+        "requested_chunk_size",
+        "call_discipline",
+        "max_rows",
+        "max_columns",
+        "max_elements",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.typed_space_grant.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "input_name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "reader": {
+          "const": "read_typed_space"
+        },
+        "kind": {
+          "const": "space"
+        },
+        "role": {
+          "enum": [
+            "query",
+            "candidate"
+          ]
+        },
+        "selector_parameter": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "source_reference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "input_name",
+            "space_id",
+            "input_descriptor_identity",
+            "input_content_identity",
+            "selected_content_identity",
+            "transition_source_state_identity",
+            "source_reference_identity"
+          ],
+          "properties": {
+            "input_name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "space_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "input_descriptor_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "input_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "selected_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "transition_source_state_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "source_reference_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
+        },
+        "cells_axis": {
+          "$ref": "#/$defs/axis_descriptor"
+        },
+        "dimension_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "requested_chunk_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "call_discipline": {
+          "const": "ordered_partition_exactly_once"
+        },
+        "max_rows": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_columns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_elements": {
+          "type": "number",
+          "minimum": 1
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "sparse_membership_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "output",
+        "representation",
+        "partner_output",
+        "query_axis_identity",
+        "candidate_axis_identity",
+        "query_count",
+        "candidate_count",
+        "maximum_per_query",
+        "row_order",
+        "unique_pairs",
+        "finite_nonnegative_values",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.sparse_membership_grant.v1"
+        },
+        "output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "representation": {
+          "enum": [
+            "obs_table",
+            "cell_vector_family"
+          ]
+        },
+        "partner_output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "query_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "candidate_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "query_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maximum_per_query": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "row_order": {
+          "const": "query_then_rank_v1"
+        },
+        "unique_pairs": {
+          "const": true
+        },
+        "finite_nonnegative_values": {
+          "const": true
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "pseudobulk_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "output",
+        "membership_output",
+        "query_axis_identity",
+        "feature_axis_identity",
+        "query_cells",
+        "features",
+        "aggregate",
+        "zero_neighbor_policy",
+        "row_order",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.pseudobulk_grant.v1"
+        },
+        "output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "membership_output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "query_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "feature_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "query_cells": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "aggregate": {
+          "enum": [
+            "sum",
+            "mean"
+          ]
+        },
+        "zero_neighbor_policy": {
+          "const": "zero_rows_forbidden_v1"
+        },
+        "row_order": {
+          "const": "query_then_feature_v1"
+        },
+        "grant_identity": {
           "$ref": "#/$defs/self_identity"
         }
       }
