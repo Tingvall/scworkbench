@@ -326,6 +326,14 @@
         "$ref": "#/$defs/optional_display_axis_group_usage"
       },
       "minItems": 1
+    },
+    "supported_external_state_adoption_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/supported_external_state_adoption_observation"
+      },
+      "minItems": 1,
+      "maxItems": 1
     }
   },
   "allOf": [
@@ -7102,6 +7110,330 @@
           "minItems": 1
         },
         "manifest_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "external_source_byte_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "declared_content_identity",
+        "observed_content_identity",
+        "nonverification_reason",
+        "source_byte_evidence_identity"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "bytes_verified",
+            "bytes_not_inspected",
+            "bytes_unavailable"
+          ]
+        },
+        "declared_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "observed_content_identity": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/identity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "nonverification_reason": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_byte_evidence_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "bytes_verified"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "observed_content_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "nonverification_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "bytes_not_inspected"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "observed_content_identity": {
+                "type": "null"
+              },
+              "nonverification_reason": {
+                "const": "policy_did_not_inspect_external_bytes"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "bytes_unavailable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "observed_content_identity": {
+                "type": "null"
+              },
+              "nonverification_reason": {
+                "const": "external_bytes_unavailable"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "supported_external_state_adoption_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "grant_identity",
+        "source_snapshot_identity",
+        "source_byte_evidence",
+        "candidate_snapshot_identity",
+        "candidate_tree_manifest_identity",
+        "candidate_payload_manifest_identity",
+        "ordered_cell_count",
+        "ordered_cell_identity",
+        "contained_model_sibling_tree_observation_identity",
+        "adopted_model_tree_manifest_identity",
+        "adopted_model_payload_manifest_identity",
+        "model_source_linkage_identity",
+        "adopted_closure_identity",
+        "ordered_observed_output_descriptor_identities",
+        "read_count",
+        "event_count",
+        "execution_mode",
+        "upstream_execution",
+        "pack_source_association_attestation",
+        "pack_no_refit_attestation",
+        "integrity_status",
+        "publication_status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.observed_supported_external_state_adoption.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_snapshot_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_byte_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "declared_content_identity",
+            "observed_content_identity",
+            "nonverification_reason",
+            "source_byte_evidence_identity"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "bytes_verified",
+                "bytes_not_inspected",
+                "bytes_unavailable"
+              ]
+            },
+            "declared_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "observed_content_identity": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/identity"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "nonverification_reason": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source_byte_evidence_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "bytes_verified"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_content_identity": {
+                    "$ref": "#/$defs/identity"
+                  },
+                  "nonverification_reason": {
+                    "type": "null"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "bytes_not_inspected"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_content_identity": {
+                    "type": "null"
+                  },
+                  "nonverification_reason": {
+                    "const": "policy_did_not_inspect_external_bytes"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "bytes_unavailable"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_content_identity": {
+                    "type": "null"
+                  },
+                  "nonverification_reason": {
+                    "const": "external_bytes_unavailable"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "candidate_snapshot_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "candidate_tree_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "candidate_payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "ordered_cell_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "ordered_cell_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "contained_model_sibling_tree_observation_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "adopted_model_tree_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "adopted_model_payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_source_linkage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "adopted_closure_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "ordered_observed_output_descriptor_identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1,
+          "maxItems": 16
+        },
+        "read_count": {
+          "const": 1
+        },
+        "event_count": {
+          "const": 1
+        },
+        "execution_mode": {
+          "const": "supported_external_state_adoption"
+        },
+        "upstream_execution": {
+          "const": "external"
+        },
+        "pack_source_association_attestation": {
+          "const": true
+        },
+        "pack_no_refit_attestation": {
+          "const": true
+        },
+        "integrity_status": {
+          "const": "unchanged"
+        },
+        "publication_status": {
+          "const": "validated_not_published"
+        },
+        "observation_identity": {
           "$ref": "#/$defs/self_identity"
         }
       }

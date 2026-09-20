@@ -66,6 +66,12 @@
     out$compatibility$process_protocol$maximum <- "pybench-op-v3"
   }
   out$operations <- lapply(out$operations, function(op) {
+    g3_inputs <- vapply(Filter(function(x) identical(
+      as.character(x$kind %||% "")[1], "external_state_candidate"),
+      op$inputs), function(x) as.character(x$name)[1], character(1))
+    op$inputs <- Filter(function(x) !as.character(x$name)[1] %in% g3_inputs,
+      op$inputs)
+    op$supported_external_state_adoptions <- NULL
     selector_parameters <- vapply(op$cell_selector_axes %||% list(),
       function(x) as.character(x$parameter)[1], character(1))
     for (parameter in selector_parameters) {

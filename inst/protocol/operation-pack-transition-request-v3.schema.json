@@ -305,6 +305,14 @@
         "$ref": "#/$defs/optional_display_axis_group_grant"
       },
       "minItems": 1
+    },
+    "supported_external_state_adoption_grants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/supported_external_state_adoption_grant"
+      },
+      "minItems": 1,
+      "maxItems": 1
     }
   },
   "$defs": {
@@ -4135,6 +4143,27 @@
                     "$ref": "#/$defs/self_identity"
                   }
                 }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "supported_external_state_adoption_name",
+                  "reader",
+                  "grant_identity"
+                ],
+                "properties": {
+                  "supported_external_state_adoption_name": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "reader": {
+                    "const": "read_supported_external_state"
+                  },
+                  "grant_identity": {
+                    "$ref": "#/$defs/self_identity"
+                  }
+                }
               }
             ]
           }
@@ -4276,6 +4305,14 @@
             "$ref": "#/$defs/identity"
           },
           "minItems": 1
+        },
+        "supported_external_state_adoption_grant_identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1,
+          "maxItems": 1
         }
       }
     },
@@ -7155,6 +7192,663 @@
         },
         "call_discipline": {
           "const": "display_partition_then_endpoint_ordinal_exactly_once"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "external_source_adoption_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity_kind",
+        "source_id",
+        "source_snapshot_id",
+        "source_run_id",
+        "scope",
+        "lifecycle_state",
+        "recorded_checksum_status",
+        "declared_content_identity",
+        "source_snapshot_identity"
+      ],
+      "properties": {
+        "entity_kind": {
+          "const": "external_source"
+        },
+        "source_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_snapshot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_run_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lifecycle_state": {
+          "const": "current"
+        },
+        "recorded_checksum_status": {
+          "const": "checksummed"
+        },
+        "declared_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_snapshot_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "external_source_byte_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "declared_content_identity",
+        "observed_content_identity",
+        "nonverification_reason",
+        "source_byte_evidence_identity"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "bytes_verified",
+            "bytes_not_inspected",
+            "bytes_unavailable"
+          ]
+        },
+        "declared_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "observed_content_identity": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/identity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "nonverification_reason": {
+          "oneOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_byte_evidence_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "bytes_verified"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "observed_content_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "nonverification_reason": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "bytes_not_inspected"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "observed_content_identity": {
+                "type": "null"
+              },
+              "nonverification_reason": {
+                "const": "policy_did_not_inspect_external_bytes"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "bytes_unavailable"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "observed_content_identity": {
+                "type": "null"
+              },
+              "nonverification_reason": {
+                "const": "external_bytes_unavailable"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "external_state_candidate_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selected_state_type",
+        "tree_manifest",
+        "tree_manifest_identity",
+        "payload_manifest_identity",
+        "primary_path",
+        "file_count",
+        "total_bytes",
+        "ordered_cell_count",
+        "ordered_cell_identity",
+        "integrity_status",
+        "relative_root",
+        "candidate_snapshot_identity"
+      ],
+      "properties": {
+        "selected_state_type": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "engine",
+            "model_type"
+          ],
+          "properties": {
+            "engine": {
+              "type": "string",
+              "minLength": 1
+            },
+            "model_type": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "tree_manifest": {
+          "$ref": "#/$defs/contained_model_tree_manifest"
+        },
+        "tree_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "primary_path": {
+          "$ref": "#/$defs/relative_root"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        },
+        "total_bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1073741824
+        },
+        "ordered_cell_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "ordered_cell_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "integrity_status": {
+          "const": "authenticated"
+        },
+        "relative_root": {
+          "$ref": "#/$defs/relative_root"
+        },
+        "candidate_snapshot_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "supported_external_state_adoption_closure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outputs",
+        "contained_model_sibling_write_grant_identity",
+        "model_source_linkage_identity",
+        "adopted_closure_identity"
+      ],
+      "properties": {
+        "outputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "allocated_id",
+              "kind",
+              "output_grant_identity",
+              "terminal_policy",
+              "promotion_group",
+              "expected_cell_order_identity_if_cell_indexed"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "allocated_id": {
+                "$ref": "#/$defs/id"
+              },
+              "kind": {
+                "type": "string",
+                "minLength": 1
+              },
+              "output_grant_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "terminal_policy": {
+                "type": "string",
+                "minLength": 1
+              },
+              "promotion_group": {
+                "type": "string",
+                "minLength": 1
+              },
+              "expected_cell_order_identity_if_cell_indexed": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/identity"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 16
+        },
+        "contained_model_sibling_write_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_source_linkage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "adopted_closure_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "supported_external_state_adoption_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "declaration_identity",
+        "source_snapshot",
+        "source_byte_evidence",
+        "candidate_snapshot",
+        "contained_model_sibling_write_grant_identity",
+        "model_source_linkage_identity",
+        "adopted_closure",
+        "access",
+        "call_discipline",
+        "execution_semantics",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.supported_external_state_adoption_grant.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "declaration_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "entity_kind",
+            "source_id",
+            "source_snapshot_id",
+            "source_run_id",
+            "scope",
+            "lifecycle_state",
+            "recorded_checksum_status",
+            "declared_content_identity",
+            "source_snapshot_identity"
+          ],
+          "properties": {
+            "entity_kind": {
+              "const": "external_source"
+            },
+            "source_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_snapshot_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "source_run_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "lifecycle_state": {
+              "const": "current"
+            },
+            "recorded_checksum_status": {
+              "const": "checksummed"
+            },
+            "declared_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "source_snapshot_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
+        },
+        "source_byte_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "declared_content_identity",
+            "observed_content_identity",
+            "nonverification_reason",
+            "source_byte_evidence_identity"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "bytes_verified",
+                "bytes_not_inspected",
+                "bytes_unavailable"
+              ]
+            },
+            "declared_content_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "observed_content_identity": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/identity"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "nonverification_reason": {
+              "oneOf": [
+                {
+                  "type": "string",
+                  "minLength": 1
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "source_byte_evidence_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "bytes_verified"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_content_identity": {
+                    "$ref": "#/$defs/identity"
+                  },
+                  "nonverification_reason": {
+                    "type": "null"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "bytes_not_inspected"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_content_identity": {
+                    "type": "null"
+                  },
+                  "nonverification_reason": {
+                    "const": "policy_did_not_inspect_external_bytes"
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "status": {
+                    "const": "bytes_unavailable"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "observed_content_identity": {
+                    "type": "null"
+                  },
+                  "nonverification_reason": {
+                    "const": "external_bytes_unavailable"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "candidate_snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "selected_state_type",
+            "tree_manifest",
+            "tree_manifest_identity",
+            "payload_manifest_identity",
+            "primary_path",
+            "file_count",
+            "total_bytes",
+            "ordered_cell_count",
+            "ordered_cell_identity",
+            "integrity_status",
+            "relative_root",
+            "candidate_snapshot_identity"
+          ],
+          "properties": {
+            "selected_state_type": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "engine",
+                "model_type"
+              ],
+              "properties": {
+                "engine": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "model_type": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "tree_manifest": {
+              "$ref": "#/$defs/contained_model_tree_manifest"
+            },
+            "tree_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "payload_manifest_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "primary_path": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "file_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32
+            },
+            "total_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1073741824
+            },
+            "ordered_cell_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000000
+            },
+            "ordered_cell_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "integrity_status": {
+              "const": "authenticated"
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "candidate_snapshot_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
+        },
+        "contained_model_sibling_write_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_source_linkage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "adopted_closure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outputs",
+            "contained_model_sibling_write_grant_identity",
+            "model_source_linkage_identity",
+            "adopted_closure_identity"
+          ],
+          "properties": {
+            "outputs": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "allocated_id",
+                  "kind",
+                  "output_grant_identity",
+                  "terminal_policy",
+                  "promotion_group",
+                  "expected_cell_order_identity_if_cell_indexed"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "allocated_id": {
+                    "$ref": "#/$defs/id"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "output_grant_identity": {
+                    "$ref": "#/$defs/identity"
+                  },
+                  "terminal_policy": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "promotion_group": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "expected_cell_order_identity_if_cell_indexed": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/$defs/identity"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "contained_model_sibling_write_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "model_source_linkage_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "adopted_closure_identity": {
+              "$ref": "#/$defs/self_identity"
+            }
+          }
+        },
+        "access": {
+          "const": "verified_private_copy_read_only_v1"
+        },
+        "call_discipline": {
+          "const": "adoption_state_exactly_once"
+        },
+        "execution_semantics": {
+          "const": "supported_external_state_adoption_without_refit_v1"
         },
         "grant_identity": {
           "$ref": "#/$defs/self_identity"

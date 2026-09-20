@@ -712,6 +712,11 @@
     root <- file.path(stage_root, grant$relative_root)
     dir.create(root, recursive = TRUE, showWarnings = FALSE)
     closed <- FALSE
+    adoption_grants <- request$supported_external_state_adoption_grants %||%
+      list()
+    adoption <- Filter(function(x) identical(as.character(
+      x$adopted_closure$outputs[[1L]]$name)[1], output), adoption_grants)
+    adoption <- if (length(adoption)) adoption[[1L]] else NULL
     path <- function(relative = grant$primary_path) {
       if (closed || !.wb_operation_pack_v3_safe_model_entry(relative))
         .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -755,6 +760,23 @@
       invisible(list(name = output,
         allocated_id = grants[[output]]$allocated_id,
         grant_identity = grants[[output]]$descriptor$grant_identity))
+    }
+    if (!is.null(adoption)) {
+      write_bytes <- function(relative, bytes) {
+        if (closed || !is.raw(bytes) || !length(bytes) ||
+            !relative %in% vapply(adoption$candidate_snapshot$tree_manifest$
+              entries, `[[`, character(1), "path"))
+          .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+            "Adoption writer accepts only authenticated entries as raw bytes.",
+            "execution")
+        target <- file.path(root, relative)
+        dir.create(dirname(target), recursive = TRUE, showWarnings = FALSE)
+        con <- file(target, open = "wb")
+        tryCatch(writeBin(bytes, con), finally = close(con))
+        invisible(TRUE)
+      }
+      return(list(primary_path = grant$primary_path,
+        write_bytes = write_bytes, finish = finish))
     }
     list(path = path, primary_path = grant$primary_path, finish = finish)
   }

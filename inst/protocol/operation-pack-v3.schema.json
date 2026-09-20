@@ -883,6 +883,31 @@
               "const": "associated_space"
             }
           }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "kind",
+            "required",
+            "alignment"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "external_state_candidate"
+            },
+            "required": {
+              "const": true
+            },
+            "alignment": {
+              "const": "none"
+            }
+          }
         }
       ]
     },
@@ -1359,7 +1384,7 @@
                     "type": "string",
                     "pattern": "^[a-z][a-z0-9_]*$"
                   },
-                  "minItems": 1,
+                  "minItems": 0,
                   "uniqueItems": true
                 },
                 "file_order": {
@@ -3728,6 +3753,150 @@
             }
           },
           "minItems": 1
+        },
+        "supported_external_state_adoptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "schema",
+              "name",
+              "state_input",
+              "source_parameter",
+              "allowed_state_types",
+              "allowed_source_byte_states",
+              "model_output",
+              "required_closure_outputs",
+              "primary_path",
+              "maximum_file_count",
+              "maximum_total_bytes",
+              "maximum_cell_count",
+              "call_discipline",
+              "output_tree_policy",
+              "execution_semantics",
+              "declaration_identity"
+            ],
+            "properties": {
+              "schema": {
+                "const": "scworkbench.operation_pack.supported_external_state_adoption.v1"
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "state_input": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "source_parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "allowed_state_types": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "engine",
+                    "model_type"
+                  ],
+                  "properties": {
+                    "engine": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "model_type": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "allowed_source_byte_states": {
+                "type": "array",
+                "items": {
+                  "enum": [
+                    "bytes_verified",
+                    "bytes_not_inspected",
+                    "bytes_unavailable"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 3,
+                "uniqueItems": true
+              },
+              "model_output": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "required_closure_outputs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "minItems": 0,
+                "uniqueItems": true
+              },
+              "primary_path": {
+                "type": "string",
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+              },
+              "maximum_file_count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "maximum_total_bytes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1073741824
+              },
+              "maximum_cell_count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000000
+              },
+              "call_discipline": {
+                "const": "adoption_state_exactly_once"
+              },
+              "output_tree_policy": {
+                "const": "exact_admitted_tree_identity"
+              },
+              "execution_semantics": {
+                "const": "supported_external_state_adoption_without_refit_v1"
+              },
+              "declaration_identity": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scheme",
+                  "scope",
+                  "sha256"
+                ],
+                "properties": {
+                  "scheme": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "scope": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 1
         }
       }
     },

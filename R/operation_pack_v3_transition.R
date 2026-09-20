@@ -725,8 +725,12 @@
     compatibility = registration$manifest$compatibility,
     entry_point = registration$manifest$entry_point,
     operations = list(operation)))$operations[[1]]
+  g3_input_names <- vapply(Filter(function(x) identical(
+    as.character(x$kind %||% "")[1], "external_state_candidate"),
+    operation$inputs), function(x) as.character(x$name)[1], character(1))
+  ordinary_inputs <- inputs[setdiff(names(inputs), g3_input_names)]
   base <- .wb_operation_pack_v2_request(bundle, registration, projected,
-    inputs, params, transition_id, session_id, run_id, generation, preflight,
+    ordinary_inputs, params, transition_id, session_id, run_id, generation, preflight,
     stage_root)
   ancestry_inputs <- unique(vapply(operation$provenance_reads %||% list(),
     function(x) as.character(x$input)[1], character(1)))
@@ -976,6 +980,9 @@
     base$outputs[[i]]$descriptor <- descriptor
   }
 
+  adoption <- .wb_operation_pack_v3_g3_prepare(bundle, operation, inputs,
+    params, base, stage_root)
+
   provenance <- .wb_operation_pack_v3_provenance_read_records(bundle,
     operation, inputs, source_refs, input_records, params, stage_root)
   identity <- registration$identity
@@ -1029,6 +1036,10 @@
       grant_identity = x$grant_identity)),
     lapply(typed_space_grants, function(x) list(
       typed_space_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
+    lapply(adoption$grants, function(x) list(
+      supported_external_state_adoption_name = x$name,
+      reader = "read_supported_external_state",
       grant_identity = x$grant_identity))))
   if (length(typed_slice_grants)) capability$typed_slice_grant_identities <-
     unname(lapply(typed_slice_grants, function(x)
@@ -1063,6 +1074,10 @@
   if (length(optional_display$grants))
     capability$optional_display_axis_group_grant_identities <- unname(lapply(
       optional_display$grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(adoption$grants))
+    capability$supported_external_state_adoption_grant_identities <-
+      unname(lapply(adoption$grants, function(x)
         .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
   capability$capability_identity <- NULL
   capability$capability_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -1099,6 +1114,9 @@
     base$named_cell_axis_collection_grants <- unname(named_axes$grants)
   if (length(optional_display$grants))
     base$optional_display_axis_group_grants <- unname(optional_display$grants)
+  if (length(adoption$grants))
+    base$supported_external_state_adoption_grants <-
+      unname(adoption$grants)
   base$request_identity <- NULL
   base$request_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_request.v3",
@@ -1124,6 +1142,7 @@
     optional_display$values
   attr(base, "operation_pack_v3_optional_display_sources") <-
     optional_display$sources
+  attr(base, "operation_pack_v3_external_candidate") <- adoption$candidate
   attr(base, "operation_pack_stage_root") <- stage_root
   attr(base, "operation_pack_v3_typed_slice_values") <-
     stats::setNames(lapply(typed_slice_grants, function(grant) list(
@@ -1267,6 +1286,21 @@
       request$optional_display_axis_group_grants %||% list()))
     .wb_operation_pack_v3_assert_self_identity(grant, "grant_identity",
       "PYBENCH_CAPABILITY_MISMATCH", "staging")
+  for (grant in request$supported_external_state_adoption_grants %||% list()) {
+    .wb_operation_pack_v3_assert_self_identity(grant$source_snapshot,
+      "source_snapshot_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant$source_byte_evidence,
+      "source_byte_evidence_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant$candidate_snapshot,
+      "candidate_snapshot_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant$adopted_closure,
+      "adopted_closure_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant, "grant_identity",
+      "PYBENCH_CAPABILITY_MISMATCH", "staging")
+  }
   .wb_operation_pack_v3_phase5_staged_payloads_assert(request,
     phase = "staging")
   .wb_operation_pack_v3_assert_self_identity(request$execution_capability,
@@ -1334,7 +1368,11 @@
       grant_identity = x$grant_identity)),
     lapply(request$typed_space_grants %||% list(), function(x) list(
       typed_space_name = x$name, reader = x$reader,
-      grant_identity = x$grant_identity)))
+      grant_identity = x$grant_identity)),
+    lapply(request$supported_external_state_adoption_grants %||% list(),
+      function(x) list(supported_external_state_adoption_name = x$name,
+        reader = "read_supported_external_state",
+        grant_identity = x$grant_identity)))
   if (!identical(expected_readers,
       request$execution_capability$reader_grants))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -1358,6 +1396,9 @@
   expected_displays <- lapply(request$optional_display_axis_group_grants %||%
     list(), function(x) .wb_operation_pack_v3_unscoped_identity(
       x$grant_identity))
+  expected_adoptions <- lapply(
+    request$supported_external_state_adoption_grants %||% list(),
+    function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   if (!identical(request$execution_capability$typed_slice_grant_identities %||%
         list(), expected_slices) ||
       !identical(request$execution_capability$typed_space_grant_identities %||%
@@ -1377,7 +1418,10 @@
         expected_axes) ||
       !identical(request$execution_capability$
         optional_display_axis_group_grant_identities %||% list(),
-        expected_displays))
+        expected_displays) ||
+      !identical(request$execution_capability$
+        supported_external_state_adoption_grant_identities %||% list(),
+        expected_adoptions))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "V3 capability typed-slice or provenance closure differs from request.",
       "staging")
@@ -1456,7 +1500,9 @@
                                            self_linked_model_payload_reads = list(),
                                            artifact_collection_usage = list(),
                                            named_cell_axis_collection_usage = list(),
-                                           optional_display_axis_group_usage = list()) {
+                                           optional_display_axis_group_usage = list(),
+                                           supported_external_state_adoption_state = NULL,
+                                           supported_external_state_adoption_attestations = list()) {
   hook <- getOption("scworkbench.operation_pack_v3_output_test_hook", NULL)
   if (is.function(hook)) {
     replacement <- hook(writes = writes, request = request,
@@ -1483,6 +1529,7 @@
   base_request$artifact_collection_grants <- NULL
   base_request$named_cell_axis_collection_grants <- NULL
   base_request$optional_display_axis_group_grants <- NULL
+  base_request$supported_external_state_adoption_grants <- NULL
   for (i in seq_along(base_request$outputs)) {
     base_request$outputs[[i]]$descriptor$cardinality_grant <- NULL
     base_request$outputs[[i]]$descriptor$sparse_membership_grant <- NULL
@@ -1769,6 +1816,12 @@
     receipt$named_cell_axis_collection_usage <- named_cell_axis_collection_usage
   if (length(optional_display_axis_group_usage))
     receipt$optional_display_axis_group_usage <- optional_display_axis_group_usage
+  adoption_observations <- .wb_operation_pack_v3_g3_observations(request,
+    receipt, supported_external_state_adoption_state,
+    supported_external_state_adoption_attestations)
+  if (length(adoption_observations))
+    receipt$supported_external_state_adoption_observations <-
+      adoption_observations
   publication_observations <- lapply(Filter(function(x)
     !is.null(x$descriptor$publication_grant), request$outputs), function(grant) {
       output <- observed[[match(grant$name, vapply(observed, `[[`,
@@ -1960,6 +2013,36 @@
         "validated_not_published"))
       .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
         "Pack receipt may not claim durable publication.", "receipt")
+  }
+  adoption_grants <- request$supported_external_state_adoption_grants %||%
+    list()
+  adoption_observations <- receipt$
+    supported_external_state_adoption_observations %||% list()
+  if (length(adoption_grants) != length(adoption_observations))
+    .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+      "External-state adoption observations are not a bijection with grants.",
+      "receipt")
+  for (i in seq_along(adoption_observations)) {
+    grant <- adoption_grants[[i]]; observation <- adoption_observations[[i]]
+    .wb_operation_pack_v3_assert_self_identity(observation,
+      "observation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+    if (!identical(observation$grant_identity,
+        .wb_operation_pack_v3_unscoped_identity(grant$grant_identity)) ||
+        !identical(observation$source_byte_evidence,
+          grant$source_byte_evidence) ||
+        !identical(observation$candidate_tree_manifest_identity,
+          grant$candidate_snapshot$tree_manifest_identity) ||
+        !identical(observation$candidate_payload_manifest_identity,
+          grant$candidate_snapshot$payload_manifest_identity) ||
+        !identical(observation$adopted_model_tree_manifest_identity,
+          grant$candidate_snapshot$tree_manifest_identity) ||
+        !identical(observation$adopted_model_payload_manifest_identity,
+          grant$candidate_snapshot$payload_manifest_identity) ||
+        !isTRUE(observation$pack_source_association_attestation) ||
+        !isTRUE(observation$pack_no_refit_attestation))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "External-state adoption observation differs from its exact grant.",
+        "receipt")
   }
   slice_grants <- request$typed_slice_grants %||% list()
   usages <- receipt$typed_slice_usage %||% list()
@@ -2612,12 +2695,16 @@
 .wb_operation_pack_v3_capability_adapter <- function(request, operation,
     inputs, stage_root, bundle = NULL, registry_read_values = list(),
     provenance_read_values = list()) {
-  base <- .wb_operation_pack_v2_capability_adapter(request, operation, inputs,
-    stage_root, bundle = bundle, registry_read_values = registry_read_values)
+  g3_inputs <- vapply(operation$supported_external_state_adoptions %||%
+    list(), function(x) as.character(x$state_input)[1], character(1))
+  base <- .wb_operation_pack_v2_capability_adapter(request, operation,
+    inputs[setdiff(names(inputs), g3_inputs)], stage_root, bundle = bundle,
+    registry_read_values = registry_read_values)
   base <- .wb_operation_pack_v3_fragment_writers(base, request, operation,
     stage_root)
   base <- .wb_operation_pack_v3_model_adapters(base, request, operation,
     stage_root)
+  base <- .wb_operation_pack_v3_g3_adapter(base, request, stage_root)
   state <- base$state
   typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
     `[[`, character(1), "input_name"))
@@ -2817,6 +2904,12 @@
     source_refs <- inputs[names(resolved)]
     operation <- .wb_operation_pack_registry$operations[[op_name]]$definition$
       v3_definition
+    adoption_declaration <- .wb_operation_pack_v3_g3_declaration(operation)
+    adoption_candidate <- if (is.null(adoption_declaration)) NULL else
+      resolved[[as.character(adoption_declaration$state_input)[1]]]
+    if (!is.null(adoption_candidate)) on.exit(
+      .wb_operation_pack_v3_external_candidate_discard(adoption_candidate),
+      add = TRUE)
     # A contained model carries its fitted input-space identity. A manifest may
     # declare that linked space as an optional convenience input; derive only
     # that typed primitive when the caller omitted it.
@@ -2910,6 +3003,10 @@
       effective_cells = effective_cells)
     returned_params <- .wb_operation_pack_v2_retained_parameters(operation,
       all_inputs, params, bound, result$outputs)
+    if (length(result$receipt$
+        supported_external_state_adoption_observations %||% list()))
+      returned_params$supported_external_state_adoption <- result$receipt$
+        supported_external_state_adoption_observations[[1L]]
     if (!is.null(result$reader_observation)) {
       observation <- result$reader_observation
       returned_params$chunking <- list(

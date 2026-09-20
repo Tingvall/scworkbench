@@ -17,6 +17,51 @@
 .wb_operation_pack_v3_phase5_semantic_validate <- function(operation,
     inputs, outputs, properties) {
   opname <- as.character(operation$qualified_name)[1]
+  adoptions <- operation$supported_external_state_adoptions %||% list()
+  if (length(adoptions) > 1L) .wb_operation_pack_v3_phase5_fail(
+    paste0("Operation '", opname,
+      "' declares more than one external-state adoption."))
+  for (adoption in adoptions) {
+    state <- inputs[[as.character(adoption$state_input)[1]]]
+    source_parameter <- properties[[as.character(
+      adoption$source_parameter)[1]]]
+    model <- outputs[[as.character(adoption$model_output)[1]]]
+    closure <- as.character(unlist(adoption$required_closure_outputs,
+      use.names = FALSE))
+    allowed_states <- as.character(unlist(
+      adoption$allowed_source_byte_states, use.names = FALSE))
+    allowed_types <- vapply(adoption$allowed_state_types, function(x)
+      paste(as.character(x$engine)[1], as.character(x$model_type)[1],
+        sep = "\034"), character(1))
+    sibling <- model$contained_model_sibling_closure_policy %||% NULL
+    valid <- !is.null(state) && identical(as.character(state$kind)[1],
+      "external_state_candidate") && isTRUE(state$required) &&
+      identical(as.character(state$alignment)[1], "none") &&
+      !is.null(source_parameter) && identical(
+        as.character(source_parameter$type %||% "")[1], "object") &&
+      !is.null(model) && identical(as.character(model$kind)[1], "model_ref") &&
+      !is.null(sibling) && length(adoption$allowed_state_types) > 0L &&
+      !anyDuplicated(allowed_types) && length(allowed_states) > 0L &&
+      !anyDuplicated(allowed_states) && all(allowed_states %in% c(
+        "bytes_verified", "bytes_not_inspected", "bytes_unavailable")) &&
+      !anyDuplicated(closure) && all(closure %in% names(outputs)) &&
+      !as.character(adoption$model_output)[1] %in% closure &&
+      identical(as.character(sibling$engine)[1],
+        as.character(adoption$allowed_state_types[[1]]$engine)[1]) &&
+      identical(as.character(sibling$model_type)[1],
+        as.character(adoption$allowed_state_types[[1]]$model_type)[1]) &&
+      identical(as.character(sibling$primary_path)[1],
+        as.character(adoption$primary_path)[1]) &&
+      identical(as.character(sibling$required_sibling_terminals), closure) &&
+      as.integer(adoption$maximum_file_count) <= 32L &&
+      as.numeric(adoption$maximum_total_bytes) <= 1073741824 &&
+      as.integer(adoption$maximum_cell_count) <= 10000000L
+    if (!valid) .wb_operation_pack_v3_phase5_fail(paste0("Operation '",
+      opname, "' has an invalid supported external-state adoption."))
+    .wb_operation_pack_v3_assert_self_identity(adoption,
+      "declaration_identity", "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+      "semantic_admission")
+  }
   self_reads <- operation$self_linked_contained_model_reads %||% list()
   .wb_operation_pack_v3_phase5_names_unique(vapply(self_reads, `[[`,
     character(1), "name"), paste0("Operation '", opname,
@@ -49,7 +94,7 @@
     dims_valid <- is.null(dims) || !is.null(properties[[as.character(dims)[1]]])
     valid <- identical(as.character(output$kind)[1], "model_ref") &&
       is.null(output$contained_model_policy) && !is.null(source) &&
-      identical(as.character(source$kind)[1], "space") && length(siblings) &&
+      identical(as.character(source$kind)[1], "space") &&
       !anyDuplicated(siblings) && !as.character(output$name)[1] %in% siblings &&
       length(sibling_defs) == length(siblings) &&
       all(vapply(sibling_defs, function(x) isTRUE(x$required) &&

@@ -3,11 +3,20 @@
   "pack_abi_version": "3",
   "identity_scheme": "scworkbench.operation_pack.canonical_json.v1",
   "namespace": "scwbv3phase5",
-  "package": {"name": "scwbV3Phase5", "version": "0.1.0"},
+  "package": {
+    "name": "scwbV3Phase5",
+    "version": "0.1.0"
+  },
   "backend": "R",
   "compatibility": {
-    "scworkbench": {"minimum": "0.1.0", "maximum_exclusive": "0.2.0"},
-    "pack_abi": {"minimum": "3", "maximum": "3"}
+    "scworkbench": {
+      "minimum": "0.1.0",
+      "maximum_exclusive": "0.2.0"
+    },
+    "pack_abi": {
+      "minimum": "3",
+      "maximum": "3"
+    }
   },
   "entry_point": "scwbV3Phase5::register_operation_pack",
   "operations": [
@@ -18,14 +27,29 @@
       "description": "Publishes a contained model with a terminal sibling and no paired two-dimensional output.",
       "runner": ".fit_sibling_model",
       "inputs": [
-        {"name": "source", "kind": "space", "required": true, "alignment": "cell_ordered"}
+        {
+          "name": "source",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        }
       ],
       "params_schema": {
         "type": "object",
         "properties": {
-          "dims": {"type": "array", "items": {"type": "integer", "minimum": 1}, "minItems": 1, "uniqueItems": true}
+          "dims": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
         },
-        "required": ["dims"],
+        "required": [
+          "dims"
+        ],
         "additionalProperties": false
       },
       "dimension_policies": [
@@ -33,7 +57,10 @@
           "output": "embedding",
           "policy": "authenticated_output_axes_v1",
           "shape": "one_per_cell",
-          "cell_axis": {"source": "effective_cells_v1", "input": "source"},
+          "cell_axis": {
+            "source": "effective_cells_v1",
+            "input": "source"
+          },
           "row_order": "input_cell_order_v1",
           "missing_values": "forbidden"
         }
@@ -54,7 +81,9 @@
             "primary_path": "model.bin",
             "source_space_input": "source",
             "dimensions_parameter": "dims",
-            "required_sibling_terminals": ["embedding"],
+            "required_sibling_terminals": [
+              "embedding"
+            ],
             "file_order": "utf8_path_lexicographic_v1",
             "maximum_file_count": 32,
             "maximum_total_bytes": 1073741824
@@ -72,8 +101,20 @@
         }
       ],
       "dependencies": [],
-      "promotion_closure": {"model": ["embedding", "model"], "embedding": ["embedding", "model"]},
-      "replay_equivalence": {"model": "loadable_reference", "embedding": "exact_canonical_value"}
+      "promotion_closure": {
+        "model": [
+          "embedding",
+          "model"
+        ],
+        "embedding": [
+          "embedding",
+          "model"
+        ]
+      },
+      "replay_equivalence": {
+        "model": "loadable_reference",
+        "embedding": "exact_canonical_value"
+      }
     },
     {
       "name": "consume_self_linked_model",
@@ -82,22 +123,41 @@
       "description": "Consumes a durable model by its own authenticated source linkage.",
       "runner": ".consume_self_linked_model",
       "inputs": [
-        {"name": "model", "kind": "model_ref", "required": true, "alignment": "model_linked"}
+        {
+          "name": "model",
+          "kind": "model_ref",
+          "required": true,
+          "alignment": "model_linked"
+        }
       ],
-      "params_schema": {"type": "object", "properties": {}, "additionalProperties": false},
+      "params_schema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
       "self_linked_contained_model_reads": [
         {
           "name": "fitted_model",
           "input": "model",
           "reader": "read_self_linked_contained_model_payload",
-          "allowed_models": [{"engine": "fixture", "model_type": "phase5_model"}],
+          "allowed_models": [
+            {
+              "engine": "fixture",
+              "model_type": "phase5_model"
+            }
+          ],
           "linkage_policy": "authenticated_existing_source_and_cell_linkage_v1",
           "maximum_file_count": 32,
           "maximum_total_bytes": 1073741824,
           "call_discipline": "exactly_once"
         }
       ],
-      "dimension_policies": [{"output": "summary", "policy": "data_dependent_table_v1"}],
+      "dimension_policies": [
+        {
+          "output": "summary",
+          "policy": "data_dependent_table_v1"
+        }
+      ],
       "outputs": [
         {
           "name": "summary",
@@ -111,8 +171,175 @@
         }
       ],
       "dependencies": [],
-      "promotion_closure": {"summary": ["summary"]},
-      "replay_equivalence": {"summary": "exact_canonical_value"}
+      "promotion_closure": {
+        "summary": [
+          "summary"
+        ]
+      },
+      "replay_equivalence": {
+        "summary": "exact_canonical_value"
+      }
+    },
+    {
+      "name": "adopt_external_state",
+      "qualified_name": "scwbv3phase5::adopt_external_state",
+      "title": "Generic external-state adoption fixture",
+      "description": "Adopts an authenticated external model tree through the path-free generic G3 capability.",
+      "runner": ".adopt_external_state",
+      "inputs": [
+        {
+          "name": "source",
+          "kind": "space",
+          "required": true,
+          "alignment": "cell_ordered"
+        },
+        {
+          "name": "candidate",
+          "kind": "external_state_candidate",
+          "required": true,
+          "alignment": "none"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "dims": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "external_source_ref": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "snapshot_id",
+              "run_id"
+            ],
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "snapshot_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "run_id": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "required": [
+          "dims",
+          "external_source_ref"
+        ],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "output": "summary",
+          "policy": "authenticated_output_axes_v1",
+          "shape": "one_per_cell",
+          "cell_axis": {
+            "source": "effective_cells_v1",
+            "input": "source"
+          },
+          "row_order": "input_cell_order_v1",
+          "missing_values": "forbidden"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "category": "terminal_artifact",
+          "kind": "model_ref",
+          "storage_profile": "model_ref_contained_tree_v1",
+          "allocated_id_key": "model_id",
+          "required": true,
+          "promotion_group": "adoption",
+          "contained_model_sibling_closure_policy": {
+            "policy": "staged_contained_model_sibling_closure_v1",
+            "engine": "fixture",
+            "model_type": "external_state",
+            "primary_path": "model.bin",
+            "source_space_input": "source",
+            "dimensions_parameter": "dims",
+            "required_sibling_terminals": [
+              "summary"
+            ],
+            "file_order": "utf8_path_lexicographic_v1",
+            "maximum_file_count": 8,
+            "maximum_total_bytes": 1048576
+          }
+        },
+        {
+          "name": "summary",
+          "category": "terminal_artifact",
+          "kind": "cell_vector",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "summary_id",
+          "required": true,
+          "promotion_group": "adoption",
+          "value_kind": "categorical"
+        }
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "model": [
+          "model",
+          "summary"
+        ],
+        "summary": [
+          "model",
+          "summary"
+        ]
+      },
+      "replay_equivalence": {
+        "model": "loadable_reference",
+        "summary": "exact_canonical_value"
+      },
+      "supported_external_state_adoptions": [
+        {
+          "schema": "scworkbench.operation_pack.supported_external_state_adoption.v1",
+          "name": "adoption",
+          "state_input": "candidate",
+          "source_parameter": "external_source_ref",
+          "allowed_state_types": [
+            {
+              "engine": "fixture",
+              "model_type": "external_state"
+            }
+          ],
+          "allowed_source_byte_states": [
+            "bytes_verified",
+            "bytes_not_inspected",
+            "bytes_unavailable"
+          ],
+          "model_output": "model",
+          "required_closure_outputs": [
+            "summary"
+          ],
+          "primary_path": "model.bin",
+          "maximum_file_count": 8,
+          "maximum_total_bytes": 1048576,
+          "maximum_cell_count": 1000,
+          "call_discipline": "adoption_state_exactly_once",
+          "output_tree_policy": "exact_admitted_tree_identity",
+          "execution_semantics": "supported_external_state_adoption_without_refit_v1",
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.supported_external_state_adoption.v1",
+            "scope": "supported external state adoption declaration excluding declaration_identity",
+            "sha256": "4c8debf3ab5452ec2a56701173aae9606cc71b3f68419960158f629938781910"
+          }
+        }
+      ]
     }
   ]
 }

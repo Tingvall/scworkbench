@@ -1449,6 +1449,8 @@
     operation, inputs, source_refs, request, params)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
     bundle, request)
+  if (abi_v3) .wb_operation_pack_v3_g3_sources_assert_current(bundle,
+    request)
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
   if (python_backend) {
     process_result <- if (abi_v3) .wb_operation_pack_v3_python_dispatch(
@@ -1535,7 +1537,9 @@
       named_cell_axis_collection_usage =
         phase5_usage$named_cell_axis_collection_usage,
       optional_display_axis_group_usage =
-        phase5_usage$optional_display_axis_group_usage) else .wb_operation_pack_v2_receipt(request,
+        phase5_usage$optional_display_axis_group_usage,
+      supported_external_state_adoption_state = adapter$state,
+      supported_external_state_adoption_attestations = result) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
   }
@@ -1611,11 +1615,17 @@
             paste0("optional_display_axis_groups/", grant$name, "/", i,
               "/endpoint_", j, ".json"), character(1)))
       }), use.names = FALSE)
+    adoption_files <- unlist(lapply(
+      request$supported_external_state_adoption_grants %||% list(),
+      function(grant) vapply(grant$candidate_snapshot$tree_manifest$entries,
+        function(entry) file.path(grant$candidate_snapshot$relative_root,
+          entry$path), character(1))), use.names = FALSE)
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
       paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
       registry_payloads, provenance_payloads, typed_slice_axes,
       typed_space_axes,
       typed_slice_sources, model_read_files, self_model_read_files,
+      adoption_files,
       artifact_collection_files, named_axis_files, optional_display_files),
       method = "radix")
     fragment_roots <- paste0("outputs/", names(Filter(function(x)
@@ -1638,6 +1648,8 @@
     bundle, request)
   if (abi_v3) .wb_operation_pack_v3_phase5_sources_assert_current(bundle,
     operation, request, params)
+  if (abi_v3) .wb_operation_pack_v3_g3_sources_assert_current(bundle,
+    request)
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
   if (!isTRUE(moved) || !dir.exists(final)) .wb_operation_pack_v2_error("PYBENCH_PUBLICATION_FAILED",
