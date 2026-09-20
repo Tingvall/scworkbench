@@ -1306,6 +1306,76 @@
                   "minimum": 1
                 }
               }
+            },
+            "contained_model_sibling_closure_policy": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "policy",
+                "engine",
+                "model_type",
+                "primary_path",
+                "source_space_input",
+                "dimensions_parameter",
+                "required_sibling_terminals",
+                "file_order",
+                "maximum_file_count",
+                "maximum_total_bytes"
+              ],
+              "properties": {
+                "policy": {
+                  "const": "staged_contained_model_sibling_closure_v1"
+                },
+                "engine": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "model_type": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "primary_path": {
+                  "type": "string",
+                  "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+                },
+                "source_space_input": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "dimensions_parameter": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "required_sibling_terminals": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "minItems": 1,
+                  "uniqueItems": true
+                },
+                "file_order": {
+                  "const": "utf8_path_lexicographic_v1"
+                },
+                "maximum_file_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 32
+                },
+                "maximum_total_bytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1073741824
+                }
+              }
             }
           }
         },
@@ -3211,6 +3281,449 @@
               },
               "call_discipline": {
                 "const": "ordered_partition_exactly_once"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "self_linked_contained_model_reads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "input",
+              "reader",
+              "allowed_models",
+              "linkage_policy",
+              "maximum_file_count",
+              "maximum_total_bytes",
+              "call_discipline"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "input": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "reader": {
+                "const": "read_self_linked_contained_model_payload"
+              },
+              "allowed_models": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "engine",
+                    "model_type"
+                  ],
+                  "properties": {
+                    "engine": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "model_type": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              },
+              "linkage_policy": {
+                "const": "authenticated_existing_source_and_cell_linkage_v1"
+              },
+              "maximum_file_count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 32
+              },
+              "maximum_total_bytes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1073741824
+              },
+              "call_discipline": {
+                "const": "exactly_once"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "artifact_collection_reads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "parameter",
+              "reader",
+              "item_key_field",
+              "order_field",
+              "minimum_items",
+              "maximum_items",
+              "reference_slots",
+              "maximum_references",
+              "maximum_single_payload_bytes",
+              "maximum_total_payload_bytes",
+              "call_discipline"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "reader": {
+                "const": "read_retained_artifact_collection_item"
+              },
+              "item_key_field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "order_field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "minimum_items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 64
+              },
+              "maximum_items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 64
+              },
+              "reference_slots": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "slot",
+                    "field",
+                    "required",
+                    "allowed_kinds",
+                    "activation",
+                    "lifecycle_policy",
+                    "ancestry_policy"
+                  ],
+                  "properties": {
+                    "slot": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "field": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "required": {
+                      "type": "boolean"
+                    },
+                    "allowed_kinds": {
+                      "type": "array",
+                      "items": {
+                        "enum": [
+                          "matrix",
+                          "space",
+                          "space_2d",
+                          "cell_vector",
+                          "cell_vector_family",
+                          "feature_table",
+                          "obs_table",
+                          "model_ref",
+                          "path_2d_family",
+                          "space_path_family"
+                        ]
+                      },
+                      "minItems": 1,
+                      "uniqueItems": true
+                    },
+                    "activation": {
+                      "enum": [
+                        "always",
+                        "when_present"
+                      ]
+                    },
+                    "lifecycle_policy": {
+                      "const": "require_current"
+                    },
+                    "ancestry_policy": {
+                      "const": "require_content_verified_producer"
+                    }
+                  }
+                },
+                "minItems": 1,
+                "maxItems": 8
+              },
+              "maximum_references": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 256
+              },
+              "maximum_single_payload_bytes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 268435456
+              },
+              "maximum_total_payload_bytes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1073741824
+              },
+              "call_discipline": {
+                "const": "resolved_ordinal_slot_exactly_once"
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 8
+        },
+        "named_cell_axis_collections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "parameter",
+              "space_input",
+              "reader",
+              "minimum_axes",
+              "maximum_axes",
+              "minimum_cells_per_axis",
+              "maximum_cells_per_axis",
+              "maximum_total_memberships",
+              "projection_policy",
+              "call_discipline"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "parameter": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "space_input": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "reader": {
+                "const": "read_named_cell_axis"
+              },
+              "minimum_axes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 64
+              },
+              "maximum_axes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 64
+              },
+              "minimum_cells_per_axis": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000000
+              },
+              "maximum_cells_per_axis": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000000
+              },
+              "maximum_total_memberships": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20000000
+              },
+              "projection_policy": {
+                "const": "bundle_membership_intersect_space_axis_v1"
+              },
+              "call_discipline": {
+                "const": "axis_ordinal_exactly_once"
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 4
+        },
+        "optional_display_axis_groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "scope",
+              "collection_read",
+              "activation",
+              "display_space_selector",
+              "endpoint_roles",
+              "dimension_count",
+              "maximum_groups",
+              "maximum_display_cells",
+              "maximum_cells_per_endpoint_axis",
+              "maximum_total_endpoint_memberships",
+              "call_discipline"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "scope": {
+                "enum": [
+                  "operation",
+                  "collection_item"
+                ]
+              },
+              "collection_read": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "activation": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "start",
+                  "end"
+                ],
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "endpoint_parameter",
+                      "top_level_cell_set_parameter"
+                    ],
+                    "properties": {
+                      "endpoint_parameter": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "top_level_cell_set_parameter": {
+                        "oneOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "endpoint_parameter",
+                      "top_level_cell_set_parameter"
+                    ],
+                    "properties": {
+                      "endpoint_parameter": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "top_level_cell_set_parameter": {
+                        "oneOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              "display_space_selector": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "operation_parameter",
+                  "item_field"
+                ],
+                "properties": {
+                  "operation_parameter": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "item_field": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              "endpoint_roles": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "const": "start"
+                  },
+                  {
+                    "const": "end"
+                  }
+                ],
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "dimension_count": {
+                "const": 2
+              },
+              "maximum_groups": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 64
+              },
+              "maximum_display_cells": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000000
+              },
+              "maximum_cells_per_endpoint_axis": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000000
+              },
+              "maximum_total_endpoint_memberships": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20000000
+              },
+              "call_discipline": {
+                "const": "display_partition_then_endpoint_ordinal_exactly_once"
               }
             }
           },

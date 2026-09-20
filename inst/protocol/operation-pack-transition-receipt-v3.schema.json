@@ -298,6 +298,34 @@
         "$ref": "#/$defs/typed_space_usage"
       },
       "minItems": 1
+    },
+    "self_linked_model_payload_reads": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/self_linked_contained_model_read_observation"
+      },
+      "minItems": 1
+    },
+    "artifact_collection_usage": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/retained_artifact_collection_usage"
+      },
+      "minItems": 1
+    },
+    "named_cell_axis_collection_usage": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/named_cell_axis_collection_usage"
+      },
+      "minItems": 1
+    },
+    "optional_display_axis_group_usage": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/optional_display_axis_group_usage"
+      },
+      "minItems": 1
     }
   },
   "allOf": [
@@ -2877,6 +2905,9 @@
             },
             "observed_pseudobulk": {
               "$ref": "#/$defs/pseudobulk_observation"
+            },
+            "contained_model_sibling_tree": {
+              "$ref": "#/$defs/contained_model_sibling_tree_observation"
             }
           }
         },
@@ -6686,6 +6717,320 @@
           "$ref": "#/$defs/identity"
         },
         "coverage_status": {
+          "const": "exact"
+        },
+        "usage_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "self_linked_contained_model_read_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "name",
+        "grant_identity",
+        "input_descriptor_identity",
+        "model_source_linkage_identity",
+        "tree_manifest_identity",
+        "payload_manifest_identity",
+        "engine",
+        "model_type",
+        "use_count",
+        "integrity_status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.observed_self_linked_contained_model_read.v1"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "input_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_source_linkage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "tree_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "use_count": {
+          "const": 1
+        },
+        "integrity_status": {
+          "const": "unchanged"
+        },
+        "observation_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "contained_model_sibling_tree_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "write_grant_identity",
+        "tree_manifest",
+        "tree_manifest_identity",
+        "payload_manifest_identity",
+        "model_source_linkage_identity",
+        "ordered_sibling_observed_descriptor_identities",
+        "model_sibling_closure_identity",
+        "loadability_status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.contained_model_sibling_tree_observation.v1"
+        },
+        "write_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "tree_manifest": {
+          "$ref": "#/$defs/contained_model_tree_manifest"
+        },
+        "tree_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "payload_manifest_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_source_linkage_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "ordered_sibling_observed_descriptor_identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1
+        },
+        "model_sibling_closure_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "loadability_status": {
+          "const": "contained_tree_authenticated"
+        },
+        "observation_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "retained_artifact_collection_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "request_identity",
+        "capability_identity",
+        "operation_definition_identity",
+        "grant_identity",
+        "calls",
+        "call_count",
+        "concatenated_reference_order_identity",
+        "coverage_status",
+        "usage_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.retained_artifact_collection_usage.v1"
+        },
+        "request_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "capability_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "operation_definition_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resolved_ordinal",
+              "slot",
+              "reference_identity",
+              "result_identity"
+            ],
+            "properties": {
+              "resolved_ordinal": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "slot": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "reference_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "result_identity": {
+                "$ref": "#/$defs/identity"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "call_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "concatenated_reference_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "coverage_status": {
+          "const": "exact"
+        },
+        "usage_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "named_cell_axis_collection_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "request_identity",
+        "capability_identity",
+        "operation_definition_identity",
+        "grant_identity",
+        "calls",
+        "call_count",
+        "collection_order_identity",
+        "coverage_status",
+        "usage_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.named_cell_axis_collection_usage.v1"
+        },
+        "request_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "capability_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "operation_definition_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ordinal",
+              "axis_identity",
+              "result_identity"
+            ],
+            "properties": {
+              "ordinal": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "axis_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "result_identity": {
+                "$ref": "#/$defs/identity"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "call_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "collection_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "coverage_status": {
+          "const": "exact"
+        },
+        "usage_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "optional_display_axis_group_usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "request_identity",
+        "capability_identity",
+        "operation_definition_identity",
+        "grant_identity",
+        "display_calls",
+        "endpoint_calls",
+        "display_coverage_status",
+        "endpoint_coverage_status",
+        "usage_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.optional_display_axis_group_usage.v1"
+        },
+        "request_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "capability_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "operation_definition_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "display_calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1
+        },
+        "endpoint_calls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1
+        },
+        "display_coverage_status": {
+          "const": "exact"
+        },
+        "endpoint_coverage_status": {
           "const": "exact"
         },
         "usage_identity": {

@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 28L)
+    length(fixture$cases) == 47L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -139,7 +139,26 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     space_2d_publication_input_merge = "publication_grant_identity",
     contained_model_tree_observation = "observation_identity",
     contained_model_read_observation = "observation_identity",
-    space_2d_publication_observation = "observation_identity")
+    space_2d_publication_observation = "observation_identity",
+    model_source_linkage_v2 = "linkage_identity",
+    self_linked_model_read_declaration = "declaration_identity",
+    self_linked_model_read_grant = "grant_identity",
+    self_linked_model_read_observation = "observation_identity",
+    model_sibling_closure = "closure_identity",
+    contained_model_sibling_write_grant = "write_grant_identity",
+    contained_model_sibling_tree_observation = "observation_identity",
+    retained_artifact_reference = "reference_identity",
+    retained_artifact_collection_item = "item_identity",
+    retained_artifact_collection = "collection_identity",
+    retained_artifact_collection_grant = "grant_identity",
+    retained_artifact_collection_result = "result_identity",
+    named_cell_axis_source = "source_identity",
+    named_cell_axis_selection = "selection_identity",
+    named_cell_axis = "axis_identity",
+    named_cell_axis_collection = "collection_identity",
+    named_cell_axis_collection_grant = "grant_identity",
+    optional_display_space = "display_identity",
+    optional_display_axis_group_grant = "grant_identity")
   for (case in fixture$cases) {
     field <- identity_fields[[case$name]]
     stopifnot(!is.null(field), identical(case$preimage,
