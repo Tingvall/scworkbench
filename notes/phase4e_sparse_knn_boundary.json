@@ -12,7 +12,7 @@
       "call_discipline": "ordered_partition_exactly_once"
     },
     "sparse_membership_policy": {
-      "policy": "authenticated_sparse_key_cell_membership_v1",
+      "policy": "authenticated_sparse_membership_v1",
       "shape": "bounded_sparse_key_cell_membership",
       "row_order": "query_then_rank_v1",
       "distance_policy": "finite_nonnegative_v1"
