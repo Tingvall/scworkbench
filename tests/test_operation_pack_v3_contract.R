@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 47L)
+    length(fixture$cases) == 66L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -158,7 +158,26 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     named_cell_axis_collection = "collection_identity",
     named_cell_axis_collection_grant = "grant_identity",
     optional_display_space = "display_identity",
-    optional_display_axis_group_grant = "grant_identity")
+    optional_display_axis_group_grant = "grant_identity",
+    g3_declaration = "declaration_identity",
+    g3_source_snapshot = "source_snapshot_identity",
+    g3_candidate_snapshot = "candidate_snapshot_identity",
+    g3_adopted_closure = "adopted_closure_identity",
+    g3_byte_evidence_verified = "source_byte_evidence_identity",
+    g3_grant_verified = "grant_identity",
+    g3_observation_verified = "observation_identity",
+    g3_request_verified = "request_identity",
+    g3_receipt_verified = "receipt_identity",
+    g3_byte_evidence_not_inspected = "source_byte_evidence_identity",
+    g3_grant_not_inspected = "grant_identity",
+    g3_observation_not_inspected = "observation_identity",
+    g3_request_not_inspected = "request_identity",
+    g3_receipt_not_inspected = "receipt_identity",
+    g3_byte_evidence_unavailable = "source_byte_evidence_identity",
+    g3_grant_unavailable = "grant_identity",
+    g3_observation_unavailable = "observation_identity",
+    g3_request_unavailable = "request_identity",
+    g3_receipt_unavailable = "receipt_identity")
   for (case in fixture$cases) {
     field <- identity_fields[[case$name]]
     stopifnot(!is.null(field), identical(case$preimage,
@@ -414,10 +433,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "5090bdf69ad076dcd35e83efae075d73dce3b65fba74b6b52a27fe74d1345f30",
-    "6d18dfc81c357a36846f62efe7a3b334f8533ce8fa99574af32cece683954128",
-    "caa532da565bcdc8d02b4ce25138394a6fc07fe500e56e3dd728d446ce914249",
-    "5dcad38e4fb78cba254e2240b6bbc9c7ebc522072a7c1578fe1658b267e6ca7b")
+    "fd66c445eeaeb332537062ab7e82f26839399500546d4209bc61d1f822161b7a",
+    "50e702802a63b415d9d6e7cb7d39992a84f108f87e8c9ae3f734c8f480b17eab",
+    "df5e75ba58f293099663ec582b8dad0c7e7df8e5de388fdac08680daa3df5473",
+    "c34902ae38d92d6a99e1fbf76a15eeac60412008f3dad4d931d5409db5172c3c")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)

@@ -92,6 +92,32 @@ evidence therefore become visible together or not at all. The same 32-file,
 1-GiB tree ceilings apply. Promoted model linkage and trees remain loadable
 after relocation without a pack installation.
 
+G3 admits one caller-prepared external model tree without fitting it again.
+The public `wb_supported_external_state_candidate()` constructor copies named
+raw entries into a private core-owned candidate, authenticates the complete
+tree and payload identities, and binds the exact fitted cell order. A manifest
+may declare at most one adoption and must authorize the selected engine/model
+type, byte-evidence states, tree limits, G2 model output, and complete ordered
+output closure. The runner receives one path-free reader returning bounded
+entry bytes and one G2 writer that accepts those bytes; it receives no host
+path, candidate token, bundle, database, or publication authority.
+
+Source-byte evidence has three closed states. `bytes_verified` records equal
+declared and observed content identities. `bytes_not_inspected` means policy
+deliberately did not read an external path. `bytes_unavailable` means bytes
+were absent at the approved boundary and is admitted only when the manifest
+explicitly lists that state. Any checksum actually observed to differ is
+always rejected. The request also authenticates one exact current source
+snapshot, the candidate tree and payload, the G2 sibling-writer identity, its
+model-source linkage, and the ordered closure. The receipt separately retains
+the pack's source-association and no-refit attestations. Core proves tree
+preservation and requires the published model tree to be byte-identical to the
+candidate; it does not reinterpret either pack attestation as a core proof.
+Adoption evidence remains distinct from fit, model loading, and replay after
+promotion and relocation. G3 is currently an R-runtime capability; PyBench
+mirrors the schemas and canonical fixtures and independently reproduces every
+identity, but exposes no Python adoption executor.
+
 G4 resolves up to eight ordered retained-artifact collections. Each collection
 contains at most 64 items, eight declared slots per item, 256 references, 256
 MiB per staged payload, and 1 GiB in total. The parameter ordinal and resolved
@@ -114,7 +140,7 @@ million cells per endpoint, and 20 million endpoint memberships are granted.
 Display and endpoint readers are distinct; substitution or reordering is
 rejected.
 
-All five capabilities are opt-in. Their source identities and privately staged
+All six capabilities are opt-in. Their source identities and privately staged
 payloads are revalidated immediately before atomic transition publication.
 Injected publication failure, payload mutation, incomplete use, or receipt
 disagreement removes the pending transition and leaves no analytical or

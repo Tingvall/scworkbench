@@ -281,6 +281,13 @@ test_operation_pack_v3_g3_adversarial_contract <- function() {
   error <- tryCatch(wb_operation_pack_manifest_validate(bad), error = identity)
   stopifnot(inherits(error, "wb_operation_pack_v3_error"),
     identical(before, wb_operation_catalog_identity()))
+  python <- .wb_operation_pack_v2_deep_copy(manifest)
+  python$backend <- "Python"
+  python$entry_point <- "fixture.module:register_operation_pack"
+  python_error <- tryCatch(wb_operation_pack_manifest_validate(python),
+    error = identity)
+  stopifnot(inherits(python_error, "wb_operation_pack_v3_error"),
+    identical(before, wb_operation_catalog_identity()))
   TRUE
 }
 

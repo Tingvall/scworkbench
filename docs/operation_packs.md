@@ -112,14 +112,15 @@ canonical matrix getter, and a single-use core-attested read of the current
 provenance of an artifact-backed typed input. Packs own partitioning,
 scientific work, merge, and summary logic.
 
-The same additive ABI now includes five method-neutral capabilities: a
+The same additive ABI now includes six method-neutral capabilities: a
 self-linked contained-model reader (G1), sibling-bound contained-model
-publication (G2), ordered retained-artifact collections (G4), ordered named
-cell-axis collections (G5), and optional parameter-resolved display/endpoint
-groups (G6). These capabilities expose private typed copies and identities,
-not bundle, SQL, registry, committed-path, or state-authority handles. Their
-closed shapes, limits, call disciplines, and durable lifecycle are specified
-in `docs/operation_pack_v3_protocol.md`.
+publication (G2), supported external-state adoption (G3), ordered
+retained-artifact collections (G4), ordered named cell-axis collections (G5),
+and optional parameter-resolved display/endpoint groups (G6). These
+capabilities expose private typed copies and identities, not bundle, SQL,
+registry, committed-path, or state-authority handles. Their closed shapes,
+limits, call disciplines, and durable lifecycle are specified in
+`docs/operation_pack_v3_protocol.md`.
 
 R packages register the same closed runner interface through the existing
 entry point:

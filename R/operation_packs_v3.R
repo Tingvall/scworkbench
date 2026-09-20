@@ -390,6 +390,13 @@
             "' has an invalid contained-model read declaration."),
           "semantic_admission")
     }
+    if (length(operation$supported_external_state_adoptions %||% list()) &&
+        !identical(as.character(manifest$backend)[1], "R"))
+      .wb_operation_pack_v3_error(
+        "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+        paste0("Operation '", opname,
+          "' uses the R-runtime-only external-state adoption capability."),
+        "semantic_admission")
     .wb_operation_pack_v3_phase5_semantic_validate(operation, inputs,
       outputs, properties)
     axes <- operation$parameter_axes %||% list()
