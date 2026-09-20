@@ -99,7 +99,7 @@ sibling_items <- list(
       fitted_cell_order_identity))
 closure_preimage <- list(model_output = "model",
   model_grant_identity = id("scworkbench.operation_pack.output_grant.v3", "a"),
-  model_source_linkage_identity = linkage_id,
+  model_source_linkage_identity = self_linkage_id,
   promotion_group = "fit", siblings = lapply(sibling_items, function(x)
     x[c("name", "grant_identity", "replay_policy")]))
 closure_id <- plain("scworkbench.operation_pack.model_sibling_closure.v1",
@@ -127,7 +127,7 @@ sibling_observation <- list(schema =
     "scworkbench.operation_pack.contained_model_sibling_tree_observation.v1",
   write_grant_identity = sibling_grant_id, tree_manifest = tree_value,
   tree_manifest_identity = tree_id, payload_manifest_identity = payload_id,
-  model_source_linkage_identity = linkage_id,
+  model_source_linkage_identity = self_linkage_id,
   ordered_sibling_observed_descriptor_identities = list(
     id("scworkbench.operation_pack.observed_output.v3", "c"),
     id("scworkbench.operation_pack.observed_output.v3", "d")),
