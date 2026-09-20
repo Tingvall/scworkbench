@@ -395,6 +395,14 @@
   ledger <- sparse_observation$edge_ledger
   counts <- tabulate(match(vapply(ledger, `[[`, character(1),
     "query_cell_id"), query), nbins = length(query))
+  zero_neighbor_policy <- as.character(grant$zero_neighbor_policy)[1]
+  if (!identical(zero_neighbor_policy, "zero_rows_forbidden_v1"))
+    .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+      "Pseudobulk grant has an unknown zero-neighbor policy.", "audit")
+  if (any(counts == 0L))
+    .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+      paste0("Pseudobulk membership leaves authenticated queries without ",
+        "neighbors under zero_rows_forbidden_v1."), "audit")
   if (!identical(as.character(table$query_cell_id), expected_query) ||
       !identical(as.character(table$feature_id), expected_features) ||
       !identical(as.integer(table$n_neighbors), rep(as.integer(counts),

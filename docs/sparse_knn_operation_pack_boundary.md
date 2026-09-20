@@ -20,8 +20,17 @@ edge ledger and must agree before the promotion transaction can publish either.
 For pseudobulk, the accepted edge ledger additionally binds the requested
 feature axis, query order, and `sum` or `mean` aggregation mode. Matrix access
 is limited to authenticated candidate cells and feature chunks. The
-`feature_table` and distance family form one promotion closure, so mismatch or
-partial output leaves no analytical residue.
+`authenticated_pseudobulk_v1` policy uses `zero_rows_forbidden_v1`: every
+authenticated query must have at least one accepted neighbor, matching the
+old-core rejection of an empty eligible candidate pool. Zero-valued synthetic
+sum or mean rows are not an accepted fallback.
+
+The pseudobulk observation records only `grant_identity`,
+`edge_ledger_identity`, `row_count`, `aggregate`, `status`, and
+`observation_identity`. Query and feature axes and the zero-neighbor policy are
+committed by the authenticated `grant_identity`; the receipt does not duplicate
+those grant fields. The `feature_table` and distance family form one promotion
+closure, so mismatch or partial output leaves no analytical residue.
 
 No bundle path, database handle, SQL surface, or committed payload path crosses
 this boundary. A bundle containing promoted outputs remains inspectable and

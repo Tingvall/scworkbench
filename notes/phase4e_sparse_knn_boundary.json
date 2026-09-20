@@ -18,10 +18,10 @@
       "distance_policy": "finite_nonnegative_v1"
     },
     "pseudobulk_policy": {
-      "policy": "authenticated_sparse_membership_pseudobulk_v1",
+      "policy": "authenticated_pseudobulk_v1",
       "row_order": "query_then_feature_v1",
       "aggregate_values": ["sum", "mean"],
-      "zero_neighbor_policy": "zero_v1"
+      "zero_neighbor_policy": "zero_rows_forbidden_v1"
     }
   },
   "request": {
@@ -60,14 +60,18 @@
       "status"
     ],
     "neighbor_output_agreement": "neighbors and neighbor_distance expose the identical edge ledger identity",
-    "pseudobulk_binding_fields": [
-      "membership_edge_ledger_identity",
-      "feature_axis_identity",
-      "aggregate",
-      "zero_neighbor_policy",
-      "query_order_identity",
+    "pseudobulk_observation_fields": [
+      "grant_identity",
+      "edge_ledger_identity",
       "row_count",
-      "status"
+      "aggregate",
+      "status",
+      "observation_identity"
+    ],
+    "pseudobulk_grant_identity_commits": [
+      "query_axis_identity",
+      "feature_axis_identity",
+      "zero_neighbor_policy"
     ]
   },
   "edge_ledger": {
