@@ -764,16 +764,19 @@
         sep = "\034")
       grant <- display_grants[[key]]; values <- display_values[[key]]$display
       prior <- state$optional_display_calls[[key]] %||% list()
+      endpoint_prior <- state$optional_endpoint_calls[[key]] %||% list()
       cells <- as.character(cells)
       all_cells <- as.character(values$cell_id)
       consumed <- sum(vapply(prior, function(x) x$count, integer(1)))
       expected <- if (length(cells) && consumed + length(cells) <=
           length(all_cells)) all_cells[seq.int(consumed + 1L,
             consumed + length(cells))] else character()
-      if (isTRUE(state$used) || is.null(grant) || !length(cells) ||
+      if (isTRUE(state$used) || is.null(grant) || length(endpoint_prior) ||
+          !length(cells) ||
           !identical(cells, expected)) .wb_operation_pack_v3_error(
             "PYBENCH_CAPABILITY_MISMATCH",
-            "Optional display reads must partition the cell axis in order.",
+            paste("Optional display reads must partition the cell axis in",
+              "order before endpoint reads begin."),
             "execution")
       index <- match(cells, all_cells)
       value <- .wb_operation_pack_v2_deep_copy(values)
@@ -796,11 +799,19 @@
         sep = "\034")
       grant <- display_grants[[key]]; prior <- state$optional_endpoint_calls[[key]] %||%
         list(); ordinal <- as.integer(ordinal)[1]
+      display_prior <- state$optional_display_calls[[key]] %||% list()
+      display_values_for_key <- display_values[[key]]$display
+      display_consumed <- sum(vapply(display_prior,
+        function(x) x$count, integer(1)))
+      display_complete <- !is.null(display_values_for_key) &&
+        display_consumed == length(as.character(
+          display_values_for_key$cell_id))
       expected <- length(prior) + 1L
-      if (isTRUE(state$used) || is.null(grant) || ordinal != expected ||
-          ordinal > length(grant$endpoint_axes))
+      if (isTRUE(state$used) || is.null(grant) || !display_complete ||
+          ordinal != expected || ordinal > length(grant$endpoint_axes))
         .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-          "Optional endpoint axes must be read in role ordinal order exactly once.",
+          paste("Optional endpoint axes require complete display coverage and",
+            "must be read in role ordinal order exactly once."),
           "execution")
       value <- display_values[[key]]$endpoints[[ordinal]]
       result <- .wb_operation_pack_v2_identity_plain(

@@ -444,9 +444,46 @@ test_operation_pack_v3_phase5_g5_g6_named_axis_contract <- function() {
   attr(request, "operation_pack_stage_root") <- stage
   stopifnot(isTRUE(.wb_operation_pack_v3_phase5_staged_payloads_assert(
     request)))
-  adapter <- list(state = new.env(parent = emptyenv()), readers = list())
-  adapter$state$used <- FALSE
-  adapter <- .wb_operation_pack_v3_add_phase5_readers(adapter, request)
+  new_adapter <- function() {
+    value <- list(state = new.env(parent = emptyenv()), readers = list())
+    value$state$used <- FALSE
+    .wb_operation_pack_v3_add_phase5_readers(value, request)
+  }
+  durable_artifacts <- wb_art_list(state$bundle)
+  durable_store <- sort(list.files(.wb_operation_pack_v2_store(state$bundle),
+    recursive = TRUE, all.files = TRUE, no.. = TRUE))
+  assert_no_publication_residue <- function() {
+    stopifnot(identical(wb_art_list(state$bundle), durable_artifacts),
+      identical(sort(list.files(.wb_operation_pack_v2_store(state$bundle),
+        recursive = TRUE, all.files = TRUE, no.. = TRUE)), durable_store))
+  }
+
+  # Endpoint consumption cannot begin before complete display coverage.
+  endpoint_first <- new_adapter()
+  .wb_phase5_expect_code(endpoint_first$readers$
+    read_optional_endpoint_axis("endpoints", "operation", 1L),
+    "PYBENCH_CAPABILITY_MISMATCH")
+  assert_no_publication_residue()
+  endpoint_after_partial_display <- new_adapter()
+  endpoint_after_partial_display$readers$read_optional_display_space(
+    "endpoints", "operation", c("c2", "c1"))
+  .wb_phase5_expect_code(endpoint_after_partial_display$readers$
+    read_optional_endpoint_axis("endpoints", "operation", 1L),
+    "PYBENCH_CAPABILITY_MISMATCH")
+  assert_no_publication_residue()
+
+  # Display consumption cannot resume after endpoint consumption begins.
+  display_after_endpoint <- new_adapter()
+  display_after_endpoint$readers$read_optional_display_space(
+    "endpoints", "operation", c("c2", "c1", "c3"))
+  display_after_endpoint$readers$read_optional_endpoint_axis(
+    "endpoints", "operation", 1L)
+  .wb_phase5_expect_code(display_after_endpoint$readers$
+    read_optional_display_space("endpoints", "operation", "c3"),
+    "PYBENCH_CAPABILITY_MISMATCH")
+  assert_no_publication_residue()
+
+  adapter <- new_adapter()
   .wb_phase5_expect_code(adapter$readers$read_named_cell_axis(
     "checkpoints", 2L), "PYBENCH_CAPABILITY_MISMATCH")
   first <- adapter$readers$read_named_cell_axis("checkpoints", 1L)
