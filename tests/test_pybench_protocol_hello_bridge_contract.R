@@ -3,7 +3,7 @@ test_pybench_protocol_hello_bridge_contract <- function() {
   # can be described without rewriting their operation identity. It is no
   # longer a production operation or public mutation surface.
   stopifnot(
-    length(wb_list_ops()) == 33L,
+    length(wb_list_ops()) == 29L,
     !"py_protocol_hello" %in% wb_list_ops(),
     inherits(try(wb_op_interface("py_protocol_hello"), silent = TRUE),
       "try-error"),

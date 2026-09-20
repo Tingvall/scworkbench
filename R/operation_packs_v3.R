@@ -79,6 +79,10 @@
     op$typed_space_reads <- NULL
     op$cell_selector_axes <- NULL
     op$contained_model_reads <- NULL
+    op$self_linked_contained_model_reads <- NULL
+    op$artifact_collection_reads <- NULL
+    op$named_cell_axis_collections <- NULL
+    op$optional_display_axis_groups <- NULL
     op$publication_policies <- NULL
     op$parameter_axes <- NULL
     op$parameter_bindings <- Filter(function(binding)
@@ -95,6 +99,7 @@
     op$outputs <- lapply(op$outputs, function(output) {
       output$fragment_policy <- NULL
       output$contained_model_policy <- NULL
+      output$contained_model_sibling_closure_policy <- NULL
       output
     })
     op$registry_reads <- Filter(function(x) identical(
@@ -379,6 +384,8 @@
             "' has an invalid contained-model read declaration."),
           "semantic_admission")
     }
+    .wb_operation_pack_v3_phase5_semantic_validate(operation, inputs,
+      outputs, properties)
     axes <- operation$parameter_axes %||% list()
     axis_names <- vapply(axes, function(x) as.character(x$name)[1],
       character(1))

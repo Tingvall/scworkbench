@@ -1107,17 +1107,20 @@
       expected <- manifest$sha256
       fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
       model_tree <- item$descriptor$contained_model_tree %||% NULL
-      actual <- if (!is.null(model_tree)) {
+      sibling_tree <- item$descriptor$contained_model_sibling_tree %||% NULL
+      authenticated_tree <- model_tree %||% sibling_tree$tree_manifest %||% NULL
+      actual <- if (!is.null(authenticated_tree)) {
         tree_root <- file.path(path, "outputs", item$name, "model_tree")
         tree_manifest <- tryCatch(.wb_operation_pack_v3_model_tree_manifest(
-          tree_root, model_tree$engine, model_tree$model_type,
-          model_tree$primary_path,
+          tree_root, authenticated_tree$engine, authenticated_tree$model_type,
+          authenticated_tree$primary_path,
           code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen"),
           error = identity)
         if (inherits(tree_manifest, "error") || !identical(
             .wb_operation_pack_v3_unscoped_identity(
               tree_manifest$manifest_identity),
-            model_tree$tree_manifest_identity)) return(list(ok = FALSE,
+            if (is.null(sibling_tree)) model_tree$tree_manifest_identity else
+              sibling_tree$tree_manifest_identity)) return(list(ok = FALSE,
               code = "model_tree_identity_mismatch", output = item$name))
         .wb_operation_pack_v3_model_payload_identity(tree_manifest)$sha256
       } else if (!is.null(fragment_manifest)) {
@@ -1165,11 +1168,16 @@
       if (inherits(value, "error")) return(list(ok = FALSE, code = "payload_unreadable", output = item$name))
       fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
       model_tree <- item$descriptor$contained_model_tree %||% NULL
-      actual <- if (!is.null(model_tree)) {
+      sibling_tree <- item$descriptor$contained_model_sibling_tree %||% NULL
+      authenticated_tree <- model_tree %||% sibling_tree$tree_manifest %||% NULL
+      actual <- if (!is.null(authenticated_tree)) {
         .wb_operation_pack_sha256(list(
-          engine = model_tree$engine, model_type = model_tree$model_type,
+          engine = authenticated_tree$engine,
+          model_type = authenticated_tree$model_type,
           linkage_identity = item$descriptor$model_linkage_identity,
-          tree_manifest_identity = model_tree$tree_manifest_identity))
+          tree_manifest_identity = if (is.null(sibling_tree))
+            model_tree$tree_manifest_identity else
+              sibling_tree$tree_manifest_identity))
       } else if (!is.null(fragment_manifest)) {
         value_manifest <- value$fragment_manifest %||% NULL
         if (is.null(value_manifest) || !identical(
@@ -1510,13 +1518,24 @@
     model_read_observations <- if (abi_v3)
       .wb_operation_pack_v3_model_read_observations(request,
         adapter$state) else list()
+    self_model_read_observations <- if (abi_v3)
+      .wb_operation_pack_v3_self_linked_model_read_observations(request,
+        adapter$state) else list()
+    phase5_usage <- if (abi_v3)
+      .wb_operation_pack_v3_phase5_usage(adapter, request) else list()
     adapter$consume()
     receipt <- if (abi_v3) .wb_operation_pack_v3_receipt(request,
       registration, operation, adapter$state$writes, preflight, inputs,
       registry_read_observations, provenance_read_observations,
       typed_slice_usage = typed_slice_usage,
       typed_space_usage = typed_space_usage,
-      model_payload_reads = model_read_observations) else .wb_operation_pack_v2_receipt(request,
+      model_payload_reads = model_read_observations,
+      self_linked_model_payload_reads = self_model_read_observations,
+      artifact_collection_usage = phase5_usage$artifact_collection_usage,
+      named_cell_axis_collection_usage =
+        phase5_usage$named_cell_axis_collection_usage,
+      optional_display_axis_group_usage =
+        phase5_usage$optional_display_axis_group_usage) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
   }
@@ -1566,11 +1585,39 @@
       list(), function(grant) c(vapply(grant$tree_manifest$entries,
         function(entry) file.path(grant$relative_root, entry$path),
         character(1)))), use.names = FALSE)
+    self_model_read_files <- unlist(lapply(
+      request$self_linked_model_payload_grants %||% list(), function(grant)
+        vapply(grant$tree_manifest$entries, function(entry)
+          file.path(grant$relative_root, entry$path), character(1))),
+      use.names = FALSE)
+    artifact_collection_files <- unlist(lapply(
+      request$artifact_collection_grants %||% list(), function(grant)
+        unlist(lapply(grant$items, function(item) unlist(lapply(
+          item$references, function(ref) paste0(
+            "artifact_collection_reads/", grant$name, "/",
+            item$resolved_ordinal, "/", ref$slot,
+            c("/payload.rds", "/ancestry.json"))), use.names = FALSE)),
+          use.names = FALSE)), use.names = FALSE)
+    named_axis_files <- unlist(lapply(
+      request$named_cell_axis_collection_grants %||% list(), function(grant)
+        vapply(grant$axes, function(axis) paste0("named_cell_axis_reads/",
+          grant$name, "/", axis$ordinal, "/payload.json"), character(1))),
+      use.names = FALSE)
+    optional_display_files <- unlist(lapply(seq_along(
+      request$optional_display_axis_group_grants %||% list()), function(i) {
+        grant <- request$optional_display_axis_group_grants[[i]]
+        c(paste0("optional_display_axis_groups/", grant$name, "/", i,
+          "/display.rds"), vapply(seq_along(grant$endpoint_axes), function(j)
+            paste0("optional_display_axis_groups/", grant$name, "/", i,
+              "/endpoint_", j, ".json"), character(1)))
+      }), use.names = FALSE)
     expected_inventory <- sort(c("request.json", "receipt.json", "state.json",
       paste0("outputs/", names(adapter$state$writes), "/payload.rds"),
       registry_payloads, provenance_payloads, typed_slice_axes,
       typed_space_axes,
-      typed_slice_sources, model_read_files), method = "radix")
+      typed_slice_sources, model_read_files, self_model_read_files,
+      artifact_collection_files, named_axis_files, optional_display_files),
+      method = "radix")
     fragment_roots <- paste0("outputs/", names(Filter(function(x)
       !is.null(x$value$fragment_manifest), adapter$state$writes)),
       "/fragments/")
@@ -1589,6 +1636,8 @@
     operation, inputs, source_refs, request, params)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
     bundle, request)
+  if (abi_v3) .wb_operation_pack_v3_phase5_sources_assert_current(bundle,
+    operation, request, params)
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
   if (!isTRUE(moved) || !dir.exists(final)) .wb_operation_pack_v2_error("PYBENCH_PUBLICATION_FAILED",
@@ -1856,8 +1905,14 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
   .wb_operation_pack_assert(output_name %in% table$name, "PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Transition has no output named '", output_name, "'."), class = "wb_operation_pack_v2_error")
   receipt <- jsonlite::read_json(file.path(.wb_operation_pack_v2_store(bundle), transition_id, "receipt.json"), simplifyVector = FALSE)
+  request <- jsonlite::read_json(file.path(.wb_operation_pack_v2_store(bundle),
+    transition_id, "request.json"), simplifyVector = FALSE)
   records <- c(receipt$outputs %||% list(), receipt$registry_requests %||% list())
   record <- records[[match(output_name, vapply(records, `[[`, character(1), "name"))]]
+  request_index <- match(output_name, vapply(request$outputs, `[[`,
+    character(1), "name"))
+  request_record <- if (is.na(request_index)) NULL else
+    request$outputs[[request_index]]
   python_payload <- identical(as.character(
     receipt$runtime_attestation$backend %||% "R")[1], "Python")
   payload_root <- if (python_payload && identical(
@@ -1868,7 +1923,38 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
     payload_root, output_name, if (python_payload) "payload.json" else "payload.rds")
   raw_value <- if (python_payload) jsonlite::read_json(path,
     simplifyVector = FALSE) else readRDS(path)
-  observed <- if (identical(as.character(record$descriptor$kind)[1],
+  model_tree <- record$descriptor$contained_model_tree %||% NULL
+  sibling_tree <- record$descriptor$contained_model_sibling_tree %||% NULL
+  tree_observation <- model_tree %||% sibling_tree
+  observed_tree <- NULL
+  observed <- if (!is.null(tree_observation)) {
+    declared <- sibling_tree$tree_manifest %||% tree_observation
+    engine <- as.character(declared$engine)[1]
+    model_type <- as.character(declared$model_type)[1]
+    primary_path <- as.character(declared$primary_path)[1]
+    tree_root <- file.path(.wb_operation_pack_v2_store(bundle),
+      transition_id, "outputs", output_name, "model_tree")
+    observed_tree <- .wb_operation_pack_v3_model_tree_manifest(tree_root,
+      engine, model_type, primary_path,
+      maximum_file_count = as.integer(declared$file_count),
+      maximum_total_bytes = as.numeric(declared$total_size),
+      code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen")
+    expected_tree_identity <- tree_observation$tree_manifest_identity
+    .wb_operation_pack_assert(identical(
+        .wb_operation_pack_v3_unscoped_identity(
+          observed_tree$manifest_identity), expected_tree_identity) &&
+        identical(.wb_operation_pack_v3_model_payload_identity(observed_tree),
+          tree_observation$payload_manifest_identity %||%
+            record$descriptor$payload_manifest_identity),
+      "PYBENCH_REOPEN_VALIDATION_FAILED",
+      paste0("Durable ABI v3 contained model tree changed for '",
+        output_name, "'."), class = "wb_operation_pack_v2_error")
+    .wb_operation_pack_v2_identity_plain(
+      "scworkbench.model_ref.content.v1", list(engine = engine,
+        model_type = model_type,
+        linkage_identity = record$descriptor$model_linkage_identity,
+        tree_manifest_identity = expected_tree_identity))$sha256
+  } else if (identical(as.character(record$descriptor$kind)[1],
       "cell_set_family_admission")) {
     normalized <- .wb_operation_pack_cell_set_family_normalize(bundle,
       raw_value)
@@ -1883,6 +1969,28 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
   .wb_operation_pack_assert(identical(observed, expected), "PYBENCH_REOPEN_VALIDATION_FAILED",
     paste0("Durable ABI v2 output content identity changed for '", output_name,
       "'."), class = "wb_operation_pack_v2_error")
-  if (python_payload) .wb_operation_pack_v2_python_to_primitive(raw_value,
-    record$descriptor) else raw_value
+  value <- if (python_payload) .wb_operation_pack_v2_python_to_primitive(
+    raw_value, record$descriptor) else raw_value
+  if (!is.null(observed_tree)) {
+    root_rel <- file.path("operation_pack_v2", transition_id, "outputs",
+      output_name, "model_tree")
+    value$model_path <- root_rel
+    value$model_tree_root <- file.path(bundle$dir, root_rel)
+    value$model_primary_path <- observed_tree$primary_path
+    value$model_tree_manifest <- observed_tree
+    value$model_payload_manifest_identity <-
+      .wb_operation_pack_v3_model_payload_identity(observed_tree)
+    sibling_grant <- request_record$descriptor$
+      contained_model_sibling_write_grant %||% NULL
+    if (!is.null(sibling_grant)) {
+      value$model_source_linkage <- sibling_grant$model_source_linkage
+      source_space_id <- as.character(
+        sibling_grant$model_source_linkage$source_space_id)[1]
+      if (!nzchar(as.character(value$model_space_id %||% "")[1]))
+        value$model_space_id <- source_space_id
+      if (!nzchar(as.character(value$in_space_id %||% "")[1]))
+        value$in_space_id <- source_space_id
+    }
+  }
+  value
 }

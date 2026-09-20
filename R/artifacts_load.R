@@ -323,9 +323,13 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       p$model_type <- as.character(df$model_type[[1]] %||% engine)
       p$model_path <- model_path
       linkage_json <- as.character(df$linkage_json[[1]] %||% "")[1]
-      if (!is.na(linkage_json) && nzchar(linkage_json))
-        p$model_linkage <- jsonlite::fromJSON(linkage_json,
-          simplifyVector = FALSE)
+      if (!is.na(linkage_json) && nzchar(linkage_json)) {
+        linkage <- jsonlite::fromJSON(linkage_json, simplifyVector = FALSE)
+        if (all(c("source_space_content_identity",
+            "fitted_cell_order_identity", "source_snapshot_id") %in%
+            names(linkage))) p$model_source_linkage <- linkage else
+          p$model_linkage <- linkage
+      }
       tree_json <- as.character(df$model_tree_manifest_json[[1]] %||% "")[1]
       if (!is.na(tree_json) && nzchar(tree_json)) {
         tree <- tryCatch(jsonlite::fromJSON(tree_json,

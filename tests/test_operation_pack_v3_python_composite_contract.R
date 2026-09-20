@@ -17,13 +17,13 @@
   "SCWORKBENCH_PYBENCH_PYTHON"))
 
 .wb_phase3b_pybench_commit <-
-  "1a9d9c3cc328ad1413462b0fa37b5a7ab5dcafc8"
+  "e0feac65d47b1ca0320f6551aa9a83d9797cfd94"
 
 .wb_phase3b_shared_sha256 <- c(
-  "f263fbcf15d3a928c5a3b7cfa41ca27b4f5d3e0f31f2b8f42cc930b1d9713ff3",
-  "9935a10ca05c5c767e739d06839b5d4fcbf53de549ea95b8cd4d1e711e8089d6",
-  "6ba0a1875100cda766cc5c5f10caa01fc654dd9688250d3ff17389bb4c561e28",
-  "ed31bcf18062d57b6ea8d8f7a787f8932138f959e5762d195b3968438d052f32")
+  "5090bdf69ad076dcd35e83efae075d73dce3b65fba74b6b52a27fe74d1345f30",
+  "6d18dfc81c357a36846f62efe7a3b334f8533ce8fa99574af32cece683954128",
+  "caa532da565bcdc8d02b4ce25138394a6fc07fe500e56e3dd728d446ce914249",
+  "5dcad38e4fb78cba254e2240b6bbc9c7ebc522072a7c1578fe1658b267e6ca7b")
 
 .wb_phase3b_registry_guard <- function() {
   registry <- getFromNamespace(".wb_operation_pack_registry", "scworkbench")
@@ -276,5 +276,77 @@ test_operation_pack_v3_python_composite_lifecycle_contract <- function() {
     identical(as.numeric(reduced_loaded$value), c(5, 7, 9)),
     identical(as.character(scores_loaded$cell_id), cells),
     identical(as.character(summary_loaded$table$artifact_id), source_artifact))
+  TRUE
+}
+
+test_operation_pack_v3_python_phase5_model_lifecycle_contract <- function() {
+  context <- .wb_phase3b_context()
+  if (is.null(context)) return(.wb_phase3b_skip())
+  guard <- .wb_phase3b_registry_guard()
+  on.exit(.wb_phase3b_registry_restore(guard), add = TRUE)
+  wb_operation_pack_activate(context$manifest, python = context$python)
+
+  root <- tempfile("scwb_phase5_python_model_")
+  bundle <- wb_init_bundle(root)
+  on.exit({
+    try(wb_close_bundle(bundle), silent = TRUE)
+    unlink(root, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+  cells <- c("c2", "c1", "c3")
+  wb_define_cells(bundle, cells)
+  coordinates <- matrix(c(2, 1, 4, 1, 2, 5, 0, 3, 6), nrow = 3L,
+    dimnames = list(cells, c("D1", "D2", "D3")))
+  wb_add_space(bundle, "fit-space", coordinates)
+
+  fit <- wb_session_run_op(wb_session_new(), bundle,
+    "scwbpyv3reference::sibling_model_fit_probe", inputs = list(
+      fit_space = "fit-space", dims = c(2L, 1L), cell_set = "all",
+      min_cells = 1L))
+  transition_model <- wb_operation_pack_transition_load(
+    fit$session$staging_bundle,
+    fit$run$operation_pack_transition$transition_id, "model")
+  stopifnot(identical(transition_model$kind, "model_ref"),
+    identical(transition_model$model_source_linkage$source_space_id,
+      "fit-space"), dir.exists(transition_model$model_tree_root),
+    file.exists(file.path(transition_model$model_tree_root,
+      transition_model$model_primary_path)))
+
+  promoted <- wb_session_promote_current(bundle, fit$session,
+    outputs = c("model", "pseudotime", "entropy", "summary"),
+    created_by = "phase5-python-composite")
+  stopifnot(nrow(promoted$promoted) == 4L,
+    all(promoted$promoted$status == "ok"))
+  model_id <- promoted$promoted$artifact_id[
+    promoted$promoted$output == "model"][[1L]]
+  try(wb_session_discard(fit$session), silent = TRUE)
+
+  consumed <- wb_session_run_op(wb_session_new(), bundle,
+    "scwbpyv3reference::self_linked_model_read_probe", inputs = list(
+      model = wb_ref_artifact(model_id, "model"), reader_calls = 1L,
+      cell_set = "all", min_cells = 1L))
+  receipt <- jsonlite::read_json(file.path(.wb_operation_pack_v2_store(
+    consumed$session$staging_bundle),
+    consumed$run$operation_pack_transition$transition_id, "receipt.json"),
+    simplifyVector = FALSE)
+  stopifnot(length(receipt$self_linked_model_payload_reads) == 1L,
+    identical(receipt$self_linked_model_payload_reads[[1L]]$
+      integrity_status, "unchanged"))
+  consumed_promotion <- wb_session_promote_current(bundle, consumed$session,
+    outputs = "summary", created_by = "phase5-python-composite")
+  stopifnot(nrow(consumed_promotion$promoted) == 1L,
+    consumed_promotion$promoted$status[[1L]] == "ok")
+  try(wb_session_discard(consumed$session), silent = TRUE)
+
+  stopifnot(isTRUE(wb_finalize_recipient_bundle(bundle)$ready))
+  wb_close_bundle(bundle); bundle <- NULL
+  bundle <- wb_open_bundle(root, read_only = TRUE)
+  validation <- wb_bundle_validation_report(root, level = "recipient")
+  reopened <- wb_art_load(bundle, model_id, expected_kind = "model_ref")
+  if (!isTRUE(validation$ok)) stop(paste(capture.output(print(
+    validation$diagnostics)), collapse = "\n"), call. = FALSE)
+  stopifnot(isTRUE(validation$ok), dir.exists(reopened$model_tree_root),
+    identical(reopened$model_source_linkage$source_space_id, "fit-space"),
+    identical(reopened$model_source_linkage$linkage_identity,
+      transition_model$model_source_linkage$linkage_identity))
   TRUE
 }

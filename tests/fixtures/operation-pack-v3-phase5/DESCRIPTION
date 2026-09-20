@@ -1,0 +1,9 @@
+Package: scwbV3Phase5
+Type: Package
+Title: ABI V3 Phase 5 Contract Fixture
+Version: 0.1.0
+Authors@R: person("Contract", "Fixture", email = "noreply@example.invalid", role = c("aut", "cre"))
+Description: Minimal generic G1 and G2 operation-pack contract fixture.
+License: MIT
+Encoding: UTF-8
+Imports: scworkbench, digest

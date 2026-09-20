@@ -74,6 +74,52 @@ bundle, and pack-free recipient validation repeats the current-source check.
 Wrong, stale, forged, undeclared, missing, duplicate, or mutated ancestry
 evidence fails without transition or analytical residue.
 
+## Consolidated generic capabilities
+
+G1 grants exactly one private read of an already-promoted contained model.
+The grant authenticates an exact engine/model-type allowlist, the durable
+model/source linkage, fitted cell and selected-dimension order, the complete
+model-tree manifest, and the payload manifest. Core verifies the source-space
+payload bytes and privately copied tree before dispatch and again before
+publication. A declaration may grant at most 32 files and 1 GiB.
+
+G2 grants a contained-model writer whose closure contains an ordered set of
+required sibling terminals without requiring a paired 2D output. The model
+tree, source linkage, sibling grant identities, cell-axis bindings, and replay
+policies form one authenticated closure. Every sibling must be present and
+valid before the transition directory is published; the model and all sibling
+evidence therefore become visible together or not at all. The same 32-file,
+1-GiB tree ceilings apply. Promoted model linkage and trees remain loadable
+after relocation without a pack installation.
+
+G4 resolves up to eight ordered retained-artifact collections. Each collection
+contains at most 64 items, eight declared slots per item, 256 references, 256
+MiB per staged payload, and 1 GiB in total. The parameter ordinal and resolved
+ordinal are both retained. Each activated ordinal/slot reader is exactly once;
+missing, repeated, reordered, wrong-kind, stale-lifecycle, or unauthenticated
+ancestry reads fail closed. Model references in this capability are metadata
+projections: contained-model bytes remain exclusively under G1.
+
+G5 resolves up to four ordered named-cell-axis collections with at most 64
+axes, 10 million selected cells per axis, and 20 million memberships overall.
+The request records the named-set source identity, bundle-universe identity,
+projection exclusions, selected order, pairwise overlaps, and collection
+identity. Packs read each axis ordinal exactly once.
+
+G6 uses the same named-axis identity helper for optional display-space and
+endpoint groups. Activation is parameter-resolved, absence is explicit, and
+each active group authenticates a two-dimensional display partition followed
+by ordered endpoint axes. At most 64 groups, 10 million display cells, 10
+million cells per endpoint, and 20 million endpoint memberships are granted.
+Display and endpoint readers are distinct; substitution or reordering is
+rejected.
+
+All five capabilities are opt-in. Their source identities and privately staged
+payloads are revalidated immediately before atomic transition publication.
+Injected publication failure, payload mutation, incomplete use, or receipt
+disagreement removes the pending transition and leaves no analytical or
+capability-evidence residue.
+
 ## Backends and durable lifecycle
 
 R v3 packs retain the opaque `function(readers, writers, params, context)`

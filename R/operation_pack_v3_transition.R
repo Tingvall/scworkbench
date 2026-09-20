@@ -774,6 +774,9 @@
   model_reads <- .wb_operation_pack_v3_prepare_model_reads(bundle,
     operation, inputs, input_records, params, stage_root)
   input_records <- model_reads$input_records
+  self_model_reads <- .wb_operation_pack_v3_prepare_self_linked_model_reads(
+    bundle, operation, inputs, input_records, stage_root)
+  input_records <- self_model_reads$input_records
   for (i in seq_along(base$inputs)) {
     input_name <- as.character(base$inputs[[i]]$name)[1]
     base$inputs[[i]]$descriptor <- input_records[[input_name]]
@@ -816,6 +819,12 @@
     typed_grants = typed_slice_grants)
   parameter_axis_grants <- stats::setNames(parameter_axis_grants,
     vapply(parameter_axis_grants, `[[`, character(1), "name"))
+  artifact_collections <- .wb_operation_pack_v3_prepare_artifact_collections(
+    bundle, operation, params, stage_root)
+  named_axes <- .wb_operation_pack_v3_prepare_named_axis_collections(bundle,
+    operation, inputs, input_records, params, stage_root)
+  optional_display <- .wb_operation_pack_v3_prepare_optional_display_groups(
+    bundle, operation, params, stage_root, artifact_collections)
   publication_policies <- .wb_operation_pack_v3_publication_map(operation)
   for (i in seq_along(base$outputs)) {
     name <- as.character(base$outputs[[i]]$name)[1]
@@ -917,11 +926,49 @@
         engine = as.character(outputs[[name]]$contained_model_policy$engine)[1],
         contained = TRUE, no_symlinks = TRUE)
     }
+    sibling_policy <- outputs[[name]]$
+      contained_model_sibling_closure_policy %||% NULL
+    if (!is.null(sibling_policy)) {
+      source_name <- as.character(sibling_policy$source_space_input)[1]
+      descriptor$expected_model_linkage <- list(mode = "input",
+        reference_name = source_name,
+        reference_identity = .wb_operation_pack_v3_unscoped_identity(
+          input_records[[source_name]]$descriptor_identity))
+      descriptor$semantic_constraints <- list(
+        engine = as.character(sibling_policy$engine)[1],
+        contained = TRUE, no_symlinks = TRUE)
+    }
     if (!is.null(outputs[[name]]$fragment_policy)) {
       descriptor$matrix_fragment_grant <-
         .wb_operation_pack_v3_matrix_fragment_grant(bundle, outputs[[name]],
           inputs, input_records, typed_slice_grants)
     }
+    descriptor$grant_identity <- NULL
+    descriptor$grant_identity <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.output_grant.v3",
+      "descriptor excluding grant_identity", descriptor)
+    base$outputs[[i]]$descriptor <- descriptor
+  }
+
+  # Sibling-bound model grants are constructed only after every ordinary
+  # output grant exists. This gives the closure a deterministic, acyclic base
+  # grant for the model and ordered sibling grant identities.
+  output_records <- stats::setNames(base$outputs,
+    vapply(base$outputs, `[[`, character(1), "name"))
+  for (i in seq_along(base$outputs)) {
+    name <- as.character(base$outputs[[i]]$name)[1]
+    output <- outputs[[name]]
+    if (is.null(output$contained_model_sibling_closure_policy)) next
+    descriptor <- base$outputs[[i]]$descriptor
+    sibling_grant <- .wb_operation_pack_v3_model_sibling_write_grant(bundle,
+      output, operation, inputs, input_records, params, output_records)
+    descriptor$contained_model_sibling_write_grant <- sibling_grant
+    descriptor$expected_model_linkage <- list(mode = "input",
+      reference_name = sibling_grant$source_space$input_name,
+      reference_identity = sibling_grant$source_space$
+        input_descriptor_identity)
+    descriptor$semantic_constraints <- list(engine = sibling_grant$engine,
+      contained = TRUE, no_symlinks = TRUE)
     descriptor$grant_identity <- NULL
     descriptor$grant_identity <- .wb_operation_pack_v2_identity_scoped(
       "scworkbench.operation_pack.output_grant.v3",
@@ -944,6 +991,8 @@
     vapply(typed_slice_grants, `[[`, character(1), "input_name"),
     vapply(typed_space_grants, `[[`, character(1), "input_name"),
     vapply(model_reads$grants, `[[`, character(1), "input_name")))
+  private_input_names <- unique(c(private_input_names,
+    vapply(self_model_reads$grants, `[[`, character(1), "input_name")))
   capability$reader_grants <- unname(c(
     lapply(Filter(function(x) !x$name %in% private_input_names,
       base$inputs), function(x) list(input_name = x$name,
@@ -957,6 +1006,23 @@
       descriptor_identity = x$descriptor_identity)),
     lapply(model_reads$grants, function(x) list(
       model_payload_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
+    lapply(self_model_reads$grants, function(x) list(
+      self_linked_model_payload_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
+    lapply(artifact_collections$grants, function(x) list(
+      artifact_collection_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
+    lapply(named_axes$grants, function(x) list(
+      named_cell_axis_collection_name = x$name, reader =
+        "read_named_cell_axis", grant_identity = x$grant_identity)),
+    lapply(optional_display$grants, function(x) list(
+      optional_display_axis_group_name = x$name,
+      reader = "read_optional_display_space",
+      grant_identity = x$grant_identity)),
+    lapply(optional_display$grants, function(x) list(
+      optional_endpoint_axis_group_name = x$name,
+      reader = "read_optional_endpoint_axis",
       grant_identity = x$grant_identity)),
     lapply(typed_slice_grants, function(x) list(
       typed_slice_name = x$name, reader = x$reader,
@@ -981,6 +1047,22 @@
   if (length(model_reads$grants))
     capability$model_payload_grant_identities <- unname(lapply(
       model_reads$grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(self_model_reads$grants))
+    capability$self_linked_model_payload_grant_identities <- unname(lapply(
+      self_model_reads$grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(artifact_collections$grants))
+    capability$artifact_collection_grant_identities <- unname(lapply(
+      artifact_collections$grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(named_axes$grants))
+    capability$named_cell_axis_collection_grant_identities <- unname(lapply(
+      named_axes$grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(optional_display$grants))
+    capability$optional_display_axis_group_grant_identities <- unname(lapply(
+      optional_display$grants, function(x)
         .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
   capability$capability_identity <- NULL
   capability$capability_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -1009,6 +1091,14 @@
   if (length(provenance$records)) base$provenance_reads <- provenance$records
   if (length(model_reads$grants))
     base$model_payload_grants <- unname(model_reads$grants)
+  if (length(self_model_reads$grants))
+    base$self_linked_model_payload_grants <- unname(self_model_reads$grants)
+  if (length(artifact_collections$grants))
+    base$artifact_collection_grants <- unname(artifact_collections$grants)
+  if (length(named_axes$grants))
+    base$named_cell_axis_collection_grants <- unname(named_axes$grants)
+  if (length(optional_display$grants))
+    base$optional_display_axis_group_grants <- unname(optional_display$grants)
   base$request_identity <- NULL
   base$request_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_request.v3",
@@ -1022,6 +1112,18 @@
     v3_registry$values)
   attr(base, "operation_pack_v3_provenance_read_values") <- provenance$values
   attr(base, "operation_pack_v3_model_read_values") <- model_reads$values
+  attr(base, "operation_pack_v3_self_linked_model_read_values") <-
+    self_model_reads$values
+  attr(base, "operation_pack_v3_artifact_collection_values") <-
+    artifact_collections$values
+  attr(base, "operation_pack_v3_artifact_collection_sources") <-
+    artifact_collections$sources
+  attr(base, "operation_pack_v3_named_axis_values") <- named_axes$values
+  attr(base, "operation_pack_v3_named_axis_sources") <- named_axes$sources
+  attr(base, "operation_pack_v3_optional_display_values") <-
+    optional_display$values
+  attr(base, "operation_pack_v3_optional_display_sources") <-
+    optional_display$sources
   attr(base, "operation_pack_stage_root") <- stage_root
   attr(base, "operation_pack_v3_typed_slice_values") <-
     stats::setNames(lapply(typed_slice_grants, function(grant) list(
@@ -1076,6 +1178,14 @@
       .wb_operation_pack_v3_assert_self_identity(
         descriptor$contained_model_write_grant, "write_grant_identity",
         "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    if (!is.null(descriptor$contained_model_sibling_write_grant)) {
+      .wb_operation_pack_v3_assert_self_identity(
+        descriptor$contained_model_sibling_write_grant$model_source_linkage,
+        "linkage_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+      .wb_operation_pack_v3_assert_self_identity(
+        descriptor$contained_model_sibling_write_grant,
+        "write_grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    }
     .wb_operation_pack_v3_assert_self_identity(descriptor, "grant_identity",
       "PYBENCH_CAPABILITY_MISMATCH", "staging")
   }
@@ -1142,6 +1252,23 @@
     .wb_operation_pack_v3_validate_model_read(
       attr(request, "operation_pack_stage_root"), grant)
   }
+  for (grant in request$self_linked_model_payload_grants %||% list()) {
+    .wb_operation_pack_v3_assert_self_identity(grant$model_source_linkage,
+      "linkage_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant,
+      "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    .wb_operation_pack_v3_assert_self_identity(grant$tree_manifest,
+      "manifest_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH", "staging")
+    .wb_operation_pack_v3_validate_model_read(
+      attr(request, "operation_pack_stage_root"), grant)
+  }
+  for (grant in c(request$artifact_collection_grants %||% list(),
+      request$named_cell_axis_collection_grants %||% list(),
+      request$optional_display_axis_group_grants %||% list()))
+    .wb_operation_pack_v3_assert_self_identity(grant, "grant_identity",
+      "PYBENCH_CAPABILITY_MISMATCH", "staging")
+  .wb_operation_pack_v3_phase5_staged_payloads_assert(request,
+    phase = "staging")
   .wb_operation_pack_v3_assert_self_identity(request$execution_capability,
     "capability_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
   .wb_operation_pack_v3_assert_self_identity(request, "request_identity",
@@ -1168,6 +1295,9 @@
       "input_name"),
     vapply(request$model_payload_grants %||% list(), `[[`, character(1),
       "input_name")))
+  private_input_names <- unique(c(private_input_names, vapply(
+    request$self_linked_model_payload_grants %||% list(), `[[`, character(1),
+      "input_name")))
   expected_readers <- c(
     lapply(Filter(function(x) !x$name %in% private_input_names,
       request$inputs), function(x) list(input_name = x$name,
@@ -1182,6 +1312,23 @@
     lapply(request$model_payload_grants %||% list(), function(x) list(
       model_payload_name = x$name, reader = x$reader,
       grant_identity = x$grant_identity)),
+    lapply(request$self_linked_model_payload_grants %||% list(), function(x)
+      list(self_linked_model_payload_name = x$name, reader = x$reader,
+        grant_identity = x$grant_identity)),
+    lapply(request$artifact_collection_grants %||% list(), function(x)
+      list(artifact_collection_name = x$name, reader = x$reader,
+        grant_identity = x$grant_identity)),
+    lapply(request$named_cell_axis_collection_grants %||% list(), function(x)
+      list(named_cell_axis_collection_name = x$name,
+        reader = "read_named_cell_axis", grant_identity = x$grant_identity)),
+    lapply(request$optional_display_axis_group_grants %||% list(), function(x)
+      list(optional_display_axis_group_name = x$name,
+        reader = "read_optional_display_space",
+        grant_identity = x$grant_identity)),
+    lapply(request$optional_display_axis_group_grants %||% list(), function(x)
+      list(optional_endpoint_axis_group_name = x$name,
+        reader = "read_optional_endpoint_axis",
+        grant_identity = x$grant_identity)),
     lapply(request$typed_slice_grants %||% list(), function(x) list(
       typed_slice_name = x$name, reader = x$reader,
       grant_identity = x$grant_identity)),
@@ -1201,6 +1348,16 @@
       x$descriptor_identity))
   expected_models <- lapply(request$model_payload_grants %||% list(),
     function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
+  expected_self_models <- lapply(request$self_linked_model_payload_grants %||%
+    list(), function(x) .wb_operation_pack_v3_unscoped_identity(
+      x$grant_identity))
+  expected_artifacts <- lapply(request$artifact_collection_grants %||% list(),
+    function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
+  expected_axes <- lapply(request$named_cell_axis_collection_grants %||% list(),
+    function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
+  expected_displays <- lapply(request$optional_display_axis_group_grants %||%
+    list(), function(x) .wb_operation_pack_v3_unscoped_identity(
+      x$grant_identity))
   if (!identical(request$execution_capability$typed_slice_grant_identities %||%
         list(), expected_slices) ||
       !identical(request$execution_capability$typed_space_grant_identities %||%
@@ -1208,7 +1365,19 @@
       !identical(request$execution_capability$provenance_read_identities %||%
         list(), expected_provenance) ||
       !identical(request$execution_capability$model_payload_grant_identities %||%
-        list(), expected_models))
+        list(), expected_models) ||
+      !identical(request$execution_capability$
+        self_linked_model_payload_grant_identities %||% list(),
+        expected_self_models) ||
+      !identical(request$execution_capability$
+        artifact_collection_grant_identities %||% list(),
+        expected_artifacts) ||
+      !identical(request$execution_capability$
+        named_cell_axis_collection_grant_identities %||% list(),
+        expected_axes) ||
+      !identical(request$execution_capability$
+        optional_display_axis_group_grant_identities %||% list(),
+        expected_displays))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "V3 capability typed-slice or provenance closure differs from request.",
       "staging")
@@ -1283,7 +1452,11 @@
                                            provenance_reads = list(),
                                            typed_slice_usage = list(),
                                            typed_space_usage = list(),
-                                           model_payload_reads = list()) {
+                                           model_payload_reads = list(),
+                                           self_linked_model_payload_reads = list(),
+                                           artifact_collection_usage = list(),
+                                           named_cell_axis_collection_usage = list(),
+                                           optional_display_axis_group_usage = list()) {
   hook <- getOption("scworkbench.operation_pack_v3_output_test_hook", NULL)
   if (is.function(hook)) {
     replacement <- hook(writes = writes, request = request,
@@ -1306,6 +1479,10 @@
   base_request$typed_slice_grants <- NULL
   base_request$typed_space_grants <- NULL
   base_request$provenance_reads <- NULL
+  base_request$self_linked_model_payload_grants <- NULL
+  base_request$artifact_collection_grants <- NULL
+  base_request$named_cell_axis_collection_grants <- NULL
+  base_request$optional_display_axis_group_grants <- NULL
   for (i in seq_along(base_request$outputs)) {
     base_request$outputs[[i]]$descriptor$cardinality_grant <- NULL
     base_request$outputs[[i]]$descriptor$sparse_membership_grant <- NULL
@@ -1402,12 +1579,18 @@
     }
     model_tree <- writes[[name]]$tree_manifest %||% NULL
     if (!is.null(model_tree)) {
-      write_grant <- grants[[name]]$descriptor$contained_model_write_grant
+      write_grant <- grants[[name]]$descriptor$contained_model_write_grant %||%
+        grants[[name]]$descriptor$contained_model_sibling_write_grant
+      sibling_closure <- identical(as.character(write_grant$schema)[1],
+        "scworkbench.operation_pack.contained_model_sibling_write_grant.v1")
+      linkage <- if (sibling_closure)
+        writes[[name]]$value$model_source_linkage else
+          writes[[name]]$value$model_linkage
       descriptor$content_identity <- .wb_operation_pack_v2_identity_plain(
         "scworkbench.model_ref.content.v1", list(
           engine = model_tree$engine, model_type = model_tree$model_type,
           linkage_identity = .wb_operation_pack_v3_unscoped_identity(
-            writes[[name]]$value$model_linkage$linkage_identity),
+            linkage$linkage_identity),
           tree_manifest_identity = .wb_operation_pack_v3_unscoped_identity(
             model_tree$manifest_identity)))
       descriptor$payload_manifest_identity <-
@@ -1416,31 +1599,28 @@
         expected_model_linkage
       descriptor$model_linkage_identity <-
         .wb_operation_pack_v3_unscoped_identity(
-          writes[[name]]$value$model_linkage$linkage_identity)
+          linkage$linkage_identity)
       descriptor$contained_payload <- list(contained = TRUE,
         no_symlinks = TRUE,
         payload_tree_identity = .wb_operation_pack_v2_identity_plain(
           "scworkbench.operation_pack.contained_payload.v2",
           .wb_operation_pack_v3_unscoped_identity(
             model_tree$manifest_identity)))
-      paired_name <- as.character(operation$outputs[[match(name, vapply(
-        operation$outputs, `[[`, character(1), "name"))]]$
-          contained_model_policy$paired_space_output)[1]
-      descriptor$contained_model_tree <- list(engine = model_tree$engine,
-        model_type = model_tree$model_type,
-        primary_path = model_tree$primary_path,
-        file_count = model_tree$file_count,
-        total_size = model_tree$total_size,
-        tree_manifest_identity = .wb_operation_pack_v3_unscoped_identity(
-          model_tree$manifest_identity),
-        payload_manifest_identity = descriptor$payload_manifest_identity,
-        source_space_binding_identity = .wb_operation_pack_v2_identity_plain(
-          "scworkbench.operation_pack.model_source_space.v1",
-          write_grant$source_space),
-        paired_space_observed_descriptor_identity = list(
-          scheme = "scworkbench.operation_pack.observed_output.v3",
-          sha256 = paste(rep("0", 64L), collapse = "")),
-        status = "validated_not_published")
+      if (!sibling_closure) descriptor$contained_model_tree <- list(
+          engine = model_tree$engine, model_type = model_tree$model_type,
+          primary_path = model_tree$primary_path,
+          file_count = model_tree$file_count,
+          total_size = model_tree$total_size,
+          tree_manifest_identity = .wb_operation_pack_v3_unscoped_identity(
+            model_tree$manifest_identity),
+          payload_manifest_identity = descriptor$payload_manifest_identity,
+          source_space_binding_identity = .wb_operation_pack_v2_identity_plain(
+            "scworkbench.operation_pack.model_source_space.v1",
+            write_grant$source_space),
+          paired_space_observed_descriptor_identity = list(
+            scheme = "scworkbench.operation_pack.observed_output.v3",
+            sha256 = paste(rep("0", 64L), collapse = "")),
+          status = "validated_not_published")
     }
     descriptor$observed_descriptor_identity <- NULL
     observed_scheme <- if (identical(as.character(descriptor$category)[1],
@@ -1491,11 +1671,61 @@
   # avoiding a sibling grant or observation hash cycle.
   observed_names <- vapply(observed, `[[`, character(1), "name")
   for (i in seq_along(observed)) {
-    tree <- observed[[i]]$descriptor$contained_model_tree %||% NULL
-    if (is.null(tree)) next
     output_name <- observed_names[[i]]
     declaration <- operation$outputs[[match(output_name, vapply(
       operation$outputs, `[[`, character(1), "name"))]]
+    sibling_policy <- declaration$contained_model_sibling_closure_policy %||%
+      NULL
+    if (!is.null(sibling_policy)) {
+      grant <- grants[[output_name]]$descriptor$
+        contained_model_sibling_write_grant
+      model_tree <- writes[[output_name]]$tree_manifest
+      sibling_names <- as.character(unlist(
+        sibling_policy$required_sibling_terminals, use.names = FALSE))
+      sibling_observed <- lapply(sibling_names, function(name)
+        observed[[match(name, observed_names)]])
+      if (any(vapply(sibling_observed, is.null, logical(1))))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Sibling-bound model closure is incomplete.", "audit")
+      for (j in seq_along(sibling_observed)) {
+        expected_axis <- grant$required_sibling_terminals[[j]]$
+          expected_cell_order_identity_if_cell_indexed
+        actual_axis <- sibling_observed[[j]]$descriptor$
+          cell_order_identity %||% NULL
+        if (!is.null(expected_axis) && !identical(expected_axis, actual_axis))
+          .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+            "Sibling-bound output cell axis differs from the fitted axis.",
+            "audit")
+      }
+      tree <- list(schema =
+          "scworkbench.operation_pack.contained_model_sibling_tree_observation.v1",
+        write_grant_identity = .wb_operation_pack_v3_unscoped_identity(
+          grant$write_grant_identity), tree_manifest = model_tree,
+        tree_manifest_identity = .wb_operation_pack_v3_unscoped_identity(
+          model_tree$manifest_identity),
+        payload_manifest_identity =
+          .wb_operation_pack_v3_model_payload_identity(model_tree),
+        model_source_linkage_identity =
+          .wb_operation_pack_v3_unscoped_identity(
+            grant$model_source_linkage$linkage_identity),
+        ordered_sibling_observed_descriptor_identities = lapply(
+          sibling_observed, function(x) .wb_operation_pack_v3_unscoped_identity(
+            x$descriptor$observed_descriptor_identity)),
+        model_sibling_closure_identity = grant$model_sibling_closure_identity,
+        loadability_status = "contained_tree_authenticated")
+      tree$observation_identity <- .wb_operation_pack_v2_identity_scoped(
+        tree$schema, "observation excluding observation_identity", tree)
+      observed[[i]]$descriptor$contained_model_sibling_tree <- tree
+      observed[[i]]$descriptor$observed_descriptor_identity <- NULL
+      observed[[i]]$descriptor$observed_descriptor_identity <-
+        .wb_operation_pack_v2_identity_scoped(
+          "scworkbench.operation_pack.observed_output.v3",
+          "descriptor excluding observed_descriptor_identity",
+          observed[[i]]$descriptor)
+      next
+    }
+    tree <- observed[[i]]$descriptor$contained_model_tree %||% NULL
+    if (is.null(tree)) next
     paired_name <- as.character(declaration$contained_model_policy$
       paired_space_output)[1]
     paired <- observed[[match(paired_name, observed_names)]]$descriptor
@@ -1531,6 +1761,14 @@
   if (length(typed_space_usage)) receipt$typed_space_usage <- typed_space_usage
   if (length(model_payload_reads))
     receipt$model_payload_reads <- model_payload_reads
+  if (length(self_linked_model_payload_reads))
+    receipt$self_linked_model_payload_reads <- self_linked_model_payload_reads
+  if (length(artifact_collection_usage))
+    receipt$artifact_collection_usage <- artifact_collection_usage
+  if (length(named_cell_axis_collection_usage))
+    receipt$named_cell_axis_collection_usage <- named_cell_axis_collection_usage
+  if (length(optional_display_axis_group_usage))
+    receipt$optional_display_axis_group_usage <- optional_display_axis_group_usage
   publication_observations <- lapply(Filter(function(x)
     !is.null(x$descriptor$publication_grant), request$outputs), function(grant) {
       output <- observed[[match(grant$name, vapply(observed, `[[`,
@@ -1678,6 +1916,35 @@
         item$descriptor$contained_model_tree, "observation_identity",
         "PYBENCH_RECEIPT_MISMATCH", "receipt")
     }
+    if (!is.null(grant$contained_model_sibling_write_grant)) {
+      write_grant <- grant$contained_model_sibling_write_grant
+      tree <- item$descriptor$contained_model_sibling_tree
+      .wb_operation_pack_v3_assert_self_identity(write_grant,
+        "write_grant_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+      .wb_operation_pack_v3_assert_self_identity(tree,
+        "observation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+      expected <- lapply(write_grant$required_sibling_terminals,
+        function(x) {
+          sibling <- observed[[match(x$name, vapply(observed, `[[`,
+            character(1), "name"))]]
+          .wb_operation_pack_v3_unscoped_identity(
+            sibling$descriptor$observed_descriptor_identity)
+        })
+      if (!identical(tree$write_grant_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            write_grant$write_grant_identity)) ||
+          !identical(tree$model_source_linkage_identity,
+            .wb_operation_pack_v3_unscoped_identity(
+              write_grant$model_source_linkage$linkage_identity)) ||
+          !identical(tree$model_sibling_closure_identity,
+            write_grant$model_sibling_closure_identity) ||
+          !identical(tree$ordered_sibling_observed_descriptor_identities,
+            expected) || !identical(tree$loadability_status,
+              "contained_tree_authenticated"))
+        .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+          "Sibling-bound model tree observation differs from its exact closure.",
+          "receipt")
+    }
   }
   publication_grants <- Filter(function(x)
     !is.null(x$descriptor$publication_grant), request$outputs)
@@ -1764,6 +2031,7 @@
             "Contained-model read observation differs from its grant.",
             "receipt")
   }
+  .wb_operation_pack_v3_phase5_receipt_audit(receipt, request)
   .wb_operation_pack_v3_assert_self_identity(receipt$mutation_manifest,
     "mutation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
   .wb_operation_pack_v3_assert_self_identity(receipt$runtime_attestation,
@@ -2481,7 +2749,8 @@
   }), vapply(request$typed_slice_grants %||% list(), `[[`, character(1),
     "name"))
   base$readers <- c(base$readers, typed_slice_readers)
-  .wb_operation_pack_v3_add_typed_space_readers(base, request)
+  base <- .wb_operation_pack_v3_add_typed_space_readers(base, request)
+  .wb_operation_pack_v3_add_phase5_readers(base, request)
 }
 
 .wb_operation_pack_v3_typed_slice_usage <- function(adapter, request) {

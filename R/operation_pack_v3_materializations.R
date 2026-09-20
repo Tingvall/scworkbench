@@ -698,7 +698,7 @@
   # session promotion; the pack never receives this bundle-relative path.
   for (name in names(result$outputs)) {
     write_grant <- grants[[name]]$descriptor$contained_model_write_grant %||%
-      NULL
+      grants[[name]]$descriptor$contained_model_sibling_write_grant %||% NULL
     if (is.null(write_grant)) next
     root_rel <- .wb_path_relative_to_root(result$path, bundle$dir)
     if (is.null(root_rel)) .wb_operation_pack_v3_error(
@@ -713,9 +713,11 @@
       code = "PYBENCH_PUBLICATION_FAILED", phase = "publication")
     observed <- result$receipt$outputs[[match(name, vapply(
       result$receipt$outputs, `[[`, character(1), "name"))]]$descriptor
+    tree_observation <- observed$contained_model_tree %||%
+      observed$contained_model_sibling_tree
     if (!identical(.wb_operation_pack_v3_unscoped_identity(
-        tree$manifest_identity), observed$contained_model_tree$
-          tree_manifest_identity) || !identical(
+        tree$manifest_identity), tree_observation$tree_manifest_identity) ||
+        !identical(
             .wb_operation_pack_v3_model_payload_identity(tree),
             observed$payload_manifest_identity))
       .wb_operation_pack_v3_error("PYBENCH_PUBLICATION_FAILED",
@@ -728,6 +730,18 @@
     result$outputs[[name]]$model_tree_manifest <- tree
     result$outputs[[name]]$model_payload_manifest_identity <-
       observed$payload_manifest_identity
+    sibling_grant <- grants[[name]]$descriptor$
+      contained_model_sibling_write_grant %||% NULL
+    if (!is.null(sibling_grant)) {
+      source_space_id <- as.character(
+        sibling_grant$model_source_linkage$source_space_id)[1]
+      result$outputs[[name]]$model_source_linkage <-
+        sibling_grant$model_source_linkage
+      if (!nzchar(as.character(result$outputs[[name]]$model_space_id %||%
+          "")[1])) result$outputs[[name]]$model_space_id <- source_space_id
+      if (!nzchar(as.character(result$outputs[[name]]$in_space_id %||%
+          "")[1])) result$outputs[[name]]$in_space_id <- source_space_id
+    }
   }
   for (name in names(result$outputs)) {
     publication <- grants[[name]]$descriptor$publication_grant %||% NULL

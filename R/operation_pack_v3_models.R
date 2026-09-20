@@ -279,6 +279,39 @@
   value
 }
 
+.wb_operation_pack_v3_model_source_linkage_v2 <- function(engine, model_type,
+    source_space_id, source_space_content_identity,
+    fitted_cell_order_identity, dimensions, source_snapshot_id) {
+  value <- list(engine = as.character(engine)[1],
+    model_type = as.character(model_type)[1],
+    source_space_id = as.character(source_space_id)[1],
+    source_space_content_identity = source_space_content_identity,
+    fitted_cell_order_identity = fitted_cell_order_identity,
+    selected_dimension_count = as.integer(dimensions$count),
+    selected_dimension_order_identity = dimensions$identity,
+    source_snapshot_id = as.character(source_snapshot_id)[1])
+  value$linkage_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.model_source_linkage.v2",
+    "linkage excluding linkage_identity", value)
+  value
+}
+
+.wb_operation_pack_v3_assert_model_source_linkage_v2 <- function(value,
+    code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "resolution") {
+  required <- c("engine", "model_type", "source_space_id",
+    "source_space_content_identity", "fitted_cell_order_identity",
+    "selected_dimension_count", "selected_dimension_order_identity",
+    "source_snapshot_id", "linkage_identity")
+  if (!is.list(value) || !setequal(names(value), required) ||
+      !nzchar(as.character(value$source_space_id %||% "")[1]) ||
+      !nzchar(as.character(value$source_snapshot_id %||% "")[1]))
+    .wb_operation_pack_v3_error(code,
+      "Contained model has no complete durable source linkage v2.", phase)
+  .wb_operation_pack_v3_assert_self_identity(value, "linkage_identity",
+    code, phase)
+  invisible(TRUE)
+}
+
 .wb_operation_pack_v3_prepare_model_reads <- function(bundle, operation,
     inputs, input_records, params, stage_root) {
   grants <- list(); values <- list(); records <- input_records
@@ -372,6 +405,135 @@
   list(grants = grants, values = values, input_records = records)
 }
 
+.wb_operation_pack_v3_prepare_self_linked_model_reads <- function(bundle,
+    operation, inputs, input_records, stage_root) {
+  grants <- list(); values <- list(); records <- input_records
+  for (declaration in operation$self_linked_contained_model_reads %||% list()) {
+    name <- as.character(declaration$name)[1]
+    input_name <- as.character(declaration$input)[1]
+    model <- inputs[[input_name]]
+    engine <- as.character(model$engine %||% "")[1]
+    model_type <- as.character(model$model_type %||% engine)[1]
+    pairs <- vapply(declaration$allowed_models, function(x) paste0(
+      as.character(x$engine)[1], "\034", as.character(x$model_type)[1]),
+      character(1))
+    selected <- paste0(engine, "\034", model_type)
+    if (sum(pairs == selected) != 1L) .wb_operation_pack_v3_error(
+      "PYBENCH_CAPABILITY_MISMATCH",
+      "Self-linked model engine/type is outside its exact allowlist.",
+      "resolution")
+    linkage <- model$model_source_linkage %||% model$model_linkage %||% list()
+    .wb_operation_pack_v3_assert_model_source_linkage_v2(linkage)
+    if (!identical(linkage$engine, engine) ||
+        !identical(linkage$model_type, model_type))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Self-linked model engine/type differs from its durable linkage.",
+        "resolution")
+    artifact_id <- as.character(model$artifact_id %||% "")[1]
+    if (nzchar(artifact_id)) {
+      stored <- DBI::dbGetQuery(bundle$con, paste0(
+        "SELECT linkage_json FROM artifact_model_ref WHERE artifact_id = ?;"),
+        params = list(artifact_id))
+      stored_linkage <- if (nrow(stored) == 1L && !is.na(
+          stored$linkage_json[[1L]]) && nzchar(stored$linkage_json[[1L]]))
+        jsonlite::fromJSON(stored$linkage_json[[1L]],
+          simplifyVector = FALSE) else NULL
+      if (is.null(stored_linkage) || !identical(
+          .wb_operation_pack_canonical_json(stored_linkage),
+          .wb_operation_pack_canonical_json(linkage)))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Self-linked model linkage differs from its durable artifact row.",
+          "resolution")
+    }
+    source <- wb_prim_space(linkage$source_space_id)
+    source$values <- wb_space(bundle, linkage$source_space_id)
+    source$cell_id <- rownames(source$values)
+    source$dimensions <- as.integer(dim(source$values))
+    source$storage_profile <- "space_dense_v1"
+    durable_content <- .wb_operation_pack_v3_phase5_primitive_identity(
+      bundle, source)
+    observed_cells <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(source$cell_id)))
+    if (!identical(as.character(
+        linkage$source_space_content_identity$scheme)[1],
+          "scworkbench.space.content.v1") ||
+        !identical(observed_cells, linkage$fitted_cell_order_identity) ||
+        !identical(as.character(linkage$source_snapshot_id)[1],
+          as.character(durable_content$sha256)[1]))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Self-linked model source space or fitted cell axis changed.",
+        "resolution")
+    limits <- list(maximum_file_count = as.integer(
+      declaration$maximum_file_count), maximum_total_bytes = as.integer(
+        declaration$maximum_total_bytes))
+    source_tree <- .wb_operation_pack_v3_model_tree_source(bundle, model,
+      engine, model_type)
+    if (source_tree$manifest$file_count > limits$maximum_file_count ||
+        source_tree$manifest$total_size > limits$maximum_total_bytes)
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Self-linked model tree exceeds its declared limits.", "resolution")
+    root_rel <- paste0("model_payload_reads/", name, "/tree")
+    root <- file.path(stage_root, root_rel)
+    .wb_operation_pack_v3_copy_model_tree(source_tree$root,
+      source_tree$manifest, root)
+    tree <- .wb_operation_pack_v3_model_tree_manifest(root, engine,
+      model_type, source_tree$manifest$primary_path,
+      limits$maximum_file_count, limits$maximum_total_bytes)
+    payload_identity <- .wb_operation_pack_v3_model_payload_identity(tree)
+    if (!identical(tree, source_tree$manifest) || !identical(
+        payload_identity, source_tree$payload_manifest_identity))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Self-linked model private copy differs from its durable tree.",
+        "staging")
+    descriptor <- records[[input_name]]
+    descriptor$content_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.model_ref.content.v1", list(engine = engine,
+        model_type = model_type, linkage_identity = linkage$linkage_identity,
+        tree_manifest_identity = .wb_operation_pack_v3_unscoped_identity(
+          tree$manifest_identity)))
+    descriptor$model_linkage_identity <- .wb_operation_pack_v3_unscoped_identity(
+      linkage$linkage_identity)
+    descriptor$contained_payload_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.operation_pack.contained_payload.v2",
+      .wb_operation_pack_v3_unscoped_identity(tree$manifest_identity))
+    descriptor$payload_manifest_identity <- payload_identity
+    descriptor$descriptor_identity <- NULL
+    descriptor$descriptor_identity <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.input_descriptor.v2",
+      "descriptor excluding descriptor_identity", descriptor)
+    records[[input_name]] <- descriptor
+    declaration_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.operation_pack.self_linked_contained_model_read.v1",
+      declaration)
+    grant <- list(schema =
+        "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+      name = name, input_name = input_name,
+      reader = "read_self_linked_contained_model_payload",
+      declaration_identity = declaration_identity,
+      selected_model = list(engine = engine, model_type = model_type),
+      input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
+        descriptor$descriptor_identity),
+      model_content_identity = descriptor$content_identity,
+      model_source_linkage = linkage,
+      model_source_linkage_identity = .wb_operation_pack_v3_unscoped_identity(
+        linkage$linkage_identity),
+      contained_payload_identity = descriptor$contained_payload_identity,
+      payload_manifest_identity = payload_identity, tree_manifest = tree,
+      limits = limits, relative_root = root_rel,
+      access = "verified_private_copy_read_only_v1",
+      call_discipline = "exactly_once")
+    grant$grant_identity <- .wb_operation_pack_v2_identity_scoped(grant$schema,
+      "grant excluding grant_identity", grant)
+    grants[[name]] <- grant
+    values[[name]] <- list(root = root, manifest = tree)
+  }
+  list(grants = grants, values = values, input_records = records)
+}
+
+.wb_operation_pack_v3_all_model_read_grants <- function(request) c(
+  request$model_payload_grants %||% list(),
+  request$self_linked_model_payload_grants %||% list())
+
 .wb_operation_pack_v3_model_write_grant <- function(output, operation,
     inputs, input_records, params, base_outputs) {
   policy <- output$contained_model_policy
@@ -409,6 +571,86 @@
   grant
 }
 
+.wb_operation_pack_v3_model_sibling_write_grant <- function(bundle, output,
+    operation, inputs, input_records, params, output_records) {
+  policy <- output$contained_model_sibling_closure_policy
+  if (is.null(policy)) return(NULL)
+  source_name <- as.character(policy$source_space_input)[1]
+  source <- inputs[[source_name]]
+  parameter <- policy$dimensions_parameter
+  dims <- if (is.null(parameter)) {
+    labels <- colnames(source$values)
+    if (is.null(labels)) labels <- paste0("dim", seq_len(ncol(source$values)))
+    list(indices = seq_len(ncol(source$values)), labels = labels,
+      count = ncol(source$values), identity =
+        .wb_operation_pack_v2_identity_plain(
+          "scworkbench.dimension_order.v1", unname(as.list(labels))))
+  } else .wb_operation_pack_v3_selected_dimensions(source, params, parameter)
+  engine <- as.character(policy$engine)[1]
+  model_type <- as.character(policy$model_type)[1]
+  source_record <- input_records[[source_name]]
+  # The language-neutral G2 protocol binds the source content field to the
+  # authenticated input descriptor.  Retain the independently verified
+  # durable payload hash as the source snapshot so G1 can re-authenticate both
+  # the ABI projection and its backing bytes after reopen.
+  durable_source_identity <- .wb_operation_pack_v3_phase5_primitive_identity(
+    bundle, source)
+  source_content_identity <- source_record$content_identity
+  linkage <- .wb_operation_pack_v3_model_source_linkage_v2(engine,
+    model_type, as.character(source$space_id)[1],
+    source_content_identity, source_record$cell_order_identity, dims,
+    durable_source_identity$sha256)
+  sibling_names <- as.character(unlist(policy$required_sibling_terminals,
+    use.names = FALSE))
+  declarations <- stats::setNames(operation$outputs,
+    vapply(operation$outputs, `[[`, character(1), "name"))
+  siblings <- lapply(sibling_names, function(name) {
+    record <- output_records[[name]]
+    kind <- as.character(declarations[[name]]$kind)[1]
+    cell_indexed <- kind %in% c("matrix", "space", "space_2d",
+      "cell_vector", "cell_vector_family", "relation_family")
+    list(name = name, allocated_id = as.character(record$allocated_id)[1],
+      kind = kind, grant_identity =
+        .wb_operation_pack_v3_unscoped_identity(
+          record$descriptor$grant_identity),
+      replay_policy = as.character(operation$replay_equivalence[[name]])[1],
+      expected_cell_order_identity_if_cell_indexed = if (cell_indexed)
+        source_record$cell_order_identity else NULL)
+  })
+  model_name <- as.character(output$name)[1]
+  model_record <- output_records[[model_name]]
+  closure_preimage <- list(model_output = model_name,
+    model_grant_identity = .wb_operation_pack_v3_unscoped_identity(
+      model_record$descriptor$grant_identity),
+    model_source_linkage_identity = .wb_operation_pack_v3_unscoped_identity(
+      linkage$linkage_identity), promotion_group = as.character(
+        output$promotion_group)[1], siblings = lapply(siblings, function(x)
+          x[c("name", "grant_identity", "replay_policy")]))
+  closure_identity <- .wb_operation_pack_v2_identity_plain(
+    "scworkbench.operation_pack.model_sibling_closure.v1", closure_preimage)
+  grant <- list(schema =
+      "scworkbench.operation_pack.contained_model_sibling_write_grant.v1",
+    output = model_name, engine = engine, model_type = model_type,
+    primary_path = as.character(policy$primary_path)[1],
+    relative_root = paste0("outputs/", model_name, "/model_tree"),
+    source_space = list(input_name = source_name,
+      input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
+        source_record$descriptor_identity),
+      content_identity = source_record$content_identity,
+      cell_order_identity = source_record$cell_order_identity,
+      dimensions = unname(as.list(as.integer(dim(source$values)))),
+      selected_dimension_count = as.integer(dims$count),
+      selected_dimension_order_identity = dims$identity),
+    model_source_linkage = linkage,
+    required_sibling_terminals = siblings,
+    model_sibling_closure_identity = closure_identity,
+    limits = list(maximum_file_count = as.integer(policy$maximum_file_count),
+      maximum_total_bytes = as.integer(policy$maximum_total_bytes)))
+  grant$write_grant_identity <- .wb_operation_pack_v2_identity_scoped(
+    grant$schema, "grant excluding write_grant_identity", grant)
+  grant
+}
+
 .wb_operation_pack_v3_model_adapters <- function(base, request, operation,
     stage_root) {
   grants <- stats::setNames(request$outputs, vapply(request$outputs, `[[`,
@@ -417,13 +659,15 @@
     `[[`, character(1), "name"))
   state <- base$state
   state$model_payload_calls <- list()
-  model_values <- attr(request, "operation_pack_v3_model_read_values") %||%
-    list()
+  model_values <- c(attr(request, "operation_pack_v3_model_read_values") %||%
+    list(), attr(request,
+      "operation_pack_v3_self_linked_model_read_values") %||% list())
+  all_read_grants <- .wb_operation_pack_v3_all_model_read_grants(request)
   if (length(model_values)) {
-    model_input_names <- vapply(request$model_payload_grants, `[[`,
+    model_input_names <- vapply(all_read_grants, `[[`,
       character(1), "input_name")
     base$readers <- base$readers[setdiff(names(base$readers), model_input_names)]
-    readers <- stats::setNames(lapply(request$model_payload_grants,
+    readers <- stats::setNames(lapply(all_read_grants,
       function(grant) {
         name <- as.character(grant$name)[1]; force(name); force(grant)
         function(...) {
@@ -444,19 +688,23 @@
                   "execution")
             file.path(root, path)
           }
-          list(primary_path = grant$tree_manifest$primary_path,
+          result <- list(primary_path = grant$tree_manifest$primary_path,
             entries = .wb_operation_pack_v2_deep_copy(
               grant$tree_manifest$entries),
-            path = safe,
             read_bytes = function(path) readBin(safe(path), "raw",
               n = file.info(safe(path))$size))
+          if (identical(grant$reader,
+              "read_self_linked_contained_model_payload"))
+            result$runtime_private_path <- safe else result$path <- safe
+          result
         }
-      }), vapply(request$model_payload_grants, `[[`, character(1), "name"))
+      }), vapply(all_read_grants, `[[`, character(1), "name"))
     base$readers <- c(base$readers, readers)
   }
   open_model <- function(output) {
     output <- as.character(output)[1]
-    grant <- grants[[output]]$descriptor$contained_model_write_grant %||% NULL
+    grant <- grants[[output]]$descriptor$contained_model_write_grant %||%
+      grants[[output]]$descriptor$contained_model_sibling_write_grant %||% NULL
     if (is.null(grant) || !is.null(state$writes[[output]]))
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
         "No unused contained-model writer grant exists for this output.",
@@ -481,12 +729,21 @@
       manifest <- .wb_operation_pack_v3_model_tree_manifest(root,
         grant$engine, grant$model_type, grant$primary_path,
         grant$limits$maximum_file_count, grant$limits$maximum_total_bytes)
-      linkage <- .wb_operation_pack_v3_model_linkage(grant$engine,
-        grant$model_type, as.character(value$in_space_id)[1], list(
-          count = grant$source_space$selected_dimension_count,
-          identity = grant$source_space$selected_dimension_order_identity))
+      sibling <- identical(as.character(grant$schema)[1],
+        "scworkbench.operation_pack.contained_model_sibling_write_grant.v1")
+      if (sibling && nzchar(as.character(value$in_space_id %||% "")[1]) &&
+          !identical(as.character(value$in_space_id)[1],
+            as.character(grant$model_source_linkage$source_space_id)[1]))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Contained-model source-space substitution is forbidden.", "audit")
+      linkage <- if (sibling) grant$model_source_linkage else
+        .wb_operation_pack_v3_model_linkage(grant$engine,
+          grant$model_type, as.character(value$in_space_id)[1], list(
+            count = grant$source_space$selected_dimension_count,
+            identity = grant$source_space$selected_dimension_order_identity))
       value$engine <- grant$engine; value$model_type <- grant$model_type
-      value$model_linkage <- linkage
+      if (sibling) value$model_source_linkage <- linkage else
+        value$model_linkage <- linkage
       value$model_payload_entry <- grant$primary_path
       payload <- file.path(stage_root, "outputs", output, "payload.rds")
       saveRDS(value, payload, version = 3L, compress = FALSE)
@@ -502,15 +759,18 @@
     list(path = path, primary_path = grant$primary_path, finish = finish)
   }
   if (any(vapply(grants, function(x) !is.null(x$descriptor$
-      contained_model_write_grant), logical(1))))
+      contained_model_write_grant) || !is.null(x$descriptor$
+        contained_model_sibling_write_grant), logical(1))))
     base$writers$open_model_tree <- open_model
   base
 }
 
 .wb_operation_pack_v3_validate_model_read <- function(stage_root, grant) {
   root <- file.path(stage_root, grant$relative_root)
-  observed <- .wb_operation_pack_v3_model_tree_manifest(root, grant$engine,
-    grant$model_type, grant$tree_manifest$primary_path,
+  engine <- grant$engine %||% grant$selected_model$engine
+  model_type <- grant$model_type %||% grant$selected_model$model_type
+  observed <- .wb_operation_pack_v3_model_tree_manifest(root, engine,
+    model_type, grant$tree_manifest$primary_path,
     code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "audit")
   if (!identical(observed, grant$tree_manifest) ||
       !identical(.wb_operation_pack_v3_model_payload_identity(observed),
@@ -540,6 +800,34 @@
     value$observation_identity <- .wb_operation_pack_v2_identity_scoped(
       "scworkbench.operation_pack.observed_contained_model_read.v1",
       "observation excluding observation_identity", value)
+    value
+  })
+}
+
+.wb_operation_pack_v3_self_linked_model_read_observations <- function(request,
+    state) {
+  lapply(request$self_linked_model_payload_grants %||% list(), function(grant) {
+    if (!identical(as.integer(state$model_payload_calls[[grant$name]] %||%
+        0L), 1L)) .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+          "Self-linked model reader was not consumed exactly once.", "receipt")
+    .wb_operation_pack_v3_validate_model_read(
+      attr(request, "operation_pack_stage_root"), grant)
+    value <- list(schema =
+      "scworkbench.operation_pack.observed_self_linked_contained_model_read.v1",
+      name = grant$name,
+      grant_identity = grant$grant_identity,
+      input_descriptor_identity = grant$input_descriptor_identity,
+      model_source_linkage_identity = grant$model_source_linkage_identity,
+      tree_manifest_identity = .wb_operation_pack_v3_unscoped_identity(
+        grant$tree_manifest$manifest_identity),
+      payload_manifest_identity = grant$payload_manifest_identity,
+      engine = grant$selected_model$engine,
+      model_type = grant$selected_model$model_type,
+      use_count = 1L, integrity_status = "unchanged")
+    value$observation_identity <- .wb_operation_pack_v2_identity_scoped(
+      value$schema,
+      "self_linked_model_read_observation excluding observation_identity",
+      value)
     value
   })
 }

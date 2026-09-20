@@ -217,6 +217,9 @@
   meta <- value$meta %||% structure(list(), names = character())
   dimensions <- unname(as.list(.wb_operation_pack_v2_dimensions(value, kind)))
   profile <- .wb_operation_pack_v2_input_profile(kind, value)
+  dimension_id <- if (kind %in% c("space", "space_2d"))
+    unname(as.list(as.character(colnames(value$values) %||%
+      paste0("dim", seq_len(ncol(value$values)))))) else NULL
   out <- switch(kind,
     matrix = list(kind = kind, dimensions = dimensions,
       cell_id = unname(as.list(as.character(value$cell_id))),
@@ -224,11 +227,15 @@
       values = .wb_operation_pack_v2_transport_matrix(value),
       storage_profile = profile, meta = meta),
     space = list(kind = kind, dimensions = dimensions,
+      space_id = as.character(value$space_id %||% "")[1],
       cell_id = unname(as.list(as.character(value$cell_id))),
+      dimension_id = dimension_id,
       values = .wb_operation_pack_v2_transport_matrix(value),
       storage_profile = profile, meta = meta),
     space_2d = list(kind = kind, dimensions = dimensions,
+      space_id = as.character(value$space_id %||% "")[1],
       cell_id = unname(as.list(as.character(value$cell_id))),
+      dimension_id = dimension_id,
       values = .wb_operation_pack_v2_transport_matrix(value),
       storage_profile = profile, meta = meta),
     model_ref = list(kind = kind, dimensions = dimensions,

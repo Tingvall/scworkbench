@@ -1061,8 +1061,9 @@ wb_promote_analysis <- function(bundle,
   wb_migrate_artifacts(bundle)
 
   .wb_assert(prim$kind == "model_ref", "Expected kind=model_ref")
-  space_id <- prim$space_id %||% prim$model_space_id
-  .wb_assert(!is.null(space_id) && nzchar(space_id), "model_ref must include space_id/model_space_id")
+  space_id <- prim$space_id %||% prim$model_space_id %||% prim$in_space_id
+  .wb_assert(!is.null(space_id) && nzchar(space_id),
+    "model_ref must include space_id/model_space_id/in_space_id")
   engine <- as.character(prim$engine %||% "uwot")[1]
   in_space_id <- as.character(prim$in_space_id %||% "")[1]
   model_type <- as.character(prim$model_type %||% "")[1]
@@ -1180,8 +1181,10 @@ wb_promote_analysis <- function(bundle,
     in_space_id = in_space_id,
     model_type = if (nzchar(model_type)) model_type else engine,
     model_path = stored_model_path,
-    linkage_json = if (is.null(prim$model_linkage)) NA_character_ else
-      jsonlite::toJSON(prim$model_linkage, auto_unbox = TRUE, null = "null",
+    linkage_json = if (is.null(prim$model_source_linkage %||%
+        prim$model_linkage)) NA_character_ else
+      jsonlite::toJSON(prim$model_source_linkage %||% prim$model_linkage,
+        auto_unbox = TRUE, null = "null",
         digits = NA),
     model_primary_path = if (is.null(tree_manifest)) NA_character_ else
       primary_path,

@@ -163,7 +163,11 @@
     value <- .wb_operation_pack_parse_canonical_json(raw)
     expected <- as.character(item$descriptor$content_identity$sha256 %||%
       item$descriptor$family_identity$sha256 %||% "")[1]
-    if (nzchar(expected) && !identical(.wb_operation_pack_sha256(value),
+    authenticated_model_tree <-
+      item$descriptor$contained_model_tree %||%
+        item$descriptor$contained_model_sibling_tree %||% NULL
+    if (is.null(authenticated_model_tree) && nzchar(expected) &&
+        !identical(.wb_operation_pack_sha256(value),
         expected)) .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
       paste0("Python v4 output content identity differs: ", item$name),
       "audit")
@@ -187,9 +191,28 @@
       sub("^private_projection:", "typed_slice_sources/",
         paste0(x$source_reference$input_reference, "/matrix.mtx")),
       character(1))
+  model_read_files <- unlist(lapply(request$model_payload_grants %||%
+    list(), function(grant) vapply(grant$tree_manifest$entries,
+      function(entry) file.path(grant$relative_root, entry$path),
+      character(1))), use.names = FALSE)
+  self_model_read_files <- unlist(lapply(
+    request$self_linked_model_payload_grants %||% list(), function(grant)
+      vapply(grant$tree_manifest$entries, function(entry)
+        file.path(grant$relative_root, entry$path), character(1))),
+    use.names = FALSE)
   expected_inventory <- sort(c("python-runtime.json", "receipt.json",
     "request.json", "state.json", output_paths, registry_paths,
     provenance_paths, typed_slice_axes, typed_slice_sources), method = "radix")
+  expected_inventory <- sort(c(expected_inventory, model_read_files,
+    self_model_read_files), method = "radix")
+  model_roots <- paste0("outputs/", vapply(Filter(function(item)
+    !is.null(item$descriptor$contained_model_tree) ||
+      !is.null(item$descriptor$contained_model_sibling_tree), observed),
+    `[[`, character(1), "name"), "/model_tree/")
+  dynamic <- if (length(model_roots)) vapply(inventory, function(path)
+    any(startsWith(path, model_roots)), logical(1)) else
+      rep(FALSE, length(inventory))
+  inventory <- inventory[!dynamic]
   if (!identical(inventory, expected_inventory))
     .wb_operation_pack_v3_error("PYBENCH_OUT_OF_SCOPE_MUTATION",
       "Python v4 private stage contains undeclared files.", "audit",
