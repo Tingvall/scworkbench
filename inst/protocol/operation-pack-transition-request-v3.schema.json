@@ -4108,7 +4108,28 @@
                     "pattern": "^[a-z][a-z0-9_]*$"
                   },
                   "reader": {
-                    "const": "read_optional_display_axis_group"
+                    "const": "read_optional_display_space"
+                  },
+                  "grant_identity": {
+                    "$ref": "#/$defs/self_identity"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "optional_endpoint_axis_group_name",
+                  "reader",
+                  "grant_identity"
+                ],
+                "properties": {
+                  "optional_endpoint_axis_group_name": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "reader": {
+                    "const": "read_optional_endpoint_axis"
                   },
                   "grant_identity": {
                     "$ref": "#/$defs/self_identity"

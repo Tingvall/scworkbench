@@ -9,6 +9,7 @@ read <- function(name) jsonlite::read_json(file.path(protocol, name),
 write <- function(value, name) jsonlite::write_json(value,
   file.path(protocol, name), auto_unbox = TRUE, pretty = TRUE, null = "null",
   digits = NA)
+`%||%` <- function(x, y) if (is.null(x)) y else x
 ref <- function(name) list(`$ref` = paste0("#/$defs/", name))
 string <- function(...) c(list(type = "string"), list(...))
 integer <- function(...) c(list(type = "integer"), list(...))
@@ -291,6 +292,12 @@ new_reader <- function(key, reader) object(c(key, "reader", "grant_identity"),
   setNames(list(name, list(const = reader), ref("self_identity")),
     c(key, "reader", "grant_identity")))
 arms <- cap$reader_grants$items$oneOf
+phase5_readers <- c("read_self_linked_contained_model_payload",
+  "read_retained_artifact_collection_item", "read_named_cell_axis",
+  "read_optional_display_space", "read_optional_endpoint_axis",
+  "read_optional_display_axis_group")
+arms <- Filter(function(entry) !as.character(entry$properties$reader$const %||%
+  "")[1] %in% phase5_readers, arms)
 arms <- c(arms, list(
   new_reader("self_linked_model_payload_name",
     "read_self_linked_contained_model_payload"),
@@ -298,7 +305,9 @@ arms <- c(arms, list(
     "read_retained_artifact_collection_item"),
   new_reader("named_cell_axis_collection_name", "read_named_cell_axis"),
   new_reader("optional_display_axis_group_name",
-    "read_optional_display_axis_group")))
+    "read_optional_display_space"),
+  new_reader("optional_endpoint_axis_group_name",
+    "read_optional_endpoint_axis")))
 cap$reader_grants$items$oneOf <- arms
 rdefs$capability$properties <- cap
 request[["$defs"]] <- rdefs
