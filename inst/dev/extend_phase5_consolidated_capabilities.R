@@ -316,6 +316,7 @@ write(request, "operation-pack-transition-request-v3.schema.json")
 # Receipt observations -----------------------------------------------------
 receipt <- read("operation-pack-transition-receipt-v3.schema.json")
 odefs <- receipt[["$defs"]]
+odefs$contained_model_tree_manifest <- rdefs$contained_model_tree_manifest
 self_observation <- object(c("schema", "name", "grant_identity",
   "input_descriptor_identity", "model_source_linkage_identity",
   "tree_manifest_identity", "payload_manifest_identity", "engine",

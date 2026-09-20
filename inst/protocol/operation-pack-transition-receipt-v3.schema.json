@@ -7037,6 +7037,74 @@
           "$ref": "#/$defs/self_identity"
         }
       }
+    },
+    "contained_model_tree_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "engine",
+        "model_type",
+        "primary_path",
+        "file_count",
+        "total_size",
+        "entries",
+        "manifest_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.contained_model_tree_manifest.v1"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_path": {
+          "type": "string",
+          "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+        },
+        "file_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "total_size": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "path",
+              "size",
+              "sha256"
+            ],
+            "properties": {
+              "path": {
+                "type": "string",
+                "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "sha256": {
+                "$ref": "#/$defs/sha256"
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "manifest_identity": {
+          "$ref": "#/$defs/self_identity"
+        }
+      }
     }
   },
   "examples": [
