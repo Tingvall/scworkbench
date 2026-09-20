@@ -3,12 +3,7 @@ test_op_space_path_contract <- function(bundle_dir) {
   on.exit(wb_close_bundle(b), add = TRUE)
 
   iface_def <- wb_op_interface("space_path_define")
-  iface_score <- wb_op_interface("space_path_score")
-  iface_proj <- wb_op_interface("space_path_project_2d")
   stopifnot(identical(as.character(iface_def$produces$path$kind), "space_path_family"))
-  stopifnot(identical(as.character(iface_score$produces$path_scores$kind), "cell_vector_family"))
-  stopifnot(identical(as.character(iface_score$produces$fit_summary$kind), "obs_table"))
-  stopifnot(identical(as.character(iface_proj$produces$curves$kind), "path_2d_family"))
 
   all_cells <- wb_cells(b, cell_set = "all")
   stopifnot(length(all_cells) >= 500L)
@@ -68,33 +63,6 @@ test_op_space_path_contract <- function(bundle_dir) {
   lin_int <- lin_int[order(lin_int$point, lin_int$dim), , drop = FALSE]
   sm_int <- sm_int[order(sm_int$point, sm_int$dim), , drop = FALSE]
   stopifnot(any(abs(as.numeric(lin_int$value) - as.numeric(sm_int$value)) > 1e-8))
-
-  raw_score <- wb_op_space_path_score(
-    bundle = b,
-    space_id = "lsi",
-    path = path_smooth,
-    cells = all_cells[seq_len(500)]
-  )
-  stopifnot(is.list(raw_score), is.list(raw_score$outputs))
-  scores <- raw_score$outputs$path_scores
-  summary <- raw_score$outputs$fit_summary
-  stopifnot(inherits(scores, "wb_primitive"), identical(as.character(scores$kind), "cell_vector_family"))
-  stopifnot(inherits(summary, "wb_primitive"), identical(as.character(summary$kind), "obs_table"))
-  stopifnot(setequal(unique(as.character(scores$key)), c("progress", "distance", "nearest_segment", "nearest_anchor")))
-  stopifnot(nrow(summary$table) == 1L)
-  stopifnot(all(c("path_id", "space_id", "fit_mode", "n_checkpoints", "n_path_points", "cells_scored") %in% names(summary$table)))
-
-  raw_proj <- wb_op_space_path_project_2d(
-    bundle = b,
-    path = path_smooth,
-    plot_space_id = "umap.atac",
-    approx_points = 20L
-  )
-  stopifnot(is.list(raw_proj), is.list(raw_proj$outputs))
-  curves <- raw_proj$outputs$curves
-  stopifnot(inherits(curves, "wb_primitive"), identical(as.character(curves$kind), "path_2d_family"))
-  stopifnot(identical(as.character(unique(curves$key)), "demo_path_smooth"))
-  stopifnot(length(unique(curves$point)) == 20L)
 
   TRUE
 }

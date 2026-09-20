@@ -4245,6 +4245,47 @@
               "additionalProperties": false,
               "required": [
                 "source",
+                "base_keys",
+                "prefix_parameter",
+                "prefix_value",
+                "keys"
+              ],
+              "properties": {
+                "source": {
+                  "const": "declared_keys_with_optional_prefix_v1"
+                },
+                "base_keys": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "prefix_parameter": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "prefix_value": {
+                  "type": "string"
+                },
+                "keys": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source",
                 "groups_parameter",
                 "matrix_input",
                 "matrix_input_descriptor_identity",

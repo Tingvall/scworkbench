@@ -632,30 +632,6 @@
   raw
 }
 
-.wb_runner_trajectory_branch_compare <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "trajectory_branch_compare runner: missing resolved$matrix.")
-  .wb_assert(!is.null(resolved$pseudotime), "trajectory_branch_compare runner: missing resolved$pseudotime.")
-  .wb_assert(!is.null(resolved$branch_membership), "trajectory_branch_compare runner: missing resolved$branch_membership.")
-
-  raw <- wb_op_trajectory_branch_compare(
-    bundle = bundle,
-    matrix_id = resolved$matrix$matrix_id,
-    pseudotime = resolved$pseudotime,
-    branch_membership = resolved$branch_membership,
-    branch_a = inputs$branch_a %||% NULL,
-    branch_b = inputs$branch_b %||% NULL,
-    cells = as.character(effective_cells),
-    feature_set = inputs$feature_set %||% NULL,
-    features = inputs$features %||% NULL,
-    min_pct = inputs$min_pct %||% 0,
-    p_adjust_method = inputs$p_adjust_method %||% "BH"
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "trajectory_branch_compare must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_trajectory_signature_smooth <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "trajectory_signature_smooth runner: missing resolved$matrix.")
   .wb_assert(!is.null(resolved$model), "trajectory_signature_smooth runner: missing resolved$model.")
@@ -746,33 +722,6 @@
   raw
 }
 
-.wb_runner_trajectory_route_smooth <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "trajectory_route_smooth runner: missing resolved$matrix.")
-  .wb_assert(!is.null(resolved$pseudotime), "trajectory_route_smooth runner: missing resolved$pseudotime.")
-  .wb_assert(!is.null(resolved$branch_membership), "trajectory_route_smooth runner: missing resolved$branch_membership.")
-
-  raw <- wb_op_trajectory_route_smooth(
-    bundle = bundle,
-    matrix_id = as.character(resolved$matrix$matrix_id)[1],
-    pseudotime = resolved$pseudotime,
-    branch_membership = resolved$branch_membership,
-    route_key = as.character(inputs$route_key %||% "")[1],
-    cells = effective_cells,
-    feature_set = inputs$feature_set %||% NULL,
-    features = inputs$features %||% NULL,
-    n_bins = inputs$n_bins %||% 50L,
-    summary_fun = inputs$summary_fun %||% "mean",
-    min_cells_per_bin = inputs$min_cells_per_bin %||% 5L,
-    weight_mode = inputs$weight_mode %||% "probability",
-    prob_min = inputs$prob_min %||% 0,
-    chunk_size = inputs$chunk_size %||% 128L
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "trajectory_route_smooth must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_trajectory_vector_smooth <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$signal), "trajectory_vector_smooth runner: missing resolved$signal.")
   .wb_assert(!is.null(resolved$model), "trajectory_vector_smooth runner: missing resolved$model.")
@@ -856,44 +805,6 @@
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "space_path_define must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
-.wb_runner_space_path_score <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$space), "space_path_score runner: missing resolved$space.")
-  .wb_assert(!is.null(resolved$path), "space_path_score runner: missing resolved$path.")
-  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
-             "space_path_score runner: effective_cells is empty.")
-
-  raw <- wb_op_space_path_score(
-    bundle = bundle,
-    space_id = as.character(resolved$space$space_id)[1],
-    path = resolved$path,
-    cells = as.character(effective_cells),
-    score_mode = as.character(inputs$score_mode %||% "orthogonal_projection")[1],
-    distance_metric = as.character(inputs$distance_metric %||% "euclidean")[1],
-    score_prefix = inputs$score_prefix %||% NULL
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "space_path_score must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
-.wb_runner_space_path_project_2d <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$path), "space_path_project_2d runner: missing resolved$path.")
-  .wb_assert(!is.null(resolved$plot_space), "space_path_project_2d runner: missing resolved$plot_space.")
-
-  raw <- wb_op_space_path_project_2d(
-    bundle = bundle,
-    path = resolved$path,
-    plot_space_id = as.character(resolved$plot_space$space_id)[1],
-    project_mode = as.character(inputs$project_mode %||% "local_interpolation")[1],
-    approx_points = inputs$approx_points %||% NULL
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "space_path_project_2d must return list(outputs=<list>, params=<list>).")
   raw
 }
 
@@ -1274,52 +1185,6 @@
         )
       )
     ),
-    trajectory_branch_compare = list(
-      op_name = "trajectory_branch_compare",
-      title = "Trajectory Branch Compare",
-      description = "Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.",
-      intent = c("trajectory", "comparison", "statistics"),
-      requires = list(
-        matrix = "matrix",
-        pseudotime = "cell_vector_family",
-        branch_membership = "relation_family"
-      ),
-      produces = list(
-        branch_de_table = "feature_table",
-        branch_summary = "obs_table"
-      ),
-      promotable = c("branch_de_table", "branch_summary"),
-      runner = .wb_runner_trajectory_branch_compare,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix"),
-        pseudotime = list(required = TRUE, kind = "cell_vector_family"),
-        branch_membership = list(required = TRUE, kind = "relation_family")
-      ),
-      params = list(
-        list(name = "branch_a", type = "string", default = NULL,
-             help = "Branch/lineage key A."),
-        list(name = "branch_b", type = "string", default = NULL,
-             help = "Branch/lineage key B."),
-        list(name = "feature_set", type = "string", default = NULL,
-             help = "Optional feature set name from wb_feature_sets() for matrix."),
-        list(name = "features", type = "string_vec", default = NULL,
-             help = "Optional explicit feature subset (intersected with feature_set when both provided)."),
-        list(name = "min_pct", type = "dbl", default = 0, min = 0, max = 1,
-             help = "Minimum detection fraction in either branch."),
-        list(name = "p_adjust_method", type = "string", default = "BH",
-             help = "Method passed to p.adjust.")
-      ),
-      interface_produces = list(
-        branch_de_table = list(
-          kind = "feature_table",
-          description = "Per-feature branch comparison statistics and effect sizes."
-        ),
-        branch_summary = list(
-          kind = "obs_table",
-          description = "Branch-pair cell counts and pseudotime summary diagnostics."
-        )
-      )
-    ),
     trajectory_signature_smooth = list(
       op_name = "trajectory_signature_smooth",
       title = "Trajectory Signature Smoothing",
@@ -1486,60 +1351,6 @@
         fit_summary = list(
           kind = "obs_table",
           description = "Per-lineage screening diagnostics."
-        )
-      )
-    ),
-    trajectory_route_smooth = list(
-      op_name = "trajectory_route_smooth",
-      title = "Trajectory Route Smoothing",
-      description = "Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.",
-      intent = c("trajectory", "summary", "route"),
-      requires = list(
-        matrix = "matrix",
-        pseudotime = "cell_vector",
-        branch_membership = "relation_family"
-      ),
-      produces = list(
-        trend_table = "obs_table",
-        fit_summary = "obs_table"
-      ),
-      promotable = c("trend_table", "fit_summary"),
-      runner = .wb_runner_trajectory_route_smooth,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix"),
-        pseudotime = list(required = TRUE, kind = "cell_vector"),
-        branch_membership = list(required = TRUE, kind = "relation_family")
-      ),
-      params = list(
-        list(name = "route_key", type = "string", default = NULL,
-             help = "Required route/branch key within branch_membership."),
-        list(name = "feature_set", type = "string", default = NULL,
-             help = "Optional feature set name from wb_feature_sets() for matrix."),
-        list(name = "features", type = "string_vec", default = NULL,
-             help = "Optional explicit feature subset (intersected with feature_set when both provided)."),
-        list(name = "n_bins", type = "int", default = 50, min = 5, max = 1000,
-             help = "Number of pseudotime bins."),
-        list(name = "summary_fun", type = "choice", default = "mean",
-             choices = c("mean", "median"),
-             help = "Summary statistic across cells within each bin. Weighted routes currently support mean only."),
-        list(name = "min_cells_per_bin", type = "int", default = 5, min = 1, max = 100000,
-             help = "Minimum cells required for an output bin."),
-        list(name = "weight_mode", type = "choice", default = "probability",
-             choices = c("probability", "binary_threshold"),
-             help = "Use route probabilities directly or threshold to a binary route membership."),
-        list(name = "prob_min", type = "dbl", default = 0, min = 0, max = 1,
-             help = "Minimum route probability required to include a cell."),
-        list(name = "chunk_size", type = "int", default = 128, min = 1, max = 100000,
-             help = "Feature chunk size for matrix slicing.")
-      ),
-      interface_produces = list(
-        trend_table = list(
-          kind = "obs_table",
-          description = "Per-feature binned summaries along a selected route."
-        ),
-        fit_summary = list(
-          kind = "obs_table",
-          description = "Route smoothing diagnostics."
         )
       )
     ),
@@ -1982,7 +1793,7 @@
     trajectory_space_path_segment = list(
       op_name = "trajectory_space_path_segment",
       title = "Trajectory space-path segment",
-      description = "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
+      description = "Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
       intent = c("trajectory", "bridge", "composition", "geometry"),
       requires = list(path_scores = "cell_vector_family"),
       optional_requires = list(path = "path_2d_family", display_path = "path_2d_family"),
@@ -2006,7 +1817,7 @@
         list(name = "segment_order", type = "dbl", default = 1,
              help = "Order of this bridge segment in a future composite."),
         list(name = "score_prefix", type = "string", default = NULL,
-             help = "Optional prefix used by space_path_score keys."),
+             help = "Optional prefix used by scwbtrajectory::space_path_score keys."),
         list(name = "candidate_cells", type = "cell_ids_or_set", default = NULL,
              help = "Optional candidate universe before distance thresholding."),
         list(name = "distance_threshold", type = "dbl", default = NULL,
@@ -2472,73 +2283,6 @@
           kind = "space_path_family",
           key = "path_id",
           description = "Analytical path in the original latent space."
-        )
-      )
-    ),
-    space_path_score = list(
-      op_name = "space_path_score",
-      title = "Score cells against analytical path",
-      description = "Contract scaffold for path-relative scoring in a named analytical space.",
-      intent = c("trajectory", "geometry", "path"),
-      requires = list(space = "space", path = "space_path_family"),
-      produces = list(
-        path_scores = "cell_vector_family",
-        fit_summary = "obs_table"
-      ),
-      promotable = c("path_scores", "fit_summary"),
-      runner = .wb_runner_space_path_score,
-      inputs = list(
-        space = list(required = TRUE, kind = "space"),
-        path = list(required = TRUE, kind = "space_path_family")
-      ),
-      params = list(
-        list(name = "score_mode", type = "choice", default = "orthogonal_projection",
-             choices = c("orthogonal_projection"),
-             help = "Scoring mode. The current implementation standardizes on orthogonal projection semantics."),
-        list(name = "distance_metric", type = "choice", default = "euclidean",
-             choices = c("euclidean"),
-             help = "Distance metric used for path-relative scoring."),
-        list(name = "score_prefix", type = "string", default = NULL,
-             help = "Optional prefix for emitted score-family keys.")
-      ),
-      interface_produces = list(
-        path_scores = list(
-          kind = "cell_vector_family",
-          value_kind = "continuous",
-          key = "score_name",
-          description = "Per-cell path-relative scores such as progress and distance."
-        ),
-        fit_summary = list(
-          kind = "obs_table",
-          description = "Compact path-level scoring diagnostics."
-        )
-      )
-    ),
-    space_path_project_2d = list(
-      op_name = "space_path_project_2d",
-      title = "Project analytical path into 2D",
-      description = "Contract scaffold for projecting an analytical path into a drawable 2D path family.",
-      intent = c("trajectory", "geometry", "path", "display"),
-      requires = list(path = "space_path_family", plot_space = "space_2d"),
-      produces = list(curves = "path_2d_family"),
-      promotable = c("curves"),
-      runner = .wb_runner_space_path_project_2d,
-      inputs = list(
-        path = list(required = TRUE, kind = "space_path_family"),
-        plot_space = list(required = TRUE, kind = "space_2d")
-      ),
-      params = list(
-        list(name = "project_mode", type = "choice", default = "local_interpolation",
-             choices = c("local_interpolation"),
-             help = "Projection mode used to approximate the analytical path in a 2D plot space."),
-        list(name = "approx_points", type = "int", default = NULL, min = 2, max = 50000,
-             help = "Optional target point count for display compaction.")
-      ),
-      interface_produces = list(
-        curves = list(
-          kind = "path_2d_family",
-          key = "path_id",
-          description = "Approximate 2D rendering of the analytical path."
         )
       )
     ),

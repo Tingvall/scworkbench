@@ -330,7 +330,8 @@ wb_op_trajectory_segment_from_artifacts <- function(bundle,
 
 #' Create A Trajectory Segment From Space-Path Scores
 #'
-#' Converts `space_path_score` output into a generic trajectory segment payload.
+#' Converts `scwbtrajectory::space_path_score` output into a generic trajectory
+#' segment payload.
 #' The analytical coordinate is path arclength progress, and membership is based
 #' on an explicit distance-to-path rule.
 #'

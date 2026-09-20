@@ -42,7 +42,7 @@ wb_op_trajectory_space_path_segment(
 
 \item{segment_order}{Order of this bridge segment in a future composite.}
 
-\item{score_prefix}{Optional prefix used by space_path_score keys.}
+\item{score_prefix}{Optional prefix used by scwbtrajectory::space_path_score keys.}
 
 \item{candidate_cells}{Optional candidate universe before distance thresholding.}
 
@@ -85,11 +85,12 @@ wb_op_trajectory_space_path_segment(
 \item{runs}{Optional session run registry used to resolve symbolic input references.}
 }
 \description{
-Converts \code{space_path_score} output into a generic trajectory segment payload.
+Converts \code{scwbtrajectory::space_path_score} output into a generic trajectory
+segment payload.
 The analytical coordinate is path arclength progress, and membership is based
 on an explicit distance-to-path rule.
 
-Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
+Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
 }
 \details{
 For the live typed interface, including accepted symbolic references and defaults, see \code{\link[=wb_op_interface]{wb_op_interface()}}. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: \code{outputs$pseudotime} (\code{cell_vector_family}): Bridge pseudotime from path arclength progress in \[0,1\].; \code{outputs$membership} (\code{cell_vector}): Cells passing the transparent distance-to-path bridge membership rule.; \code{outputs$confidence} (\code{cell_vector_family}): Distance-derived confidence for included bridge cells.; \code{outputs$segment_manifest} (\code{obs_table}): Audit manifest for the space-path bridge segment.; \code{outputs$display_endpoint_qc} (\code{obs_table}): Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.. Promotion eligibility is declared by the operation catalog.

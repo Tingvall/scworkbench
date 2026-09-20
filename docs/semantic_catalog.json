@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 303,
+  "record_count": 299,
   "record_type_counts": {
     "artifact_type": 78,
     "getter": 85,
-    "op": 33,
+    "op": 29,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -1586,191 +1586,6 @@
       }
     },
     {
-      "record_id": "op:trajectory_branch_compare",
-      "record_type": "op",
-      "name": "trajectory_branch_compare",
-      "title": "Trajectory Branch Compare",
-      "description": "Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.",
-      "search_text": "Trajectory Branch Compare\nCompare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.\ntrajectory\ncomparison\nstatistics\nmatrix\nTRUE\npseudotime\ncell_vector_family\nbranch_membership\nrelation_family\ncell_set\nselect\nFALSE\nbranch_de_table\nfeature_table\nterminal_artifact\nPer-feature branch comparison statistics and effect sizes.\nbranch_summary\nobs_table\nBranch-pair cell counts and pseudotime summary diagnostics.\nbranch_a\nstring\nBranch/lineage key A.\nbranch_b\nBranch/lineage key B.\nfeature_set\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nstring_vec\nOptional explicit feature subset (intersected with feature_set when both provided).\nmin_pct\ndbl\n0\n1\nMinimum detection fraction in either branch.\np_adjust_method\nBH\nMethod passed to p.adjust.",
-      "tags": ["op", "trajectory", "comparison", "statistics"],
-      "payload": {
-        "op_name": "trajectory_branch_compare",
-        "title": "Trajectory Branch Compare",
-        "description": "Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.",
-        "intent": ["trajectory", "comparison", "statistics"],
-        "consumes": [
-          {
-            "name": "matrix",
-            "kind": "matrix",
-            "required": true
-          },
-          {
-            "name": "pseudotime",
-            "kind": "cell_vector_family",
-            "required": true
-          },
-          {
-            "name": "branch_membership",
-            "kind": "relation_family",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "branch_de_table",
-            "kind": "feature_table",
-            "output_name": "branch_de_table",
-            "primitive_kind": "feature_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "branch_de_table",
-            "description": "Per-feature branch comparison statistics and effect sizes."
-          },
-          {
-            "name": "branch_summary",
-            "kind": "obs_table",
-            "output_name": "branch_summary",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "branch_summary",
-            "description": "Branch-pair cell counts and pseudotime summary diagnostics."
-          }
-        ],
-        "inputs": {
-          "matrix": {
-            "required": true,
-            "kind": "matrix",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "pseudotime": {
-            "required": true,
-            "kind": "cell_vector_family",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "branch_membership": {
-            "required": true,
-            "kind": "relation_family",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "branch_a",
-            "type": "string",
-            "default": null,
-            "help": "Branch/lineage key A.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "branch_b",
-            "type": "string",
-            "default": null,
-            "help": "Branch/lineage key B.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "feature_set",
-            "type": "string",
-            "default": null,
-            "help": "Optional feature set name from wb_feature_sets() for matrix.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "features",
-            "type": "string_vec",
-            "default": null,
-            "help": "Optional explicit feature subset (intersected with feature_set when both provided).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "min_pct",
-            "type": "dbl",
-            "default": 0,
-            "min": 0,
-            "max": 1,
-            "help": "Minimum detection fraction in either branch.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "p_adjust_method",
-            "type": "string",
-            "default": "BH",
-            "help": "Method passed to p.adjust.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          }
-        ],
-        "promotable": ["branch_de_table", "branch_summary"],
-        "replay_equivalence": {
-          "branch_de_table": "exact_canonical_value",
-          "branch_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
       "record_id": "op:trajectory_signature_smooth",
       "record_type": "op",
       "name": "trajectory_signature_smooth",
@@ -2532,232 +2347,6 @@
           "top_sets": "exact_canonical_value",
           "driver_table": "exact_canonical_value",
           "driver_curve_table": "exact_canonical_value",
-          "fit_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:trajectory_route_smooth",
-      "record_type": "op",
-      "name": "trajectory_route_smooth",
-      "title": "Trajectory Route Smoothing",
-      "description": "Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.",
-      "search_text": "Trajectory Route Smoothing\nSummarize per-feature expression along an explicit route using global pseudotime plus route membership weights.\ntrajectory\nsummary\nroute\nmatrix\nTRUE\npseudotime\ncell_vector\nbranch_membership\nrelation_family\ncell_set\nselect\nFALSE\ntrend_table\nobs_table\nterminal_artifact\nPer-feature binned summaries along a selected route.\nfit_summary\nRoute smoothing diagnostics.\nroute_key\nstring\nRequired route/branch key within branch_membership.\nfeature_set\nOptional feature set name from wb_feature_sets() for matrix.\nfeatures\nstring_vec\nOptional explicit feature subset (intersected with feature_set when both provided).\nn_bins\nint\n50\n5\n1000\nNumber of pseudotime bins.\nsummary_fun\nchoice\nmean\nmedian\nSummary statistic across cells within each bin. Weighted routes currently support mean only.\nmin_cells_per_bin\n1\n1e+05\nMinimum cells required for an output bin.\nweight_mode\nprobability\nbinary_threshold\nUse route probabilities directly or threshold to a binary route membership.\nprob_min\ndbl\n0\nMinimum route probability required to include a cell.\nchunk_size\n128\nFeature chunk size for matrix slicing.",
-      "tags": ["op", "trajectory", "summary", "route"],
-      "payload": {
-        "op_name": "trajectory_route_smooth",
-        "title": "Trajectory Route Smoothing",
-        "description": "Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.",
-        "intent": ["trajectory", "summary", "route"],
-        "consumes": [
-          {
-            "name": "matrix",
-            "kind": "matrix",
-            "required": true
-          },
-          {
-            "name": "pseudotime",
-            "kind": "cell_vector",
-            "required": true
-          },
-          {
-            "name": "branch_membership",
-            "kind": "relation_family",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "trend_table",
-            "kind": "obs_table",
-            "output_name": "trend_table",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "trend_table",
-            "description": "Per-feature binned summaries along a selected route."
-          },
-          {
-            "name": "fit_summary",
-            "kind": "obs_table",
-            "output_name": "fit_summary",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "fit_summary",
-            "description": "Route smoothing diagnostics."
-          }
-        ],
-        "inputs": {
-          "matrix": {
-            "required": true,
-            "kind": "matrix",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "pseudotime": {
-            "required": true,
-            "kind": "cell_vector",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "branch_membership": {
-            "required": true,
-            "kind": "relation_family",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "route_key",
-            "type": "string",
-            "default": null,
-            "help": "Required route/branch key within branch_membership.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "feature_set",
-            "type": "string",
-            "default": null,
-            "help": "Optional feature set name from wb_feature_sets() for matrix.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "features",
-            "type": "string_vec",
-            "default": null,
-            "help": "Optional explicit feature subset (intersected with feature_set when both provided).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "n_bins",
-            "type": "int",
-            "default": 50,
-            "min": 5,
-            "max": 1000,
-            "help": "Number of pseudotime bins.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "summary_fun",
-            "type": "choice",
-            "default": "mean",
-            "choices": ["mean", "median"],
-            "help": "Summary statistic across cells within each bin. Weighted routes currently support mean only.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "min_cells_per_bin",
-            "type": "int",
-            "default": 5,
-            "min": 1,
-            "max": 100000,
-            "help": "Minimum cells required for an output bin.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "weight_mode",
-            "type": "choice",
-            "default": "probability",
-            "choices": ["probability", "binary_threshold"],
-            "help": "Use route probabilities directly or threshold to a binary route membership.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "prob_min",
-            "type": "dbl",
-            "default": 0,
-            "min": 0,
-            "max": 1,
-            "help": "Minimum route probability required to include a cell.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "chunk_size",
-            "type": "int",
-            "default": 128,
-            "min": 1,
-            "max": 100000,
-            "help": "Feature chunk size for matrix slicing.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          }
-        ],
-        "promotable": ["trend_table", "fit_summary"],
-        "replay_equivalence": {
-          "trend_table": "exact_canonical_value",
           "fit_summary": "exact_canonical_value"
         },
         "chunking": null
@@ -4433,13 +4022,13 @@
       "record_type": "op",
       "name": "trajectory_space_path_segment",
       "title": "Trajectory space-path segment",
-      "description": "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
-      "search_text": "Trajectory space-path segment\nConvert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.\ntrajectory\nbridge\ncomposition\ngeometry\npath_scores\ncell_vector_family\nTRUE\npath\npath_2d_family\nFALSE\ndisplay_path\ncell_set\nselect\npseudotime\nterminal_artifact\nBridge pseudotime from path arclength progress in [0,1].\nmembership\ncell_vector\nCells passing the transparent distance-to-path bridge membership rule.\nconfidence\nDistance-derived confidence for included bridge cells.\nsegment_manifest\nobs_table\nAudit manifest for the space-path bridge segment.\ndisplay_endpoint_qc\nEndpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this bridge segment in a future composite.\nscore_prefix\nOptional prefix used by space_path_score keys.\ncandidate_cells\ncell_ids_or_set\nOptional candidate universe before distance thresholding.\ndistance_threshold\nInclude cells with distance_to_path <= threshold.\ndistance_quantile\nAlternative threshold: include cells up to this distance quantile.\nstart_label\nBiological start label.\nend_label\nBiological end label.\ndisplay_lineage\nOptional key/lineage to validate in display_path. Defaults to the only key if display_path has one.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC.\nstart_endpoint\nlist_or_cell_set\nOptional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nend_endpoint\nOptional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nstart_cell_set\nConvenience start endpoint cell set for display-path QC.\nend_cell_set\nConvenience end endpoint cell set for display-path QC.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\npseudotime_key\nKey for emitted bridge pseudotime. Defaults to segment_id.\nconfidence_key\nKey for emitted bridge confidence. Defaults to segment_id.\ncomposite_id\nOptional parent composite identifier recorded in the segment manifest.\nruns\nlist\nOptional run registry used to resolve symbolic references.",
+      "description": "Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
+      "search_text": "Trajectory space-path segment\nConvert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.\ntrajectory\nbridge\ncomposition\ngeometry\npath_scores\ncell_vector_family\nTRUE\npath\npath_2d_family\nFALSE\ndisplay_path\ncell_set\nselect\npseudotime\nterminal_artifact\nBridge pseudotime from path arclength progress in [0,1].\nmembership\ncell_vector\nCells passing the transparent distance-to-path bridge membership rule.\nconfidence\nDistance-derived confidence for included bridge cells.\nsegment_manifest\nobs_table\nAudit manifest for the space-path bridge segment.\ndisplay_endpoint_qc\nEndpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.\nsegment_id\nstring\nStable segment identifier.\nsegment_order\ndbl\n1\nOrder of this bridge segment in a future composite.\nscore_prefix\nOptional prefix used by scwbtrajectory::space_path_score keys.\ncandidate_cells\ncell_ids_or_set\nOptional candidate universe before distance thresholding.\ndistance_threshold\nInclude cells with distance_to_path <= threshold.\ndistance_quantile\nAlternative threshold: include cells up to this distance quantile.\nstart_label\nBiological start label.\nend_label\nBiological end label.\ndisplay_lineage\nOptional key/lineage to validate in display_path. Defaults to the only key if display_path has one.\ndisplay_space_id\n2D display space used for endpoint cell-set coordinate QC.\nstart_endpoint\nlist_or_cell_set\nOptional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nend_endpoint\nOptional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.\nstart_cell_set\nConvenience start endpoint cell set for display-path QC.\nend_cell_set\nConvenience end endpoint cell set for display-path QC.\nendpoint_summary_method\nchoice\ncentroid\nmedoid\nHow endpoint cell sets are summarized in display space for QC.\nendpoint_max_distance\nOptional absolute maximum endpoint distance before QC fails.\nendpoint_qc_action\nfail\nwarn\nnone\nAction when display-path endpoint QC detects a large mismatch.\npseudotime_key\nKey for emitted bridge pseudotime. Defaults to segment_id.\nconfidence_key\nKey for emitted bridge confidence. Defaults to segment_id.\ncomposite_id\nOptional parent composite identifier recorded in the segment manifest.\nruns\nlist\nOptional run registry used to resolve symbolic references.",
       "tags": ["op", "trajectory", "bridge", "composition", "geometry"],
       "payload": {
         "op_name": "trajectory_space_path_segment",
         "title": "Trajectory space-path segment",
-        "description": "Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
+        "description": "Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.",
         "intent": ["trajectory", "bridge", "composition", "geometry"],
         "consumes": [
           {
@@ -4591,7 +4180,7 @@
             "name": "score_prefix",
             "type": "string",
             "default": null,
-            "help": "Optional prefix used by space_path_score keys.",
+            "help": "Optional prefix used by scwbtrajectory::space_path_score keys.",
             "required": false,
             "nullable": true,
             "allow_non_finite": false,
@@ -6492,269 +6081,6 @@
         "promotable": "path",
         "replay_equivalence": {
           "path": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:space_path_score",
-      "record_type": "op",
-      "name": "space_path_score",
-      "title": "Score cells against analytical path",
-      "description": "Contract scaffold for path-relative scoring in a named analytical space.",
-      "search_text": "Score cells against analytical path\nContract scaffold for path-relative scoring in a named analytical space.\ntrajectory\ngeometry\npath\nspace\nTRUE\nspace_path_family\ncell_set\nselect\nFALSE\npath_scores\ncell_vector_family\nterminal_artifact\nPer-cell path-relative scores such as progress and distance.\nfit_summary\nobs_table\nCompact path-level scoring diagnostics.\nscore_mode\nchoice\northogonal_projection\nScoring mode. The current implementation standardizes on orthogonal projection semantics.\ndistance_metric\neuclidean\nDistance metric used for path-relative scoring.\nscore_prefix\nstring\nOptional prefix for emitted score-family keys.",
-      "tags": ["op", "trajectory", "geometry", "path"],
-      "payload": {
-        "op_name": "space_path_score",
-        "title": "Score cells against analytical path",
-        "description": "Contract scaffold for path-relative scoring in a named analytical space.",
-        "intent": ["trajectory", "geometry", "path"],
-        "consumes": [
-          {
-            "name": "space",
-            "kind": "space",
-            "required": true
-          },
-          {
-            "name": "path",
-            "kind": "space_path_family",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "path_scores",
-            "kind": "cell_vector_family",
-            "output_name": "path_scores",
-            "primitive_kind": "cell_vector_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "path_scores",
-            "description": "Per-cell path-relative scores such as progress and distance."
-          },
-          {
-            "name": "fit_summary",
-            "kind": "obs_table",
-            "output_name": "fit_summary",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "fit_summary",
-            "description": "Compact path-level scoring diagnostics."
-          }
-        ],
-        "inputs": {
-          "space": {
-            "required": true,
-            "kind": "space",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "path": {
-            "required": true,
-            "kind": "space_path_family",
-            "effective_cell_coverage": "associated_space"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "score_mode",
-            "type": "choice",
-            "default": "orthogonal_projection",
-            "choices": "orthogonal_projection",
-            "help": "Scoring mode. The current implementation standardizes on orthogonal projection semantics.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "distance_metric",
-            "type": "choice",
-            "default": "euclidean",
-            "choices": "euclidean",
-            "help": "Distance metric used for path-relative scoring.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "score_prefix",
-            "type": "string",
-            "default": null,
-            "help": "Optional prefix for emitted score-family keys.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          }
-        ],
-        "promotable": ["path_scores", "fit_summary"],
-        "replay_equivalence": {
-          "path_scores": "exact_canonical_value",
-          "fit_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:space_path_project_2d",
-      "record_type": "op",
-      "name": "space_path_project_2d",
-      "title": "Project analytical path into 2D",
-      "description": "Contract scaffold for projecting an analytical path into a drawable 2D path family.",
-      "search_text": "Project analytical path into 2D\nContract scaffold for projecting an analytical path into a drawable 2D path family.\ntrajectory\ngeometry\npath\ndisplay\nspace_path_family\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\nFALSE\ncurves\npath_2d_family\nterminal_artifact\nApproximate 2D rendering of the analytical path.\nproject_mode\nchoice\nlocal_interpolation\nProjection mode used to approximate the analytical path in a 2D plot space.\napprox_points\nint\n2\n50000\nOptional target point count for display compaction.",
-      "tags": ["op", "trajectory", "geometry", "path", "display"],
-      "payload": {
-        "op_name": "space_path_project_2d",
-        "title": "Project analytical path into 2D",
-        "description": "Contract scaffold for projecting an analytical path into a drawable 2D path family.",
-        "intent": ["trajectory", "geometry", "path", "display"],
-        "consumes": [
-          {
-            "name": "path",
-            "kind": "space_path_family",
-            "required": true
-          },
-          {
-            "name": "plot_space",
-            "kind": "space_2d",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "curves",
-            "kind": "path_2d_family",
-            "output_name": "curves",
-            "primitive_kind": "path_2d_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "curves",
-            "description": "Approximate 2D rendering of the analytical path."
-          }
-        ],
-        "inputs": {
-          "path": {
-            "required": true,
-            "kind": "space_path_family",
-            "effective_cell_coverage": "associated_space"
-          },
-          "plot_space": {
-            "required": true,
-            "kind": "space_2d",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "project_mode",
-            "type": "choice",
-            "default": "local_interpolation",
-            "choices": "local_interpolation",
-            "help": "Projection mode used to approximate the analytical path in a 2D plot space.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "approx_points",
-            "type": "int",
-            "default": null,
-            "min": 2,
-            "max": 50000,
-            "help": "Optional target point count for display compaction.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          }
-        ],
-        "promotable": "curves",
-        "replay_equivalence": {
-          "curves": "exact_canonical_value"
         },
         "chunking": null
       }
@@ -12756,7 +12082,7 @@
       "name": "plot_trajectory_on_umap",
       "title": "Plot selected trajectory curves on UMAP",
       "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
-      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nFor segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:slingshot_project\nop:monocle3_project\nop:palantir_project\nop:space_path_project_2d\nop:trajectory_segment_path_join\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nComposite display paths are derived geometry, not merged fitted models.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
+      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nFor segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:slingshot_project\nop:monocle3_project\nop:palantir_project\nop:scwbtrajectory::space_path_project_2d\nop:trajectory_segment_path_join\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nComposite display paths are derived geometry, not merged fitted models.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
       "tags": ["recipe", "visualization", "validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
       "payload": {
         "recipe_id": "plot_trajectory_on_umap",
@@ -12765,7 +12091,7 @@
         "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
         "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
         "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
-        "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+        "uses": ["artifact_type:path_2d_family", "op:slingshot_project", "op:monocle3_project", "op:palantir_project", "op:scwbtrajectory::space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
         "produces": "artifact_type:path_2d_family",
         "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
         "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "Composite display paths are derived geometry, not merged fitted models.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
@@ -12859,8 +12185,8 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 303,
-    "edge_count": 735,
+    "node_count": 299,
+    "edge_count": 700,
     "nodes": [
       {
         "record_id": "op:chromvar",
@@ -12905,12 +12231,6 @@
         "title": "Trajectory Feature Smoothing"
       },
       {
-        "record_id": "op:trajectory_branch_compare",
-        "record_type": "op",
-        "name": "trajectory_branch_compare",
-        "title": "Trajectory Branch Compare"
-      },
-      {
         "record_id": "op:trajectory_signature_smooth",
         "record_type": "op",
         "name": "trajectory_signature_smooth",
@@ -12921,12 +12241,6 @@
         "record_type": "op",
         "name": "trajectory_geneset_dynamics",
         "title": "Trajectory Gene-Set Dynamics"
-      },
-      {
-        "record_id": "op:trajectory_route_smooth",
-        "record_type": "op",
-        "name": "trajectory_route_smooth",
-        "title": "Trajectory Route Smoothing"
       },
       {
         "record_id": "op:trajectory_vector_smooth",
@@ -13035,18 +12349,6 @@
         "record_type": "op",
         "name": "space_path_define",
         "title": "Define analytical space path"
-      },
-      {
-        "record_id": "op:space_path_score",
-        "record_type": "op",
-        "name": "space_path_score",
-        "title": "Score cells against analytical path"
-      },
-      {
-        "record_id": "op:space_path_project_2d",
-        "record_type": "op",
-        "name": "space_path_project_2d",
-        "title": "Project analytical path into 2D"
       },
       {
         "record_id": "op:palantir_fit",
@@ -15086,60 +14388,6 @@
       },
       {
         "from": "primitive:matrix",
-        "to": "op:trajectory_branch_compare",
-        "edge_type": "consumed_by",
-        "label": "input:matrix"
-      },
-      {
-        "from": "op:trajectory_branch_compare",
-        "to": "parameter:matrix",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:matrix"
-      },
-      {
-        "from": "primitive:cell_vector_family",
-        "to": "op:trajectory_branch_compare",
-        "edge_type": "consumed_by",
-        "label": "input:pseudotime"
-      },
-      {
-        "from": "op:trajectory_branch_compare",
-        "to": "parameter:pseudotime",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:pseudotime"
-      },
-      {
-        "from": "primitive:relation_family",
-        "to": "op:trajectory_branch_compare",
-        "edge_type": "consumed_by",
-        "label": "input:branch_membership"
-      },
-      {
-        "from": "op:trajectory_branch_compare",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:trajectory_branch_compare",
-        "to": "parameter:p_adjust_method",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:p_adjust_method"
-      },
-      {
-        "from": "op:trajectory_branch_compare",
-        "to": "primitive:feature_table",
-        "edge_type": "produces",
-        "label": "output:branch_de_table"
-      },
-      {
-        "from": "op:trajectory_branch_compare",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:branch_summary"
-      },
-      {
-        "from": "primitive:matrix",
         "to": "op:trajectory_signature_smooth",
         "edge_type": "consumed_by",
         "label": "input:matrix"
@@ -15476,72 +14724,6 @@
       },
       {
         "from": "op:trajectory_geneset_dynamics",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:fit_summary"
-      },
-      {
-        "from": "primitive:matrix",
-        "to": "op:trajectory_route_smooth",
-        "edge_type": "consumed_by",
-        "label": "input:matrix"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
-        "to": "parameter:matrix",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:matrix"
-      },
-      {
-        "from": "primitive:cell_vector",
-        "to": "op:trajectory_route_smooth",
-        "edge_type": "consumed_by",
-        "label": "input:pseudotime"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
-        "to": "parameter:pseudotime",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:pseudotime"
-      },
-      {
-        "from": "primitive:relation_family",
-        "to": "op:trajectory_route_smooth",
-        "edge_type": "consumed_by",
-        "label": "input:branch_membership"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
-        "to": "parameter:n_bins",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:n_bins"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
-        "to": "parameter:summary_fun",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:summary_fun"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
-        "to": "parameter:min_cells_per_bin",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:min_cells_per_bin"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:trend_table"
-      },
-      {
-        "from": "op:trajectory_route_smooth",
         "to": "primitive:obs_table",
         "edge_type": "produces",
         "label": "output:fit_summary"
@@ -16685,84 +15867,6 @@
         "to": "artifact_type:space_path_family",
         "edge_type": "promotes_as",
         "label": "promotable:path"
-      },
-      {
-        "from": "primitive:space",
-        "to": "op:space_path_score",
-        "edge_type": "consumed_by",
-        "label": "input:space"
-      },
-      {
-        "from": "op:space_path_score",
-        "to": "parameter:space",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:space"
-      },
-      {
-        "from": "primitive:space_path_family",
-        "to": "op:space_path_score",
-        "edge_type": "consumed_by",
-        "label": "input:path"
-      },
-      {
-        "from": "op:space_path_score",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:space_path_score",
-        "to": "primitive:cell_vector_family",
-        "edge_type": "produces",
-        "label": "output:path_scores"
-      },
-      {
-        "from": "op:space_path_score",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:fit_summary"
-      },
-      {
-        "from": "op:space_path_score",
-        "to": "artifact_type:cell_vector_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:path_scores"
-      },
-      {
-        "from": "primitive:space_path_family",
-        "to": "op:space_path_project_2d",
-        "edge_type": "consumed_by",
-        "label": "input:path"
-      },
-      {
-        "from": "primitive:space_2d",
-        "to": "op:space_path_project_2d",
-        "edge_type": "consumed_by",
-        "label": "input:plot_space"
-      },
-      {
-        "from": "op:space_path_project_2d",
-        "to": "parameter:space",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:plot_space"
-      },
-      {
-        "from": "op:space_path_project_2d",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:space_path_project_2d",
-        "to": "primitive:path_2d_family",
-        "edge_type": "produces",
-        "label": "output:curves"
-      },
-      {
-        "from": "op:space_path_project_2d",
-        "to": "artifact_type:path_2d_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:curves"
       },
       {
         "from": "primitive:space",
@@ -18512,18 +17616,6 @@
       },
       {
         "from": "op:palantir_project",
-        "to": "recipe:plot_trajectory_on_umap",
-        "edge_type": "used_by_recipe",
-        "label": "recipe:plot_trajectory_on_umap"
-      },
-      {
-        "from": "recipe:plot_trajectory_on_umap",
-        "to": "op:space_path_project_2d",
-        "edge_type": "uses",
-        "label": "op:space_path_project_2d"
-      },
-      {
-        "from": "op:space_path_project_2d",
         "to": "recipe:plot_trajectory_on_umap",
         "edge_type": "used_by_recipe",
         "label": "recipe:plot_trajectory_on_umap"

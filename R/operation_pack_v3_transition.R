@@ -192,6 +192,17 @@
   list(keys = keys, resolution = resolution)
 }
 
+.wb_operation_pack_v3_declared_prefix_key_axis <- function(spec, params) {
+  base_keys <- as.character(unlist(spec$keys, use.names = FALSE))
+  parameter <- as.character(spec$prefix_parameter)[1]
+  prefix <- as.character(params[[parameter]] %||% "")[1]
+  keys <- paste0(prefix, base_keys)
+  resolution <- list(source = "declared_keys_with_optional_prefix_v1",
+    base_keys = unname(as.list(base_keys)), prefix_parameter = parameter,
+    prefix_value = prefix, keys = unname(as.list(keys)))
+  list(keys = keys, resolution = resolution)
+}
+
 .wb_operation_pack_v3_cardinality_grant <- function(policy, output,
                                                       inputs, params,
                                                       input_records,
@@ -234,8 +245,11 @@
       group_order = spec$group_order)) else if (identical(as.character(spec$source)[1],
         "resolved_parameter_feature_groups_v1"))
       .wb_operation_pack_v3_parameter_key_axis(spec, inputs, params,
-        input_records) else .wb_operation_pack_v3_input_key_axis(spec, inputs,
-          params, input_records)
+        input_records) else if (identical(as.character(spec$source)[1],
+          "declared_keys_with_optional_prefix_v1"))
+        .wb_operation_pack_v3_declared_prefix_key_axis(spec, params) else
+        .wb_operation_pack_v3_input_key_axis(spec, inputs, params,
+          input_records)
     keys <- key_state$keys
     if (length(keys) && length(cell_axis$cells) >
         floor(.Machine$integer.max / length(keys)))
@@ -828,6 +842,12 @@
           .wb_operation_pack_v2_identity_plain(
             "scworkbench.cell_order.v1", unname(as.list(output_cells)))
       }
+    }
+    if (!is.null(policy) && identical(as.character(policy$policy)[1],
+        "data_dependent_family_v1")) {
+      descriptor$expected_dimensions <- list(0L,
+        if (identical(as.character(outputs[[name]]$kind)[1],
+          "path_2d_family")) 4L else 5L)
     }
     if (!is.null(policy) && identical(as.character(policy$policy)[1],
         "authenticated_sparse_membership_v1")) {

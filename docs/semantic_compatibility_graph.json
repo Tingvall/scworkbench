@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 303,
-  "edge_count": 735,
+  "node_count": 299,
+  "edge_count": 700,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -47,12 +47,6 @@
       "title": "Trajectory Feature Smoothing"
     },
     {
-      "record_id": "op:trajectory_branch_compare",
-      "record_type": "op",
-      "name": "trajectory_branch_compare",
-      "title": "Trajectory Branch Compare"
-    },
-    {
       "record_id": "op:trajectory_signature_smooth",
       "record_type": "op",
       "name": "trajectory_signature_smooth",
@@ -63,12 +57,6 @@
       "record_type": "op",
       "name": "trajectory_geneset_dynamics",
       "title": "Trajectory Gene-Set Dynamics"
-    },
-    {
-      "record_id": "op:trajectory_route_smooth",
-      "record_type": "op",
-      "name": "trajectory_route_smooth",
-      "title": "Trajectory Route Smoothing"
     },
     {
       "record_id": "op:trajectory_vector_smooth",
@@ -177,18 +165,6 @@
       "record_type": "op",
       "name": "space_path_define",
       "title": "Define analytical space path"
-    },
-    {
-      "record_id": "op:space_path_score",
-      "record_type": "op",
-      "name": "space_path_score",
-      "title": "Score cells against analytical path"
-    },
-    {
-      "record_id": "op:space_path_project_2d",
-      "record_type": "op",
-      "name": "space_path_project_2d",
-      "title": "Project analytical path into 2D"
     },
     {
       "record_id": "op:palantir_fit",
@@ -2228,60 +2204,6 @@
     },
     {
       "from": "primitive:matrix",
-      "to": "op:trajectory_branch_compare",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:trajectory_branch_compare",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "primitive:cell_vector_family",
-      "to": "op:trajectory_branch_compare",
-      "edge_type": "consumed_by",
-      "label": "input:pseudotime"
-    },
-    {
-      "from": "op:trajectory_branch_compare",
-      "to": "parameter:pseudotime",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:pseudotime"
-    },
-    {
-      "from": "primitive:relation_family",
-      "to": "op:trajectory_branch_compare",
-      "edge_type": "consumed_by",
-      "label": "input:branch_membership"
-    },
-    {
-      "from": "op:trajectory_branch_compare",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:trajectory_branch_compare",
-      "to": "parameter:p_adjust_method",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:p_adjust_method"
-    },
-    {
-      "from": "op:trajectory_branch_compare",
-      "to": "primitive:feature_table",
-      "edge_type": "produces",
-      "label": "output:branch_de_table"
-    },
-    {
-      "from": "op:trajectory_branch_compare",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:branch_summary"
-    },
-    {
-      "from": "primitive:matrix",
       "to": "op:trajectory_signature_smooth",
       "edge_type": "consumed_by",
       "label": "input:matrix"
@@ -2618,72 +2540,6 @@
     },
     {
       "from": "op:trajectory_geneset_dynamics",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:fit_summary"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:trajectory_route_smooth",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:trajectory_route_smooth",
-      "edge_type": "consumed_by",
-      "label": "input:pseudotime"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
-      "to": "parameter:pseudotime",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:pseudotime"
-    },
-    {
-      "from": "primitive:relation_family",
-      "to": "op:trajectory_route_smooth",
-      "edge_type": "consumed_by",
-      "label": "input:branch_membership"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
-      "to": "parameter:n_bins",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:n_bins"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
-      "to": "parameter:summary_fun",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:summary_fun"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
-      "to": "parameter:min_cells_per_bin",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:min_cells_per_bin"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:trend_table"
-    },
-    {
-      "from": "op:trajectory_route_smooth",
       "to": "primitive:obs_table",
       "edge_type": "produces",
       "label": "output:fit_summary"
@@ -3827,84 +3683,6 @@
       "to": "artifact_type:space_path_family",
       "edge_type": "promotes_as",
       "label": "promotable:path"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:space_path_score",
-      "edge_type": "consumed_by",
-      "label": "input:space"
-    },
-    {
-      "from": "op:space_path_score",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:space"
-    },
-    {
-      "from": "primitive:space_path_family",
-      "to": "op:space_path_score",
-      "edge_type": "consumed_by",
-      "label": "input:path"
-    },
-    {
-      "from": "op:space_path_score",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:space_path_score",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:path_scores"
-    },
-    {
-      "from": "op:space_path_score",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:fit_summary"
-    },
-    {
-      "from": "op:space_path_score",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:path_scores"
-    },
-    {
-      "from": "primitive:space_path_family",
-      "to": "op:space_path_project_2d",
-      "edge_type": "consumed_by",
-      "label": "input:path"
-    },
-    {
-      "from": "primitive:space_2d",
-      "to": "op:space_path_project_2d",
-      "edge_type": "consumed_by",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "op:space_path_project_2d",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "op:space_path_project_2d",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:space_path_project_2d",
-      "to": "primitive:path_2d_family",
-      "edge_type": "produces",
-      "label": "output:curves"
-    },
-    {
-      "from": "op:space_path_project_2d",
-      "to": "artifact_type:path_2d_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:curves"
     },
     {
       "from": "primitive:space",
@@ -5654,18 +5432,6 @@
     },
     {
       "from": "op:palantir_project",
-      "to": "recipe:plot_trajectory_on_umap",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:plot_trajectory_on_umap"
-    },
-    {
-      "from": "recipe:plot_trajectory_on_umap",
-      "to": "op:space_path_project_2d",
-      "edge_type": "uses",
-      "label": "op:space_path_project_2d"
-    },
-    {
-      "from": "op:space_path_project_2d",
       "to": "recipe:plot_trajectory_on_umap",
       "edge_type": "used_by_recipe",
       "label": "recipe:plot_trajectory_on_umap"

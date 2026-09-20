@@ -132,6 +132,12 @@
           "Space input is missing its symbolic space_id.", phase = "resolution")
         coordinates <- wb_space(bundle, space_id)
       }
+      if (is.data.frame(coordinates) && "cell_id" %in% names(coordinates)) {
+        cell_ids <- as.character(coordinates$cell_id)
+        coordinates <- as.matrix(coordinates[setdiff(names(coordinates),
+          "cell_id")])
+        rownames(coordinates) <- cell_ids
+      }
       .wb_operation_pack_assert(is.matrix(coordinates) &&
           !is.null(rownames(coordinates)), "PYBENCH_INPUT_IDENTITY_MISMATCH",
         "Space input must resolve to a row-named coordinate matrix.",
@@ -904,6 +910,10 @@
     "bounded_grouped_cell_key_cartesian")
   dynamic_dimensions <- dynamic_dimensions || (identical(kind,
     "cell_vector_family") && length(expected_dimensions) == 2L &&
+    identical(expected_dimensions[[1]], 0L))
+  dynamic_dimensions <- dynamic_dimensions || (kind %in% c(
+    "path_2d_family", "space_path_family") &&
+    length(expected_dimensions) == 2L &&
     identical(expected_dimensions[[1]], 0L))
   parameter_table_dimensions <- !is.null(
     descriptor$parameter_axis_grant_identity) &&

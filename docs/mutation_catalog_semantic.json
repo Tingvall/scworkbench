@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "record_count": 129,
+  "record_count": 125,
   "meaningful_public_transformation_count": 60,
   "exported_guarded_function_count": 23,
   "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_model_bound_latent_union", "wb_op_palantir_fit", "wb_op_palantir_project", "wb_op_peakvi_project", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
@@ -444,42 +444,6 @@
       "direct_committed_write": false
     },
     {
-      "interface_id": "operation_implementation:wb_op_space_path_project_2d",
-      "function_name": "wb_op_space_path_project_2d",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_space_path_score",
-      "function_name": "wb_op_space_path_score",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_trajectory_branch_compare",
-      "function_name": "wb_op_trajectory_branch_compare",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
       "interface_id": "operation_implementation:wb_op_trajectory_de",
       "function_name": "wb_op_trajectory_de",
       "category": "operation_implementation",
@@ -494,18 +458,6 @@
     {
       "interface_id": "operation_implementation:wb_op_trajectory_geneset_dynamics",
       "function_name": "wb_op_trajectory_geneset_dynamics",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "operation_implementation:wb_op_trajectory_route_smooth",
-      "function_name": "wb_op_trajectory_route_smooth",
       "category": "operation_implementation",
       "exported": true,
       "implemented": true,

@@ -103,6 +103,7 @@
     if (!length(op$registry_reads)) op$registry_reads <- NULL
     op$dimension_policies <- Filter(function(x) !as.character(
       x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+        "data_dependent_family_v1",
         "authenticated_sparse_membership_v1",
         "authenticated_pseudobulk_v1",
         "cell_by_parameter_axis_v1",
@@ -149,6 +150,18 @@
       paste0("Operation '", opname, "' repeats a dimension-policy output."),
       "semantic_admission")
     for (policy in policies) {
+      if (identical(as.character(policy$policy)[1],
+          "data_dependent_family_v1")) {
+        output <- outputs[[as.character(policy$output)[1]]]
+        if (is.null(output) || !as.character(output$kind)[1] %in%
+            c("path_2d_family", "space_path_family"))
+          .wb_operation_pack_v3_error(
+            "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+            paste0("Operation '", opname,
+              "' has an invalid data-dependent family declaration."),
+            "semantic_admission")
+        next
+      }
       if (as.character(policy$policy)[1] %in% c(
           "cell_by_parameter_axis_v1",
           "feature_parameter_axis_cartesian_v1",
@@ -226,6 +239,14 @@
           valid <- !is.null(bound) && identical(as.character(bound$kind)[1],
             "cell_vector_family") && (!nzchar(selector) ||
             !is.null(properties[[selector]]))
+        } else if (identical(source,
+            "declared_keys_with_optional_prefix_v1")) {
+          keys <- as.character(unlist(key_axis$keys, use.names = FALSE))
+          prefix <- as.character(key_axis$prefix_parameter)[1]
+          valid <- length(keys) > 0L && !anyNA(keys) && all(nzchar(keys)) &&
+            !anyDuplicated(keys) && !is.null(properties[[prefix]]) &&
+            .wb_operation_pack_v3_param_is(properties, prefix, "string",
+              nullable = TRUE)
         } else if (identical(source, "declared_bounded_key_groups_v1")) {
           required <- as.character(unlist(key_axis$required_keys,
             use.names = FALSE))
@@ -704,6 +725,7 @@
   })
   projected$dimension_policies <- Filter(function(x) !as.character(
     x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
+      "data_dependent_family_v1",
       "authenticated_sparse_membership_v1",
       "authenticated_pseudobulk_v1",
       "cell_by_parameter_axis_v1", "feature_parameter_axis_cartesian_v1",

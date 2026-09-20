@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 303
+Record count: 299
 
-Graph edges: 735
+Graph edges: 700
 
 ## artifact_type
 
@@ -1034,12 +1034,6 @@ Title: Trajectory Feature Smoothing
 
 Description: Summarize per-feature expression along trajectory pseudotime into reusable trend tables.
 
-### `op:trajectory_branch_compare`
-
-Title: Trajectory Branch Compare
-
-Description: Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.
-
 ### `op:trajectory_signature_smooth`
 
 Title: Trajectory Signature Smoothing
@@ -1051,12 +1045,6 @@ Description: Summarize feature-set signature scores along trajectory pseudotime 
 Title: Trajectory Gene-Set Dynamics
 
 Description: Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.
-
-### `op:trajectory_route_smooth`
-
-Title: Trajectory Route Smoothing
-
-Description: Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.
 
 ### `op:trajectory_vector_smooth`
 
@@ -1110,7 +1098,7 @@ Description: Materialize the generic trajectory segment contract from fitted-mod
 
 Title: Trajectory space-path segment
 
-Description: Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
+Description: Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
 
 ### `op:trajectory_segment_path_join`
 
@@ -1165,18 +1153,6 @@ Description: Combine disjoint fitted-reference and projected-query latent coordi
 Title: Define analytical space path
 
 Description: Contract scaffold for checkpoint-anchored path construction in a named analytical space.
-
-### `op:space_path_score`
-
-Title: Score cells against analytical path
-
-Description: Contract scaffold for path-relative scoring in a named analytical space.
-
-### `op:space_path_project_2d`
-
-Title: Project analytical path into 2D
-
-Description: Contract scaffold for projecting an analytical path into a drawable 2D path family.
 
 ### `op:palantir_fit`
 

@@ -2105,6 +2105,23 @@
           "additionalProperties": false,
           "required": [
             "output",
+            "policy"
+          ],
+          "properties": {
+            "output": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "policy": {
+              "const": "data_dependent_family_v1"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "output",
             "policy",
             "shape",
             "cell_axis",
@@ -2253,6 +2270,33 @@
                         "allow",
                         "error"
                       ]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "keys",
+                    "prefix_parameter"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "declared_keys_with_optional_prefix_v1"
+                    },
+                    "keys": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "prefix_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
                     }
                   }
                 },

@@ -153,7 +153,14 @@
   if (!nzchar(matrix_id)) .wb_operation_pack_v2_registry_read_error(
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
     "Feature-set registry read requires a resolved matrix identifier.")
-  universe <- tryCatch(as.character(wb_feature_ids(bundle, matrix_id)),
+  # A predecessor materialization in the current session may not yet have a
+  # committed payload path. Its already-authenticated input primitive carries
+  # the complete ordered feature axis, so registry binding must not reopen the
+  # transient matrix through the durable getter merely to recover that axis.
+  # Committed symbolic inputs without a bound axis retain the getter path.
+  bound_universe <- as.character(matrix_value$feature_id %||% character())
+  universe <- if (length(bound_universe)) bound_universe else tryCatch(
+    as.character(wb_feature_ids(bundle, matrix_id)),
     error = function(error) .wb_operation_pack_v2_registry_read_error(
       "PYBENCH_INPUT_IDENTITY_MISMATCH",
       paste0("Feature-set registry matrix binding is invalid: ",

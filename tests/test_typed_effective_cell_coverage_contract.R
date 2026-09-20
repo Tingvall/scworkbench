@@ -110,7 +110,8 @@ test_typed_effective_cell_coverage_contract <- function() {
   )
   path_cov <- scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(space = wb_prim_space("partial_space"), path = path),
-    list(space = "space", path = "space_path_family"), "space_path_score", 1L
+    list(space = "space", path = "space_path_family"),
+    "scwbtrajectory::space_path_score", 1L
   )
   stopifnot(identical(path_cov$cells, cells[c(1, 2, 4, 7, 8, 10, 11)]))
 

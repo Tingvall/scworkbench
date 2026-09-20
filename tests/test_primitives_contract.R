@@ -105,12 +105,5 @@ test_primitives_contract <- function() {
   sp_def <- wb_op_interface("space_path_define")
   stopifnot(identical(as.character(sp_def$produces$path$kind), "space_path_family"))
 
-  sp_score <- wb_op_interface("space_path_score")
-  stopifnot(identical(as.character(sp_score$produces$path_scores$kind), "cell_vector_family"))
-  stopifnot(identical(as.character(sp_score$produces$fit_summary$kind), "obs_table"))
-
-  sp_proj <- wb_op_interface("space_path_project_2d")
-  stopifnot(identical(as.character(sp_proj$produces$curves$kind), "path_2d_family"))
-
   TRUE
 }

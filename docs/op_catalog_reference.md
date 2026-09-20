@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 33
+Operation count: 29
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -256,38 +256,6 @@ Key parameters:
 - `min_cells_per_bin` (int, default=5): Minimum cells required for an output bin.
 - `chunk_size` (int, default=128): Chunk size for matrix slicing.
 
-## `trajectory_branch_compare`
-
-Title: Trajectory Branch Compare
-
-Intent: trajectory, comparison, statistics
-
-Description: Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.
-
-Consumes:
-- `matrix`: matrix
-- `pseudotime`: cell_vector_family
-- `branch_membership`: relation_family
-- `cell_set`: select
-
-Produces:
-- `branch_de_table`: feature_table [terminal artifact] - Per-feature branch comparison statistics and effect sizes.
-- `branch_summary`: obs_table [terminal artifact] - Branch-pair cell counts and pseudotime summary diagnostics.
-
-Promotable outputs: branch_de_table, branch_summary
-
-Replay equivalence:
-- `branch_de_table`: `exact_canonical_value`
-- `branch_summary`: `exact_canonical_value`
-
-Key parameters:
-- `branch_a` (string, default=NULL): Branch/lineage key A.
-- `branch_b` (string, default=NULL): Branch/lineage key B.
-- `feature_set` (string, default=NULL): Optional feature set name from wb_feature_sets() for matrix.
-- `features` (string_vec, default=NULL): Optional explicit feature subset (intersected with feature_set when both provided).
-- `min_pct` (dbl, default=0): Minimum detection fraction in either branch.
-- `p_adjust_method` (string, default=BH): Method passed to p.adjust.
-
 ## `trajectory_signature_smooth`
 
 Title: Trajectory Signature Smoothing
@@ -387,41 +355,6 @@ Key parameters:
 - `n_permutations` (int, default=0): Number of empirical permutations for dynamic-score p-values; 0 disables permutation testing.
 - `permutation_seed` (int, default=1): Random seed for empirical dynamic-score permutations.
 - `p_adjust_method` (choice, default=BH): Multiple-testing correction method for q_dynamic.
-
-## `trajectory_route_smooth`
-
-Title: Trajectory Route Smoothing
-
-Intent: trajectory, summary, route
-
-Description: Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.
-
-Consumes:
-- `matrix`: matrix
-- `pseudotime`: cell_vector
-- `branch_membership`: relation_family
-- `cell_set`: select
-
-Produces:
-- `trend_table`: obs_table [terminal artifact] - Per-feature binned summaries along a selected route.
-- `fit_summary`: obs_table [terminal artifact] - Route smoothing diagnostics.
-
-Promotable outputs: trend_table, fit_summary
-
-Replay equivalence:
-- `trend_table`: `exact_canonical_value`
-- `fit_summary`: `exact_canonical_value`
-
-Key parameters:
-- `route_key` (string, default=NULL): Required route/branch key within branch_membership.
-- `feature_set` (string, default=NULL): Optional feature set name from wb_feature_sets() for matrix.
-- `features` (string_vec, default=NULL): Optional explicit feature subset (intersected with feature_set when both provided).
-- `n_bins` (int, default=50): Number of pseudotime bins.
-- `summary_fun` (choice, default=mean): Summary statistic across cells within each bin. Weighted routes currently support mean only.
-- `min_cells_per_bin` (int, default=5): Minimum cells required for an output bin.
-- `weight_mode` (choice, default=probability): Use route probabilities directly or threshold to a binary route membership.
-- `prob_min` (dbl, default=0): Minimum route probability required to include a cell.
-- `chunk_size` (int, default=128): Feature chunk size for matrix slicing.
 
 ## `trajectory_vector_smooth`
 
@@ -711,7 +644,7 @@ Title: Trajectory space-path segment
 
 Intent: trajectory, bridge, composition, geometry
 
-Description: Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
+Description: Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
 
 Consumes:
 - `path_scores`: cell_vector_family
@@ -738,7 +671,7 @@ Replay equivalence:
 Key parameters:
 - `segment_id` (string, default=NULL): Stable segment identifier.
 - `segment_order` (dbl, default=1): Order of this bridge segment in a future composite.
-- `score_prefix` (string, default=NULL): Optional prefix used by space_path_score keys.
+- `score_prefix` (string, default=NULL): Optional prefix used by scwbtrajectory::space_path_score keys.
 - `candidate_cells` (cell_ids_or_set, default=NULL): Optional candidate universe before distance thresholding.
 - `distance_threshold` (dbl, default=NULL): Include cells with distance_to_path <= threshold.
 - `distance_quantile` (dbl, default=NULL): Alternative threshold: include cells up to this distance quantile.
@@ -1042,59 +975,6 @@ Key parameters:
 - `smooth_n_iter` (int, default=2): For fit_mode='manifold_smooth', number of refinement passes.
 - `smooth_weight` (choice, default=inverse_distance): For fit_mode='manifold_smooth', distance-weighting rule for local cell pull.
 - `path_id_out` (string, default=space_path): Path id to record for the emitted analytical path.
-
-## `space_path_score`
-
-Title: Score cells against analytical path
-
-Intent: trajectory, geometry, path
-
-Description: Contract scaffold for path-relative scoring in a named analytical space.
-
-Consumes:
-- `space`: space
-- `path`: space_path_family
-- `cell_set`: select
-
-Produces:
-- `path_scores`: cell_vector_family [terminal artifact] - Per-cell path-relative scores such as progress and distance.
-- `fit_summary`: obs_table [terminal artifact] - Compact path-level scoring diagnostics.
-
-Promotable outputs: path_scores, fit_summary
-
-Replay equivalence:
-- `path_scores`: `exact_canonical_value`
-- `fit_summary`: `exact_canonical_value`
-
-Key parameters:
-- `score_mode` (choice, default=orthogonal_projection): Scoring mode. The current implementation standardizes on orthogonal projection semantics.
-- `distance_metric` (choice, default=euclidean): Distance metric used for path-relative scoring.
-- `score_prefix` (string, default=NULL): Optional prefix for emitted score-family keys.
-
-## `space_path_project_2d`
-
-Title: Project analytical path into 2D
-
-Intent: trajectory, geometry, path, display
-
-Description: Contract scaffold for projecting an analytical path into a drawable 2D path family.
-
-Consumes:
-- `path`: space_path_family
-- `plot_space`: space_2d
-- `cell_set`: select
-
-Produces:
-- `curves`: path_2d_family [terminal artifact] - Approximate 2D rendering of the analytical path.
-
-Promotable outputs: curves
-
-Replay equivalence:
-- `curves`: `exact_canonical_value`
-
-Key parameters:
-- `project_mode` (choice, default=local_interpolation): Projection mode used to approximate the analytical path in a 2D plot space.
-- `approx_points` (int, default=NULL): Optional target point count for display compaction.
 
 ## `palantir_fit`
 

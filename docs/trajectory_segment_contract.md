@@ -168,7 +168,7 @@ Unsupported policies error.
 A space-path bridge segment is created from:
 
 - `space_path_family`
-- path-relative scores from `space_path_score`
+- path-relative scores from `scwbtrajectory::space_path_score`
 - optional candidate cell universe or membership
 - optional distance threshold or distance quantile
 - segment labels and identity

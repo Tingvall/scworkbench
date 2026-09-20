@@ -253,47 +253,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$path` (`space_path_family`): Analytical path in the original latent space.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_space_path_project_2d
-#' @aliases wb_op_space_path_project_2d
-#' @description Contract scaffold for projecting an analytical path into a drawable 2D path family.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param path Path-family primitive or compatible path reference.
-#' @param plot_space_id Registered two-dimensional display space used for projection.
-#' @param project_mode Projection mode used to approximate the analytical path in a 2D plot space.
-#' @param approx_points Optional target point count for display compaction.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Approximate 2D rendering of the analytical path.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_space_path_score
-#' @aliases wb_op_space_path_score
-#' @description Contract scaffold for path-relative scoring in a named analytical space.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param space_id Registered coordinate-space identifier consumed by this operation.
-#' @param path Path-family primitive or compatible path reference.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param score_mode Scoring mode. The current implementation standardizes on orthogonal projection semantics.
-#' @param distance_metric Distance metric used for path-relative scoring.
-#' @param score_prefix Optional prefix for emitted score-family keys.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$path_scores` (`cell_vector_family`): Per-cell path-relative scores such as progress and distance.; `outputs$fit_summary` (`obs_table`): Compact path-level scoring diagnostics.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_trajectory_branch_compare
-#' @aliases wb_op_trajectory_branch_compare
-#' @description Compare two trajectory branches feature-by-feature using explicit pseudotime and branch membership primitives.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param pseudotime Required `pseudotime` input represented as `cell_vector_family`; accepted symbolic references are resolved by the operation interface.
-#' @param branch_membership Required `branch_membership` input represented as `relation_family`; accepted symbolic references are resolved by the operation interface.
-#' @param branch_a Branch/lineage key A.
-#' @param branch_b Branch/lineage key B.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param feature_set Optional feature set name from wb_feature_sets() for matrix.
-#' @param features Optional explicit feature subset (intersected with feature_set when both provided).
-#' @param min_pct Minimum detection fraction in either branch.
-#' @param p_adjust_method Method passed to p.adjust.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$branch_de_table` (`feature_table`): Per-feature branch comparison statistics and effect sizes.; `outputs$branch_summary` (`obs_table`): Branch-pair cell counts and pseudotime summary diagnostics.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_trajectory_de
 #' @aliases wb_op_trajectory_de
 #' @description Lineage-aware feature trend testing against trajectory pseudotime from model_ref.
@@ -358,26 +317,6 @@ NULL
 #' @param permutation_seed Random seed for empirical dynamic-score permutations.
 #' @param p_adjust_method Multiple-testing correction method for q_dynamic.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$signature_table` (`obs_table`): Binned feature-set score curves along trajectory pseudotime.; `outputs$dynamics_table` (`obs_table`): Per-feature-set dynamic metrics and rank.; `outputs$top_sets` (`obs_table`): Top-ranked dynamic feature sets for report-first discovery.; `outputs$driver_table` (`obs_table`): Top dynamic member genes within each screened feature set.; `outputs$driver_curve_table` (`obs_table`): Binned curves for top driver genes within each screened feature set.; `outputs$fit_summary` (`obs_table`): Per-lineage screening diagnostics.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_trajectory_route_smooth
-#' @aliases wb_op_trajectory_route_smooth
-#' @description Summarize per-feature expression along an explicit route using global pseudotime plus route membership weights.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param pseudotime Required `pseudotime` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param branch_membership Required `branch_membership` input represented as `relation_family`; accepted symbolic references are resolved by the operation interface.
-#' @param route_key Required route/branch key within branch_membership.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param feature_set Optional feature set name from wb_feature_sets() for matrix.
-#' @param features Optional explicit feature subset (intersected with feature_set when both provided).
-#' @param n_bins Number of pseudotime bins.
-#' @param summary_fun Summary statistic across cells within each bin. Weighted routes currently support mean only.
-#' @param min_cells_per_bin Minimum cells required for an output bin.
-#' @param weight_mode Use route probabilities directly or threshold to a binary route membership.
-#' @param prob_min Minimum route probability required to include a cell.
-#' @param chunk_size Maximum chunk size used for bounded-memory processing.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$trend_table` (`obs_table`): Per-feature binned summaries along a selected route.; `outputs$fit_summary` (`obs_table`): Route smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_segment_from_artifacts
@@ -501,12 +440,12 @@ NULL
 
 #' @name wb_op_trajectory_space_path_segment
 #' @aliases wb_op_trajectory_space_path_segment
-#' @description Convert space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
+#' @description Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
 #' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
 #' @param path_scores Required `path_scores` input represented as `cell_vector_family`; accepted symbolic references are resolved by the operation interface.
 #' @param segment_id Stable segment identifier.
 #' @param segment_order Order of this bridge segment in a future composite.
-#' @param score_prefix Optional prefix used by space_path_score keys.
+#' @param score_prefix Optional prefix used by scwbtrajectory::space_path_score keys.
 #' @param candidate_cells Optional candidate universe before distance thresholding.
 #' @param distance_threshold Include cells with distance_to_path <= threshold.
 #' @param distance_quantile Alternative threshold: include cells up to this distance quantile.

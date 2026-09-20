@@ -344,7 +344,7 @@ Uses:
 - `op:slingshot_project`
 - `op:monocle3_project`
 - `op:palantir_project`
-- `op:space_path_project_2d`
+- `op:scwbtrajectory::space_path_project_2d`
 - `op:trajectory_segment_path_join`
 - `plot:embedding_overlay`
 - `primitive:path_2d_family`

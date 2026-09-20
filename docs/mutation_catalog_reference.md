@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 129
+Record count: 125
 
 Meaningful public transformations: 60
 
@@ -514,48 +514,6 @@ Boundary: `pure`
 
 Supported route: `direct_pure_computation`
 
-## `wb_op_space_path_project_2d`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_space_path_score`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_trajectory_branch_compare`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
 ## `wb_op_trajectory_de`
 
 Category: operation_implementation
@@ -571,20 +529,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_trajectory_geneset_dynamics`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_trajectory_route_smooth`
 
 Category: operation_implementation
 

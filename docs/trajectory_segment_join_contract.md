@@ -188,7 +188,8 @@ The values are not averaged. This avoids fake precision at biological waypoints.
 
 ## Space-Path Bridge Segments
 
-`trajectory_space_path_segment` adapts `space_path_score` output into a formal
+`trajectory_space_path_segment` adapts `scwbtrajectory::space_path_score`
+output into a formal
 segment-compatible payload:
 
 - `pseudotime`: `cell_vector_family`, derived from path arclength progress.
