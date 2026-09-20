@@ -50,8 +50,12 @@ pseudobulk_policy <- object(c("output", "policy", "membership_output",
     membership_output = name, query_space_read = name,
     matrix_slice_read = name, aggregate_parameter = name,
     zero_neighbor_policy = list(const = "zero_rows_forbidden_v1")))
-defs$dimension_policy$oneOf <- c(defs$dimension_policy$oneOf,
-  list(sparse_policy, pseudobulk_policy))
+phase4e_policies <- c("authenticated_sparse_membership_v1",
+  "authenticated_pseudobulk_v1")
+defs$dimension_policy$oneOf <- c(Filter(function(entry) {
+  policy <- entry$properties$policy$const
+  is.null(policy) || !policy %in% phase4e_policies
+}, defs$dimension_policy$oneOf), list(sparse_policy, pseudobulk_policy))
 manifest[["$defs"]] <- defs
 write(manifest, "operation-pack-v3.schema.json")
 
@@ -115,8 +119,11 @@ for (i in seq_along(rdefs$output_descriptor$oneOf)) {
 }
 rdefs$capability$properties$typed_space_grant_identities <- array(
   ref("identity"), minItems = 1L)
-rdefs$capability$properties$reader_grants$items$oneOf <- c(
-  rdefs$capability$properties$reader_grants$items$oneOf, list(object(
+rdefs$capability$properties$reader_grants$items$oneOf <- c(Filter(
+  function(entry) {
+    reader <- entry$properties$reader$const
+    is.null(reader) || !identical(reader, "read_typed_space")
+  }, rdefs$capability$properties$reader_grants$items$oneOf), list(object(
     c("typed_space_name", "reader", "grant_identity"), list(
       typed_space_name = name, reader = list(const = "read_typed_space"),
       grant_identity = ref("self_identity")))))
