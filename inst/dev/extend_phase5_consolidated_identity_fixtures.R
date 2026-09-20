@@ -64,7 +64,7 @@ self_grant <- list(schema =
     "scworkbench.operation_pack.input_descriptor.v2", "5"),
   model_content_identity = id("scworkbench.model_ref.content.v1", "6"),
   model_source_linkage = linkage_value,
-  model_source_linkage_identity = linkage_id,
+  model_source_linkage_identity = linkage_id[c("scheme", "sha256")],
   contained_payload_identity = id(
     "scworkbench.operation_pack.contained_payload.v2", "7"),
   payload_manifest_identity = payload_id, tree_manifest = tree_value,
@@ -75,11 +75,12 @@ self_grant <- list(schema =
   call_discipline = "exactly_once")
 self_grant_id <- scoped(self_grant$schema,
   "grant excluding grant_identity", self_grant)
+self_linkage_id <- linkage_id[c("scheme", "sha256")]
 self_observation <- list(schema =
     "scworkbench.operation_pack.observed_self_linked_contained_model_read.v1",
   name = "fit_model", grant_identity = self_grant_id,
   input_descriptor_identity = self_grant$input_descriptor_identity,
-  model_source_linkage_identity = linkage_id,
+  model_source_linkage_identity = self_linkage_id,
   tree_manifest_identity = tree_id,
   payload_manifest_identity = payload_id,
   engine = "palantir", model_type = "palantir_fit", use_count = 1L,
