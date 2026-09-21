@@ -10,6 +10,7 @@
 
 test_typed_cell_set_consumption_provenance_contract <- function() {
   contract_test_activate_core_conformance_pack()
+  contract_test_activate_trajectory_pack()
   if (!requireNamespace("BPCells", quietly=TRUE)) {
     return(contract_test_skip("BPCells is not installed."))
   }
@@ -130,16 +131,19 @@ test_typed_cell_set_consumption_provenance_contract <- function() {
     audited[[op_name]] <- unique(expected)
   }
   stopifnot(all(c("scwbv2reference::grouped_feature_table",
-    "trajectory_space_path_segment") %in% names(audited)))
-  explicit_endpoint <- .wb_named_cell_set_selectors(b,"trajectory_space_path_segment",list(
+    "scwbtrajectory::trajectory_space_path_segment") %in% names(audited)))
+  explicit_endpoint <- .wb_named_cell_set_selectors(b,
+    "scwbtrajectory::trajectory_space_path_segment", list(
     cell_set="all",start_endpoint=list(x=0,y=0,cell_set="set:group_a"),
     start_cell_set="set:group_b"
   ))
   stopifnot(!any(vapply(explicit_endpoint,function(x) x$binding_name %in% c("start_endpoint","start_cell_set"),logical(1))))
-  overridden_endpoint <- .wb_named_cell_set_selectors(b,"trajectory_space_path_segment",list(
+  overridden_endpoint <- .wb_named_cell_set_selectors(b,
+    "scwbtrajectory::trajectory_space_path_segment", list(
     cell_set="all",start_endpoint="set:group_a",start_cell_set="set:group_b"
   ))
-  stopifnot(identical(vapply(overridden_endpoint,`[[`,character(1),"binding_name"),"start_cell_set"))
+  stopifnot(identical(vapply(overridden_endpoint,`[[`,character(1),
+    "binding_name"), "start_endpoint"))
 
   wb_close_bundle(b); b <- NULL
   make_mutant <- function(name,sql,params=list()) {
