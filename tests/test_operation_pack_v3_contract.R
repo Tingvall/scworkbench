@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 80L)
+    length(fixture$cases) == 121L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -194,8 +194,15 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     g7_union_nonlexicographic_declaration = "pack_declaration_identity",
     g7_union_alternate_order_declaration = "pack_declaration_identity")
   for (case in fixture$cases) {
-    field <- identity_fields[[case$name]]
-    stopifnot(!is.null(field), identical(case$preimage,
+    field <- unname(identity_fields[case$name])
+    if ((length(field) != 1L || is.na(field)) &&
+        startsWith(case$name, "g7_")) {
+      candidates <- names(case$value)[vapply(case$value, function(value)
+        identical(value, case$identity), logical(1))]
+      stopifnot(length(candidates) == 1L)
+      field <- candidates[[1L]]
+    }
+    stopifnot(length(field) == 1L, !is.na(field), identical(case$preimage,
       case$value[names(case$value) != field]),
       identical(.wb_v3_identity(case$value, field), case$identity$sha256))
   }
@@ -451,7 +458,7 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "54f935f183364b973e450d1cfce5377c2561fa005667ed85a6a1021312c8d231",
     "b07b61e2727c537fb24f75759f6ef769a67ddc3675d7412459f0fcf18e789dc8",
     "b05b35aaa9fce85791afb7799d795420825322b860187f5c0e81e23fa26f86dd",
-    "c993c56df75485094e3ad237863311724bbd4bb8c2b6aa806d29132a091fe381")
+    "ef0098310dd81a7ca22efcd70b2c61b7f50cd0646f2740b2fdd3c742e3a109fd")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)

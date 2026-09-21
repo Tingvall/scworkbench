@@ -45,7 +45,7 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
     "inst/protocol/fixtures/operation-pack-v3/identities.json",
     simplifyVector = FALSE)
   cases <- Filter(function(x) startsWith(x$name, "g7_"), fixture$cases)
-  stopifnot(length(cases) == 14L)
+  stopifnot(length(cases) == 55L)
   for (item in cases) stopifnot(identical(
     .wb_operation_pack_sha256(item$preimage), item$identity$sha256))
   nonlex <- fixture$g7_positive_examples$union_nonlexicographic
@@ -57,7 +57,30 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
     identical(as.character(unlist(nonlex$declared_final_order)),
       c("cell_1", "cell_10", "cell_2")),
     !identical(nonlex$declaration$pack_declaration_identity,
-      alternate$declaration$pack_declaration_identity))
+      alternate$declaration$pack_declaration_identity),
+    !identical(nonlex$sealed_axis$sealed_axis_identity,
+      alternate$sealed_axis$sealed_axis_identity),
+    !identical(nonlex$observation$observation_identity,
+      alternate$observation$observation_identity),
+    !identical(nonlex$receipt$receipt_identity,
+      alternate$receipt$receipt_identity))
+  case_map <- stats::setNames(cases, vapply(cases, `[[`, character(1),
+    "name"))
+  divergent_suffixes <- c("derivation", "sealed_axis",
+    "vector_cardinality", "family_cardinality",
+    "vector_observed_cardinality", "family_observed_cardinality",
+    "vector_content", "family_content", "vector_payload",
+    "vector_descriptor", "family_descriptor", "axis_observation",
+    "receipt")
+  for (suffix in divergent_suffixes) stopifnot(!identical(
+    case_map[[paste0("g7_union_nonlexicographic_", suffix)]]$identity,
+    case_map[[paste0("g7_union_alternate_order_", suffix)]]$identity))
+  family_content <- case_map[[
+    "g7_union_nonlexicographic_family_content"]]$preimage
+  stopifnot(identical(as.character(unlist(family_content$key)),
+      rep(c("score", "confidence"), each = 3L)),
+    identical(as.character(unlist(family_content$cell_id)),
+      rep(c("cell_1", "cell_10", "cell_2"), 2L)))
 
   schema_valid <- function(value, schema, definitions = list()) {
     root <- c(list(`$schema` = "https://json-schema.org/draft/2020-12/schema"),

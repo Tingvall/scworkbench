@@ -8,7 +8,7 @@ test_operation_pack_v3_trajectory_family_policy_contract <- function() {
     "54f935f183364b973e450d1cfce5377c2561fa005667ed85a6a1021312c8d231",
     "b07b61e2727c537fb24f75759f6ef769a67ddc3675d7412459f0fcf18e789dc8",
     "b05b35aaa9fce85791afb7799d795420825322b860187f5c0e81e23fa26f86dd",
-    "c993c56df75485094e3ad237863311724bbd4bb8c2b6aa806d29132a091fe381")
+    "ef0098310dd81a7ca22efcd70b2c61b7f50cd0646f2740b2fdd3c742e3a109fd")
   observed <- vapply(paths, digest::digest, character(1), algo = "sha256",
     serialize = FALSE, file = TRUE)
   schema <- jsonlite::read_json(paths[[1L]], simplifyVector = FALSE)
