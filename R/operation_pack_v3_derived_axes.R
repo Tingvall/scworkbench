@@ -842,7 +842,18 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
     declaration <- declarations[[as.character(grant$name)[1]]]
     source <- declaration$source
     if (identical(as.character(source$mode)[1], "static_input_axis")) {
-      value <- inputs[[as.character(source$input)[1]]]
+      input_name <- as.character(source$input)[1]
+      value <- inputs[[input_name]]
+      definitions <- stats::setNames(operation$inputs, vapply(
+        operation$inputs, `[[`, character(1), "name"))
+      descriptor <- .wb_operation_pack_v2_input_descriptor(input_name, value,
+        definitions[[input_name]])$descriptor
+      if (!identical(.wb_operation_pack_v3_unscoped_identity(
+          descriptor$descriptor_identity), grant$source_axes[[1L]]$
+            input_descriptor_identity))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Derived-axis source descriptor changed after authentication.",
+          "audit")
       selector <- if (identical(as.character(source$projection)[1],
           "family_key_cell_axis_v1"))
         .wb_operation_pack_v3_g7_resolve_selector(

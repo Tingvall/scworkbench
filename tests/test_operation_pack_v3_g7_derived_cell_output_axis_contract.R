@@ -84,11 +84,15 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
   invalid_subset$member_selections <- list()
   invalid_mode <- subset$pack_declaration
   invalid_mode$derivation_mode <- "declared_ordered_unique_union_v1"
+  invalid_empty <- subset$pack_declaration
+  invalid_empty$final_cell_ids <- list()
   invalid_union <- union$declaration
   invalid_union$member_selections <- NULL
   stopifnot(!schema_valid(invalid_subset, declaration_schema,
       request_schema[["$defs"]]),
     !schema_valid(invalid_mode, declaration_schema,
+      request_schema[["$defs"]]),
+    !schema_valid(invalid_empty, declaration_schema,
       request_schema[["$defs"]]),
     !schema_valid(invalid_union, declaration_schema,
       request_schema[["$defs"]]))
@@ -291,14 +295,25 @@ test_operation_pack_v3_g7_source_and_linked_output_adversarial_contract <-
   .wb_g7_expect(.wb_operation_pack_v3_g7_project_cells(family_source,
     "family_key_cell_axis_v1", selector),
     "PYBENCH_INPUT_IDENTITY_MISMATCH")
-  operation <- list(derived_cell_output_axes = list(list(name = "derived",
+  operation <- list(inputs = list(list(name = "source", kind = "cell_vector",
+    required = TRUE, alignment = "cell_ordered")),
+    derived_cell_output_axes = list(list(name = "derived",
     source = list(mode = "static_input_axis", input = "source",
       projection = "cell_vector_axis_v1", family_key_selector = NULL))))
   current <- wb_prim_cell_vector(c(cell_2 = 1, cell_10 = 2, cell_1 = 3),
     value_type = "continuous")
+  request$derived_cell_output_axis_grants[[1L]]$source_axes[[1L]]$
+    input_descriptor_identity <- .wb_operation_pack_v3_unscoped_identity(
+      .wb_operation_pack_v2_input_descriptor("source", current,
+        operation$inputs[[1L]])$descriptor$descriptor_identity)
   stopifnot(isTRUE(.wb_operation_pack_v3_g7_sources_assert_current(operation,
     list(source = current), list(), request)))
   current$cell_id <- rev(current$cell_id)
+  .wb_g7_expect(.wb_operation_pack_v3_g7_sources_assert_current(operation,
+    list(source = current), list(), request),
+    "PYBENCH_INPUT_IDENTITY_MISMATCH")
+  current <- wb_prim_cell_vector(c(cell_2 = 9, cell_10 = 2, cell_1 = 3),
+    value_type = "continuous")
   .wb_g7_expect(.wb_operation_pack_v3_g7_sources_assert_current(operation,
     list(source = current), list(), request),
     "PYBENCH_INPUT_IDENTITY_MISMATCH")
@@ -414,6 +429,8 @@ test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract <- function() 
   run$session <- wb_session_discard(run$session)
 
   before_artifacts <- nrow(wb_art_list(state$bundle))
+  before_fingerprint <- .wb_manifest_registry_snapshot(state$bundle$con)$
+    fingerprint
   before_store <- sort(list.files(.wb_operation_pack_v2_store(state$bundle),
     all.files = TRUE, no.. = TRUE))
   faults <- c(before_dispatch = "PYBENCH_PROCESS_FAILED",
@@ -431,6 +448,8 @@ test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract <- function() 
         cell_set = "all", min_cells = 1L)), faults[[fault]])
     options(scworkbench.operation_pack_v2_test_hook = NULL)
     stopifnot(nrow(wb_art_list(state$bundle)) == before_artifacts,
+      identical(.wb_manifest_registry_snapshot(state$bundle$con)$fingerprint,
+        before_fingerprint),
       identical(sort(list.files(.wb_operation_pack_v2_store(state$bundle),
         all.files = TRUE, no.. = TRUE)), before_store))
   }
@@ -446,6 +465,8 @@ test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract <- function() 
     .wb_g7_expect(wb_session_run_op(wb_session_new(), state$bundle,
       "scwbv3phase5::derived_subset", inputs = inputs), case$code)
     stopifnot(nrow(wb_art_list(state$bundle)) == before_artifacts,
+      identical(.wb_manifest_registry_snapshot(state$bundle$con)$fingerprint,
+        before_fingerprint),
       identical(sort(list.files(.wb_operation_pack_v2_store(state$bundle),
         all.files = TRUE, no.. = TRUE)), before_store))
   }

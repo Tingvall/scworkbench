@@ -1449,6 +1449,8 @@
     operation, inputs, source_refs, request, params)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
     bundle, request)
+  if (abi_v3) .wb_operation_pack_v3_phase5_sources_assert_current(bundle,
+    operation, request, params)
   if (abi_v3) .wb_operation_pack_v3_g3_sources_assert_current(bundle,
     request)
   if (abi_v3) .wb_operation_pack_v3_g7_sources_assert_current(operation,

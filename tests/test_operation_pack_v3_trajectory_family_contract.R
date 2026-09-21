@@ -6,7 +6,7 @@ test_operation_pack_v3_trajectory_family_policy_contract <- function() {
     package = "scworkbench")
   expected <- c(
     "54f935f183364b973e450d1cfce5377c2561fa005667ed85a6a1021312c8d231",
-    "a75d183d639090a014e700f701eebd549a6669a82cb47b828c99288d6d453f48",
+    "b07b61e2727c537fb24f75759f6ef769a67ddc3675d7412459f0fcf18e789dc8",
     "b05b35aaa9fce85791afb7799d795420825322b860187f5c0e81e23fa26f86dd",
     "c993c56df75485094e3ad237863311724bbd4bb8c2b6aa806d29132a091fe381")
   observed <- vapply(paths, digest::digest, character(1), algo = "sha256",

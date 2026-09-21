@@ -27,6 +27,8 @@ nullable_identity <- list(oneOf = list(identity, list(type = "null")))
 nullable_object <- list(oneOf = list(list(type = "object", minProperties = 1L),
   list(type = "null")))
 cell_ids <- array(nonempty, uniqueItems = TRUE, maxItems = 10000000L)
+final_cell_ids <- array(nonempty, minItems = 1L, uniqueItems = TRUE,
+  maxItems = 10000000L)
 
 # Manifest -------------------------------------------------------------------
 manifest <- read("operation-pack-v3.schema.json")
@@ -192,7 +194,7 @@ member_selection <- object(c("source_axis_reference_identity",
     selected_cell_ids = cell_ids))
 pack_declaration_common <- list(schema = list(const =
     "scworkbench.operation_pack.derived_cell_output_axis_declaration.v1"),
-  grant_identity = identity, final_cell_ids = cell_ids,
+  grant_identity = identity, final_cell_ids = final_cell_ids,
   pack_declaration_identity = self_identity)
 rdefs$derived_cell_output_axis_declaration <- list(oneOf = list(
   object(c("schema", "grant_identity", "derivation_mode", "final_cell_ids",

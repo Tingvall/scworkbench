@@ -8242,6 +8242,7 @@
                 "type": "string",
                 "minLength": 1
               },
+              "minItems": 1,
               "uniqueItems": true,
               "maxItems": 10000000
             },
@@ -8297,6 +8298,7 @@
                 "type": "string",
                 "minLength": 1
               },
+              "minItems": 1,
               "uniqueItems": true,
               "maxItems": 10000000
             },
