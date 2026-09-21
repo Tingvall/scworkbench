@@ -583,6 +583,20 @@ test_operation_pack_v3_g7_union_lifecycle_contract <- function() {
     simplifyVector = FALSE)
   stopifnot(identical(receipt$derived_cell_output_axis_observations[[1L]]$
     overlap_collapse_count, 1L))
+  promoted <- wb_session_promote_current(state$bundle, run$session,
+    outputs = "vector", created_by = "g7-union-contract")
+  snapshot_id <- as.character(promoted$provenance_snapshot_id)[1L]
+  bindings <- DBI::dbGetQuery(state$bundle$con, paste(
+    "SELECT DISTINCT entity_id FROM prov_run_entity_bindings",
+    "WHERE snapshot_id=? AND run_id=? AND direction='input'",
+    "AND entity_kind='artifact' ORDER BY entity_id;"),
+    params = list(snapshot_id, run$run$run_id))
   run$session <- wb_session_discard(run$session)
+  stopifnot(isTRUE(wb_finalize_recipient_bundle(state$bundle)$ready))
+  wb_close_bundle(state$bundle)
+  state$bundle <- NULL
+  report <- wb_bundle_validation_report(state$root, "recipient")
+  stopifnot(identical(as.character(bindings$entity_id), sort(sources)),
+    isTRUE(report$ok))
   TRUE
 }

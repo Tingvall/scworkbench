@@ -1542,13 +1542,23 @@ wb_prov_replay_equivalence_results <- function(bundle, replay_snapshot_id = NULL
           effective_member_count = as.integer(resolution$effective_member_count)[1]
         )
       }
-      artifact_refs <- .wb_dag_collect_refs(run$inputs$provenance_refs %||% list(), path = "provenance_refs")
+      # Fixed typed inputs contribute to provenance_refs during ordinary input
+      # resolution. Capability-owned parameters (for example ABI-v3 G4
+      # artifact collections) remain nested in user_inputs and are resolved
+      # only after the generic runner starts. Persist both sources so every
+      # authenticated durable artifact consumed by the run has a matching
+      # provenance binding.
+      artifact_refs <- .wb_dag_collect_refs(list(
+        provenance_refs = run$inputs$provenance_refs %||% list(),
+        user_inputs = run$inputs$user_inputs %||% list()), path = "inputs")
       artifact_refs <- artifact_refs[
         artifact_refs$ref_type == "artifact" &
           !is.na(artifact_refs$artifact_id) &
           nzchar(as.character(artifact_refs$artifact_id)),
         , drop = FALSE
       ]
+      if (nrow(artifact_refs)) artifact_refs <- artifact_refs[
+        !duplicated(as.character(artifact_refs$artifact_id)), , drop = FALSE]
       if (nrow(artifact_refs)) for (j in seq_len(nrow(artifact_refs))) .wb_prov_insert_entity_binding(con, sid, commit_id, rid, "input", as.character(artifact_refs$path[j]), "artifact", as.character(artifact_refs$artifact_id[j]), "CONSUMES", source = "resolved_artifact_input")
 
       outs <- run$outputs %||% list()
