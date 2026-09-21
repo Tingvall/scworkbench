@@ -4464,6 +4464,60 @@
                                   "const": "manifest_order_v1"
                                 }
                               }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "source",
+                                "parameter_candidates",
+                                "null_policy",
+                                "invalid_value_policy"
+                              ],
+                              "properties": {
+                                "source": {
+                                  "const": "resolved_effective_parameter_key_v1"
+                                },
+                                "parameter_candidates": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]*$"
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 2,
+                                  "uniqueItems": true
+                                },
+                                "null_policy": {
+                                  "const": "first_non_null_v1"
+                                },
+                                "invalid_value_policy": {
+                                  "const": "error"
+                                },
+                                "input_presence_override": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "required": [
+                                    "present",
+                                    "absent",
+                                    "use_parameter"
+                                  ],
+                                  "properties": {
+                                    "present": {
+                                      "type": "string",
+                                      "pattern": "^[a-z][a-z0-9_]*$"
+                                    },
+                                    "absent": {
+                                      "type": "string",
+                                      "pattern": "^[a-z][a-z0-9_]*$"
+                                    },
+                                    "use_parameter": {
+                                      "type": "string",
+                                      "pattern": "^[a-z][a-z0-9_]*$"
+                                    }
+                                  }
+                                }
+                              }
                             }
                           ]
                         }

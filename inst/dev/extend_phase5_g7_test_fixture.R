@@ -102,8 +102,47 @@ union <- list(name = "derived_union",
     call_discipline = "resolved_ordinal_slot_exactly_once")),
   derived_cell_output_axes = list(union_axis))
 
-names_new <- c(subset$qualified_name, union$qualified_name)
+effective_link <- list(name = "family", shape = "cell_key_cartesian",
+  row_order = "key_major_then_sealed_cell_v1", missing_values = "forbidden",
+  key_axis = list(source = "resolved_effective_parameter_key_v1",
+    parameter_candidates = list("primary_key", "fallback_key"),
+    null_policy = "first_non_null_v1", invalid_value_policy = "error",
+    input_presence_override = list(present = "override_present",
+      absent = "override_absent", use_parameter = "fallback_key")))
+effective_axis <- axis_declaration("derived", "ordered_unique_subset_v1",
+  list(mode = "static_input_axis", input = "source",
+    projection = "cell_vector_axis_v1", family_key_selector = NULL),
+  list(effective_link))
+effective <- list(name = "derived_effective_key",
+  qualified_name = "scwbv3phase5::derived_effective_key",
+  title = "Generic G7 effective family-key fixture",
+  description = "Resolves one family key from authenticated effective parameters.",
+  runner = ".derived_effective_key", inputs = list(
+    list(name = "source", kind = "cell_vector", required = TRUE,
+      alignment = "cell_ordered"),
+    list(name = "override_present", kind = "cell_vector", required = FALSE,
+      alignment = "cell_ordered"),
+    list(name = "override_absent", kind = "cell_vector", required = FALSE,
+      alignment = "cell_ordered")), params_schema = list(type = "object",
+    additionalProperties = FALSE, required = list("selected_cells",
+      "fallback_key"), properties = list(selected_cells = list(type = "array",
+        minItems = 1L, uniqueItems = TRUE,
+        items = list(type = "string", minLength = 1L)),
+      primary_key = list(type = list("string", "null"), default = NULL),
+      fallback_key = list(type = "string", minLength = 1L,
+        default = "fallback"), forge_key = list(type = "string"),
+      fault_after_output = list(type = "boolean"))), outputs = list(
+    list(name = "family", category = "terminal_artifact",
+      kind = "cell_vector_family", storage_profile = "terminal_primitive_v1",
+      allocated_id_key = "family_id", required = TRUE,
+      promotion_group = "derived", value_kind = "continuous")),
+  dependencies = list(), promotion_closure = list(family = list("family")),
+  replay_equivalence = list(family = "exact_canonical_value"),
+  derived_cell_output_axes = list(effective_axis))
+
+names_new <- c(subset$qualified_name, union$qualified_name,
+  effective$qualified_name)
 x$operations <- c(Filter(function(op) !op$qualified_name %in% names_new,
-  x$operations), list(subset, union))
+  x$operations), list(subset, union, effective))
 jsonlite::write_json(x, path, auto_unbox = TRUE, pretty = TRUE, null = "null",
   digits = NA)

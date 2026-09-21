@@ -15489,6 +15489,470 @@
           "sha256": "3319311eeb2a3fbe1c67392b7b8d59a8aed9cb894d7b773997e03858ce9eab4f"
         }
       }
+    },
+    {
+      "name": "g7_effective_key_primary",
+      "preimage": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "custom"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "custom"
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "primary_key",
+          "selected_key": "custom"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "41fc556b8956f70752b78ecdd2ec0fc6e16f5653fc631b9fe21a29b771602f1a"
+      },
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "custom"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "custom"
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "primary_key",
+          "selected_key": "custom"
+        }
+      }
+    },
+    {
+      "name": "g7_effective_key_null_fallback",
+      "preimage": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": null
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "fallback_key",
+          "selected_key": "L1"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "c7e26a6987eaeba2131a574c6e8f3732886d71bbdd16a0e28d310b7974bd071d"
+      },
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": null
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "fallback_key",
+          "selected_key": "L1"
+        }
+      }
+    },
+    {
+      "name": "g7_effective_key_schema_default",
+      "preimage": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "composite_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "composite_L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "composite_key",
+              "value": "composite_L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "composite_key",
+          "selected_key": "composite_L1"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "3879604c3d7939422b4bfd83cb1f20449949b5aa60ce7c244e795fd4d97aeeae"
+      },
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "composite_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "composite_L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "composite_key",
+              "value": "composite_L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "composite_key",
+          "selected_key": "composite_L1"
+        }
+      }
+    },
+    {
+      "name": "g7_effective_key_override",
+      "preimage": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "custom"
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": true,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": true,
+          "selected_parameter": "fallback_key",
+          "selected_key": "L1"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "33672c5b3f08411bea4605b38e445165e4eb4ff9cbe5824d2719a415b915b6a4"
+      },
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "custom"
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": true,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": true,
+          "selected_parameter": "fallback_key",
+          "selected_key": "L1"
+        }
+      }
+    },
+    {
+      "name": "g7_effective_key_same_no_presence",
+      "preimage": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "same"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "same"
+            },
+            {
+              "name": "fallback_key",
+              "value": "same"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": false,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": false,
+          "selected_parameter": "primary_key",
+          "selected_key": "same"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "3207954905f3d149e9a05f2c35587324efe4590871e1b0c57d37d5ac88deed0f"
+      },
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "same"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "same"
+            },
+            {
+              "name": "fallback_key",
+              "value": "same"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": false,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": false,
+          "selected_parameter": "primary_key",
+          "selected_key": "same"
+        }
+      }
+    },
+    {
+      "name": "g7_effective_key_same_with_presence",
+      "preimage": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "same"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "same"
+            },
+            {
+              "name": "fallback_key",
+              "value": "same"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": true,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": true,
+          "selected_parameter": "fallback_key",
+          "selected_key": "same"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "f939e5ed81f919558b602fa151cc6c215811d40f77dad739d9a568ab9bcf67d4"
+      },
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "same"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "same"
+            },
+            {
+              "name": "fallback_key",
+              "value": "same"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": true,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": true,
+          "selected_parameter": "fallback_key",
+          "selected_key": "same"
+        }
+      }
     }
   ],
   "schema": "scworkbench.operation_pack.v3.identity_fixtures.v1",
@@ -18272,5 +18736,357 @@
         }
       }
     }
-  }
+  },
+  "g7_effective_key_positive_examples": {
+    "primary": {
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "custom"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "custom"
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "primary_key",
+          "selected_key": "custom"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "41fc556b8956f70752b78ecdd2ec0fc6e16f5653fc631b9fe21a29b771602f1a"
+      }
+    },
+    "null_fallback": {
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": null
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "fallback_key",
+          "selected_key": "L1"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "c7e26a6987eaeba2131a574c6e8f3732886d71bbdd16a0e28d310b7974bd071d"
+      }
+    },
+    "schema_default": {
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "composite_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error"
+        },
+        "keys": [
+          "composite_L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "composite_key",
+              "value": "composite_L1"
+            }
+          ],
+          "authenticated_optional_input_presence": null,
+          "override_applied": false,
+          "selected_parameter": "composite_key",
+          "selected_key": "composite_L1"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "3879604c3d7939422b4bfd83cb1f20449949b5aa60ce7c244e795fd4d97aeeae"
+      }
+    },
+    "override": {
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "L1"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "custom"
+            },
+            {
+              "name": "fallback_key",
+              "value": "L1"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": true,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": true,
+          "selected_parameter": "fallback_key",
+          "selected_key": "L1"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "33672c5b3f08411bea4605b38e445165e4eb4ff9cbe5824d2719a415b915b6a4"
+      }
+    },
+    "same_key_no_presence": {
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "same"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "same"
+            },
+            {
+              "name": "fallback_key",
+              "value": "same"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": false,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": false,
+          "selected_parameter": "primary_key",
+          "selected_key": "same"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "3207954905f3d149e9a05f2c35587324efe4590871e1b0c57d37d5ac88deed0f"
+      }
+    },
+    "same_key_with_presence": {
+      "value": {
+        "declaration": {
+          "source": "resolved_effective_parameter_key_v1",
+          "parameter_candidates": [
+            "primary_key",
+            "fallback_key"
+          ],
+          "null_policy": "first_non_null_v1",
+          "invalid_value_policy": "error",
+          "input_presence_override": {
+            "present": "lineage_weights",
+            "absent": "confidence",
+            "use_parameter": "fallback_key"
+          }
+        },
+        "keys": [
+          "same"
+        ],
+        "resolution": {
+          "source": "resolved_effective_parameter_key_v1",
+          "effective_candidate_values": [
+            {
+              "name": "primary_key",
+              "value": "same"
+            },
+            {
+              "name": "fallback_key",
+              "value": "same"
+            }
+          ],
+          "authenticated_optional_input_presence": {
+            "present_input": "lineage_weights",
+            "present": true,
+            "absent_input": "confidence",
+            "absent": false
+          },
+          "override_applied": true,
+          "selected_parameter": "fallback_key",
+          "selected_key": "same"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+        "sha256": "f939e5ed81f919558b602fa151cc6c215811d40f77dad739d9a568ab9bcf67d4"
+      }
+    }
+  },
+  "g7_effective_key_negative_examples": [
+    {
+      "name": "duplicate_candidates",
+      "expected": "reject_manifest",
+      "declaration": {
+        "source": "resolved_effective_parameter_key_v1",
+        "parameter_candidates": [
+          "primary_key",
+          "primary_key"
+        ],
+        "null_policy": "first_non_null_v1",
+        "invalid_value_policy": "error"
+      }
+    },
+    {
+      "name": "too_many_candidates",
+      "expected": "reject_manifest",
+      "declaration": {
+        "source": "resolved_effective_parameter_key_v1",
+        "parameter_candidates": [
+          "primary_key",
+          "fallback_key",
+          "third_key"
+        ],
+        "null_policy": "first_non_null_v1",
+        "invalid_value_policy": "error"
+      }
+    },
+    {
+      "name": "empty_candidate",
+      "expected": "reject_manifest",
+      "declaration": {
+        "source": "resolved_effective_parameter_key_v1",
+        "parameter_candidates": [
+          ""
+        ],
+        "null_policy": "first_non_null_v1",
+        "invalid_value_policy": "error"
+      }
+    },
+    {
+      "name": "ambiguous_override_inputs",
+      "expected": "reject_manifest",
+      "declaration": {
+        "source": "resolved_effective_parameter_key_v1",
+        "parameter_candidates": [
+          "primary_key",
+          "fallback_key"
+        ],
+        "null_policy": "first_non_null_v1",
+        "invalid_value_policy": "error",
+        "input_presence_override": {
+          "present": "confidence",
+          "absent": "confidence",
+          "use_parameter": "fallback_key"
+        }
+      }
+    },
+    {
+      "name": "empty_effective_value",
+      "expected": "reject_resolution",
+      "declaration": {
+        "source": "resolved_effective_parameter_key_v1",
+        "parameter_candidates": [
+          "primary_key",
+          "fallback_key"
+        ],
+        "null_policy": "first_non_null_v1",
+        "invalid_value_policy": "error"
+      },
+      "effective_parameters": {
+        "primary_key": "",
+        "fallback_key": "L1"
+      },
+      "input_presence": []
+    },
+    {
+      "name": "self_rehashed_wrong_branch",
+      "expected": "reject_receipt",
+      "declaration": {
+        "source": "resolved_effective_parameter_key_v1",
+        "parameter_candidates": [
+          "primary_key",
+          "fallback_key"
+        ],
+        "null_policy": "first_non_null_v1",
+        "invalid_value_policy": "error",
+        "input_presence_override": {
+          "present": "lineage_weights",
+          "absent": "confidence",
+          "use_parameter": "fallback_key"
+        }
+      },
+      "effective_parameters": {
+        "primary_key": "custom",
+        "fallback_key": "L1"
+      },
+      "input_presence": {
+        "lineage_weights": true
+      },
+      "substituted_key": "custom"
+    }
+  ]
 }

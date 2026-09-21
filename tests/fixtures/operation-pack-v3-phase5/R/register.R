@@ -89,6 +89,25 @@
       selected)))
 }
 
+.derived_effective_key <- function(readers, writers, params, context) {
+  source <- readers$source()
+  selected <- as.character(params$selected_cells)
+  override <- !is.null(readers$override_present) &&
+    is.null(readers$override_absent)
+  key <- if (override) as.character(params$fallback_key) else if (
+    is.null(params$primary_key)) as.character(params$fallback_key) else
+      as.character(params$primary_key)
+  if (!is.null(params$forge_key)) key <- as.character(params$forge_key)
+  writers$write_terminal_primitive("family",
+    scworkbench::wb_prim_cell_vector_family(rep(key, length(selected)),
+      selected, source$value[match(selected, source$cell_id)],
+      value_type = "continuous", meta = list(fixture = "g7-effective-key")))
+  if (isTRUE(params$fault_after_output)) stop("effective key fixture fault")
+  list(derived_cell_output_axis_declarations = list(
+    scworkbench::wb_derived_cell_output_axis_declaration(
+      context$derived_cell_output_axis_grants[[1L]], selected)))
+}
+
 register_operation_pack <- function() {
   scworkbench::wb_operation_pack_register(
     system.file("scworkbench", "operation-pack.json",
@@ -100,6 +119,7 @@ register_operation_pack <- function() {
       `scwbv3phase5::adopt_external_state` = .adopt_external_state
       , `scwbv3phase5::derived_subset` = .derived_subset
       , `scwbv3phase5::derived_union` = .derived_union
+      , `scwbv3phase5::derived_effective_key` = .derived_effective_key
     )
   )
 }

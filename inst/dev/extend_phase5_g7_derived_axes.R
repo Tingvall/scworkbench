@@ -37,6 +37,15 @@ key_axis <- defs$dimension_policy$oneOf[[which(vapply(
   defs$dimension_policy$oneOf, function(x) identical(
     x$properties$policy$const, "authenticated_output_axes_v1"),
   logical(1)))]]$properties$key_axis
+input_presence_override <- object(c("present", "absent", "use_parameter"),
+  list(present = name, absent = name, use_parameter = name))
+effective_parameter_key <- object(c("source", "parameter_candidates",
+  "null_policy", "invalid_value_policy"), list(source = list(const =
+    "resolved_effective_parameter_key_v1"), parameter_candidates = array(
+      name, minItems = 1L, maxItems = 2L, uniqueItems = TRUE), null_policy =
+      list(const = "first_non_null_v1"), invalid_value_policy = list(const =
+        "error"), input_presence_override = input_presence_override))
+key_axis$oneOf[[length(key_axis$oneOf) + 1L]] <- effective_parameter_key
 selector <- list(oneOf = list(
   object(c("mode", "key"), list(mode = list(const = "literal"),
     key = nonempty)),
@@ -253,6 +262,22 @@ key_resolution <- list(oneOf = list(
             uniqueItems = TRUE))), uniqueItems = TRUE), selection_owner = list(
               const = "writer_observed_v1"), group_order = list(const =
                 "manifest_order_v1")))))
+candidate_value <- object(c("name", "value"), list(name = name,
+  value = list(oneOf = list(nonempty, list(type = "null")))))
+authenticated_presence <- object(c("present_input", "present",
+  "absent_input", "absent"), list(present_input = name,
+    present = list(type = "boolean"), absent_input = name,
+    absent = list(type = "boolean")))
+key_resolution$oneOf[[length(key_resolution$oneOf) + 1L]] <- object(c(
+  "source", "effective_candidate_values",
+  "authenticated_optional_input_presence", "override_applied",
+  "selected_parameter", "selected_key"), list(source = list(const =
+    "resolved_effective_parameter_key_v1"), effective_candidate_values =
+    array(candidate_value, minItems = 1L, maxItems = 2L),
+    authenticated_optional_input_presence = list(oneOf = list(
+      authenticated_presence, list(type = "null"))), override_applied =
+    list(type = "boolean"), selected_parameter = name,
+    selected_key = nonempty))
 resolved_policy <- object(c("declaration", "keys", "resolution"), list(
   declaration = key_axis, keys = array(nonempty, uniqueItems = TRUE),
   resolution = key_resolution))

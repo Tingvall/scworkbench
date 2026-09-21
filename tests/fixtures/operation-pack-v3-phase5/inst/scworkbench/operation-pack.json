@@ -606,6 +606,140 @@
           }
         }
       ]
+    },
+    {
+      "name": "derived_effective_key",
+      "qualified_name": "scwbv3phase5::derived_effective_key",
+      "title": "Generic G7 effective family-key fixture",
+      "description": "Resolves one family key from authenticated effective parameters.",
+      "runner": ".derived_effective_key",
+      "inputs": [
+        {
+          "name": "source",
+          "kind": "cell_vector",
+          "required": true,
+          "alignment": "cell_ordered"
+        },
+        {
+          "name": "override_present",
+          "kind": "cell_vector",
+          "required": false,
+          "alignment": "cell_ordered"
+        },
+        {
+          "name": "override_absent",
+          "kind": "cell_vector",
+          "required": false,
+          "alignment": "cell_ordered"
+        }
+      ],
+      "params_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "selected_cells",
+          "fallback_key"
+        ],
+        "properties": {
+          "selected_cells": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "primary_key": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "default": null
+          },
+          "fallback_key": {
+            "type": "string",
+            "minLength": 1,
+            "default": "fallback"
+          },
+          "forge_key": {
+            "type": "string"
+          },
+          "fault_after_output": {
+            "type": "boolean"
+          }
+        }
+      },
+      "outputs": [
+        {
+          "name": "family",
+          "category": "terminal_artifact",
+          "kind": "cell_vector_family",
+          "storage_profile": "terminal_primitive_v1",
+          "allocated_id_key": "family_id",
+          "required": true,
+          "promotion_group": "derived",
+          "value_kind": "continuous"
+        }
+      ],
+      "dependencies": [],
+      "promotion_closure": {
+        "family": [
+          "family"
+        ]
+      },
+      "replay_equivalence": {
+        "family": "exact_canonical_value"
+      },
+      "derived_cell_output_axes": [
+        {
+          "schema": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+          "name": "derived",
+          "derivation_mode": "ordered_unique_subset_v1",
+          "source": {
+            "mode": "static_input_axis",
+            "input": "source",
+            "projection": "cell_vector_axis_v1",
+            "family_key_selector": null
+          },
+          "linked_outputs": [
+            {
+              "name": "family",
+              "shape": "cell_key_cartesian",
+              "row_order": "key_major_then_sealed_cell_v1",
+              "missing_values": "forbidden",
+              "key_axis": {
+                "source": "resolved_effective_parameter_key_v1",
+                "parameter_candidates": [
+                  "primary_key",
+                  "fallback_key"
+                ],
+                "null_policy": "first_non_null_v1",
+                "invalid_value_policy": "error",
+                "input_presence_override": {
+                  "present": "override_present",
+                  "absent": "override_absent",
+                  "use_parameter": "fallback_key"
+                }
+              }
+            }
+          ],
+          "limits": {
+            "minimum_cells": 1,
+            "maximum_cells": 1000,
+            "maximum_source_axes": 1,
+            "maximum_source_memberships": 10000,
+            "maximum_linked_outputs": 1
+          },
+          "call_discipline": "declare_once_seal_before_linked_output_v1",
+          "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+            "scope": "derived cell output axis declaration excluding declaration_identity",
+            "sha256": "7b0eedc7a954b7b152c759bd7cafdeb00c938ade40d816b91694a98e4ddbce14"
+          }
+        }
+      ]
     }
   ]
 }

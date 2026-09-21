@@ -45,7 +45,7 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
     "inst/protocol/fixtures/operation-pack-v3/identities.json",
     simplifyVector = FALSE)
   cases <- Filter(function(x) startsWith(x$name, "g7_"), fixture$cases)
-  stopifnot(length(cases) == 47L)
+  stopifnot(length(cases) == 53L)
   for (item in cases) stopifnot(identical(
     .wb_operation_pack_sha256(item$preimage), item$identity$sha256))
   nonlex <- fixture$g7_positive_examples$union_nonlexicographic

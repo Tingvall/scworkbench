@@ -350,6 +350,38 @@ build_union_chain <- function(pack_declaration) {
 union_chain_a <- build_union_chain(union_a)
 union_chain_b <- build_union_chain(union_b)
 
+effective_spec <- list(source = "resolved_effective_parameter_key_v1",
+  parameter_candidates = list("primary_key", "fallback_key"),
+  null_policy = "first_non_null_v1", invalid_value_policy = "error")
+effective_override_spec <- c(effective_spec, list(input_presence_override =
+  list(present = "lineage_weights", absent = "confidence",
+    use_parameter = "fallback_key")))
+effective_policy <- function(spec, inputs, primary, fallback) {
+  candidates <- as.character(unlist(spec$parameter_candidates,
+    use.names = FALSE))
+  params <- stats::setNames(vector("list", length(candidates)), candidates)
+  params[[candidates[[1L]]]] <- primary
+  if (length(candidates) == 2L) params[[candidates[[2L]]]] <- fallback
+  resolved <- scworkbench:::.wb_operation_pack_v3_g7_key_axis(spec, inputs,
+    params, list())
+  list(value = resolved$resolution, identity = resolved$identity)
+}
+effective <- list(
+  primary = effective_policy(effective_spec, list(), "custom", "L1"),
+  null_fallback = effective_policy(effective_spec, list(), NULL, "L1"),
+  schema_default = effective_policy(list(source =
+      "resolved_effective_parameter_key_v1", parameter_candidates = list(
+        "composite_key"), null_policy = "first_non_null_v1",
+      invalid_value_policy = "error"), list(), "composite_L1", NULL),
+  override = effective_policy(effective_override_spec,
+    list(lineage_weights = TRUE), "custom", "L1"),
+  same_key_no_presence = effective_policy(effective_override_spec, list(),
+    "same", "same"),
+  same_key_with_presence = effective_policy(effective_override_spec,
+    list(lineage_weights = TRUE), "same", "same"))
+effective_case <- function(name, item) list(name = name,
+  preimage = item$value, identity = item$identity, value = item$value)
+
 new <- list(case("g7_manifest_declaration", declaration,
     "declaration_identity"),
   case("g7_subset_source_reference", source,
@@ -445,7 +477,15 @@ new <- list(case("g7_manifest_declaration", declaration,
   case("g7_union_nonlexicographic_receipt",
     union_chain_a$transition$receipt, "receipt_identity"),
   case("g7_union_alternate_order_receipt", union_chain_b$transition$receipt,
-    "receipt_identity"))
+    "receipt_identity"),
+  effective_case("g7_effective_key_primary", effective$primary),
+  effective_case("g7_effective_key_null_fallback", effective$null_fallback),
+  effective_case("g7_effective_key_schema_default", effective$schema_default),
+  effective_case("g7_effective_key_override", effective$override),
+  effective_case("g7_effective_key_same_no_presence",
+    effective$same_key_no_presence),
+  effective_case("g7_effective_key_same_with_presence",
+    effective$same_key_with_presence))
 fixture$cases <- c(Filter(function(x) !startsWith(x$name, "g7_"),
   fixture$cases), new)
 fixture$g7_positive_examples <- list(subset = list(declaration = declaration,
@@ -467,5 +507,26 @@ fixture$g7_positive_examples <- list(subset = list(declaration = declaration,
     linked_values = lapply(union_chain_b$values, unclass),
     observation = union_chain_b$applied$observation,
     receipt = union_chain_b$transition$receipt))
+fixture$g7_effective_key_positive_examples <- effective
+fixture$g7_effective_key_negative_examples <- list(
+  list(name = "duplicate_candidates", expected = "reject_manifest",
+    declaration = within(effective_spec, parameter_candidates <- list(
+      "primary_key", "primary_key"))),
+  list(name = "too_many_candidates", expected = "reject_manifest",
+    declaration = within(effective_spec, parameter_candidates <- list(
+      "primary_key", "fallback_key", "third_key"))),
+  list(name = "empty_candidate", expected = "reject_manifest",
+    declaration = within(effective_spec, parameter_candidates <- list(""))),
+  list(name = "ambiguous_override_inputs", expected = "reject_manifest",
+    declaration = within(effective_override_spec,
+      input_presence_override <- list(present = "confidence",
+        absent = "confidence", use_parameter = "fallback_key"))),
+  list(name = "empty_effective_value", expected = "reject_resolution",
+    declaration = effective_spec, effective_parameters = list(
+      primary_key = "", fallback_key = "L1"), input_presence = list()),
+  list(name = "self_rehashed_wrong_branch", expected = "reject_receipt",
+    declaration = effective_override_spec, effective_parameters = list(
+      primary_key = "custom", fallback_key = "L1"), input_presence = list(
+        lineage_weights = TRUE), substituted_key = "custom"))
 jsonlite::write_json(fixture, path, auto_unbox = TRUE, pretty = TRUE,
   null = "null", digits = NA)

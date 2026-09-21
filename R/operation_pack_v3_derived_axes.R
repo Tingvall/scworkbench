@@ -22,6 +22,48 @@
   out
 }
 
+.wb_operation_pack_v3_g7_effective_key_semantic_validate <- function(spec,
+    inputs, properties, fail) {
+  if (!identical(as.character(spec$source)[1],
+      "resolved_effective_parameter_key_v1")) return(invisible(TRUE))
+  candidates <- as.character(unlist(spec$parameter_candidates,
+    use.names = FALSE))
+  if (!length(candidates) || length(candidates) > 2L ||
+      anyNA(candidates) || any(!nzchar(candidates)) ||
+      anyDuplicated(candidates)) fail(
+        "has an invalid effective-parameter key candidate list.")
+  for (candidate in candidates) {
+    property <- properties[[candidate]]
+    types <- as.character(unlist(property$type %||% character(),
+      use.names = FALSE))
+    if (is.null(property) || !"string" %in% types ||
+        any(!types %in% c("string", "null"))) fail(paste0(
+          "uses non-scalar-string key parameter '", candidate, "'."))
+    if ("default" %in% names(property)) {
+      default <- property$default
+      valid_default <- is.null(default) && "null" %in% types ||
+        is.character(default) && length(default) == 1L && !is.na(default) &&
+          nzchar(default)
+      if (!isTRUE(valid_default)) fail(paste0(
+        "has an invalid effective key default for '", candidate, "'."))
+    }
+  }
+  override <- spec$input_presence_override %||% NULL
+  if (!is.null(override)) {
+    present <- as.character(override$present)[1]
+    absent <- as.character(override$absent)[1]
+    use_parameter <- as.character(override$use_parameter)[1]
+    present_input <- inputs[[present]]
+    absent_input <- inputs[[absent]]
+    if (!nzchar(present) || !nzchar(absent) || identical(present, absent) ||
+        is.null(present_input) || isTRUE(present_input$required) ||
+        is.null(absent_input) || isTRUE(absent_input$required) ||
+        !use_parameter %in% candidates) fail(
+          "has an invalid authenticated optional-input presence override.")
+  }
+  invisible(TRUE)
+}
+
 .wb_operation_pack_v3_g7_semantic_validate <- function(operation, inputs,
     outputs, properties, backend) {
   declarations <- .wb_operation_pack_v3_g7_declarations(operation)
@@ -106,6 +148,13 @@
       output <- outputs[[name]]
       kind <- as.character(output$kind %||% "")[1]
       shape <- as.character(item$shape)[1]
+      .wb_operation_pack_v3_g7_effective_key_semantic_validate(
+        item$key_axis %||% list(), inputs, properties, fail)
+      if (identical(as.character(item$key_axis$source %||% "")[1],
+          "resolved_effective_parameter_key_v1") &&
+          !identical(shape, "cell_key_cartesian")) fail(paste0(
+            "links effective-parameter keys to invalid shape '", shape,
+            "'."))
       valid_shape <- (kind == "cell_vector" && shape == "one_per_cell" &&
           identical(as.character(item$row_order)[1],
             "sealed_cell_axis_order_v1") && is.null(item$key_axis)) ||
@@ -125,6 +174,101 @@
   }
   if (length(all_linked) > 32L || anyDuplicated(all_linked))
     fail("links an output more than once or exceeds the operation ceiling.")
+  invisible(TRUE)
+}
+
+.wb_operation_pack_v3_g7_effective_key_state <- function(spec, inputs,
+    params) {
+  fail <- function(message) .wb_operation_pack_v3_error(
+    "PYBENCH_INPUT_IDENTITY_MISMATCH", message, "resolution")
+  candidates <- as.character(unlist(spec$parameter_candidates,
+    use.names = FALSE))
+  values <- lapply(candidates, function(candidate) {
+    value <- params[[candidate]]
+    if (is.null(value)) return(NULL)
+    if (!is.character(value) || length(value) != 1L || is.na(value) ||
+        !nzchar(value)) fail(paste0("Effective family-key parameter '",
+          candidate, "' is not a nonempty scalar string or null."))
+    value
+  })
+  names(values) <- candidates
+  candidate_values <- lapply(candidates, function(candidate) list(
+    name = candidate, value = values[[candidate]]))
+  override <- spec$input_presence_override %||% NULL
+  presence <- NULL
+  override_applied <- FALSE
+  if (!is.null(override)) {
+    present_name <- as.character(override$present)[1]
+    absent_name <- as.character(override$absent)[1]
+    present <- !is.null(inputs[[present_name]])
+    absent <- !is.null(inputs[[absent_name]])
+    presence <- list(present_input = present_name, present = present,
+      absent_input = absent_name, absent = absent)
+    override_applied <- isTRUE(present && !absent)
+  }
+  selected <- if (override_applied)
+    as.character(override$use_parameter)[1] else {
+      available <- candidates[!vapply(values, is.null, logical(1))]
+      if (length(available)) available[[1L]] else ""
+    }
+  if (!nzchar(selected) || is.null(values[[selected]])) fail(
+    "Effective family-key policy did not resolve a non-null candidate.")
+  key <- values[[selected]]
+  resolution <- list(source = "resolved_effective_parameter_key_v1",
+    effective_candidate_values = candidate_values,
+    authenticated_optional_input_presence = presence,
+    override_applied = override_applied,
+    selected_parameter = selected, selected_key = key)
+  list(keys = key, resolution = resolution)
+}
+
+.wb_operation_pack_v3_g7_effective_key_assert <- function(policy,
+    code = "PYBENCH_CAPABILITY_MISMATCH", phase = "staging") {
+  declaration <- policy$declaration
+  if (!identical(as.character(declaration$source %||% "")[1],
+      "resolved_effective_parameter_key_v1")) return(invisible(TRUE))
+  resolution <- policy$resolution
+  candidates <- as.character(unlist(declaration$parameter_candidates,
+    use.names = FALSE))
+  records <- resolution$effective_candidate_values %||% list()
+  record_names <- vapply(records, function(x) as.character(x$name)[1],
+    character(1))
+  values <- lapply(records, `[[`, "value")
+  names(values) <- record_names
+  override <- declaration$input_presence_override %||% NULL
+  presence <- resolution$authenticated_optional_input_presence
+  applied <- FALSE
+  if (is.null(override)) {
+    valid_presence <- is.null(presence)
+  } else {
+    applied <- isTRUE(presence$present) && !isTRUE(presence$absent)
+    valid_presence <- identical(as.character(presence$present_input)[1],
+      as.character(override$present)[1]) &&
+      identical(as.character(presence$absent_input)[1],
+        as.character(override$absent)[1]) &&
+      is.logical(presence$present) && length(presence$present) == 1L &&
+      is.logical(presence$absent) && length(presence$absent) == 1L
+  }
+  selected <- if (applied) as.character(override$use_parameter)[1] else {
+    available <- candidates[vapply(candidates, function(candidate)
+      !is.null(values[[candidate]]), logical(1))]
+    if (length(available)) available[[1L]] else ""
+  }
+  selected_value <- values[[selected]]
+  valid_values <- length(records) == length(candidates) &&
+    identical(record_names, candidates) && all(vapply(values, function(value)
+      is.null(value) || is.character(value) && length(value) == 1L &&
+        !is.na(value) && nzchar(value), logical(1)))
+  valid <- valid_presence && valid_values &&
+    identical(isTRUE(resolution$override_applied), applied) && nzchar(selected) &&
+    !is.null(selected_value) &&
+    identical(as.character(resolution$selected_parameter)[1], selected) &&
+    identical(as.character(resolution$selected_key)[1], selected_value) &&
+    identical(as.character(unlist(policy$keys, use.names = FALSE)),
+      selected_value)
+  if (!isTRUE(valid)) .wb_operation_pack_v3_error(code,
+    "Effective family-key resolution differs from its authenticated policy.",
+    phase)
   invisible(TRUE)
 }
 
@@ -252,13 +396,17 @@
                 required_keys = spec$required_keys,
                 optional_groups = spec$optional_groups,
                 selection_owner = spec$selection_owner,
-                group_order = spec$group_order)) else
+                group_order = spec$group_order)) else if (identical(source,
+                  "resolved_effective_parameter_key_v1"))
+                    .wb_operation_pack_v3_g7_effective_key_state(spec,
+                      inputs, params) else
           .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
             "Unknown G7 family-key axis policy.", "resolution")
   resolution <- list(declaration = spec,
     keys = unname(as.list(state$keys)), resolution = state$resolution)
   identity <- .wb_operation_pack_v3_g7_plain(
     "scworkbench.operation_pack.resolved_key_axis_policy.v1", resolution)
+  .wb_operation_pack_v3_g7_effective_key_assert(resolution)
   list(keys = state$keys, resolution = resolution,
     identity = identity)
 }
@@ -746,10 +894,35 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "Derived-axis capability closure differs from request grants.",
       "staging")
+  present_inputs <- stats::setNames(rep(list(TRUE), length(request$inputs)),
+    vapply(request$inputs, `[[`, character(1), "name"))
+  for (output in request$outputs %||% list()) {
+    linked <- output$descriptor$derived_cell_output_axis_policy %||% NULL
+    policy <- linked$resolved_key_axis %||% NULL
+    if (is.null(policy) || !identical(as.character(
+        policy$declaration$source %||% "")[1],
+        "resolved_effective_parameter_key_v1")) next
+    .wb_operation_pack_v3_g7_effective_key_assert(policy)
+    state <- .wb_operation_pack_v3_g7_effective_key_state(
+      policy$declaration, present_inputs, request$params)
+    expected_policy <- list(declaration = policy$declaration,
+      keys = unname(as.list(state$keys)), resolution = state$resolution)
+    expected_identity <- .wb_operation_pack_v3_g7_plain(
+      "scworkbench.operation_pack.resolved_key_axis_policy.v1",
+      expected_policy)
+    if (!identical(policy, expected_policy) || !identical(
+        linked$resolved_keys, expected_policy$keys) || !identical(
+        linked$resolved_key_axis_policy_identity_or_null,
+        expected_identity)) .wb_operation_pack_v3_error(
+          "PYBENCH_CAPABILITY_MISMATCH",
+          "Effective family-key policy differs from authenticated request parameters or input presence.",
+          "staging")
+  }
   invisible(TRUE)
 }
 
 .wb_operation_pack_v3_g7_receipt_audit <- function(receipt, request) {
+  .wb_operation_pack_v3_g7_request_audit(request)
   grants <- request$derived_cell_output_axis_grants %||% list()
   observations <- receipt$derived_cell_output_axis_observations %||% list()
   if (length(grants) != length(observations)) .wb_operation_pack_v3_error(
@@ -835,6 +1008,10 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
         "receipt")
       sealed_grant <- descriptor$sealed_output_cardinality_grant
       cardinality <- descriptor$observed_sealed_output_cardinality
+      requested_output <- request$outputs[[match(item$name, vapply(
+        request$outputs, `[[`, character(1), "name"))]]
+      requested_policy <- requested_output$descriptor$
+        derived_cell_output_axis_policy
       bindings <- c(
         receipt_grant = identical(item$ordinary_output_grant_identity,
           expected_link$ordinary_output_grant_identity),
@@ -864,6 +1041,9 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
         output_key_axis = identical(
           sealed_grant$resolved_key_axis_policy_identity_or_null,
           expected_link$resolved_key_axis_policy_identity_or_null),
+        output_key_axis_resolution = identical(
+          sealed_grant$key_axis_resolution %||% NULL,
+          requested_policy$resolved_key_axis %||% NULL),
         cardinality_grant = identical(
           cardinality$sealed_cardinality_grant_identity,
           sealed_grant$sealed_cardinality_grant_identity),
