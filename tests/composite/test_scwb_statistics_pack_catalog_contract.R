@@ -5,7 +5,7 @@
 }
 
 test_catalog_activation <- function() {
-  stopifnot(length(wb_list_ops()) == 37L, nrow(wb_operation_packs()) == 0L)
+  stopifnot(length(wb_list_ops()) == 32L, nrow(wb_operation_packs()) == 0L)
   before <- wb_operation_catalog_identity()
   stopifnot(identical(.statistics_error_code(.wb_op("de_wilcox")),
     "OPERATION_PACK_REQUIRED"))
@@ -14,7 +14,7 @@ test_catalog_activation <- function() {
   migrated <- .wb_operation_pack_migrated_map()
   short_names <- names(migrated)[startsWith(unname(migrated), "scwbstatistics::")]
   namespaced <- unname(migrated[short_names])
-  stopifnot(length(wb_list_ops()) == 43L, all(namespaced %in% wb_list_ops()))
+  stopifnot(length(wb_list_ops()) == 38L, all(namespaced %in% wb_list_ops()))
   for (short in short_names) {
     interface <- wb_op_interface(short)
     stopifnot(identical(interface$op_name, paste0("scwbstatistics::", short)))
@@ -23,7 +23,7 @@ test_catalog_activation <- function() {
   second <- wb_operation_pack_load("scwbStatistics",
     lib.loc = .contract_test_statistics_state$library)
   stopifnot(identical(first$identity$pack_sha256, second$identity$pack_sha256),
-    length(wb_list_ops()) == 43L)
+    length(wb_list_ops()) == 38L)
   TRUE
 }
 

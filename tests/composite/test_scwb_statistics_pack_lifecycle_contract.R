@@ -171,7 +171,7 @@ test_promotion_replay_recipient <- function() {
   script <- tempfile("scwb_statistics_pack_free_", fileext = ".R")
   writeLines(c(
     paste0("devtools::load_all(", shQuote(normalizePath(".")), ", quiet=TRUE)"),
-    "stopifnot(length(wb_list_ops()) == 37L)",
+    "stopifnot(length(wb_list_ops()) == 32L)",
     paste0("root <- ", shQuote(fixture$root)),
     "stopifnot(isTRUE(wb_validate_bundle(root, read_only=TRUE)))",
     "bundle <- wb_open_bundle(root, validate=TRUE, read_only=TRUE)",
