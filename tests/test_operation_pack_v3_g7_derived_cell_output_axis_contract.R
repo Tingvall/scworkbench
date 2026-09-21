@@ -450,6 +450,11 @@ test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract <- function() 
       candidate$derived_cell_output_axis_observations[[1L]])
     if (repair) candidate$derived_cell_output_axis_observations[[1L]] <-
       repair_observation(candidate$derived_cell_output_axis_observations[[1L]])
+    if (repair) {
+      candidate$receipt_identity <- NULL
+      candidate$receipt_identity <- .wb_operation_pack_v2_identity_scoped(
+        candidate$schema, "receipt excluding receipt_identity", candidate)
+    }
     candidate
   }
   receipt_cases <- list(
@@ -458,8 +463,28 @@ test_operation_pack_v3_g7_subset_lifecycle_and_atomicity_contract <- function() 
     mutate_receipt(function(x) { x$linked_outputs <- rev(x$linked_outputs); x }),
     mutate_receipt(function(x) { x$grant_identity$sha256 <-
       paste(rep("0", 64L), collapse = ""); x }),
-    mutate_receipt(function(x) { x$final_cell_count <- 999L; x },
-      repair = FALSE))
+    mutate_receipt(function(x) { x$final_cell_count <- 999L; x }),
+    mutate_receipt(function(x) { x$final_cell_order_identity$sha256 <-
+      paste(rep("0", 64L), collapse = ""); x }),
+    mutate_receipt(function(x) { x$source_axis_count <-
+      x$source_axis_count + 1L; x }),
+    mutate_receipt(function(x) { x$source_membership_count <-
+      x$source_membership_count + 1L; x }),
+    mutate_receipt(function(x) { x$source_axis_aggregate_identity$sha256 <-
+      paste(rep("0", 64L), collapse = ""); x }),
+    mutate_receipt(function(x) { x$derivation_identity$sha256 <-
+      paste(rep("0", 64L), collapse = ""); x }),
+    mutate_receipt(function(x) { x$aggregate_selected_count <-
+      x$aggregate_selected_count + 1L; x }),
+    mutate_receipt(function(x) { x$overlap_collapse_count <- 1L; x }),
+    mutate_receipt(function(x) { x$seal_status <- "unsealed"; x }),
+    mutate_receipt(function(x) { x$semantic_validation <- "failed"; x }))
+  for (candidate in receipt_cases[5:6]) {
+    stopifnot(isTRUE(.wb_operation_pack_v3_schema_assert(candidate,
+      "receipt", "PYBENCH_RECEIPT_MISMATCH")))
+    .wb_operation_pack_v3_assert_self_identity(candidate,
+      "receipt_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+  }
   for (candidate in receipt_cases) .wb_g7_expect(
     .wb_operation_pack_v3_g7_receipt_audit(candidate, request),
     "PYBENCH_RECEIPT_MISMATCH")

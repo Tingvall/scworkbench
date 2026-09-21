@@ -764,8 +764,51 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
     .wb_operation_pack_v3_assert_self_identity(observation,
       "observation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
     linked <- grant$linked_output_closure$linked_outputs
+    source <- grant$source_axis_aggregate
+    expected_seal <- list(schema =
+        "scworkbench.operation_pack.sealed_derived_cell_axis.v1",
+      grant_identity = .wb_operation_pack_v3_unscoped_identity(
+        grant$grant_identity),
+      pack_declaration_identity = observation$pack_declaration_identity,
+      derivation_identity = observation$derivation_identity,
+      source_axis_aggregate_identity =
+        .wb_operation_pack_v3_unscoped_identity(
+          source$source_axis_aggregate_identity),
+      linked_output_closure_identity =
+        .wb_operation_pack_v3_unscoped_identity(
+          grant$linked_output_closure$linked_output_closure_identity),
+      final_cell_count = observation$final_cell_count,
+      final_cell_order_identity = observation$final_cell_order_identity,
+      status = "sealed")
+    expected_seal$sealed_axis_identity <- .wb_operation_pack_v3_g7_id(
+      expected_seal$schema, "sealed axis excluding sealed_axis_identity",
+      expected_seal)
+    counts_consistent <- if (identical(grant$derivation_mode,
+        "ordered_unique_subset_v1"))
+      identical(observation$aggregate_selected_count,
+        observation$final_cell_count) &&
+        identical(observation$overlap_collapse_count, 0L) else
+      observation$aggregate_selected_count -
+        observation$overlap_collapse_count ==
+          observation$final_cell_count
     if (!identical(observation$grant_identity,
         .wb_operation_pack_v3_unscoped_identity(grant$grant_identity)) ||
+        !identical(observation$source_axis_aggregate_identity,
+          expected_seal$source_axis_aggregate_identity) ||
+        !identical(observation$derivation_mode, grant$derivation_mode) ||
+        !identical(observation$source_axis_count,
+          source$source_axis_count) ||
+        !identical(observation$source_membership_count,
+          source$source_membership_count) ||
+        observation$aggregate_selected_count >
+          source$source_membership_count || !isTRUE(counts_consistent) ||
+        !identical(observation$sealed_axis_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            expected_seal$sealed_axis_identity)) ||
+        !identical(observation$declaration_count, 1L) ||
+        !identical(observation$seal_status, "sealed") ||
+        !identical(observation$exact_linked_output_coverage, "passed") ||
+        !identical(observation$semantic_validation, "passed") ||
         !identical(observation$linked_output_closure_identity,
           .wb_operation_pack_v3_unscoped_identity(grant$
             linked_output_closure$linked_output_closure_identity)) ||
@@ -801,13 +844,40 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
           .wb_operation_pack_v3_unscoped_identity(grant$grant_identity)),
         declaration = identical(sealed_grant$pack_declaration_identity,
           observation$pack_declaration_identity),
+        manifest_declaration = identical(
+          sealed_grant$manifest_declaration_identity,
+          grant$manifest_declaration_identity),
         seal = identical(sealed_grant$sealed_axis_identity,
           observation$sealed_axis_identity),
+        sealed_count = identical(sealed_grant$cell_axis_count,
+          observation$final_cell_count),
+        sealed_order = identical(sealed_grant$cell_axis_order_identity,
+          observation$final_cell_order_identity),
+        output_name = identical(sealed_grant$output, item$name),
+        output_kind = identical(sealed_grant$kind, expected_link$kind),
+        output_shape = identical(sealed_grant$shape,
+          expected_link$shape),
+        output_row_order = identical(sealed_grant$row_order,
+          expected_link$row_order),
+        output_missing_values = identical(sealed_grant$missing_values,
+          expected_link$missing_values),
+        output_key_axis = identical(
+          sealed_grant$resolved_key_axis_policy_identity_or_null,
+          expected_link$resolved_key_axis_policy_identity_or_null),
         cardinality_grant = identical(
           cardinality$sealed_cardinality_grant_identity,
           sealed_grant$sealed_cardinality_grant_identity),
         cardinality_seal = identical(cardinality$sealed_axis_identity,
           observation$sealed_axis_identity),
+        observed_count = identical(cardinality$observed_cell_axis_count,
+          observation$final_cell_count),
+        observed_order = identical(
+          cardinality$observed_cell_axis_order_identity,
+          observation$final_cell_order_identity),
+        observed_shape = identical(cardinality$shape,
+          sealed_grant$shape),
+        observed_status = identical(cardinality$semantic_validation,
+          "passed"),
         cardinality_observation = identical(
           item$sealed_cardinality_observation_identity,
           .wb_operation_pack_v3_unscoped_identity(
