@@ -2384,5 +2384,8 @@
       )
     )
   )
-  catalog
+  extracted_to_scwbtrajectory <- c("space_path_define",
+    "trajectory_segment_from_artifacts", "trajectory_space_path_segment",
+    "trajectory_segment_join", "trajectory_segment_path_join")
+  catalog[setdiff(names(catalog), extracted_to_scwbtrajectory)]
 }

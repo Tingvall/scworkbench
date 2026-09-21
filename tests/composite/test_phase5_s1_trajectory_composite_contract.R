@@ -74,7 +74,8 @@ test_phase5_s1_rna_representation_trajectory_composite_contract <- function() {
   wb_add_space(b, "pca_plot", pca_values[, 1:2, drop = FALSE])
   wb_cell_set_replace(b, "set:start", cells[1:4], source = "phase5-s1")
   wb_cell_set_replace(b, "set:end", cells[21:24], source = "phase5-s1")
-  path_run <- wb_session_run_op(wb_session_new(), b, "space_path_define",
+  path_run <- wb_session_run_op(wb_session_new(), b,
+    "scwbtrajectory::space_path_define",
     inputs = list(space = "pca", checkpoint_sets = c("set:start",
       "set:end"), n_path_points = 6L, path_id_out = "pca_path",
       min_cells = 1L))

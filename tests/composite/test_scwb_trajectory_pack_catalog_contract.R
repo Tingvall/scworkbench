@@ -16,7 +16,9 @@ test_trajectory_catalog_activation_identity_contract <- function() {
   before_ops <- wb_list_ops()
   before_identity <- wb_operation_catalog_identity()
   unqualified <- c("trajectory_branch_compare", "trajectory_route_smooth",
-    "space_path_score", "space_path_project_2d")
+    "space_path_score", "space_path_project_2d", "space_path_define",
+    "trajectory_segment_from_artifacts", "trajectory_space_path_segment",
+    "trajectory_segment_join", "trajectory_segment_path_join")
   qualified <- paste0("scwbtrajectory::", unqualified)
   stopifnot(!any(unqualified %in% before_ops),
     !any(qualified %in% before_ops))
@@ -52,7 +54,8 @@ test_trajectory_missing_pack_predispatch_contract <- function() {
     source = getFromNamespace(".wb_session_source_identity",
       "scworkbench")(b)$scientific_state_fingerprint)
   failure <- try(wb_session_run_op(wb_session_new(), b,
-    "scwbtrajectory::space_path_score", inputs = list(space = "latent")),
+    "scwbtrajectory::space_path_define", inputs = list(space = "latent",
+      checkpoint_sets = c("start", "end"))),
     silent = TRUE)
   stopifnot(inherits(failure, "try-error"),
     identical(before$artifacts, wb_art_list(b)),
