@@ -48,15 +48,22 @@ selector <- list(oneOf = list(
 source <- list(oneOf = list(
   object(c("mode", "input", "projection", "family_key_selector"), list(
     mode = list(const = "static_input_axis"), input = name,
-    projection = list(enum = list("cell_vector_axis_v1",
-      "family_key_cell_axis_v1")), family_key_selector = list(oneOf = list(
-        selector, list(type = "null"))))),
+    projection = list(const = "cell_vector_axis_v1"),
+    family_key_selector = list(type = "null"))),
+  object(c("mode", "input", "projection", "family_key_selector"), list(
+    mode = list(const = "static_input_axis"), input = name,
+    projection = list(const = "family_key_cell_axis_v1"),
+    family_key_selector = selector)),
   object(c("mode", "collection", "slot", "projection",
       "family_key_selector"), list(mode = list(const =
         "g4_collection_member_axis"), collection = name, slot = name,
-      projection = list(enum = list("cell_vector_axis_v1",
-        "family_key_cell_axis_v1")), family_key_selector = list(oneOf = list(
-          selector, list(type = "null")))))))
+      projection = list(const = "cell_vector_axis_v1"),
+      family_key_selector = list(type = "null"))),
+  object(c("mode", "collection", "slot", "projection",
+      "family_key_selector"), list(mode = list(const =
+        "g4_collection_member_axis"), collection = name, slot = name,
+      projection = list(const = "family_key_cell_axis_v1"),
+      family_key_selector = selector))))
 linked <- list(oneOf = list(
   object(c("name", "shape", "row_order", "missing_values"), list(
     name = name, shape = list(const = "one_per_cell"),
@@ -93,34 +100,48 @@ write(manifest, "operation-pack-v3.schema.json")
 # Request --------------------------------------------------------------------
 request <- read("operation-pack-transition-request-v3.schema.json")
 rdefs <- request[["$defs"]]
-static_ref <- object(c("source_mode", "input_name",
-  "input_descriptor_identity", "primitive_kind", "projection",
-  "source_axis_selector_identity", "source_cell_count",
-  "source_cell_order_identity", "source_axis_reference_identity"), list(
+static_ref_properties <- list(
     source_mode = list(const = "static_input_axis"), input_name = name,
-    input_descriptor_identity = identity, primitive_kind = list(enum = list(
-      "cell_vector", "cell_vector_family")), projection = list(enum = list(
-        "cell_vector_axis_v1", "family_key_cell_axis_v1")),
-    source_axis_selector_identity = nullable_identity,
+    input_descriptor_identity = identity,
     source_cell_count = integer(minimum = 1L, maximum = 10000000L),
     source_cell_order_identity = identity,
-    source_axis_reference_identity = self_identity))
-member_ref <- object(c("source_mode", "collection_name",
-  "collection_identity", "resolved_ordinal", "item_identity", "slot_name",
-  "slot_reference_identity", "primitive_descriptor_identity",
-  "primitive_kind", "projection", "source_axis_selector_identity",
-  "source_cell_count", "source_cell_order_identity",
-  "source_axis_reference_identity"), list(source_mode = list(const =
+    source_axis_reference_identity = self_identity)
+static_ref_required <- c("source_mode", "input_name",
+  "input_descriptor_identity", "primitive_kind", "projection",
+  "source_axis_selector_identity", "source_cell_count",
+  "source_cell_order_identity", "source_axis_reference_identity")
+static_ref <- list(oneOf = list(
+  object(static_ref_required, c(static_ref_properties, list(
+    primitive_kind = list(const = "cell_vector"),
+    projection = list(const = "cell_vector_axis_v1"),
+    source_axis_selector_identity = list(type = "null")))),
+  object(static_ref_required, c(static_ref_properties, list(
+    primitive_kind = list(const = "cell_vector_family"),
+    projection = list(const = "family_key_cell_axis_v1"),
+    source_axis_selector_identity = identity)))))
+member_ref_properties <- list(source_mode = list(const =
     "g4_collection_member_axis"), collection_name = name,
     collection_identity = identity, resolved_ordinal = integer(minimum = 1L,
       maximum = 64L), item_identity = identity, slot_name = name,
     slot_reference_identity = identity, primitive_descriptor_identity = identity,
-    primitive_kind = list(enum = list("cell_vector", "cell_vector_family")),
-    projection = list(enum = list("cell_vector_axis_v1",
-      "family_key_cell_axis_v1")), source_axis_selector_identity =
-        nullable_identity, source_cell_count = integer(minimum = 1L,
-          maximum = 10000000L), source_cell_order_identity = identity,
-    source_axis_reference_identity = self_identity))
+    source_cell_count = integer(minimum = 1L, maximum = 10000000L),
+    source_cell_order_identity = identity,
+    source_axis_reference_identity = self_identity)
+member_ref_required <- c("source_mode", "collection_name",
+  "collection_identity", "resolved_ordinal", "item_identity", "slot_name",
+  "slot_reference_identity", "primitive_descriptor_identity",
+  "primitive_kind", "projection", "source_axis_selector_identity",
+  "source_cell_count", "source_cell_order_identity",
+  "source_axis_reference_identity")
+member_ref <- list(oneOf = list(
+  object(member_ref_required, c(member_ref_properties, list(
+    primitive_kind = list(const = "cell_vector"),
+    projection = list(const = "cell_vector_axis_v1"),
+    source_axis_selector_identity = list(type = "null")))),
+  object(member_ref_required, c(member_ref_properties, list(
+    primitive_kind = list(const = "cell_vector_family"),
+    projection = list(const = "family_key_cell_axis_v1"),
+    source_axis_selector_identity = identity)))))
 rdefs$derived_cell_source_axis_reference <- list(oneOf = list(static_ref,
   member_ref))
 aggregate <- object(c("derivation_mode", "source_axis_count",
@@ -169,15 +190,19 @@ member_selection <- object(c("source_axis_reference_identity",
     source_axis_reference_identity = identity,
     resolved_ordinal = integer(minimum = 1L, maximum = 64L),
     selected_cell_ids = cell_ids))
-rdefs$derived_cell_output_axis_declaration <- object(c("schema",
-  "grant_identity", "derivation_mode", "member_selections",
-  "final_cell_ids", "pack_declaration_identity"), list(schema = list(const =
+pack_declaration_common <- list(schema = list(const =
     "scworkbench.operation_pack.derived_cell_output_axis_declaration.v1"),
-    grant_identity = identity, derivation_mode = list(enum = list(
-      "ordered_unique_subset_v1", "declared_ordered_unique_union_v1")),
-    member_selections = list(oneOf = list(array(member_selection,
-      minItems = 1L, maxItems = 64L), list(type = "null"))),
-    final_cell_ids = cell_ids, pack_declaration_identity = self_identity))
+  grant_identity = identity, final_cell_ids = cell_ids,
+  pack_declaration_identity = self_identity)
+rdefs$derived_cell_output_axis_declaration <- list(oneOf = list(
+  object(c("schema", "grant_identity", "derivation_mode", "final_cell_ids",
+    "pack_declaration_identity"), c(pack_declaration_common, list(
+      derivation_mode = list(const = "ordered_unique_subset_v1")))),
+  object(c("schema", "grant_identity", "derivation_mode",
+    "member_selections", "final_cell_ids", "pack_declaration_identity"),
+    c(pack_declaration_common, list(derivation_mode = list(const =
+      "declared_ordered_unique_union_v1"), member_selections = array(
+        member_selection, minItems = 1L, maxItems = 64L))))))
 resolved_feature_group <- object(c("key", "features_input",
   "features_matched", "features_missing"), list(key = nonempty,
     features_input = array(nonempty, uniqueItems = TRUE),
@@ -265,8 +290,6 @@ receipt <- read("operation-pack-transition-receipt-v3.schema.json")
 odefs <- receipt[["$defs"]]
 derivation_base <- list(pack_declaration_identity = identity,
   grant_identity = identity,
-  derivation_mode = list(enum = list("ordered_unique_subset_v1",
-    "declared_ordered_unique_union_v1")),
   selected_axis_order_identities = array(identity, minItems = 1L,
     maxItems = 64L), final_cell_count = integer(minimum = 1L,
       maximum = 10000000L), final_cell_order_identity = identity,
@@ -276,6 +299,7 @@ odefs$derived_cell_axis_derivation <- list(oneOf = list(
     "selected_axis_order_identities", "final_cell_count",
     "final_cell_order_identity", "source_ordered_subset_status",
     "selected_count", "derivation_identity"), c(derivation_base, list(
+      derivation_mode = list(const = "ordered_unique_subset_v1"),
       source_ordered_subset_status = list(const = "passed"),
       selected_count = integer(minimum = 1L, maximum = 10000000L)))),
   object(c("pack_declaration_identity", "grant_identity", "derivation_mode",
@@ -284,6 +308,7 @@ odefs$derived_cell_axis_derivation <- list(oneOf = list(
     "union_membership_equality_status", "distinct_selected_membership_count",
     "aggregate_selected_count", "overlap_collapse_count",
     "derivation_identity"), c(derivation_base, list(
+      derivation_mode = list(const = "declared_ordered_unique_union_v1"),
       member_subset_status = list(const = "passed"),
       union_membership_equality_status = list(const = "passed"),
       distinct_selected_membership_count = integer(minimum = 1L,

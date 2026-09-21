@@ -7894,61 +7894,358 @@
     "derived_cell_source_axis_reference": {
       "oneOf": [
         {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_mode",
+                "input_name",
+                "input_descriptor_identity",
+                "primitive_kind",
+                "projection",
+                "source_axis_selector_identity",
+                "source_cell_count",
+                "source_cell_order_identity",
+                "source_axis_reference_identity"
+              ],
+              "properties": {
+                "source_mode": {
+                  "const": "static_input_axis"
+                },
+                "input_name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "input_descriptor_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_cell_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000000
+                },
+                "source_cell_order_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_axis_reference_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "scope",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                },
+                "primitive_kind": {
+                  "const": "cell_vector"
+                },
+                "projection": {
+                  "const": "cell_vector_axis_v1"
+                },
+                "source_axis_selector_identity": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_mode",
+                "input_name",
+                "input_descriptor_identity",
+                "primitive_kind",
+                "projection",
+                "source_axis_selector_identity",
+                "source_cell_count",
+                "source_cell_order_identity",
+                "source_axis_reference_identity"
+              ],
+              "properties": {
+                "source_mode": {
+                  "const": "static_input_axis"
+                },
+                "input_name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "input_descriptor_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_cell_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000000
+                },
+                "source_cell_order_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_axis_reference_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "scope",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                },
+                "primitive_kind": {
+                  "const": "cell_vector_family"
+                },
+                "projection": {
+                  "const": "family_key_cell_axis_v1"
+                },
+                "source_axis_selector_identity": {
+                  "$ref": "#/$defs/identity"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_mode",
+                "collection_name",
+                "collection_identity",
+                "resolved_ordinal",
+                "item_identity",
+                "slot_name",
+                "slot_reference_identity",
+                "primitive_descriptor_identity",
+                "primitive_kind",
+                "projection",
+                "source_axis_selector_identity",
+                "source_cell_count",
+                "source_cell_order_identity",
+                "source_axis_reference_identity"
+              ],
+              "properties": {
+                "source_mode": {
+                  "const": "g4_collection_member_axis"
+                },
+                "collection_name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "collection_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "resolved_ordinal": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 64
+                },
+                "item_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "slot_name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "slot_reference_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "primitive_descriptor_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_cell_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000000
+                },
+                "source_cell_order_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_axis_reference_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "scope",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                },
+                "primitive_kind": {
+                  "const": "cell_vector"
+                },
+                "projection": {
+                  "const": "cell_vector_axis_v1"
+                },
+                "source_axis_selector_identity": {
+                  "type": "null"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "source_mode",
+                "collection_name",
+                "collection_identity",
+                "resolved_ordinal",
+                "item_identity",
+                "slot_name",
+                "slot_reference_identity",
+                "primitive_descriptor_identity",
+                "primitive_kind",
+                "projection",
+                "source_axis_selector_identity",
+                "source_cell_count",
+                "source_cell_order_identity",
+                "source_axis_reference_identity"
+              ],
+              "properties": {
+                "source_mode": {
+                  "const": "g4_collection_member_axis"
+                },
+                "collection_name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "collection_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "resolved_ordinal": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 64
+                },
+                "item_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "slot_name": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "slot_reference_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "primitive_descriptor_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_cell_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000000
+                },
+                "source_cell_order_identity": {
+                  "$ref": "#/$defs/identity"
+                },
+                "source_axis_reference_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "scope",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "scope": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    }
+                  }
+                },
+                "primitive_kind": {
+                  "const": "cell_vector_family"
+                },
+                "projection": {
+                  "const": "family_key_cell_axis_v1"
+                },
+                "source_axis_selector_identity": {
+                  "$ref": "#/$defs/identity"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "derived_cell_output_axis_declaration": {
+      "oneOf": [
+        {
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "source_mode",
-            "input_name",
-            "input_descriptor_identity",
-            "primitive_kind",
-            "projection",
-            "source_axis_selector_identity",
-            "source_cell_count",
-            "source_cell_order_identity",
-            "source_axis_reference_identity"
+            "schema",
+            "grant_identity",
+            "derivation_mode",
+            "final_cell_ids",
+            "pack_declaration_identity"
           ],
           "properties": {
-            "source_mode": {
-              "const": "static_input_axis"
+            "schema": {
+              "const": "scworkbench.operation_pack.derived_cell_output_axis_declaration.v1"
             },
-            "input_name": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "input_descriptor_identity": {
+            "grant_identity": {
               "$ref": "#/$defs/identity"
             },
-            "primitive_kind": {
-              "enum": [
-                "cell_vector",
-                "cell_vector_family"
-              ]
+            "final_cell_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "maxItems": 10000000
             },
-            "projection": {
-              "enum": [
-                "cell_vector_axis_v1",
-                "family_key_cell_axis_v1"
-              ]
-            },
-            "source_axis_selector_identity": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/identity"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "source_cell_count": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 10000000
-            },
-            "source_cell_order_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "source_axis_reference_identity": {
+            "pack_declaration_identity": {
               "type": "object",
               "additionalProperties": false,
               "required": [
@@ -7970,6 +8267,9 @@
                   "pattern": "^[a-f0-9]{64}$"
                 }
               }
+            },
+            "derivation_mode": {
+              "const": "ordered_unique_subset_v1"
             }
           }
         },
@@ -7977,81 +8277,30 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "source_mode",
-            "collection_name",
-            "collection_identity",
-            "resolved_ordinal",
-            "item_identity",
-            "slot_name",
-            "slot_reference_identity",
-            "primitive_descriptor_identity",
-            "primitive_kind",
-            "projection",
-            "source_axis_selector_identity",
-            "source_cell_count",
-            "source_cell_order_identity",
-            "source_axis_reference_identity"
+            "schema",
+            "grant_identity",
+            "derivation_mode",
+            "member_selections",
+            "final_cell_ids",
+            "pack_declaration_identity"
           ],
           "properties": {
-            "source_mode": {
-              "const": "g4_collection_member_axis"
+            "schema": {
+              "const": "scworkbench.operation_pack.derived_cell_output_axis_declaration.v1"
             },
-            "collection_name": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "collection_identity": {
+            "grant_identity": {
               "$ref": "#/$defs/identity"
             },
-            "resolved_ordinal": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 64
+            "final_cell_ids": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true,
+              "maxItems": 10000000
             },
-            "item_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "slot_name": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "slot_reference_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "primitive_descriptor_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "primitive_kind": {
-              "enum": [
-                "cell_vector",
-                "cell_vector_family"
-              ]
-            },
-            "projection": {
-              "enum": [
-                "cell_vector_axis_v1",
-                "family_key_cell_axis_v1"
-              ]
-            },
-            "source_axis_selector_identity": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/identity"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "source_cell_count": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 10000000
-            },
-            "source_cell_order_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "source_axis_reference_identity": {
+            "pack_declaration_identity": {
               "type": "object",
               "additionalProperties": false,
               "required": [
@@ -8073,38 +8322,11 @@
                   "pattern": "^[a-f0-9]{64}$"
                 }
               }
-            }
-          }
-        }
-      ]
-    },
-    "derived_cell_output_axis_declaration": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "schema",
-        "grant_identity",
-        "derivation_mode",
-        "member_selections",
-        "final_cell_ids",
-        "pack_declaration_identity"
-      ],
-      "properties": {
-        "schema": {
-          "const": "scworkbench.operation_pack.derived_cell_output_axis_declaration.v1"
-        },
-        "grant_identity": {
-          "$ref": "#/$defs/identity"
-        },
-        "derivation_mode": {
-          "enum": [
-            "ordered_unique_subset_v1",
-            "declared_ordered_unique_union_v1"
-          ]
-        },
-        "member_selections": {
-          "oneOf": [
-            {
+            },
+            "derivation_mode": {
+              "const": "declared_ordered_unique_union_v1"
+            },
+            "member_selections": {
               "type": "array",
               "items": {
                 "type": "object",
@@ -8136,45 +8358,10 @@
               },
               "minItems": 1,
               "maxItems": 64
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "final_cell_ids": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "uniqueItems": true,
-          "maxItems": 10000000
-        },
-        "pack_declaration_identity": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "scheme",
-            "scope",
-            "sha256"
-          ],
-          "properties": {
-            "scheme": {
-              "type": "string",
-              "minLength": 1
-            },
-            "scope": {
-              "type": "string",
-              "minLength": 1
-            },
-            "sha256": {
-              "type": "string",
-              "pattern": "^[a-f0-9]{64}$"
             }
           }
         }
-      }
+      ]
     },
     "derived_cell_output_axis_grant": {
       "type": "object",

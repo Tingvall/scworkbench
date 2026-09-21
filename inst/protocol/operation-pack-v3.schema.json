@@ -3948,92 +3948,107 @@
                         "pattern": "^[a-z][a-z0-9_]*$"
                       },
                       "projection": {
-                        "enum": [
-                          "cell_vector_axis_v1",
-                          "family_key_cell_axis_v1"
-                        ]
+                        "const": "cell_vector_axis_v1"
+                      },
+                      "family_key_selector": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "mode",
+                      "input",
+                      "projection",
+                      "family_key_selector"
+                    ],
+                    "properties": {
+                      "mode": {
+                        "const": "static_input_axis"
+                      },
+                      "input": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "projection": {
+                        "const": "family_key_cell_axis_v1"
                       },
                       "family_key_selector": {
                         "oneOf": [
                           {
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "key"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "literal"
-                                  },
-                                  "key": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                }
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "key"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "literal"
                               },
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "parameter"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "operation_parameter"
-                                  },
-                                  "parameter": {
-                                    "type": "string",
-                                    "pattern": "^[a-z][a-z0-9_]*$"
-                                  }
-                                }
-                              },
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "field"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "collection_item_field"
-                                  },
-                                  "field": {
-                                    "type": "string",
-                                    "pattern": "^[a-z][a-z0-9_]*$"
-                                  }
-                                }
-                              },
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "prefix_parameter",
-                                  "literal_suffix"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "parameter_prefix_plus_literal_suffix"
-                                  },
-                                  "prefix_parameter": {
-                                    "type": "string",
-                                    "pattern": "^[a-z][a-z0-9_]*$"
-                                  },
-                                  "literal_suffix": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                }
+                              "key": {
+                                "type": "string",
+                                "minLength": 1
                               }
-                            ]
+                            }
                           },
                           {
-                            "type": "null"
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "parameter"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "operation_parameter"
+                              },
+                              "parameter": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "field"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "collection_item_field"
+                              },
+                              "field": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "prefix_parameter",
+                              "literal_suffix"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "parameter_prefix_plus_literal_suffix"
+                              },
+                              "prefix_parameter": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              },
+                              "literal_suffix": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            }
                           }
                         ]
                       }
@@ -4062,92 +4077,112 @@
                         "pattern": "^[a-z][a-z0-9_]*$"
                       },
                       "projection": {
-                        "enum": [
-                          "cell_vector_axis_v1",
-                          "family_key_cell_axis_v1"
-                        ]
+                        "const": "cell_vector_axis_v1"
+                      },
+                      "family_key_selector": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "mode",
+                      "collection",
+                      "slot",
+                      "projection",
+                      "family_key_selector"
+                    ],
+                    "properties": {
+                      "mode": {
+                        "const": "g4_collection_member_axis"
+                      },
+                      "collection": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "slot": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "projection": {
+                        "const": "family_key_cell_axis_v1"
                       },
                       "family_key_selector": {
                         "oneOf": [
                           {
-                            "oneOf": [
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "key"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "literal"
-                                  },
-                                  "key": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                }
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "key"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "literal"
                               },
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "parameter"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "operation_parameter"
-                                  },
-                                  "parameter": {
-                                    "type": "string",
-                                    "pattern": "^[a-z][a-z0-9_]*$"
-                                  }
-                                }
-                              },
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "field"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "collection_item_field"
-                                  },
-                                  "field": {
-                                    "type": "string",
-                                    "pattern": "^[a-z][a-z0-9_]*$"
-                                  }
-                                }
-                              },
-                              {
-                                "type": "object",
-                                "additionalProperties": false,
-                                "required": [
-                                  "mode",
-                                  "prefix_parameter",
-                                  "literal_suffix"
-                                ],
-                                "properties": {
-                                  "mode": {
-                                    "const": "parameter_prefix_plus_literal_suffix"
-                                  },
-                                  "prefix_parameter": {
-                                    "type": "string",
-                                    "pattern": "^[a-z][a-z0-9_]*$"
-                                  },
-                                  "literal_suffix": {
-                                    "type": "string",
-                                    "minLength": 1
-                                  }
-                                }
+                              "key": {
+                                "type": "string",
+                                "minLength": 1
                               }
-                            ]
+                            }
                           },
                           {
-                            "type": "null"
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "parameter"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "operation_parameter"
+                              },
+                              "parameter": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "field"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "collection_item_field"
+                              },
+                              "field": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                              "mode",
+                              "prefix_parameter",
+                              "literal_suffix"
+                            ],
+                            "properties": {
+                              "mode": {
+                                "const": "parameter_prefix_plus_literal_suffix"
+                              },
+                              "prefix_parameter": {
+                                "type": "string",
+                                "pattern": "^[a-z][a-z0-9_]*$"
+                              },
+                              "literal_suffix": {
+                                "type": "string",
+                                "minLength": 1
+                              }
+                            }
                           }
                         ]
                       }

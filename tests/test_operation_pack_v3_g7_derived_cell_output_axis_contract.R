@@ -58,6 +58,80 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
       c("cell_1", "cell_10", "cell_2")),
     !identical(nonlex$declaration$pack_declaration_identity,
       alternate$declaration$pack_declaration_identity))
+
+  schema_valid <- function(value, schema, definitions = list()) {
+    root <- c(list(`$schema` = "https://json-schema.org/draft/2020-12/schema"),
+      schema, if (length(definitions)) list(`$defs` = definitions) else list())
+    isTRUE(.wb_json_schema_validate_2020(value, root)$ok)
+  }
+  request_schema <- jsonlite::read_json(
+    "inst/protocol/operation-pack-transition-request-v3.schema.json",
+    simplifyVector = FALSE)
+  receipt_schema <- jsonlite::read_json(
+    "inst/protocol/operation-pack-transition-receipt-v3.schema.json",
+    simplifyVector = FALSE)
+  manifest_schema <- jsonlite::read_json(
+    "inst/protocol/operation-pack-v3.schema.json", simplifyVector = FALSE)
+  subset <- fixture$g7_positive_examples$subset
+  union <- fixture$g7_positive_examples$union_nonlexicographic
+  declaration_schema <- request_schema[["$defs"]]$
+    derived_cell_output_axis_declaration
+  stopifnot(schema_valid(subset$pack_declaration, declaration_schema,
+      request_schema[["$defs"]]),
+    schema_valid(union$declaration, declaration_schema,
+      request_schema[["$defs"]]))
+  invalid_subset <- subset$pack_declaration
+  invalid_subset$member_selections <- list()
+  invalid_mode <- subset$pack_declaration
+  invalid_mode$derivation_mode <- "declared_ordered_unique_union_v1"
+  invalid_union <- union$declaration
+  invalid_union$member_selections <- NULL
+  stopifnot(!schema_valid(invalid_subset, declaration_schema,
+      request_schema[["$defs"]]),
+    !schema_valid(invalid_mode, declaration_schema,
+      request_schema[["$defs"]]),
+    !schema_valid(invalid_union, declaration_schema,
+      request_schema[["$defs"]]))
+
+  source_schema <- request_schema[["$defs"]]$
+    derived_cell_source_axis_reference
+  vector_source <- subset$grant$source_axes[[1L]]
+  invalid_vector_source <- vector_source
+  invalid_vector_source$source_axis_selector_identity <-
+    vector_source$source_axis_reference_identity[c("scheme", "sha256")]
+  invalid_family_source <- vector_source
+  invalid_family_source$primitive_kind <- "cell_vector_family"
+  invalid_family_source$projection <- "family_key_cell_axis_v1"
+  stopifnot(schema_valid(vector_source, source_schema,
+      request_schema[["$defs"]]),
+    !schema_valid(invalid_vector_source, source_schema,
+      request_schema[["$defs"]]),
+    !schema_valid(invalid_family_source, source_schema,
+      request_schema[["$defs"]]))
+
+  axis_schema <- manifest_schema[["$defs"]]$operation$properties$
+    derived_cell_output_axes$items
+  invalid_axis <- subset$declaration
+  invalid_axis$source$family_key_selector <- list(mode = "literal", key = "x")
+  stopifnot(schema_valid(subset$declaration, axis_schema,
+      manifest_schema[["$defs"]]),
+    !schema_valid(invalid_axis, axis_schema, manifest_schema[["$defs"]]))
+
+  grant <- union$grant
+  request <- list(derived_cell_output_axis_grants = list(grant))
+  attr(request, "operation_pack_v3_derived_axis_state") <- list(derived = list(
+    cells = list(c("cell_2", "cell_10"), c("cell_1", "cell_2")),
+    selectors = list(NULL, NULL), references = grant$source_axes))
+  derivation <- .wb_operation_pack_v3_g7_seal(request,
+    list(union$declaration))[[1L]]$derivation
+  derivation_schema <- receipt_schema[["$defs"]]$
+    derived_cell_axis_derivation
+  wrong_derivation <- derivation
+  wrong_derivation$derivation_mode <- "ordered_unique_subset_v1"
+  stopifnot(schema_valid(derivation, derivation_schema,
+      receipt_schema[["$defs"]]),
+    !schema_valid(wrong_derivation, derivation_schema,
+      receipt_schema[["$defs"]]))
   TRUE
 }
 
