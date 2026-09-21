@@ -830,10 +830,21 @@
   optional_display <- .wb_operation_pack_v3_prepare_optional_display_groups(
     bundle, operation, params, stage_root, artifact_collections)
   publication_policies <- .wb_operation_pack_v3_publication_map(operation)
+  g7_linked <- .wb_operation_pack_v3_g7_linked_map(operation)
   for (i in seq_along(base$outputs)) {
     name <- as.character(base$outputs[[i]]$name)[1]
     descriptor <- base$outputs[[i]]$descriptor
     policy <- policies[[name]]
+    if (!is.null(g7_linked[[name]])) {
+      descriptor$derived_cell_output_axis_policy <-
+        .wb_operation_pack_v3_g7_output_policy(
+          g7_linked[[name]]$declaration, g7_linked[[name]]$policy,
+          inputs, params, input_records)
+      descriptor$expected_dimensions <- if (identical(
+        as.character(outputs[[name]]$kind)[1], "cell_vector")) list(0L) else
+          list(0L, 3L)
+      descriptor["expected_cell_order_identity"] <- list(NULL)
+    }
     if (!is.null(policy) && identical(as.character(policy$policy)[1],
         "authenticated_output_axes_v1")) {
       grant <- .wb_operation_pack_v3_cardinality_grant(policy,
@@ -983,6 +994,11 @@
   adoption <- .wb_operation_pack_v3_g3_prepare(bundle, operation, inputs,
     params, base, stage_root)
 
+  output_records <- stats::setNames(base$outputs,
+    vapply(base$outputs, `[[`, character(1), "name"))
+  derived_axes <- .wb_operation_pack_v3_g7_prepare(operation, inputs,
+    input_records, params, artifact_collections, output_records)
+
   provenance <- .wb_operation_pack_v3_provenance_read_records(bundle,
     operation, inputs, source_refs, input_records, params, stage_root)
   identity <- registration$identity
@@ -1079,6 +1095,10 @@
     capability$supported_external_state_adoption_grant_identities <-
       unname(lapply(adoption$grants, function(x)
         .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(derived_axes$grants))
+    capability$derived_cell_output_axis_grant_identities <-
+      unname(lapply(derived_axes$grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
   capability$capability_identity <- NULL
   capability$capability_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.capability.v3",
@@ -1117,6 +1137,8 @@
   if (length(adoption$grants))
     base$supported_external_state_adoption_grants <-
       unname(adoption$grants)
+  if (length(derived_axes$grants))
+    base$derived_cell_output_axis_grants <- unname(derived_axes$grants)
   base$request_identity <- NULL
   base$request_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_request.v3",
@@ -1143,6 +1165,7 @@
   attr(base, "operation_pack_v3_optional_display_sources") <-
     optional_display$sources
   attr(base, "operation_pack_v3_external_candidate") <- adoption$candidate
+  attr(base, "operation_pack_v3_derived_axis_state") <- derived_axes$state
   attr(base, "operation_pack_stage_root") <- stage_root
   attr(base, "operation_pack_v3_typed_slice_values") <-
     stats::setNames(lapply(typed_slice_grants, function(grant) list(
@@ -1301,6 +1324,7 @@
     .wb_operation_pack_v3_assert_self_identity(grant, "grant_identity",
       "PYBENCH_CAPABILITY_MISMATCH", "staging")
   }
+  .wb_operation_pack_v3_g7_request_audit(request)
   .wb_operation_pack_v3_phase5_staged_payloads_assert(request,
     phase = "staging")
   .wb_operation_pack_v3_assert_self_identity(request$execution_capability,
@@ -1502,7 +1526,8 @@
                                            named_cell_axis_collection_usage = list(),
                                            optional_display_axis_group_usage = list(),
                                            supported_external_state_adoption_state = NULL,
-                                           supported_external_state_adoption_attestations = list()) {
+                                           supported_external_state_adoption_attestations = list(),
+                                           derived_cell_output_axis_declarations = list()) {
   hook <- getOption("scworkbench.operation_pack_v3_output_test_hook", NULL)
   if (is.function(hook)) {
     replacement <- hook(writes = writes, request = request,
@@ -1530,12 +1555,34 @@
   base_request$named_cell_axis_collection_grants <- NULL
   base_request$optional_display_axis_group_grants <- NULL
   base_request$supported_external_state_adoption_grants <- NULL
+  base_request$derived_cell_output_axis_grants <- NULL
   for (i in seq_along(base_request$outputs)) {
     base_request$outputs[[i]]$descriptor$cardinality_grant <- NULL
     base_request$outputs[[i]]$descriptor$sparse_membership_grant <- NULL
     base_request$outputs[[i]]$descriptor$pseudobulk_grant <- NULL
+    base_request$outputs[[i]]$descriptor$derived_cell_output_axis_policy <- NULL
     base_request$outputs[[i]]$descriptor$grant_identity$scheme <-
       "scworkbench.operation_pack.output_grant.v2"
+  }
+  sealed_axes <- .wb_operation_pack_v3_g7_seal(request,
+    derived_cell_output_axis_declarations)
+  if (length(sealed_axes)) for (state in sealed_axes) {
+    for (linked in state$grant$linked_output_closure$linked_outputs) {
+      name <- as.character(linked$name)[1]
+      index <- match(name, vapply(base_request$outputs, `[[`, character(1),
+        "name"))
+      request_index <- match(name, vapply(request$outputs, `[[`,
+        character(1), "name"))
+      cardinality <- .wb_operation_pack_v3_g7_sealed_cardinality(
+        request$outputs[[request_index]], state)
+      base_request$outputs[[index]]$descriptor$expected_dimensions <-
+        cardinality$expected_dimensions
+      value_cells <- .wb_operation_pack_v2_primitive_cells(
+        writes[[name]]$value)
+      base_request$outputs[[index]]$descriptor$expected_cell_order_identity <-
+        .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1",
+          unname(as.list(value_cells)))
+    }
   }
   receipt <- .wb_operation_pack_v2_receipt(base_request, registration,
     projected, writes, preflight, registry_reads)
@@ -1790,6 +1837,9 @@
         "descriptor excluding observed_descriptor_identity",
         observed[[i]]$descriptor)
   }
+  g7_applied <- .wb_operation_pack_v3_g7_apply_outputs(request, observed,
+    writes, sealed_axes)
+  observed <- g7_applied$observed
   output_names <- vapply(receipt$outputs %||% list(), `[[`, character(1),
     "name")
   receipt$outputs <- observed[vapply(observed, function(x)
@@ -1822,6 +1872,9 @@
   if (length(adoption_observations))
     receipt$supported_external_state_adoption_observations <-
       adoption_observations
+  if (length(g7_applied$observations))
+    receipt$derived_cell_output_axis_observations <-
+      g7_applied$observations
   publication_observations <- lapply(Filter(function(x)
     !is.null(x$descriptor$publication_grant), request$outputs), function(grant) {
       output <- observed[[match(grant$name, vapply(observed, `[[`,
@@ -1999,6 +2052,7 @@
           "receipt")
     }
   }
+  .wb_operation_pack_v3_g7_receipt_audit(receipt, request)
   publication_grants <- Filter(function(x)
     !is.null(x$descriptor$publication_grant), request$outputs)
   observations <- receipt$publication_observations %||% list()
@@ -2147,6 +2201,8 @@
     for (input in request$inputs) .wb_operation_pack_v3_assert_self_identity(
       input$descriptor, "descriptor_identity",
       "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
+    .wb_operation_pack_v3_g7_request_audit(request)
+    .wb_operation_pack_v3_g7_receipt_audit(receipt, request)
     TRUE
   }, error = function(error) FALSE)
   if (!isTRUE(checked)) return(fail("v3_request_receipt_invalid"))

@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 66L)
+    length(fixture$cases) == 80L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -177,7 +177,22 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     g3_grant_unavailable = "grant_identity",
     g3_observation_unavailable = "observation_identity",
     g3_request_unavailable = "request_identity",
-    g3_receipt_unavailable = "receipt_identity")
+    g3_receipt_unavailable = "receipt_identity",
+    g7_manifest_declaration = "declaration_identity",
+    g7_subset_source_reference = "source_axis_reference_identity",
+    g7_subset_source_aggregate = "source_axis_aggregate_identity",
+    g7_linked_output_closure = "linked_output_closure_identity",
+    g7_subset_grant = "grant_identity",
+    g7_subset_pack_declaration = "pack_declaration_identity",
+    g7_subset_derivation = "derivation_identity",
+    g7_subset_sealed_axis = "sealed_axis_identity",
+    g7_subset_sealed_cardinality = "sealed_cardinality_grant_identity",
+    g7_subset_observed_sealed_cardinality =
+      "observed_sealed_cardinality_identity",
+    g7_union_source_aggregate = "source_axis_aggregate_identity",
+    g7_union_grant = "grant_identity",
+    g7_union_nonlexicographic_declaration = "pack_declaration_identity",
+    g7_union_alternate_order_declaration = "pack_declaration_identity")
   for (case in fixture$cases) {
     field <- identity_fields[[case$name]]
     stopifnot(!is.null(field), identical(case$preimage,
@@ -433,10 +448,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "fd66c445eeaeb332537062ab7e82f26839399500546d4209bc61d1f822161b7a",
-    "50e702802a63b415d9d6e7cb7d39992a84f108f87e8c9ae3f734c8f480b17eab",
-    "df5e75ba58f293099663ec582b8dad0c7e7df8e5de388fdac08680daa3df5473",
-    "c34902ae38d92d6a99e1fbf76a15eeac60412008f3dad4d931d5409db5172c3c")
+    "ed7438054f423586a92f04aa159121a548b93add1b2165e2e5fd0f99d3210918",
+    "820920d81f9ff75c20c60fb380aca3e3ec90030a4e85c4dd06c0e3af23b928ec",
+    "e67782400924871a9a133ae8993f3fc0749e57b7b21013d8886c1ac419825e38",
+    "c993c56df75485094e3ad237863311724bbd4bb8c2b6aa806d29132a091fe381")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)

@@ -1451,6 +1451,8 @@
     bundle, request)
   if (abi_v3) .wb_operation_pack_v3_g3_sources_assert_current(bundle,
     request)
+  if (abi_v3) .wb_operation_pack_v3_g7_sources_assert_current(operation,
+    inputs, params, request)
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
   if (python_backend) {
     process_result <- if (abi_v3) .wb_operation_pack_v3_python_dispatch(
@@ -1499,7 +1501,10 @@
             as.character(value$space_id %||% "")[1] else NULL
         }), names(inputs)),
         effective_cells = unname(as.character(effective_cells %||%
-          .wb_operation_pack_v2_primitive_cells(inputs[[1]]))))), error = identity)
+          .wb_operation_pack_v2_primitive_cells(inputs[[1]]))),
+        derived_cell_output_axis_grants = .wb_operation_pack_v2_deep_copy(
+          request$derived_cell_output_axis_grants %||% list()))),
+      error = identity)
     if (inherits(result, "error")) {
       adapter$consume()
       if (inherits(result, "wb_operation_pack_v2_error")) stop(result)
@@ -1539,7 +1544,9 @@
       optional_display_axis_group_usage =
         phase5_usage$optional_display_axis_group_usage,
       supported_external_state_adoption_state = adapter$state,
-      supported_external_state_adoption_attestations = result) else .wb_operation_pack_v2_receipt(request,
+      supported_external_state_adoption_attestations = result,
+      derived_cell_output_axis_declarations = result$
+        derived_cell_output_axis_declarations %||% list()) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
   }
@@ -1650,6 +1657,8 @@
     operation, request, params)
   if (abi_v3) .wb_operation_pack_v3_g3_sources_assert_current(bundle,
     request)
+  if (abi_v3) .wb_operation_pack_v3_g7_sources_assert_current(operation,
+    inputs, params, request)
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
   if (!isTRUE(moved) || !dir.exists(final)) .wb_operation_pack_v2_error("PYBENCH_PUBLICATION_FAILED",

@@ -146,6 +146,48 @@ Injected publication failure, payload mutation, incomplete use, or receipt
 disagreement removes the pending transition and leaves no analytical or
 capability-evidence residue.
 
+G7 is an R-runtime-only, path-free capability for operations whose scientific
+method determines an output cell axis during execution. It does not give a pack
+bundle, SQL, registry, filesystem, or state-authority access. A manifest uses
+the closed `derived_cell_output_axes` declaration and selects one generic mode:
+
+- `ordered_unique_subset_v1` is a nonempty, source-relative ordered subset of
+  one authenticated cell-vector axis (or one selected family-key axis).
+- `declared_ordered_unique_union_v1` validates an ordered unique subaxis from
+  every authenticated G4 member, then requires the pack-declared final axis to
+  be unique and have exactly the selected union membership. Core preserves the
+  declared final order verbatim; it never sorts or derives a competing order.
+
+An individual union member selection may be empty in v1. The aggregate
+selection and final axis must remain nonempty. Every nonempty member selection
+must preserve its authenticated source order.
+
+The identity chain is acyclic: manifest declaration, selector and source
+references, source aggregate, ordinary output grants, linked-output closure,
+provisional G7 grant, transient pack declaration, derivation, sealed axis,
+seal-derived cardinality grants and observations, then the receipt observation.
+The existing `output_cardinality_grant.v1` scheme is unchanged. G7 adds
+`sealed_output_cardinality_grant.v1` and
+`observed_sealed_output_cardinality.v1` after the final axis is known.
+
+An R runner receives immutable grants in
+`context$derived_cell_output_axis_grants` and returns the private
+`derived_cell_output_axis_declarations` channel. Use
+`wb_derived_cell_output_axis_declaration()` to construct its closed record.
+Core seals the declaration before admitting linked output values from the same
+result envelope. Linked vectors are exactly one row per sealed cell. Linked
+families retain the existing family-key resolution and exact key-major
+Cartesian row order. Every linked descriptor, content identity, observation,
+and receipt entry binds the same seal and complete transition closure.
+
+Limits are four declarations per operation, 64 source axes per declaration,
+10 million final cells, 20 million inspected memberships, 16 linked outputs
+per declaration, and 32 linked outputs per operation. Declarations are exactly
+once; sources are revalidated before dispatch and publication. Any source,
+declaration, linked-output, receipt, or publication failure leaves no durable
+transition residue. A valid G7 seal authenticates derivation and alignment,
+not biological validity or a human operator.
+
 ## Backends and durable lifecycle
 
 R v3 packs retain the opaque `function(readers, writers, params, context)`

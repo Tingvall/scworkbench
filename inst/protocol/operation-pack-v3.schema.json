@@ -3897,6 +3897,619 @@
           },
           "minItems": 1,
           "maxItems": 1
+        },
+        "derived_cell_output_axes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "schema",
+              "name",
+              "derivation_mode",
+              "source",
+              "linked_outputs",
+              "limits",
+              "call_discipline",
+              "closure_policy",
+              "declaration_identity"
+            ],
+            "properties": {
+              "schema": {
+                "const": "scworkbench.operation_pack.derived_cell_output_axis.v1"
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "derivation_mode": {
+                "enum": [
+                  "ordered_unique_subset_v1",
+                  "declared_ordered_unique_union_v1"
+                ]
+              },
+              "source": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "mode",
+                      "input",
+                      "projection",
+                      "family_key_selector"
+                    ],
+                    "properties": {
+                      "mode": {
+                        "const": "static_input_axis"
+                      },
+                      "input": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "projection": {
+                        "enum": [
+                          "cell_vector_axis_v1",
+                          "family_key_cell_axis_v1"
+                        ]
+                      },
+                      "family_key_selector": {
+                        "oneOf": [
+                          {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "key"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "literal"
+                                  },
+                                  "key": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "parameter"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "operation_parameter"
+                                  },
+                                  "parameter": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]*$"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "field"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "collection_item_field"
+                                  },
+                                  "field": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]*$"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "prefix_parameter",
+                                  "literal_suffix"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "parameter_prefix_plus_literal_suffix"
+                                  },
+                                  "prefix_parameter": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]*$"
+                                  },
+                                  "literal_suffix": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "mode",
+                      "collection",
+                      "slot",
+                      "projection",
+                      "family_key_selector"
+                    ],
+                    "properties": {
+                      "mode": {
+                        "const": "g4_collection_member_axis"
+                      },
+                      "collection": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "slot": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]*$"
+                      },
+                      "projection": {
+                        "enum": [
+                          "cell_vector_axis_v1",
+                          "family_key_cell_axis_v1"
+                        ]
+                      },
+                      "family_key_selector": {
+                        "oneOf": [
+                          {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "key"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "literal"
+                                  },
+                                  "key": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "parameter"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "operation_parameter"
+                                  },
+                                  "parameter": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]*$"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "field"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "collection_item_field"
+                                  },
+                                  "field": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]*$"
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": [
+                                  "mode",
+                                  "prefix_parameter",
+                                  "literal_suffix"
+                                ],
+                                "properties": {
+                                  "mode": {
+                                    "const": "parameter_prefix_plus_literal_suffix"
+                                  },
+                                  "prefix_parameter": {
+                                    "type": "string",
+                                    "pattern": "^[a-z][a-z0-9_]*$"
+                                  },
+                                  "literal_suffix": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "linked_outputs": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "name",
+                        "shape",
+                        "row_order",
+                        "missing_values"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        },
+                        "shape": {
+                          "const": "one_per_cell"
+                        },
+                        "row_order": {
+                          "const": "sealed_cell_axis_order_v1"
+                        },
+                        "missing_values": {
+                          "enum": [
+                            "allowed",
+                            "forbidden"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "name",
+                        "shape",
+                        "row_order",
+                        "missing_values",
+                        "key_axis"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        },
+                        "shape": {
+                          "enum": [
+                            "cell_key_cartesian",
+                            "bounded_grouped_cell_key_cartesian"
+                          ]
+                        },
+                        "row_order": {
+                          "const": "key_major_then_sealed_cell_v1"
+                        },
+                        "missing_values": {
+                          "enum": [
+                            "allowed",
+                            "forbidden"
+                          ]
+                        },
+                        "key_axis": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "source",
+                                "groups_parameter",
+                                "matrix_input",
+                                "name_prefix_parameter",
+                                "matching",
+                                "normalization",
+                                "generated_names",
+                                "missing_feature_policy",
+                                "empty_group_policy",
+                                "zero_key_policy"
+                              ],
+                              "properties": {
+                                "source": {
+                                  "const": "resolved_parameter_feature_groups_v1"
+                                },
+                                "groups_parameter": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                },
+                                "matrix_input": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                },
+                                "name_prefix_parameter": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                },
+                                "matching": {
+                                  "const": "exact_feature_id_v1"
+                                },
+                                "normalization": {
+                                  "const": "ordered_unique_features_v1"
+                                },
+                                "generated_names": {
+                                  "const": "legacy_module_group_names_v1"
+                                },
+                                "missing_feature_policy": {
+                                  "oneOf": [
+                                    {
+                                      "type": "object",
+                                      "additionalProperties": false,
+                                      "required": [
+                                        "source"
+                                      ],
+                                      "properties": {
+                                        "source": {
+                                          "const": "fixed_drop_v1"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "object",
+                                      "additionalProperties": false,
+                                      "required": [
+                                        "source",
+                                        "parameter"
+                                      ],
+                                      "properties": {
+                                        "source": {
+                                          "const": "parameter_v1"
+                                        },
+                                        "parameter": {
+                                          "type": "string",
+                                          "pattern": "^[a-z][a-z0-9_]*$"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "empty_group_policy": {
+                                  "enum": [
+                                    "drop",
+                                    "error"
+                                  ]
+                                },
+                                "zero_key_policy": {
+                                  "enum": [
+                                    "allow",
+                                    "error"
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "source",
+                                "keys",
+                                "prefix_parameter"
+                              ],
+                              "properties": {
+                                "source": {
+                                  "const": "declared_keys_with_optional_prefix_v1"
+                                },
+                                "keys": {
+                                  "type": "array",
+                                  "minItems": 1,
+                                  "uniqueItems": true,
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "prefix_parameter": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "source",
+                                "input",
+                                "no_selector_order",
+                                "selector_order",
+                                "unknown_key_policy",
+                                "zero_key_policy"
+                              ],
+                              "properties": {
+                                "source": {
+                                  "const": "input_keys_with_optional_selector_v1"
+                                },
+                                "input": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                },
+                                "selector_parameter": {
+                                  "type": "string",
+                                  "pattern": "^[a-z][a-z0-9_]*$"
+                                },
+                                "no_selector_order": {
+                                  "const": "first_occurrence_v1"
+                                },
+                                "selector_order": {
+                                  "const": "normalized_parameter_order_v1"
+                                },
+                                "unknown_key_policy": {
+                                  "const": "error"
+                                },
+                                "zero_key_policy": {
+                                  "enum": [
+                                    "allow",
+                                    "error"
+                                  ]
+                                }
+                              }
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "required": [
+                                "source",
+                                "required_keys",
+                                "optional_groups",
+                                "selection_owner",
+                                "group_order"
+                              ],
+                              "properties": {
+                                "source": {
+                                  "const": "declared_bounded_key_groups_v1"
+                                },
+                                "required_keys": {
+                                  "type": "array",
+                                  "minItems": 1,
+                                  "uniqueItems": true,
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "optional_groups": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                      "name",
+                                      "keys"
+                                    ],
+                                    "properties": {
+                                      "name": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "minItems": 1,
+                                        "uniqueItems": true,
+                                        "items": {
+                                          "type": "string",
+                                          "minLength": 1
+                                        }
+                                      }
+                                    }
+                                  }
+                                },
+                                "selection_owner": {
+                                  "const": "operation_pack_v1"
+                                },
+                                "group_order": {
+                                  "const": "manifest_order_v1"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 16
+              },
+              "limits": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "minimum_cells",
+                  "maximum_cells",
+                  "maximum_source_axes",
+                  "maximum_source_memberships",
+                  "maximum_linked_outputs"
+                ],
+                "properties": {
+                  "minimum_cells": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000000
+                  },
+                  "maximum_cells": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000000
+                  },
+                  "maximum_source_axes": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 64
+                  },
+                  "maximum_source_memberships": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 20000000
+                  },
+                  "maximum_linked_outputs": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 16
+                  }
+                }
+              },
+              "call_discipline": {
+                "const": "declare_once_seal_before_linked_output_v1"
+              },
+              "closure_policy": {
+                "const": "all_linked_outputs_and_axis_observation_required_v1"
+              },
+              "declaration_identity": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "scheme",
+                  "scope",
+                  "sha256"
+                ],
+                "properties": {
+                  "scheme": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "scope": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 4
         }
       }
     },

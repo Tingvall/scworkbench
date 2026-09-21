@@ -334,6 +334,14 @@
       },
       "minItems": 1,
       "maxItems": 1
+    },
+    "derived_cell_output_axis_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/derived_cell_output_axis_observation"
+      },
+      "minItems": 1,
+      "maxItems": 4
     }
   },
   "allOf": [
@@ -3207,6 +3215,15 @@
             },
             "observed_pseudobulk": {
               "$ref": "#/$defs/pseudobulk_observation"
+            },
+            "sealed_axis_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "sealed_output_cardinality_grant": {
+              "$ref": "#/$defs/sealed_output_cardinality_grant"
+            },
+            "observed_sealed_output_cardinality": {
+              "$ref": "#/$defs/observed_sealed_output_cardinality"
             }
           }
         },
@@ -3502,6 +3519,15 @@
             },
             "observed_pseudobulk": {
               "$ref": "#/$defs/pseudobulk_observation"
+            },
+            "sealed_axis_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "sealed_output_cardinality_grant": {
+              "$ref": "#/$defs/sealed_output_cardinality_grant"
+            },
+            "observed_sealed_output_cardinality": {
+              "$ref": "#/$defs/observed_sealed_output_cardinality"
             }
           }
         },
@@ -7435,6 +7461,1217 @@
         },
         "observation_identity": {
           "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "sealed_output_cardinality_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "ordinary_output_grant_identity",
+        "manifest_declaration_identity",
+        "pack_declaration_identity",
+        "derived_axis_grant_identity",
+        "sealed_axis_identity",
+        "output",
+        "kind",
+        "shape",
+        "row_order",
+        "missing_values",
+        "resolved_key_axis_policy_identity_or_null",
+        "cell_axis_count",
+        "cell_axis_order_identity",
+        "expected_dimensions",
+        "sealed_cardinality_grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.sealed_output_cardinality_grant.v1"
+        },
+        "ordinary_output_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "manifest_declaration_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "pack_declaration_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "derived_axis_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "sealed_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "output": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "enum": [
+            "cell_vector",
+            "cell_vector_family"
+          ]
+        },
+        "shape": {
+          "enum": [
+            "one_per_cell",
+            "cell_key_cartesian",
+            "bounded_grouped_cell_key_cartesian"
+          ]
+        },
+        "row_order": {
+          "enum": [
+            "sealed_cell_axis_order_v1",
+            "key_major_then_sealed_cell_v1"
+          ]
+        },
+        "missing_values": {
+          "enum": [
+            "allowed",
+            "forbidden"
+          ]
+        },
+        "resolved_key_axis_policy_identity_or_null": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/identity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cell_axis_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "cell_axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "expected_dimensions": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "minItems": 1,
+          "maxItems": 2
+        },
+        "expected_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "row_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "key_axis_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "key_axis": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "key_axis_resolution": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "declaration",
+            "keys",
+            "resolution"
+          ],
+          "properties": {
+            "declaration": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "groups_parameter",
+                    "matrix_input",
+                    "name_prefix_parameter",
+                    "matching",
+                    "normalization",
+                    "generated_names",
+                    "missing_feature_policy",
+                    "empty_group_policy",
+                    "zero_key_policy"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "resolved_parameter_feature_groups_v1"
+                    },
+                    "groups_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "matrix_input": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "name_prefix_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "matching": {
+                      "const": "exact_feature_id_v1"
+                    },
+                    "normalization": {
+                      "const": "ordered_unique_features_v1"
+                    },
+                    "generated_names": {
+                      "const": "legacy_module_group_names_v1"
+                    },
+                    "missing_feature_policy": {
+                      "oneOf": [
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "source"
+                          ],
+                          "properties": {
+                            "source": {
+                              "const": "fixed_drop_v1"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "source",
+                            "parameter"
+                          ],
+                          "properties": {
+                            "source": {
+                              "const": "parameter_v1"
+                            },
+                            "parameter": {
+                              "type": "string",
+                              "pattern": "^[a-z][a-z0-9_]*$"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "empty_group_policy": {
+                      "enum": [
+                        "drop",
+                        "error"
+                      ]
+                    },
+                    "zero_key_policy": {
+                      "enum": [
+                        "allow",
+                        "error"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "keys",
+                    "prefix_parameter"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "declared_keys_with_optional_prefix_v1"
+                    },
+                    "keys": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "prefix_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "input",
+                    "no_selector_order",
+                    "selector_order",
+                    "unknown_key_policy",
+                    "zero_key_policy"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "input_keys_with_optional_selector_v1"
+                    },
+                    "input": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "selector_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "no_selector_order": {
+                      "const": "first_occurrence_v1"
+                    },
+                    "selector_order": {
+                      "const": "normalized_parameter_order_v1"
+                    },
+                    "unknown_key_policy": {
+                      "const": "error"
+                    },
+                    "zero_key_policy": {
+                      "enum": [
+                        "allow",
+                        "error"
+                      ]
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "required_keys",
+                    "optional_groups",
+                    "selection_owner",
+                    "group_order"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "declared_bounded_key_groups_v1"
+                    },
+                    "required_keys": {
+                      "type": "array",
+                      "minItems": 1,
+                      "uniqueItems": true,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "optional_groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "keys"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "keys": {
+                            "type": "array",
+                            "minItems": 1,
+                            "uniqueItems": true,
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "selection_owner": {
+                      "const": "operation_pack_v1"
+                    },
+                    "group_order": {
+                      "const": "manifest_order_v1"
+                    }
+                  }
+                }
+              ]
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uniqueItems": true
+            },
+            "resolution": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "groups_parameter",
+                    "matrix_input",
+                    "matrix_input_descriptor_identity",
+                    "matrix_feature_axis_identity",
+                    "name_prefix_parameter",
+                    "name_prefix_value",
+                    "matching",
+                    "normalization",
+                    "generated_names",
+                    "missing_feature_policy",
+                    "empty_group_policy",
+                    "zero_key_policy",
+                    "groups"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "resolved_parameter_feature_groups_v1"
+                    },
+                    "groups_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "matrix_input": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "matrix_input_descriptor_identity": {
+                      "$ref": "#/$defs/identity"
+                    },
+                    "matrix_feature_axis_identity": {
+                      "$ref": "#/$defs/identity"
+                    },
+                    "name_prefix_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "name_prefix_value": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "matching": {
+                      "const": "exact_feature_id_v1"
+                    },
+                    "normalization": {
+                      "const": "ordered_unique_features_v1"
+                    },
+                    "generated_names": {
+                      "const": "legacy_module_group_names_v1"
+                    },
+                    "missing_feature_policy": {
+                      "enum": [
+                        "drop",
+                        "error"
+                      ]
+                    },
+                    "empty_group_policy": {
+                      "enum": [
+                        "drop",
+                        "error"
+                      ]
+                    },
+                    "zero_key_policy": {
+                      "enum": [
+                        "allow",
+                        "error"
+                      ]
+                    },
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "key",
+                          "features_input",
+                          "features_matched",
+                          "features_missing"
+                        ],
+                        "properties": {
+                          "key": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "features_input": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uniqueItems": true
+                          },
+                          "features_matched": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uniqueItems": true
+                          },
+                          "features_missing": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "uniqueItems": true
+                          }
+                        }
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "input",
+                    "input_descriptor_identity",
+                    "selector_parameter",
+                    "selector_value",
+                    "no_selector_order",
+                    "selector_order",
+                    "unknown_key_policy",
+                    "zero_key_policy",
+                    "keys"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "input_keys_with_optional_selector_v1"
+                    },
+                    "input": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "input_descriptor_identity": {
+                      "$ref": "#/$defs/identity"
+                    },
+                    "selector_parameter": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "selector_value": {
+                      "oneOf": [
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "uniqueItems": true
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "no_selector_order": {
+                      "const": "first_occurrence_v1"
+                    },
+                    "selector_order": {
+                      "const": "normalized_parameter_order_v1"
+                    },
+                    "unknown_key_policy": {
+                      "const": "error"
+                    },
+                    "zero_key_policy": {
+                      "enum": [
+                        "allow",
+                        "error"
+                      ]
+                    },
+                    "keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "base_keys",
+                    "prefix_parameter",
+                    "prefix_value",
+                    "keys"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "declared_keys_with_optional_prefix_v1"
+                    },
+                    "base_keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "prefix_parameter": {
+                      "type": "string",
+                      "pattern": "^[a-z][a-z0-9_]*$"
+                    },
+                    "prefix_value": {
+                      "type": "string"
+                    },
+                    "keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "source",
+                    "required_keys",
+                    "optional_groups",
+                    "selection_owner",
+                    "group_order"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "declared_bounded_key_groups_v1"
+                    },
+                    "required_keys": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "uniqueItems": true
+                    },
+                    "optional_groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "keys"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          "keys": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "minItems": 1,
+                            "uniqueItems": true
+                          }
+                        }
+                      },
+                      "uniqueItems": true
+                    },
+                    "selection_owner": {
+                      "const": "writer_observed_v1"
+                    },
+                    "group_order": {
+                      "const": "manifest_order_v1"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "key_axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "minimum_key_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maximum_key_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "minimum_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maximum_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "sealed_cardinality_grant_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "observed_sealed_output_cardinality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "sealed_cardinality_grant_identity",
+        "shape",
+        "observed_row_count",
+        "observed_cell_axis_count",
+        "observed_cell_axis_order_identity",
+        "observed_row_order_identity",
+        "missing_count",
+        "semantic_validation",
+        "sealed_axis_identity",
+        "observed_sealed_cardinality_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.observed_sealed_output_cardinality.v1"
+        },
+        "sealed_cardinality_grant_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        },
+        "shape": {
+          "enum": [
+            "one_per_cell",
+            "cell_key_cartesian",
+            "bounded_grouped_cell_key_cartesian"
+          ]
+        },
+        "observed_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observed_cell_axis_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "observed_cell_axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "observed_key_axis_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observed_key_axis_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "observed_row_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "missing_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "semantic_validation": {
+          "const": "passed"
+        },
+        "observed_key_axis": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "selected_optional_groups": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "selected_optional_groups_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "sealed_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "observed_sealed_cardinality_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "derived_cell_output_axis_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "grant_identity",
+        "source_axis_aggregate_identity",
+        "pack_declaration_identity",
+        "derivation_identity",
+        "sealed_axis_identity",
+        "declaration_count",
+        "seal_status",
+        "derivation_mode",
+        "source_axis_count",
+        "source_membership_count",
+        "aggregate_selected_count",
+        "overlap_collapse_count",
+        "final_cell_count",
+        "final_cell_order_identity",
+        "linked_output_closure_identity",
+        "linked_outputs",
+        "exact_linked_output_coverage",
+        "semantic_validation",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.derived_cell_output_axis_observation.v1"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_axis_aggregate_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "pack_declaration_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "derivation_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "sealed_axis_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "declaration_count": {
+          "const": 1
+        },
+        "seal_status": {
+          "const": "sealed"
+        },
+        "derivation_mode": {
+          "enum": [
+            "ordered_unique_subset_v1",
+            "declared_ordered_unique_union_v1"
+          ]
+        },
+        "source_axis_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "source_membership_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20000000
+        },
+        "aggregate_selected_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20000000
+        },
+        "overlap_collapse_count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 20000000
+        },
+        "final_cell_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "final_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "linked_output_closure_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "linked_outputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "ordinary_output_grant_identity",
+              "sealed_cardinality_observation_identity",
+              "observed_descriptor_identity",
+              "content_identity",
+              "observed_sealed_cell_axis_identity"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*$"
+              },
+              "ordinary_output_grant_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "sealed_cardinality_observation_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "observed_descriptor_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "content_identity": {
+                "$ref": "#/$defs/identity"
+              },
+              "observed_sealed_cell_axis_identity": {
+                "$ref": "#/$defs/identity"
+              }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 16
+        },
+        "exact_linked_output_coverage": {
+          "const": "passed"
+        },
+        "semantic_validation": {
+          "const": "passed"
+        },
+        "observation_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
+        }
+      }
+    },
+    "derived_cell_axis_derivation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pack_declaration_identity",
+            "grant_identity",
+            "derivation_mode",
+            "selected_axis_order_identities",
+            "final_cell_count",
+            "final_cell_order_identity",
+            "source_ordered_subset_status",
+            "selected_count",
+            "derivation_identity"
+          ],
+          "properties": {
+            "pack_declaration_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "derivation_mode": {
+              "enum": [
+                "ordered_unique_subset_v1",
+                "declared_ordered_unique_union_v1"
+              ]
+            },
+            "selected_axis_order_identities": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/identity"
+              },
+              "minItems": 1,
+              "maxItems": 64
+            },
+            "final_cell_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000000
+            },
+            "final_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "derivation_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              }
+            },
+            "source_ordered_subset_status": {
+              "const": "passed"
+            },
+            "selected_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000000
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pack_declaration_identity",
+            "grant_identity",
+            "derivation_mode",
+            "selected_axis_order_identities",
+            "final_cell_count",
+            "final_cell_order_identity",
+            "member_subset_status",
+            "union_membership_equality_status",
+            "distinct_selected_membership_count",
+            "aggregate_selected_count",
+            "overlap_collapse_count",
+            "derivation_identity"
+          ],
+          "properties": {
+            "pack_declaration_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "derivation_mode": {
+              "enum": [
+                "ordered_unique_subset_v1",
+                "declared_ordered_unique_union_v1"
+              ]
+            },
+            "selected_axis_order_identities": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/identity"
+              },
+              "minItems": 1,
+              "maxItems": 64
+            },
+            "final_cell_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000000
+            },
+            "final_cell_order_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "derivation_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              }
+            },
+            "member_subset_status": {
+              "const": "passed"
+            },
+            "union_membership_equality_status": {
+              "const": "passed"
+            },
+            "distinct_selected_membership_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000000
+            },
+            "aggregate_selected_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20000000
+            },
+            "overlap_collapse_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20000000
+            }
+          }
+        }
+      ]
+    },
+    "sealed_derived_cell_axis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "grant_identity",
+        "pack_declaration_identity",
+        "derivation_identity",
+        "source_axis_aggregate_identity",
+        "linked_output_closure_identity",
+        "final_cell_count",
+        "final_cell_order_identity",
+        "status",
+        "sealed_axis_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.sealed_derived_cell_axis.v1"
+        },
+        "grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "pack_declaration_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "derivation_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_axis_aggregate_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "linked_output_closure_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "final_cell_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000000
+        },
+        "final_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "status": {
+          "const": "sealed"
+        },
+        "sealed_axis_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          }
         }
       }
     }

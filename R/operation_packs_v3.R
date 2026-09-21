@@ -72,6 +72,7 @@
     op$inputs <- Filter(function(x) !as.character(x$name)[1] %in% g3_inputs,
       op$inputs)
     op$supported_external_state_adoptions <- NULL
+    op$derived_cell_output_axes <- NULL
     selector_parameters <- vapply(op$cell_selector_axes %||% list(),
       function(x) as.character(x$parameter)[1], character(1))
     for (parameter in selector_parameters) {
@@ -399,6 +400,8 @@
         "semantic_admission")
     .wb_operation_pack_v3_phase5_semantic_validate(operation, inputs,
       outputs, properties)
+    .wb_operation_pack_v3_g7_semantic_validate(operation, inputs, outputs,
+      properties, manifest$backend)
     axes <- operation$parameter_axes %||% list()
     axis_names <- vapply(axes, function(x) as.character(x$name)[1],
       character(1))
@@ -725,6 +728,7 @@
   projected$typed_slice_reads <- NULL
   projected$typed_space_reads <- NULL
   projected$cell_selector_axes <- NULL
+  projected$derived_cell_output_axes <- NULL
   projected$publication_policies <- NULL
   projected$parameter_axes <- NULL
   projected$parameter_bindings <- Filter(function(binding)

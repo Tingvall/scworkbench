@@ -49,6 +49,46 @@
     pack_no_refit_attestation = TRUE)
 }
 
+.derived_subset <- function(readers, writers, params, context) {
+  source <- readers$source()
+  selected <- as.character(params$selected_cells)
+  positions <- match(selected, as.character(source$cell_id))
+  values <- source$value[positions]
+  writers$write_terminal_primitive("vector",
+    scworkbench::wb_prim_cell_vector(stats::setNames(values, selected),
+      value_type = as.character(source$value_type),
+      meta = list(fixture = "g7-subset")))
+  if (isTRUE(params$fault_after_first_output)) stop("fixture partial write")
+  keys <- paste0(as.character(params$key_prefix), c("score", "confidence"))
+  writers$write_terminal_primitive("family",
+    scworkbench::wb_prim_cell_vector_family(rep(keys, each = length(selected)),
+      rep(selected, times = length(keys)), rep(seq_along(selected),
+        times = length(keys)),
+      value_type = "continuous", meta = list(fixture = "g7-subset")))
+  grant <- context$derived_cell_output_axis_grants[[1L]]
+  declaration <- scworkbench::wb_derived_cell_output_axis_declaration(grant,
+    selected)
+  declarations <- if (isTRUE(params$omit_declaration)) list() else if (
+    isTRUE(params$repeat_declaration)) list(declaration, declaration) else
+      list(declaration)
+  list(derived_cell_output_axis_declarations = declarations)
+}
+
+.derived_union <- function(readers, writers, params, context) {
+  grants <- context$derived_cell_output_axis_grants
+  grant <- grants[[1L]]
+  selected <- params$member_selections
+  for (i in seq_along(grant$source_axes))
+    readers$read_retained_artifact_collection_item("sources", i, "axis")
+  final <- as.character(params$final_cells)
+  writers$write_terminal_primitive("vector",
+    scworkbench::wb_prim_cell_vector(stats::setNames(seq_along(final), final),
+      value_type = "continuous", meta = list(fixture = "g7-union")))
+  list(derived_cell_output_axis_declarations = list(
+    scworkbench::wb_derived_cell_output_axis_declaration(grant, final,
+      selected)))
+}
+
 register_operation_pack <- function() {
   scworkbench::wb_operation_pack_register(
     system.file("scworkbench", "operation-pack.json",
@@ -58,6 +98,8 @@ register_operation_pack <- function() {
       `scwbv3phase5::consume_self_linked_model` =
         .consume_self_linked_model,
       `scwbv3phase5::adopt_external_state` = .adopt_external_state
+      , `scwbv3phase5::derived_subset` = .derived_subset
+      , `scwbv3phase5::derived_union` = .derived_union
     )
   )
 }
