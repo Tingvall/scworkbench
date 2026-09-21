@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 125
+Record count: 120
 
 Meaningful public transformations: 60
 
@@ -500,20 +500,6 @@ Boundary: `pure`
 
 Supported route: `direct_pure_computation`
 
-## `wb_op_space_path_define`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
 ## `wb_op_trajectory_de`
 
 Category: operation_implementation
@@ -529,48 +515,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_trajectory_geneset_dynamics`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_trajectory_segment_from_artifacts`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_trajectory_segment_join`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_trajectory_segment_path_join`
 
 Category: operation_implementation
 
@@ -613,20 +557,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_trajectory_smooth`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_trajectory_space_path_segment`
 
 Category: operation_implementation
 

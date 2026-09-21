@@ -236,23 +236,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Projected Slingshot lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_space_path_define
-#' @aliases wb_op_space_path_define
-#' @description Contract scaffold for checkpoint-anchored path construction in a named analytical space.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param space_id Registered coordinate-space identifier consumed by this operation.
-#' @param checkpoint_sets Ordered checkpoint cell-set refs that anchor the path definition.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param fit_mode Path fitting mode. The current implementation supports linear and a conservative manifold smoothing mode.
-#' @param checkpoint_summary Checkpoint summarization rule used to derive anchors from checkpoint cells.
-#' @param n_path_points Optional explicit number of fitted path points.
-#' @param smooth_k For fit_mode='manifold_smooth', number of nearest cells used per provisional path point.
-#' @param smooth_n_iter For fit_mode='manifold_smooth', number of refinement passes.
-#' @param smooth_weight For fit_mode='manifold_smooth', distance-weighting rule for local cell pull.
-#' @param path_id_out Path id to record for the emitted analytical path.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$path` (`space_path_family`): Analytical path in the original latent space.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_trajectory_de
 #' @aliases wb_op_trajectory_de
 #' @description Lineage-aware feature trend testing against trajectory pseudotime from model_ref.
@@ -317,58 +300,6 @@ NULL
 #' @param permutation_seed Random seed for empirical dynamic-score permutations.
 #' @param p_adjust_method Multiple-testing correction method for q_dynamic.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$signature_table` (`obs_table`): Binned feature-set score curves along trajectory pseudotime.; `outputs$dynamics_table` (`obs_table`): Per-feature-set dynamic metrics and rank.; `outputs$top_sets` (`obs_table`): Top-ranked dynamic feature sets for report-first discovery.; `outputs$driver_table` (`obs_table`): Top dynamic member genes within each screened feature set.; `outputs$driver_curve_table` (`obs_table`): Binned curves for top driver genes within each screened feature set.; `outputs$fit_summary` (`obs_table`): Per-lineage screening diagnostics.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_trajectory_segment_from_artifacts
-#' @aliases wb_op_trajectory_segment_from_artifacts
-#' @description Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param pseudotime Required `pseudotime` input represented as `cell_vector_family`; accepted symbolic references are resolved by the operation interface.
-#' @param lineage Lineage/key to extract from fitted pseudotime and optional weights.
-#' @param segment_id Stable segment identifier.
-#' @param segment_order Order of this fitted segment in a future composite.
-#' @param model Optional `model` input represented as `model_ref`; accepted symbolic references are resolved by the operation interface.
-#' @param lineage_weights Optional `lineage_weights` input represented as `cell_vector_family`; accepted symbolic references are resolved by the operation interface.
-#' @param membership Optional cell_vector artifact, cell set, or cell IDs intersected with finite pseudotime cells.
-#' @param confidence Optional `confidence` input represented as `cell_vector_family`; accepted symbolic references are resolved by the operation interface.
-#' @param confidence_key Optional key for confidence cell_vector_family. Defaults to lineage.
-#' @param path Path-family primitive or compatible path reference.
-#' @param source_engine Fitted trajectory engine, usually slingshot, monocle3, or palantir.
-#' @param start_label Biological start label.
-#' @param end_label Biological end label.
-#' @param composite_id Stable identifier for a derived composite trajectory.
-#' @param runs Optional session run registry used to resolve symbolic input references.
-#' @param allow_legacy Allow missing trajectory_fit_id with warning. Default rejects legacy ambiguity.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Fitted-model segment pseudotime for the selected lineage/key.; `outputs$membership` (`cell_vector`): Cells included in the fitted-model segment.; `outputs$confidence` (`cell_vector_family`): Segment confidence, derived from supplied confidence/lineage weights or defaulting to 1.; `outputs$segment_manifest` (`obs_table`): Audit manifest for the fitted-model segment.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_trajectory_segment_join
-#' @aliases wb_op_trajectory_segment_join
-#' @description Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param segments Ordered segment specs with source_kind/source_engine, pseudotime ref, lineage key, optional membership/weights/confidence/path refs, labels, and order.
-#' @param composite_id Stable identifier for a derived composite trajectory.
-#' @param composite_key Key used in the output composite pseudotime cell_vector_family objects.
-#' @param join_policy Overlap policy. The current implementation supports exact_boundary_collapse.
-#' @param min_weight Optional minimum lineage weight required for segment-local membership when weights are supplied.
-#' @param allow_legacy Allow missing trajectory_fit_id within a segment with warning. Default rejects legacy ambiguity.
-#' @param runs Optional session run registry used to resolve symbolic input references.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$composite_pseudotime_unit_segment` (`cell_vector_family`): Canonical one-row-per-cell composite pseudotime with exact integer segment boundaries.; `outputs$composite_pseudotime_cell_weighted_0_1` (`cell_vector_family`): One-row-per-cell composite pseudotime normalized to \\[0,1\\] with segment lengths weighted by segment-local cell counts.; `outputs$segment_local_table` (`obs_table`): One row per cell per parent segment preserving source kind, raw pseudotime, normalized pseudotime, confidence, weight, and segment role.; `outputs$composite_manifest` (`obs_table`): Audit manifest recording parent segment sources, artifacts, fit IDs where available, labels, join policy, overlap counts, and caveats.; `outputs$composite_membership` (`cell_vector`): One-cell assignment to a unique segment or waypoint overlap.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_trajectory_segment_path_join
-#' @aliases wb_op_trajectory_segment_path_join
-#' @description Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param paths Ordered path segment specs with path ref, lineage key, segment ID, labels, and order.
-#' @param composite_id Stable identifier for a derived composite trajectory.
-#' @param composite_key Key used in the output composite path_2d_family.
-#' @param display_space_id 2D display space used for endpoint cell-set coordinate QC when path segment specs declare endpoint cell sets.
-#' @param endpoint_summary_method How endpoint cell sets are summarized in display space for QC.
-#' @param endpoint_max_distance Optional absolute maximum endpoint distance before QC fails.
-#' @param endpoint_qc_action Action when display-path endpoint QC detects a large mismatch.
-#' @param allow_legacy Allow missing trajectory_fit_id on parent paths with warning.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Derived display-only composite path suitable for UMAP overlay; not a merged fitted trajectory model.; `outputs$path_manifest` (`obs_table`): Audit manifest recording parent path artifacts, segment order, point boundaries, and caveats.; `outputs$endpoint_qc` (`obs_table`): Endpoint-distance QC for joined display paths with declared endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_signal_dynamics
@@ -436,37 +367,6 @@ NULL
 #' @param min_cells_per_bin Minimum cells required for an output bin.
 #' @param chunk_size Maximum chunk size used for bounded-memory processing.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$trend_table` (`obs_table`): Per-feature binned expression summaries along trajectory pseudotime.; `outputs$fit_summary` (`obs_table`): Per-lineage smoothing diagnostics.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_trajectory_space_path_segment
-#' @aliases wb_op_trajectory_space_path_segment
-#' @description Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param path_scores Required `path_scores` input represented as `cell_vector_family`; accepted symbolic references are resolved by the operation interface.
-#' @param segment_id Stable segment identifier.
-#' @param segment_order Order of this bridge segment in a future composite.
-#' @param score_prefix Optional prefix used by scwbtrajectory::space_path_score keys.
-#' @param candidate_cells Optional candidate universe before distance thresholding.
-#' @param distance_threshold Include cells with distance_to_path <= threshold.
-#' @param distance_quantile Alternative threshold: include cells up to this distance quantile.
-#' @param start_label Biological start label.
-#' @param end_label Biological end label.
-#' @param path Path-family primitive or compatible path reference.
-#' @param display_path Optional `display_path` input represented as `path_2d_family`; accepted symbolic references are resolved by the operation interface.
-#' @param display_lineage Optional key/lineage to validate in display_path. Defaults to the only key if display_path has one.
-#' @param display_space_id 2D display space used for endpoint cell-set coordinate QC.
-#' @param start_endpoint Optional start endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.
-#' @param end_endpoint Optional end endpoint descriptor with cell_set/cells or explicit x/y coordinates for display-path QC.
-#' @param start_cell_set Convenience start endpoint cell set for display-path QC.
-#' @param end_cell_set Convenience end endpoint cell set for display-path QC.
-#' @param endpoint_summary_method How endpoint cell sets are summarized in display space for QC.
-#' @param endpoint_max_distance Optional absolute maximum endpoint distance before QC fails.
-#' @param endpoint_qc_action Action when display-path endpoint QC detects a large mismatch.
-#' @param composite_id Stable identifier for a derived composite trajectory.
-#' @param pseudotime_key Key for emitted bridge pseudotime. Defaults to segment_id.
-#' @param confidence_key Key for emitted bridge confidence. Defaults to segment_id.
-#' @param runs Optional session run registry used to resolve symbolic input references.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Bridge pseudotime from path arclength progress in \\[0,1\\].; `outputs$membership` (`cell_vector`): Cells passing the transparent distance-to-path bridge membership rule.; `outputs$confidence` (`cell_vector_family`): Distance-derived confidence for included bridge cells.; `outputs$segment_manifest` (`obs_table`): Audit manifest for the space-path bridge segment.; `outputs$display_endpoint_qc` (`obs_table`): Endpoint-distance QC for an optional display_path against declared start/end endpoint descriptors.. Promotion eligibility is declared by the operation catalog.
 NULL
 
 #' @name wb_op_trajectory_vector_smooth

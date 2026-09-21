@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 299
+Record count: 294
 
-Graph edges: 700
+Graph edges: 635
 
 ## artifact_type
 
@@ -1082,30 +1082,6 @@ Title: Slingshot lineage weights
 
 Description: Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
 
-### `op:trajectory_segment_join`
-
-Title: Trajectory segment join
-
-Description: Join ordered generic trajectory segments into an auditable composite pseudotime without merging parent trajectory models.
-
-### `op:trajectory_segment_from_artifacts`
-
-Title: Trajectory fitted-artifact segment
-
-Description: Materialize the generic trajectory segment contract from fitted-model trajectory artifacts with fit-family validation.
-
-### `op:trajectory_space_path_segment`
-
-Title: Trajectory space-path segment
-
-Description: Convert scwbtrajectory::space_path_score output into a generic trajectory segment using path-progress pseudotime and transparent distance-based membership.
-
-### `op:trajectory_segment_path_join`
-
-Title: Trajectory segment path join
-
-Description: Join ordered parent path_2d_family segments into a derived composite display curve without merging parent trajectory models.
-
 ### `op:slingshot_project`
 
 Title: Slingshot project curves
@@ -1147,12 +1123,6 @@ Description: Project cells from an ATAC matrix through a saved PeakVI model and 
 Title: Model-Bound Latent-Space Union
 
 Description: Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
-
-### `op:space_path_define`
-
-Title: Define analytical space path
-
-Description: Contract scaffold for checkpoint-anchored path construction in a named analytical space.
 
 ### `op:palantir_fit`
 

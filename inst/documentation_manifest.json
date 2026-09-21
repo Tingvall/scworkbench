@@ -3379,17 +3379,6 @@
       "installed_relative_path": null
     },
     {
-      "path": "man/wb_op_space_path_define.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
       "path": "man/wb_op_trajectory_de.Rd",
       "class": "generated_public_reference",
       "audience": "public",
@@ -3402,39 +3391,6 @@
     },
     {
       "path": "man/wb_op_trajectory_geneset_dynamics.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_trajectory_segment_from_artifacts.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_trajectory_segment_join.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_trajectory_segment_path_join.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",
@@ -3468,17 +3424,6 @@
     },
     {
       "path": "man/wb_op_trajectory_smooth.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_trajectory_space_path_segment.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

@@ -1,26 +1,21 @@
 .make_composite_test_artifacts <- function(bundle, cells, key = "composite_test") {
-  pt <- wb_prim_cell_vector_family(
-    key = rep(key, length(cells)),
-    cell_id = cells,
-    value = seq(0, 1, length.out = length(cells)),
-    value_type = "continuous",
-    meta = list(
-      trajectory_composite_id = "comp_test",
-      family_kind = "trajectory_composite_pseudotime"
-    )
-  )
-  membership_vals <- rep("trajectory", length(cells))
-  names(membership_vals) <- cells
-  membership <- wb_prim_cell_vector(membership_vals, value_type = "categorical")
+  make_segment <- function(segment_id, selected, fit_id, order) list(
+    segment_id = segment_id, order = order, source_kind = "fitted_model",
+    source_engine = "slingshot", lineage = "L1",
+    pseudotime = wb_prim_cell_vector_family(rep("L1", length(selected)),
+      selected, seq(0, 1, length.out = length(selected)), "continuous",
+      meta = list(trajectory_fit_id = fit_id, engine = "slingshot")))
+  method <- getFromNamespace(".trajectory_segment_join", "scwbTrajectory")
+  result <- method(segments = list(
+    make_segment("segment_1", cells[1:6], "fit_1", 1L),
+    make_segment("segment_2", cells[6:12], "fit_2", 2L)),
+    composite_id = "comp_test", composite_key = key)
 
   run <- wb_new_run(
-    op_name = "trajectory_segment_join",
+    op_name = "scwbtrajectory::trajectory_segment_join",
     inputs = list(cell_set = "all", user_inputs = list(composite_key = key)),
-    params = list(trajectory_composite_id = "comp_test", composite_key = key),
-    outputs = list(
-      composite_pseudotime_unit_segment = pt,
-      composite_membership = membership
-    ),
+    params = result$params,
+    outputs = result$outputs,
     notes = "synthetic composite pseudotime fixture"
   )
   prom <- wb_promote_analysis(
@@ -77,6 +72,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
   if (!requireNamespace("BPCells", quietly = TRUE)) {
     return(contract_test_skip("BPCells is not installed."))
   }
+  contract_test_activate_trajectory_pack()
 
   tmp <- tempfile("scwb_composite_dynamics_")
   b <- wb_init_bundle(tmp, overwrite = TRUE)
@@ -221,9 +217,9 @@ test_composite_pseudotime_dynamics_contract <- function() {
   path1 <- .make_path_join_test_artifact(b, "fit_path_1", "seg1", x = c(0, 1, 2), y = c(0, 0.5, 1))
   path2 <- .make_path_join_test_artifact(b, "fit_path_2", "seg2", x = c(2, 3, 4), y = c(1, 1.2, 1.5))
   pj <- wb_session_run_op(
-    session = sig_dyn$session,
+    session = wb_session_new(),
     bundle = b,
-    op_name = "trajectory_segment_path_join",
+    op_name = "scwbtrajectory::trajectory_segment_path_join",
     inputs = list(
       cell_set = "all",
       min_cells = 1L,

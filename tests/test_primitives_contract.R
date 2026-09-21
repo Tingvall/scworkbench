@@ -102,8 +102,5 @@ test_primitives_contract <- function() {
     }
   }
 
-  sp_def <- wb_op_interface("space_path_define")
-  stopifnot(identical(as.character(sp_def$produces$path$kind), "space_path_family"))
-
   TRUE
 }
