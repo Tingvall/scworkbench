@@ -110,7 +110,7 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 113L)
+    length(fixture$cases) == 119L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -194,6 +194,13 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     g7_union_nonlexicographic_declaration = "pack_declaration_identity",
     g7_union_alternate_order_declaration = "pack_declaration_identity")
   for (case in fixture$cases) {
+    if (startsWith(case$name, "g7_effective_key_")) {
+      stopifnot(identical(case$preimage, case$value),
+        identical(digest::digest(
+          scworkbench:::.wb_operation_pack_canonical_json(case$value),
+          algo = "sha256", serialize = FALSE), case$identity$sha256))
+      next
+    }
     field <- unname(identity_fields[case$name])
     if ((length(field) != 1L || is.na(field)) &&
         startsWith(case$name, "g7_")) {
@@ -455,10 +462,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "54f935f183364b973e450d1cfce5377c2561fa005667ed85a6a1021312c8d231",
-    "b07b61e2727c537fb24f75759f6ef769a67ddc3675d7412459f0fcf18e789dc8",
-    "b05b35aaa9fce85791afb7799d795420825322b860187f5c0e81e23fa26f86dd",
-    "96166d005bde0be19133e3579bb66fc62d6b8521bdc52419421a1975c1184195")
+    "643267f5999f80b10cd7a3687236d9c719221e703ede0db6b6f02fe07c825a37",
+    "bdcb4eb7a7ffc66fcd95fbecceb8cce5dfad5abf1abc74c61e0f49d88a483fec",
+    "87c7c2b7386097d0174c55200e74e02e5863d1bc15970fa5ff401175b6718ed6",
+    "0961ffcba4dd2a7bb16e806ec78a7a300faa53719fd1534e9a1fac3beee03796")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)
