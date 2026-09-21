@@ -45,7 +45,7 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
     "inst/protocol/fixtures/operation-pack-v3/identities.json",
     simplifyVector = FALSE)
   cases <- Filter(function(x) startsWith(x$name, "g7_"), fixture$cases)
-  stopifnot(length(cases) == 55L)
+  stopifnot(length(cases) == 47L)
   for (item in cases) stopifnot(identical(
     .wb_operation_pack_sha256(item$preimage), item$identity$sha256))
   nonlex <- fixture$g7_positive_examples$union_nonlexicographic
@@ -63,20 +63,25 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
     !identical(nonlex$observation$observation_identity,
       alternate$observation$observation_identity),
     !identical(nonlex$receipt$receipt_identity,
-      alternate$receipt$receipt_identity))
+      alternate$receipt$receipt_identity),
+    !identical(nonlex$receipt$outputs[[1L]]$descriptor$content_identity,
+      alternate$receipt$outputs[[1L]]$descriptor$content_identity),
+    !identical(nonlex$receipt$outputs[[2L]]$descriptor$content_identity,
+      alternate$receipt$outputs[[2L]]$descriptor$content_identity),
+    !identical(nonlex$receipt$outputs[[1L]]$descriptor$
+        payload_manifest_identity,
+      alternate$receipt$outputs[[1L]]$descriptor$payload_manifest_identity))
   case_map <- stats::setNames(cases, vapply(cases, `[[`, character(1),
     "name"))
   divergent_suffixes <- c("derivation", "sealed_axis",
     "vector_cardinality", "family_cardinality",
     "vector_observed_cardinality", "family_observed_cardinality",
-    "vector_content", "family_content", "vector_payload",
     "vector_descriptor", "family_descriptor", "axis_observation",
     "receipt")
   for (suffix in divergent_suffixes) stopifnot(!identical(
     case_map[[paste0("g7_union_nonlexicographic_", suffix)]]$identity,
     case_map[[paste0("g7_union_alternate_order_", suffix)]]$identity))
-  family_content <- case_map[[
-    "g7_union_nonlexicographic_family_content"]]$preimage
+  family_content <- nonlex$linked_values[[2L]]
   stopifnot(identical(as.character(unlist(family_content$key)),
       rep(c("score", "confidence"), each = 3L)),
     identical(as.character(unlist(family_content$cell_id)),
@@ -159,6 +164,24 @@ test_operation_pack_v3_g7_protocol_identity_contract <- function() {
       receipt_schema[["$defs"]]),
     !schema_valid(wrong_derivation, derivation_schema,
       receipt_schema[["$defs"]]))
+  for (output in nonlex$request$outputs) stopifnot(schema_valid(
+    output$descriptor, request_schema[["$defs"]]$output_descriptor,
+    request_schema[["$defs"]]))
+  for (output in nonlex$receipt$outputs) stopifnot(schema_valid(
+    output$descriptor, receipt_schema[["$defs"]]$observed_output_descriptor,
+    receipt_schema[["$defs"]]))
+  stopifnot(schema_valid(nonlex$observation,
+    receipt_schema[["$defs"]]$derived_cell_output_axis_observation,
+    receipt_schema[["$defs"]]))
+  cardinality_cases <- Filter(function(x) grepl(
+    "g7_union_nonlexicographic_.*_cardinality$", x$name), cases)
+  for (item in cardinality_cases) {
+    definition <- if (grepl("observed", item$name, fixed = TRUE))
+      receipt_schema[["$defs"]]$observed_sealed_output_cardinality else
+        receipt_schema[["$defs"]]$sealed_output_cardinality_grant
+    stopifnot(schema_valid(item$value, definition,
+      receipt_schema[["$defs"]]))
+  }
   TRUE
 }
 

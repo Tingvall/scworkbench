@@ -100,9 +100,10 @@ observed_cardinality <-
       value_type = "continuous"), sealed_cardinality)
 
 content_record <- function(value) {
-  record <- unclass(value)
-  record$content_identity <- plain("scworkbench.content.object-rds.v1", record)
-  record
+  observed <- scworkbench:::.wb_prov_payload_identity(NULL, value)
+  list(kind = value$kind, cell_id = unname(as.list(value$cell_id)),
+    content_identity = list(scheme = observed$content_identity_scheme,
+      sha256 = observed$content_sha256))
 }
 payload_record <- function(name, content_identity, cells) {
   value <- list(output = name, content_identity = content_identity,
@@ -115,20 +116,21 @@ payload_record <- function(name, content_identity, cells) {
 base_observed <- function(output, value, content, payload) list(name =
   output$name, allocated_id = output$allocated_id, descriptor = list(
     category = "terminal_artifact", kind = output$descriptor$kind,
-    storage_profile = if (output$descriptor$kind == "cell_vector")
-      "cell_vector_v1" else "cell_vector_family_v1",
-    writer = if (output$descriptor$kind == "cell_vector")
-      "write_cell_vector" else "write_cell_vector_family",
+    storage_profile = "terminal_primitive_v1",
+    writer = "write_terminal_primitive",
     grant_identity = output$descriptor$grant_identity,
     dimensions = unname(as.list(
       scworkbench:::.wb_operation_pack_v2_dimensions(value,
         output$descriptor$kind))), alignment = "cell_ordered",
     ancestry_identity = id("scworkbench.operation_pack.ancestry.v1", "6"),
-    model_linkage = NULL, content_identity = content$content_identity,
+    model_linkage = list(mode = "none"),
+    content_identity = content$content_identity,
     payload_manifest_identity = payload$payload_manifest_identity,
     semantic_metadata_identity = id(
-      "scworkbench.operation_pack.semantic_metadata.v1", "7"),
-    semantic_validation = "passed",
+      "scworkbench.operation_pack.semantic_metadata.v2", "7"),
+    semantic_validation = list(constraints_identity = plain(
+      "scworkbench.operation_pack.semantic_constraints.v2",
+      output$descriptor$semantic_constraints), status = "passed"),
     cell_order_identity = plain("scworkbench.cell_order.v1",
       unname(as.list(value$cell_id)))))
 apply_chain <- function(grant_value, seal_value, outputs, values) {
@@ -263,11 +265,17 @@ family_policy <- list(schema =
   resolved_keys = list("score", "confidence"))
 ordinary_output <- function(name, id_value, kind, policy) {
   descriptor <- list(category = "terminal_artifact", kind = kind,
-    storage_profile = if (kind == "cell_vector") "cell_vector_v1" else
-      "cell_vector_family_v1", writer = if (kind == "cell_vector")
-        "write_cell_vector" else "write_cell_vector_family",
+    storage_profile = "terminal_primitive_v1",
+    writer = "write_terminal_primitive",
+    relative_root = paste0("outputs/", name),
     expected_dimensions = if (kind == "cell_vector") list(0L) else
       list(0L, 3L), expected_cell_order_identity = NULL,
+    expected_alignment = "cell_ordered",
+    expected_ancestry_identity = id(
+      "scworkbench.operation_pack.ancestry.v1", "6"),
+    expected_model_linkage = list(mode = "none"),
+    semantic_constraints = list(value_kind = "continuous",
+      missing_values = "forbidden"),
     derived_cell_output_axis_policy = policy)
   descriptor$grant_identity <- scoped(
     "scworkbench.operation_pack.output_grant.v3",
@@ -359,10 +367,6 @@ new <- list(case("g7_manifest_declaration", declaration,
     "sealed_cardinality_grant_identity"),
   case("g7_subset_observed_sealed_cardinality", observed_cardinality,
     "observed_sealed_cardinality_identity"),
-  case("g7_subset_content", subset_chain$contents[[1L]],
-    "content_identity"),
-  case("g7_subset_payload", subset_chain$payloads[[1L]],
-    "payload_manifest_identity"),
   case("g7_subset_observed_descriptor",
     subset_chain$observed[[1L]]$descriptor, "observed_descriptor_identity"),
   case("g7_subset_axis_observation", subset_chain$observation,
@@ -420,18 +424,6 @@ new <- list(case("g7_manifest_declaration", declaration,
   case("g7_union_alternate_order_family_observed_cardinality",
     union_chain_b$observed_cardinalities[[2L]],
     "observed_sealed_cardinality_identity"),
-  case("g7_union_nonlexicographic_vector_content",
-    union_chain_a$applied$contents[[1L]], "content_identity"),
-  case("g7_union_alternate_order_vector_content",
-    union_chain_b$applied$contents[[1L]], "content_identity"),
-  case("g7_union_nonlexicographic_family_content",
-    union_chain_a$applied$contents[[2L]], "content_identity"),
-  case("g7_union_alternate_order_family_content",
-    union_chain_b$applied$contents[[2L]], "content_identity"),
-  case("g7_union_nonlexicographic_vector_payload",
-    union_chain_a$applied$payloads[[1L]], "payload_manifest_identity"),
-  case("g7_union_alternate_order_vector_payload",
-    union_chain_b$applied$payloads[[1L]], "payload_manifest_identity"),
   case("g7_union_nonlexicographic_vector_descriptor",
     union_chain_a$applied$observed[[1L]]$descriptor,
     "observed_descriptor_identity"),
@@ -454,8 +446,7 @@ new <- list(case("g7_manifest_declaration", declaration,
     union_chain_a$transition$receipt, "receipt_identity"),
   case("g7_union_alternate_order_receipt", union_chain_b$transition$receipt,
     "receipt_identity"))
-names_new <- vapply(new, `[[`, character(1), "name")
-fixture$cases <- c(Filter(function(x) !x$name %in% names_new,
+fixture$cases <- c(Filter(function(x) !startsWith(x$name, "g7_"),
   fixture$cases), new)
 fixture$g7_positive_examples <- list(subset = list(declaration = declaration,
   grant = grant, pack_declaration = pack_declaration,
@@ -466,12 +457,14 @@ fixture$g7_positive_examples <- list(subset = list(declaration = declaration,
       list("cell_1", "cell_2")), declared_final_order = list("cell_1",
         "cell_10", "cell_2"), declaration = union_a,
     sealed_axis = union_chain_a$sealed$seal,
+    linked_values = lapply(union_chain_a$values, unclass),
     observation = union_chain_a$applied$observation,
     request = union_chain_a$transition$request,
     receipt = union_chain_a$transition$receipt),
   union_alternate_order = list(declared_final_order = list("cell_2",
     "cell_1", "cell_10"), declaration = union_b,
     sealed_axis = union_chain_b$sealed$seal,
+    linked_values = lapply(union_chain_b$values, unclass),
     observation = union_chain_b$applied$observation,
     receipt = union_chain_b$transition$receipt))
 jsonlite::write_json(fixture, path, auto_unbox = TRUE, pretty = TRUE,
