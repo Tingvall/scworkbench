@@ -120,6 +120,14 @@ wb_supported_external_state_candidate <- function(engine, model_type, cells,
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
     "External source snapshot does not resolve exactly one immutable record.",
     "resolution")
+  eligible <- DBI::dbGetQuery(bundle$con, paste0(
+    "SELECT COUNT(*) AS n FROM prov_source_inputs ",
+    "WHERE source_id=? AND checksum_status='checksummed';"),
+    params = list(as.character(reference$source_id)[1]))
+  if (eligible$n[[1L]] != 1L) .wb_operation_pack_v3_error(
+    "PYBENCH_INPUT_IDENTITY_MISMATCH",
+    "External source ID has ambiguous checksummed provenance records.",
+    "resolution")
   declaration <- tryCatch(jsonlite::fromJSON(row$source_json[[1]],
     simplifyVector = FALSE), error = identity)
   if (inherits(declaration, "error") ||

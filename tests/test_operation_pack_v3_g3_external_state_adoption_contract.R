@@ -291,6 +291,67 @@ test_operation_pack_v3_g3_adversarial_contract <- function() {
   TRUE
 }
 
+test_operation_pack_v3_g3_duplicate_source_record_contract <- function() {
+  fixture <- .wb_g3_fixture_install()
+  state <- .wb_g3_bundle()
+  external <- tempfile("scwb-g3-duplicate-source-")
+  writeBin(charToRaw("same external source bytes"), external)
+  checksum <- wb_source_sha256(external)
+  old_ref <- .wb_g3_record_source(state$bundle, "duplicate-fit", external,
+    checksum)
+  on.exit({
+    try(wb_close_bundle(state$bundle), silent = TRUE)
+    .wb_g3_fixture_cleanup(fixture)
+    unlink(c(state$root, external), recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+
+  declaration <- list(scope = "external_file", source_id = "duplicate-fit",
+    accession = "fixture", role = "published_fit", format = "binary",
+    path = external, uri = NULL, bundled = FALSE, checksum = checksum,
+    sha256 = checksum, checksum_algorithm = "sha256",
+    accession_derived = FALSE)
+  .wb_record_declared_ingestion(state$bundle, "g3_duplicate_fit_second",
+    source = "G3 duplicate fixture", source_identity = list(
+      source_type = "published_fit", inputs = list(declaration)))
+  .wb_entity_lifecycle_migrate(state$bundle)
+  records <- DBI::dbGetQuery(state$bundle$con, paste0(
+    "SELECT snapshot_id,run_id,checksum_status FROM prov_source_inputs ",
+    "WHERE source_id=? ORDER BY snapshot_id,run_id;"),
+    params = list("duplicate-fit"))
+  stopifnot(nrow(records) == 2L,
+    all(records$checksum_status == "checksummed"))
+  new_record <- records[!(records$snapshot_id == old_ref$snapshot_id &
+    records$run_id == old_ref$run_id), , drop = FALSE]
+  stopifnot(nrow(new_record) == 1L)
+  new_ref <- list(source_id = "duplicate-fit",
+    snapshot_id = new_record$snapshot_id[[1L]],
+    run_id = new_record$run_id[[1L]])
+
+  tables <- c("prov_runs", "prov_run_outputs", "prov_run_entity_bindings",
+    "prov_source_inputs", "prov_heads", "artifacts", "artifact_tables")
+  counts <- function() vapply(tables, function(table) DBI::dbGetQuery(
+    state$bundle$con, paste0("SELECT COUNT(*) AS n FROM ", table))$n[[1L]],
+    numeric(1))
+  before_counts <- counts()
+  before_store <- sort(list.files(.wb_operation_pack_v2_store(state$bundle),
+    recursive = TRUE, all.files = TRUE, no.. = TRUE))
+  for (reference in list(old_ref, new_ref)) {
+    candidate <- .wb_g3_candidate(state$cells)
+    token <- candidate$candidate_token
+    candidate_root <- get(token,
+      envir = .wb_operation_pack_v3_external_candidates)$root
+    .wb_g3_expect_code(.wb_g3_run(state$bundle, state$cells, reference,
+      candidate), "PYBENCH_INPUT_IDENTITY_MISMATCH")
+    stopifnot(identical(counts(), before_counts),
+      identical(sort(list.files(
+        .wb_operation_pack_v2_store(state$bundle), recursive = TRUE,
+        all.files = TRUE, no.. = TRUE)), before_store),
+      !exists(token, envir = .wb_operation_pack_v3_external_candidates,
+        inherits = FALSE), !dir.exists(candidate_root))
+  }
+  TRUE
+}
+
 test_operation_pack_v3_g3_shared_identity_fixture_contract <- function() {
   fixture <- jsonlite::read_json(file.path("inst", "protocol", "fixtures",
     "operation-pack-v3", "identities.json"), simplifyVector = FALSE)
