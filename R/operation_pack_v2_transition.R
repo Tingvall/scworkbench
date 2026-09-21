@@ -1496,6 +1496,22 @@
             dimension_count = x$dimension_count)), vapply(
               request$typed_space_grants %||% list(), `[[`, character(1),
               "name")),
+        optional_display_axis_groups = lapply(
+          request$optional_display_axis_group_grants %||% list(),
+          function(grant) {
+            key <- paste(as.character(grant$name)[1L],
+              as.character(grant$group_key)[1L], sep = "\034")
+            value <- attr(request,
+              "operation_pack_v3_optional_display_values")[[key]]
+            list(name = as.character(grant$name)[1L],
+              group_key = as.character(grant$group_key)[1L],
+              scope = as.character(grant$scope)[1L],
+              display_cells = unname(as.character(
+                value$display$cell_id %||% character())),
+              endpoint_roles = unname(vapply(grant$endpoint_axes %||%
+                list(), function(axis) as.character(axis$role)[1L],
+                character(1))))
+          }),
         input_ids = stats::setNames(lapply(inputs, function(value) {
           kind <- as.character(value$kind %||% "")[1]
           if (kind == "matrix") as.character(value$matrix_id %||% "")[1]

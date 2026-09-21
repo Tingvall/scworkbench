@@ -757,6 +757,19 @@
     projected$dimension_policies %||% list())
   if (!length(projected$dimension_policies)) projected$dimension_policies <- NULL
   definition <- .wb_operation_pack_v2_catalog_definition(projected)
+  operation_display_groups <- Filter(function(group) identical(
+    as.character(group$scope)[1L], "operation"),
+    op$optional_display_axis_groups %||% list())
+  endpoint_parameters <- unique(unlist(lapply(operation_display_groups,
+    function(group) vapply(group$activation, function(role)
+      as.character(role$endpoint_parameter)[1L], character(1))),
+    use.names = FALSE))
+  if (length(endpoint_parameters)) definition$params <- lapply(
+    definition$params, function(parameter) {
+      if (as.character(parameter$name)[1L] %in% endpoint_parameters)
+        parameter$type <- "list_or_cell_set"
+      parameter
+    })
   definition$pack_abi_version <- "3"
   definition$v2_definition <- NULL
   definition$v3_definition <- op

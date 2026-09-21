@@ -164,8 +164,17 @@
   for (group in groups) {
     scope <- as.character(group$scope)[1]
     collection <- as.character(group$collection_read %||% "")[1]
+    collection_declaration <- collections[[match(collection,
+      vapply(collections, function(x) as.character(x$name)[1L],
+        character(1)))]]
+    collection_parameter <- as.character(
+      collection_declaration$parameter %||% "")[1L]
+    item_properties <- properties[[collection_parameter]]$items$properties %||%
+      list()
     display_parameter <- as.character(
       group$display_space_selector$operation_parameter)[1]
+    item_display_field <- as.character(
+      group$display_space_selector$item_field %||% "")[1]
     endpoint_parameters <- vapply(group$activation, function(x)
       as.character(x$endpoint_parameter)[1], character(1))
     top_parameters <- vapply(group$activation, function(x)
@@ -174,7 +183,13 @@
       identical(as.character(unlist(group$endpoint_roles,
         use.names = FALSE)), c("start", "end")) &&
       !is.null(properties[[display_parameter]]) &&
-      all(endpoint_parameters %in% names(properties)) &&
+      ((identical(scope, "operation") &&
+          all(endpoint_parameters %in% names(properties)) &&
+          !nzchar(item_display_field)) ||
+        (identical(scope, "collection_item") &&
+          all(endpoint_parameters %in% names(item_properties)) &&
+          nzchar(item_display_field) &&
+          item_display_field %in% names(item_properties))) &&
       all(!nzchar(top_parameters) | top_parameters %in% names(properties)) &&
       ((identical(scope, "operation") && !nzchar(collection)) ||
        (identical(scope, "collection_item") &&
@@ -490,6 +505,7 @@
       axes[[i]] <- descriptor; axis_values[[i]] <- resolved$axis
       sources[[paste(name, i, sep = "\034")]] <- list(name = set_name,
         source_cells = source_cells, space_name = space_name,
+        space_id = as.character(space$space_id)[1L],
         space_cells = space_cells,
         space_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
           input_records[[space_name]]$descriptor_identity),
@@ -1075,7 +1091,7 @@
   for (source in axis_sources) {
     cells <- tryCatch(as.character(wb_cells(bundle, cell_set = source$name)),
       error = identity)
-    space_cells <- tryCatch(rownames(wb_space(bundle, source$space_name)),
+    space_cells <- tryCatch(rownames(wb_space(bundle, source$space_id)),
       error = identity)
     if (inherits(cells, "error") || inherits(space_cells, "error"))
       .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
