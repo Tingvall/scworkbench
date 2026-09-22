@@ -110,7 +110,8 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 119L)
+    length(fixture$cases) == 142L,
+    length(fixture$negative_cases) == 14L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -192,9 +193,32 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     g7_union_source_aggregate = "source_axis_aggregate_identity",
     g7_union_grant = "grant_identity",
     g7_union_nonlexicographic_declaration = "pack_declaration_identity",
-    g7_union_alternate_order_declaration = "pack_declaration_identity")
+    g7_union_alternate_order_declaration = "pack_declaration_identity",
+    dfa_manifest_policy = "policy_identity",
+    dfa_full_parent_snapshot = "parent_snapshot_identity",
+    dfa_session_projection = "session_identity",
+    dfa_provisional_grant = "grant_identity",
+    dfa_private_declaration = "declaration_identity",
+    dfa_sealed_axis = "seal_identity",
+    dfa_sealed_model_grant = "sealed_grant_identity",
+    dfa_sealed_embedding_grant = "sealed_grant_identity",
+    dfa_sealed_weights_grant = "sealed_grant_identity",
+    dfa_model_source_linkage_v3 = "linkage_identity",
+    dfa_exact_vector_coverage = "observation_identity",
+    dfa_sparse_family_coverage = "observation_identity",
+    dfa_derived_model_tree_observation = "observation_identity",
+    dfa_model_observed_descriptor = "observed_descriptor_identity",
+    dfa_complete_observation = "observation_identity",
+    dfa_full_axis_session = "session_identity",
+    dfa_full_axis_provisional_grant = "grant_identity",
+    dfa_full_axis_declaration = "declaration_identity",
+    dfa_full_axis_seal = "seal_identity",
+    dfa_success_request = "request_identity",
+    dfa_success_receipt = "receipt_identity")
   for (case in fixture$cases) {
-    if (startsWith(case$name, "g7_effective_key_")) {
+    if (startsWith(case$name, "g7_effective_key_") ||
+        case$name %in% c("dfa_selected_axis_sidecar",
+          "dfa_model_content_identity")) {
       stopifnot(identical(case$preimage, case$value),
         identical(digest::digest(
           scworkbench:::.wb_operation_pack_canonical_json(case$value),
@@ -462,10 +486,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "643267f5999f80b10cd7a3687236d9c719221e703ede0db6b6f02fe07c825a37",
-    "bdcb4eb7a7ffc66fcd95fbecceb8cce5dfad5abf1abc74c61e0f49d88a483fec",
-    "87c7c2b7386097d0174c55200e74e02e5863d1bc15970fa5ff401175b6718ed6",
-    "0961ffcba4dd2a7bb16e806ec78a7a300faa53719fd1534e9a1fac3beee03796")
+    "4e1f81a9061c5f9e2e12109c3e4267fd68844cb17a7f64344f95408a41f87882",
+    "61a07e877769a9ecd280b37e022d74954c44c49e8281693fdf9fb3bb7fec7cef",
+    "f21fb27b91a3ffdc5f8ae3e69a96e26e3f029420cb16c2a9cb7cf65f768dcffe",
+    "577811ff5d2753ee0554ebb9d833dfbff2e1ea542fd8e424059327a372159620")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)

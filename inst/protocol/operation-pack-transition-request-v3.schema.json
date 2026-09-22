@@ -321,6 +321,14 @@
       },
       "minItems": 1,
       "maxItems": 4
+    },
+    "derived_fitted_axis_grants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/derived_fitted_axis_grant"
+      },
+      "minItems": 1,
+      "maxItems": 1
     }
   },
   "$defs": {
@@ -4349,6 +4357,14 @@
           },
           "minItems": 1,
           "maxItems": 4
+        },
+        "derived_fitted_axis_grant_identities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/identity"
+          },
+          "minItems": 1,
+          "maxItems": 1
         }
       }
     },
@@ -9396,6 +9412,923 @@
               "type": "null"
             }
           ]
+        }
+      }
+    },
+    "fitted_axis_parent_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "source_space_id",
+        "full_content_identity",
+        "durable_payload_snapshot_identity",
+        "full_cell_count",
+        "full_cell_order_identity",
+        "selected_dimension_count",
+        "selected_dimension_ids",
+        "selected_dimension_order_identity",
+        "parent_snapshot_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1"
+        },
+        "source_space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "full_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "durable_payload_snapshot_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "full_cell_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "full_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "selected_dimension_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "selected_dimension_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "selected_dimension_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "parent_snapshot_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1"
+            },
+            "scope": {
+              "const": "parent snapshot excluding parent_snapshot_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "derived_fitted_session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "parent_snapshot_identity",
+        "source_input_name",
+        "source_input_descriptor_identity",
+        "source_input_content_identity",
+        "session_cell_ids",
+        "session_cell_count",
+        "session_cell_order_identity",
+        "selected_dimension_order_identity",
+        "session_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.derived_fitted_session.v1"
+        },
+        "parent_snapshot_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_input_name": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "source_input_descriptor_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "source_input_content_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "session_cell_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 1000000,
+          "uniqueItems": true
+        },
+        "session_cell_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "session_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "selected_dimension_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "session_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.derived_fitted_session.v1"
+            },
+            "scope": {
+              "const": "session projection excluding session_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "derived_fitted_axis_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "policy_identity",
+        "parent_snapshot",
+        "session_projection",
+        "transition_identity",
+        "model_base_grant",
+        "sibling_base_grants",
+        "limits",
+        "declaration_discipline",
+        "grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.derived_fitted_axis_grant.v1"
+        },
+        "policy_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "parent_snapshot": {
+          "$ref": "#/$defs/fitted_axis_parent_snapshot"
+        },
+        "session_projection": {
+          "$ref": "#/$defs/derived_fitted_session"
+        },
+        "transition_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "model_base_grant": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "grant_identity",
+            "engine",
+            "model_type",
+            "primary_path",
+            "relative_root",
+            "promotion_group",
+            "limits"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "engine": {
+              "type": "string",
+              "minLength": 1
+            },
+            "model_type": {
+              "type": "string",
+              "minLength": 1
+            },
+            "primary_path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "relative_root": {
+              "$ref": "#/$defs/relative_root"
+            },
+            "promotion_group": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "maximum_file_count",
+                "maximum_total_bytes"
+              ],
+              "properties": {
+                "maximum_file_count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 32
+                },
+                "maximum_total_bytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1073741824
+                }
+              }
+            }
+          }
+        },
+        "sibling_base_grants": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "kind",
+                  "coverage_policy",
+                  "promotion_group",
+                  "grant_identity"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "kind": {
+                    "const": "cell_vector"
+                  },
+                  "coverage_policy": {
+                    "const": "exact_fitted_axis_v1"
+                  },
+                  "promotion_group": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "grant_identity": {
+                    "$ref": "#/$defs/identity"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "kind",
+                  "coverage_policy",
+                  "promotion_group",
+                  "grant_identity"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "kind": {
+                    "const": "cell_vector_family"
+                  },
+                  "coverage_policy": {
+                    "enum": [
+                      "exact_fitted_axis_v1",
+                      "per_key_source_relative_subset_v1"
+                    ]
+                  },
+                  "promotion_group": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                  },
+                  "grant_identity": {
+                    "$ref": "#/$defs/identity"
+                  }
+                }
+              }
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maximum_selected_cells",
+            "maximum_combined_id_bytes",
+            "maximum_id_bytes",
+            "maximum_family_keys"
+          ],
+          "properties": {
+            "maximum_selected_cells": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000
+            },
+            "maximum_combined_id_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 67108864
+            },
+            "maximum_id_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1024
+            },
+            "maximum_family_keys": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 64
+            }
+          }
+        },
+        "declaration_discipline": {
+          "const": "exactly_once_before_cell_indexed_writes"
+        },
+        "grant_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.derived_fitted_axis_grant.v1"
+            },
+            "scope": {
+              "const": "provisional grant excluding grant_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "derived_fitted_axis_declaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "provisional_grant_identity",
+        "fitted_cell_ids",
+        "fitted_cell_count",
+        "declaration_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.derived_fitted_axis_declaration.v1"
+        },
+        "provisional_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "fitted_cell_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 1000000,
+          "uniqueItems": true
+        },
+        "fitted_cell_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "declaration_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.derived_fitted_axis_declaration.v1"
+            },
+            "scope": {
+              "const": "declaration excluding declaration_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "selected_axis_evidence_sidecar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "parent_snapshot_identity",
+        "session_identity",
+        "session_cell_ids",
+        "fitted_cell_ids",
+        "seal_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.selected_axis_evidence.v1"
+        },
+        "parent_snapshot_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "session_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "session_cell_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 1000000,
+          "uniqueItems": true
+        },
+        "fitted_cell_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 1000000,
+          "uniqueItems": true
+        },
+        "seal_identity": {
+          "$ref": "#/$defs/identity"
+        }
+      }
+    },
+    "sealed_model_sibling_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "output",
+        "base_grant_identity",
+        "fitted_axis_seal_identity",
+        "engine",
+        "model_type",
+        "primary_path",
+        "relative_root",
+        "source_space_id",
+        "selected_dimension_count",
+        "selected_dimension_ids",
+        "selected_dimension_order_identity",
+        "selected_axis_evidence",
+        "limits",
+        "sealed_grant_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.sealed_model_sibling_grant.v1"
+        },
+        "output": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "base_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "fitted_axis_seal_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relative_root": {
+          "$ref": "#/$defs/relative_root"
+        },
+        "source_space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selected_dimension_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "selected_dimension_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "selected_dimension_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "selected_axis_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "relative_path",
+            "sha256",
+            "evidence_identity"
+          ],
+          "properties": {
+            "relative_path": {
+              "const": ".scworkbench/selected-axis-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "evidence_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "maximum_file_count",
+            "maximum_total_bytes"
+          ],
+          "properties": {
+            "maximum_file_count": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 32
+            },
+            "maximum_total_bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1073741824
+            }
+          }
+        },
+        "sealed_grant_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.sealed_model_sibling_grant.v1"
+            },
+            "scope": {
+              "const": "sealed model grant excluding sealed_grant_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "sealed_sibling_output_grant": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "name",
+            "kind",
+            "coverage_policy",
+            "base_grant_identity",
+            "fitted_axis_seal_identity",
+            "promotion_group",
+            "sealed_grant_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.sealed_sibling_output_grant.v1"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "cell_vector"
+            },
+            "coverage_policy": {
+              "const": "exact_fitted_axis_v1"
+            },
+            "base_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "fitted_axis_seal_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "promotion_group": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "sealed_grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.sealed_sibling_output_grant.v1"
+                },
+                "scope": {
+                  "const": "sealed sibling grant excluding sealed_grant_identity"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "name",
+            "kind",
+            "coverage_policy",
+            "base_grant_identity",
+            "fitted_axis_seal_identity",
+            "promotion_group",
+            "sealed_grant_identity"
+          ],
+          "properties": {
+            "schema": {
+              "const": "scworkbench.operation_pack.sealed_sibling_output_grant.v1"
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "kind": {
+              "const": "cell_vector_family"
+            },
+            "coverage_policy": {
+              "enum": [
+                "exact_fitted_axis_v1",
+                "per_key_source_relative_subset_v1"
+              ]
+            },
+            "base_grant_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "fitted_axis_seal_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "promotion_group": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[a-z][a-z0-9_]*$"
+            },
+            "sealed_grant_identity": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "scheme",
+                "scope",
+                "sha256"
+              ],
+              "properties": {
+                "scheme": {
+                  "const": "scworkbench.operation_pack.sealed_sibling_output_grant.v1"
+                },
+                "scope": {
+                  "const": "sealed sibling grant excluding sealed_grant_identity"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "model_source_linkage_v3": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "engine",
+        "model_type",
+        "source_space_id",
+        "parent_snapshot_identity",
+        "session_identity",
+        "fitted_axis_seal_identity",
+        "fitted_cell_order_identity",
+        "selected_dimension_count",
+        "selected_dimension_ids",
+        "selected_dimension_order_identity",
+        "selected_axis_evidence",
+        "linkage_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.model_source_linkage.v3"
+        },
+        "engine": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_space_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parent_snapshot_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "session_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "fitted_axis_seal_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "fitted_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "selected_dimension_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "selected_dimension_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "selected_dimension_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "selected_axis_evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "relative_path",
+            "sha256",
+            "evidence_identity"
+          ],
+          "properties": {
+            "relative_path": {
+              "const": ".scworkbench/selected-axis-v1.json"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "evidence_identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        "linkage_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.model_source_linkage.v3"
+            },
+            "scope": {
+              "const": "linkage excluding linkage_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
+        }
+      }
+    },
+    "derived_fitted_axis_seal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "provisional_grant_identity",
+        "declaration_identity",
+        "parent_snapshot_identity",
+        "session_identity",
+        "fitted_cell_ids",
+        "fitted_cell_count",
+        "fitted_cell_order_identity",
+        "relation",
+        "seal_identity"
+      ],
+      "properties": {
+        "schema": {
+          "const": "scworkbench.operation_pack.derived_fitted_axis_seal.v1"
+        },
+        "provisional_grant_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "declaration_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "parent_snapshot_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "session_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "fitted_cell_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "maxItems": 1000000,
+          "uniqueItems": true
+        },
+        "fitted_cell_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "fitted_cell_order_identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "relation": {
+          "const": "source_relative_ordered_subset_v1"
+        },
+        "seal_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scheme",
+            "scope",
+            "sha256"
+          ],
+          "properties": {
+            "scheme": {
+              "const": "scworkbench.operation_pack.derived_fitted_axis_seal.v1"
+            },
+            "scope": {
+              "const": "seal excluding seal_identity"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            }
+          }
         }
       }
     }

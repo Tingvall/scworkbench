@@ -24,6 +24,12 @@
   invisible(workspace)
 }
 
+.wb_promotion_transaction_fault <- function(event, ...) {
+  hook <- getOption("scworkbench.promotion_transaction_test_hook", NULL)
+  if (is.function(hook)) hook(event = event, ...)
+  invisible(TRUE)
+}
+
 .wb_promotion_workspace_retire <- function(workspace) {
   for (path in workspace$retire_after_commit) {
     if (file.exists(path) || dir.exists(path)) unlink(path, recursive = TRUE, force = TRUE)

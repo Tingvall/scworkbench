@@ -15,6 +15,66 @@
   invisible(list(status = "ok"))
 }
 
+.fit_derived_axis_model <- function(readers, writers, params, context) {
+  source <- readers$source()
+  fitted <- as.character(params$fitted_cells)
+  fitted_attack <- as.character(params$fitted_axis_attack)
+  if (identical(fitted_attack, "duplicate")) fitted <- rep(fitted[[1L]], 2L)
+  if (identical(fitted_attack, "empty")) fitted <- character()
+  if (identical(fitted_attack, "oversized_id")) fitted <-
+    paste(rep("x", 1025L), collapse = "")
+  mode <- as.character(params$declaration_mode)
+  if (!identical(mode, "omit") && !identical(mode, "after_output"))
+    writers$declare_derived_fitted_axis(fitted)
+  if (identical(mode, "repeat"))
+    writers$declare_derived_fitted_axis(fitted)
+  embedding_cells <- if (isTRUE(params$bad_embedding_order))
+    rev(fitted) else fitted
+  writers$write_terminal_primitive("embedding",
+    scworkbench::wb_prim_cell_vector(stats::setNames(
+      seq_along(embedding_cells), embedding_cells), value_type = "continuous",
+      meta = list(fixture = "derived-fitted-axis")))
+  if (identical(mode, "after_output"))
+    writers$declare_derived_fitted_axis(fitted)
+  sparse <- fitted[seq.int(1L, length(fitted), by = 2L)]
+  if (isTRUE(params$foreign_family_cell)) sparse[[1L]] <- "foreign_cell"
+  weight_attack <- as.character(params$weights_attack)
+  keys <- c(rep("lineage_a", length(fitted)),
+    rep("lineage_b", length(sparse)))
+  weight_cells <- c(fitted, sparse)
+  weight_values <- c(seq_along(fitted), seq_along(sparse))
+  if (identical(weight_attack, "duplicate_cell") && length(weight_cells)) {
+    keys <- c(keys, keys[[1L]]); weight_cells <- c(weight_cells,
+      weight_cells[[1L]]); weight_values <- c(weight_values, 0)
+  }
+  if (identical(weight_attack, "reordered_cells") && length(fitted) > 1L) {
+    positions <- seq_along(fitted)
+    weight_cells[positions] <- rev(weight_cells[positions])
+  }
+  if (identical(weight_attack, "too_many_keys")) {
+    keys <- paste0("lineage_", seq_len(65L));
+    weight_cells <- rep(fitted[[1L]], 65L); weight_values <- seq_len(65L)
+  }
+  output_attack <- as.character(params$output_attack)
+  if (!identical(output_attack, "missing_weights"))
+    writers$write_terminal_primitive("weights",
+      scworkbench::wb_prim_cell_vector_family(keys, weight_cells,
+        weight_values, value_type = "continuous",
+        meta = list(fixture = "derived-fitted-axis")))
+  if (identical(output_attack, "extra_output"))
+    writers$write_terminal_primitive("undeclared",
+      scworkbench::wb_prim_cell_vector(stats::setNames(
+        seq_along(fitted), fitted), value_type = "continuous"))
+  tree <- writers$open_model_tree("model")
+  writeBin(charToRaw("derived-fitted-axis-model-v1"),
+    tree$path(tree$primary_path))
+  model <- scworkbench::wb_prim_model_ref("fixture.derived",
+    as.character(context$input_ids$source)[1], engine = "fixture")
+  model$model_type <- "derived_axis_model"
+  tree$finish(model)
+  invisible(list(status = "ok"))
+}
+
 .consume_self_linked_model <- function(readers, writers, params, context) {
   payload <- readers$fitted_model()
   bytes <- payload$read_bytes(payload$primary_path)
@@ -114,6 +174,7 @@ register_operation_pack <- function() {
       package = "scwbV3Phase5"),
     list(
       `scwbv3phase5::fit_sibling_model` = .fit_sibling_model,
+      `scwbv3phase5::fit_derived_axis_model` = .fit_derived_axis_model,
       `scwbv3phase5::consume_self_linked_model` =
         .consume_self_linked_model,
       `scwbv3phase5::adopt_external_state` = .adopt_external_state

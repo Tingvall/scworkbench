@@ -107,6 +107,7 @@
       output$fragment_policy <- NULL
       output$contained_model_policy <- NULL
       output$contained_model_sibling_closure_policy <- NULL
+      output$derived_fitted_axis_policy <- NULL
       output
     })
     op$registry_reads <- Filter(function(x) identical(
@@ -400,6 +401,8 @@
         "semantic_admission")
     .wb_operation_pack_v3_phase5_semantic_validate(operation, inputs,
       outputs, properties)
+    .wb_operation_pack_v3_dfa_semantic_validate(operation, inputs,
+      outputs, manifest$backend)
     .wb_operation_pack_v3_g7_semantic_validate(operation, inputs, outputs,
       properties, manifest$backend)
     axes <- operation$parameter_axes %||% list()

@@ -62,6 +62,8 @@ test_operation_pack_v3_phase5_manifest_admission_no_residue_contract <-
     identity$pack_abi_version, "3"))
   before <- list(packs = wb_operation_packs(), ops = wb_list_ops(),
     catalog = wb_operation_catalog_identity())
+  operation_index <- stats::setNames(seq_along(manifest$operations),
+    vapply(manifest$operations, `[[`, character(1), "name"))
   reject <- function(value) {
     error <- tryCatch(wb_operation_pack_manifest_validate(value),
       error = identity)
@@ -73,12 +75,14 @@ test_operation_pack_v3_phase5_manifest_admission_no_residue_contract <-
       identical(before$catalog, wb_operation_catalog_identity()))
   }
   wildcard <- unserialize(serialize(manifest, NULL))
-  wildcard$operations[[2L]]$self_linked_contained_model_reads[[1L]]$
+  wildcard$operations[[operation_index[["consume_self_linked_model"]]]]$
+    self_linked_contained_model_reads[[1L]]$
     allowed_models[[1L]]$engine <- "*"
   reject(wildcard)
   duplicate <- unserialize(serialize(manifest, NULL))
-  duplicate$operations[[2L]]$self_linked_contained_model_reads[[1L]]$
-    allowed_models[[2L]] <- duplicate$operations[[2L]]$
+  duplicate$operations[[operation_index[["consume_self_linked_model"]]]]$
+    self_linked_contained_model_reads[[1L]]$allowed_models[[2L]] <-
+      duplicate$operations[[operation_index[["consume_self_linked_model"]]]]$
       self_linked_contained_model_reads[[1L]]$allowed_models[[1L]]
   # uniqueItems is an outer-schema failure, and must equally leave no residue.
   duplicate_error <- tryCatch(wb_operation_pack_manifest_validate(duplicate),
@@ -86,7 +90,8 @@ test_operation_pack_v3_phase5_manifest_admission_no_residue_contract <-
   stopifnot(inherits(duplicate_error, "wb_operation_pack_v3_error"),
     identical(before$catalog, wb_operation_catalog_identity()))
   missing_sibling <- unserialize(serialize(manifest, NULL))
-  missing_sibling$operations[[1L]]$outputs[[1L]]$
+  missing_sibling$operations[[operation_index[["fit_sibling_model"]]]]$
+    outputs[[1L]]$
     contained_model_sibling_closure_policy$required_sibling_terminals <-
       list("absent")
   reject(missing_sibling)

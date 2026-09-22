@@ -1416,7 +1416,8 @@
   if (abi_v3) {
     .wb_operation_pack_v3_schema_assert(request, "request",
       "PYBENCH_CAPABILITY_MISMATCH")
-    .wb_operation_pack_v3_request_audit(request, registration, operation)
+    .wb_operation_pack_v3_request_audit(request, registration, operation,
+      bundle, inputs, params)
   } else {
     .wb_operation_pack_v2_schema_assert(request, "request",
       "PYBENCH_CAPABILITY_MISMATCH")
@@ -1564,7 +1565,8 @@
       supported_external_state_adoption_state = adapter$state,
       supported_external_state_adoption_attestations = result,
       derived_cell_output_axis_declarations = result$
-        derived_cell_output_axis_declarations %||% list()) else .wb_operation_pack_v2_receipt(request,
+        derived_cell_output_axis_declarations %||% list(),
+      derived_fitted_axis_state = adapter$state) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
   }
@@ -2029,6 +2031,19 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
         value$model_space_id <- source_space_id
       if (!nzchar(as.character(value$in_space_id %||% "")[1]))
         value$in_space_id <- source_space_id
+    } else {
+      fitted <- Filter(function(x) identical(as.character(
+        x$model_output %||% "")[1], output_name),
+        receipt$derived_fitted_axis_observations %||% list())
+      if (length(fitted) == 1L) {
+        value$model_source_linkage <- fitted[[1L]]$model_source_linkage
+        source_space_id <- as.character(
+          fitted[[1L]]$model_source_linkage$source_space_id)[1]
+        if (!nzchar(as.character(value$model_space_id %||% "")[1]))
+          value$model_space_id <- source_space_id
+        if (!nzchar(as.character(value$in_space_id %||% "")[1]))
+          value$in_space_id <- source_space_id
+      }
     }
   }
   value

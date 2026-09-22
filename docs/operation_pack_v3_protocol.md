@@ -188,6 +188,37 @@ declaration, linked-output, receipt, or publication failure leaves no durable
 transition residue. A valid G7 seal authenticates derivation and alignment,
 not biological validity or a human operator.
 
+### Derived fitted-cell axes for contained models
+
+An R pack whose fitting method excludes cells from an authenticated source
+space may declare one `derived_fitted_axis_policy` on its G2 model output.
+Core authenticates the complete durable parent separately from the session
+projection, accepts exactly one nonempty source-relative ordered subset before
+any linked write, and seals that fitted axis. The pack chooses the cells and
+order; core does not interpret filtering criteria.
+
+The seal binds the contained model linkage and every declared cell-indexed
+sibling. Ordinary siblings use exact fitted-axis coverage. A manifest may opt
+a `cell_vector_family` into `per_key_source_relative_subset_v1`; every emitted
+key is then nonempty and bounded, and contains a unique source-relative
+subsequence of fitted cells. All declared siblings and keys are receipt-bound,
+so partial closure cannot publish.
+
+The immutable model tree contains
+`.scworkbench/selected-axis-v1.json`, a canonical UTF-8 sidecar with exact
+session and fitted identifiers plus parent/session/seal bindings. The sidecar
+contains no self-hash. Its relative path, exact-byte SHA-256, and domain
+identity live in linkage v3. Linkage excludes the final tree identity; model
+content binds linkage and tree without a cycle. On G1 reopen, core verifies
+the unchanged full parent, sidecar bytes, session relationship, fitted order,
+and selected coordinates. Relocation therefore needs no workspace path.
+
+Initial ceilings are one million selected cells, 64 MiB across session and
+fitted UTF-8 identifiers, 1,024 bytes per identifier, and 64 family keys; a
+manifest may lower them. This capability is R-runtime-only. PyBench mirrors
+the shared schemas and identities but rejects a Python pack that declares it
+before activation or mutation.
+
 ## Backends and durable lifecycle
 
 R v3 packs retain the opaque `function(readers, writers, params, context)`

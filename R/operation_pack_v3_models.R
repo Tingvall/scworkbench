@@ -423,7 +423,10 @@
       "Self-linked model engine/type is outside its exact allowlist.",
       "resolution")
     linkage <- model$model_source_linkage %||% model$model_linkage %||% list()
-    .wb_operation_pack_v3_assert_model_source_linkage_v2(linkage)
+    derived_fitted <- identical(as.character(linkage$schema %||% "")[1],
+      "scworkbench.operation_pack.model_source_linkage.v3")
+    if (derived_fitted) .wb_operation_pack_v3_assert_model_source_linkage_v3(
+      linkage) else .wb_operation_pack_v3_assert_model_source_linkage_v2(linkage)
     if (!identical(linkage$engine, engine) ||
         !identical(linkage$model_type, model_type))
       .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
@@ -445,29 +448,36 @@
           "Self-linked model linkage differs from its durable artifact row.",
           "resolution")
     }
-    source <- wb_prim_space(linkage$source_space_id)
-    source$values <- wb_space(bundle, linkage$source_space_id)
-    source$cell_id <- rownames(source$values)
-    source$dimensions <- as.integer(dim(source$values))
-    source$storage_profile <- "space_dense_v1"
-    durable_content <- .wb_operation_pack_v3_phase5_primitive_identity(
-      bundle, source)
-    observed_cells <- .wb_operation_pack_v2_identity_plain(
-      "scworkbench.cell_order.v1", unname(as.list(source$cell_id)))
-    if (!identical(as.character(
-        linkage$source_space_content_identity$scheme)[1],
-          "scworkbench.space.content.v1") ||
-        !identical(observed_cells, linkage$fitted_cell_order_identity) ||
-        !identical(as.character(linkage$source_snapshot_id)[1],
-          as.character(durable_content$sha256)[1]))
-      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-        "Self-linked model source space or fitted cell axis changed.",
-        "resolution")
+    source_tree_for_linkage <- .wb_operation_pack_v3_model_tree_source(bundle,
+      model, engine, model_type)
+    fitted_space <- NULL
+    if (derived_fitted) {
+      fitted_space <- .wb_operation_pack_v3_dfa_reopen(bundle, model, linkage,
+        source_tree_for_linkage$root)
+    } else {
+      source <- wb_prim_space(linkage$source_space_id)
+      source$values <- wb_space(bundle, linkage$source_space_id)
+      source$cell_id <- rownames(source$values)
+      source$dimensions <- as.integer(dim(source$values))
+      source$storage_profile <- "space_dense_v1"
+      durable_content <- .wb_operation_pack_v3_phase5_primitive_identity(
+        bundle, source)
+      observed_cells <- .wb_operation_pack_v2_identity_plain(
+        "scworkbench.cell_order.v1", unname(as.list(source$cell_id)))
+      if (!identical(as.character(
+          linkage$source_space_content_identity$scheme)[1],
+            "scworkbench.space.content.v1") ||
+          !identical(observed_cells, linkage$fitted_cell_order_identity) ||
+          !identical(as.character(linkage$source_snapshot_id)[1],
+            as.character(durable_content$sha256)[1]))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Self-linked model source space or fitted cell axis changed.",
+          "resolution")
+    }
     limits <- list(maximum_file_count = as.integer(
       declaration$maximum_file_count), maximum_total_bytes = as.integer(
         declaration$maximum_total_bytes))
-    source_tree <- .wb_operation_pack_v3_model_tree_source(bundle, model,
-      engine, model_type)
+    source_tree <- source_tree_for_linkage
     if (source_tree$manifest$file_count > limits$maximum_file_count ||
         source_tree$manifest$total_size > limits$maximum_total_bytes)
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -525,7 +535,8 @@
     grant$grant_identity <- .wb_operation_pack_v2_identity_scoped(grant$schema,
       "grant excluding grant_identity", grant)
     grants[[name]] <- grant
-    values[[name]] <- list(root = root, manifest = tree)
+    values[[name]] <- list(root = root, manifest = tree,
+      fitted_space = fitted_space)
   }
   list(grants = grants, values = values, input_records = records)
 }
@@ -693,6 +704,9 @@
               grant$tree_manifest$entries),
             read_bytes = function(path) readBin(safe(path), "raw",
               n = file.info(safe(path))$size))
+          fitted <- model_values[[name]]$fitted_space %||% NULL
+          if (!is.null(fitted)) result$fitted_source_space <-
+            .wb_operation_pack_v2_deep_copy(fitted)
           if (identical(grant$reader,
               "read_self_linked_contained_model_payload"))
             result$runtime_private_path <- safe else result$path <- safe
@@ -704,7 +718,8 @@
   open_model <- function(output) {
     output <- as.character(output)[1]
     grant <- grants[[output]]$descriptor$contained_model_write_grant %||%
-      grants[[output]]$descriptor$contained_model_sibling_write_grant %||% NULL
+      grants[[output]]$descriptor$contained_model_sibling_write_grant %||%
+      .wb_operation_pack_v3_dfa_model_grant(state, output) %||% NULL
     if (is.null(grant) || !is.null(state$writes[[output]]))
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
         "No unused contained-model writer grant exists for this output.",
@@ -734,11 +749,15 @@
       manifest <- .wb_operation_pack_v3_model_tree_manifest(root,
         grant$engine, grant$model_type, grant$primary_path,
         grant$limits$maximum_file_count, grant$limits$maximum_total_bytes)
-      sibling <- identical(as.character(grant$schema)[1],
-        "scworkbench.operation_pack.contained_model_sibling_write_grant.v1")
+      sibling <- as.character(grant$schema)[1] %in% c(
+        "scworkbench.operation_pack.contained_model_sibling_write_grant.v1",
+        "scworkbench.operation_pack.sealed_model_sibling_grant.v1")
+      derived <- identical(as.character(grant$schema)[1],
+        "scworkbench.operation_pack.sealed_model_sibling_grant.v1")
       if (sibling && nzchar(as.character(value$in_space_id %||% "")[1]) &&
           !identical(as.character(value$in_space_id)[1],
-            as.character(grant$model_source_linkage$source_space_id)[1]))
+            as.character(if (derived) grant$source_space_id else
+              grant$model_source_linkage$source_space_id)[1]))
         .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
           "Contained-model source-space substitution is forbidden.", "audit")
       linkage <- if (sibling) grant$model_source_linkage else
@@ -757,6 +776,9 @@
         writer = "write_model_ref", tree_manifest = manifest,
         tree_root = root)
       closed <<- TRUE
+      if (derived) .wb_operation_pack_v2_fault(
+        "derived_fitted_axis_model_closed", stage_root = stage_root,
+        model_output = output)
       invisible(list(name = output,
         allocated_id = grants[[output]]$allocated_id,
         grant_identity = grants[[output]]$descriptor$grant_identity))
@@ -780,7 +802,8 @@
     }
     list(path = path, primary_path = grant$primary_path, finish = finish)
   }
-  if (any(vapply(grants, function(x) !is.null(x$descriptor$
+  if (length(request$derived_fitted_axis_grants %||% list()) ||
+      any(vapply(grants, function(x) !is.null(x$descriptor$
       contained_model_write_grant) || !is.null(x$descriptor$
         contained_model_sibling_write_grant), logical(1))))
     base$writers$open_model_tree <- open_model

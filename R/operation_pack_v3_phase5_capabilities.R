@@ -1026,12 +1026,19 @@
 
 .wb_operation_pack_v3_phase5_sources_assert_current <- function(bundle,
     operation, request, params) {
+  .wb_operation_pack_v3_dfa_parent_current(bundle, request, phase = "audit")
   .wb_operation_pack_v3_phase5_staged_payloads_assert(request,
     phase = "audit")
   stage <- attr(request, "operation_pack_stage_root")
   for (grant in request$self_linked_model_payload_grants %||% list()) {
     .wb_operation_pack_v3_validate_model_read(stage, grant)
     linkage <- grant$model_source_linkage
+    if (identical(as.character(linkage$schema %||% "")[1],
+        "scworkbench.operation_pack.model_source_linkage.v3")) {
+      .wb_operation_pack_v3_dfa_reopen(bundle, list(), linkage,
+        file.path(stage, grant$relative_root), phase = "audit")
+      next
+    }
     values <- tryCatch(wb_space(bundle, linkage$source_space_id),
       error = identity)
     if (inherits(values, "error")) .wb_operation_pack_v3_error(

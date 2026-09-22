@@ -693,12 +693,28 @@
 .wb_operation_pack_v3_publish_materializations <- function(bundle, result) {
   grants <- stats::setNames(result$request$outputs,
     vapply(result$request$outputs, `[[`, character(1), "name"))
+  fitted_observations <- stats::setNames(
+    result$receipt$derived_fitted_axis_observations %||% list(),
+    vapply(result$receipt$derived_fitted_axis_observations %||% list(),
+      function(x) as.character(x$model_output)[1], character(1)))
   # Bind a closed model tree to its private transition record before any
   # registry publication. The returned primitive is the only value exposed to
   # session promotion; the pack never receives this bundle-relative path.
   for (name in names(result$outputs)) {
     write_grant <- grants[[name]]$descriptor$contained_model_write_grant %||%
       grants[[name]]$descriptor$contained_model_sibling_write_grant %||% NULL
+    fitted <- fitted_observations[[name]] %||% NULL
+    if (is.null(write_grant) && !is.null(fitted)) {
+      receipt_item <- result$receipt$outputs[[match(name, vapply(
+        result$receipt$outputs, `[[`, character(1), "name"))]]
+      manifest <- receipt_item$descriptor$contained_model_sibling_tree$
+        tree_manifest
+      write_grant <- list(relative_root = paste0("outputs/", name,
+          "/model_tree"), engine = manifest$engine,
+        model_type = manifest$model_type, primary_path = manifest$primary_path,
+        limits = list(maximum_file_count = manifest$file_count,
+          maximum_total_bytes = manifest$total_size))
+    }
     if (is.null(write_grant)) next
     root_rel <- .wb_path_relative_to_root(result$path, bundle$dir)
     if (is.null(root_rel)) .wb_operation_pack_v3_error(
@@ -737,6 +753,15 @@
         sibling_grant$model_source_linkage$source_space_id)[1]
       result$outputs[[name]]$model_source_linkage <-
         sibling_grant$model_source_linkage
+      if (!nzchar(as.character(result$outputs[[name]]$model_space_id %||%
+          "")[1])) result$outputs[[name]]$model_space_id <- source_space_id
+      if (!nzchar(as.character(result$outputs[[name]]$in_space_id %||%
+          "")[1])) result$outputs[[name]]$in_space_id <- source_space_id
+    } else if (!is.null(fitted)) {
+      source_space_id <- as.character(
+        fitted$model_source_linkage$source_space_id)[1]
+      result$outputs[[name]]$model_source_linkage <-
+        fitted$model_source_linkage
       if (!nzchar(as.character(result$outputs[[name]]$model_space_id %||%
           "")[1])) result$outputs[[name]]$model_space_id <- source_space_id
       if (!nzchar(as.character(result$outputs[[name]]$in_space_id %||%

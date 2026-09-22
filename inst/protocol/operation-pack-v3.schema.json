@@ -1401,6 +1401,140 @@
                   "maximum": 1073741824
                 }
               }
+            },
+            "derived_fitted_axis_policy": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schema",
+                "mode",
+                "source_space_input",
+                "model_output",
+                "required_siblings",
+                "declaration_discipline",
+                "maximum_selected_cells",
+                "maximum_combined_id_bytes",
+                "maximum_id_bytes",
+                "maximum_family_keys",
+                "policy_identity"
+              ],
+              "properties": {
+                "schema": {
+                  "const": "scworkbench.operation_pack.derived_fitted_axis_policy.v1"
+                },
+                "mode": {
+                  "const": "source_relative_subset_v1"
+                },
+                "source_space_input": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "model_output": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "required_siblings": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "kind",
+                          "coverage_policy"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          "kind": {
+                            "const": "cell_vector"
+                          },
+                          "coverage_policy": {
+                            "const": "exact_fitted_axis_v1"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "name",
+                          "kind",
+                          "coverage_policy"
+                        ],
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": "^[a-z][a-z0-9_]*$"
+                          },
+                          "kind": {
+                            "const": "cell_vector_family"
+                          },
+                          "coverage_policy": {
+                            "enum": [
+                              "exact_fitted_axis_v1",
+                              "per_key_source_relative_subset_v1"
+                            ]
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 64
+                },
+                "declaration_discipline": {
+                  "const": "exactly_once_before_cell_indexed_writes"
+                },
+                "maximum_selected_cells": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "maximum_combined_id_bytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 67108864
+                },
+                "maximum_id_bytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1024
+                },
+                "maximum_family_keys": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 64
+                },
+                "policy_identity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "scheme",
+                    "scope",
+                    "sha256"
+                  ],
+                  "properties": {
+                    "scheme": {
+                      "const": "scworkbench.operation_pack.derived_fitted_axis_policy.v1"
+                    },
+                    "scope": {
+                      "const": "policy excluding policy_identity"
+                    },
+                    "sha256": {
+                      "$ref": "#/$defs/sha256"
+                    }
+                  }
+                }
+              }
             }
           }
         },

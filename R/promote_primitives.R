@@ -526,6 +526,9 @@ wb_promote_analysis <- function(bundle,
   }
 
   .wb_promotion_workspace_publish(workspace)
+  .wb_promotion_transaction_fault(
+    "after_payload_move_before_database_commit", commit_id = commit_id,
+    workspace = workspace)
   if (!is.null(target_reproduction_receipts)) {
     .wb_target_reproduction_atomicity_hook(
       "after_receipt_insertions_before_sqlite_commit",
