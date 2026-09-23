@@ -117,6 +117,7 @@
     op$dimension_policies <- Filter(function(x) !as.character(
       x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
         "data_dependent_family_v1",
+        "standalone_sparse_cell_family_v1",
         "authenticated_sparse_membership_v1",
         "authenticated_pseudobulk_v1",
         "cell_by_parameter_axis_v1",
@@ -405,6 +406,8 @@
       outputs, manifest$backend)
     .wb_operation_pack_v3_g7_semantic_validate(operation, inputs, outputs,
       properties, manifest$backend)
+    .wb_operation_pack_v3_sscf_semantic_validate(operation, inputs, outputs,
+      manifest$backend)
     axes <- operation$parameter_axes %||% list()
     axis_names <- vapply(axes, function(x) as.character(x$name)[1],
       character(1))
@@ -753,6 +756,7 @@
   projected$dimension_policies <- Filter(function(x) !as.character(
     x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
       "data_dependent_family_v1",
+      "standalone_sparse_cell_family_v1",
       "authenticated_sparse_membership_v1",
       "authenticated_pseudobulk_v1",
       "cell_by_parameter_axis_v1", "feature_parameter_axis_cartesian_v1",

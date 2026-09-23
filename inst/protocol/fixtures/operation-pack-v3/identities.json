@@ -20520,6 +20520,3367 @@
           "sha256": "3584e4d529be994a4284549aaaff6b7fd033feef7b7694be4b4d287ff1ca0d24"
         }
       }
+    },
+    {
+      "name": "sparse_manifest_policy",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+        "output": "sparse_family",
+        "policy": "standalone_sparse_cell_family_v1",
+        "axis_source": {
+          "source": "typed_space_input_v1",
+          "input": "source"
+        },
+        "key_order": "declared_verbatim_v1",
+        "row_order": "key_major_then_source_relative_cell_v1",
+        "per_key_coverage": "per_key_source_relative_subset_v1",
+        "missing_values": "forbidden",
+        "declaration_discipline": "exactly_once_before_write",
+        "maximum_axis_cells": 1000000,
+        "maximum_keys": 64,
+        "maximum_rows": 1000000,
+        "maximum_id_bytes": 1024,
+        "maximum_control_bytes": 67108864
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+        "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969",
+        "scope": "policy excluding policy_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+        "output": "sparse_family",
+        "policy": "standalone_sparse_cell_family_v1",
+        "axis_source": {
+          "source": "typed_space_input_v1",
+          "input": "source"
+        },
+        "key_order": "declared_verbatim_v1",
+        "row_order": "key_major_then_source_relative_cell_v1",
+        "per_key_coverage": "per_key_source_relative_subset_v1",
+        "missing_values": "forbidden",
+        "declaration_discipline": "exactly_once_before_write",
+        "maximum_axis_cells": 1000000,
+        "maximum_keys": 64,
+        "maximum_rows": 1000000,
+        "maximum_id_bytes": 1024,
+        "maximum_control_bytes": 67108864,
+        "policy_identity": {
+          "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969",
+          "scope": "policy excluding policy_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_typed_source_axis",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "source_kind": "typed_space_input_v1",
+        "input_name": "source",
+        "source_space_id": "pca",
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+        },
+        "input_content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "ordered_cells": [
+          "cell_2",
+          "cell_10",
+          "cell_1",
+          "x|y",
+          "z"
+        ],
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+        "scope": "source axis excluding source_axis_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "source_kind": "typed_space_input_v1",
+        "input_name": "source",
+        "source_space_id": "pca",
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+        },
+        "input_content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+        },
+        "ordered_cells": [
+          "cell_2",
+          "cell_10",
+          "cell_1",
+          "x|y",
+          "z"
+        ],
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+        },
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+          "scope": "source axis excluding source_axis_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_g1_axis_evidence_v2",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+        "verified_source_space_snapshot_identity": {
+          "scheme": "scworkbench.operation_pack.model_source_snapshot.v2",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "verified_full_axis_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+        "sha256": "28b8f3577ac8d488e7def9aa44a084f113cea8f55f082d50e345665d88457eab",
+        "scope": "evidence excluding evidence_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+        "verified_source_space_snapshot_identity": {
+          "scheme": "scworkbench.operation_pack.model_source_snapshot.v2",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "verified_full_axis_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "evidence_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+          "sha256": "28b8f3577ac8d488e7def9aa44a084f113cea8f55f082d50e345665d88457eab",
+          "scope": "evidence excluding evidence_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_g1_source_axis_v2",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "source_kind": "verified_g1_model_fitted_axis_v1",
+        "model_read_name": "model_read",
+        "model_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "c0ea1c2923260b42c7bfd06fd3084d808cdde14a9cca8ca1f156307f27c22a69"
+        },
+        "model_content_identity": {
+          "scheme": "scworkbench.model_ref.content.v1",
+          "sha256": "c0ea1c2923260b42c7bfd06fd3084d808cdde14a9cca8ca1f156307f27c22a69"
+        },
+        "g1_read_grant_identity": {
+          "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+          "sha256": "576506f61f53440f1edd95d28631a17e26f50d613eef2943a030220b66c5f5b3"
+        },
+        "model_linkage_identity": {
+          "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+          "sha256": "576506f61f53440f1edd95d28631a17e26f50d613eef2943a030220b66c5f5b3"
+        },
+        "contained_tree_identity": {
+          "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+          "sha256": "576506f61f53440f1edd95d28631a17e26f50d613eef2943a030220b66c5f5b3"
+        },
+        "axis_evidence": {
+          "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+          "verified_source_space_snapshot_identity": {
+            "scheme": "scworkbench.operation_pack.model_source_snapshot.v2",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "verified_full_axis_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "evidence_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+            "sha256": "28b8f3577ac8d488e7def9aa44a084f113cea8f55f082d50e345665d88457eab",
+            "scope": "evidence excluding evidence_identity"
+          }
+        },
+        "ordered_fitted_cells": [
+          "cell_2",
+          "cell_10",
+          "cell_1",
+          "x|y",
+          "z"
+        ],
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "sha256": "6c5daed9152397e0a885ec1ef4a9abde20797457ec4d75ad99ecc5139acc74b9",
+        "scope": "source axis excluding source_axis_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "source_kind": "verified_g1_model_fitted_axis_v1",
+        "model_read_name": "model_read",
+        "model_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "c0ea1c2923260b42c7bfd06fd3084d808cdde14a9cca8ca1f156307f27c22a69"
+        },
+        "model_content_identity": {
+          "scheme": "scworkbench.model_ref.content.v1",
+          "sha256": "c0ea1c2923260b42c7bfd06fd3084d808cdde14a9cca8ca1f156307f27c22a69"
+        },
+        "g1_read_grant_identity": {
+          "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+          "sha256": "576506f61f53440f1edd95d28631a17e26f50d613eef2943a030220b66c5f5b3"
+        },
+        "model_linkage_identity": {
+          "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+          "sha256": "576506f61f53440f1edd95d28631a17e26f50d613eef2943a030220b66c5f5b3"
+        },
+        "contained_tree_identity": {
+          "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+          "sha256": "576506f61f53440f1edd95d28631a17e26f50d613eef2943a030220b66c5f5b3"
+        },
+        "axis_evidence": {
+          "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+          "verified_source_space_snapshot_identity": {
+            "scheme": "scworkbench.operation_pack.model_source_snapshot.v2",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "verified_full_axis_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "evidence_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+            "sha256": "28b8f3577ac8d488e7def9aa44a084f113cea8f55f082d50e345665d88457eab",
+            "scope": "evidence excluding evidence_identity"
+          }
+        },
+        "ordered_fitted_cells": [
+          "cell_2",
+          "cell_10",
+          "cell_1",
+          "x|y",
+          "z"
+        ],
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "6c5daed9152397e0a885ec1ef4a9abde20797457ec4d75ad99ecc5139acc74b9",
+          "scope": "source axis excluding source_axis_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_g1_axis_evidence_v3",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+        "verified_parent_snapshot_identity": {
+          "scheme": "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "selected_axis_seal_identity": {
+          "scheme": "scworkbench.operation_pack.derived_fitted_axis_seal.v1",
+          "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+        },
+        "selected_axis_sidecar_identity": {
+          "scheme": "scworkbench.operation_pack.selected_axis_evidence.v1",
+          "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+        "sha256": "7239eaceef632818f287c565117f560b4516c5235a2d48f92036cbfb465aba32",
+        "scope": "evidence excluding evidence_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+        "verified_parent_snapshot_identity": {
+          "scheme": "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "selected_axis_seal_identity": {
+          "scheme": "scworkbench.operation_pack.derived_fitted_axis_seal.v1",
+          "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+        },
+        "selected_axis_sidecar_identity": {
+          "scheme": "scworkbench.operation_pack.selected_axis_evidence.v1",
+          "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+        },
+        "evidence_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+          "sha256": "7239eaceef632818f287c565117f560b4516c5235a2d48f92036cbfb465aba32",
+          "scope": "evidence excluding evidence_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_g1_source_axis_v3",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "source_kind": "verified_g1_model_fitted_axis_v1",
+        "model_read_name": "model_read",
+        "model_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "341ec0be8a29097410edbf919fc676b44e447ecf68597f8f35109dd4ca594d01"
+        },
+        "model_content_identity": {
+          "scheme": "scworkbench.model_ref.content.v1",
+          "sha256": "341ec0be8a29097410edbf919fc676b44e447ecf68597f8f35109dd4ca594d01"
+        },
+        "g1_read_grant_identity": {
+          "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+          "sha256": "1cdaedef147c6c170b42587a1362ed8d1c55829258d11ee81b32f4ea2bed2976"
+        },
+        "model_linkage_identity": {
+          "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+          "sha256": "1cdaedef147c6c170b42587a1362ed8d1c55829258d11ee81b32f4ea2bed2976"
+        },
+        "contained_tree_identity": {
+          "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+          "sha256": "1cdaedef147c6c170b42587a1362ed8d1c55829258d11ee81b32f4ea2bed2976"
+        },
+        "axis_evidence": {
+          "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+          "verified_parent_snapshot_identity": {
+            "scheme": "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "selected_axis_seal_identity": {
+            "scheme": "scworkbench.operation_pack.derived_fitted_axis_seal.v1",
+            "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+          },
+          "selected_axis_sidecar_identity": {
+            "scheme": "scworkbench.operation_pack.selected_axis_evidence.v1",
+            "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+          },
+          "evidence_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+            "sha256": "7239eaceef632818f287c565117f560b4516c5235a2d48f92036cbfb465aba32",
+            "scope": "evidence excluding evidence_identity"
+          }
+        },
+        "ordered_fitted_cells": [
+          "cell_2",
+          "cell_10",
+          "cell_1",
+          "x|y"
+        ],
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "sha256": "337d8408cf863df25adf826e1d9a346acd071b8f1c8ed9e398d68ce1eb3c47e5",
+        "scope": "source axis excluding source_axis_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+        "source_kind": "verified_g1_model_fitted_axis_v1",
+        "model_read_name": "model_read",
+        "model_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "341ec0be8a29097410edbf919fc676b44e447ecf68597f8f35109dd4ca594d01"
+        },
+        "model_content_identity": {
+          "scheme": "scworkbench.model_ref.content.v1",
+          "sha256": "341ec0be8a29097410edbf919fc676b44e447ecf68597f8f35109dd4ca594d01"
+        },
+        "g1_read_grant_identity": {
+          "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+          "sha256": "1cdaedef147c6c170b42587a1362ed8d1c55829258d11ee81b32f4ea2bed2976"
+        },
+        "model_linkage_identity": {
+          "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+          "sha256": "1cdaedef147c6c170b42587a1362ed8d1c55829258d11ee81b32f4ea2bed2976"
+        },
+        "contained_tree_identity": {
+          "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+          "sha256": "1cdaedef147c6c170b42587a1362ed8d1c55829258d11ee81b32f4ea2bed2976"
+        },
+        "axis_evidence": {
+          "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+          "verified_parent_snapshot_identity": {
+            "scheme": "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "selected_axis_seal_identity": {
+            "scheme": "scworkbench.operation_pack.derived_fitted_axis_seal.v1",
+            "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+          },
+          "selected_axis_sidecar_identity": {
+            "scheme": "scworkbench.operation_pack.selected_axis_evidence.v1",
+            "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+          },
+          "evidence_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+            "sha256": "7239eaceef632818f287c565117f560b4516c5235a2d48f92036cbfb465aba32",
+            "scope": "evidence excluding evidence_identity"
+          }
+        },
+        "ordered_fitted_cells": [
+          "cell_2",
+          "cell_10",
+          "cell_1",
+          "x|y"
+        ],
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+        },
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "337d8408cf863df25adf826e1d9a346acd071b8f1c8ed9e398d68ce1eb3c47e5",
+          "scope": "source axis excluding source_axis_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_provisional_grant",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+        "manifest_policy_identity": {
+          "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969"
+        },
+        "source_axis": {
+          "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "source_kind": "typed_space_input_v1",
+          "input_name": "source",
+          "source_space_id": "pca",
+          "input_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+            "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+          },
+          "input_content_identity": {
+            "scheme": "scworkbench.space.content.v1",
+            "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "ordered_cells": [
+            "cell_2",
+            "cell_10",
+            "cell_1",
+            "x|y",
+            "z"
+          ],
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "source_state_identity": {
+            "scheme": "scworkbench.scientific_state.v1",
+            "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+            "scope": "source axis excluding source_axis_identity"
+          }
+        },
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+        },
+        "ordinary_output_base_grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+        },
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+        },
+        "output_name": "sparse_family",
+        "kind": "cell_vector_family",
+        "limits": {
+          "maximum_axis_cells": 1000000,
+          "maximum_keys": 64,
+          "maximum_rows": 1000000,
+          "maximum_id_bytes": 1024,
+          "maximum_control_bytes": 67108864
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+        "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2",
+        "scope": "provisional grant excluding grant_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+        "manifest_policy_identity": {
+          "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969"
+        },
+        "source_axis": {
+          "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "source_kind": "typed_space_input_v1",
+          "input_name": "source",
+          "source_space_id": "pca",
+          "input_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+            "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+          },
+          "input_content_identity": {
+            "scheme": "scworkbench.space.content.v1",
+            "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "ordered_cells": [
+            "cell_2",
+            "cell_10",
+            "cell_1",
+            "x|y",
+            "z"
+          ],
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+          },
+          "source_state_identity": {
+            "scheme": "scworkbench.scientific_state.v1",
+            "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+            "scope": "source axis excluding source_axis_identity"
+          }
+        },
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+        },
+        "ordinary_output_base_grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+        },
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+        },
+        "output_name": "sparse_family",
+        "kind": "cell_vector_family",
+        "limits": {
+          "maximum_axis_cells": 1000000,
+          "maximum_keys": 64,
+          "maximum_rows": 1000000,
+          "maximum_id_bytes": 1024,
+          "maximum_control_bytes": 67108864
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2",
+          "scope": "provisional grant excluding grant_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_layout_declaration",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "output_name": "sparse_family",
+        "ordered_keys": [
+          "zeta|alpha",
+          "alpha"
+        ],
+        "per_key_cells": [
+          {
+            "key": "zeta|alpha",
+            "cell_ids": [
+              "cell_2",
+              "cell_1"
+            ]
+          },
+          {
+            "key": "alpha",
+            "cell_ids": [
+              "cell_10",
+              "x|y"
+            ]
+          }
+        ],
+        "declared_row_count": 4
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+        "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012",
+        "scope": "declaration excluding declaration_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "output_name": "sparse_family",
+        "ordered_keys": [
+          "zeta|alpha",
+          "alpha"
+        ],
+        "per_key_cells": [
+          {
+            "key": "zeta|alpha",
+            "cell_ids": [
+              "cell_2",
+              "cell_1"
+            ]
+          },
+          {
+            "key": "alpha",
+            "cell_ids": [
+              "cell_10",
+              "x|y"
+            ]
+          }
+        ],
+        "declared_row_count": 4,
+        "declaration_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+          "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012",
+          "scope": "declaration excluding declaration_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_structured_pair_order",
+      "preimage": [
+        {
+          "key": "zeta|alpha",
+          "cell_id": "cell_2"
+        },
+        {
+          "key": "zeta|alpha",
+          "cell_id": "cell_1"
+        },
+        {
+          "key": "alpha",
+          "cell_id": "cell_10"
+        },
+        {
+          "key": "alpha",
+          "cell_id": "x|y"
+        }
+      ],
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+        "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+      },
+      "value": {
+        "pairs": [
+          {
+            "key": "zeta|alpha",
+            "cell_id": "cell_2"
+          },
+          {
+            "key": "zeta|alpha",
+            "cell_id": "cell_1"
+          },
+          {
+            "key": "alpha",
+            "cell_id": "cell_10"
+          },
+          {
+            "key": "alpha",
+            "cell_id": "x|y"
+          }
+        ],
+        "pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+        }
+      }
+    },
+    {
+      "name": "sparse_swapped_key_pair_order",
+      "preimage": [
+        {
+          "key": "alpha",
+          "cell_id": "cell_10"
+        },
+        {
+          "key": "alpha",
+          "cell_id": "x|y"
+        },
+        {
+          "key": "zeta|alpha",
+          "cell_id": "cell_2"
+        },
+        {
+          "key": "zeta|alpha",
+          "cell_id": "cell_1"
+        }
+      ],
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+        "sha256": "a34b69a84200a0409cfcb0ca22907a99889e4f780b2350501b43618238159661"
+      },
+      "value": {
+        "pairs": [
+          {
+            "key": "alpha",
+            "cell_id": "cell_10"
+          },
+          {
+            "key": "alpha",
+            "cell_id": "x|y"
+          },
+          {
+            "key": "zeta|alpha",
+            "cell_id": "cell_2"
+          },
+          {
+            "key": "zeta|alpha",
+            "cell_id": "cell_1"
+          }
+        ],
+        "pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "a34b69a84200a0409cfcb0ca22907a99889e4f780b2350501b43618238159661"
+        }
+      }
+    },
+    {
+      "name": "sparse_separator_pair_left",
+      "preimage": [
+        {
+          "key": "a\u001cb",
+          "cell_id": "c"
+        }
+      ],
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+        "sha256": "3c0429e443be9605a489bec6611016ef17b70d64de9fa06219ea69416278cbef"
+      },
+      "value": {
+        "pairs": [
+          {
+            "key": "a\u001cb",
+            "cell_id": "c"
+          }
+        ],
+        "pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "3c0429e443be9605a489bec6611016ef17b70d64de9fa06219ea69416278cbef"
+        }
+      }
+    },
+    {
+      "name": "sparse_separator_pair_right",
+      "preimage": [
+        {
+          "key": "a",
+          "cell_id": "b\u001cc"
+        }
+      ],
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+        "sha256": "67834e0277d0c39b8c544ccfae1152b148e5ad7667730acd7bd759a280eaaa55"
+      },
+      "value": {
+        "pairs": [
+          {
+            "key": "a",
+            "cell_id": "b\u001cc"
+          }
+        ],
+        "pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "67834e0277d0c39b8c544ccfae1152b148e5ad7667730acd7bd759a280eaaa55"
+        }
+      }
+    },
+    {
+      "name": "sparse_layout_seal",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "declaration_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+          "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+        },
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+        },
+        "ordered_keys": [
+          "zeta|alpha",
+          "alpha"
+        ],
+        "per_key_cell_counts": [
+          2,
+          2
+        ],
+        "per_key_cell_order_identities": [
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+          },
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+          }
+        ],
+        "key_major_pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+        },
+        "row_count": 4
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+        "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+        "scope": "seal excluding seal_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "declaration_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+          "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+        },
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+        },
+        "ordered_keys": [
+          "zeta|alpha",
+          "alpha"
+        ],
+        "per_key_cell_counts": [
+          2,
+          2
+        ],
+        "per_key_cell_order_identities": [
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+          },
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+          }
+        ],
+        "key_major_pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+        },
+        "row_count": 4,
+        "seal_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+          "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+          "scope": "seal excluding seal_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_sealed_writer_grant",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+        "base_grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+        },
+        "layout_seal_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+          "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+        },
+        "output_name": "sparse_family",
+        "kind": "cell_vector_family",
+        "exact_dimensions": [
+          4,
+          3
+        ],
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+        }
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+        "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+        "scope": "sealed output grant excluding grant_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+        "base_grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+        },
+        "layout_seal_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+          "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+        },
+        "output_name": "sparse_family",
+        "kind": "cell_vector_family",
+        "exact_dimensions": [
+          4,
+          3
+        ],
+        "source_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+          "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+          "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+          "scope": "sealed output grant excluding grant_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_success_request",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.transition_request.v3",
+        "message_type": "request",
+        "process_protocol_version": "pybench-op-v4",
+        "pack_abi_version": "3",
+        "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+        "transition": {
+          "transition_id": "transition_fixture",
+          "session_id": "session_fixture",
+          "run_id": "run_fixture",
+          "checkpoint_generation": "ephemeral",
+          "source_state_identity": {
+            "scheme": "scworkbench.scientific_state.v1",
+            "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "transition_identity": {
+            "scheme": "scworkbench.operation_pack.transition.v2",
+            "scope": "transition excluding transition_identity",
+            "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+          }
+        },
+        "operation_authentication": {
+          "name": "fixture::derived_fit",
+          "pack_identity": {
+            "scheme": "scworkbench.operation_pack.pack.v3",
+            "sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "manifest_identity": {
+            "scheme": "scworkbench.operation_pack.manifest.v3",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "manifest_source_identity": {
+            "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+            "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "distribution_identity": {
+            "scheme": "scworkbench.operation_pack.content.v1",
+            "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+          },
+          "operation_definition_identity": {
+            "scheme": "scworkbench.operation_pack.definition.v3",
+            "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+          },
+          "entry_point": {
+            "value": "fixture::register",
+            "identity": {
+              "scheme": "scworkbench.operation_pack.entry_point.v2",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          }
+        },
+        "engine_contract": {
+          "implementation": "scworkbench",
+          "implementation_version": "0.1.0",
+          "scientific_state_scheme": "scworkbench.scientific_state.v1",
+          "scientific_state_schema_identity": {
+            "scheme": "scworkbench.scientific_state.schema.v1",
+            "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "reader_api": "scworkbench.operation_pack.typed_readers.v2",
+          "writer_api": "scworkbench.operation_pack.staged_writers.v2"
+        },
+        "dependency_resolution": {
+          "declared_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "selected_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "dynamic_resolutions": [],
+          "preflight_report_identity": {
+            "scheme": "scworkbench.operation_pack.preflight.v2",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "network_policy": "deny"
+        },
+        "inputs": [
+          {
+            "name": "source",
+            "reference": "space:source",
+            "descriptor": {
+              "kind": "space",
+              "storage_profile": "space_dense_v1",
+              "reader": "read_space",
+              "dimensions": [
+                3,
+                3
+              ],
+              "alignment": "cell_ordered",
+              "content_identity": {
+                "scheme": "scworkbench.space.content.v1",
+                "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              },
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.payload.manifest.v2",
+                "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "de8dc9c3355c06e46092b142650bb1b9a31a8150bd375f12b96e512c29c03abb"
+              },
+              "descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                "scope": "descriptor excluding descriptor_identity",
+                "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+              }
+            }
+          }
+        ],
+        "params": {
+          "dims": [
+            1,
+            3
+          ],
+          "fitted_cells": [
+            "cell_2",
+            "cell_3"
+          ]
+        },
+        "outputs": [
+          {
+            "name": "model",
+            "allocated_id": "model_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "model_ref",
+              "storage_profile": "model_ref_contained_tree_v1",
+              "writer": "write_model_ref",
+              "relative_root": "outputs/model",
+              "expected_dimensions": [
+                1
+              ],
+              "expected_alignment": "model_linked",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+              },
+              "expected_model_linkage": {
+                "mode": "input",
+                "reference_name": "source",
+                "reference_identity": {
+                  "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                  "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+                }
+              },
+              "semantic_constraints": {
+                "engine": "fixture",
+                "contained": true,
+                "no_symlinks": true
+              },
+              "contained_payload_requirements": {
+                "contained": true,
+                "no_symlinks": true,
+                "manifest_scheme": "scworkbench.operation_pack.payload_manifest.v2"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "3d1e8dfb4fc1e72265bc7c427edf3867f0f82448cd77496b2035076976781b82"
+              }
+            }
+          },
+          {
+            "name": "embedding",
+            "allocated_id": "embedding_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "relative_root": "outputs/embedding",
+              "expected_dimensions": [
+                3
+              ],
+              "expected_alignment": "cell_ordered",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "expected_model_linkage": {
+                "mode": "none"
+              },
+              "semantic_constraints": {
+                "value_kind": "continuous",
+                "missing_values": "forbidden"
+              },
+              "expected_cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "de8dc9c3355c06e46092b142650bb1b9a31a8150bd375f12b96e512c29c03abb"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "bcfdab9d69efa57ef8a43fa36215f1a18edc6508d78c66f78070e2ca13482e3a"
+              }
+            }
+          },
+          {
+            "name": "weights",
+            "allocated_id": "weights_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "relative_root": "outputs/weights",
+              "expected_dimensions": [
+                3,
+                3
+              ],
+              "expected_alignment": "cell_ordered",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "expected_model_linkage": {
+                "mode": "none"
+              },
+              "semantic_constraints": {
+                "value_kind": "continuous",
+                "missing_values": "forbidden"
+              },
+              "expected_cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "de8dc9c3355c06e46092b142650bb1b9a31a8150bd375f12b96e512c29c03abb"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "aaef9310eacac32ec04bebd2ced730a91e3f08f60a599d68403b41d6e57594db"
+              }
+            }
+          },
+          {
+            "name": "sparse_family",
+            "allocated_id": "sparse_family_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "relative_root": "outputs/sparse_family",
+              "expected_dimensions": [
+                4,
+                3
+              ],
+              "expected_alignment": "cell_ordered",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "expected_model_linkage": {
+                "mode": "none"
+              },
+              "semantic_constraints": {
+                "value_kind": "continuous",
+                "missing_values": "forbidden"
+              },
+              "expected_cell_order_identity": null,
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "72b0e6c664dc6f9f24cb67b5753398fdc8c344457b1a444fa3e47df545fb180e",
+                "scope": "descriptor excluding grant_identity"
+              },
+              "standalone_sparse_cell_family_provisional_grant": {
+                "schema": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                "manifest_policy_identity": {
+                  "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+                  "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969"
+                },
+                "source_axis": {
+                  "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                  "source_kind": "typed_space_input_v1",
+                  "input_name": "source",
+                  "source_space_id": "pca",
+                  "input_descriptor_identity": {
+                    "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                    "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+                  },
+                  "input_content_identity": {
+                    "scheme": "scworkbench.space.content.v1",
+                    "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                  },
+                  "ordered_cells": [
+                    "cell_2",
+                    "cell_10",
+                    "cell_1",
+                    "x|y",
+                    "z"
+                  ],
+                  "cell_order_identity": {
+                    "scheme": "scworkbench.cell_order.v1",
+                    "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+                  },
+                  "source_state_identity": {
+                    "scheme": "scworkbench.scientific_state.v1",
+                    "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+                  },
+                  "source_axis_identity": {
+                    "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                    "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+                    "scope": "source axis excluding source_axis_identity"
+                  }
+                },
+                "source_axis_identity": {
+                  "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                  "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+                },
+                "ordinary_output_base_grant_identity": {
+                  "scheme": "scworkbench.operation_pack.output_grant.v3",
+                  "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+                },
+                "transition_identity": {
+                  "scheme": "scworkbench.operation_pack.transition.v2",
+                  "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+                },
+                "output_name": "sparse_family",
+                "kind": "cell_vector_family",
+                "limits": {
+                  "maximum_axis_cells": 1000000,
+                  "maximum_keys": 64,
+                  "maximum_rows": 1000000,
+                  "maximum_id_bytes": 1024,
+                  "maximum_control_bytes": 67108864
+                },
+                "grant_identity": {
+                  "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                  "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2",
+                  "scope": "provisional grant excluding grant_identity"
+                }
+              }
+            }
+          }
+        ],
+        "execution_capability": {
+          "capability_id": "capability_fixture",
+          "mode": "private_staging_write",
+          "transition_identity": {
+            "scheme": "scworkbench.operation_pack.transition.v2",
+            "scope": "transition excluding transition_identity",
+            "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+          },
+          "session_id": "session_fixture",
+          "run_id": "run_fixture",
+          "checkpoint_generation": "ephemeral",
+          "source_state_identity": {
+            "scheme": "scworkbench.scientific_state.v1",
+            "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "staging_root_identity": {
+            "scheme": "scworkbench.operation_pack.staging_root.v1",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "lease_id": "lease_fixture",
+          "pack_identity": {
+            "scheme": "scworkbench.operation_pack.pack.v3",
+            "sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "distribution_identity": {
+            "scheme": "scworkbench.operation_pack.content.v1",
+            "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+          },
+          "manifest_source_identity": {
+            "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+            "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "operation_definition_identity": {
+            "scheme": "scworkbench.operation_pack.definition.v3",
+            "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+          },
+          "entry_point_identity": {
+            "scheme": "scworkbench.operation_pack.entry_point.v2",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "selected_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preflight_report_identity": {
+            "scheme": "scworkbench.operation_pack.preflight.v2",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "reader_grants": [
+            {
+              "input_name": "source",
+              "reader": "read_space",
+              "descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                "scope": "descriptor excluding descriptor_identity",
+                "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+              }
+            }
+          ],
+          "writer_grants": [
+            {
+              "output_name": "model",
+              "writer": "write_model_ref",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "3d1e8dfb4fc1e72265bc7c427edf3867f0f82448cd77496b2035076976781b82"
+              }
+            },
+            {
+              "output_name": "embedding",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "bcfdab9d69efa57ef8a43fa36215f1a18edc6508d78c66f78070e2ca13482e3a"
+              }
+            },
+            {
+              "output_name": "weights",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "aaef9310eacac32ec04bebd2ced730a91e3f08f60a599d68403b41d6e57594db"
+              }
+            },
+            {
+              "output_name": "sparse_family",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "72b0e6c664dc6f9f24cb67b5753398fdc8c344457b1a444fa3e47df545fb180e",
+                "scope": "descriptor excluding grant_identity"
+              }
+            }
+          ],
+          "single_use": true,
+          "capability_identity": {
+            "scheme": "scworkbench.operation_pack.capability.v3",
+            "sha256": "d3d5d68fcf0b1bca4c1fd02ac146dc0b73ab40e2484230acdcb36a259ffcfadd",
+            "scope": "capability excluding capability_identity"
+          },
+          "standalone_sparse_cell_family_grant_identities": [
+            {
+              "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+              "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+            }
+          ]
+        },
+        "standalone_sparse_cell_family_grants": [
+          {
+            "schema": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "manifest_policy_identity": {
+              "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+              "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969"
+            },
+            "source_axis": {
+              "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+              "source_kind": "typed_space_input_v1",
+              "input_name": "source",
+              "source_space_id": "pca",
+              "input_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+              },
+              "input_content_identity": {
+                "scheme": "scworkbench.space.content.v1",
+                "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              },
+              "ordered_cells": [
+                "cell_2",
+                "cell_10",
+                "cell_1",
+                "x|y",
+                "z"
+              ],
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+              },
+              "source_state_identity": {
+                "scheme": "scworkbench.scientific_state.v1",
+                "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+              },
+              "source_axis_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+                "scope": "source axis excluding source_axis_identity"
+              }
+            },
+            "source_axis_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+              "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+            },
+            "ordinary_output_base_grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v3",
+              "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+            },
+            "transition_identity": {
+              "scheme": "scworkbench.operation_pack.transition.v2",
+              "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+            },
+            "output_name": "sparse_family",
+            "kind": "cell_vector_family",
+            "limits": {
+              "maximum_axis_cells": 1000000,
+              "maximum_keys": 64,
+              "maximum_rows": 1000000,
+              "maximum_id_bytes": 1024,
+              "maximum_control_bytes": 67108864
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+              "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2",
+              "scope": "provisional grant excluding grant_identity"
+            }
+          }
+        ]
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v3",
+        "sha256": "204fdba16f13014296e8ba0883c0584a8cb00c39c1fd99a05520a34b74fda4c3",
+        "scope": "request excluding request_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.transition_request.v3",
+        "message_type": "request",
+        "process_protocol_version": "pybench-op-v4",
+        "pack_abi_version": "3",
+        "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+        "transition": {
+          "transition_id": "transition_fixture",
+          "session_id": "session_fixture",
+          "run_id": "run_fixture",
+          "checkpoint_generation": "ephemeral",
+          "source_state_identity": {
+            "scheme": "scworkbench.scientific_state.v1",
+            "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "transition_identity": {
+            "scheme": "scworkbench.operation_pack.transition.v2",
+            "scope": "transition excluding transition_identity",
+            "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+          }
+        },
+        "operation_authentication": {
+          "name": "fixture::derived_fit",
+          "pack_identity": {
+            "scheme": "scworkbench.operation_pack.pack.v3",
+            "sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "manifest_identity": {
+            "scheme": "scworkbench.operation_pack.manifest.v3",
+            "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          },
+          "manifest_source_identity": {
+            "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+            "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "distribution_identity": {
+            "scheme": "scworkbench.operation_pack.content.v1",
+            "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+          },
+          "operation_definition_identity": {
+            "scheme": "scworkbench.operation_pack.definition.v3",
+            "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+          },
+          "entry_point": {
+            "value": "fixture::register",
+            "identity": {
+              "scheme": "scworkbench.operation_pack.entry_point.v2",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          }
+        },
+        "engine_contract": {
+          "implementation": "scworkbench",
+          "implementation_version": "0.1.0",
+          "scientific_state_scheme": "scworkbench.scientific_state.v1",
+          "scientific_state_schema_identity": {
+            "scheme": "scworkbench.scientific_state.schema.v1",
+            "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+          },
+          "reader_api": "scworkbench.operation_pack.typed_readers.v2",
+          "writer_api": "scworkbench.operation_pack.staged_writers.v2"
+        },
+        "dependency_resolution": {
+          "declared_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "selected_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "dynamic_resolutions": [],
+          "preflight_report_identity": {
+            "scheme": "scworkbench.operation_pack.preflight.v2",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "network_policy": "deny"
+        },
+        "inputs": [
+          {
+            "name": "source",
+            "reference": "space:source",
+            "descriptor": {
+              "kind": "space",
+              "storage_profile": "space_dense_v1",
+              "reader": "read_space",
+              "dimensions": [
+                3,
+                3
+              ],
+              "alignment": "cell_ordered",
+              "content_identity": {
+                "scheme": "scworkbench.space.content.v1",
+                "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              },
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.payload.manifest.v2",
+                "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "de8dc9c3355c06e46092b142650bb1b9a31a8150bd375f12b96e512c29c03abb"
+              },
+              "descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                "scope": "descriptor excluding descriptor_identity",
+                "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+              }
+            }
+          }
+        ],
+        "params": {
+          "dims": [
+            1,
+            3
+          ],
+          "fitted_cells": [
+            "cell_2",
+            "cell_3"
+          ]
+        },
+        "outputs": [
+          {
+            "name": "model",
+            "allocated_id": "model_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "model_ref",
+              "storage_profile": "model_ref_contained_tree_v1",
+              "writer": "write_model_ref",
+              "relative_root": "outputs/model",
+              "expected_dimensions": [
+                1
+              ],
+              "expected_alignment": "model_linked",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+              },
+              "expected_model_linkage": {
+                "mode": "input",
+                "reference_name": "source",
+                "reference_identity": {
+                  "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                  "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+                }
+              },
+              "semantic_constraints": {
+                "engine": "fixture",
+                "contained": true,
+                "no_symlinks": true
+              },
+              "contained_payload_requirements": {
+                "contained": true,
+                "no_symlinks": true,
+                "manifest_scheme": "scworkbench.operation_pack.payload_manifest.v2"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "3d1e8dfb4fc1e72265bc7c427edf3867f0f82448cd77496b2035076976781b82"
+              }
+            }
+          },
+          {
+            "name": "embedding",
+            "allocated_id": "embedding_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "relative_root": "outputs/embedding",
+              "expected_dimensions": [
+                3
+              ],
+              "expected_alignment": "cell_ordered",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "expected_model_linkage": {
+                "mode": "none"
+              },
+              "semantic_constraints": {
+                "value_kind": "continuous",
+                "missing_values": "forbidden"
+              },
+              "expected_cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "de8dc9c3355c06e46092b142650bb1b9a31a8150bd375f12b96e512c29c03abb"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "bcfdab9d69efa57ef8a43fa36215f1a18edc6508d78c66f78070e2ca13482e3a"
+              }
+            }
+          },
+          {
+            "name": "weights",
+            "allocated_id": "weights_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "relative_root": "outputs/weights",
+              "expected_dimensions": [
+                3,
+                3
+              ],
+              "expected_alignment": "cell_ordered",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "expected_model_linkage": {
+                "mode": "none"
+              },
+              "semantic_constraints": {
+                "value_kind": "continuous",
+                "missing_values": "forbidden"
+              },
+              "expected_cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "de8dc9c3355c06e46092b142650bb1b9a31a8150bd375f12b96e512c29c03abb"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "aaef9310eacac32ec04bebd2ced730a91e3f08f60a599d68403b41d6e57594db"
+              }
+            }
+          },
+          {
+            "name": "sparse_family",
+            "allocated_id": "sparse_family_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "relative_root": "outputs/sparse_family",
+              "expected_dimensions": [
+                4,
+                3
+              ],
+              "expected_alignment": "cell_ordered",
+              "expected_ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "expected_model_linkage": {
+                "mode": "none"
+              },
+              "semantic_constraints": {
+                "value_kind": "continuous",
+                "missing_values": "forbidden"
+              },
+              "expected_cell_order_identity": null,
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "72b0e6c664dc6f9f24cb67b5753398fdc8c344457b1a444fa3e47df545fb180e",
+                "scope": "descriptor excluding grant_identity"
+              },
+              "standalone_sparse_cell_family_provisional_grant": {
+                "schema": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                "manifest_policy_identity": {
+                  "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+                  "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969"
+                },
+                "source_axis": {
+                  "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                  "source_kind": "typed_space_input_v1",
+                  "input_name": "source",
+                  "source_space_id": "pca",
+                  "input_descriptor_identity": {
+                    "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                    "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+                  },
+                  "input_content_identity": {
+                    "scheme": "scworkbench.space.content.v1",
+                    "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                  },
+                  "ordered_cells": [
+                    "cell_2",
+                    "cell_10",
+                    "cell_1",
+                    "x|y",
+                    "z"
+                  ],
+                  "cell_order_identity": {
+                    "scheme": "scworkbench.cell_order.v1",
+                    "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+                  },
+                  "source_state_identity": {
+                    "scheme": "scworkbench.scientific_state.v1",
+                    "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+                  },
+                  "source_axis_identity": {
+                    "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                    "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+                    "scope": "source axis excluding source_axis_identity"
+                  }
+                },
+                "source_axis_identity": {
+                  "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                  "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+                },
+                "ordinary_output_base_grant_identity": {
+                  "scheme": "scworkbench.operation_pack.output_grant.v3",
+                  "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+                },
+                "transition_identity": {
+                  "scheme": "scworkbench.operation_pack.transition.v2",
+                  "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+                },
+                "output_name": "sparse_family",
+                "kind": "cell_vector_family",
+                "limits": {
+                  "maximum_axis_cells": 1000000,
+                  "maximum_keys": 64,
+                  "maximum_rows": 1000000,
+                  "maximum_id_bytes": 1024,
+                  "maximum_control_bytes": 67108864
+                },
+                "grant_identity": {
+                  "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                  "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2",
+                  "scope": "provisional grant excluding grant_identity"
+                }
+              }
+            }
+          }
+        ],
+        "execution_capability": {
+          "capability_id": "capability_fixture",
+          "mode": "private_staging_write",
+          "transition_identity": {
+            "scheme": "scworkbench.operation_pack.transition.v2",
+            "scope": "transition excluding transition_identity",
+            "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+          },
+          "session_id": "session_fixture",
+          "run_id": "run_fixture",
+          "checkpoint_generation": "ephemeral",
+          "source_state_identity": {
+            "scheme": "scworkbench.scientific_state.v1",
+            "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "staging_root_identity": {
+            "scheme": "scworkbench.operation_pack.staging_root.v1",
+            "sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "lease_id": "lease_fixture",
+          "pack_identity": {
+            "scheme": "scworkbench.operation_pack.pack.v3",
+            "sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "distribution_identity": {
+            "scheme": "scworkbench.operation_pack.content.v1",
+            "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+          },
+          "manifest_source_identity": {
+            "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+            "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "operation_definition_identity": {
+            "scheme": "scworkbench.operation_pack.definition.v3",
+            "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+          },
+          "entry_point_identity": {
+            "scheme": "scworkbench.operation_pack.entry_point.v2",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "selected_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "preflight_report_identity": {
+            "scheme": "scworkbench.operation_pack.preflight.v2",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "reader_grants": [
+            {
+              "input_name": "source",
+              "reader": "read_space",
+              "descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                "scope": "descriptor excluding descriptor_identity",
+                "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+              }
+            }
+          ],
+          "writer_grants": [
+            {
+              "output_name": "model",
+              "writer": "write_model_ref",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "3d1e8dfb4fc1e72265bc7c427edf3867f0f82448cd77496b2035076976781b82"
+              }
+            },
+            {
+              "output_name": "embedding",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "bcfdab9d69efa57ef8a43fa36215f1a18edc6508d78c66f78070e2ca13482e3a"
+              }
+            },
+            {
+              "output_name": "weights",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "aaef9310eacac32ec04bebd2ced730a91e3f08f60a599d68403b41d6e57594db"
+              }
+            },
+            {
+              "output_name": "sparse_family",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "72b0e6c664dc6f9f24cb67b5753398fdc8c344457b1a444fa3e47df545fb180e",
+                "scope": "descriptor excluding grant_identity"
+              }
+            }
+          ],
+          "single_use": true,
+          "capability_identity": {
+            "scheme": "scworkbench.operation_pack.capability.v3",
+            "sha256": "d3d5d68fcf0b1bca4c1fd02ac146dc0b73ab40e2484230acdcb36a259ffcfadd",
+            "scope": "capability excluding capability_identity"
+          },
+          "standalone_sparse_cell_family_grant_identities": [
+            {
+              "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+              "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+            }
+          ]
+        },
+        "request_identity": {
+          "scheme": "scworkbench.operation_pack.transition_request.v3",
+          "sha256": "204fdba16f13014296e8ba0883c0584a8cb00c39c1fd99a05520a34b74fda4c3",
+          "scope": "request excluding request_identity"
+        },
+        "standalone_sparse_cell_family_grants": [
+          {
+            "schema": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "manifest_policy_identity": {
+              "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+              "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969"
+            },
+            "source_axis": {
+              "schema": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+              "source_kind": "typed_space_input_v1",
+              "input_name": "source",
+              "source_space_id": "pca",
+              "input_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+              },
+              "input_content_identity": {
+                "scheme": "scworkbench.space.content.v1",
+                "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+              },
+              "ordered_cells": [
+                "cell_2",
+                "cell_10",
+                "cell_1",
+                "x|y",
+                "z"
+              ],
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+              },
+              "source_state_identity": {
+                "scheme": "scworkbench.scientific_state.v1",
+                "sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+              },
+              "source_axis_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902",
+                "scope": "source axis excluding source_axis_identity"
+              }
+            },
+            "source_axis_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+              "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+            },
+            "ordinary_output_base_grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v3",
+              "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+            },
+            "transition_identity": {
+              "scheme": "scworkbench.operation_pack.transition.v2",
+              "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+            },
+            "output_name": "sparse_family",
+            "kind": "cell_vector_family",
+            "limits": {
+              "maximum_axis_cells": 1000000,
+              "maximum_keys": 64,
+              "maximum_rows": 1000000,
+              "maximum_id_bytes": 1024,
+              "maximum_control_bytes": 67108864
+            },
+            "grant_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+              "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2",
+              "scope": "provisional grant excluding grant_identity"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "sparse_observed_output",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "declaration": {
+          "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+          "provisional_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+          },
+          "output_name": "sparse_family",
+          "ordered_keys": [
+            "zeta|alpha",
+            "alpha"
+          ],
+          "per_key_cells": [
+            {
+              "key": "zeta|alpha",
+              "cell_ids": [
+                "cell_2",
+                "cell_1"
+              ]
+            },
+            {
+              "key": "alpha",
+              "cell_ids": [
+                "cell_10",
+                "x|y"
+              ]
+            }
+          ],
+          "declared_row_count": 4,
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+            "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012",
+            "scope": "declaration excluding declaration_identity"
+          }
+        },
+        "seal": {
+          "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+          "provisional_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+          },
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+            "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+          },
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "ordered_keys": [
+            "zeta|alpha",
+            "alpha"
+          ],
+          "per_key_cell_counts": [
+            2,
+            2
+          ],
+          "per_key_cell_order_identities": [
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+            },
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+            }
+          ],
+          "key_major_pair_order_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+            "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+          },
+          "row_count": 4,
+          "seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+            "scope": "seal excluding seal_identity"
+          }
+        },
+        "sealed_writer_grant": {
+          "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+          "base_grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+          },
+          "layout_seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+          },
+          "output_name": "sparse_family",
+          "kind": "cell_vector_family",
+          "exact_dimensions": [
+            4,
+            3
+          ],
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+            "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+            "scope": "sealed output grant excluding grant_identity"
+          }
+        },
+        "observed_keys": [
+          "zeta|alpha",
+          "alpha"
+        ],
+        "per_key_cell_counts": [
+          2,
+          2
+        ],
+        "per_key_cell_order_identities": [
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+          },
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+          }
+        ],
+        "observed_pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+        },
+        "observed_row_count": 4,
+        "observed_dimensions": [
+          4,
+          3
+        ],
+        "output_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.observed_output.v3",
+          "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c"
+        },
+        "output_content_identity": {
+          "scheme": "scworkbench.cell_vector_family.content.v1",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "validation_status": "passed"
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+        "sha256": "1f083993841c58a36f7b22e0d4ab6a5c4b76c75b95bf996087ec36e217152716",
+        "scope": "observation excluding observation_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "declaration": {
+          "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+          "provisional_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+          },
+          "output_name": "sparse_family",
+          "ordered_keys": [
+            "zeta|alpha",
+            "alpha"
+          ],
+          "per_key_cells": [
+            {
+              "key": "zeta|alpha",
+              "cell_ids": [
+                "cell_2",
+                "cell_1"
+              ]
+            },
+            {
+              "key": "alpha",
+              "cell_ids": [
+                "cell_10",
+                "x|y"
+              ]
+            }
+          ],
+          "declared_row_count": 4,
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+            "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012",
+            "scope": "declaration excluding declaration_identity"
+          }
+        },
+        "seal": {
+          "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+          "provisional_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+          },
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+            "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+          },
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "ordered_keys": [
+            "zeta|alpha",
+            "alpha"
+          ],
+          "per_key_cell_counts": [
+            2,
+            2
+          ],
+          "per_key_cell_order_identities": [
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+            },
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+            }
+          ],
+          "key_major_pair_order_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+            "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+          },
+          "row_count": 4,
+          "seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+            "scope": "seal excluding seal_identity"
+          }
+        },
+        "sealed_writer_grant": {
+          "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+          "base_grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+          },
+          "layout_seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+          },
+          "output_name": "sparse_family",
+          "kind": "cell_vector_family",
+          "exact_dimensions": [
+            4,
+            3
+          ],
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+            "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+            "scope": "sealed output grant excluding grant_identity"
+          }
+        },
+        "observed_keys": [
+          "zeta|alpha",
+          "alpha"
+        ],
+        "per_key_cell_counts": [
+          2,
+          2
+        ],
+        "per_key_cell_order_identities": [
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+          },
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+          }
+        ],
+        "observed_pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+        },
+        "observed_row_count": 4,
+        "observed_dimensions": [
+          4,
+          3
+        ],
+        "output_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.observed_output.v3",
+          "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c"
+        },
+        "output_content_identity": {
+          "scheme": "scworkbench.cell_vector_family.content.v1",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "validation_status": "passed",
+        "observation_identity": {
+          "scheme": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+          "sha256": "1f083993841c58a36f7b22e0d4ab6a5c4b76c75b95bf996087ec36e217152716",
+          "scope": "observation excluding observation_identity"
+        }
+      }
+    },
+    {
+      "name": "sparse_success_receipt",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.transition_receipt.v3",
+        "message_type": "receipt",
+        "process_protocol_version": "pybench-op-v4",
+        "pack_abi_version": "3",
+        "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+        "status": "ok",
+        "transition_id": "transition_fixture",
+        "session_id": "session_fixture",
+        "run_id": "run_fixture",
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "scope": "transition excluding transition_identity",
+          "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+        },
+        "request_identity": {
+          "scheme": "scworkbench.operation_pack.transition_request.v3",
+          "sha256": "204fdba16f13014296e8ba0883c0584a8cb00c39c1fd99a05520a34b74fda4c3",
+          "scope": "request excluding request_identity"
+        },
+        "capability_identity": {
+          "scheme": "scworkbench.operation_pack.capability.v3",
+          "sha256": "d3d5d68fcf0b1bca4c1fd02ac146dc0b73ab40e2484230acdcb36a259ffcfadd",
+          "scope": "capability excluding capability_identity"
+        },
+        "outputs": [
+          {
+            "name": "model",
+            "allocated_id": "model_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "model_ref",
+              "storage_profile": "model_ref_contained_tree_v1",
+              "writer": "write_model_ref",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "3d1e8dfb4fc1e72265bc7c427edf3867f0f82448cd77496b2035076976781b82"
+              },
+              "dimensions": [
+                1
+              ],
+              "alignment": "model_linked",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+              },
+              "model_linkage": {
+                "mode": "input",
+                "reference_name": "source",
+                "reference_identity": {
+                  "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                  "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+                }
+              },
+              "content_identity": {
+                "scheme": "scworkbench.model_ref.content.v1",
+                "sha256": "6b35319d5ebaacf7f9ca93f2db049e2e5150988cb788a2f793bedfe7586a790c"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "90eedd24e4ea28812464b4430c867b235eeb99791eee15108db1eff0a05e6f56"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "model_linkage_identity": {
+                "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+                "sha256": "8704049ad8334697df5d5cfb364cbf54411962b0e9eefbace5c1ade6b4047e52"
+              },
+              "contained_payload": {
+                "contained": true,
+                "no_symlinks": true,
+                "payload_tree_identity": {
+                  "scheme": "scworkbench.operation_pack.contained_payload.v2",
+                  "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+                }
+              },
+              "contained_model_sibling_tree": {
+                "schema": "scworkbench.operation_pack.derived_fitted_model_tree_observation.v1",
+                "sealed_model_grant_identity": {
+                  "scheme": "scworkbench.operation_pack.sealed_model_sibling_grant.v1",
+                  "sha256": "6e0bede8834c87524bc1fdca5bcc82a1bf90de7857abc7c6119efb2e9fe1fd1d"
+                },
+                "tree_manifest": {
+                  "schema": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+                  "engine": "uwot",
+                  "model_type": "uwot_umap",
+                  "primary_path": "model.uwot",
+                  "file_count": 1,
+                  "total_size": 12,
+                  "entries": [
+                    {
+                      "path": "model.uwot",
+                      "size": 12,
+                      "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+                    }
+                  ],
+                  "manifest_identity": {
+                    "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+                    "scope": "manifest excluding manifest_identity",
+                    "sha256": "7351ae559f54e89c49bb9505205ccc848a1f7156aeea5bd918e4e9a555526367"
+                  }
+                },
+                "tree_manifest_identity": {
+                  "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+                  "sha256": "7351ae559f54e89c49bb9505205ccc848a1f7156aeea5bd918e4e9a555526367"
+                },
+                "payload_manifest_identity": {
+                  "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                  "sha256": "90eedd24e4ea28812464b4430c867b235eeb99791eee15108db1eff0a05e6f56"
+                },
+                "model_source_linkage_identity": {
+                  "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+                  "sha256": "8704049ad8334697df5d5cfb364cbf54411962b0e9eefbace5c1ade6b4047e52"
+                },
+                "status": "complete",
+                "observation_identity": {
+                  "scheme": "scworkbench.operation_pack.derived_fitted_model_tree_observation.v1",
+                  "scope": "observation excluding observation_identity",
+                  "sha256": "5d9c2b2ccbf35ff8915f395d1a81cc45f796e03814b6dad432564399e8fa997f"
+                }
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "scope": "descriptor excluding observed_descriptor_identity",
+                "sha256": "6bdae5dab4c71079cc00e63ebbf2ac175a54b7ca3dfe292ae536e60743d6c7cf"
+              }
+            }
+          },
+          {
+            "name": "embedding",
+            "allocated_id": "embedding_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "bcfdab9d69efa57ef8a43fa36215f1a18edc6508d78c66f78070e2ca13482e3a"
+              },
+              "dimensions": [
+                2
+              ],
+              "alignment": "cell_ordered",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "model_linkage": {
+                "mode": "none"
+              },
+              "content_identity": {
+                "scheme": "scworkbench.cell_vector.content.v1",
+                "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "06340bd9bfbf49247a26a51c5e2c7294fbc2aa5cc35b78cc589b8c6e6a00709b"
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "scope": "descriptor excluding observed_descriptor_identity",
+                "sha256": "8f2a6e8fa38b688b140e86e1a9cd5ad43d5a7548a9cd37ab169c253b751b4e2f"
+              }
+            }
+          },
+          {
+            "name": "weights",
+            "allocated_id": "weights_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "aaef9310eacac32ec04bebd2ced730a91e3f08f60a599d68403b41d6e57594db"
+              },
+              "dimensions": [
+                3,
+                3
+              ],
+              "alignment": "cell_ordered",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "model_linkage": {
+                "mode": "none"
+              },
+              "content_identity": {
+                "scheme": "scworkbench.cell_vector_family.content.v1",
+                "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "4a60d5b62ac5510c40d30aaebed9aa44526525004b732b6a5395359d593e6b65"
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "scope": "descriptor excluding observed_descriptor_identity",
+                "sha256": "901da8a9c0e6650505f1ef4e9a008cd4e43291fda48491b5b5fc6c7457cf863b"
+              }
+            }
+          },
+          {
+            "name": "sparse_family",
+            "allocated_id": "sparse_family_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "72b0e6c664dc6f9f24cb67b5753398fdc8c344457b1a444fa3e47df545fb180e",
+                "scope": "descriptor excluding grant_identity"
+              },
+              "dimensions": [
+                4,
+                3
+              ],
+              "alignment": "cell_ordered",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "model_linkage": {
+                "mode": "none"
+              },
+              "content_identity": {
+                "scheme": "scworkbench.cell_vector_family.content.v1",
+                "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+                "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c",
+                "scope": "descriptor excluding observed_descriptor_identity"
+              }
+            }
+          }
+        ],
+        "registry_requests": [],
+        "mutation_manifest": {
+          "entries_identity": {
+            "scheme": "scworkbench.operation_pack.mutation_entries.v2",
+            "sha256": "80c18c8151d348e1e62258487694f38da3787649283d8f2a1d212e547f7775fd"
+          },
+          "entry_count": 3,
+          "unexpected_entries": 0,
+          "mutation_identity": {
+            "scheme": "scworkbench.operation_pack.mutation_manifest.v2",
+            "scope": "mutation manifest excluding mutation_identity",
+            "sha256": "ee7df11c442c5ca55627a46022cd55adb1e5aa207ca67561d5e85386ed51fc65"
+          }
+        },
+        "runtime_attestation": {
+          "schema": "scworkbench.operation_pack.runtime.v3",
+          "backend": "R",
+          "pack_identity": {
+            "scheme": "scworkbench.operation_pack.pack.v3",
+            "sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "manifest_source_identity": {
+            "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+            "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "distribution_identity": {
+            "scheme": "scworkbench.operation_pack.content.v1",
+            "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+          },
+          "operation_definition_identity": {
+            "scheme": "scworkbench.operation_pack.definition.v3",
+            "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+          },
+          "entry_point": {
+            "value": "fixture::register",
+            "identity": {
+              "scheme": "scworkbench.operation_pack.entry_point.v2",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          },
+          "declared_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "selected_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "dynamic_resolutions": [],
+          "preflight_report_identity": {
+            "scheme": "scworkbench.operation_pack.preflight.v2",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "path_policy": "no_absolute_paths",
+          "runtime_identity": {
+            "scheme": "scworkbench.operation_pack.runtime.v3",
+            "scope": "runtime attestation excluding runtime_identity",
+            "sha256": "33a3d8efad4fa91531912b9b08862317bbb3399119cc797b794786cc34a6c777"
+          }
+        },
+        "sparse_cell_family_observations": [
+          {
+            "schema": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+            "provisional_grant_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+              "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+            },
+            "declaration": {
+              "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+              "provisional_grant_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+              },
+              "output_name": "sparse_family",
+              "ordered_keys": [
+                "zeta|alpha",
+                "alpha"
+              ],
+              "per_key_cells": [
+                {
+                  "key": "zeta|alpha",
+                  "cell_ids": [
+                    "cell_2",
+                    "cell_1"
+                  ]
+                },
+                {
+                  "key": "alpha",
+                  "cell_ids": [
+                    "cell_10",
+                    "x|y"
+                  ]
+                }
+              ],
+              "declared_row_count": 4,
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+                "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012",
+                "scope": "declaration excluding declaration_identity"
+              }
+            },
+            "seal": {
+              "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+              "provisional_grant_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+              },
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+                "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+              },
+              "source_axis_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+              },
+              "ordered_keys": [
+                "zeta|alpha",
+                "alpha"
+              ],
+              "per_key_cell_counts": [
+                2,
+                2
+              ],
+              "per_key_cell_order_identities": [
+                {
+                  "scheme": "scworkbench.cell_order.v1",
+                  "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+                },
+                {
+                  "scheme": "scworkbench.cell_order.v1",
+                  "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+                }
+              ],
+              "key_major_pair_order_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+                "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+              },
+              "row_count": 4,
+              "seal_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+                "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+                "scope": "seal excluding seal_identity"
+              }
+            },
+            "sealed_writer_grant": {
+              "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+              "base_grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+              },
+              "layout_seal_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+                "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+              },
+              "output_name": "sparse_family",
+              "kind": "cell_vector_family",
+              "exact_dimensions": [
+                4,
+                3
+              ],
+              "source_axis_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+                "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+                "scope": "sealed output grant excluding grant_identity"
+              }
+            },
+            "observed_keys": [
+              "zeta|alpha",
+              "alpha"
+            ],
+            "per_key_cell_counts": [
+              2,
+              2
+            ],
+            "per_key_cell_order_identities": [
+              {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+              },
+              {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+              }
+            ],
+            "observed_pair_order_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+              "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+            },
+            "observed_row_count": 4,
+            "observed_dimensions": [
+              4,
+              3
+            ],
+            "output_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v3",
+              "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c"
+            },
+            "output_content_identity": {
+              "scheme": "scworkbench.cell_vector_family.content.v1",
+              "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+            },
+            "validation_status": "passed",
+            "observation_identity": {
+              "scheme": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+              "sha256": "1f083993841c58a36f7b22e0d4ab6a5c4b76c75b95bf996087ec36e217152716",
+              "scope": "observation excluding observation_identity"
+            }
+          }
+        ]
+      },
+      "identity": {
+        "scheme": "scworkbench.operation_pack.transition_receipt.v3",
+        "sha256": "7fba504c764f1450c8a2027652ded05d32f1dcc5522e4192520eadccc5f38511",
+        "scope": "receipt excluding receipt_identity"
+      },
+      "value": {
+        "schema": "scworkbench.operation_pack.transition_receipt.v3",
+        "message_type": "receipt",
+        "process_protocol_version": "pybench-op-v4",
+        "pack_abi_version": "3",
+        "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+        "status": "ok",
+        "transition_id": "transition_fixture",
+        "session_id": "session_fixture",
+        "run_id": "run_fixture",
+        "transition_identity": {
+          "scheme": "scworkbench.operation_pack.transition.v2",
+          "scope": "transition excluding transition_identity",
+          "sha256": "af315565cc6d6643316dafcb5a88b32bc084b07ae9580561ca0c2403bb14a178"
+        },
+        "request_identity": {
+          "scheme": "scworkbench.operation_pack.transition_request.v3",
+          "sha256": "204fdba16f13014296e8ba0883c0584a8cb00c39c1fd99a05520a34b74fda4c3",
+          "scope": "request excluding request_identity"
+        },
+        "capability_identity": {
+          "scheme": "scworkbench.operation_pack.capability.v3",
+          "sha256": "d3d5d68fcf0b1bca4c1fd02ac146dc0b73ab40e2484230acdcb36a259ffcfadd",
+          "scope": "capability excluding capability_identity"
+        },
+        "outputs": [
+          {
+            "name": "model",
+            "allocated_id": "model_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "model_ref",
+              "storage_profile": "model_ref_contained_tree_v1",
+              "writer": "write_model_ref",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "3d1e8dfb4fc1e72265bc7c427edf3867f0f82448cd77496b2035076976781b82"
+              },
+              "dimensions": [
+                1
+              ],
+              "alignment": "model_linked",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+              },
+              "model_linkage": {
+                "mode": "input",
+                "reference_name": "source",
+                "reference_identity": {
+                  "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+                  "sha256": "a3bb1957b87cec68d82223bb696c64c0893bb3e98b42b91313be2a991fc2953d"
+                }
+              },
+              "content_identity": {
+                "scheme": "scworkbench.model_ref.content.v1",
+                "sha256": "6b35319d5ebaacf7f9ca93f2db049e2e5150988cb788a2f793bedfe7586a790c"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "90eedd24e4ea28812464b4430c867b235eeb99791eee15108db1eff0a05e6f56"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "model_linkage_identity": {
+                "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+                "sha256": "8704049ad8334697df5d5cfb364cbf54411962b0e9eefbace5c1ade6b4047e52"
+              },
+              "contained_payload": {
+                "contained": true,
+                "no_symlinks": true,
+                "payload_tree_identity": {
+                  "scheme": "scworkbench.operation_pack.contained_payload.v2",
+                  "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+                }
+              },
+              "contained_model_sibling_tree": {
+                "schema": "scworkbench.operation_pack.derived_fitted_model_tree_observation.v1",
+                "sealed_model_grant_identity": {
+                  "scheme": "scworkbench.operation_pack.sealed_model_sibling_grant.v1",
+                  "sha256": "6e0bede8834c87524bc1fdca5bcc82a1bf90de7857abc7c6119efb2e9fe1fd1d"
+                },
+                "tree_manifest": {
+                  "schema": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+                  "engine": "uwot",
+                  "model_type": "uwot_umap",
+                  "primary_path": "model.uwot",
+                  "file_count": 1,
+                  "total_size": 12,
+                  "entries": [
+                    {
+                      "path": "model.uwot",
+                      "size": 12,
+                      "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+                    }
+                  ],
+                  "manifest_identity": {
+                    "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+                    "scope": "manifest excluding manifest_identity",
+                    "sha256": "7351ae559f54e89c49bb9505205ccc848a1f7156aeea5bd918e4e9a555526367"
+                  }
+                },
+                "tree_manifest_identity": {
+                  "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+                  "sha256": "7351ae559f54e89c49bb9505205ccc848a1f7156aeea5bd918e4e9a555526367"
+                },
+                "payload_manifest_identity": {
+                  "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                  "sha256": "90eedd24e4ea28812464b4430c867b235eeb99791eee15108db1eff0a05e6f56"
+                },
+                "model_source_linkage_identity": {
+                  "scheme": "scworkbench.operation_pack.model_source_linkage.v3",
+                  "sha256": "8704049ad8334697df5d5cfb364cbf54411962b0e9eefbace5c1ade6b4047e52"
+                },
+                "status": "complete",
+                "observation_identity": {
+                  "scheme": "scworkbench.operation_pack.derived_fitted_model_tree_observation.v1",
+                  "scope": "observation excluding observation_identity",
+                  "sha256": "5d9c2b2ccbf35ff8915f395d1a81cc45f796e03814b6dad432564399e8fa997f"
+                }
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "scope": "descriptor excluding observed_descriptor_identity",
+                "sha256": "6bdae5dab4c71079cc00e63ebbf2ac175a54b7ca3dfe292ae536e60743d6c7cf"
+              }
+            }
+          },
+          {
+            "name": "embedding",
+            "allocated_id": "embedding_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "bcfdab9d69efa57ef8a43fa36215f1a18edc6508d78c66f78070e2ca13482e3a"
+              },
+              "dimensions": [
+                2
+              ],
+              "alignment": "cell_ordered",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+              },
+              "model_linkage": {
+                "mode": "none"
+              },
+              "content_identity": {
+                "scheme": "scworkbench.cell_vector.content.v1",
+                "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "06340bd9bfbf49247a26a51c5e2c7294fbc2aa5cc35b78cc589b8c6e6a00709b"
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "scope": "descriptor excluding observed_descriptor_identity",
+                "sha256": "8f2a6e8fa38b688b140e86e1a9cd5ad43d5a7548a9cd37ab169c253b751b4e2f"
+              }
+            }
+          },
+          {
+            "name": "weights",
+            "allocated_id": "weights_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "scope": "descriptor excluding grant_identity",
+                "sha256": "aaef9310eacac32ec04bebd2ced730a91e3f08f60a599d68403b41d6e57594db"
+              },
+              "dimensions": [
+                3,
+                3
+              ],
+              "alignment": "cell_ordered",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "model_linkage": {
+                "mode": "none"
+              },
+              "content_identity": {
+                "scheme": "scworkbench.cell_vector_family.content.v1",
+                "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "4a60d5b62ac5510c40d30aaebed9aa44526525004b732b6a5395359d593e6b65"
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "scope": "descriptor excluding observed_descriptor_identity",
+                "sha256": "901da8a9c0e6650505f1ef4e9a008cd4e43291fda48491b5b5fc6c7457cf863b"
+              }
+            }
+          },
+          {
+            "name": "sparse_family",
+            "allocated_id": "sparse_family_id_fixture",
+            "descriptor": {
+              "category": "terminal_artifact",
+              "kind": "cell_vector_family",
+              "storage_profile": "terminal_primitive_v1",
+              "writer": "write_terminal_primitive",
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "72b0e6c664dc6f9f24cb67b5753398fdc8c344457b1a444fa3e47df545fb180e",
+                "scope": "descriptor excluding grant_identity"
+              },
+              "dimensions": [
+                4,
+                3
+              ],
+              "alignment": "cell_ordered",
+              "ancestry_identity": {
+                "scheme": "scworkbench.provenance.ancestry.v1",
+                "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+              },
+              "model_linkage": {
+                "mode": "none"
+              },
+              "content_identity": {
+                "scheme": "scworkbench.cell_vector_family.content.v1",
+                "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+              },
+              "payload_manifest_identity": {
+                "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+                "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+              },
+              "semantic_metadata_identity": {
+                "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+                "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "semantic_validation": {
+                "constraints_identity": {
+                  "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+                  "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "status": "passed"
+              },
+              "cell_order_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+                "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+              },
+              "observed_descriptor_identity": {
+                "scheme": "scworkbench.operation_pack.observed_output.v3",
+                "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c",
+                "scope": "descriptor excluding observed_descriptor_identity"
+              }
+            }
+          }
+        ],
+        "registry_requests": [],
+        "mutation_manifest": {
+          "entries_identity": {
+            "scheme": "scworkbench.operation_pack.mutation_entries.v2",
+            "sha256": "80c18c8151d348e1e62258487694f38da3787649283d8f2a1d212e547f7775fd"
+          },
+          "entry_count": 3,
+          "unexpected_entries": 0,
+          "mutation_identity": {
+            "scheme": "scworkbench.operation_pack.mutation_manifest.v2",
+            "scope": "mutation manifest excluding mutation_identity",
+            "sha256": "ee7df11c442c5ca55627a46022cd55adb1e5aa207ca67561d5e85386ed51fc65"
+          }
+        },
+        "runtime_attestation": {
+          "schema": "scworkbench.operation_pack.runtime.v3",
+          "backend": "R",
+          "pack_identity": {
+            "scheme": "scworkbench.operation_pack.pack.v3",
+            "sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "manifest_source_identity": {
+            "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+            "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+          },
+          "distribution_identity": {
+            "scheme": "scworkbench.operation_pack.content.v1",
+            "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+          },
+          "operation_definition_identity": {
+            "scheme": "scworkbench.operation_pack.definition.v3",
+            "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+          },
+          "entry_point": {
+            "value": "fixture::register",
+            "identity": {
+              "scheme": "scworkbench.operation_pack.entry_point.v2",
+              "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          },
+          "declared_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "selected_requirement_set_identity": {
+            "scheme": "scworkbench.operation_pack.dependencies.v2",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "dynamic_resolutions": [],
+          "preflight_report_identity": {
+            "scheme": "scworkbench.operation_pack.preflight.v2",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "path_policy": "no_absolute_paths",
+          "runtime_identity": {
+            "scheme": "scworkbench.operation_pack.runtime.v3",
+            "scope": "runtime attestation excluding runtime_identity",
+            "sha256": "33a3d8efad4fa91531912b9b08862317bbb3399119cc797b794786cc34a6c777"
+          }
+        },
+        "receipt_identity": {
+          "scheme": "scworkbench.operation_pack.transition_receipt.v3",
+          "sha256": "7fba504c764f1450c8a2027652ded05d32f1dcc5522e4192520eadccc5f38511",
+          "scope": "receipt excluding receipt_identity"
+        },
+        "sparse_cell_family_observations": [
+          {
+            "schema": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+            "provisional_grant_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+              "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+            },
+            "declaration": {
+              "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+              "provisional_grant_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+              },
+              "output_name": "sparse_family",
+              "ordered_keys": [
+                "zeta|alpha",
+                "alpha"
+              ],
+              "per_key_cells": [
+                {
+                  "key": "zeta|alpha",
+                  "cell_ids": [
+                    "cell_2",
+                    "cell_1"
+                  ]
+                },
+                {
+                  "key": "alpha",
+                  "cell_ids": [
+                    "cell_10",
+                    "x|y"
+                  ]
+                }
+              ],
+              "declared_row_count": 4,
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+                "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012",
+                "scope": "declaration excluding declaration_identity"
+              }
+            },
+            "seal": {
+              "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+              "provisional_grant_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+                "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+              },
+              "declaration_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+                "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+              },
+              "source_axis_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+              },
+              "ordered_keys": [
+                "zeta|alpha",
+                "alpha"
+              ],
+              "per_key_cell_counts": [
+                2,
+                2
+              ],
+              "per_key_cell_order_identities": [
+                {
+                  "scheme": "scworkbench.cell_order.v1",
+                  "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+                },
+                {
+                  "scheme": "scworkbench.cell_order.v1",
+                  "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+                }
+              ],
+              "key_major_pair_order_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+                "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+              },
+              "row_count": 4,
+              "seal_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+                "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+                "scope": "seal excluding seal_identity"
+              }
+            },
+            "sealed_writer_grant": {
+              "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+              "base_grant_identity": {
+                "scheme": "scworkbench.operation_pack.output_grant.v3",
+                "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+              },
+              "layout_seal_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+                "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+              },
+              "output_name": "sparse_family",
+              "kind": "cell_vector_family",
+              "exact_dimensions": [
+                4,
+                3
+              ],
+              "source_axis_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+                "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+              },
+              "grant_identity": {
+                "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+                "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+                "scope": "sealed output grant excluding grant_identity"
+              }
+            },
+            "observed_keys": [
+              "zeta|alpha",
+              "alpha"
+            ],
+            "per_key_cell_counts": [
+              2,
+              2
+            ],
+            "per_key_cell_order_identities": [
+              {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+              },
+              {
+                "scheme": "scworkbench.cell_order.v1",
+                "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+              }
+            ],
+            "observed_pair_order_identity": {
+              "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+              "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+            },
+            "observed_row_count": 4,
+            "observed_dimensions": [
+              4,
+              3
+            ],
+            "output_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v3",
+              "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c"
+            },
+            "output_content_identity": {
+              "scheme": "scworkbench.cell_vector_family.content.v1",
+              "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+            },
+            "validation_status": "passed",
+            "observation_identity": {
+              "scheme": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+              "sha256": "1f083993841c58a36f7b22e0d4ab6a5c4b76c75b95bf996087ec36e217152716",
+              "scope": "observation excluding observation_identity"
+            }
+          }
+        ]
+      }
     }
   ],
   "schema": "scworkbench.operation_pack.v3.identity_fixtures.v1",
@@ -25932,6 +29293,481 @@
       },
       "expected": "schema_reject",
       "expected_code": "PYBENCH_CAPABILITY_MISMATCH"
+    },
+    {
+      "name": "sparse_v2_with_v3_sidecar",
+      "schema_file": "operation-pack-transition-request-v3.schema.json",
+      "definition": "sparse_family_g1_axis_evidence",
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+        "verified_source_space_snapshot_identity": {
+          "scheme": "scworkbench.operation_pack.model_source_snapshot.v2",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "verified_full_axis_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "evidence_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+          "sha256": "28b8f3577ac8d488e7def9aa44a084f113cea8f55f082d50e345665d88457eab",
+          "scope": "evidence excluding evidence_identity"
+        },
+        "selected_axis_sidecar_identity": {
+          "scheme": "sidecar",
+          "sha256": "d78ed9efa6ae77434392252f5e55039c106c229f28150fb5fbffbedbc40e15df"
+        }
+      },
+      "expected": "schema_reject",
+      "expected_code": "OPERATION_PACK_PROTOCOL_INCOMPATIBLE"
+    },
+    {
+      "name": "sparse_v3_without_seal",
+      "schema_file": "operation-pack-transition-request-v3.schema.json",
+      "definition": "sparse_family_g1_axis_evidence",
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+        "verified_parent_snapshot_identity": {
+          "scheme": "scworkbench.operation_pack.fitted_axis_parent_snapshot.v1",
+          "sha256": "d7aef197db468e7fd7ce358345bf91306873cf73c1d8b15c5ab12864277ad200"
+        },
+        "selected_axis_sidecar_identity": {
+          "scheme": "scworkbench.operation_pack.selected_axis_evidence.v1",
+          "sha256": "6c574804cc26176b9719cd3bfec6519f0a107f61844a28776809d2457f461b05"
+        },
+        "evidence_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+          "sha256": "7239eaceef632818f287c565117f560b4516c5235a2d48f92036cbfb465aba32",
+          "scope": "evidence excluding evidence_identity"
+        }
+      },
+      "expected": "schema_reject",
+      "expected_code": "OPERATION_PACK_PROTOCOL_INCOMPATIBLE"
+    },
+    {
+      "name": "sparse_both_axis_sources",
+      "schema_file": "operation-pack-v3.schema.json",
+      "definition": "dimension_policy",
+      "value": {
+        "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+        "output": "sparse_family",
+        "policy": "standalone_sparse_cell_family_v1",
+        "axis_source": {
+          "source": "typed_space_input_v1",
+          "input": "source",
+          "model_read": "model_read"
+        },
+        "key_order": "declared_verbatim_v1",
+        "row_order": "key_major_then_source_relative_cell_v1",
+        "per_key_coverage": "per_key_source_relative_subset_v1",
+        "missing_values": "forbidden",
+        "declaration_discipline": "exactly_once_before_write",
+        "maximum_axis_cells": 1000000,
+        "maximum_keys": 64,
+        "maximum_rows": 1000000,
+        "maximum_id_bytes": 1024,
+        "maximum_control_bytes": 67108864,
+        "policy_identity": {
+          "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969",
+          "scope": "policy excluding policy_identity"
+        }
+      },
+      "expected": "schema_reject",
+      "expected_code": "OPERATION_PACK_PROTOCOL_INCOMPATIBLE"
+    },
+    {
+      "name": "sparse_wrong_policy_scope",
+      "schema_file": "operation-pack-v3.schema.json",
+      "definition": "dimension_policy",
+      "value": {
+        "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+        "output": "sparse_family",
+        "policy": "standalone_sparse_cell_family_v1",
+        "axis_source": {
+          "source": "typed_space_input_v1",
+          "input": "source"
+        },
+        "key_order": "declared_verbatim_v1",
+        "row_order": "key_major_then_source_relative_cell_v1",
+        "per_key_coverage": "per_key_source_relative_subset_v1",
+        "missing_values": "forbidden",
+        "declaration_discipline": "exactly_once_before_write",
+        "maximum_axis_cells": 1000000,
+        "maximum_keys": 64,
+        "maximum_rows": 1000000,
+        "maximum_id_bytes": 1024,
+        "maximum_control_bytes": 67108864,
+        "policy_identity": {
+          "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "sha256": "e6c5a29c7250ea10f8d580bbba1a35e0749872d70007d5182dc37d4bb29ef969",
+          "scope": "wrong scope"
+        }
+      },
+      "expected": "schema_reject",
+      "expected_code": "OPERATION_PACK_PROTOCOL_INCOMPATIBLE"
+    },
+    {
+      "name": "sparse_receipt_without_declaration",
+      "schema_file": "operation-pack-transition-receipt-v3.schema.json",
+      "definition": "sparse_cell_family_observation",
+      "value": {
+        "schema": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "seal": {
+          "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+          "provisional_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+          },
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+            "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+          },
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "ordered_keys": [
+            "zeta|alpha",
+            "alpha"
+          ],
+          "per_key_cell_counts": [
+            2,
+            2
+          ],
+          "per_key_cell_order_identities": [
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+            },
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+            }
+          ],
+          "key_major_pair_order_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+            "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+          },
+          "row_count": 4,
+          "seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+            "scope": "seal excluding seal_identity"
+          }
+        },
+        "sealed_writer_grant": {
+          "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+          "base_grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+          },
+          "layout_seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+          },
+          "output_name": "sparse_family",
+          "kind": "cell_vector_family",
+          "exact_dimensions": [
+            4,
+            3
+          ],
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+            "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+            "scope": "sealed output grant excluding grant_identity"
+          }
+        },
+        "observed_keys": [
+          "zeta|alpha",
+          "alpha"
+        ],
+        "per_key_cell_counts": [
+          2,
+          2
+        ],
+        "per_key_cell_order_identities": [
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+          },
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+          }
+        ],
+        "observed_pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+        },
+        "observed_row_count": 4,
+        "observed_dimensions": [
+          4,
+          3
+        ],
+        "output_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.observed_output.v3",
+          "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c"
+        },
+        "output_content_identity": {
+          "scheme": "scworkbench.cell_vector_family.content.v1",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "validation_status": "passed",
+        "observation_identity": {
+          "scheme": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+          "sha256": "1f083993841c58a36f7b22e0d4ab6a5c4b76c75b95bf996087ec36e217152716",
+          "scope": "observation excluding observation_identity"
+        }
+      },
+      "expected": "schema_reject",
+      "expected_code": "OPERATION_PACK_PROTOCOL_INCOMPATIBLE"
+    },
+    {
+      "name": "sparse_policy_self_hash_wrong",
+      "schema_file": "operation-pack-v3.schema.json",
+      "definition": "dimension_policy",
+      "value": {
+        "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+        "output": "sparse_family",
+        "policy": "standalone_sparse_cell_family_v1",
+        "axis_source": {
+          "source": "typed_space_input_v1",
+          "input": "source"
+        },
+        "key_order": "declared_verbatim_v1",
+        "row_order": "key_major_then_source_relative_cell_v1",
+        "per_key_coverage": "per_key_source_relative_subset_v1",
+        "missing_values": "forbidden",
+        "declaration_discipline": "exactly_once_before_write",
+        "maximum_axis_cells": 1000000,
+        "maximum_keys": 64,
+        "maximum_rows": 1000000,
+        "maximum_id_bytes": 1024,
+        "maximum_control_bytes": 67108864,
+        "policy_identity": {
+          "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "scope": "policy excluding policy_identity"
+        }
+      },
+      "expected": "semantic_reject",
+      "expected_code": "PYBENCH_CAPABILITY_MISMATCH"
+    },
+    {
+      "name": "sparse_declaration_keys_swapped_self_rehashed",
+      "schema_file": "operation-pack-transition-request-v3.schema.json",
+      "definition": "sparse_family_layout_declaration",
+      "value": {
+        "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "output_name": "sparse_family",
+        "ordered_keys": [
+          "alpha",
+          "zeta|alpha"
+        ],
+        "per_key_cells": [
+          {
+            "key": "zeta|alpha",
+            "cell_ids": [
+              "cell_2",
+              "cell_1"
+            ]
+          },
+          {
+            "key": "alpha",
+            "cell_ids": [
+              "cell_10",
+              "x|y"
+            ]
+          }
+        ],
+        "declared_row_count": 4,
+        "declaration_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+          "sha256": "8adbcd3496aeaa383a29fbc45f15f6f66b6867a9d50f1fe1fdda8982d1f4fb36",
+          "scope": "declaration excluding declaration_identity"
+        }
+      },
+      "expected": "semantic_reject",
+      "expected_code": "PYBENCH_CAPABILITY_MISMATCH"
+    },
+    {
+      "name": "sparse_receipt_keys_swapped_self_rehashed",
+      "schema_file": "operation-pack-transition-receipt-v3.schema.json",
+      "definition": "sparse_cell_family_observation",
+      "value": {
+        "schema": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+        "provisional_grant_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+          "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+        },
+        "declaration": {
+          "schema": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+          "provisional_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+          },
+          "output_name": "sparse_family",
+          "ordered_keys": [
+            "zeta|alpha",
+            "alpha"
+          ],
+          "per_key_cells": [
+            {
+              "key": "zeta|alpha",
+              "cell_ids": [
+                "cell_2",
+                "cell_1"
+              ]
+            },
+            {
+              "key": "alpha",
+              "cell_ids": [
+                "cell_10",
+                "x|y"
+              ]
+            }
+          ],
+          "declared_row_count": 4,
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+            "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012",
+            "scope": "declaration excluding declaration_identity"
+          }
+        },
+        "seal": {
+          "schema": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+          "provisional_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_provisional_grant.v1",
+            "sha256": "bf7171cbd4be0bda38f9127f84b977f6e2269d1331e4d8b3e8cb180d15fb90c2"
+          },
+          "declaration_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_declaration.v1",
+            "sha256": "b35489084fb52ee7cfe53e703615bb413526312855910f2205318de3c2414012"
+          },
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "ordered_keys": [
+            "zeta|alpha",
+            "alpha"
+          ],
+          "per_key_cell_counts": [
+            2,
+            2
+          ],
+          "per_key_cell_order_identities": [
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+            },
+            {
+              "scheme": "scworkbench.cell_order.v1",
+              "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+            }
+          ],
+          "key_major_pair_order_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+            "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+          },
+          "row_count": 4,
+          "seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26",
+            "scope": "seal excluding seal_identity"
+          }
+        },
+        "sealed_writer_grant": {
+          "schema": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+          "base_grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "sha256": "ea65218c3aa90492fe1cbe57712030f0e893584dcbc5fb9d06746882bdbe6c1f"
+          },
+          "layout_seal_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_layout_seal.v1",
+            "sha256": "eaa259670890309dfe1e4e3da57ca8941558a8be0ed54d10c4707f330ca0fa26"
+          },
+          "output_name": "sparse_family",
+          "kind": "cell_vector_family",
+          "exact_dimensions": [
+            4,
+            3
+          ],
+          "source_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_source_axis.v1",
+            "sha256": "2b72b508b45f246af3e56c834ed7d9554417c1d72b991be4989eb076dc2c7902"
+          },
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1",
+            "sha256": "18a8149474ae71ec8c6e093c829915fe4c9c99ff2f5127a88df005375fff1a4e",
+            "scope": "sealed output grant excluding grant_identity"
+          }
+        },
+        "observed_keys": [
+          "alpha",
+          "zeta|alpha"
+        ],
+        "per_key_cell_counts": [
+          2,
+          2
+        ],
+        "per_key_cell_order_identities": [
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "7a2d2aa9f3e1f26ede6b9ca0b226587a90b30202f5c60806a8d7d7ab69cb42a8"
+          },
+          {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "e078c0830b082aff37b99e0f224b820a275780b1da74b34fc8cec90766ce5619"
+          }
+        ],
+        "observed_pair_order_identity": {
+          "scheme": "scworkbench.operation_pack.sparse_family_pair_order.v1",
+          "sha256": "c8cd80214bc8f651622c6fb4bc2d2661fb2ab774ffd0d0c1975d5ebf47789155"
+        },
+        "observed_row_count": 4,
+        "observed_dimensions": [
+          4,
+          3
+        ],
+        "output_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.observed_output.v3",
+          "sha256": "a7c302f718f620ee33bc4c86116c2fb3d063f9849c9b53183a6c24c3d04a6e4c"
+        },
+        "output_content_identity": {
+          "scheme": "scworkbench.cell_vector_family.content.v1",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "validation_status": "passed",
+        "observation_identity": {
+          "scheme": "scworkbench.operation_pack.observed_sparse_cell_family.v1",
+          "sha256": "c7983f4ccba2361b8fc78a29e0d87705aa3e0e74696e8858c367cc570e0a7780",
+          "scope": "observation excluding observation_identity"
+        }
+      },
+      "expected": "semantic_reject",
+      "expected_code": "PYBENCH_RECEIPT_MISMATCH"
     }
   ]
 }

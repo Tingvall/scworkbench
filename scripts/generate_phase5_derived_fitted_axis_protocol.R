@@ -9,9 +9,24 @@ script <- sub("^--file=", "", args[grep("^--file=", args)][1L])
 root <- normalizePath(file.path(dirname(script), ".."), mustWork = TRUE)
 protocol <- file.path(root, "inst", "protocol")
 read <- function(name) read_json(file.path(protocol, name), simplifyVector = FALSE)
-write <- function(x, name) writeChar(toJSON(x, auto_unbox = TRUE,
-  pretty = TRUE, null = "null", na = "null", digits = NA),
-  file.path(protocol, name), eos = NULL, useBytes = TRUE)
+normalize_object_order <- function(value) {
+  if (!is.list(value)) return(value)
+  if (!is.null(names(value))) value <- value[order(names(value),
+    method = "radix")]
+  lapply(value, normalize_object_order)
+}
+write <- function(x, name) {
+  # This generator owns the DFA additions, not later additive ABI fields.
+  # Preserve an already-equivalent document's exact frozen protocol bytes.
+  stable_json <- function(value) as.character(toJSON(
+    normalize_object_order(value), auto_unbox = TRUE, null = "null",
+    na = "null", digits = NA))
+  if (identical(stable_json(read(name)), stable_json(x)))
+    return(invisible(FALSE))
+  writeChar(toJSON(x, auto_unbox = TRUE, pretty = TRUE, null = "null",
+    na = "null", digits = NA), file.path(protocol, name), eos = NULL,
+    useBytes = TRUE)
+}
 ref <- function(name) list(`$ref` = paste0("#/$defs/", name))
 obj <- function(required, properties) list(type = "object",
   additionalProperties = FALSE, required = as.list(required),
@@ -955,9 +970,13 @@ new_cases <- list(policy_case, parent_case, session_case, grant_case,
   model_content_case, model_descriptor_case, observation_case,
   full_session_case, full_grant_case, full_declaration_case, full_seal_case,
   request_case, receipt_case)
-fixture$cases <- Filter(function(x) !startsWith(x$name, "dfa_"),
-  fixture$cases)
-fixture$cases <- c(fixture$cases, new_cases)
+existing_names <- vapply(fixture$cases, `[[`, character(1), "name")
+new_names <- vapply(new_cases, `[[`, character(1), "name")
+fixture$cases <- lapply(fixture$cases, function(item) {
+  index <- match(item$name, new_names)
+  if (is.na(index)) item else new_cases[[index]]
+})
+fixture$cases <- c(fixture$cases, new_cases[!new_names %in% existing_names])
 clone <- function(x) unserialize(serialize(x, NULL))
 negative <- function(name, schema_file, definition, value, expected,
     expected_code) list(name = name, schema_file = schema_file,
@@ -1039,7 +1058,10 @@ n13 <- clone(full_sibling_grants[[1L]])
 n13$coverage_policy <- "per_key_source_relative_subset_v1"
 n14 <- clone(full_model_grant)
 n14$limits$maximum_total_bytes <- 1.5
-fixture$negative_cases <- list(
+retained_negative_cases <- Filter(function(item)
+  !startsWith(as.character(item$name)[1], "dfa_"),
+  fixture$negative_cases)
+fixture$negative_cases <- c(list(
   negative("dfa_sidecar_self_hash_forbidden", request_name,
     "selected_axis_evidence_sidecar", n1, "schema_reject",
     "PYBENCH_CAPABILITY_MISMATCH"),
@@ -1078,5 +1100,5 @@ fixture$negative_cases <- list(
     "PYBENCH_CAPABILITY_MISMATCH"),
   negative("dfa_fractional_tree_byte_limit_forbidden", request_name,
     "sealed_model_sibling_grant", n14, "schema_reject",
-    "PYBENCH_CAPABILITY_MISMATCH"))
+    "PYBENCH_CAPABILITY_MISMATCH")), retained_negative_cases)
 write(fixture, fixture_name)

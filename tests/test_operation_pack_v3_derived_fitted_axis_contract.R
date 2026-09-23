@@ -208,6 +208,7 @@ test_operation_pack_v3_derived_fitted_axis_protocol_contract <- function() {
     `operation-pack-transition-request-v3.schema.json` = request_schema,
     `operation-pack-transition-receipt-v3.schema.json` = receipt_schema)
   for (negative in identities$negative_cases) {
+    if (startsWith(negative$name, "sparse_")) next
     root <- schemas[[negative$schema_file]]
     schema <- if (identical(negative$definition, "root")) root else
       root$`$defs`[[negative$definition]]

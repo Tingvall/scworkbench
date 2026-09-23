@@ -350,6 +350,12 @@
       },
       "minItems": 1,
       "maxItems": 1
+    },
+    "sparse_cell_family_observations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/sparse_cell_family_observation"},
+      "minItems": 1,
+      "maxItems": 1
     }
   },
   "allOf": [
@@ -9659,6 +9665,129 @@
           }
         }
       ]
+    },
+    "sparse_cell_family_observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "provisional_grant_identity", "declaration", "seal", "sealed_writer_grant", "observed_keys", "per_key_cell_counts", "per_key_cell_order_identities", "observed_pair_order_identity", "observed_row_count", "observed_dimensions", "output_descriptor_identity", "output_content_identity", "payload_manifest_identity", "validation_status", "observation_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.observed_sparse_cell_family.v1"},
+        "provisional_grant_identity": {"$ref": "#/$defs/identity"},
+        "declaration": {"$ref": "#/$defs/sparse_cell_family_layout_declaration"},
+        "seal": {"$ref": "#/$defs/sparse_cell_family_layout_seal"},
+        "sealed_writer_grant": {"$ref": "#/$defs/sparse_cell_family_sealed_output_grant"},
+        "observed_keys": {"$ref": "#/$defs/sparse_cell_family_keys"},
+        "per_key_cell_counts": {"$ref": "#/$defs/sparse_cell_family_counts"},
+        "per_key_cell_order_identities": {"$ref": "#/$defs/sparse_cell_family_order_identities"},
+        "observed_pair_order_identity": {"$ref": "#/$defs/identity"},
+        "observed_row_count": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "observed_dimensions": {"type": "array", "prefixItems": [{"type": "integer", "minimum": 1, "maximum": 1000000}, {"const": 3}], "minItems": 2, "maxItems": 2},
+        "output_descriptor_identity": {"$ref": "#/$defs/identity"},
+        "output_content_identity": {"$ref": "#/$defs/identity"},
+        "payload_manifest_identity": {"$ref": "#/$defs/identity"},
+        "validation_status": {"const": "passed"},
+        "observation_identity": {"$ref": "#/$defs/sparse_cell_family_observation_identity"}
+      }
+    },
+    "sparse_cell_family_layout_declaration": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "provisional_grant_identity", "output_name", "ordered_keys", "per_key_cells", "declared_row_count", "declaration_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.sparse_family_layout_declaration.v1"},
+        "provisional_grant_identity": {"$ref": "#/$defs/identity"},
+        "output_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "ordered_keys": {"$ref": "#/$defs/sparse_cell_family_keys"},
+        "per_key_cells": {
+          "type": "array", "minItems": 1, "maxItems": 64,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["key", "cell_ids"],
+            "properties": {
+              "key": {"type": "string", "minLength": 1, "maxLength": 1024},
+              "cell_ids": {"type": "array", "minItems": 1, "maxItems": 1000000, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 1024}}
+            }
+          }
+        },
+        "declared_row_count": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "declaration_identity": {"$ref": "#/$defs/sparse_cell_family_declaration_identity"}
+      }
+    },
+    "sparse_cell_family_layout_seal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "provisional_grant_identity", "declaration_identity", "source_axis_identity", "ordered_keys", "per_key_cell_counts", "per_key_cell_order_identities", "key_major_pair_order_identity", "row_count", "seal_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.sparse_family_layout_seal.v1"},
+        "provisional_grant_identity": {"$ref": "#/$defs/identity"},
+        "declaration_identity": {"$ref": "#/$defs/identity"},
+        "source_axis_identity": {"$ref": "#/$defs/identity"},
+        "ordered_keys": {"$ref": "#/$defs/sparse_cell_family_keys"},
+        "per_key_cell_counts": {"$ref": "#/$defs/sparse_cell_family_counts"},
+        "per_key_cell_order_identities": {"$ref": "#/$defs/sparse_cell_family_order_identities"},
+        "key_major_pair_order_identity": {"$ref": "#/$defs/identity"},
+        "row_count": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "seal_identity": {"$ref": "#/$defs/sparse_cell_family_seal_identity"}
+      }
+    },
+    "sparse_cell_family_sealed_output_grant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "base_grant_identity", "layout_seal_identity", "output_name", "kind", "exact_dimensions", "source_axis_identity", "grant_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1"},
+        "base_grant_identity": {"$ref": "#/$defs/identity"},
+        "layout_seal_identity": {"$ref": "#/$defs/identity"},
+        "output_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "kind": {"const": "cell_vector_family"},
+        "exact_dimensions": {"type": "array", "prefixItems": [{"type": "integer", "minimum": 1, "maximum": 1000000}, {"const": 3}], "minItems": 2, "maxItems": 2},
+        "source_axis_identity": {"$ref": "#/$defs/identity"},
+        "grant_identity": {"$ref": "#/$defs/sparse_cell_family_sealed_identity"}
+      }
+    },
+    "sparse_cell_family_keys": {
+      "type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 1024}
+    },
+    "sparse_cell_family_counts": {
+      "type": "array", "minItems": 1, "maxItems": 64,
+      "items": {"type": "integer", "minimum": 1, "maximum": 1000000}
+    },
+    "sparse_cell_family_order_identities": {
+      "type": "array", "minItems": 1, "maxItems": 64,
+      "items": {"$ref": "#/$defs/identity"}
+    },
+    "sparse_cell_family_seal_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.sparse_family_layout_seal.v1"},
+        "scope": {"const": "seal excluding seal_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sparse_cell_family_declaration_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.sparse_family_layout_declaration.v1"},
+        "scope": {"const": "declaration excluding declaration_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sparse_cell_family_sealed_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.sparse_family_sealed_output_grant.v1"},
+        "scope": {"const": "sealed output grant excluding grant_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sparse_cell_family_observation_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.observed_sparse_cell_family.v1"},
+        "scope": {"const": "observation excluding observation_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
     },
     "relative_root": {
       "type": "string",

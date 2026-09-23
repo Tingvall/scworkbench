@@ -835,6 +835,11 @@
     name <- as.character(base$outputs[[i]]$name)[1]
     descriptor <- base$outputs[[i]]$descriptor
     policy <- policies[[name]]
+    if (!is.null(policy) && identical(as.character(policy$policy)[1],
+        "standalone_sparse_cell_family_v1")) {
+      descriptor$expected_dimensions <- list(0L, 3L)
+      descriptor["expected_cell_order_identity"] <- list(NULL)
+    }
     if (!is.null(g7_linked[[name]])) {
       descriptor$derived_cell_output_axis_policy <-
         .wb_operation_pack_v3_g7_output_policy(
@@ -963,6 +968,30 @@
       "scworkbench.operation_pack.output_grant.v3",
       "descriptor excluding grant_identity", descriptor)
     base$outputs[[i]]$descriptor <- descriptor
+  }
+
+  # The ordinary output grant is the acyclic base for an opt-in sparse
+  # provisional grant.  Rehashing the descriptor after insertion binds the
+  # provisional grant to the immutable request without making it a writer.
+  sparse_family_policy <- .wb_operation_pack_v3_sscf_policy(operation)
+  sparse_family_grants <- list()
+  if (length(sparse_family_policy)) {
+    policy <- sparse_family_policy[[1L]]
+    source <- .wb_operation_pack_v3_sscf_source(bundle, policy, inputs,
+      input_records, self_model_reads,
+      base$execution_capability$source_state_identity)
+    name <- as.character(policy$output)[1]
+    index <- match(name, vapply(base$outputs, `[[`, character(1), "name"))
+    grant <- .wb_operation_pack_v3_sscf_grant(policy, source,
+      base$outputs[[index]], base$transition$transition_identity)
+    descriptor <- base$outputs[[index]]$descriptor
+    descriptor$standalone_sparse_cell_family_provisional_grant <- grant
+    descriptor$grant_identity <- NULL
+    descriptor$grant_identity <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.output_grant.v3",
+      "descriptor excluding grant_identity", descriptor)
+    base$outputs[[index]]$descriptor <- descriptor
+    sparse_family_grants <- list(grant)
   }
 
   # Sibling-bound model grants are constructed only after every ordinary
@@ -1107,6 +1136,10 @@
     capability$derived_fitted_axis_grant_identities <-
       unname(lapply(derived_fitted$grants, function(x)
         .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
+  if (length(sparse_family_grants))
+    capability$standalone_sparse_cell_family_grant_identities <-
+      unname(lapply(sparse_family_grants, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
   capability$capability_identity <- NULL
   capability$capability_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.capability.v3",
@@ -1149,6 +1182,9 @@
     base$derived_cell_output_axis_grants <- unname(derived_axes$grants)
   if (length(derived_fitted$grants))
     base$derived_fitted_axis_grants <- unname(derived_fitted$grants)
+  if (length(sparse_family_grants))
+    base$standalone_sparse_cell_family_grants <-
+      unname(sparse_family_grants)
   base$request_identity <- NULL
   base$request_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_request.v3",
@@ -1295,6 +1331,8 @@
     .wb_operation_pack_v3_assert_self_identity(grant,
       "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
   }
+  .wb_operation_pack_v3_sscf_request_audit(request, operation, bundle,
+    inputs)
   for (grant in request$typed_space_grants %||% list()) {
     .wb_operation_pack_v3_assert_self_identity(grant$source_reference,
       "source_reference_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
@@ -1454,6 +1492,9 @@
     function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   expected_fitted <- lapply(request$derived_fitted_axis_grants %||% list(),
     function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
+  expected_sparse_family <- lapply(
+    request$standalone_sparse_cell_family_grants %||% list(),
+    function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   if (!identical(request$execution_capability$typed_slice_grant_identities %||%
         list(), expected_slices) ||
       !identical(request$execution_capability$typed_space_grant_identities %||%
@@ -1478,7 +1519,10 @@
         supported_external_state_adoption_grant_identities %||% list(),
         expected_adoptions) ||
       !identical(request$execution_capability$
-        derived_fitted_axis_grant_identities %||% list(), expected_fitted))
+        derived_fitted_axis_grant_identities %||% list(), expected_fitted) ||
+      !identical(request$execution_capability$
+        standalone_sparse_cell_family_grant_identities %||% list(),
+        expected_sparse_family))
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "V3 capability typed-slice or provenance closure differs from request.",
       "staging")
@@ -1563,7 +1607,8 @@
                                            supported_external_state_adoption_state = NULL,
                                            supported_external_state_adoption_attestations = list(),
                                            derived_cell_output_axis_declarations = list(),
-                                           derived_fitted_axis_state = NULL) {
+                                           derived_fitted_axis_state = NULL,
+                                           standalone_sparse_cell_family_state = NULL) {
   hook <- getOption("scworkbench.operation_pack_v3_output_test_hook", NULL)
   if (is.function(hook)) {
     replacement <- hook(writes = writes, request = request,
@@ -1593,11 +1638,14 @@
   base_request$supported_external_state_adoption_grants <- NULL
   base_request$derived_cell_output_axis_grants <- NULL
   base_request$derived_fitted_axis_grants <- NULL
+  base_request$standalone_sparse_cell_family_grants <- NULL
   for (i in seq_along(base_request$outputs)) {
     base_request$outputs[[i]]$descriptor$cardinality_grant <- NULL
     base_request$outputs[[i]]$descriptor$sparse_membership_grant <- NULL
     base_request$outputs[[i]]$descriptor$pseudobulk_grant <- NULL
     base_request$outputs[[i]]$descriptor$derived_cell_output_axis_policy <- NULL
+    base_request$outputs[[i]]$descriptor$
+      standalone_sparse_cell_family_provisional_grant <- NULL
     base_request$outputs[[i]]$descriptor$grant_identity$scheme <-
       "scworkbench.operation_pack.output_grant.v2"
   }
@@ -1639,6 +1687,24 @@
           unname(as.list(.wb_operation_pack_v2_primitive_cells(
             writes[[sealed$name]]$value))))
     }
+  }
+  sparse_layout <- standalone_sparse_cell_family_state$
+    standalone_sparse_cell_family %||% NULL
+  sparse_grants <- request$standalone_sparse_cell_family_grants %||% list()
+  if (length(sparse_grants)) {
+    if (is.null(sparse_layout))
+      .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+        "Sparse-family output has no sealed layout.", "receipt")
+    sparse_name <- as.character(sparse_grants[[1L]]$output_name)[1]
+    index <- match(sparse_name, vapply(base_request$outputs, `[[`,
+      character(1), "name"))
+    base_request$outputs[[index]]$descriptor$expected_dimensions <-
+      sparse_layout$writer$exact_dimensions
+    base_request$outputs[[index]]$descriptor$
+      expected_cell_order_identity <- .wb_operation_pack_v2_identity_plain(
+        "scworkbench.cell_order.v1", unname(as.list(vapply(
+          sparse_layout$pairs, function(x) as.character(x$cell_id)[1],
+          character(1)))))
   }
   receipt <- .wb_operation_pack_v2_receipt(base_request, registration,
     projected, writes, preflight, registry_reads)
@@ -1971,6 +2037,11 @@
       g7_applied$observations
   if (length(fitted_observations))
     receipt$derived_fitted_axis_observations <- fitted_observations
+  sparse_family_observations <- .wb_operation_pack_v3_sscf_observation(
+    request, standalone_sparse_cell_family_state, receipt$outputs, writes)
+  if (length(sparse_family_observations))
+    receipt$sparse_cell_family_observations <-
+      sparse_family_observations
   publication_observations <- lapply(Filter(function(x)
     !is.null(x$descriptor$publication_grant), request$outputs), function(grant) {
       output <- observed[[match(grant$name, vapply(observed, `[[`,
@@ -2303,6 +2374,8 @@
             "receipt")
   }
   .wb_operation_pack_v3_phase5_receipt_audit(receipt, request)
+  .wb_operation_pack_v3_sscf_receipt_audit(receipt, request,
+    stage_root = attr(request, "operation_pack_stage_root"))
   .wb_operation_pack_v3_assert_self_identity(receipt$mutation_manifest,
     "mutation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
   .wb_operation_pack_v3_assert_self_identity(receipt$runtime_attestation,
@@ -2339,6 +2412,9 @@
     .wb_operation_pack_v3_g7_receipt_audit(receipt, request)
     attr(request, "operation_pack_stage_root") <- path
     .wb_operation_pack_v3_dfa_receipt_audit(receipt, request)
+    .wb_operation_pack_v3_sscf_receipt_audit(receipt, request,
+      stage_root = if (isTRUE(load_payloads)) path else NULL,
+      code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen")
     TRUE
   }, error = function(error) FALSE)
   if (!isTRUE(checked)) return(fail("v3_request_receipt_invalid"))
@@ -2825,6 +2901,7 @@
 
 .wb_operation_pack_v3_retained_provenance_assert_current <- function(bundle,
     request, path) {
+  .wb_operation_pack_v3_sscf_retained_assert_current(bundle, request, path)
   for (descriptor in request$provenance_reads %||% list()) {
     name <- as.character(descriptor$name)[1]
     payload <- file.path(path, "provenance_reads", name, "payload.json")
@@ -2899,6 +2976,7 @@
   base <- .wb_operation_pack_v3_model_adapters(base, request, operation,
     stage_root)
   base <- .wb_operation_pack_v3_g3_adapter(base, request, stage_root)
+  base <- .wb_operation_pack_v3_sscf_adapter(base, request, bundle, inputs)
   state <- base$state
   typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
     `[[`, character(1), "input_name"))

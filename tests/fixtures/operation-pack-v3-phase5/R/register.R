@@ -168,6 +168,51 @@
       context$derived_cell_output_axis_grants[[1L]], selected)))
 }
 
+.standalone_sparse_family <- function(readers, writers, params, context) {
+  stopifnot(length(context$standalone_sparse_cell_family_grants) == 1L,
+    identical(context$standalone_sparse_cell_family_grants[[1L]]$
+      output_name, "family"))
+  readers$source()
+  .standalone_sparse_family_write(writers, params)
+}
+
+.standalone_sparse_family_model <- function(readers, writers, params,
+    context) {
+  stopifnot(length(context$standalone_sparse_cell_family_grants) == 1L,
+    identical(context$standalone_sparse_cell_family_grants[[1L]]$
+      output_name, "family"))
+  readers$fitted_model()
+  .standalone_sparse_family_write(writers, params)
+}
+
+.standalone_sparse_family_write <- function(writers, params) {
+  keys <- as.character(params$keys)
+  subsets <- lapply(params$per_key_cells, function(x) as.character(
+    unlist(x, use.names = FALSE)))
+  mode <- as.character(params$mode)
+  key <- rep(keys, lengths(subsets))
+  cells <- unlist(subsets, use.names = FALSE)
+  value <- scworkbench::wb_prim_cell_vector_family(key, cells,
+    as.numeric(seq_along(cells)), value_type = "continuous",
+    meta = list(fixture = "standalone-sparse-family"))
+  if (identical(mode, "write_before_declare"))
+    writers$write_terminal_primitive("family", value)
+  if (identical(mode, "late"))
+    try(writers$write_terminal_primitive("family", value), silent = TRUE)
+  if (!identical(mode, "omit") && !identical(mode,
+      "write_before_declare")) {
+    writers$declare_sparse_cell_family_layout("family", keys, subsets)
+    if (identical(mode, "repeat"))
+      writers$declare_sparse_cell_family_layout("family", keys, subsets)
+  }
+  if (identical(mode, "swap_rows")) {
+    value$key <- rev(value$key)
+    value$cell_id <- rev(value$cell_id)
+  }
+  writers$write_terminal_primitive("family", value)
+  invisible(list(status = "ok"))
+}
+
 register_operation_pack <- function() {
   scworkbench::wb_operation_pack_register(
     system.file("scworkbench", "operation-pack.json",
@@ -181,6 +226,10 @@ register_operation_pack <- function() {
       , `scwbv3phase5::derived_subset` = .derived_subset
       , `scwbv3phase5::derived_union` = .derived_union
       , `scwbv3phase5::derived_effective_key` = .derived_effective_key
+      , `scwbv3phase5::standalone_sparse_family` =
+        .standalone_sparse_family
+      , `scwbv3phase5::standalone_sparse_family_model` =
+        .standalone_sparse_family_model
     )
   )
 }

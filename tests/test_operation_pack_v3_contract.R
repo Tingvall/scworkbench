@@ -110,8 +110,8 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     "scworkbench.operation_pack.canonical_json.v1"),
     identical(as.character(unlist(fixture$authoritative_axes$cells)),
       c("c2", "c1", "c3")),
-    length(fixture$cases) == 142L,
-    length(fixture$negative_cases) == 14L)
+    length(fixture$cases) == 159L,
+    length(fixture$negative_cases) == 22L)
   identity_fields <- c(
     cardinality_three_cells_two_keys = "cardinality_grant_identity",
     observed_cardinality_three_cells_two_keys = "observed_cardinality_identity",
@@ -216,6 +216,11 @@ test_operation_pack_v3_identity_fixture_contract <- function() {
     dfa_success_request = "request_identity",
     dfa_success_receipt = "receipt_identity")
   for (case in fixture$cases) {
+    if (startsWith(case$name, "sparse_")) {
+      stopifnot(identical(.wb_operation_pack_sha256(case$preimage),
+        case$identity$sha256))
+      next
+    }
     if (startsWith(case$name, "g7_effective_key_") ||
         case$name %in% c("dfa_selected_axis_sidecar",
           "dfa_model_content_identity")) {
@@ -486,10 +491,10 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json")
   expected <- c(
-    "4e1f81a9061c5f9e2e12109c3e4267fd68844cb17a7f64344f95408a41f87882",
-    "61a07e877769a9ecd280b37e022d74954c44c49e8281693fdf9fb3bb7fec7cef",
-    "f21fb27b91a3ffdc5f8ae3e69a96e26e3f029420cb16c2a9cb7cf65f768dcffe",
-    "577811ff5d2753ee0554ebb9d833dfbff2e1ea542fd8e424059327a372159620")
+    "ab58455a70e51e4efc23e4956ac71b708d89ed536a26991d8db0f462c2f4489e",
+    "99bee737731a02fbd485851664f04d9b0a649ce13652cd4ee65597f730605103",
+    "7107c55294d119eedeba2a6d85a5fa32e497a8db4e3d24073a85fe649cd7b196",
+    "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)

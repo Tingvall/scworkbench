@@ -810,6 +810,118 @@
           }
         }
       ]
+    },
+    {
+      "name": "standalone_sparse_family",
+      "qualified_name": "scwbv3phase5::standalone_sparse_family",
+      "title": "Standalone sparse cell-family fixture",
+      "description": "Publishes one independent sparse cell-vector family.",
+      "runner": ".standalone_sparse_family",
+      "inputs": [
+        {"name": "source", "kind": "space", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "keys": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+          "per_key_cells": {"type": "array", "items": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}, "minItems": 1},
+          "mode": {"type": "string", "enum": ["normal", "omit", "repeat", "write_before_declare", "late", "swap_rows"], "default": "normal"}
+        },
+        "required": ["keys", "per_key_cells"],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "output": "family",
+          "policy": "standalone_sparse_cell_family_v1",
+          "axis_source": {"source": "typed_space_input_v1", "input": "source"},
+          "key_order": "declared_verbatim_v1",
+          "row_order": "key_major_then_source_relative_cell_v1",
+          "per_key_coverage": "per_key_source_relative_subset_v1",
+          "missing_values": "forbidden",
+          "declaration_discipline": "exactly_once_before_write",
+          "maximum_axis_cells": 1000000,
+          "maximum_keys": 64,
+          "maximum_rows": 1000000,
+          "maximum_id_bytes": 1024,
+          "maximum_control_bytes": 67108864,
+          "policy_identity": {
+            "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+            "scope": "policy excluding policy_identity",
+            "sha256": "d5682e88e3da80fe085f6ed9615711badbeb29c34698a083b8114d6b94dd881a"
+          }
+        }
+      ],
+      "outputs": [
+        {"name": "family", "category": "terminal_artifact",
+         "kind": "cell_vector_family", "storage_profile": "terminal_primitive_v1",
+         "allocated_id_key": "family_id", "required": true,
+         "promotion_group": "sparse", "value_kind": "continuous"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"family": ["family"]},
+      "replay_equivalence": {"family": "exact_canonical_value"}
+    },
+    {
+      "name": "standalone_sparse_family_model",
+      "qualified_name": "scwbv3phase5::standalone_sparse_family_model",
+      "title": "Standalone sparse cell-family from verified model fixture",
+      "description": "Publishes an independent sparse family from a verified G1 model axis.",
+      "runner": ".standalone_sparse_family_model",
+      "inputs": [
+        {"name": "model", "kind": "model_ref", "required": true, "alignment": "model_linked"}
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "keys": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+          "per_key_cells": {"type": "array", "items": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}, "minItems": 1},
+          "mode": {"type": "string", "enum": ["normal", "omit", "repeat", "write_before_declare", "late", "swap_rows"], "default": "normal"}
+        },
+        "required": ["keys", "per_key_cells"],
+        "additionalProperties": false
+      },
+      "self_linked_contained_model_reads": [
+        {"name": "fitted_model", "input": "model",
+         "reader": "read_self_linked_contained_model_payload",
+         "allowed_models": [
+           {"engine": "fixture", "model_type": "phase5_model"},
+           {"engine": "fixture", "model_type": "derived_axis_model"}
+         ],
+         "linkage_policy": "authenticated_existing_source_and_cell_linkage_v1",
+         "maximum_file_count": 32, "maximum_total_bytes": 1073741824,
+         "call_discipline": "exactly_once"}
+      ],
+      "dimension_policies": [
+        {
+          "schema": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+          "output": "family", "policy": "standalone_sparse_cell_family_v1",
+          "axis_source": {"source": "verified_g1_model_fitted_axis_v1", "model_read": "fitted_model"},
+          "key_order": "declared_verbatim_v1",
+          "row_order": "key_major_then_source_relative_cell_v1",
+          "per_key_coverage": "per_key_source_relative_subset_v1",
+          "missing_values": "forbidden",
+          "declaration_discipline": "exactly_once_before_write",
+          "maximum_axis_cells": 1000000, "maximum_keys": 64,
+          "maximum_rows": 1000000, "maximum_id_bytes": 1024,
+          "maximum_control_bytes": 67108864,
+          "policy_identity": {
+            "scheme": "scworkbench.operation_pack.standalone_sparse_cell_family_policy.v1",
+            "scope": "policy excluding policy_identity",
+            "sha256": "42eecd9a7552633fa99ce13bf138fb4771aec0e57f3c238176569880291e2e24"
+          }
+        }
+      ],
+      "outputs": [
+        {"name": "family", "category": "terminal_artifact",
+         "kind": "cell_vector_family", "storage_profile": "terminal_primitive_v1",
+         "allocated_id_key": "family_id", "required": true,
+         "promotion_group": "sparse", "value_kind": "continuous"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"family": ["family"]},
+      "replay_equivalence": {"family": "exact_canonical_value"}
     }
   ]
 }

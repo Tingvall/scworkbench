@@ -219,6 +219,39 @@ manifest may lower them. This capability is R-runtime-only. PyBench mirrors
 the shared schemas and identities but rejects a Python pack that declares it
 before activation or mutation.
 
+### Independent sparse cell-vector families
+
+`standalone_sparse_cell_family_v1` is a separate, R-only opt-in policy for
+one required terminal `cell_vector_family`. It is not a G2 model sibling or
+a G7-derived axis. Its source is either an authenticated typed space input or
+one verified G1 self-linked model read. G1 v2 binds the full source-space
+snapshot and cell order; G1 v3 binds the selected fitted-axis seal and
+sidecar. Neither route gives the pack a bundle or filesystem authority.
+
+The immutable request contains a provisional grant, exposed read-only in
+`context$standalone_sparse_cell_family_grants`, not writer authority.
+Before the family write, the runner calls the private
+`writers$declare_sparse_cell_family_layout(output, ordered_keys,
+per_key_cells)` exactly once. Core verifies each nonempty, unique key's
+source-relative ordered cell subset, seals the declared key-major row pairs,
+and issues a process-local writer grant. The declared key order is preserved
+verbatim. Pair identities hash ordered `{key, cell_id}` objects, so separator
+characters in either identifier cannot alias a different pair sequence.
+There is no dense padding or synthetic zero row.
+
+The sealed dimensions are `[sum(per_key_cells lengths), 3]`. Core compares
+the exact staged key/cell/value rows, primitive content, staged file bytes,
+output descriptor and receipt observation with the seal, then repeats those
+checks on fresh reopen. The source is reauthenticated at grant, declaration,
+write, and immediately before publication; recipient validation checks the
+retained source and payload without executing the pack. The defaults cap the
+source at one million cells, the family at 64 keys and one million rows,
+each identifier at 1,024 UTF-8 bytes, and declaration identifiers together
+at 64 MiB. Manifests may lower these limits. Any mismatch or publication
+fault leaves no durable transition or analytical residue. This structural
+authority does not judge whether the method chose biologically complete
+keys or rows.
+
 ## Backends and durable lifecycle
 
 R v3 packs retain the opaque `function(readers, writers, params, context)`

@@ -5,10 +5,10 @@ test_operation_pack_v3_trajectory_family_policy_contract <- function() {
     "fixtures/operation-pack-v3/identities.json"),
     package = "scworkbench")
   expected <- c(
-    "4e1f81a9061c5f9e2e12109c3e4267fd68844cb17a7f64344f95408a41f87882",
-    "61a07e877769a9ecd280b37e022d74954c44c49e8281693fdf9fb3bb7fec7cef",
-    "f21fb27b91a3ffdc5f8ae3e69a96e26e3f029420cb16c2a9cb7cf65f768dcffe",
-    "577811ff5d2753ee0554ebb9d833dfbff2e1ea542fd8e424059327a372159620")
+    "ab58455a70e51e4efc23e4956ac71b708d89ed536a26991d8db0f462c2f4489e",
+    "99bee737731a02fbd485851664f04d9b0a649ce13652cd4ee65597f730605103",
+    "7107c55294d119eedeba2a6d85a5fa32e497a8db4e3d24073a85fe649cd7b196",
+    "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793")
   observed <- vapply(paths, digest::digest, character(1), algo = "sha256",
     serialize = FALSE, file = TRUE)
   schema <- jsonlite::read_json(paths[[1L]], simplifyVector = FALSE)
