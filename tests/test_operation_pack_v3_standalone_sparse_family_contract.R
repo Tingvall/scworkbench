@@ -302,7 +302,8 @@ test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract <-
   before_fingerprint <- .wb_manifest_registry_snapshot(state$bundle$con)$
     fingerprint
   for (mode in c("omit", "repeat", "write_before_declare", "late",
-      "swap_rows")) {
+      "swap_rows", "invalid_then_valid", "non_numeric",
+      "non_finite", "wrong_value_type")) {
     .wb_sscf_expect(.wb_sscf_run(state$bundle, subsets = subsets,
       mode = mode), c("PYBENCH_CAPABILITY_MISMATCH",
         "PYBENCH_OUTPUT_INVALID", "PYBENCH_RECEIPT_MISMATCH",
@@ -313,6 +314,18 @@ test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract <-
         fingerprint, before_fingerprint),
       nrow(wb_art_list(state$bundle)) == 0L)
   }
+  options(scworkbench.operation_pack_v2_test_hook = function(event, ...)
+    if (identical(event, "sparse_cell_family_sealed"))
+      stop("caught sparse seal fault"))
+  .wb_sscf_expect(.wb_sscf_run(state$bundle, subsets = subsets,
+    mode = "caught_seal_fault"),
+    c("PYBENCH_CAPABILITY_MISMATCH", "PYBENCH_PROCESS_FAILED"))
+  options(scworkbench.operation_pack_v2_test_hook = NULL)
+  stopifnot(identical(sort(list.files(.wb_operation_pack_v2_store(
+    state$bundle), all.files = TRUE, no.. = TRUE)), before),
+    identical(.wb_manifest_registry_snapshot(state$bundle$con)$
+      fingerprint, before_fingerprint),
+    nrow(wb_art_list(state$bundle)) == 0L)
   bad_subsets <- list(state$cells[2:81], rev(state$cells[41:120]))
   .wb_sscf_expect(.wb_sscf_run(state$bundle, subsets = bad_subsets),
     c("PYBENCH_OUTPUT_INVALID", "PYBENCH_PROCESS_FAILED"))

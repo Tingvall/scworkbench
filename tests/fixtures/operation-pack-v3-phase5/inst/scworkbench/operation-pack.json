@@ -825,7 +825,7 @@
         "properties": {
           "keys": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
           "per_key_cells": {"type": "array", "items": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}, "minItems": 1},
-          "mode": {"type": "string", "enum": ["normal", "omit", "repeat", "write_before_declare", "late", "swap_rows"], "default": "normal"}
+          "mode": {"type": "string", "enum": ["normal", "omit", "repeat", "write_before_declare", "late", "swap_rows", "invalid_then_valid", "caught_seal_fault", "non_numeric", "non_finite", "wrong_value_type"], "default": "normal"}
         },
         "required": ["keys", "per_key_cells"],
         "additionalProperties": false
@@ -877,7 +877,7 @@
         "properties": {
           "keys": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
           "per_key_cells": {"type": "array", "items": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}, "minItems": 1},
-          "mode": {"type": "string", "enum": ["normal", "omit", "repeat", "write_before_declare", "late", "swap_rows"], "default": "normal"}
+          "mode": {"type": "string", "enum": ["normal", "omit", "repeat", "write_before_declare", "late", "swap_rows", "invalid_then_valid", "caught_seal_fault", "non_numeric", "non_finite", "wrong_value_type"], "default": "normal"}
         },
         "required": ["keys", "per_key_cells"],
         "additionalProperties": false

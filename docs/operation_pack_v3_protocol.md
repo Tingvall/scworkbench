@@ -234,13 +234,17 @@ Before the family write, the runner calls the private
 `writers$declare_sparse_cell_family_layout(output, ordered_keys,
 per_key_cells)` exactly once. Core verifies each nonempty, unique key's
 source-relative ordered cell subset, seals the declared key-major row pairs,
-and issues a process-local writer grant. The declared key order is preserved
+and issues a process-local writer grant. A failed declaration attempt consumes
+that authority; catching its error cannot authorize a second declaration.
+The declared key order is preserved
 verbatim. Pair identities hash ordered `{key, cell_id}` objects, so separator
 characters in either identifier cannot alias a different pair sequence.
 There is no dense padding or synthetic zero row.
 
-The sealed dimensions are `[sum(per_key_cells lengths), 3]`. Core compares
-the exact staged key/cell/value rows, primitive content, staged file bytes,
+The sealed dimensions are `[sum(per_key_cells lengths), 3]`. Values must be
+finite numeric entries with the declared semantic value type. Core compares
+the exact staged key/cell/value rows,
+primitive content, staged file bytes,
 output descriptor and receipt observation with the seal, then repeats those
 checks on fresh reopen. The source is reauthenticated at grant, declaration,
 write, and immediately before publication; recipient validation checks the

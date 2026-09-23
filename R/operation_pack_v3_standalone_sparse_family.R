@@ -346,7 +346,7 @@
 }
 
 .wb_operation_pack_v3_sscf_assert_value <- function(value, layout,
-    code = "PYBENCH_OUTPUT_INVALID", phase = "audit") {
+    expected_value_type, code = "PYBENCH_OUTPUT_INVALID", phase = "audit") {
   if (!.wb_is_primitive(value) || !identical(as.character(value$kind)[1],
       "cell_vector_family"))
     .wb_operation_pack_v3_error(code,
@@ -360,7 +360,10 @@
     .wb_operation_pack_v3_sscf_domain("sparse_family_pair_order"), pairs)
   if (length(keys) != as.integer(layout$seal$row_count) ||
       length(cells) != length(keys) || length(values) != length(keys) ||
-      anyNA(values) || !identical(observed,
+      !is.numeric(values) || any(!is.finite(values)) ||
+      !identical(as.character(value$value_type),
+        as.character(expected_value_type)) ||
+      !identical(observed,
         layout$seal$key_major_pair_order_identity) ||
       !identical(as.integer(.wb_operation_pack_v2_dimensions(value)),
         as.integer(unlist(layout$writer$exact_dimensions,
@@ -573,11 +576,20 @@
   if (!length(grants)) return(base)
   state <- base$state
   state$standalone_sparse_cell_family <- NULL
+  state$standalone_sparse_cell_family_declare_attempted <- FALSE
   state$standalone_sparse_cell_family_write_attempted <- FALSE
   grant <- grants[[1L]]
   name <- as.character(grant$output_name)[1]
+  expected_value_type <- request$outputs[[match(name,
+    vapply(request$outputs, `[[`, character(1), "name"))]]$descriptor$
+    semantic_constraints$value_kind
   base$writers$declare_sparse_cell_family_layout <- function(output,
       ordered_keys, per_key_cells) {
+    if (isTRUE(state$standalone_sparse_cell_family_declare_attempted))
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Sparse-family layout declaration authority was already attempted.",
+        "execution")
+    state$standalone_sparse_cell_family_declare_attempted <- TRUE
     output <- as.character(output)[1]
     if (isTRUE(state$used) || !identical(output, name) ||
         !is.null(state$standalone_sparse_cell_family) ||
@@ -590,9 +602,9 @@
       inputs, "execution")
     layout <- .wb_operation_pack_v3_sscf_layout(grant, output,
       ordered_keys, per_key_cells)
-    state$standalone_sparse_cell_family <- layout
     .wb_operation_pack_v2_fault("sparse_cell_family_sealed",
       output = output)
+    state$standalone_sparse_cell_family <- layout
     invisible(.wb_operation_pack_v2_deep_copy(layout$writer))
   }
   original <- base$writers$write_terminal_primitive
@@ -610,6 +622,7 @@
       }
       state$standalone_sparse_cell_family_write_attempted <- TRUE
       .wb_operation_pack_v3_sscf_assert_value(value, layout,
+        expected_value_type,
         phase = "execution")
       .wb_operation_pack_v3_sscf_source_assert_current(bundle, request,
         inputs, "execution")
@@ -633,7 +646,11 @@
     .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
       "Sparse-family declaration, staged output, or receipt is absent.",
       "receipt")
-  .wb_operation_pack_v3_sscf_assert_value(write$value, layout)
+  expected_value_type <- request$outputs[[match(name,
+    vapply(request$outputs, `[[`, character(1), "name"))]]$descriptor$
+    semantic_constraints$value_kind
+  .wb_operation_pack_v3_sscf_assert_value(write$value, layout,
+    expected_value_type)
   keys <- as.character(write$value$key)
   cells <- as.character(write$value$cell_id)
   unique_keys <- unique(keys)
@@ -752,7 +769,11 @@
     if (inherits(value, "error"))
       .wb_operation_pack_v3_error(code,
         "Sparse-family retained payload is unreadable.", phase)
+    expected_value_type <- request$outputs[[match(grant$output_name,
+      vapply(request$outputs, `[[`, character(1), "name"))]]$descriptor$
+      semantic_constraints$value_kind
     .wb_operation_pack_v3_sscf_assert_value(value, rebuilt,
+      expected_value_type,
       code = code, phase = phase)
     observed_content <- .wb_operation_pack_v2_identity_plain(
       "scworkbench.cell_vector_family.content.v1", unclass(value))

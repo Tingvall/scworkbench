@@ -199,8 +199,18 @@
     writers$write_terminal_primitive("family", value)
   if (identical(mode, "late"))
     try(writers$write_terminal_primitive("family", value), silent = TRUE)
+  if (identical(mode, "invalid_then_valid")) {
+    bad <- subsets
+    bad[[1L]] <- rev(bad[[1L]])
+    try(writers$declare_sparse_cell_family_layout("family", keys, bad),
+      silent = TRUE)
+  }
+  if (identical(mode, "caught_seal_fault"))
+    try(writers$declare_sparse_cell_family_layout("family", keys,
+      subsets), silent = TRUE)
   if (!identical(mode, "omit") && !identical(mode,
-      "write_before_declare")) {
+      "write_before_declare") && !identical(mode,
+        "caught_seal_fault")) {
     writers$declare_sparse_cell_family_layout("family", keys, subsets)
     if (identical(mode, "repeat"))
       writers$declare_sparse_cell_family_layout("family", keys, subsets)
@@ -209,6 +219,11 @@
     value$key <- rev(value$key)
     value$cell_id <- rev(value$cell_id)
   }
+  if (identical(mode, "non_numeric"))
+    value$value <- rep("invalid", length(value$value))
+  if (identical(mode, "non_finite")) value$value[[1L]] <- Inf
+  if (identical(mode, "wrong_value_type"))
+    value$value_type <- "categorical"
   writers$write_terminal_primitive("family", value)
   invisible(list(status = "ok"))
 }
