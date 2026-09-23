@@ -371,6 +371,132 @@
   invisible(TRUE)
 }
 
+.wb_operation_pack_v3_sscf_retained_binding_audit <- function(request,
+    code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen") {
+  grants <- request$standalone_sparse_cell_family_grants %||% list()
+  if (!length(grants)) return(invisible(TRUE))
+  if (length(grants) != 1L)
+    .wb_operation_pack_v3_error(code,
+      "Sparse-family retained grant is not singular.", phase)
+  grant <- grants[[1L]]
+  source <- grant$source_axis
+  .wb_operation_pack_v3_assert_self_identity(source,
+    "source_axis_identity", code, phase)
+  .wb_operation_pack_v3_assert_self_identity(grant, "grant_identity",
+    code, phase)
+  if (!identical(source$cell_order_identity,
+      .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1",
+        source$ordered_cells %||% source$ordered_fitted_cells)) ||
+      !identical(grant$source_axis_identity,
+        .wb_operation_pack_v3_unscoped_identity(
+          source$source_axis_identity)))
+    .wb_operation_pack_v3_error(code,
+      "Sparse-family retained source axis identity is inconsistent.", phase)
+  output_index <- match(grant$output_name,
+    vapply(request$outputs, `[[`, character(1), "name"))
+  if (is.na(output_index))
+    .wb_operation_pack_v3_error(code,
+      "Sparse-family retained grant names no request output.", phase)
+  descriptor <- request$outputs[[output_index]]$descriptor
+  if (!identical(descriptor$
+      standalone_sparse_cell_family_provisional_grant, grant) ||
+      !identical(grant$transition_identity,
+        .wb_operation_pack_v3_unscoped_identity(
+          request$transition$transition_identity)) ||
+      !identical(grant$kind, "cell_vector_family"))
+    .wb_operation_pack_v3_error(code,
+      "Sparse-family retained grant differs from output or transition.",
+      phase)
+  input_map <- stats::setNames(lapply(request$inputs, function(x)
+    x$descriptor), vapply(request$inputs, function(x)
+      as.character(x$name)[1], character(1)))
+  if (identical(as.character(source$source_kind)[1],
+      "typed_space_input_v1")) {
+    input <- input_map[[as.character(source$input_name)[1]]]
+    if (is.null(input) || !identical(source$input_descriptor_identity,
+        .wb_operation_pack_v3_unscoped_identity(
+          input$descriptor_identity)) ||
+        !identical(source$input_content_identity,
+          input$content_identity) ||
+        !identical(source$cell_order_identity,
+          input$cell_order_identity) ||
+        !identical(source$source_state_identity,
+          request$execution_capability$source_state_identity))
+      .wb_operation_pack_v3_error(code,
+        "Sparse-family retained typed source is not bound to its request input.",
+        phase)
+  } else if (identical(as.character(source$source_kind)[1],
+      "verified_g1_model_fitted_axis_v1")) {
+    reads <- stats::setNames(request$self_linked_model_payload_grants %||%
+      list(), vapply(request$self_linked_model_payload_grants %||% list(),
+        function(x) as.character(x$name)[1], character(1)))
+    read <- reads[[as.character(source$model_read_name)[1]]]
+    input <- if (!is.null(read)) input_map[[as.character(
+      read$input_name)[1]]] else NULL
+    if (is.null(read) || is.null(input) ||
+        !identical(source$model_descriptor_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            input$descriptor_identity)) ||
+        !identical(source$model_content_identity,
+          input$content_identity) ||
+        !identical(source$g1_read_grant_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            read$grant_identity)) ||
+        !identical(source$model_linkage_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            read$model_source_linkage$linkage_identity)) ||
+        !identical(source$contained_tree_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            read$tree_manifest$manifest_identity)) ||
+        !identical(source$cell_order_identity,
+          read$model_source_linkage$fitted_cell_order_identity))
+      .wb_operation_pack_v3_error(code,
+        "Sparse-family retained G1 source is not bound to verified model evidence.",
+        phase)
+    .wb_operation_pack_v3_assert_self_identity(source$axis_evidence,
+      "evidence_identity", code, phase)
+    linkage <- read$model_source_linkage
+    evidence <- source$axis_evidence
+    expected_evidence <- if (identical(as.character(linkage$schema %||%
+        "")[1], "scworkbench.operation_pack.model_source_linkage.v3"))
+      list(schema = "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
+        verified_parent_snapshot_identity = linkage$parent_snapshot_identity,
+        selected_axis_seal_identity = linkage$fitted_axis_seal_identity,
+        selected_axis_sidecar_identity = linkage$selected_axis_evidence$
+          evidence_identity) else
+      list(schema = "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
+        verified_source_space_snapshot_identity = list(
+          scheme = "scworkbench.space.content.v1",
+          sha256 = as.character(linkage$source_snapshot_id)[1]),
+        verified_full_axis_order_identity = linkage$fitted_cell_order_identity)
+    expected_evidence$evidence_identity <-
+      .wb_operation_pack_v2_identity_scoped(
+        expected_evidence$schema,
+        "evidence excluding evidence_identity", expected_evidence)
+    if (!identical(evidence, expected_evidence))
+      .wb_operation_pack_v3_error(code,
+        "Sparse-family retained G1 axis evidence contradicts verified linkage.",
+        phase)
+  } else .wb_operation_pack_v3_error(code,
+    "Sparse-family retained source kind is unsupported.", phase)
+  base <- descriptor
+  base$standalone_sparse_cell_family_provisional_grant <- NULL
+  base$grant_identity <- NULL
+  base_id <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.output_grant.v3",
+    "descriptor excluding grant_identity", base)
+  if (!identical(grant$ordinary_output_base_grant_identity,
+      .wb_operation_pack_v3_unscoped_identity(base_id)) ||
+      !identical(request$execution_capability$
+        standalone_sparse_cell_family_grant_identities,
+        list(.wb_operation_pack_v3_unscoped_identity(
+          grant$grant_identity))))
+    .wb_operation_pack_v3_error(code,
+      "Sparse-family retained base or capability identity is inconsistent.",
+      phase)
+  invisible(TRUE)
+}
+
 .wb_operation_pack_v3_sscf_request_audit <- function(request, operation,
     bundle = NULL, inputs = NULL) {
   policies <- .wb_operation_pack_v3_sscf_policy(operation)
@@ -434,89 +560,8 @@
     .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
       "Sparse-family limits, source or output differ from manifest policy.",
       "staging")
-  input_map <- stats::setNames(lapply(request$inputs, function(x)
-    x$descriptor), vapply(request$inputs, function(x)
-      as.character(x$name)[1], character(1)))
-  if (identical(as.character(source$source_kind)[1],
-      "typed_space_input_v1")) {
-    input <- input_map[[as.character(source$input_name)[1]]]
-    if (is.null(input) || !identical(source$input_descriptor_identity,
-        .wb_operation_pack_v3_unscoped_identity(
-          input$descriptor_identity)) ||
-        !identical(source$cell_order_identity,
-          input$cell_order_identity) ||
-        !identical(source$source_state_identity,
-          request$execution_capability$source_state_identity))
-      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-        "Sparse-family typed source is not bound to its request input.",
-        "staging")
-  } else {
-    reads <- stats::setNames(request$self_linked_model_payload_grants %||%
-      list(), vapply(request$self_linked_model_payload_grants %||% list(),
-        function(x) as.character(x$name)[1], character(1)))
-    read <- reads[[as.character(source$model_read_name)[1]]]
-    input <- if (!is.null(read)) input_map[[as.character(
-      read$input_name)[1]]] else NULL
-    if (is.null(read) || is.null(input) ||
-        !identical(source$model_descriptor_identity,
-          .wb_operation_pack_v3_unscoped_identity(
-            input$descriptor_identity)) ||
-        !identical(source$model_content_identity,
-          input$content_identity) ||
-        !identical(source$g1_read_grant_identity,
-          .wb_operation_pack_v3_unscoped_identity(
-            read$grant_identity)) ||
-        !identical(source$model_linkage_identity,
-          .wb_operation_pack_v3_unscoped_identity(
-            read$model_source_linkage$linkage_identity)) ||
-        !identical(source$contained_tree_identity,
-          .wb_operation_pack_v3_unscoped_identity(
-            read$tree_manifest$manifest_identity)) ||
-        !identical(source$cell_order_identity,
-          read$model_source_linkage$fitted_cell_order_identity))
-      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-        "Sparse-family G1 source is not bound to verified model evidence.",
-        "staging")
-    .wb_operation_pack_v3_assert_self_identity(source$axis_evidence,
-      "evidence_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
-    linkage <- read$model_source_linkage
-    evidence <- source$axis_evidence
-    expected_evidence <- if (identical(as.character(linkage$schema %||%
-        "")[1], "scworkbench.operation_pack.model_source_linkage.v3"))
-      list(schema = "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v3",
-        verified_parent_snapshot_identity = linkage$parent_snapshot_identity,
-        selected_axis_seal_identity = linkage$fitted_axis_seal_identity,
-        selected_axis_sidecar_identity = linkage$selected_axis_evidence$
-          evidence_identity) else
-      list(schema = "scworkbench.operation_pack.sparse_family_g1_axis_evidence.v2",
-        verified_source_space_snapshot_identity = list(
-          scheme = "scworkbench.space.content.v1",
-          sha256 = as.character(linkage$source_snapshot_id)[1]),
-        verified_full_axis_order_identity = linkage$fitted_cell_order_identity)
-    expected_evidence$evidence_identity <-
-      .wb_operation_pack_v2_identity_scoped(
-        expected_evidence$schema,
-        "evidence excluding evidence_identity", expected_evidence)
-    if (!identical(evidence, expected_evidence))
-      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-        "Sparse-family G1 axis evidence contradicts verified linkage.",
-        "staging")
-  }
-  base <- descriptor
-  base$standalone_sparse_cell_family_provisional_grant <- NULL
-  base$grant_identity <- NULL
-  base_id <- .wb_operation_pack_v2_identity_scoped(
-    "scworkbench.operation_pack.output_grant.v3",
-    "descriptor excluding grant_identity", base)
-  if (!identical(grant$ordinary_output_base_grant_identity,
-      .wb_operation_pack_v3_unscoped_identity(base_id)) ||
-      !identical(request$execution_capability$
-        standalone_sparse_cell_family_grant_identities,
-        list(.wb_operation_pack_v3_unscoped_identity(
-          grant$grant_identity))))
-    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
-      "Sparse-family base or capability identity is inconsistent.",
-      "staging")
+  .wb_operation_pack_v3_sscf_retained_binding_audit(request,
+    code = "PYBENCH_CAPABILITY_MISMATCH", phase = "staging")
   if (!is.null(bundle)) .wb_operation_pack_v3_sscf_source_assert_current(
     bundle, request, inputs, "staging")
   invisible(TRUE)
@@ -729,6 +774,8 @@
     request, record_path) {
   grants <- request$standalone_sparse_cell_family_grants %||% list()
   if (!length(grants)) return(invisible(TRUE))
+  .wb_operation_pack_v3_sscf_retained_binding_audit(request,
+    code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "recipient")
   source <- grants[[1L]]$source_axis
   cells <- .wb_operation_pack_v3_sscf_cells(source)
   if (identical(as.character(source$source_kind)[1],

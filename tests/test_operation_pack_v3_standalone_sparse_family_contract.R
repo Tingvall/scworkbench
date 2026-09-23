@@ -70,6 +70,41 @@
   invisible(error)
 }
 
+.wb_sscf_rehash <- function(value, field) {
+  identity <- value[[field]]
+  value[[field]] <- NULL
+  value[[field]] <- if (is.null(identity$scope))
+    .wb_operation_pack_v2_identity_plain(identity$scheme, value) else
+    .wb_operation_pack_v2_identity_scoped(identity$scheme,
+      identity$scope, value)
+  value
+}
+
+.wb_sscf_forge_retained_source <- function(request, field) {
+  forged <- .wb_operation_pack_v2_deep_copy(request)
+  grant <- forged$standalone_sparse_cell_family_grants[[1L]]
+  source <- grant$source_axis
+  source[[field]]$sha256 <- paste(rep("f", 64L), collapse = "")
+  source <- .wb_sscf_rehash(source, "source_axis_identity")
+  grant$source_axis <- source
+  grant$source_axis_identity <- .wb_operation_pack_v3_unscoped_identity(
+    source$source_axis_identity)
+  grant <- .wb_sscf_rehash(grant, "grant_identity")
+  forged$standalone_sparse_cell_family_grants[[1L]] <- grant
+  output_index <- match(grant$output_name, vapply(forged$outputs,
+    `[[`, character(1), "name"))
+  descriptor <- forged$outputs[[output_index]]$descriptor
+  descriptor$standalone_sparse_cell_family_provisional_grant <- grant
+  descriptor <- .wb_sscf_rehash(descriptor, "grant_identity")
+  forged$outputs[[output_index]]$descriptor <- descriptor
+  capability <- forged$execution_capability
+  capability$standalone_sparse_cell_family_grant_identities <- list(
+    .wb_operation_pack_v3_unscoped_identity(grant$grant_identity))
+  forged$execution_capability <- .wb_sscf_rehash(capability,
+    "capability_identity")
+  .wb_sscf_rehash(forged, "request_identity")
+}
+
 test_operation_pack_v3_standalone_sparse_family_protocol_identity_contract <-
     function() {
   fixture <- jsonlite::read_json(
@@ -188,6 +223,20 @@ test_operation_pack_v3_standalone_sparse_family_typed_lifecycle_contract <-
   record <- .wb_sscf_records(run)
   grant <- record$request$standalone_sparse_cell_family_grants[[1L]]
   observation <- record$receipt$sparse_cell_family_observations[[1L]]
+  stopifnot(isTRUE(.wb_operation_pack_v3_sscf_retained_binding_audit(
+    record$request)))
+  forged <- .wb_sscf_forge_retained_source(record$request,
+    "input_content_identity")
+  .wb_sscf_expect(.wb_operation_pack_v3_sscf_retained_binding_audit(
+    forged), "PYBENCH_REOPEN_VALIDATION_FAILED")
+  forged_receipt <- .wb_operation_pack_v2_deep_copy(record$receipt)
+  forged_receipt$request_identity <- forged$request_identity
+  forged_receipt$capability_identity <- forged$execution_capability$
+    capability_identity
+  forged_receipt <- .wb_sscf_rehash(forged_receipt,
+    "receipt_identity")
+  stopifnot(!isTRUE(.wb_operation_pack_v3_record_validate(forged,
+    forged_receipt, record$root, load_payloads = TRUE)$ok))
   stopifnot(identical(grant$source_axis$source_kind,
       "typed_space_input_v1"),
     identical(observation$observed_row_count, 160L),
@@ -220,6 +269,20 @@ test_operation_pack_v3_standalone_sparse_family_typed_lifecycle_contract <-
     expected_kind = "cell_vector_family")
   stopifnot(isTRUE(report$ok), identical(reopened$key, value$key),
     identical(reopened$cell_id, value$cell_id))
+  relocated_root <- tempfile("scwb-sscf-relocated-")
+  fs::dir_copy(state$root, relocated_root)
+  on.exit(unlink(relocated_root, recursive = TRUE, force = TRUE),
+    add = TRUE)
+  relocated <- wb_open_bundle(relocated_root, read_only = TRUE)
+  on.exit(wb_close_bundle(relocated), add = TRUE)
+  relocated_report <- wb_bundle_validation_report(relocated_root,
+    level = "recipient")
+  relocated_value <- wb_art_load(relocated, artifact_id,
+    expected_kind = "cell_vector_family")
+  stopifnot(isTRUE(relocated_report$ok),
+    identical(relocated_value$key, value$key),
+    identical(relocated_value$cell_id, value$cell_id),
+    identical(relocated_value$value, value$value))
   TRUE
 }
 
@@ -300,6 +363,12 @@ test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract <-
   tight <- grant; tight$limits$maximum_control_bytes <- 1L
   .wb_sscf_expect(.wb_operation_pack_v3_sscf_layout(tight, "family",
     "key", list(axis[[1L]])), "PYBENCH_CAPABILITY_MISMATCH")
+  tight <- grant; tight$limits$maximum_rows <- 1L
+  .wb_sscf_expect(.wb_operation_pack_v3_sscf_layout(tight, "family",
+    "key", list(axis[1:2])), "PYBENCH_CAPABILITY_MISMATCH")
+  tight <- grant; tight$limits$maximum_id_bytes <- 1L
+  .wb_sscf_expect(.wb_operation_pack_v3_sscf_layout(tight, "family",
+    "key", list(axis[[1L]])), "PYBENCH_CAPABILITY_MISMATCH")
   changed <- .wb_operation_pack_v2_deep_copy(record$receipt)
   changed$sparse_cell_family_observations[[1L]]$observed_row_count <- 159L
   changed$sparse_cell_family_observations[[1L]]$observation_identity <- NULL
@@ -310,6 +379,17 @@ test_operation_pack_v3_standalone_sparse_family_seal_and_receipt_contract <-
       changed$sparse_cell_family_observations[[1L]])
   .wb_sscf_expect(.wb_operation_pack_v3_sscf_receipt_audit(changed,
     record$request, stage_root = record$root), "PYBENCH_RECEIPT_MISMATCH")
+  altered_root <- tempfile("scwb-sscf-payload-tamper-")
+  fs::dir_copy(record$root, altered_root)
+  on.exit(unlink(altered_root, recursive = TRUE, force = TRUE),
+    add = TRUE)
+  payload <- file.path(altered_root, "outputs", "family", "payload.rds")
+  altered_value <- readRDS(payload)
+  altered_value$value[[1L]] <- altered_value$value[[1L]] + 1
+  saveRDS(altered_value, payload)
+  stopifnot(!isTRUE(.wb_operation_pack_v3_record_validate(
+    record$request, record$receipt, altered_root,
+    load_payloads = TRUE)$ok))
   changed <- .wb_operation_pack_v2_deep_copy(record$receipt)
   changed$sparse_cell_family_observations[[1L]]$output_content_identity$
     sha256 <- paste(rep("0", 64L), collapse = "")
@@ -364,6 +444,12 @@ test_operation_pack_v3_standalone_sparse_family_verified_g1_contract <-
     record <- .wb_sscf_records(run)
     source <- record$request$standalone_sparse_cell_family_grants[[1L]]$
       source_axis
+    stopifnot(isTRUE(.wb_operation_pack_v3_sscf_retained_binding_audit(
+      record$request)))
+    forged <- .wb_sscf_forge_retained_source(record$request,
+      "model_content_identity")
+    .wb_sscf_expect(.wb_operation_pack_v3_sscf_retained_binding_audit(
+      forged), "PYBENCH_REOPEN_VALIDATION_FAILED")
     stopifnot(identical(source$source_kind,
         "verified_g1_model_fitted_axis_v1"),
       identical(source$axis_evidence$schema, paste0(

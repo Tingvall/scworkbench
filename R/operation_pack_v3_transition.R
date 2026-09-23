@@ -773,6 +773,23 @@
       base$inputs[[i]]$descriptor <- descriptor
     }
   }
+  sparse_family_policy <- .wb_operation_pack_v3_sscf_policy(operation)
+  if (length(sparse_family_policy) && identical(
+      as.character(sparse_family_policy[[1L]]$axis_source$source)[1],
+      "typed_space_input_v1")) {
+    source_name <- as.character(sparse_family_policy[[1L]]$axis_source$input)[1]
+    source_index <- match(source_name, vapply(base$inputs, `[[`,
+      character(1), "name"))
+    descriptor <- base$inputs[[source_index]]$descriptor
+    descriptor$content_identity <-
+      .wb_operation_pack_v3_phase5_primitive_identity(bundle,
+        inputs[[source_name]])
+    descriptor$descriptor_identity <- NULL
+    descriptor$descriptor_identity <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.operation_pack.input_descriptor.v2",
+      "descriptor excluding descriptor_identity", descriptor)
+    base$inputs[[source_index]]$descriptor <- descriptor
+  }
   input_records <- stats::setNames(lapply(base$inputs, `[[`, "descriptor"),
     vapply(base$inputs, `[[`, character(1), "name"))
   model_reads <- .wb_operation_pack_v3_prepare_model_reads(bundle,
@@ -973,7 +990,6 @@
   # The ordinary output grant is the acyclic base for an opt-in sparse
   # provisional grant.  Rehashing the descriptor after insertion binds the
   # provisional grant to the immutable request without making it a writer.
-  sparse_family_policy <- .wb_operation_pack_v3_sscf_policy(operation)
   sparse_family_grants <- list()
   if (length(sparse_family_policy)) {
     policy <- sparse_family_policy[[1L]]
@@ -2410,6 +2426,7 @@
       "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
     .wb_operation_pack_v3_g7_request_audit(request)
     .wb_operation_pack_v3_g7_receipt_audit(receipt, request)
+    .wb_operation_pack_v3_sscf_retained_binding_audit(request)
     attr(request, "operation_pack_stage_root") <- path
     .wb_operation_pack_v3_dfa_receipt_audit(receipt, request)
     .wb_operation_pack_v3_sscf_receipt_audit(receipt, request,
