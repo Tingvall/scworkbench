@@ -304,11 +304,25 @@
     "source_snapshot_id", "linkage_identity")
   if (!is.list(value) || !setequal(names(value), required) ||
       !nzchar(as.character(value$source_space_id %||% "")[1]) ||
-      !nzchar(as.character(value$source_snapshot_id %||% "")[1]))
+      !nzchar(as.character(value$source_snapshot_id %||% "")[1]) ||
+      !identical(as.character(value$linkage_identity$scheme %||% "")[1],
+        "scworkbench.operation_pack.model_source_linkage.v2") ||
+      !identical(as.character(value$linkage_identity$scope %||% "")[1],
+        "linkage excluding linkage_identity"))
     .wb_operation_pack_v3_error(code,
       "Contained model has no complete durable source linkage v2.", phase)
   .wb_operation_pack_v3_assert_self_identity(value, "linkage_identity",
     code, phase)
+  invisible(TRUE)
+}
+
+.wb_operation_pack_v3_assert_model_source_linkage <- function(value,
+    code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "resolution") {
+  if (identical(as.character(value$schema %||% "")[1],
+      "scworkbench.operation_pack.model_source_linkage.v3"))
+    .wb_operation_pack_v3_assert_model_source_linkage_v3(value, code, phase)
+  else .wb_operation_pack_v3_assert_model_source_linkage_v2(value, code,
+    phase)
   invisible(TRUE)
 }
 
@@ -425,8 +439,7 @@
     linkage <- model$model_source_linkage %||% model$model_linkage %||% list()
     derived_fitted <- identical(as.character(linkage$schema %||% "")[1],
       "scworkbench.operation_pack.model_source_linkage.v3")
-    if (derived_fitted) .wb_operation_pack_v3_assert_model_source_linkage_v3(
-      linkage) else .wb_operation_pack_v3_assert_model_source_linkage_v2(linkage)
+    .wb_operation_pack_v3_assert_model_source_linkage(linkage)
     if (!identical(linkage$engine, engine) ||
         !identical(linkage$model_type, model_type))
       .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",

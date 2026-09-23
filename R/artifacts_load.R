@@ -322,6 +322,8 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
       )
       p$model_type <- as.character(df$model_type[[1]] %||% engine)
       p$model_path <- model_path
+      verified_primary_path <- NULL
+      verified_primary_entry <- NULL
       linkage_json <- as.character(df$linkage_json[[1]] %||% "")[1]
       if (!is.na(linkage_json) && nzchar(linkage_json)) {
         linkage <- jsonlite::fromJSON(linkage_json, simplifyVector = FALSE)
@@ -358,6 +360,9 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
         p$model_primary_path <- primary
         p$model_tree_manifest <- tree
         p$model_payload_manifest_identity <- payload
+        verified_primary_path <- file.path(model_path, primary)
+        verified_primary_entry <- tree$entries[[match(primary, vapply(
+          tree$entries, `[[`, character(1), "path"))]]
       }
       lifecycle <- if (.wb_table_exists(con, "entity_lifecycle")) {
         wb_entity_lifecycle(bundle, "artifact", artifact_id)
@@ -373,7 +378,35 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
           isTRUE(trust$deserialization_allowed) || isTRUE(allow_untrusted_deserialization),
           "MODEL_DESERIALIZATION_TRUST_REQUIRED: loading serialized model state requires trusted provenance/runtime or allow_untrusted_deserialization=TRUE."
         )
-        p$model_obj <- readRDS(model_path)
+        if (is.null(verified_primary_path)) {
+          .wb_assert(!dir.exists(model_path),
+            "wb_art_load(): legacy model payload is a directory without an authenticated primary file.")
+          p$model_obj <- readRDS(model_path)
+        } else {
+          status <- .wb_path_status(model_path, p$model_primary_path,
+            expected_type = "file", must_exist = TRUE,
+            purpose = "authenticated contained model primary file")
+          .wb_assert(isTRUE(status$ok) &&
+              !nzchar(Sys.readlink(verified_primary_path)),
+            "wb_art_load(): authenticated model primary file is missing, linked, or escaped.")
+          bytes <- readBin(verified_primary_path, "raw",
+            n = as.integer(verified_primary_entry$size))
+          .wb_assert(identical(as.integer(length(bytes)),
+              as.integer(verified_primary_entry$size)) &&
+              identical(digest::digest(bytes, algo = "sha256",
+                serialize = FALSE), verified_primary_entry$sha256),
+            "wb_art_load(): authenticated model primary file changed before deserialization.")
+          # readRDS() auto-decompresses a file connection, but not a raw
+          # connection. Keep deserialization bound to the verified byte copy.
+          if (length(bytes) >= 2L && !identical(bytes[1:2],
+              charToRaw("X\n")) && !identical(bytes[1:2],
+              charToRaw("A\n")) && !identical(bytes[1:2],
+              charToRaw("B\n")))
+            bytes <- memDecompress(bytes, type = "unknown")
+          stream <- rawConnection(bytes)
+          p$model_obj <- tryCatch(readRDS(stream),
+            finally = close(stream))
+        }
       }
       p
     },

@@ -1294,9 +1294,9 @@
         descriptor$contained_model_write_grant, "write_grant_identity",
         "PYBENCH_CAPABILITY_MISMATCH", "staging")
     if (!is.null(descriptor$contained_model_sibling_write_grant)) {
-      .wb_operation_pack_v3_assert_self_identity(
+      .wb_operation_pack_v3_assert_model_source_linkage(
         descriptor$contained_model_sibling_write_grant$model_source_linkage,
-        "linkage_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+        "PYBENCH_CAPABILITY_MISMATCH", "staging")
       .wb_operation_pack_v3_assert_self_identity(
         descriptor$contained_model_sibling_write_grant,
         "write_grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
@@ -1378,8 +1378,8 @@
       attr(request, "operation_pack_stage_root"), grant)
   }
   for (grant in request$self_linked_model_payload_grants %||% list()) {
-    .wb_operation_pack_v3_assert_self_identity(grant$model_source_linkage,
-      "linkage_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    .wb_operation_pack_v3_assert_model_source_linkage(
+      grant$model_source_linkage, "PYBENCH_CAPABILITY_MISMATCH", "staging")
     .wb_operation_pack_v3_assert_self_identity(grant,
       "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
     .wb_operation_pack_v3_assert_self_identity(grant$tree_manifest,

@@ -6705,53 +6705,14 @@
           }
         },
         "model_source_linkage": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "engine",
-            "model_type",
-            "source_space_id",
-            "source_space_content_identity",
-            "fitted_cell_order_identity",
-            "selected_dimension_count",
-            "selected_dimension_order_identity",
-            "source_snapshot_id",
-            "linkage_identity"
-          ],
-          "properties": {
-            "engine": {
-              "type": "string",
-              "minLength": 1
+          "oneOf": [
+            {
+              "$ref": "#/$defs/model_source_linkage_v2"
             },
-            "model_type": {
-              "type": "string",
-              "minLength": 1
-            },
-            "source_space_id": {
-              "type": "string",
-              "minLength": 1
-            },
-            "source_space_content_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "fitted_cell_order_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "selected_dimension_count": {
-              "type": "integer",
-              "minimum": 1
-            },
-            "selected_dimension_order_identity": {
-              "$ref": "#/$defs/identity"
-            },
-            "source_snapshot_id": {
-              "type": "string",
-              "minLength": 1
-            },
-            "linkage_identity": {
-              "$ref": "#/$defs/self_identity"
+            {
+              "$ref": "#/$defs/model_source_linkage_v3"
             }
-          }
+          ]
         },
         "required_sibling_terminals": {
           "type": "array",
