@@ -340,3 +340,16 @@ test_operation_pack_v3_g1_verified_primary_deserialization_contract <-
   }
   TRUE
 }
+test_operation_pack_v3_g1_deserialized_model_view_is_not_input_authority_contract <- function() {
+  model <- wb_prim_model_ref("fit", "fit", engine = "slingshot")
+  model$model_type <- "slingshot"
+  model$model_tree_manifest <- list(primary_path = "model.rds")
+  declaration <- list(kind = "model_ref", alignment = "model_linked")
+  expected <- .wb_operation_pack_v2_input_descriptor("model", model,
+    declaration)
+  model$model_obj <- new.env(parent = emptyenv())
+  observed <- .wb_operation_pack_v2_input_descriptor("model", model,
+    declaration)
+  stopifnot(identical(expected, observed))
+  TRUE
+}

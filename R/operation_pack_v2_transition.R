@@ -225,6 +225,13 @@
                                                      transport_value = NULL) {
   kind <- as.character(declaration$kind)[1]
   identity_value <- transport_value %||% unclass(value)
+  # A contained model's deserialized R object is a transient, trust-gated
+  # convenience view of its authenticated tree.  It is neither JSON nor an
+  # independent input authority: G1 replaces this provisional descriptor
+  # with the verified linkage/tree identity before dispatch.
+  if (identical(kind, "model_ref") &&
+      !is.null(value$model_tree_manifest))
+    identity_value$model_obj <- NULL
   cells <- if (is.null(transport_value)) .wb_operation_pack_v2_primitive_cells(value) else
     unname(unlist(identity_value$cell_id %||% list(), use.names = FALSE))
   features <- if (is.null(transport_value)) .wb_operation_pack_v2_primitive_features(value) else
