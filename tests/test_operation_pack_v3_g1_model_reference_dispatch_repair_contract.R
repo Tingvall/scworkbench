@@ -346,10 +346,42 @@ test_operation_pack_v3_g1_deserialized_model_view_is_not_input_authority_contrac
   model$model_tree_manifest <- list(primary_path = "model.rds")
   declaration <- list(kind = "model_ref", alignment = "model_linked")
   expected <- .wb_operation_pack_v2_input_descriptor("model", model,
-    declaration)
+    declaration, g1_model_read = TRUE)
   model$model_obj <- new.env(parent = emptyenv())
   observed <- .wb_operation_pack_v2_input_descriptor("model", model,
-    declaration)
+    declaration, g1_model_read = TRUE)
   stopifnot(identical(expected, observed))
+  TRUE
+}
+
+test_operation_pack_v3_non_g1_model_object_remains_identity_bearing_contract <- function() {
+  model <- wb_prim_model_ref("fit", "fit", engine = "slingshot")
+  model$model_type <- "slingshot"
+  model$model_tree_manifest <- list(primary_path = "model.rds")
+  declaration <- list(kind = "model_ref", alignment = "model_linked")
+  model$model_obj <- list(coefficient = 1L)
+  first <- .wb_operation_pack_v2_input_descriptor("model", model,
+    declaration)
+  second_model <- model
+  second_model$model_obj <- list(coefficient = 2L)
+  second <- .wb_operation_pack_v2_input_descriptor("model", second_model,
+    declaration)
+  stopifnot(!identical(first$descriptor$content_identity,
+      second$descriptor$content_identity),
+    !identical(first$descriptor$descriptor_identity,
+      second$descriptor$descriptor_identity))
+  ordinary <- function(value) .wb_operation_pack_v2_capability_adapter(
+    request = list(outputs = list()), operation = list(outputs = list()),
+    inputs = list(model = value), stage_root = tempfile(
+      "scwb-non-g1-model-reader-"))$readers$model()$model_obj
+  stopifnot(identical(ordinary(model), list(coefficient = 1L)),
+    identical(ordinary(second_model), list(coefficient = 2L)))
+  unsupported <- second_model
+  unsupported$model_obj <- new.env(parent = emptyenv())
+  failure <- tryCatch(.wb_operation_pack_v2_input_descriptor("model",
+    unsupported, declaration), error = identity)
+  stopifnot(inherits(failure, "error"),
+    grepl("Unsupported canonical identity value type",
+      conditionMessage(failure), fixed = TRUE))
   TRUE
 }

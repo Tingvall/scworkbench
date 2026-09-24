@@ -729,9 +729,14 @@
     as.character(x$kind %||% "")[1], "external_state_candidate"),
     operation$inputs), function(x) as.character(x$name)[1], character(1))
   ordinary_inputs <- inputs[setdiff(names(inputs), g3_input_names)]
+  g1_reads <- c(operation$contained_model_reads %||% list(),
+    operation$self_linked_contained_model_reads %||% list())
+  g1_model_inputs <- if (length(g1_reads)) unique(vapply(g1_reads,
+    function(read) as.character(read$input)[1L], character(1))) else
+      character()
   base <- .wb_operation_pack_v2_request(bundle, registration, projected,
     ordinary_inputs, params, transition_id, session_id, run_id, generation, preflight,
-    stage_root)
+    stage_root, g1_model_inputs = g1_model_inputs)
   ancestry_inputs <- unique(vapply(operation$provenance_reads %||% list(),
     function(x) as.character(x$input)[1], character(1)))
   for (i in seq_along(base$inputs)) {

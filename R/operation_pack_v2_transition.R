@@ -222,15 +222,16 @@
 }
 
 .wb_operation_pack_v2_input_descriptor <- function(name, value, declaration,
-                                                     transport_value = NULL) {
+                                                     transport_value = NULL,
+                                                     g1_model_read = FALSE) {
   kind <- as.character(declaration$kind)[1]
   identity_value <- transport_value %||% unclass(value)
-  # A contained model's deserialized R object is a transient, trust-gated
-  # convenience view of its authenticated tree.  It is neither JSON nor an
-  # independent input authority: G1 replaces this provisional descriptor
-  # with the verified linkage/tree identity before dispatch.
-  if (identical(kind, "model_ref") &&
-      !is.null(value$model_tree_manifest))
+  # Only an explicitly declared G1 read replaces this provisional identity
+  # with a verified linkage/tree grant and removes the ordinary model reader
+  # before execution.  A tree manifest alone does not confer that authority:
+  # without G1, model_obj remains identity-bearing if the ordinary reader can
+  # deliver it (and a non-JSON value fails closed before dispatch).
+  if (identical(kind, "model_ref") && isTRUE(g1_model_read))
     identity_value$model_obj <- NULL
   cells <- if (is.null(transport_value)) .wb_operation_pack_v2_primitive_cells(value) else
     unname(unlist(identity_value$cell_id %||% list(), use.names = FALSE))
@@ -533,7 +534,8 @@
 
 .wb_operation_pack_v2_request <- function(bundle, registration, operation, inputs, params,
                                            transition_id, session_id, run_id, generation,
-                                           preflight, stage_root) {
+                                           preflight, stage_root,
+                                           g1_model_inputs = character()) {
   op_name <- as.character(operation$qualified_name)[1]
   declarations <- stats::setNames(operation$inputs, vapply(operation$inputs, `[[`, character(1), "name"))
   python_backend <- identical(as.character(registration$identity$backend)[1], "Python")
@@ -542,7 +544,8 @@
       declarations[[name]]$kind)), names(inputs)) else NULL
   input_records <- lapply(names(inputs), function(name) .wb_operation_pack_v2_input_descriptor(
     name, inputs[[name]], declarations[[name]],
-    if (python_backend) transport_inputs[[name]] else NULL))
+    if (python_backend) transport_inputs[[name]] else NULL,
+    g1_model_read = name %in% g1_model_inputs))
   input_records <- input_records[order(vapply(input_records, `[[`, character(1), "name"), method = "radix")]
   registry_state <- .wb_operation_pack_v2_registry_read_records(
     bundle, operation, inputs, params, input_records, stage_root)
