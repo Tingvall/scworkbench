@@ -122,7 +122,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
   gs <- wb_session_run_op(
     session = s,
     bundle = b,
-    op_name = "trajectory_geneset_dynamics",
+    op_name = "scwbtrajectory::trajectory_geneset_dynamics_explicit",
     inputs = list(
       cell_set = "all",
       min_cells = 1L,
@@ -150,7 +150,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
     wb_session_run_op(
       session = s,
       bundle = b,
-      op_name = "trajectory_geneset_dynamics",
+      op_name = "scwbtrajectory::trajectory_geneset_dynamics_explicit",
       inputs = list(
         cell_set = "all",
         min_cells = 1L,
@@ -177,7 +177,7 @@ test_composite_pseudotime_dynamics_contract <- function() {
   sig_dyn <- wb_session_run_op(
     session = gs$session,
     bundle = b,
-    op_name = "trajectory_signal_dynamics",
+    op_name = "scwbtrajectory::trajectory_signal_dynamics_explicit",
     inputs = list(
       cell_set = "all",
       min_cells = 1L,
