@@ -1,6 +1,6 @@
 # Phase 5 S5 generic relation-family ABI
 
-This is an opt-in ABI-v3 capability for R-backed operation packs. It does not register or migrate Monocle3 or Palantir. The Phase 5 migrated count remains 15/24. Gate A old-core oracle and bounds evidence is in `notes/phase5_s5_gate_a_evidence.md`; its 25-row Monocle3 and 60-row Palantir results are scientific oracles, separate from the synthetic ABI fixtures here.
+This is an opt-in ABI-v3 capability for R-backed operation packs. It does not register or migrate Monocle3 or Palantir. After integrated S3, the Phase 5 migrated count is 19/24. Gate A old-core oracle and bounds evidence is in `notes/phase5_s5_gate_a_evidence.md`; its 25-row Monocle3 and 60-row Palantir results are scientific oracles, separate from the synthetic ABI fixtures here.
 
 ## Authority
 

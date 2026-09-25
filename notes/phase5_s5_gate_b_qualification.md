@@ -1,6 +1,8 @@
 # Phase 5 S5 generic relation-family Gate B qualification
 
-Scope: generic opt-in ABI-v3 authority only. No S5 method registration or migration. Phase 5 remains 15/24. Gate A is committed separately as `65b595f0cb771676cbad38ac9260fe50397d625a` and documented in `notes/phase5_s5_gate_a_evidence.md`.
+Scope: generic opt-in ABI-v3 authority only. No S5 method registration or migration. After integrated S3, Phase 5 is 19/24. Gate A is committed separately as `65b595f0cb771676cbad38ac9260fe50397d625a` and documented in `notes/phase5_s5_gate_a_evidence.md`.
+
+The qualification below was run on the pre-S3 core candidate `a42c45a7674a7eff4f8303275c3b1d10eb0c1bd4` with PyBench `b767eb3788e6c508f464cc1687d5fbaf78ce1501`. It does not qualify integration into the accepted S3 core. The combined S3 reconciliation and its separate results are recorded at the end of this note.
 
 ## Frozen shared assets
 
@@ -49,3 +51,11 @@ The final affected-suite command uses the same `R_LIBS` and `Rscript --vanilla i
 ## Review gates
 
 Sable should review the generic core/PyBench pair and evidence first. Meridian-9 should review only after Sable's focused disposition. No pack S5 extraction, merge, push, SIF, release, or publication is authorized by this qualification.
+
+## Reconciliation onto integrated S3
+
+The accepted S3 starting core is `7fe0b912755abe2556b029d7f3fdd5ea13852155`; the retained trajectory pack is `d189cf8a3c1a84febd28cb7354a6ed5242f96c86`. The S5 generic ABI was replayed in a separate core worktree. PyBench remains the unchanged parity candidate `b767eb3788e6c508f464cc1687d5fbaf78ce1501`; its earlier complete Python qualification is reused because all four shared assets above remain byte-identical. No S5 method moved and Phase 5 remains 19/24.
+
+The accepted S3 Slingshot method, catalog, private G1 reader, and S3 composite source files are byte-identical to `7fe0b91`. In particular, G1 still projects `source_space_id` from authenticated model-source linkage. The merged documentation manifests were regenerated from combined source; `inst/dev/regenerate_public_docs.R --check` exited 0 with no drift (`/tmp/s5_s3_qualification/docs-drift.log`).
+
+Combined prequalification: 11-file core focus passed 38/38, exit 0 (`/tmp/s5_s3_core_focused.log`); trajectory composites passed 4/4 root and 2/2 S2, exit 0 (`/tmp/s5_s3_qualification/trajectory-composite-focus.log`); the installed combined core reproduced the frozen old-core S5 oracle byte-for-byte, capture and comparison exits 0 (`/tmp/s5_s3_qualification/oracle.log`). The documentation source-package contract passed, exit 0 (`/tmp/s5_s3_qualification/docs-source-precommit.log`). The retained trajectory pack's complete `tests/run_contract_tests.R` suite passed 44/44, zero skips or failures, exit 0, against the combined installed core (`/tmp/s5_s3_qualification/pack-44.log`). The final exact-commit core and package gates are recorded in the handoff after they finish.
