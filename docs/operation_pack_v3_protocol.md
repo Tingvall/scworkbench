@@ -256,6 +256,36 @@ fault leaves no durable transition or analytical residue. This structural
 authority does not judge whether the method chose biologically complete
 keys or rows.
 
+### Sealed exact-order relation families
+
+`sealed_relation_family_v1` is an R-only opt-in policy for one required
+terminal `relation_family`. Its cell axis comes from an authenticated typed
+space or matrix input, or from a G2 derived fitted axis. A typed input binds
+the ordered cells in the request. A G2 request binds the model selector and
+parent/G2 grant first; it binds fitted cells only after G2 sealing. The
+provisional request grant cannot write a relation.
+
+The runner calls `writers$declare_relation_family_rows(output, ordered_keys,
+row_chunks, numeric_fields)` exactly once before the terminal write. Each
+chunk contains ordered `{key, cell_id}` pairs. Core seals the exact pair order
+and first-occurrence key order, allows one cell under multiple keys, and
+rejects duplicate pairs, foreign cells, empty relations, missing or nonfinite
+numeric fields, and any altered output order. The policy imposes no sorting,
+key-major, source-relative, or Cartesian-completeness rule. The declaration
+issues a one-shot writer grant. A failed attempt consumes declaration
+authority.
+
+The ceilings are one million source cells, 1,024 keys, one million rows,
+1,024 raw UTF-8 bytes per identifier, 64 MiB of encoded identifier bytes
+across source cells, keys, and pair occurrences, and 8,192 pairs per chunk;
+manifests may lower them. Source, staged payload, receipt, and promoted SQL
+rows are checked against the seal. The promoted relation's optional payload
+descriptor binds its content identity so later `wb_art_load()` checks numeric
+values and field presence as well as row order. Existing relation content
+identity schemes and older descriptors remain valid. Python mirrors the
+shared schema and identity fixtures but rejects this policy at manifest
+admission and request staging.
+
 ## Backends and durable lifecycle
 
 R v3 packs retain the opaque `function(readers, writers, params, context)`

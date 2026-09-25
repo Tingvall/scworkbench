@@ -356,6 +356,10 @@
       "items": {"$ref": "#/$defs/sparse_cell_family_observation"},
       "minItems": 1,
       "maxItems": 1
+    },
+    "sealed_relation_family_observations": {
+      "type": "array", "items": {"$ref": "#/$defs/sealed_relation_family_observation"},
+      "minItems": 1, "maxItems": 1
     }
   },
   "allOf": [
@@ -9665,6 +9669,138 @@
           }
         }
       ]
+    },
+    "sealed_relation_family_observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "provisional_grant_identity", "declaration",
+        "seal", "sealed_writer_grant", "observed_key_axis_identity",
+        "observed_pair_axis_identity", "observed_row_count",
+        "observed_numeric_fields", "output_descriptor_identity",
+        "output_content_identity", "payload_manifest_identity",
+        "validation_status", "observation_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.observed_relation_family.v1"},
+        "provisional_grant_identity": {"$ref": "#/$defs/identity"},
+        "declaration": {"$ref": "#/$defs/sealed_relation_declaration"},
+        "seal": {"$ref": "#/$defs/sealed_relation_seal"},
+        "sealed_writer_grant": {"$ref": "#/$defs/sealed_relation_writer"},
+        "observed_key_axis_identity": {"$ref": "#/$defs/identity"},
+        "observed_pair_axis_identity": {"$ref": "#/$defs/identity"},
+        "observed_row_count": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "observed_numeric_fields": {"$ref": "#/$defs/sealed_relation_numeric_fields"},
+        "output_descriptor_identity": {"$ref": "#/$defs/identity"},
+        "output_content_identity": {"$ref": "#/$defs/identity"},
+        "payload_manifest_identity": {"$ref": "#/$defs/identity"},
+        "validation_status": {"const": "passed"},
+        "observation_identity": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "sealed_relation_declaration": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "provisional_grant_identity", "output_name",
+        "ordered_keys", "ordered_pairs", "declared_row_count",
+        "numeric_fields", "declaration_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.relation_row_declaration.v1"},
+        "provisional_grant_identity": {"$ref": "#/$defs/identity"},
+        "output_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "ordered_keys": {"type": "array", "minItems": 1, "maxItems": 1024,
+          "items": {"type": "string", "minLength": 1}},
+        "ordered_pairs": {"type": "array", "minItems": 1, "maxItems": 1000000,
+          "items": {"$ref": "#/$defs/sealed_relation_pair"}},
+        "declared_row_count": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "numeric_fields": {"$ref": "#/$defs/sealed_relation_numeric_fields"},
+        "declaration_identity": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "sealed_relation_pair": {
+      "type": "object", "additionalProperties": false,
+      "required": ["key", "cell_id"],
+      "properties": {"key": {"type": "string", "minLength": 1},
+        "cell_id": {"type": "string", "minLength": 1}}
+    },
+    "sealed_relation_numeric_fields": {
+      "type": "object", "additionalProperties": false,
+      "required": ["weight", "value", "distance"],
+      "properties": {"weight": {"type": "boolean"},
+        "value": {"type": "boolean"}, "distance": {"type": "boolean"}}
+    },
+    "sealed_relation_source_axis": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false,
+         "required": ["schema", "source_kind", "input_name", "input_kind",
+           "source_id", "input_descriptor_identity", "input_content_identity",
+           "source_state_identity", "ordered_cells", "cell_order_identity",
+           "source_axis_identity"],
+         "properties": {
+           "schema": {"const": "scworkbench.operation_pack.relation_source_axis.v1"},
+           "source_kind": {"const": "typed_input_v1"},
+           "input_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+           "input_kind": {"enum": ["space", "space_2d", "matrix"]},
+           "source_id": {"type": "string", "minLength": 1},
+           "input_descriptor_identity": {"$ref": "#/$defs/identity"},
+           "input_content_identity": {"$ref": "#/$defs/identity"},
+           "source_state_identity": {"$ref": "#/$defs/identity"},
+           "ordered_cells": {"$ref": "#/$defs/sealed_relation_cells"},
+           "cell_order_identity": {"$ref": "#/$defs/identity"},
+           "source_axis_identity": {"$ref": "#/$defs/identity"}}},
+        {"type": "object", "additionalProperties": false,
+         "required": ["schema", "source_kind", "model_output",
+           "g2_grant_identity", "parent_snapshot_identity",
+           "fitted_axis_seal_identity", "ordered_cells",
+           "cell_order_identity", "source_axis_identity"],
+         "properties": {
+           "schema": {"const": "scworkbench.operation_pack.relation_source_axis.v1"},
+           "source_kind": {"const": "g2_derived_fitted_axis_v1"},
+           "model_output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+           "g2_grant_identity": {"$ref": "#/$defs/identity"},
+           "parent_snapshot_identity": {"$ref": "#/$defs/identity"},
+           "fitted_axis_seal_identity": {"$ref": "#/$defs/identity"},
+           "ordered_cells": {"$ref": "#/$defs/sealed_relation_cells"},
+           "cell_order_identity": {"$ref": "#/$defs/identity"},
+           "source_axis_identity": {"$ref": "#/$defs/identity"}}
+        }
+      ]
+    },
+    "sealed_relation_cells": {
+      "type": "array", "minItems": 1, "maxItems": 1000000,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "sealed_relation_seal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "provisional_grant_identity",
+        "declaration_identity", "source_axis", "source_axis_identity",
+        "ordered_key_axis_identity", "ordered_pair_axis_identity",
+        "numeric_fields", "row_count", "seal_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.relation_row_seal.v1"},
+        "provisional_grant_identity": {"$ref": "#/$defs/identity"},
+        "declaration_identity": {"$ref": "#/$defs/identity"},
+        "source_axis": {"$ref": "#/$defs/sealed_relation_source_axis"},
+        "source_axis_identity": {"$ref": "#/$defs/identity"},
+        "ordered_key_axis_identity": {"$ref": "#/$defs/identity"},
+        "ordered_pair_axis_identity": {"$ref": "#/$defs/identity"},
+        "numeric_fields": {"$ref": "#/$defs/sealed_relation_numeric_fields"},
+        "row_count": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "seal_identity": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "sealed_relation_writer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "output_name", "base_grant_identity",
+        "relation_seal_identity", "exact_dimensions", "source_axis_identity",
+        "grant_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.relation_sealed_output_grant.v1"},
+        "output_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "base_grant_identity": {"$ref": "#/$defs/identity"},
+        "relation_seal_identity": {"$ref": "#/$defs/identity"},
+        "exact_dimensions": {"type": "array", "prefixItems": [
+          {"type": "integer", "minimum": 1, "maximum": 1000000}, {"const": 3}],
+          "minItems": 2, "maxItems": 2},
+        "source_axis_identity": {"$ref": "#/$defs/identity"},
+        "grant_identity": {"$ref": "#/$defs/identity"}
+      }
     },
     "sparse_cell_family_observation": {
       "type": "object", "additionalProperties": false,

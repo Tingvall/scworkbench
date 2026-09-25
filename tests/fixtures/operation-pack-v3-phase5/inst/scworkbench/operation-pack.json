@@ -864,6 +864,292 @@
       "replay_equivalence": {"family": "exact_canonical_value"}
     },
     {
+      "name": "sealed_relation_family",
+      "qualified_name": "scwbv3phase5::sealed_relation_family",
+      "title": "Sealed relation-family fixture",
+      "description": "Publishes one exact ordered variable-row relation family.",
+      "runner": ".sealed_relation_family",
+      "inputs": [
+        {"name": "source", "kind": "space", "required": true, "alignment": "cell_ordered"}
+      ],
+      "params_schema": {
+        "type": "object",
+        "properties": {
+          "keys": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+          "pairs": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+            "required": ["key", "cell_id"], "properties": {
+              "key": {"type": "string"}, "cell_id": {"type": "string"}}}, "minItems": 1},
+          "mode": {"type": "string", "enum": ["normal", "omit", "repeat", "write_before_declare", "swap_rows", "non_finite", "caught_seal_fault"], "default": "normal"}
+        },
+        "required": ["keys", "pairs"],
+        "additionalProperties": false
+      },
+      "dimension_policies": [
+        {
+          "schema": "scworkbench.operation_pack.sealed_relation_family_policy.v1",
+          "output": "relation",
+          "policy": "sealed_relation_family_v1",
+          "axis_source": {"source": "typed_input_v1", "input": "source"},
+          "key_order": "first_occurrence_v1",
+          "row_order": "declared_exact_v1",
+          "pair_multiplicity": "unique_key_cell_v1",
+          "numeric_fields": "declare_presence_finite_v1",
+          "declaration_discipline": "exactly_once_before_write",
+          "maximum_axis_cells": 1000000,
+          "maximum_keys": 1024,
+          "maximum_rows": 1000000,
+          "maximum_id_bytes": 1024,
+          "maximum_control_bytes": 67108864,
+          "maximum_chunk_pairs": 8192,
+          "policy_identity": {"scheme": "scworkbench.operation_pack.sealed_relation_family_policy.v1",
+            "scope": "policy excluding policy_identity", "sha256": "be1f6ec69d6a5eb14f0f90ee4ce6b42831974b87e171181572ebda3a4fa5e8cc"}
+        }
+      ],
+      "outputs": [
+        {"name": "relation", "category": "terminal_artifact",
+         "kind": "relation_family", "storage_profile": "terminal_primitive_v1",
+         "allocated_id_key": "relation_id", "required": true,
+         "promotion_group": "relation"}
+      ],
+      "dependencies": [],
+      "promotion_closure": {"relation": ["relation"]},
+      "replay_equivalence": {"relation": "exact_canonical_value"}
+    },
+    {
+        "dependencies": [
+        ],
+        "description": "Publishes a sealed relation from the G2 fitted axis.",
+        "dimension_policies": [
+            {
+                "axis_source": {
+                    "model_output": "model",
+                    "source": "g2_derived_fitted_axis_v1"
+                },
+                "declaration_discipline": "exactly_once_before_write",
+                "key_order": "first_occurrence_v1",
+                "maximum_axis_cells": 1e6,
+                "maximum_chunk_pairs": 8.192e3,
+                "maximum_control_bytes": 6.7108864e7,
+                "maximum_id_bytes": 1.024e3,
+                "maximum_keys": 1.024e3,
+                "maximum_rows": 1e6,
+                "numeric_fields": "declare_presence_finite_v1",
+                "output": "relation",
+                "pair_multiplicity": "unique_key_cell_v1",
+                "policy": "sealed_relation_family_v1",
+                "policy_identity": {
+                    "scheme": "scworkbench.operation_pack.sealed_relation_family_policy.v1",
+                    "scope": "policy excluding policy_identity",
+                    "sha256": "e1d737aef760525f914782d9afc147383214d7bd36e21c7a4c0b5e361ac67835"
+                },
+                "row_order": "declared_exact_v1",
+                "schema": "scworkbench.operation_pack.sealed_relation_family_policy.v1"
+            }
+        ],
+        "inputs": [
+            {
+                "alignment": "cell_ordered",
+                "kind": "space",
+                "name": "source",
+                "required": true
+            }
+        ],
+        "name": "fit_derived_axis_relation",
+        "outputs": [
+            {
+                "allocated_id_key": "model_id",
+                "category": "terminal_artifact",
+                "contained_model_sibling_closure_policy": {
+                    "dimensions_parameter": "dims",
+                    "engine": "fixture",
+                    "file_order": "utf8_path_lexicographic_v1",
+                    "maximum_file_count": 3.2e1,
+                    "maximum_total_bytes": 1.073741824e9,
+                    "model_type": "derived_axis_model",
+                    "policy": "staged_contained_model_sibling_closure_v1",
+                    "primary_path": "model.bin",
+                    "required_sibling_terminals": [
+                        "embedding",
+                        "weights"
+                    ],
+                    "source_space_input": "source"
+                },
+                "derived_fitted_axis_policy": {
+                    "declaration_discipline": "exactly_once_before_cell_indexed_writes",
+                    "maximum_combined_id_bytes": 6.7108864e7,
+                    "maximum_family_keys": 6.4e1,
+                    "maximum_id_bytes": 1.024e3,
+                    "maximum_selected_cells": 1e6,
+                    "mode": "source_relative_subset_v1",
+                    "model_output": "model",
+                    "policy_identity": {
+                        "scheme": "scworkbench.operation_pack.derived_fitted_axis_policy.v1",
+                        "scope": "policy excluding policy_identity",
+                        "sha256": "6dd727adeff6336c2ec2ca67897f9f9c298189960b7fa0429d79a5e986b6080f"
+                    },
+                    "required_siblings": [
+                        {
+                            "coverage_policy": "exact_fitted_axis_v1",
+                            "kind": "cell_vector",
+                            "name": "embedding"
+                        },
+                        {
+                            "coverage_policy": "per_key_source_relative_subset_v1",
+                            "kind": "cell_vector_family",
+                            "name": "weights"
+                        }
+                    ],
+                    "schema": "scworkbench.operation_pack.derived_fitted_axis_policy.v1",
+                    "source_space_input": "source"
+                },
+                "kind": "model_ref",
+                "name": "model",
+                "promotion_group": "fit",
+                "required": true,
+                "storage_profile": "model_ref_contained_tree_v1"
+            },
+            {
+                "allocated_id_key": "embedding_id",
+                "category": "terminal_artifact",
+                "kind": "cell_vector",
+                "name": "embedding",
+                "promotion_group": "fit",
+                "required": true,
+                "storage_profile": "terminal_primitive_v1",
+                "value_kind": "continuous"
+            },
+            {
+                "allocated_id_key": "weights_id",
+                "category": "terminal_artifact",
+                "kind": "cell_vector_family",
+                "name": "weights",
+                "promotion_group": "fit",
+                "required": true,
+                "storage_profile": "terminal_primitive_v1",
+                "value_kind": "continuous"
+            },
+            {
+                "allocated_id_key": "relation_id",
+                "category": "terminal_artifact",
+                "kind": "relation_family",
+                "name": "relation",
+                "promotion_group": "fit",
+                "required": true,
+                "storage_profile": "terminal_primitive_v1"
+            }
+        ],
+        "params_schema": {
+            "additionalProperties": false,
+            "properties": {
+                "bad_embedding_order": {
+                    "default": false,
+                    "type": "boolean"
+                },
+                "declaration_mode": {
+                    "default": "normal",
+                    "enum": [
+                        "normal",
+                        "omit",
+                        "repeat",
+                        "after_output"
+                    ],
+                    "type": "string"
+                },
+                "dims": {
+                    "items": {
+                        "minimum": 1e0,
+                        "type": "integer"
+                    },
+                    "minItems": 1e0,
+                    "type": "array",
+                    "uniqueItems": true
+                },
+                "fitted_axis_attack": {
+                    "default": "normal",
+                    "enum": [
+                        "normal",
+                        "duplicate",
+                        "empty",
+                        "oversized_id"
+                    ],
+                    "type": "string"
+                },
+                "fitted_cells": {
+                    "items": {
+                        "minLength": 1e0,
+                        "type": "string"
+                    },
+                    "minItems": 1e0,
+                    "type": "array",
+                    "uniqueItems": true
+                },
+                "foreign_family_cell": {
+                    "default": false,
+                    "type": "boolean"
+                },
+                "output_attack": {
+                    "default": "normal",
+                    "enum": [
+                        "normal",
+                        "missing_weights",
+                        "extra_output"
+                    ],
+                    "type": "string"
+                },
+                "weights_attack": {
+                    "default": "normal",
+                    "enum": [
+                        "normal",
+                        "duplicate_cell",
+                        "reordered_cells",
+                        "too_many_keys"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "dims",
+                "fitted_cells"
+            ],
+            "type": "object"
+        },
+        "promotion_closure": {
+            "embedding": [
+                "embedding",
+                "model",
+                "relation",
+                "weights"
+            ],
+            "model": [
+                "embedding",
+                "model",
+                "relation",
+                "weights"
+            ],
+            "relation": [
+                "embedding",
+                "model",
+                "relation",
+                "weights"
+            ],
+            "weights": [
+                "embedding",
+                "model",
+                "relation",
+                "weights"
+            ]
+        },
+        "qualified_name": "scwbv3phase5::fit_derived_axis_relation",
+        "replay_equivalence": {
+            "embedding": "exact_canonical_value",
+            "model": "loadable_reference",
+            "relation": "exact_canonical_value",
+            "weights": "exact_canonical_value"
+        },
+        "runner": ".fit_derived_axis_relation",
+        "title": "Derived fitted-axis relation fixture"
+    },
+    {
       "name": "standalone_sparse_family_model",
       "qualified_name": "scwbv3phase5::standalone_sparse_family_model",
       "title": "Standalone sparse cell-family from verified model fixture",

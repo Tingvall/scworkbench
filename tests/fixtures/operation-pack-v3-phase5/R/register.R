@@ -75,6 +75,25 @@
   invisible(list(status = "ok"))
 }
 
+.fit_derived_axis_relation <- function(readers, writers, params,
+    context) {
+  .fit_derived_axis_model(readers, writers, params, context)
+  fitted <- as.character(params$fitted_cells)
+  stopifnot(length(fitted) >= 2L)
+  pairs <- list(list(key = 'branch|z', cell_id = fitted[[2L]]),
+    list(key = 'branch:a', cell_id = fitted[[1L]]),
+    list(key = 'branch|z', cell_id = fitted[[1L]]))
+  writers$declare_relation_family_rows('relation',
+    c('branch|z', 'branch:a'), list(pairs),
+    c(weight = TRUE, value = FALSE, distance = FALSE))
+  writers$write_terminal_primitive('relation',
+    scworkbench::wb_prim_relation_family(
+      vapply(pairs, `[[`, character(1), 'key'),
+      vapply(pairs, `[[`, character(1), 'cell_id'),
+      weight = c(0.25, 0.5, 0.75)))
+  invisible(list(status = 'ok'))
+}
+
 .consume_self_linked_model <- function(readers, writers, params, context) {
   payload <- readers$fitted_model()
   bytes <- payload$read_bytes(payload$primary_path)
@@ -176,6 +195,39 @@
   .standalone_sparse_family_write(writers, params)
 }
 
+.sealed_relation_family <- function(readers, writers, params, context) {
+  stopifnot(length(context$sealed_relation_family_grants) == 1L)
+  readers$source()
+  keys <- as.character(params$keys)
+  pairs <- lapply(params$pairs, function(x) list(
+    key = as.character(x$key), cell_id = as.character(x$cell_id)))
+  mode <- as.character(params$mode)
+  value <- scworkbench::wb_prim_relation_family(
+    vapply(pairs, `[[`, character(1), "key"),
+    vapply(pairs, `[[`, character(1), "cell_id"),
+    weight = as.numeric(seq_along(pairs)))
+  if (identical(mode, "write_before_declare"))
+    writers$write_terminal_primitive("relation", value)
+  if (identical(mode, "caught_seal_fault"))
+    try(writers$declare_relation_family_rows("relation", keys,
+      list(pairs), c(weight = TRUE, value = FALSE, distance = FALSE)),
+      silent = TRUE)
+  if (!mode %in% c("omit", "write_before_declare", "caught_seal_fault")) {
+    writers$declare_relation_family_rows("relation", keys, list(pairs),
+      c(weight = TRUE, value = FALSE, distance = FALSE))
+    if (identical(mode, "repeat"))
+      writers$declare_relation_family_rows("relation", keys, list(pairs),
+        c(weight = TRUE, value = FALSE, distance = FALSE))
+  }
+  if (identical(mode, "swap_rows")) {
+    value$key <- rev(value$key)
+    value$cell_id <- rev(value$cell_id)
+  }
+  if (identical(mode, "non_finite")) value$weight[[1L]] <- Inf
+  writers$write_terminal_primitive("relation", value)
+  invisible(list(status = "ok"))
+}
+
 .standalone_sparse_family_model <- function(readers, writers, params,
     context) {
   stopifnot(length(context$standalone_sparse_cell_family_grants) == 1L,
@@ -235,6 +287,8 @@ register_operation_pack <- function() {
     list(
       `scwbv3phase5::fit_sibling_model` = .fit_sibling_model,
       `scwbv3phase5::fit_derived_axis_model` = .fit_derived_axis_model,
+      `scwbv3phase5::fit_derived_axis_relation` =
+        .fit_derived_axis_relation,
       `scwbv3phase5::consume_self_linked_model` =
         .consume_self_linked_model,
       `scwbv3phase5::adopt_external_state` = .adopt_external_state
@@ -243,6 +297,8 @@ register_operation_pack <- function() {
       , `scwbv3phase5::derived_effective_key` = .derived_effective_key
       , `scwbv3phase5::standalone_sparse_family` =
         .standalone_sparse_family
+      , `scwbv3phase5::sealed_relation_family` =
+        .sealed_relation_family
       , `scwbv3phase5::standalone_sparse_family_model` =
         .standalone_sparse_family_model
     )

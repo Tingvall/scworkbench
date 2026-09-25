@@ -335,6 +335,10 @@
       "items": {"$ref": "#/$defs/standalone_sparse_cell_family_grant"},
       "minItems": 1,
       "maxItems": 1
+    },
+    "sealed_relation_family_grants": {
+      "type": "array", "items": {"$ref": "#/$defs/sealed_relation_family_grant"},
+      "minItems": 1, "maxItems": 1
     }
   },
   "$defs": {
@@ -2763,6 +2767,9 @@
             "kind": {
               "const": "relation_family"
             },
+            "sealed_relation_family_provisional_grant": {
+              "$ref": "#/$defs/sealed_relation_family_grant"
+            },
             "storage_profile": {
               "const": "terminal_primitive_v1"
             },
@@ -2808,7 +2815,7 @@
               }
             },
             "expected_cell_order_identity": {
-              "$ref": "#/$defs/identity"
+              "type": "null"
             },
             "cardinality_grant": {
               "$ref": "#/$defs/cardinality_grant"
@@ -4380,6 +4387,10 @@
           "items": {"$ref": "#/$defs/identity"},
           "minItems": 1,
           "maxItems": 1
+        },
+        "sealed_relation_family_grant_identities": {
+          "type": "array", "items": {"$ref": "#/$defs/identity"},
+          "minItems": 1, "maxItems": 1
         }
       }
     },
@@ -10189,6 +10200,101 @@
             }
           }
         }
+      }
+    },
+    "sealed_relation_family_grant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "manifest_policy_identity", "source_selector",
+        "ordinary_output_base_grant_identity", "transition_identity",
+        "output_name", "kind", "limits", "grant_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.relation_provisional_grant.v1"},
+        "manifest_policy_identity": {"$ref": "#/$defs/identity"},
+        "source_selector": {"$ref": "#/$defs/sealed_relation_source_selector"},
+        "known_source_axis": {"$ref": "#/$defs/sealed_relation_known_source_axis"},
+        "ordinary_output_base_grant_identity": {"$ref": "#/$defs/identity"},
+        "transition_identity": {"$ref": "#/$defs/identity"},
+        "output_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "kind": {"const": "relation_family"},
+        "limits": {"$ref": "#/$defs/sealed_relation_limits"},
+        "grant_identity": {"$ref": "#/$defs/sealed_relation_grant_identity"}
+      },
+      "allOf": [{"if": {"properties": {"source_selector": {
+        "properties": {"source": {"const": "typed_input_v1"}}}}},
+        "then": {"required": ["known_source_axis"]},
+        "else": {"not": {"required": ["known_source_axis"]}}}]
+    },
+    "sealed_relation_source_selector": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false,
+         "required": ["source", "input", "source_axis_identity"],
+         "properties": {
+           "source": {"const": "typed_input_v1"},
+           "input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+           "source_axis_identity": {"$ref": "#/$defs/identity"}}},
+        {"type": "object", "additionalProperties": false,
+         "required": ["source", "model_output", "g2_grant_identity",
+           "parent_snapshot_identity"],
+         "properties": {
+           "source": {"const": "g2_derived_fitted_axis_v1"},
+           "model_output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+           "g2_grant_identity": {"$ref": "#/$defs/identity"},
+           "parent_snapshot_identity": {"$ref": "#/$defs/identity"}}}
+      ]
+    },
+    "sealed_relation_known_source_axis": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "source_kind", "input_name", "input_kind",
+        "source_id", "input_descriptor_identity", "input_content_identity",
+        "source_state_identity", "ordered_cells", "cell_order_identity",
+        "source_axis_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.relation_source_axis.v1"},
+        "source_kind": {"const": "typed_input_v1"},
+        "input_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "input_kind": {"enum": ["space", "space_2d", "matrix"]},
+        "source_id": {"type": "string", "minLength": 1},
+        "input_descriptor_identity": {"$ref": "#/$defs/identity"},
+        "input_content_identity": {"$ref": "#/$defs/identity"},
+        "source_state_identity": {"$ref": "#/$defs/identity"},
+        "ordered_cells": {"$ref": "#/$defs/sealed_relation_cells"},
+        "cell_order_identity": {"$ref": "#/$defs/identity"},
+        "source_axis_identity": {"$ref": "#/$defs/sealed_relation_source_axis_identity"}
+      }
+    },
+    "sealed_relation_grant_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.relation_provisional_grant.v1"},
+        "scope": {"const": "provisional grant excluding grant_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sealed_relation_source_axis_identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["scheme", "scope", "sha256"],
+      "properties": {
+        "scheme": {"const": "scworkbench.operation_pack.relation_source_axis.v1"},
+        "scope": {"const": "source axis excluding source_axis_identity"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "sealed_relation_cells": {
+      "type": "array", "minItems": 1, "maxItems": 1000000,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "sealed_relation_limits": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maximum_axis_cells", "maximum_keys", "maximum_rows",
+        "maximum_id_bytes", "maximum_control_bytes", "maximum_chunk_pairs"],
+      "properties": {
+        "maximum_axis_cells": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "maximum_keys": {"type": "integer", "minimum": 1, "maximum": 1024},
+        "maximum_rows": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "maximum_id_bytes": {"type": "integer", "minimum": 1, "maximum": 1024},
+        "maximum_control_bytes": {"type": "integer", "minimum": 1, "maximum": 67108864},
+        "maximum_chunk_pairs": {"type": "integer", "minimum": 1, "maximum": 8192}
       }
     },
     "standalone_sparse_cell_family_grant": {

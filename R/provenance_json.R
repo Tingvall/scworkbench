@@ -186,6 +186,8 @@
       c("weight", "value", "distance"),
       names(unclass(prim))[vapply(unclass(prim), Negate(is.null), logical(1))]
     )
+    descriptor$content_identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.relation_family.content.v1", unclass(prim))
   }
   descriptor
 }

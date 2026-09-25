@@ -422,6 +422,14 @@ wb_promote_analysis <- function(bundle,
           workspace = workspace
         )
 
+        if (identical(as.character(prim$kind)[1], "relation_family") &&
+            !is.null(staging_bundle)) {
+          .wb_operation_pack_v2_fault("relation_family_promoted",
+            output = out_name, artifact_id = artifact_id)
+          .wb_operation_pack_v3_rf_promoted_assert(bundle, staging_bundle,
+            run, out_name, artifact_id)
+        }
+
         promoted_ids[[out_name]] <- artifact_id
       }
     }, error = function(e) {

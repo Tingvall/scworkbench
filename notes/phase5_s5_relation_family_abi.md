@@ -1,0 +1,19 @@
+# Phase 5 S5 generic relation-family ABI
+
+This is an opt-in ABI-v3 capability for R-backed operation packs. It does not register or migrate Monocle3 or Palantir. The Phase 5 migrated count remains 15/24. Gate A old-core oracle and bounds evidence is in `notes/phase5_s5_gate_a_evidence.md`; its 25-row Monocle3 and 60-row Palantir results are scientific oracles, separate from the synthetic ABI fixtures here.
+
+## Authority
+
+A manifest may declare one required terminal `relation_family` output under `sealed_relation_family_v1`. The policy fixes an authenticated source axis, first-occurrence ordered unique keys, exact ordered structured `{key, cell_id}` pairs, unique pairs, optional `weight`/`value`/`distance` presence, and finite numeric values. The same cell may occur under different keys. Rows need not be sorted, key-major, source-relative, or Cartesian-complete. Zero rows are rejected because the current promoted relation loader cannot reopen them. The primitive's existing `scworkbench.relation_family.content.v1` identity is unchanged; separate key-order and pair-order identities seal row structure.
+
+The initial request carries a provisional grant without a writer. A known typed `space`, `space_2d`, or `matrix` input binds its ordered source cells and content identity in that request. A G2 model output binds only its selector, parent snapshot, and G2 grant; the exact fitted cells are bound after G2 sealing. A single `declare_relation_family_rows()` call accepts bounded ordered chunks and emits the one-shot sealed output grant. The ordinary terminal writer checks the primitive against the seal before stage. Request, staged payload, receipt, transition reopen, SQL promotion, and recipient artifact loading each check their available evidence. The promoted relation provenance records a content identity and the loader recomputes it after reconstructing SQL rows; older relation artifacts without that optional descriptor remain readable.
+
+Accepted ceilings are 1,000,000 source cells, 1,024 keys, 1,000,000 rows, 1,024 raw UTF-8 bytes per identifier, 67,108,864 encoded identifier bytes across all source cells, keys, and pair occurrences, and 8,192 pairs per declaration chunk. Manifest policies may narrow these. The combined byte count uses each canonical JSON string representation, including quotes and escapes. Per-ID and combined checks happen before a writer can be issued. Membership and duplicate checks use hashed sets across all chunks. A relation sourced from a G2 model must share its promotion group and cannot be a G2 required cell-indexed sibling; it is an additional terminal in the group's promotion closure.
+
+Python mirrors the shared manifest/request/receipt schemas and the 14-case canonical identity corpus byte-for-byte. Python manifest admission and request staging explicitly reject relation-policy execution; Python relation execution and Python G1 v3 model reads remain out of scope.
+
+## Synthetic ABI evidence
+
+`tests/fixtures/operation-pack-v3-phase5` contains separate typed-source and G2-derived relation runners. `tests/test_operation_pack_v3_sealed_relation_family_contract.R` exercises exact nonlexicographic row order, overlap and sparse membership, a delayed G2 binding, staged and promoted content, recipient and relocated reopen, self-rehashed contradictory receipt evidence, altered private RDS, altered SQL row or descriptor, declaration misuse, invalid keys/membership, nonfinite values, byte/chunk bounds, and rollback hooks. The 14 canonical fixture cases in `inst/protocol/fixtures/operation-pack-v3/relation-family-identities.json` include a full typed-source request, observation, and receipt. They are synthetic authority tests, not scientific S5 method comparisons.
+
+No S5 operation extraction, registration, merge, push, SIF build, release, or publication is part of this ABI work.

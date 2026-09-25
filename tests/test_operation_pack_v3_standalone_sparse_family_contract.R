@@ -180,7 +180,9 @@ test_operation_pack_v3_standalone_sparse_family_manifest_admission_contract <-
       identical(wb_list_ops(), before$ops),
       identical(wb_operation_catalog_identity(), before$catalog))
   }
-  sparse <- manifest$operations[[length(manifest$operations) - 1L]]
+  sparse_index <- match("standalone_sparse_family", vapply(
+    manifest$operations, `[[`, character(1), "name"))
+  sparse <- manifest$operations[[sparse_index]]
   python <- manifest
   python$operations <- list(sparse)
   python$backend <- "Python"
@@ -196,7 +198,7 @@ test_operation_pack_v3_standalone_sparse_family_manifest_admission_contract <-
   sibling$operations[[1L]]$dimension_policies <- list(policy)
   reject(sibling)
   foreign <- manifest
-  index <- length(foreign$operations) - 1L
+  index <- sparse_index
   foreign$operations[[index]]$dimension_policies[[1L]]$axis_source$
     input <- "absent"
   policy <- foreign$operations[[index]]$dimension_policies[[1L]]

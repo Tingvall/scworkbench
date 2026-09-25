@@ -491,6 +491,15 @@ wb_art_load <- function(bundle, artifact_id, expected_kind = NULL,
 
   prim <- .wb_trajectory_hydrate_primitive_meta(bundle, artifact_id, prim)
 
+  if (identical(type, "relation_family") &&
+      !is.null(payload_descriptor$content_identity)) {
+    observed <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.relation_family.content.v1", unclass(prim))
+    .wb_assert(identical(observed, payload_descriptor$content_identity),
+      paste0("wb_art_load(): durable relation content differs from its ",
+        "payload descriptor for ", artifact_id))
+  }
+
   # Kind-safety
   if (!is.null(expected_kind)) {
     .wb_assert_kind(prim, expected_kind, where = paste0(" (artifact_id=", artifact_id, ")"))

@@ -2313,6 +2313,54 @@
     "dimension_policy": {
       "oneOf": [
         {
+          "type": "object", "additionalProperties": false,
+          "required": ["schema", "output", "policy", "axis_source",
+            "key_order", "row_order", "pair_multiplicity",
+            "numeric_fields", "declaration_discipline",
+            "maximum_axis_cells", "maximum_keys", "maximum_rows",
+            "maximum_id_bytes", "maximum_control_bytes",
+            "maximum_chunk_pairs", "policy_identity"],
+          "properties": {
+            "schema": {"const": "scworkbench.operation_pack.sealed_relation_family_policy.v1"},
+            "output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "policy": {"const": "sealed_relation_family_v1"},
+            "axis_source": {
+              "oneOf": [
+                {"type": "object", "additionalProperties": false,
+                 "required": ["source", "input"],
+                 "properties": {
+                   "source": {"const": "typed_input_v1"},
+                   "input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}}},
+                {"type": "object", "additionalProperties": false,
+                 "required": ["source", "model_output"],
+                 "properties": {
+                   "source": {"const": "g2_derived_fitted_axis_v1"},
+                   "model_output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}}}
+              ]
+            },
+            "key_order": {"const": "first_occurrence_v1"},
+            "row_order": {"const": "declared_exact_v1"},
+            "pair_multiplicity": {"const": "unique_key_cell_v1"},
+            "numeric_fields": {"const": "declare_presence_finite_v1"},
+            "declaration_discipline": {"const": "exactly_once_before_write"},
+            "maximum_axis_cells": {"type": "integer", "minimum": 1, "maximum": 1000000},
+            "maximum_keys": {"type": "integer", "minimum": 1, "maximum": 1024},
+            "maximum_rows": {"type": "integer", "minimum": 1, "maximum": 1000000},
+            "maximum_id_bytes": {"type": "integer", "minimum": 1, "maximum": 1024},
+            "maximum_control_bytes": {"type": "integer", "minimum": 1, "maximum": 67108864},
+            "maximum_chunk_pairs": {"type": "integer", "minimum": 1, "maximum": 8192},
+            "policy_identity": {
+              "type": "object", "additionalProperties": false,
+              "required": ["scheme", "scope", "sha256"],
+              "properties": {
+                "scheme": {"const": "scworkbench.operation_pack.sealed_relation_family_policy.v1"},
+                "scope": {"const": "policy excluding policy_identity"},
+                "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+              }
+            }
+          }
+        },
+        {
           "type": "object",
           "additionalProperties": false,
           "required": [

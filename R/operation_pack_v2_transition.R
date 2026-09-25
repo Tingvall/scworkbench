@@ -1468,6 +1468,8 @@
     inputs, params, request)
   if (abi_v3) .wb_operation_pack_v3_sscf_source_assert_current(bundle,
     request, inputs, "audit")
+  if (abi_v3) .wb_operation_pack_v3_rf_source_assert_current(bundle,
+    request, inputs, "audit")
   .wb_operation_pack_v2_fault("before_dispatch", transition_id = transition_id)
   if (python_backend) {
     process_result <- if (abi_v3) .wb_operation_pack_v3_python_dispatch(
@@ -1537,7 +1539,9 @@
           request$derived_cell_output_axis_grants %||% list()),
         standalone_sparse_cell_family_grants =
           .wb_operation_pack_v2_deep_copy(
-            request$standalone_sparse_cell_family_grants %||% list()))),
+            request$standalone_sparse_cell_family_grants %||% list()),
+        sealed_relation_family_grants = .wb_operation_pack_v2_deep_copy(
+          request$sealed_relation_family_grants %||% list()))),
       error = identity)
     if (inherits(result, "error")) {
       adapter$consume()
@@ -1582,7 +1586,8 @@
       derived_cell_output_axis_declarations = result$
         derived_cell_output_axis_declarations %||% list(),
       derived_fitted_axis_state = adapter$state,
-      standalone_sparse_cell_family_state = adapter$state) else .wb_operation_pack_v2_receipt(request,
+      standalone_sparse_cell_family_state = adapter$state,
+      sealed_relation_family_state = adapter$state) else .wb_operation_pack_v2_receipt(request,
         registration, operation, adapter$state$writes, preflight,
         registry_read_observations)
   }
@@ -1696,6 +1701,8 @@
   if (abi_v3) .wb_operation_pack_v3_g7_sources_assert_current(operation,
     inputs, params, request)
   if (abi_v3) .wb_operation_pack_v3_sscf_source_assert_current(bundle,
+    request, inputs, "publication")
+  if (abi_v3) .wb_operation_pack_v3_rf_source_assert_current(bundle,
     request, inputs, "publication")
   .wb_operation_pack_v2_fault("before_publication", transition_id = transition_id)
   moved <- try(file.rename(stage, final), silent = TRUE)
