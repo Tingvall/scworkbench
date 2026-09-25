@@ -2,7 +2,7 @@
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
   "node_count": 284,
-  "edge_count": 471,
+  "edge_count": 469,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -4016,18 +4016,6 @@
     },
     {
       "from": "artifact_type:path_2d_family",
-      "to": "recipe:plot_trajectory_on_umap",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:plot_trajectory_on_umap"
-    },
-    {
-      "from": "recipe:plot_trajectory_on_umap",
-      "to": "op:slingshot_adopt",
-      "edge_type": "uses",
-      "label": "op:slingshot_adopt"
-    },
-    {
-      "from": "op:slingshot_adopt",
       "to": "recipe:plot_trajectory_on_umap",
       "edge_type": "used_by_recipe",
       "label": "recipe:plot_trajectory_on_umap"

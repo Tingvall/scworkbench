@@ -341,7 +341,7 @@ Steps:
 
 Uses:
 - `artifact_type:path_2d_family`
-- `op:slingshot_adopt`
+- `op:scwbtrajectory::slingshot_project`
 - `op:monocle3_project`
 - `op:palantir_project`
 - `op:scwbtrajectory::space_path_project_2d`

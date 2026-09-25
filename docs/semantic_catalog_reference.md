@@ -6,7 +6,7 @@ Generated at: source-controlled
 
 Record count: 284
 
-Graph edges: 471
+Graph edges: 469
 
 ## artifact_type
 

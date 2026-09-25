@@ -186,7 +186,6 @@
 <line x1="700" y1="103" x2="300" y2="247" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:feature_set_import used_by_recipe recipe:feature_set_import_qc_then_dynamics</title></line>
 <line x1="700" y1="391" x2="300" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:monocle3_project used_by_recipe recipe:plot_trajectory_on_umap</title></line>
 <line x1="700" y1="535" x2="300" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:palantir_project used_by_recipe recipe:plot_trajectory_on_umap</title></line>
-<line x1="700" y1="679" x2="300" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt used_by_recipe recipe:plot_trajectory_on_umap</title></line>
 <line x1="1030" y1="103" x2="300" y2="103" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>parameter:cell_set used_by_recipe recipe:cluster_markers_pathways</title></line>
 <line x1="1030" y1="103" x2="300" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>parameter:cell_set used_by_recipe recipe:de_to_pathway_report</title></line>
 <line x1="1030" y1="247" x2="300" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>parameter:join_policy used_by_recipe recipe:mixed_source_composite_trajectory</title></line>
@@ -243,7 +242,6 @@
 <line x1="300" y1="463" x2="1360" y2="2623" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:plot_trajectory_on_umap uses artifact_type:path_2d_family</title></line>
 <line x1="300" y1="463" x2="700" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:plot_trajectory_on_umap uses op:monocle3_project</title></line>
 <line x1="300" y1="463" x2="700" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:plot_trajectory_on_umap uses op:palantir_project</title></line>
-<line x1="300" y1="463" x2="700" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:plot_trajectory_on_umap uses op:slingshot_adopt</title></line>
 <line x1="300" y1="463" x2="1030" y2="319" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:plot_trajectory_on_umap uses parameter:lineage</title></line>
 <line x1="300" y1="463" x2="2350" y2="103" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:plot_trajectory_on_umap uses plot:embedding_overlay</title></line>
 <line x1="300" y1="463" x2="1690" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>recipe:plot_trajectory_on_umap uses primitive:path_2d_family</title></line>

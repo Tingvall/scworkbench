@@ -598,7 +598,6 @@ digraph scworkbench_semantic_graph {
   n167 -> n263 [label="used_by_recipe", style=dotted,color="#777777"];
   n171 -> n266 [label="used_by_recipe", style=dotted,color="#777777"];
   n173 -> n266 [label="used_by_recipe", style=dotted,color="#777777"];
-  n177 -> n266 [label="used_by_recipe", style=dotted,color="#777777"];
   n179 -> n260 [label="used_by_recipe", style=dotted,color="#777777"];
   n179 -> n261 [label="used_by_recipe", style=dotted,color="#777777"];
   n185 -> n265 [label="used_by_recipe", style=dotted,color="#777777"];
@@ -687,7 +686,6 @@ digraph scworkbench_semantic_graph {
   n266 -> n75 [label="uses", color="#555555"];
   n266 -> n171 [label="uses", color="#555555"];
   n266 -> n173 [label="uses", color="#555555"];
-  n266 -> n177 [label="uses", color="#555555"];
   n266 -> n186 [label="uses", color="#555555"];
   n266 -> n239 [label="uses", color="#555555"];
   n266 -> n255 [label="uses", color="#555555"];

@@ -71,7 +71,9 @@
   payload <- adapted$readers$fitted_model()
   stopifnot(identical(as.character(payload$primary_path),
     as.character(prepared$grants[[1L]]$tree_manifest$primary_path)),
-    identical(state$model_payload_calls$fitted_model, 1L))
+    identical(state$model_payload_calls$fitted_model, 1L),
+    identical(as.character(payload$source_space_id),
+      as.character(prepared$grants[[1L]]$model_source_linkage$source_space_id)))
   if (identical(as.character(model$model_source_linkage$schema %||% "")[1],
       "scworkbench.operation_pack.model_source_linkage.v3")) {
     stopifnot(identical(rownames(payload$fitted_source_space), expected),

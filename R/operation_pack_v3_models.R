@@ -720,6 +720,9 @@
           fitted <- model_values[[name]]$fitted_space %||% NULL
           if (!is.null(fitted)) result$fitted_source_space <-
             .wb_operation_pack_v2_deep_copy(fitted)
+          if (!is.null(grant$model_source_linkage))
+            result$source_space_id <- as.character(
+              grant$model_source_linkage$source_space_id)[1L]
           if (identical(grant$reader,
               "read_self_linked_contained_model_payload"))
             result$runtime_private_path <- safe else result$path <- safe
