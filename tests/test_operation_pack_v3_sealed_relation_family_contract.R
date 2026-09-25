@@ -285,6 +285,7 @@ test_operation_pack_v3_relation_family_negative_and_rollback_contract <-
   fixture <- .wb_rf_install(); state <- .wb_rf_bundle()
   on.exit({
     options(scworkbench.operation_pack_v2_test_hook = NULL)
+    options(scworkbench.test_relation_shadowed_pair = NULL)
     try(wb_close_bundle(state$bundle), silent = TRUE)
     .wb_rf_cleanup(fixture)
     unlink(state$root, recursive = TRUE, force = TRUE)
@@ -319,6 +320,22 @@ test_operation_pack_v3_relation_family_negative_and_rollback_contract <-
   invalid[[4L]] <- invalid[[2L]]
   .wb_rf_expect(.wb_rf_run(state, pairs = invalid),
     c('PYBENCH_OUTPUT_INVALID', 'PYBENCH_PROCESS_FAILED'))
+  for (attack in list(
+      list(index = 1L, field = 'cell_id', value = 'foreign'),
+      list(index = 1L, field = 'key', value = 'unknown'),
+      list(index = 3L, field = 'cell_id', value = 'foreign',
+        split_chunks = TRUE))) {
+    options(scworkbench.test_relation_shadowed_pair = attack)
+    .wb_rf_expect(.wb_rf_run(state), c('PYBENCH_CAPABILITY_MISMATCH',
+      'PYBENCH_PROCESS_FAILED'))
+    options(scworkbench.test_relation_shadowed_pair = NULL)
+    stopifnot(identical(sort(list.files(store, all.files = TRUE,
+        no.. = TRUE)), before),
+      identical(.wb_manifest_registry_snapshot(state$bundle$con)$
+        fingerprint, fingerprint),
+      identical(.wb_rf_durable_state(state$bundle), durable),
+      nrow(wb_art_list(state$bundle)) == 0L)
+  }
   .wb_rf_expect(.wb_rf_run(state, keys = rev(c('lineage|z',
     'lineage:a'))), c('PYBENCH_CAPABILITY_MISMATCH',
       'PYBENCH_PROCESS_FAILED'))
@@ -398,6 +415,16 @@ test_operation_pack_v3_relation_family_layout_and_delayed_axis_contract <-
     'relation', c('a|b', 'a'), list(c(pairs[1:2], list(
       list(key = 'a|b', cell_id = 'foreign')))), fields),
     'PYBENCH_OUTPUT_INVALID')
+  for (shadowed in list(
+      list(key = 'a|b', cell_id = 'c|1', cell_id = 'foreign'),
+      list(key = 'a|b', cell_id = 'c|1', key = 'unknown'))) {
+    .wb_rf_expect(.wb_operation_pack_v3_rf_layout(grant, source,
+      'relation', c('a|b', 'a'), list(c(list(shadowed), pairs[2:3])),
+      fields), 'PYBENCH_CAPABILITY_MISMATCH')
+    .wb_rf_expect(.wb_operation_pack_v3_rf_layout(grant, source,
+      'relation', c('a|b', 'a'), list(pairs[1:2], list(shadowed)),
+      fields), 'PYBENCH_CAPABILITY_MISMATCH')
+  }
   narrow <- grant; narrow$limits$maximum_id_bytes <- 2L
   .wb_rf_expect(.wb_operation_pack_v3_rf_layout(narrow, source,
     'relation', c('éé', 'a'), list(pairs), fields),

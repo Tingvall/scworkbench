@@ -259,7 +259,8 @@
         as.double(limits$maximum_rows))
       fail("Relation declaration exceeds its row ceiling.")
     for (pair in chunk) {
-      if (!is.list(pair) || !setequal(names(pair), c("key", "cell_id")))
+      if (!is.list(pair) || length(pair) != 2L ||
+          !setequal(names(pair), c("key", "cell_id")))
         fail("Relation rows require structured key/cell_id pairs.")
       key <- .wb_operation_pack_v3_rf_strings(pair$key,
         limits$maximum_id_bytes, "Relation row key")

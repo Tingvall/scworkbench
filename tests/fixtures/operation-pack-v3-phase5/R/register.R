@@ -201,6 +201,14 @@
   keys <- as.character(params$keys)
   pairs <- lapply(params$pairs, function(x) list(
     key = as.character(x$key), cell_id = as.character(x$cell_id)))
+  declared_pairs <- pairs
+  shadow <- getOption('scworkbench.test_relation_shadowed_pair', NULL)
+  if (!is.null(shadow))
+    declared_pairs[[shadow$index]] <- c(declared_pairs[[shadow$index]],
+      stats::setNames(list(shadow$value), shadow$field))
+  declared_chunks <- if (!is.null(shadow) && isTRUE(shadow$split_chunks))
+    list(declared_pairs[1:2], declared_pairs[3:length(declared_pairs)])
+  else list(declared_pairs)
   mode <- as.character(params$mode)
   value <- scworkbench::wb_prim_relation_family(
     vapply(pairs, `[[`, character(1), "key"),
@@ -210,13 +218,13 @@
     writers$write_terminal_primitive("relation", value)
   if (identical(mode, "caught_seal_fault"))
     try(writers$declare_relation_family_rows("relation", keys,
-      list(pairs), c(weight = TRUE, value = FALSE, distance = FALSE)),
+      declared_chunks, c(weight = TRUE, value = FALSE, distance = FALSE)),
       silent = TRUE)
   if (!mode %in% c("omit", "write_before_declare", "caught_seal_fault")) {
-    writers$declare_relation_family_rows("relation", keys, list(pairs),
+    writers$declare_relation_family_rows("relation", keys, declared_chunks,
       c(weight = TRUE, value = FALSE, distance = FALSE))
     if (identical(mode, "repeat"))
-      writers$declare_relation_family_rows("relation", keys, list(pairs),
+      writers$declare_relation_family_rows("relation", keys, declared_chunks,
         c(weight = TRUE, value = FALSE, distance = FALSE))
   }
   if (identical(mode, "swap_rows")) {
