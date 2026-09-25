@@ -1,0 +1,626 @@
+{
+  "schema": "scworkbench.phase5_s5.old_core_relation_oracle.v1",
+  "core_commit": "6e0438c90fe51bacda1604aa7c5cc3b1cd1e5646",
+  "pybench_commit": "9ad8a7a3bd2298fdc6f426032e54ccb07eee0402",
+  "oracles": {
+    "monocle3": {
+      "op": "monocle3_fit",
+      "source_cells": [
+        "z10",
+        "c2",
+        "a9",
+        "m1",
+        "b20",
+        "q3",
+        "d7",
+        "x4",
+        "e12",
+        "r5",
+        "f11",
+        "p6",
+        "g18",
+        "n8",
+        "h14",
+        "o13",
+        "i17",
+        "l15",
+        "j19",
+        "k16",
+        "u21",
+        "v22",
+        "w23",
+        "t24"
+      ],
+      "source_cell_count": 24,
+      "row_count": 25,
+      "ordered_keys": [
+        "root:Y_1::lineage:Y_7",
+        "root:Y_1::lineage:Y_8"
+      ],
+      "ordered_rows": [
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "z10",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "c2",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "a9",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "m1",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "b20",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "q3",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "d7",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_7",
+          "cell_id": "x4",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "z10",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "e12",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "r5",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "f11",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "p6",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "g18",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "n8",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "h14",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "o13",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "i17",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "l15",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "j19",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "k16",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "u21",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "v22",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "w23",
+          "weight_hex": "0x1p+0"
+        },
+        {
+          "key": "root:Y_1::lineage:Y_8",
+          "cell_id": "t24",
+          "weight_hex": "0x1p+0"
+        }
+      ],
+      "optional_numeric_presence": {
+        "weight": true,
+        "value": false,
+        "distance": false
+      },
+      "content_identity": {
+        "scheme": "scworkbench.relation_family.content.v1",
+        "sha256": "66b286400e6151b651f74d0e294cf7c0a8ea70da5ce10c19f545b9598a24256a"
+      },
+      "reopened_content_identity": {
+        "scheme": "scworkbench.relation_family.content.v1",
+        "sha256": "66b286400e6151b651f74d0e294cf7c0a8ea70da5ce10c19f545b9598a24256a"
+      },
+      "terminal_content_identities": {
+        "pseudotime": {
+          "direct": {
+            "scheme": "scworkbench.cell_vector.content.v1",
+            "sha256": "3456da49a233aa75e6900a9891fbb7d801d660447cc230589cba4eba3b850a24"
+          },
+          "reopened": {
+            "scheme": "scworkbench.cell_vector.content.v1",
+            "sha256": "3456da49a233aa75e6900a9891fbb7d801d660447cc230589cba4eba3b850a24"
+          }
+        },
+        "branch_membership": {
+          "direct": {
+            "scheme": "scworkbench.relation_family.content.v1",
+            "sha256": "66b286400e6151b651f74d0e294cf7c0a8ea70da5ce10c19f545b9598a24256a"
+          },
+          "reopened": {
+            "scheme": "scworkbench.relation_family.content.v1",
+            "sha256": "66b286400e6151b651f74d0e294cf7c0a8ea70da5ce10c19f545b9598a24256a"
+          }
+        }
+      },
+      "closure": [
+        "pseudotime",
+        "branch_membership",
+        "model"
+      ],
+      "promoted_count": 3,
+      "model": {
+        "engine": "monocle3",
+        "model_type": "monocle3_cds",
+        "path_suffix": "rds"
+      }
+    },
+    "palantir": {
+      "op": "palantir_fit",
+      "source_cells": [
+        "c00",
+        "c01",
+        "c02",
+        "c03",
+        "c04",
+        "c05",
+        "c06",
+        "c07",
+        "c08",
+        "c09",
+        "a00",
+        "a01",
+        "a02",
+        "a03",
+        "a04",
+        "a05",
+        "a06",
+        "a07",
+        "a08",
+        "a09",
+        "b00",
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09"
+      ],
+      "source_cell_count": 30,
+      "row_count": 60,
+      "ordered_keys": [
+        "branch:a09",
+        "branch:b09"
+      ],
+      "ordered_rows": [
+        {
+          "key": "branch:a09",
+          "cell_id": "a00",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a01",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a02",
+          "weight_hex": "0x1.331ed17210706p-6"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a03",
+          "weight_hex": "0x1.f39ed131390e9p-4"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a04",
+          "weight_hex": "0x1.096e1f77c50e2p-2"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a05",
+          "weight_hex": "0x1.8fef57412bce4p-2"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a06",
+          "weight_hex": "0x1.e6fdb0627d30ap-2"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a07",
+          "weight_hex": "0x1.1073f1bea8b2p-1"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a08",
+          "weight_hex": "0x1.1e2c2aa8d8b17p-1"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "a09",
+          "weight_hex": "0x1.2327488d06bf8p-1"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b00",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b01",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b02",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b03",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b04",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b05",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b06",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b07",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b08",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "b09",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c00",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c01",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c02",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c03",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c04",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c05",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c06",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c07",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c08",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:a09",
+          "cell_id": "c09",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a00",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a01",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a02",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a03",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a04",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a05",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a06",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a07",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a08",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "a09",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b00",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b01",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b02",
+          "weight_hex": "0x1.1c49af1d4fee5p-5"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b03",
+          "weight_hex": "0x1.5e677f306ce11p-3"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b04",
+          "weight_hex": "0x1.e9b6132ed4747p-2"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b05",
+          "weight_hex": "0x1.85ddf343cdad4p-1"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b06",
+          "weight_hex": "0x1.c785f6cbba33fp-1"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b07",
+          "weight_hex": "0x1.e12bda0b19fcdp-1"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b08",
+          "weight_hex": "0x1.e96f7e49a7232p-1"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "b09",
+          "weight_hex": "0x1.ebdb9c303e4cp-1"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c00",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c01",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c02",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c03",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c04",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c05",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c06",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c07",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c08",
+          "weight_hex": "0x0p+0"
+        },
+        {
+          "key": "branch:b09",
+          "cell_id": "c09",
+          "weight_hex": "0x0p+0"
+        }
+      ],
+      "optional_numeric_presence": {
+        "weight": true,
+        "value": false,
+        "distance": false
+      },
+      "content_identity": {
+        "scheme": "scworkbench.relation_family.content.v1",
+        "sha256": "7b8f6f187f99a608bc96b5f3b5dfe51ab91d573770550c66a34da79d4f2480a9"
+      },
+      "reopened_content_identity": {
+        "scheme": "scworkbench.relation_family.content.v1",
+        "sha256": "7b8f6f187f99a608bc96b5f3b5dfe51ab91d573770550c66a34da79d4f2480a9"
+      },
+      "terminal_content_identities": {
+        "pseudotime": {
+          "direct": {
+            "scheme": "scworkbench.cell_vector.content.v1",
+            "sha256": "252a4c2b381ae1740edfd27ddd9633e2b582c6a9f3cd9ef3cece5c02ecdbbf06"
+          },
+          "reopened": {
+            "scheme": "scworkbench.cell_vector.content.v1",
+            "sha256": "252a4c2b381ae1740edfd27ddd9633e2b582c6a9f3cd9ef3cece5c02ecdbbf06"
+          }
+        },
+        "branch_membership": {
+          "direct": {
+            "scheme": "scworkbench.relation_family.content.v1",
+            "sha256": "7b8f6f187f99a608bc96b5f3b5dfe51ab91d573770550c66a34da79d4f2480a9"
+          },
+          "reopened": {
+            "scheme": "scworkbench.relation_family.content.v1",
+            "sha256": "7b8f6f187f99a608bc96b5f3b5dfe51ab91d573770550c66a34da79d4f2480a9"
+          }
+        },
+        "branch_summary": {
+          "direct": {
+            "scheme": "scworkbench.obs_table.content.v1",
+            "sha256": "2732769edcd0876158aa7fa3cda10522fa8681d8434cafa278ebfab4571626e6"
+          },
+          "reopened": {
+            "scheme": "scworkbench.obs_table.content.v1",
+            "sha256": "5c2d4477cc88907c98093649497649ee322e91f59e621f7d712f7dbbf846cf05"
+          }
+        },
+        "entropy": {
+          "direct": {
+            "scheme": "scworkbench.cell_vector.content.v1",
+            "sha256": "dba92b3860d12e799d8f754769fb76a19d519e242aa9c36e695f6321e05546aa"
+          },
+          "reopened": {
+            "scheme": "scworkbench.cell_vector.content.v1",
+            "sha256": "dba92b3860d12e799d8f754769fb76a19d519e242aa9c36e695f6321e05546aa"
+          }
+        }
+      },
+      "closure": [
+        "pseudotime",
+        "branch_membership",
+        "branch_summary",
+        "entropy",
+        "model"
+      ],
+      "promoted_count": 5,
+      "model": {
+        "engine": "palantir",
+        "model_type": "palantir_fit",
+        "path_suffix": "pkl"
+      }
+    }
+  }
+}
