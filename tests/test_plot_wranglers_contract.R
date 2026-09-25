@@ -204,161 +204,78 @@ test_plot_wranglers_contract <- function(bundle_dir) {
   stopifnot(any(rep_pw$plot_type == "volcano" & rep_pw$reason_code %in% c("no_compatible_mapper", "wrangle_error")))
   stopifnot(any(rep_pw$plot_type == "volcano" & nzchar(as.character(rep_pw$reason))))
 
-  if (requireNamespace("slingshot", quietly = TRUE)) {
-    cells <- tryCatch(wb_cells(b, cell_set = "core"), error = function(e) character(0))
-    if (length(cells) < 300L) cells <- wb_cells(b, cell_set = "all")
-    stopifnot(length(cells) >= 300L)
-    cells <- as.character(head(cells, 600))
+  # Plot mapping consumes typed tables. Keep this core contract independent of
+  # the trajectory pack's scientific runners and fitted-model lifecycle.
+  pseudotime <- seq(0, 1, length.out = 5L)
+  trend_tbl <- wb_prim_obs_table(data.frame(
+    feature_id = rep(m_feats[1:2], each = 5L),
+    lineage_id = rep("L1", 10L),
+    bin = rep(seq_len(5L), 2L),
+    pseudotime = rep(pseudotime, 2L),
+    expr = c(seq(1, 2, length.out = 5L), seq(2, 1, length.out = 5L)),
+    n_cells = rep(30L, 10L), stringsAsFactors = FALSE),
+    table_type = "trajectory_smooth")
+  ds_ps <- wb_wrangle_plot_dataset(
+    plot_type = "pseudotime_smooth_panel",
+    inputs = list(table = trend_tbl), bundle = b)
+  stopifnot(is.data.frame(ds_ps$table), nrow(ds_ps$table) > 0)
+  stopifnot(all(c("feature_id", "pseudotime", "expr") %in% colnames(ds_ps$table)))
+  wb_plot_validate_dataset("pseudotime_smooth_panel", ds_ps)
+  sp_ps <- wb_plot_spec("pseudotime_smooth_panel", ds_ps)
+  stopifnot(identical(sp_ps$geom, "line"))
+  stopifnot(identical(sp_ps$encoding$x, "pseudotime"))
+  stopifnot(identical(sp_ps$encoding$facet, "feature_id"))
 
-    sp_tbl <- wb_spaces(b)
-    fit_space_id <- NA_character_
-    for (sid2 in as.character(sp_tbl$space_id)) {
-      spx <- tryCatch(wb_space(b, space_id = sid2, cells = head(cells, 40)), error = function(e) NULL)
-      if (is.null(spx)) next
-      if (is.matrix(spx) && ncol(spx) >= 2L) {
-        fit_space_id <- sid2
-        break
-      }
-      if (is.data.frame(spx) && all(c("x", "y") %in% colnames(spx))) {
-        fit_space_id <- sid2
-        break
-      }
-    }
-    stopifnot(nzchar(fit_space_id))
+  signature_tbl <- wb_prim_obs_table(data.frame(
+    feature_set = rep("synthetic_set", 5L), lineage_id = rep("L1", 5L),
+    bin = seq_len(5L), pseudotime = pseudotime,
+    value = seq(0.2, 0.8, length.out = 5L),
+    n_cells = rep(30L, 5L), stringsAsFactors = FALSE),
+    table_type = "trajectory_signature_smooth")
+  ds_sig <- wb_wrangle_plot_dataset(
+    plot_type = "pseudotime_signature_line",
+    inputs = list(table = signature_tbl), bundle = b)
+  stopifnot(is.data.frame(ds_sig$table), nrow(ds_sig$table) > 0)
+  stopifnot(all(c("feature_set", "pseudotime", "value") %in% colnames(ds_sig$table)))
+  wb_plot_validate_dataset("pseudotime_signature_line", ds_sig)
+  sp_sig <- wb_plot_spec("pseudotime_signature_line", ds_sig)
+  stopifnot(identical(sp_sig$geom, "line"))
+  stopifnot(identical(sp_sig$encoding$x, "pseudotime"))
+  stopifnot(identical(sp_sig$encoding$y, "value"))
 
-    fs_name <- paste0(".__test_plot_wranglers_feature_set__.", as.integer(Sys.time()))
-    wb_feature_set_import_list(
-      b, matrix_id = mid,
-      sets = stats::setNames(list(unique(as.character(m_feats[1:6]))), fs_name),
-      namespace = "user", created_by = "test", strict = TRUE,
-      origin = "imported", is_readonly = FALSE
-    )
+  gset_curve <- wb_prim_obs_table(data.frame(
+    feature_set = rep("synthetic_set", 5L), lineage_id = rep("L1", 5L),
+    bin = seq_len(5L), pseudotime = pseudotime,
+    value = seq(0.1, 0.9, length.out = 5L),
+    value_raw = seq(0.1, 0.9, length.out = 5L),
+    value_smooth = seq(0.2, 0.8, length.out = 5L),
+    n_cells = rep(30L, 5L), stringsAsFactors = FALSE),
+    table_type = "trajectory_geneset_dynamics_curve")
+  ds_gset <- wb_wrangle_plot_dataset(
+    plot_type = "pseudotime_signature_line",
+    inputs = list(table = gset_curve), bundle = b)
+  stopifnot(is.data.frame(ds_gset$table), nrow(ds_gset$table) > 0)
+  stopifnot(all(c("feature_set", "pseudotime", "value", "value_raw", "value_smooth") %in% colnames(ds_gset$table)))
+  stopifnot(identical(ds_gset$dataset_type, "trajectory_geneset_dynamics_curve"))
+  wb_plot_validate_dataset("pseudotime_signature_line", ds_gset)
 
-    s <- wb_session_new()
-    r1 <- contract_test_add_core_metadata_labels(
-      session = s, bundle = b, cells = cells,
-      notes = "plot wrangler test: synthetic seed clusters"
-    )
-    s <- r1$session
-    r2 <- wb_session_run_op(
-      session = s,
-      bundle = b,
-      op_name = "slingshot_fit",
-      inputs = list(
-        cell_set = "all",
-        cell_ids = cells,
-        fit_space = wb_prim_space(fit_space_id),
-        clusters = wb_ref_run(r1$run$run_id, "vector")
-      ),
-      notes = "plot wrangler test: slingshot_fit"
-    )
-
-    pt_keys <- unique(as.character(r2$run$outputs$pseudotime$key))
-    pt_key <- pt_keys[1]
-
-    r3 <- wb_session_run_op(
-      session = r2$session,
-      bundle = b,
-      op_name = "trajectory_smooth",
-      inputs = list(
-        cell_set = "all",
-        cell_ids = cells,
-        matrix = wb_prim_matrix(mid),
-        model = wb_ref_run(r2$run$run_id, "model"),
-        lineage = pt_key,
-        features = m_feats[seq_len(min(3L, length(m_feats)))],
-        n_bins = 20L
-      ),
-      notes = "plot wrangler test: trajectory_smooth"
-    )
-    trend_tbl <- r3$run$outputs$trend_table
-    ds_ps <- wb_wrangle_plot_dataset(
-      plot_type = "pseudotime_smooth_panel",
-      inputs = list(table = trend_tbl),
-      bundle = b
-    )
-    stopifnot(is.data.frame(ds_ps$table), nrow(ds_ps$table) > 0)
-    stopifnot(all(c("feature_id", "pseudotime", "expr") %in% colnames(ds_ps$table)))
-    wb_plot_validate_dataset("pseudotime_smooth_panel", ds_ps)
-    sp_ps <- wb_plot_spec("pseudotime_smooth_panel", ds_ps)
-    stopifnot(identical(sp_ps$geom, "line"))
-    stopifnot(identical(sp_ps$encoding$x, "pseudotime"))
-    stopifnot(identical(sp_ps$encoding$facet, "feature_id"))
-
-    r4 <- wb_session_run_op(
-      session = r3$session,
-      bundle = b,
-      op_name = "trajectory_signature_smooth",
-      inputs = list(
-        cell_set = "all",
-        cell_ids = cells,
-        matrix = wb_prim_matrix(mid),
-        model = wb_ref_run(r2$run$run_id, "model"),
-        feature_set = fs_name,
-        lineage = pt_key,
-        n_bins = 20L
-      ),
-      notes = "plot wrangler test: trajectory_signature_smooth"
-    )
-    sig_tbl <- r4$run$outputs$signature_table
-    ds_sig <- wb_wrangle_plot_dataset(
-      plot_type = "pseudotime_signature_line",
-      inputs = list(table = sig_tbl),
-      bundle = b
-    )
-    stopifnot(is.data.frame(ds_sig$table), nrow(ds_sig$table) > 0)
-    stopifnot(all(c("feature_set", "pseudotime", "value") %in% colnames(ds_sig$table)))
-    wb_plot_validate_dataset("pseudotime_signature_line", ds_sig)
-    sp_sig <- wb_plot_spec("pseudotime_signature_line", ds_sig)
-    stopifnot(identical(sp_sig$geom, "line"))
-    stopifnot(identical(sp_sig$encoding$x, "pseudotime"))
-    stopifnot(identical(sp_sig$encoding$y, "value"))
-
-    r5 <- wb_session_run_op(
-      session = r4$session,
-      bundle = b,
-      op_name = "trajectory_geneset_dynamics",
-      inputs = list(
-        cell_set = "all",
-        cell_ids = cells,
-        matrix = wb_prim_matrix(mid),
-        model = wb_ref_run(r2$run$run_id, "model"),
-        namespace = "user",
-        feature_sets = fs_name,
-        lineage = pt_key,
-        n_bins = 20L,
-        min_cells_per_bin = 5L,
-        top_driver_genes = 2L,
-        smooth_method = "loess"
-      ),
-      notes = "plot wrangler test: trajectory_geneset_dynamics"
-    )
-
-    gset_curve <- r5$run$outputs$signature_table
-    ds_gset <- wb_wrangle_plot_dataset(
-      plot_type = "pseudotime_signature_line",
-      inputs = list(table = gset_curve),
-      bundle = b
-    )
-    stopifnot(is.data.frame(ds_gset$table), nrow(ds_gset$table) > 0)
-    stopifnot(all(c("feature_set", "pseudotime", "value", "value_raw", "value_smooth") %in% colnames(ds_gset$table)))
-    stopifnot(identical(ds_gset$dataset_type, "trajectory_geneset_dynamics_curve"))
-    wb_plot_validate_dataset("pseudotime_signature_line", ds_gset)
-
-    driver_curve <- r5$run$outputs$driver_curve_table
-    ds_driver <- wb_wrangle_plot_dataset(
-      plot_type = "pseudotime_signature_line",
-      inputs = list(table = driver_curve),
-      bundle = b
-    )
-    stopifnot(is.data.frame(ds_driver$table), nrow(ds_driver$table) > 0)
-    stopifnot(all(c("feature_set", "feature_id", "driver_rank", "pseudotime", "value") %in% colnames(ds_driver$table)))
-    stopifnot(identical(ds_driver$dataset_type, "trajectory_geneset_dynamics_driver_curve"))
-    wb_plot_validate_dataset("pseudotime_signature_line", ds_driver)
-    sp_driver <- wb_plot_spec("pseudotime_signature_line", ds_driver)
-    stopifnot(identical(sp_driver$encoding$color, "feature_id"))
-    stopifnot(identical(sp_driver$encoding$facet, "feature_set"))
-  }
+  driver_curve <- wb_prim_obs_table(data.frame(
+    feature_set = rep("synthetic_set", 5L),
+    feature_id = rep(m_feats[1], 5L), driver_rank = rep(1L, 5L),
+    lineage_id = rep("L1", 5L), bin = seq_len(5L),
+    pseudotime = pseudotime, value = seq(1, 2, length.out = 5L),
+    n_cells = rep(30L, 5L), stringsAsFactors = FALSE),
+    table_type = "trajectory_geneset_dynamics_driver_curve")
+  ds_driver <- wb_wrangle_plot_dataset(
+    plot_type = "pseudotime_signature_line",
+    inputs = list(table = driver_curve), bundle = b)
+  stopifnot(is.data.frame(ds_driver$table), nrow(ds_driver$table) > 0)
+  stopifnot(all(c("feature_set", "feature_id", "driver_rank", "pseudotime", "value") %in% colnames(ds_driver$table)))
+  stopifnot(identical(ds_driver$dataset_type, "trajectory_geneset_dynamics_driver_curve"))
+  wb_plot_validate_dataset("pseudotime_signature_line", ds_driver)
+  sp_driver <- wb_plot_spec("pseudotime_signature_line", ds_driver)
+  stopifnot(identical(sp_driver$encoding$color, "feature_id"))
+  stopifnot(identical(sp_driver$encoding$facet, "feature_set"))
 
   TRUE
 }
