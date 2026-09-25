@@ -10,7 +10,7 @@ test_knowledge_graph_contract <- function(bundle_dir = NULL) {
   stopifnot(all(edge_cols %in% names(g1$edges)))
   stopifnot(identical(g1$nodes$id, g2$nodes$id))
   stopifnot(identical(g1$edges$id, g2$edges$id))
-  stopifnot(any(g1$nodes$id == "op:trajectory_geneset_dynamics"))
+  stopifnot(any(g1$nodes$id == "op:slingshot_fit"))
   stopifnot(any(g1$nodes$id == "recipe:trajectory_geneset_dynamics_discovery"))
 
   node_type <- setNames(g1$nodes$node_type, g1$nodes$id)
@@ -33,21 +33,12 @@ test_knowledge_graph_contract <- function(bundle_dir = NULL) {
   stopifnot(all(produces$source_type %in% c("Op", "Recipe", "Run")))
   stopifnot(all(produces$target_type %in% c("Primitive", "ArtifactType", "Plot")))
 
-  stopifnot(any(g1$edges$edge_type == "USES" &
-                  g1$edges$source_id == "recipe:trajectory_geneset_dynamics_discovery" &
-                  g1$edges$target_id == "op:trajectory_geneset_dynamics"))
-  stopifnot(any(g1$edges$edge_type == "REQUIRES" &
-                  g1$edges$source_id == "op:trajectory_geneset_dynamics" &
+  stopifnot(any(g1$edges$edge_type == "PRODUCES" &
+                  g1$edges$source_id == "op:slingshot_fit" &
                   g1$edges$target_id == "primitive:model_ref"))
-  stopifnot(any(g1$edges$edge_type == "REQUIRES" &
-                  g1$edges$source_id == "op:trajectory_geneset_dynamics" &
-                  g1$edges$target_id == "primitive:matrix"))
-  stopifnot(any(g1$edges$edge_type == "PRODUCES" &
-                  g1$edges$source_id == "op:trajectory_geneset_dynamics" &
-                  g1$edges$target_id == "primitive:obs_table"))
-  stopifnot(any(g1$edges$edge_type == "PRODUCES" &
-                  g1$edges$source_id == "recipe:trajectory_geneset_dynamics_discovery" &
-                  g1$edges$target_id == "artifact_type:obs_table:trajectory_geneset_dynamics"))
+  stopifnot(any(g1$edges$edge_type == "USES" &
+                  g1$edges$source_id == "recipe:inspect_promoted_artifact" &
+                  g1$edges$target_id == "getter:wb_art_load"))
 
   a0 <- wb_kg_catalog_audit()
   stopifnot(isTRUE(a0$ok))
@@ -74,23 +65,23 @@ test_knowledge_graph_contract <- function(bundle_dir = NULL) {
   wb_attach_space(b, space_id = "umap_test", coords = coords)
 
   run <- wb_new_run(
-    op_name = "trajectory_geneset_dynamics",
+    op_name = "feature_set_import",
     inputs = list(
       cell_set = "core",
       effective_n = length(cells),
       parents = character(0),
-      user_inputs = list(matrix = "RNA_counts", pseudotime = "cell_vector:pseudotime")
+      user_inputs = list(matrix = "RNA_counts", namespace = "synthetic")
     ),
-    params = list(namespace = "immgen", score_method = "rank_mean", min_amplitude = 0.1),
+    params = list(namespace = "synthetic"),
     outputs = list(
-      dynamics_table = wb_prim_obs_table(
+      import_summary = wb_prim_obs_table(
         table = data.frame(
           feature_set = "metabolism",
           dynamic_score = 1.2,
           curve_class = "turns_on",
           stringsAsFactors = FALSE
         ),
-        table_type = "trajectory_geneset_dynamics",
+        table_type = "feature_set_import_summary",
         entity_kind = "feature_set"
       )
     ),

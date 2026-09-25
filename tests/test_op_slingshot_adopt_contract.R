@@ -264,27 +264,6 @@ test_op_slingshot_adopt_contract <- function() {
     identical(outputs$adoption_summary$table$upstream_execution[[1]], "external")
   )
 
-  lineage <- as.character(unique(outputs$pseudotime$key))[1]
-  downstream <- wb_session_run_op(
-    adopted$session, b, "trajectory_signature_smooth",
-    inputs = list(
-      matrix = "published_rna",
-      model = wb_ref_run(adopted$run$run_id, "model"),
-      feature_set = feature_set_name,
-      lineage = lineage,
-      cell_set = "all",
-      min_cells = 10L,
-      n_bins = 10L,
-      min_cells_per_bin = 2L
-    ),
-    notes = "Use the adopted trajectory for downstream signature smoothing without refitting"
-  )
-  stopifnot(
-    identical(downstream$run$outputs$signature_table$kind, "obs_table"),
-    nrow(downstream$run$outputs$signature_table$table) > 0L,
-    all(downstream$run$outputs$signature_table$table$lineage_id == lineage)
-  )
-
   promoted <- wb_session_promote_current(
     b, adopted$session,
     outputs = names(outputs),

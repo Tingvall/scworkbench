@@ -41,8 +41,6 @@ core_files <- c(
   "test_foundation_hardening_1to5.R",
   "test_op_slingshot_fit_project_contract.R",
   "test_op_slingshot_promoted_model_project_contract.R",
-  "test_op_trajectory_de_contract.R",
-  "test_op_trajectory_smooth_contract.R",
   "test_plot_wranglers_contract.R",
   "test_promotion_artifact_payload_atomicity_contract.R",
   "test_report_draft_contract.R",

@@ -304,7 +304,7 @@ wb_list_trajectory_models <- function(bundle, inspect_payload = TRUE) {
       if (inherits(loaded, "error")) {
         warnings <- c(warnings, conditionMessage(loaded))
       } else {
-        lin <- tryCatch(.wb_trajectory_smooth_resolve_lineages(model = loaded, lineage = NULL, cells = NULL), error = function(e) e)
+        lin <- tryCatch(.wb_reporting_trajectory_lineages(model = loaded, lineage = NULL, cells = NULL), error = function(e) e)
         if (inherits(lin, "error")) {
           warnings <- c(warnings, conditionMessage(lin))
         } else {

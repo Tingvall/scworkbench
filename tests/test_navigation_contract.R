@@ -1,68 +1,15 @@
 test_navigation_contract <- function(bundle_dir) {
-  b <- wb_open_bundle(bundle_dir)
+  retained <- tempfile("scwb_s2_retained_navigation_")
+  dir.create(retained)
+  on.exit(unlink(retained, recursive = TRUE, force = TRUE), add = TRUE)
+  fixture <- file.path("tests", "fixtures", "phase5_s2_retained_old_core_bundle.tar.gz")
+  utils::untar(fixture, exdir = retained)
+  b <- wb_open_bundle(file.path(retained, "forge1-s2-retained-bundle"))
   on.exit(wb_close_bundle(b), add = TRUE)
 
-  # Navigation must be independently executable under per-test bundle
-  # isolation; seed the paired trajectory artifacts it consumes instead of
-  # relying on artifacts left by another contract test.
-  matrix_id <- as.character(wb_matrices(b)$matrix_id[[1L]])
-  feature_ids <- as.character(head(wb_feature_ids(b, matrix_id), 4L))
-  stopifnot(length(feature_ids) >= 2L)
-  lineage_id <- "nav_lineage"
-  de_tbl <- data.frame(
-    feature_id = feature_ids,
-    lineage_id = lineage_id,
-    rho = seq(0.8, -0.8, length.out = length(feature_ids)),
-    abs_rho = abs(seq(0.8, -0.8, length.out = length(feature_ids))),
-    p_val = seq(0.001, 0.01, length.out = length(feature_ids)),
-    p_val_adj = seq(0.004, 0.04, length.out = length(feature_ids)),
-    direction = ifelse(seq_along(feature_ids) <= length(feature_ids) / 2, "up", "down"),
-    stringsAsFactors = FALSE
-  )
-  smooth_tbl <- expand.grid(
-    feature_id = feature_ids,
-    bin = seq_len(4L),
-    stringsAsFactors = FALSE
-  )
-  smooth_tbl$lineage_id <- lineage_id
-  smooth_tbl$pseudotime <- rep(seq(0, 1, length.out = 4L), each = length(feature_ids))
-  smooth_tbl$expr <- seq_len(nrow(smooth_tbl)) / nrow(smooth_tbl)
-  smooth_tbl$n_cells <- 10L
-  shared_inputs <- list(
-    cell_set = "all",
-    effective_n = length(wb_cells(b)),
-    user_inputs = list(model = list(engine = "slingshot", model_space_id = "umap_golden"))
-  )
-  de_run <- wb_new_run(
-    op_name = "trajectory_de",
-    inputs = shared_inputs,
-    params = list(matrix_id = matrix_id, model_engine = "slingshot"),
-    outputs = list(de_table = wb_prim_feature_table(de_tbl, table_type = "trajectory_de")),
-    notes = "synthetic isolated navigation trajectory DE"
-  )
-  smooth_run <- wb_new_run(
-    op_name = "trajectory_smooth",
-    inputs = shared_inputs,
-    params = list(matrix_id = matrix_id, model_engine = "slingshot"),
-    outputs = list(
-      trend_table = wb_prim_obs_table(
-        smooth_tbl,
-        table_type = "trajectory_smooth",
-        entity_kind = "trajectory_bin"
-      )
-    ),
-    notes = "synthetic isolated navigation trajectory smooth"
-  )
-  seeded_runs <- setNames(list(de_run, smooth_run), c(de_run$run_id, smooth_run$run_id))
-  seeded <- wb_promote_analysis(
-    bundle = b,
-    runs = seeded_runs,
-    head_run_id = c(de_run$run_id, smooth_run$run_id),
-    name_prefix = "navigation_contract",
-    created_by = "test",
-    fail_fast = TRUE
-  )
-  stopifnot(is.data.frame(seeded$promoted), nrow(seeded$promoted) == 2L)
+  # The retained bundle was promoted with the accepted pre-migration core.
+  # Its historical source_op and table_type identities must survive reopen.
+  stopifnot(!any(c("trajectory_de", "trajectory_smooth") %in% wb_list_ops()))
 
   arts <- wb_art_list(b)
   stopifnot(is.data.frame(arts), nrow(arts) >= 2L)
@@ -168,84 +115,10 @@ test_navigation_contract <- function(bundle_dir) {
     stopifnot(identical(as.character(sig_ho$params$feature_set), as.character(sig_set$entity_id[1])))
   }
 
-  tmp <- file.path(tempdir(), paste0("scwb_nav_geneset_", as.integer(Sys.time())))
-  b2 <- wb_init_bundle(tmp, overwrite = TRUE)
-  on.exit(try(wb_close_bundle(b2), silent = TRUE), add = TRUE)
   lin2 <- "L1"
-  fs2 <- c("set_a", "set_b")
-  curve_tbl <- data.frame(
-    feature_set = rep(fs2, each = 4),
-    lineage_id = lin2,
-    bin = rep(seq_len(4), times = 2),
-    pseudotime = rep(seq(0, 1, length.out = 4), times = 2),
-    value = c(0, 1, 2, 3, 3, 2, 1, 0),
-    value_raw = c(0, 1, 2, 3, 3, 2, 1, 0),
-    value_smooth = c(0, 1, 2, 3, 3, 2, 1, 0),
-    n_cells = 10L,
-    stringsAsFactors = FALSE
-  )
-  dyn_tbl <- data.frame(
-    feature_set = fs2,
-    lineage_id = lin2,
-    curve_class = c("turns_on", "turns_off"),
-    dynamic_score = c(3, 2),
-    amplitude = c(3, 3),
-    rank = c(1L, 2L),
-    passes_filters = TRUE,
-    stringsAsFactors = FALSE
-  )
-  drv_tbl <- data.frame(
-    feature_set = rep(fs2, each = 2),
-    lineage_id = lin2,
-    feature_id = c("g1", "g2", "g3", "g4"),
-    driver_rank = c(1L, 2L, 1L, 2L),
-    dynamic_score = c(2, 1, 2, 1),
-    stringsAsFactors = FALSE
-  )
-  drv_curve_tbl <- data.frame(
-    feature_set = rep(rep(fs2, each = 8), 1),
-    feature_id = rep(c("g1", "g2", "g3", "g4"), each = 4),
-    driver_rank = rep(c(1L, 2L, 1L, 2L), each = 4),
-    lineage_id = lin2,
-    bin = rep(seq_len(4), times = 4),
-    pseudotime = rep(seq(0, 1, length.out = 4), times = 4),
-    value = rep(c(0, 1, 2, 3), times = 4),
-    value_raw = rep(c(0, 1, 2, 3), times = 4),
-    value_smooth = rep(c(0, 1, 2, 3), times = 4),
-    n_cells = 10L,
-    stringsAsFactors = FALSE
-  )
-  run_gs <- wb_new_run(
-    op_name = "trajectory_geneset_dynamics",
-    inputs = list(
-      cell_set = "all",
-      effective_n = 20L,
-      parents = character(0),
-      user_inputs = list(matrix = "RNA_counts", namespace = "test_sets")
-    ),
-    params = list(matrix_id = "RNA_counts", namespace = "test_sets"),
-    outputs = list(
-      signature_table = wb_prim_obs_table(curve_tbl, table_type = "trajectory_geneset_dynamics_curve", entity_kind = "trajectory_bin"),
-      dynamics_table = wb_prim_obs_table(dyn_tbl, table_type = "trajectory_geneset_dynamics", entity_kind = "feature_set"),
-      driver_table = wb_prim_obs_table(drv_tbl, table_type = "trajectory_geneset_dynamics_drivers", entity_kind = "feature"),
-      driver_curve_table = wb_prim_obs_table(drv_curve_tbl, table_type = "trajectory_geneset_dynamics_driver_curve", entity_kind = "trajectory_bin")
-    ),
-    notes = "synthetic trajectory gene-set navigation"
-  )
-  runs2 <- list()
-  runs2[[run_gs$run_id]] <- run_gs
-  prom2 <- wb_promote_analysis(
-    bundle = b2,
-    runs = runs2,
-    head_run_id = run_gs$run_id,
-    name_prefix = "nav_geneset",
-    created_by = "test",
-    fail_fast = TRUE
-  )
-  stopifnot(is.data.frame(prom2$promoted), nrow(prom2$promoted) >= 4L)
-  arts_gs <- wb_art_list(b2)
+  arts_gs <- wb_art_list(b)
   tt_gs <- DBI::dbGetQuery(
-    b2$con,
+    b$con,
     "SELECT artifact_id, table_type FROM artifact_tables WHERE artifact_id IN (SELECT artifact_id FROM artifacts WHERE type = 'obs_table');"
   )
   arts_gs <- merge(arts_gs, tt_gs, by = "artifact_id", all.x = TRUE, sort = FALSE)
@@ -253,91 +126,41 @@ test_navigation_contract <- function(bundle_dir) {
   drv_id <- as.character(arts_gs$artifact_id[as.character(arts_gs$table_type) == "trajectory_geneset_dynamics_drivers"][1])
   stopifnot(nzchar(dyn_id), nzchar(drv_id))
 
-  gs_lin <- wb_nav_entities(dyn_id, b2, entity_kind = "lineage")
+  gs_lin <- wb_nav_entities(dyn_id, b, entity_kind = "lineage")
   stopifnot(is.data.frame(gs_lin), nrow(gs_lin) == 1L, identical(as.character(gs_lin$entity_id[1]), lin2))
-  gs_sets <- wb_nav_entities(dyn_id, b2, entity_kind = "feature_set", lineage_id = lin2)
+  gs_sets <- wb_nav_entities(dyn_id, b, entity_kind = "feature_set", lineage_id = lin2)
   stopifnot(is.data.frame(gs_sets), nrow(gs_sets) >= 2L, all(as.character(gs_sets$entity_kind) == "feature_set"))
-  gs_tg <- wb_nav_targets(dyn_id, b2, entity = gs_sets[1, , drop = FALSE], lineage_id = lin2)
+  gs_tg <- wb_nav_targets(dyn_id, b, entity = gs_sets[1, , drop = FALSE], lineage_id = lin2)
   stopifnot(any(as.character(gs_tg$action) == "open_geneset_curve"))
   stopifnot(any(as.character(gs_tg$action) == "open_driver_table"))
-  gs_ho <- wb_nav_handoff(dyn_id, "open_geneset_curve", b2, entity = gs_sets[1, , drop = FALSE], lineage_id = lin2)
+  gs_ho <- wb_nav_handoff(dyn_id, "open_geneset_curve", b, entity = gs_sets[1, , drop = FALSE], lineage_id = lin2)
   stopifnot(identical(as.character(gs_ho$plot_type), "pseudotime_signature_line"))
   stopifnot(identical(as.character(gs_ho$params$feature_set), as.character(gs_sets$entity_id[1])))
 
-  drv_feats <- wb_nav_entities(drv_id, b2, entity_kind = "feature", lineage_id = lin2, feature_set = as.character(gs_sets$entity_id[1]))
+  drv_feats <- wb_nav_entities(drv_id, b, entity_kind = "feature", lineage_id = lin2, feature_set = as.character(gs_sets$entity_id[1]))
   stopifnot(is.data.frame(drv_feats), nrow(drv_feats) >= 1L, all(as.character(drv_feats$entity_kind) == "feature"))
-  drv_tg <- wb_nav_targets(drv_id, b2, entity = drv_feats[1, , drop = FALSE], lineage_id = lin2)
+  drv_tg <- wb_nav_targets(drv_id, b, entity = drv_feats[1, , drop = FALSE], lineage_id = lin2)
   stopifnot(any(as.character(drv_tg$action) == "open_driver_curve"))
-  drv_ho <- wb_nav_handoff(drv_id, "open_driver_curve", b2, entity = drv_feats[1, , drop = FALSE], lineage_id = lin2)
+  drv_ho <- wb_nav_handoff(drv_id, "open_driver_curve", b, entity = drv_feats[1, , drop = FALSE], lineage_id = lin2)
   stopifnot(identical(as.character(drv_ho$plot_type), "pseudotime_signature_line"))
   stopifnot(identical(as.character(drv_ho$params$feature), as.character(drv_feats$entity_id[1])))
 
-  sig_keys <- c("score_a", "score_b")
-  sig_curve_tbl <- data.frame(
-    signal_key = rep(sig_keys, each = 4),
-    feature_set = rep(sig_keys, each = 4),
-    lineage_id = lin2,
-    bin = rep(seq_len(4), times = 2),
-    pseudotime = rep(seq(0, 1, length.out = 4), times = 2),
-    value = c(0, 1, 2, 3, 3, 2, 1, 0),
-    value_raw = c(0, 1, 2, 3, 3, 2, 1, 0),
-    value_smooth = c(0, 1, 2, 3, 3, 2, 1, 0),
-    n_cells = 10L,
-    stringsAsFactors = FALSE
-  )
-  sig_dyn_tbl <- data.frame(
-    signal_key = sig_keys,
-    feature_set = sig_keys,
-    lineage_id = lin2,
-    curve_class = c("turns_on", "turns_off"),
-    dynamic_score = c(3, 2),
-    amplitude = c(3, 3),
-    rank = c(1L, 2L),
-    passes_filters = TRUE,
-    stringsAsFactors = FALSE
-  )
-  run_sig <- wb_new_run(
-    op_name = "trajectory_signal_dynamics",
-    inputs = list(
-      cell_set = "all",
-      effective_n = 20L,
-      parents = character(0),
-      user_inputs = list(signal = "module_scores")
-    ),
-    params = list(n_signal_keys_input = 2L),
-    outputs = list(
-      signal_table = wb_prim_obs_table(sig_curve_tbl, table_type = "trajectory_signal_dynamics_curve", entity_kind = "trajectory_bin"),
-      dynamics_table = wb_prim_obs_table(sig_dyn_tbl, table_type = "trajectory_signal_dynamics", entity_kind = "signal")
-    ),
-    notes = "synthetic trajectory signal navigation"
-  )
-  runs_sig <- list()
-  runs_sig[[run_sig$run_id]] <- run_sig
-  prom_sig <- wb_promote_analysis(
-    bundle = b2,
-    runs = runs_sig,
-    head_run_id = run_sig$run_id,
-    name_prefix = "nav_signal",
-    created_by = "test",
-    fail_fast = TRUE
-  )
-  stopifnot(is.data.frame(prom_sig$promoted), nrow(prom_sig$promoted) >= 2L)
-  arts_sig <- wb_art_list(b2)
+  arts_sig <- wb_art_list(b)
   tt_sig <- DBI::dbGetQuery(
-    b2$con,
+    b$con,
     "SELECT artifact_id, table_type FROM artifact_tables WHERE artifact_id IN (SELECT artifact_id FROM artifacts WHERE type = 'obs_table');"
   )
   arts_sig <- merge(arts_sig, tt_sig, by = "artifact_id", all.x = TRUE, sort = FALSE)
   sig_dyn_id <- as.character(arts_sig$artifact_id[as.character(arts_sig$table_type) == "trajectory_signal_dynamics"][1])
   stopifnot(nzchar(sig_dyn_id))
 
-  sig_lin <- wb_nav_entities(sig_dyn_id, b2, entity_kind = "lineage")
+  sig_lin <- wb_nav_entities(sig_dyn_id, b, entity_kind = "lineage")
   stopifnot(is.data.frame(sig_lin), nrow(sig_lin) == 1L, identical(as.character(sig_lin$entity_id[1]), lin2))
-  sig_entities <- wb_nav_entities(sig_dyn_id, b2, entity_kind = "feature_set", lineage_id = lin2)
+  sig_entities <- wb_nav_entities(sig_dyn_id, b, entity_kind = "feature_set", lineage_id = lin2)
   stopifnot(is.data.frame(sig_entities), nrow(sig_entities) >= 2L)
-  sig_tg <- wb_nav_targets(sig_dyn_id, b2, entity = sig_entities[1, , drop = FALSE], lineage_id = lin2)
+  sig_tg <- wb_nav_targets(sig_dyn_id, b, entity = sig_entities[1, , drop = FALSE], lineage_id = lin2)
   stopifnot(any(as.character(sig_tg$action) == "open_signal_curve"))
-  sig_ho <- wb_nav_handoff(sig_dyn_id, "open_signal_curve", b2, entity = sig_entities[1, , drop = FALSE], lineage_id = lin2)
+  sig_ho <- wb_nav_handoff(sig_dyn_id, "open_signal_curve", b, entity = sig_entities[1, , drop = FALSE], lineage_id = lin2)
   stopifnot(identical(as.character(sig_ho$plot_type), "pseudotime_signature_line"))
   stopifnot(identical(as.character(sig_ho$params$signal_key), as.character(sig_entities$entity_id[1])))
 

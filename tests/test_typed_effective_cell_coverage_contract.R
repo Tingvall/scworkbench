@@ -1,10 +1,4 @@
 test_typed_effective_cell_coverage_contract <- function() {
-  contract_test_activate_representation_pack()
-  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
-    add = TRUE)
-  contract_test_activate_trajectory_pack()
-  on.exit(try(wb_operation_pack_unload("scwbtrajectory"), silent = TRUE),
-    add = TRUE)
   contract_test_activate_core_conformance_pack()
   root <- tempfile("scwb_typed_coverage_")
   b <- wb_init_bundle(root, overwrite = TRUE)
@@ -114,7 +108,7 @@ test_typed_effective_cell_coverage_contract <- function() {
   path_cov <- scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(space = wb_prim_space("partial_space"), path = path),
     list(space = "space", path = "space_path_family"),
-    "scwbtrajectory::space_path_score", 1L
+    "slingshot_project", 1L
   )
   stopifnot(identical(path_cov$cells, cells[c(1, 2, 4, 7, 8, 10, 11)]))
 
@@ -124,7 +118,7 @@ test_typed_effective_cell_coverage_contract <- function() {
   incompatible <- try(scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(signal = family, model = model),
     list(signal = "cell_vector_family", model = "model_ref"),
-    "trajectory_vector_smooth", 1L
+    "slingshot_project", 1L
   ), silent = TRUE)
   orphan_model <- wb_prim_model_ref("missing_model_space", "", engine = "slingshot")
   missing_model_coverage <- try(scworkbench:::.wb_typed_effective_cells(
@@ -174,10 +168,6 @@ test_typed_effective_cell_coverage_contract <- function() {
   )
 
   peak_iface <- wb_op_interface("peakvi_project")
-  umap_iface <- wb_op_interface("umap_transform")
-  stopifnot(
-    identical(peak_iface$inputs$model$effective_cell_coverage, "reference_only"),
-    identical(umap_iface$inputs$model$effective_cell_coverage, "model_associated_unless_query_space")
-  )
+  stopifnot(identical(peak_iface$inputs$model$effective_cell_coverage, "reference_only"))
   TRUE
 }

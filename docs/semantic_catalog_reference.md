@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 294
+Record count: 288
 
-Graph edges: 635
+Graph edges: 504
 
 ## artifact_type
 
@@ -1021,42 +1021,6 @@ Description: Materialize a selector-derived or explicitly declared cell universe
 Title: Metadata Cell Vector
 
 Description: Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
-
-### `op:trajectory_de`
-
-Title: Trajectory DE
-
-Description: Lineage-aware feature trend testing against trajectory pseudotime from model_ref.
-
-### `op:trajectory_smooth`
-
-Title: Trajectory Feature Smoothing
-
-Description: Summarize per-feature expression along trajectory pseudotime into reusable trend tables.
-
-### `op:trajectory_signature_smooth`
-
-Title: Trajectory Signature Smoothing
-
-Description: Summarize feature-set signature scores along trajectory pseudotime into reusable trend tables.
-
-### `op:trajectory_geneset_dynamics`
-
-Title: Trajectory Gene-Set Dynamics
-
-Description: Screen all feature sets in a namespace for dynamic behavior along trajectory pseudotime.
-
-### `op:trajectory_vector_smooth`
-
-Title: Trajectory Signal Smoothing
-
-Description: Summarize cell-level signal families along trajectory pseudotime into reusable trend tables.
-
-### `op:trajectory_signal_dynamics`
-
-Title: Trajectory Signal Dynamics
-
-Description: Rank precomputed cell-level signal families by dynamic behavior along trajectory pseudotime.
 
 ### `op:slingshot`
 

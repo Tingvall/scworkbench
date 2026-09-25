@@ -118,27 +118,6 @@ test_composite_pseudotime_dynamics_contract <- function() {
   mem_art <- ids[["composite_membership"]]
   stopifnot(nzchar(pt_art), nzchar(mem_art))
 
-  # Existing model-backed mode remains valid.
-  model <- wb_prim_model_ref(model_space_id = "synthetic", in_space_id = "synthetic", engine = "synthetic")
-  model$pseudotime_table <- data.frame(
-    lineage_id = "joined_L1",
-    cell_id = cells,
-    pseudotime = seq(0, 1, length.out = length(cells)),
-    stringsAsFactors = FALSE
-  )
-  model_gs <- wb_op_trajectory_geneset_dynamics(
-    bundle = b,
-    matrix_id = "RNA_counts",
-    model = model,
-    namespace = "test_sets",
-    lineage = "joined_L1",
-    n_bins = 5L,
-    min_cells_per_bin = 1L,
-    min_set_size = 1L,
-    top_driver_genes = 1L
-  )
-  stopifnot(identical(as.character(model_gs$outputs$fit_summary$table$pseudotime_source_kind[1]), "model_ref"))
-
   s <- wb_session_new()
   gs <- wb_session_run_op(
     session = s,

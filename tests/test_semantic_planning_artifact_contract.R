@@ -4,7 +4,7 @@ test_semantic_planning_artifact_contract <- function() {
   on.exit(wb_close_bundle(b), add = TRUE)
 
   r <- wb_new_run(
-    op_name = "trajectory_geneset_dynamics",
+    op_name = "feature_set_import",
     inputs = list(
       cell_set = "all",
       effective_n = 100L,
@@ -17,7 +17,7 @@ test_semantic_planning_artifact_contract <- function() {
       pseudotime_direction = "as_is"
     ),
     outputs = list(
-      dynamics_table = wb_prim_obs_table(
+      import_summary = wb_prim_obs_table(
         table = data.frame(
           feature_set = c("metabolism", "signaling"),
           dynamic_score = c(1.2, 0.8),
@@ -28,7 +28,7 @@ test_semantic_planning_artifact_contract <- function() {
         entity_kind = "feature_set"
       )
     ),
-    notes = "synthetic semantic planning test"
+    notes = "synthetic retained trajectory artifact planning test"
   )
 
   runs <- list()

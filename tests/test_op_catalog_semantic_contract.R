@@ -27,8 +27,7 @@ test_op_catalog_semantic_contract <- function() {
   txt <- paste(readLines(tmp_json, warn = FALSE), collapse = "\n")
   stopifnot(jsonlite::validate(txt))
   md <- readLines(tmp_md, warn = FALSE)
-  stopifnot(any(grepl("^## `trajectory_geneset_dynamics`", md)))
-  stopifnot(any(grepl("^## `trajectory_signal_dynamics`", md)))
+  stopifnot(any(grepl("^## `slingshot_fit`", md)))
 
   TRUE
 }

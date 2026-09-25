@@ -79,6 +79,20 @@ test_reporting_contracts <- function() {
   stopifnot(identical(as.integer(hit$fitted_cell_count), length(cells)))
   stopifnot(identical(as.integer(hit$n_lineages), 1L))
 
+  # Core reporting still inspects an authenticated model payload independently
+  # of the retired trajectory method implementations.
+  report_model <- wb_prim_model_ref("umap_test", "umap_test", engine = "synthetic")
+  report_model$pseudotime_table <- data.frame(
+    lineage_id = "L1", cell_id = cells,
+    pseudotime = seq(0, 1, length.out = length(cells)),
+    stringsAsFactors = FALSE
+  )
+  inspected <- scworkbench:::.wb_reporting_trajectory_lineages(report_model)
+  stopifnot(identical(names(inspected), "L1"),
+            identical(as.character(inspected$L1$cell_id), cells),
+            identical(as.numeric(inspected$L1$pseudotime),
+                      seq(0, 1, length.out = length(cells))))
+
   hist <- wb_run_history(b)
   stopifnot(is.data.frame(hist), nrow(hist) >= 1L)
   stopifnot(all(c("snapshot_id", "run_id", "op_name", "promoted_artifact_ids", "parent_count", "child_count") %in% names(hist)))
