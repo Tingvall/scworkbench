@@ -410,7 +410,7 @@ wb_promote_analysis <- function(bundle,
         promoter <- .wb_get_promoter_for_kind(prim$kind)
 
         # Each promoter returns an artifact_id
-        artifact_id <- promoter(
+        promoter_args <- list(
           bundle = bundle,
           run = run,
           out_name = out_name,
@@ -421,6 +421,13 @@ wb_promote_analysis <- function(bundle,
           parent_artifacts = parent_artifacts,
           workspace = workspace
         )
+        if (identical(as.character(prim$kind)[1L], "relation_family")) {
+          promoter_args$sealed_content_identity <-
+            !is.null(staging_bundle) &&
+            .wb_operation_pack_v3_rf_promotion_sealed(staging_bundle,
+              run, out_name)
+        }
+        artifact_id <- do.call(promoter, promoter_args)
 
         if (identical(as.character(prim$kind)[1], "relation_family") &&
             !is.null(staging_bundle)) {
@@ -773,7 +780,8 @@ wb_promote_analysis <- function(bundle,
 # pybench-counterpart: pybench.artifacts_payload.write_artifact_relation_family_payload
 .wb_promote_relation_family <- function(bundle, run, out_name, prim,
                                         name = NULL, description = NULL, created_by = NULL,
-                                        parent_artifacts = list(), workspace = NULL) {
+                                        parent_artifacts = list(), workspace = NULL,
+                                        sealed_content_identity = FALSE) {
   con <- bundle$con
   wb_migrate_artifacts(bundle)
 
@@ -790,7 +798,8 @@ wb_promote_analysis <- function(bundle,
   prov_json <- .wb_prov_json(
     run,
     parent_artifacts,
-    primitive_payload = .wb_object_primitive_payload_descriptor(prim)
+    primitive_payload = .wb_object_primitive_payload_descriptor(prim,
+      sealed_content_identity = sealed_content_identity)
   )
 
   DBI::dbExecute(con, "

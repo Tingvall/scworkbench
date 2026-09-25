@@ -680,6 +680,35 @@
   invisible(TRUE)
 }
 
+.wb_operation_pack_v3_rf_promotion_sealed <- function(staging_bundle,
+    run, output_name) {
+  transition <- run$operation_pack_transition %||% NULL
+  if (is.null(transition)) return(FALSE)
+  root <- file.path(.wb_operation_pack_v2_store(staging_bundle),
+    as.character(transition$transition_id)[1L])
+  request <- tryCatch(jsonlite::read_json(file.path(root, "request.json"),
+    simplifyVector = FALSE), error = identity)
+  receipt <- tryCatch(jsonlite::read_json(file.path(root, "receipt.json"),
+    simplifyVector = FALSE), error = identity)
+  if (inherits(request, "error") || inherits(receipt, "error"))
+    .wb_operation_pack_v3_error("PYBENCH_REOPEN_VALIDATION_FAILED",
+      "Relation promotion lacks its retained request or receipt.",
+      "publication")
+  grants <- request$sealed_relation_family_grants %||% list()
+  observations <- receipt$sealed_relation_family_observations %||% list()
+  if (!length(grants) && !length(observations)) return(FALSE)
+  if (length(grants) != 1L || length(observations) != 1L ||
+      !identical(grants[[1L]]$output_name, output_name) ||
+      !identical(observations[[1L]]$declaration$output_name,
+        output_name) ||
+      !identical(receipt$receipt_identity,
+        transition$receipt_identity))
+    .wb_operation_pack_v3_error("PYBENCH_REOPEN_VALIDATION_FAILED",
+      "Relation promotion does not match its retained grant.",
+      "publication")
+  TRUE
+}
+
 .wb_operation_pack_v3_rf_promoted_assert <- function(bundle,
     staging_bundle, run, output_name, artifact_id) {
   transition <- run$operation_pack_transition %||% NULL

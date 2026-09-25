@@ -165,7 +165,8 @@
   }, character(1))
 }
 
-.wb_object_primitive_payload_descriptor <- function(prim) {
+.wb_object_primitive_payload_descriptor <- function(prim,
+    sealed_content_identity = FALSE) {
   kind <- as.character(prim$kind)[1L]
   .wb_assert(kind %in% .wb_object_primitive_kinds(),
              paste0("Unsupported durable object primitive kind: ", kind))
@@ -186,8 +187,9 @@
       c("weight", "value", "distance"),
       names(unclass(prim))[vapply(unclass(prim), Negate(is.null), logical(1))]
     )
-    descriptor$content_identity <- .wb_operation_pack_v2_identity_plain(
-      "scworkbench.relation_family.content.v1", unclass(prim))
+    if (isTRUE(sealed_content_identity))
+      descriptor$content_identity <- .wb_operation_pack_v2_identity_plain(
+        "scworkbench.relation_family.content.v1", unclass(prim))
   }
   descriptor
 }
