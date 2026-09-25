@@ -123,6 +123,17 @@
       "resolution")
   labels <- colnames(values)
   if (is.null(labels)) labels <- paste0("dim", seq_len(ncol(values)))
+  if (!is.null(dimensions$indices)) {
+    if (anyNA(dimensions$indices) ||
+        any(dimensions$indices < 1L | dimensions$indices > length(labels)))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Derived fitted-cell selected dimensions are unavailable.",
+        "resolution")
+    dimensions$labels <- labels[dimensions$indices]
+    dimensions$identity <- .wb_operation_pack_v2_identity_plain(
+      "scworkbench.dimension_order.v1",
+      unname(as.list(dimensions$labels)))
+  }
   primitive <- structure(list(kind = "space", space_id = space_id,
     values = values, dimensions = as.integer(dim(values)),
     cell_id = rownames(values), storage_profile = "space_dense_v1",
@@ -213,6 +224,7 @@
   } else .wb_operation_pack_v3_selected_dimensions(source, params, parameter)
   parent <- .wb_operation_pack_v3_dfa_parent_snapshot(bundle, source,
     dimensions)
+  dimensions$identity <- parent$selected_dimension_order_identity
   parent_cells <- attr(parent, "operation_pack_v3_parent_cells")
   attr(parent, "operation_pack_v3_parent_cells") <- NULL
   limits <- list(maximum_selected_cells = as.integer(

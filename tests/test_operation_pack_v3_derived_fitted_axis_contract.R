@@ -286,6 +286,59 @@ test_operation_pack_v3_derived_fitted_axis_positive_scale_contract <-
   TRUE
 }
 
+test_operation_pack_v3_derived_fitted_axis_2d_labels_contract <- function() {
+  fixture <- .wb_dfa_install()
+  root <- tempfile("scwb-dfa-2d-")
+  bundle <- wb_init_bundle(root)
+  on.exit({
+    try(wb_close_bundle(bundle), silent = TRUE)
+    .wb_dfa_cleanup(fixture)
+    unlink(root, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+  cells <- paste0("c", seq_len(12L))
+  coordinates <- cbind(d1 = seq_along(cells), d2 = 2 * seq_along(cells))
+  rownames(coordinates) <- cells
+  wb_define_cells(bundle, cells)
+  wb_add_space(bundle, "source", coordinates)
+  fit <- wb_session_run_op(wb_session_new(), bundle,
+    "scwbv3phase5::fit_derived_axis_relation", inputs = list(
+      source = "source", dims = c(1L, 2L), fitted_cells = cells[1:3],
+      cell_set = "all", min_cells = 1L))
+  transition <- fit$run$operation_pack_transition$transition_id
+  record <- file.path(.wb_operation_pack_v2_store(fit$session$staging_bundle),
+    transition)
+  request <- jsonlite::read_json(file.path(record, "request.json"),
+    simplifyVector = FALSE)
+  parent <- request$derived_fitted_axis_grants[[1L]]$parent_snapshot
+  stopifnot(identical(unlist(parent$selected_dimension_ids),
+    c("dim1", "dim2")),
+    identical(parent$selected_dimension_order_identity,
+      .wb_operation_pack_v2_identity_plain("scworkbench.dimension_order.v1",
+        list("dim1", "dim2"))),
+    nrow(wb_operation_pack_transition_load(fit$session$staging_bundle,
+      transition, "relation")$values) == 3L)
+  promoted <- wb_session_promote_current(bundle, fit$session,
+    outputs = c("embedding", "model", "weights", "relation"),
+    created_by = "dfa-2d-test")
+  stopifnot(nrow(promoted$promoted) == 4L,
+    isTRUE(wb_finalize_recipient_bundle(bundle)$ready))
+  model_id <- promoted$promoted$artifact_id[
+    promoted$promoted$output == "model"][[1L]]
+  wb_close_bundle(bundle)
+  bundle <- NULL
+  relocated <- tempfile("scwb-dfa-2d-relocated-")
+  on.exit(unlink(relocated, recursive = TRUE, force = TRUE), add = TRUE)
+  fs::dir_copy(root, relocated)
+  recipient <- wb_open_bundle(relocated, read_only = TRUE)
+  on.exit(wb_close_bundle(recipient), add = TRUE)
+  model <- wb_art_load(recipient, model_id, expected_kind = "model_ref")
+  reopened <- .wb_operation_pack_v3_dfa_reopen(recipient, model,
+    model$model_source_linkage, model$model_tree_root)
+  stopifnot(identical(rownames(reopened), cells[1:3]),
+    identical(colnames(reopened), c("dim1", "dim2")))
+  TRUE
+}
+
 test_operation_pack_v3_derived_fitted_axis_lifecycle_contract <- function() {
   fixture <- .wb_dfa_install(); state <- .wb_dfa_bundle()
   on.exit({
