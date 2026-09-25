@@ -21,8 +21,30 @@ Quill's isolated PyBench commit is `b767eb3788e6c508f464cc1687d5fbaf78ce1501`. Q
 - Compatibility oracle on the new installed core: `R_LIBS=/tmp/s5_core_pkg_check/lib:/tmp/forge-s2-ownership-final-20260925/exact-final/lib PYTHONPATH=/home/dirk/Projects/.pybench-worktrees/phase5-s5-relation-family-parity-quill-20260925/src SCWORKBENCH_PYBENCH_PYTHON=/home/dirk/Projects/pybench/.venv/bin/python Rscript --vanilla tests/fixtures/phase5_s5_old_core_relation_capture.R /tmp/s5_new_core_oracle.json` — exit 0, `cmp -s tests/fixtures/phase5_s5_old_core_relation_oracle.json /tmp/s5_new_core_oracle.json` exit 0; log `/tmp/s5_new_core_oracle.log`.
 - `R CMD build --no-build-vignettes` exit 0, `R CMD check --no-manual --no-vignettes` exit 0 with one installed-size NOTE (8.3 MB), `R CMD INSTALL` exit 0; logs `/tmp/s5_core_pkg_check/{build,check,install}.log`. The NOTE is about package size, with no errors or warnings.
 - `R_LIBS=/tmp/forge-s2-ownership-final-20260925/exact-final/lib Rscript --vanilla inst/dev/regenerate_public_docs.R` exit 0; log `/tmp/s5_docs_regenerate.log`.
+- Committed-revision documentation/source-package contract: `R_LIBS=/tmp/forge-s2-ownership-final-20260925/exact-final/lib Rscript --vanilla inst/tests/check_documentation_contracts.R` exit 0; log `/tmp/s5_docs_source_contract.log`. It passed generated-documentation drift, source build, install, and installed public-operator smoke.
+- After the legacy relation compatibility fix, the seven-test focused run (`tests/test_cell_vector_durable_identity_roundtrip_contract.R` and `tests/test_operation_pack_v3_sealed_relation_family_contract.R`) passed 7/7, exit 0; log `/tmp/s5_relation_compat_fix.log`. The fix restricts the extra content descriptor to an authenticated sealed-v3 relation grant, so legacy direct relation artifacts retain their existing mutable SQL roundtrip contract.
+- Fixed-source `R CMD build --no-build-vignettes`, `R CMD check --no-manual --no-vignettes`, and `R CMD INSTALL` all exited 0; logs `/tmp/s5_core_pkg_check_final/{build,check,install}.log`. Check has one installed-size NOTE and no warnings/errors. Fixed-source `check_documentation_contracts.R` exited 0; log `/tmp/s5_docs_source_fixed_final.log`.
+- Exact final code/test revision `R CMD build --no-build-vignettes`, `R CMD check --no-manual --no-vignettes`, and `R CMD INSTALL` all exited 0; logs `/tmp/s5_core_pkg_check_qualified/{build,check,install}.log`. Check again has only the installed-size NOTE. Exact-revision `check_documentation_contracts.R` exited 0; log `/tmp/s5_docs_source_qualified.log`.
 
-The first five-file affected contract run started before protocol-hash pins and a sparse-fixture positional test were corrected. It recorded those two expected stale-test failures; each correction then passed directly. The final complete core suite and committed-revision documentation/source-package checks are pending below and must be filled with final outcomes before review.
+The first five-file affected contract run started before protocol-hash pins and a sparse-fixture positional test were corrected. It recorded two stale-test failures and 28 passes; each correction then passed directly. A later rerun was stopped after the compatibility fix changed loaded source. The first complete-suite attempt lacked `SCWBREPRESENTATION_SOURCE` and was stopped after an unrelated pack lifecycle setup failure. A configured attempt found the legacy direct-relation descriptor regression, which the seven-test focused run above verifies as fixed. The final six-file affected run passed **31/31**, exit 0, in `/tmp/s5_core_affected_fixed_final.log`. The next configured complete attempt exercised all 242 tests: 236 passed, five optional skips, and one stale trajectory-family protocol hash pin failed; log `/tmp/s5_core_full_fixed_final.log`. The corrected pin passed its two-test focused file, exit 0, in `/tmp/s5_trajectory_family_hash_recheck.log`. The **final complete core suite passed**, exit 0: 237 passed, five optional skips, zero failed, all 242 accounted for across 148 files. Its log is `/tmp/s5_core_full_qualified.log`; it used all pack source variables, the pinned `ddc3eb7` trajectory checkout, and Quill's PyBench tree.
+
+The 13 changed R files and eight changed JSON files parsed successfully. Direct `cmp -s` checks returned zero for each of the four shared core/PyBench protocol assets above. `git diff --check` and `git show --check` returned zero. Both isolated worktrees are clean after their scoped commits.
+
+The final complete-suite command is:
+
+```sh
+R_LIBS=/tmp/forge-s2-ownership-final-20260925/exact-final/lib \
+SCWBREPRESENTATION_SOURCE=/home/dirk/Projects/operation_packs/scwbRepresentation \
+SCWBSTATISTICS_SOURCE=/home/dirk/Projects/operation_packs/scwbStatistics \
+SCWBGENEPROGRAMS_SOURCE=/home/dirk/Projects/operation_packs/scwbGenePrograms \
+SCWBRNA_SOURCE=/home/dirk/Projects/operation_packs/scwbRNA \
+SCWBTRAJECTORY_SOURCE=/home/dirk/Projects/.operation-pack-worktrees/phase5-s2-prep-forge2-20260922 \
+PYTHONPATH=/home/dirk/Projects/.pybench-worktrees/phase5-s5-relation-family-parity-quill-20260925/src \
+SCWORKBENCH_PYBENCH_PYTHON=/home/dirk/Projects/pybench/.venv/bin/python \
+Rscript --vanilla inst/tests/run_contract_tests.R
+```
+
+The final affected-suite command uses the same `R_LIBS` and `Rscript --vanilla inst/tests/run_contract_tests.R` with `--test-file=` for `test_operation_pack_v3_sealed_relation_family_contract.R`, `test_operation_pack_v3_standalone_sparse_family_contract.R`, `test_operation_pack_v3_derived_fitted_axis_contract.R`, `test_promotion_artifact_payload_atomicity_contract.R`, `test_operation_pack_v3_contract.R`, and `test_cell_vector_durable_identity_roundtrip_contract.R` under `tests/`.
 
 ## Review gates
 
