@@ -20,7 +20,7 @@ test_phase5_s2_core_ownership_contract <- function() {
     identical(as.character(header$schema), "scworkbench.phase5_s2.exact_name_inventory.v1"),
     identical(as.character(header$source_core_commit), "b8d53a55d9403e1fae813d08fba69125f22fbae6"),
     identical(as.character(header$accepted_pack_commit), "d4fd81a524d6104fa526b4960d5e1498242ad60e"),
-    identical(as.character(header$pack_migration_candidate_commit), "6702deafbcc999386686cf2b0371ae8f3fb08bec"),
+    identical(as.character(header$pack_migration_candidate_commit), "03bd46229de325df0e199ed923755b11043f2cd5"),
     identical(as.integer(header$reference_count), length(rows)),
     setequal(as.character(header$operation_names), legacy),
     setequal(vapply(rows, `[[`, character(1), "operation"), legacy),
