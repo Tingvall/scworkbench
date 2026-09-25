@@ -720,6 +720,44 @@
     pack_sha256 = pack$sha256)
 }
 
+.wb_operation_pack_v3_catalog_chunking <- function(op) {
+  slices <- op$typed_slice_reads %||% list()
+  # The public interface has one chunking record, so multiple reader grants
+  # cannot be projected without claiming an unambiguous execution policy.
+  if (length(slices) != 1L) return(NULL)
+  slice <- slices[[1L]]
+  axis <- as.character(slice$chunk_axis %||% "")[1L]
+  parameter <- as.character(slice$chunk_size_parameter %||% "")[1L]
+  input <- as.character(slice$input %||% "")[1L]
+  inputs <- stats::setNames(op$inputs, vapply(op$inputs,
+    function(item) as.character(item$name)[1L], character(1)))
+  properties <- op$params_schema$properties %||% list()
+  supported <- as.character(unlist(slice$supported_axes %||% list(),
+    use.names = FALSE))
+  if (!identical(as.character(slice$reader %||% "")[1L],
+      "read_typed_slices") ||
+      !identical(as.character(slice$kind %||% "")[1L], "matrix") ||
+      !identical(as.character(slice$call_discipline %||% "")[1L],
+        "ordered_partition_exactly_once") ||
+      !axis %in% c("cells", "features") || !axis %in% supported ||
+      !identical(as.character(inputs[[input]]$kind %||% "")[1L],
+        "matrix") ||
+      !.wb_operation_pack_v3_param_is(properties, parameter, "integer"))
+    return(NULL)
+  chunking <- list(chunkable = TRUE, axis = axis,
+    chunk_size_param = parameter, status = "v3_typed_slice_capability")
+  size <- properties[[parameter]]
+  if ("default" %in% names(size)) {
+    default <- size$default
+    if (!is.numeric(default) || length(default) != 1L ||
+        !is.finite(default) || default < 1 ||
+        default > .Machine$integer.max || default != floor(default))
+      return(NULL)
+    chunking$chunk_size_default <- as.integer(default)
+  }
+  chunking
+}
+
 .wb_operation_pack_v3_catalog_definition <- function(op) {
   projected <- op
   selector_parameters <- vapply(projected$cell_selector_axes %||% list(),
@@ -764,6 +802,9 @@
     projected$dimension_policies %||% list())
   if (!length(projected$dimension_policies)) projected$dimension_policies <- NULL
   definition <- .wb_operation_pack_v2_catalog_definition(projected)
+  typed_slice_chunking <- .wb_operation_pack_v3_catalog_chunking(op)
+  if (!is.null(typed_slice_chunking))
+    definition$chunking <- typed_slice_chunking
   operation_display_groups <- Filter(function(group) identical(
     as.character(group$scope)[1L], "operation"),
     op$optional_display_axis_groups %||% list())
