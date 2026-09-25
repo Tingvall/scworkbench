@@ -6,7 +6,8 @@ test_semantic_catalog_unified_contract <- function() {
 
   ids <- vapply(cat_sem$records, function(x) as.character(x$record_id %||% ""), character(1))
   stopifnot(all(nzchar(ids)), !anyDuplicated(ids))
-  stopifnot(all(c("op:slingshot_fit", "getter:wb_art_list", "primitive:cell_vector", "artifact_type:obs_table:trajectory_geneset_dynamics", "parameter:cell_set", "parameter:mad_multiplier", "recipe:trajectory_geneset_dynamics_discovery") %in% ids))
+  stopifnot(all(c("op:slingshot_adopt", "getter:wb_art_list", "primitive:cell_vector", "artifact_type:obs_table:trajectory_geneset_dynamics", "parameter:cell_set", "parameter:mad_multiplier", "recipe:trajectory_geneset_dynamics_discovery") %in% ids),
+    !"op:slingshot_fit" %in% ids)
 
   graph <- wb_semantic_compatibility_graph()
   stopifnot(is.list(graph))
@@ -15,7 +16,7 @@ test_semantic_catalog_unified_contract <- function() {
   edge_ids <- unique(unlist(lapply(graph$edges, function(e) c(e$from, e$to)), use.names = FALSE))
   stopifnot(all(edge_ids %in% ids))
   edge_key <- vapply(graph$edges, function(e) paste(e$from, e$to, e$edge_type, sep = "|"), character(1))
-  stopifnot(any(edge_key == "op:slingshot_fit|parameter:space|has_parameter_semantics"))
+  stopifnot(any(grepl("^op:slingshot_adopt\\|parameter:.*\\|has_parameter_semantics$", edge_key)))
   stopifnot(any(edge_key == "recipe:inspect_promoted_artifact|getter:wb_art_load|uses"))
 
   audit <- wb_semantic_catalog_audit()
@@ -45,7 +46,7 @@ test_semantic_catalog_unified_contract <- function() {
     stopifnot(jsonlite::validate(txt))
   }
   md <- readLines(file.path(tmp, "semantic.md"), warn = FALSE)
-  stopifnot(any(grepl("^### `op:slingshot_fit`", md)))
+  stopifnot(any(grepl("^### `op:slingshot_adopt`", md)))
 
   tmp_refresh <- tempfile("semantic_refresh_")
   audit2 <- wb_refresh_semantic_catalogs(docs_dir = tmp_refresh)
@@ -69,18 +70,18 @@ test_semantic_graph_views_contract <- function() {
     record_types = c("op", "primitive"),
     edge_types = c("consumed_by", "produces")
   )
-  stopifnot(any(op_tbl$nodes$record_id == "op:slingshot_fit"))
+  stopifnot(any(op_tbl$nodes$record_id == "op:slingshot_adopt"))
   stopifnot(any(op_tbl$nodes$record_id == "primitive:obs_table"))
   stopifnot(all(op_tbl$edges$edge_type %in% c("consumed_by", "produces")))
 
   dot <- wb_semantic_graph_dot(
-    node_regex = "slingshot_fit",
+    node_regex = "slingshot_adopt",
     include_neighbors = TRUE,
     title = "Trajectory Dynamics"
   )
   stopifnot(is.character(dot), length(dot) == 1)
   stopifnot(grepl("^digraph scworkbench_semantic_graph", dot))
-  stopifnot(grepl("slingshot_fit", dot))
+  stopifnot(grepl("slingshot_adopt", dot))
 
   tmp <- tempfile("semantic_graph_views_")
   manifest <- wb_write_semantic_graph_views(out_dir = tmp)

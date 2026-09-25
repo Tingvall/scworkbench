@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 114
+Record count: 110
 
 Meaningful public transformations: 60
 
@@ -430,63 +430,7 @@ Boundary: `guarded_implementation`
 
 Supported route: `registered_session_execution_and_promotion`
 
-## `wb_op_slingshot`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
 ## `wb_op_slingshot_adopt`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_slingshot_fit`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_slingshot_lineage_weights`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_slingshot_project`
 
 Category: operation_implementation
 

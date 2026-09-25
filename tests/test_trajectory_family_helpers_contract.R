@@ -7,41 +7,26 @@ test_trajectory_family_helpers_contract <- function(bundle_dir) {
   stopifnot(length(cells) >= 100)
   cell_ids <- as.character(head(cells, 500))
 
-  s <- wb_session_new()
-
-  r1 <- contract_test_add_core_metadata_labels(
-    session = s, bundle = b, cells = cell_ids,
-    notes = "trajectory family helper test: synthetic seed clusters"
-  )
-  s <- r1$session
-
-  r2 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "slingshot_fit",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cell_ids,
-      fit_space = wb_prim_space("peakvi_space"),
-      clusters = wb_ref_run(r1$run$run_id, "vector")
-    ),
-    notes = "trajectory family helper test: slingshot_fit"
-  )
-  s <- r2$session
-
-  r3 <- wb_session_run_op(
-    session = s,
-    bundle = b,
-    op_name = "slingshot_project",
-    inputs = list(
-      cell_set = "all",
-      cell_ids = cell_ids,
-      model = wb_ref_run(r2$run$run_id, "model"),
-      plot_space = wb_prim_space_2d("umap.peakvi_space")
-    ),
-    notes = "trajectory family helper test: slingshot_project"
-  )
-  s <- r3$session
+  # Generic run/artifact family inspection must not depend on a method pack.
+  pt <- wb_prim_cell_vector_family(rep("L1", length(cell_ids)), cell_ids,
+    seq(0, 1, length.out = length(cell_ids)), value_type = "continuous")
+  curve <- wb_prim_path_2d_family(rep("L1", 3L), 1:3,
+    c(0, 1, 2), c(0, .5, 1))
+  fit_run <- wb_new_run("slingshot_adopt",
+    inputs = list(cell_set = "all", effective_n = length(cell_ids),
+      parents = character(), user_inputs = list()),
+    params = list(trajectory_fit_id = "family_helper_fixture"),
+    outputs = list(pseudotime = pt))
+  project_run <- wb_new_run("monocle3_project",
+    inputs = list(cell_set = "all", effective_n = length(cell_ids),
+      parents = fit_run$run_id,
+      user_inputs = list(plot_space = "umap.peakvi_space")),
+    params = list(plot_space_id = "umap.peakvi_space"),
+    outputs = list(curves = curve))
+  s <- wb_session_add_run(wb_session_new(), fit_run)
+  s <- wb_session_add_run(s, project_run)
+  r2 <- list(run = fit_run)
+  r3 <- list(run = project_run)
 
   pt_ref <- wb_ref_run(r2$run$run_id, "pseudotime")
   cv_ref <- wb_ref_run(r3$run$run_id, "curves")

@@ -22,7 +22,7 @@
     source_space_id = "Registered source coordinate space used for fitting.",
     model_ref = "Typed `model_ref` primitive required by this engine-specific helper.",
     monocle3_model = "Monocle3 `model_ref` primitive returned by `wb_op_monocle3_fit()`.",
-    slingshot_model = "Slingshot `model_ref` primitive returned by `wb_op_slingshot_fit()`.",
+    slingshot_model = "Authenticated Slingshot `model_ref` primitive.",
     peakvi_model = "PeakVI `model_ref` primitive returned by the Python-backed fitting workflow.",
     seed = "Integer random seed used to make stochastic computation reproducible.",
     n_iterations = "Number of optimization or clustering iterations.",

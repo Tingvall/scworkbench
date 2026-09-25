@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 288
+Record count: 284
 
-Graph edges: 504
+Graph edges: 471
 
 ## artifact_type
 
@@ -1022,35 +1022,11 @@ Title: Metadata Cell Vector
 
 Description: Materialize an imported cell metadata column as a typed, provenance-backed cell vector.
 
-### `op:slingshot`
-
-Title: Slingshot trajectory
-
-Description: Infer lineage curves and pseudotime from clusters in a 2D space.
-
-### `op:slingshot_fit`
-
-Title: Slingshot fit
-
-Description: Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
-
 ### `op:slingshot_adopt`
 
 Title: Adopt an existing Slingshot fit
 
 Description: Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
-
-### `op:slingshot_lineage_weights`
-
-Title: Slingshot lineage weights
-
-Description: Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
-
-### `op:slingshot_project`
-
-Title: Slingshot project curves
-
-Description: Project a fitted Slingshot model into a 2D display space (e.g. UMAP).
 
 ### `op:monocle3_fit`
 

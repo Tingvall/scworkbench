@@ -108,7 +108,7 @@ test_typed_effective_cell_coverage_contract <- function() {
   path_cov <- scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(space = wb_prim_space("partial_space"), path = path),
     list(space = "space", path = "space_path_family"),
-    "slingshot_project", 1L
+    "slingshot_adopt", 1L
   )
   stopifnot(identical(path_cov$cells, cells[c(1, 2, 4, 7, 8, 10, 11)]))
 
@@ -118,12 +118,12 @@ test_typed_effective_cell_coverage_contract <- function() {
   incompatible <- try(scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(signal = family, model = model),
     list(signal = "cell_vector_family", model = "model_ref"),
-    "slingshot_project", 1L
+    "slingshot_adopt", 1L
   ), silent = TRUE)
   orphan_model <- wb_prim_model_ref("missing_model_space", "", engine = "slingshot")
   missing_model_coverage <- try(scworkbench:::.wb_typed_effective_cells(
     b, "all", list(), list(model = orphan_model), list(model = "model_ref"),
-    "slingshot_lineage_weights", 1L
+    "slingshot_adopt", 1L
   ), silent = TRUE)
   stopifnot(inherits(incompatible, "try-error"), inherits(missing_model_coverage, "try-error"))
 

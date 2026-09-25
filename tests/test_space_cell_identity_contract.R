@@ -47,8 +47,6 @@ test_space_cell_identity_contract <- function() {
   # canonical converter or explicit cell-id alignment at a typed handoff.
   converter_consumers <- list(
     geometry = wb_op_knn_graph,
-    slingshot_fit = .wb_slingshot_prepare_fit,
-    slingshot_project = wb_op_slingshot_project,
     monocle3_fit = wb_op_monocle3_fit,
     monocle3_project = wb_op_monocle3_project,
     palantir_project = wb_op_palantir_project,

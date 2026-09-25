@@ -10,7 +10,8 @@ test_knowledge_graph_contract <- function(bundle_dir = NULL) {
   stopifnot(all(edge_cols %in% names(g1$edges)))
   stopifnot(identical(g1$nodes$id, g2$nodes$id))
   stopifnot(identical(g1$edges$id, g2$edges$id))
-  stopifnot(any(g1$nodes$id == "op:slingshot_fit"))
+  stopifnot(any(g1$nodes$id == "op:slingshot_adopt"),
+    !any(g1$nodes$id == "op:slingshot_fit"))
   stopifnot(any(g1$nodes$id == "recipe:trajectory_geneset_dynamics_discovery"))
 
   node_type <- setNames(g1$nodes$node_type, g1$nodes$id)
@@ -34,7 +35,7 @@ test_knowledge_graph_contract <- function(bundle_dir = NULL) {
   stopifnot(all(produces$target_type %in% c("Primitive", "ArtifactType", "Plot")))
 
   stopifnot(any(g1$edges$edge_type == "PRODUCES" &
-                  g1$edges$source_id == "op:slingshot_fit" &
+                  g1$edges$source_id == "op:slingshot_adopt" &
                   g1$edges$target_id == "primitive:model_ref"))
   stopifnot(any(g1$edges$edge_type == "USES" &
                   g1$edges$source_id == "recipe:inspect_promoted_artifact" &

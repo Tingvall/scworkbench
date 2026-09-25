@@ -1,11 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="740" height="1456" viewBox="0 0 740 1456">
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="1168" viewBox="0 0 740 1168">
 <rect width="100%" height="100%" fill="white"/>
 <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#555"/></marker></defs>
 <text x="40" y="34" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700">Ops, Primitives, And Operation I/O</text>
 <text x="40" y="60" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#555">op</text>
 <text x="370" y="60" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#555">primitive</text>
-<line x1="370" y1="103" x2="300" y2="1039" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:cell_vector consumed_by op:slingshot</title></line>
-<line x1="370" y1="103" x2="300" y2="1183" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:cell_vector consumed_by op:slingshot_fit</title></line>
 <line x1="370" y1="319" x2="300" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:matrix consumed_by op:chromvar</title></line>
 <line x1="370" y1="319" x2="300" y2="247" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:matrix consumed_by op:feature_set_import</title></line>
 <line x1="370" y1="319" x2="300" y2="319" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:matrix consumed_by op:feature_set_namespace_transfer</title></line>
@@ -17,21 +15,14 @@
 <line x1="370" y1="391" x2="300" y2="607" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:monocle3_project</title></line>
 <line x1="370" y1="391" x2="300" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:palantir_project</title></line>
 <line x1="370" y1="391" x2="300" y2="895" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:peakvi_project</title></line>
-<line x1="370" y1="391" x2="300" y2="1111" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:slingshot_adopt</title></line>
-<line x1="370" y1="391" x2="300" y2="1255" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:slingshot_lineage_weights</title></line>
-<line x1="370" y1="391" x2="300" y2="1327" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:slingshot_project</title></line>
+<line x1="370" y1="391" x2="300" y2="1039" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:model_ref consumed_by op:slingshot_adopt</title></line>
 <line x1="370" y1="463" x2="300" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:obs_table consumed_by op:model_bound_latent_union</title></line>
 <line x1="370" y1="679" x2="300" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:model_bound_latent_union</title></line>
 <line x1="370" y1="679" x2="300" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:model_bound_latent_union</title></line>
 <line x1="370" y1="679" x2="300" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:monocle3_fit</title></line>
 <line x1="370" y1="679" x2="300" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:palantir_fit</title></line>
-<line x1="370" y1="679" x2="300" y2="1039" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:slingshot</title></line>
-<line x1="370" y1="679" x2="300" y2="1039" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:slingshot</title></line>
-<line x1="370" y1="679" x2="300" y2="1183" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space consumed_by op:slingshot_fit</title></line>
 <line x1="370" y1="751" x2="300" y2="607" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:monocle3_project</title></line>
 <line x1="370" y1="751" x2="300" y2="751" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:palantir_project</title></line>
-<line x1="370" y1="751" x2="300" y2="1039" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:slingshot</title></line>
-<line x1="370" y1="751" x2="300" y2="1327" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>primitive:space_2d consumed_by op:slingshot_project</title></line>
 <line x1="300" y1="103" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:cell_set_derive produces primitive:obs_table</title></line>
 <line x1="300" y1="103" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:cell_set_derive produces primitive:obs_table</title></line>
 <line x1="300" y1="175" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:chromvar produces primitive:cell_vector_family</title></line>
@@ -63,18 +54,11 @@
 <line x1="300" y1="967" x2="370" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:scvi_train produces primitive:model_ref</title></line>
 <line x1="300" y1="967" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:scvi_train produces primitive:obs_table</title></line>
 <line x1="300" y1="967" x2="370" y2="679" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:scvi_train produces primitive:space</title></line>
-<line x1="300" y1="1039" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot produces primitive:cell_vector_family</title></line>
-<line x1="300" y1="1039" x2="370" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot produces primitive:path_2d_family</title></line>
-<line x1="300" y1="1111" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:cell_vector_family</title></line>
-<line x1="300" y1="1111" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:cell_vector_family</title></line>
-<line x1="300" y1="1111" x2="370" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:model_ref</title></line>
-<line x1="300" y1="1111" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:obs_table</title></line>
-<line x1="300" y1="1111" x2="370" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:path_2d_family</title></line>
-<line x1="300" y1="1183" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_fit produces primitive:cell_vector_family</title></line>
-<line x1="300" y1="1183" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_fit produces primitive:cell_vector_family</title></line>
-<line x1="300" y1="1183" x2="370" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_fit produces primitive:model_ref</title></line>
-<line x1="300" y1="1255" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_lineage_weights produces primitive:cell_vector_family</title></line>
-<line x1="300" y1="1327" x2="370" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_project produces primitive:path_2d_family</title></line>
+<line x1="300" y1="1039" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:cell_vector_family</title></line>
+<line x1="300" y1="1039" x2="370" y2="175" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:cell_vector_family</title></line>
+<line x1="300" y1="1039" x2="370" y2="391" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:model_ref</title></line>
+<line x1="300" y1="1039" x2="370" y2="463" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:obs_table</title></line>
+<line x1="300" y1="1039" x2="370" y2="535" stroke="#555" stroke-opacity="0.22" stroke-width="1.2" marker-end="url(#arrow)"><title>op:slingshot_adopt produces primitive:path_2d_family</title></line>
 <g><title>op:cell_set_derive
 Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables.</title><rect x="40" y="80" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="98" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Derived Cell Set</text><text x="50" y="114" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:cell_set_derive</text></g>
 <g><title>op:chromvar
@@ -101,16 +85,8 @@ Train a PeakVI model on a matrix via the pybench Python runtime and emit a laten
 Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.</title><rect x="40" y="872" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="890" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">PeakVI project (pybench)</text><text x="50" y="906" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:peakvi_project</text></g>
 <g><title>op:scvi_train
 Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.</title><rect x="40" y="944" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="962" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">scVI train (pybench)</text><text x="50" y="978" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:scvi_train</text></g>
-<g><title>op:slingshot
-Infer lineage curves and pseudotime from clusters in a 2D space.</title><rect x="40" y="1016" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="1034" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Slingshot trajectory</text><text x="50" y="1050" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:slingshot</text></g>
 <g><title>op:slingshot_adopt
-Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.</title><rect x="40" y="1088" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="1106" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Adopt an existing Slingshot fit</text><text x="50" y="1122" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:slingshot_adopt</text></g>
-<g><title>op:slingshot_fit
-Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).</title><rect x="40" y="1160" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="1178" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Slingshot fit</text><text x="50" y="1194" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:slingshot_fit</text></g>
-<g><title>op:slingshot_lineage_weights
-Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.</title><rect x="40" y="1232" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="1250" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Slingshot lineage weights</text><text x="50" y="1266" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:slingshot_lineage_weights</text></g>
-<g><title>op:slingshot_project
-Project a fitted Slingshot model into a 2D display space (e.g. UMAP).</title><rect x="40" y="1304" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="1322" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Slingshot project curves</text><text x="50" y="1338" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:slingshot_project</text></g>
+Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.</title><rect x="40" y="1016" width="260" height="46" rx="8" fill="#b7d9f2" stroke="#555" stroke-opacity="0.55"/><text x="50" y="1034" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Adopt an existing Slingshot fit</text><text x="50" y="1050" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">op:slingshot_adopt</text></g>
 <g><title>primitive:cell_vector
 One value per cell, continuous or categorical.</title><rect x="370" y="80" width="260" height="46" rx="8" fill="#bde8bf" stroke="#555" stroke-opacity="0.55"/><text x="380" y="98" font-family="Helvetica,Arial,sans-serif" font-size="11" font-weight="700">Cell Vector</text><text x="380" y="114" font-family="Helvetica,Arial,sans-serif" font-size="9" fill="#333">primitive:cell_vector</text></g>
 <g><title>primitive:cell_vector_family

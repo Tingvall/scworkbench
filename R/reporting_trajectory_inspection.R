@@ -27,7 +27,7 @@
   cells <- rownames(pt) %||% character(0)
   .wb_assert(length(cells) == nrow(pt), "trajectory model report: slingshot pseudotime rownames missing.")
 
-  # Keep lineage key semantics aligned with wb_op_slingshot_fit output.
+  # Keep lineage keys aligned with retained and pack-produced Slingshot fits.
   keys <- paste0("L", seq_len(n_lin))
   out <- lapply(seq_len(n_lin), function(j) {
     data.frame(

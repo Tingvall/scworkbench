@@ -166,26 +166,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.; `outputs$fit_summary` (`obs_table`): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_slingshot
-#' @aliases wb_op_slingshot
-#' @description Infer lineage curves and pseudotime from clusters in a 2D space.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param space_id Registered coordinate-space identifier consumed by this operation.
-#' @param clusters Required `clusters` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param exclude_cells Optional cell ids excluded before fitting.
-#' @param include_clusters Optional cluster labels retained before fitting.
-#' @param exclude_clusters Cluster id(s) to exclude before fitting.
-#' @param start.clus Starting cluster id.
-#' @param end.clus Ending cluster id(s).
-#' @param stretch Slingshot curve stretching.
-#' @param reweight Whether to reweight assignments during fitting.
-#' @param shrink Engine shrinkage control for fitted trajectory curves.
-#' @param maxit Maximum engine fitting iterations.
-#' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Lineage-specific pseudotime values per cell.; `outputs$curves` (`path_2d_family`): Lineage curve paths in 2D.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_slingshot_adopt
 #' @aliases wb_op_slingshot_adopt
 #' @description Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
@@ -194,45 +174,5 @@ NULL
 #' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
 #' @param source Registered external_source reference for the object from which the selected Slingshot fit was extracted.
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Source-derived lineage-specific pseudotime values; no refit is performed.; `outputs$lineage_weights` (`cell_vector_family`): Source-derived Slingshot lineage membership weights; no refit is performed.; `outputs$curves` (`path_2d_family`): Source-derived two-dimensional Slingshot lineage curves.; `outputs$model` (`model_ref`): Contained source-derived Slingshot model bound to the adopted trajectory fit family.; `outputs$adoption_summary` (`obs_table`): Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_slingshot_fit
-#' @aliases wb_op_slingshot_fit
-#' @description Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param fit_space_id Registered coordinate space used to fit the model.
-#' @param clusters Required `clusters` input represented as `cell_vector`; accepted symbolic references are resolved by the operation interface.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param exclude_cells Optional cell ids excluded before fitting.
-#' @param include_clusters Optional cluster labels retained before fitting.
-#' @param exclude_clusters Cluster id(s) to exclude before fitting.
-#' @param start.clus Starting cluster id.
-#' @param end.clus Ending cluster id(s).
-#' @param stretch Slingshot curve stretching.
-#' @param reweight Whether to reweight assignments during fitting.
-#' @param shrink Engine shrinkage control for fitted trajectory curves.
-#' @param maxit Maximum engine fitting iterations.
-#' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector_family`): Lineage-specific pseudotime values per cell (fit space inference).; `outputs$lineage_weights` (`cell_vector_family`): Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.; `outputs$model` (`model_ref`): Session-chainable Slingshot fit model (engine='slingshot').. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_slingshot_lineage_weights
-#' @aliases wb_op_slingshot_lineage_weights
-#' @description Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
-#' @param model_ref Typed `model_ref` primitive required by this engine-specific helper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$lineage_weights` (`cell_vector_family`): Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_slingshot_project
-#' @aliases wb_op_slingshot_project
-#' @description Project a fitted Slingshot model into a 2D display space (e.g. UMAP).
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param slingshot_model Slingshot `model_ref` primitive returned by `wb_op_slingshot_fit()`.
-#' @param plot_space_id Registered two-dimensional display space used for projection.
-#' @param stretch Optional override of stretch during embedding.
-#' @param shrink Engine shrinkage control for fitted trajectory curves.
-#' @param approx_points Target max curve points per lineage for display (0/NULL = no compaction).
-#' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Projected Slingshot lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
 NULL
 

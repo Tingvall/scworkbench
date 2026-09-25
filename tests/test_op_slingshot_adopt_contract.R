@@ -61,7 +61,7 @@ test_op_slingshot_adopt_reordered_axis_rejection_contract <- function() {
     y = coordinates[, 2L],
     stringsAsFactors = FALSE
   ), source = "reordered Slingshot fixture", created_by = "contract test")
-  fitted <- scworkbench:::.wb_slingshot_run_fit(
+  fitted <- .slingshot_adopt_fixture_fit(
     X_fit = coordinates,
     cells_fit = model_cells,
     cluster_labels = clusters,
@@ -197,7 +197,7 @@ test_op_slingshot_adopt_contract <- function() {
     origin = "imported", is_readonly = FALSE
   )
 
-  fitted_sce <- scworkbench:::.wb_slingshot_run_fit(
+  fitted_sce <- .slingshot_adopt_fixture_fit(
     X_fit = coordinates,
     cells_fit = cells,
     cluster_labels = clusters,
@@ -312,7 +312,7 @@ test_op_slingshot_adopt_contract <- function() {
 
   coordinate_mismatch <- coordinates
   coordinate_mismatch[1, 1] <- coordinate_mismatch[1, 1] + 0.25
-  bad_sce <- scworkbench:::.wb_slingshot_run_fit(
+  bad_sce <- .slingshot_adopt_fixture_fit(
     X_fit = coordinate_mismatch,
     cells_fit = cells,
     cluster_labels = clusters,
@@ -374,4 +374,14 @@ test_op_slingshot_adopt_contract <- function() {
   )
 
   TRUE
+}
+.slingshot_adopt_fixture_fit <- function(X_fit, cells_fit, cluster_labels,
+    start.clus = NULL, end.clus = NULL) {
+  sce <- SingleCellExperiment::SingleCellExperiment(assays = list(dummy =
+    matrix(0, nrow = 1L, ncol = length(cells_fit))))
+  colnames(sce) <- cells_fit
+  SingleCellExperiment::reducedDims(sce) <- S4Vectors::SimpleList(
+    space = X_fit)
+  slingshot::slingshot(sce, clusterLabels = cluster_labels,
+    reducedDim = "space", start.clus = start.clus, end.clus = end.clus)
 }

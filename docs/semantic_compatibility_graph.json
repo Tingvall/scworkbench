@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 288,
-  "edge_count": 504,
+  "node_count": 284,
+  "edge_count": 471,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -35,34 +35,10 @@
       "title": "Metadata Cell Vector"
     },
     {
-      "record_id": "op:slingshot",
-      "record_type": "op",
-      "name": "slingshot",
-      "title": "Slingshot trajectory"
-    },
-    {
-      "record_id": "op:slingshot_fit",
-      "record_type": "op",
-      "name": "slingshot_fit",
-      "title": "Slingshot fit"
-    },
-    {
       "record_id": "op:slingshot_adopt",
       "record_type": "op",
       "name": "slingshot_adopt",
       "title": "Adopt an existing Slingshot fit"
-    },
-    {
-      "record_id": "op:slingshot_lineage_weights",
-      "record_type": "op",
-      "name": "slingshot_lineage_weights",
-      "title": "Slingshot lineage weights"
-    },
-    {
-      "record_id": "op:slingshot_project",
-      "record_type": "op",
-      "name": "slingshot_project",
-      "title": "Slingshot project curves"
     },
     {
       "record_id": "op:monocle3_fit",
@@ -2017,132 +1993,6 @@
       "label": "promotable:vector"
     },
     {
-      "from": "primitive:space",
-      "to": "op:slingshot",
-      "edge_type": "consumed_by",
-      "label": "input:space"
-    },
-    {
-      "from": "op:slingshot",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:space"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:slingshot",
-      "edge_type": "consumed_by",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "op:slingshot",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:slingshot",
-      "edge_type": "consumed_by",
-      "label": "input:clusters"
-    },
-    {
-      "from": "primitive:space_2d",
-      "to": "op:slingshot",
-      "edge_type": "consumed_by",
-      "label": "input:space_2d"
-    },
-    {
-      "from": "op:slingshot",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:slingshot",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:pseudotime"
-    },
-    {
-      "from": "op:slingshot",
-      "to": "primitive:path_2d_family",
-      "edge_type": "produces",
-      "label": "output:curves"
-    },
-    {
-      "from": "op:slingshot",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:pseudotime"
-    },
-    {
-      "from": "op:slingshot",
-      "to": "artifact_type:path_2d_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:curves"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:slingshot_fit",
-      "edge_type": "consumed_by",
-      "label": "input:fit_space"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:fit_space"
-    },
-    {
-      "from": "primitive:cell_vector",
-      "to": "op:slingshot_fit",
-      "edge_type": "consumed_by",
-      "label": "input:clusters"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:pseudotime"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:lineage_weights"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "primitive:model_ref",
-      "edge_type": "produces",
-      "label": "output:model"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:pseudotime"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:lineage_weights"
-    },
-    {
-      "from": "op:slingshot_fit",
-      "to": "artifact_type:model_ref",
-      "edge_type": "promotes_as",
-      "label": "promotable:model"
-    },
-    {
       "from": "primitive:model_ref",
       "to": "op:slingshot_adopt",
       "edge_type": "consumed_by",
@@ -2213,78 +2063,6 @@
       "to": "artifact_type:model_ref",
       "edge_type": "promotes_as",
       "label": "promotable:model"
-    },
-    {
-      "from": "primitive:model_ref",
-      "to": "op:slingshot_lineage_weights",
-      "edge_type": "consumed_by",
-      "label": "input:model"
-    },
-    {
-      "from": "op:slingshot_lineage_weights",
-      "to": "parameter:model",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:model"
-    },
-    {
-      "from": "op:slingshot_lineage_weights",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:slingshot_lineage_weights",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:lineage_weights"
-    },
-    {
-      "from": "op:slingshot_lineage_weights",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:lineage_weights"
-    },
-    {
-      "from": "primitive:model_ref",
-      "to": "op:slingshot_project",
-      "edge_type": "consumed_by",
-      "label": "input:model"
-    },
-    {
-      "from": "op:slingshot_project",
-      "to": "parameter:model",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:model"
-    },
-    {
-      "from": "primitive:space_2d",
-      "to": "op:slingshot_project",
-      "edge_type": "consumed_by",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "op:slingshot_project",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "op:slingshot_project",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:slingshot_project",
-      "to": "primitive:path_2d_family",
-      "edge_type": "produces",
-      "label": "output:curves"
-    },
-    {
-      "from": "op:slingshot_project",
-      "to": "artifact_type:path_2d_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:curves"
     },
     {
       "from": "primitive:space",
@@ -4244,12 +4022,12 @@
     },
     {
       "from": "recipe:plot_trajectory_on_umap",
-      "to": "op:slingshot_project",
+      "to": "op:slingshot_adopt",
       "edge_type": "uses",
-      "label": "op:slingshot_project"
+      "label": "op:slingshot_adopt"
     },
     {
-      "from": "op:slingshot_project",
+      "from": "op:slingshot_adopt",
       "to": "recipe:plot_trajectory_on_umap",
       "edge_type": "used_by_recipe",
       "label": "recipe:plot_trajectory_on_umap"

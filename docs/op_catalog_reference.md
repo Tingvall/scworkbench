@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 18
+Operation count: 14
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -191,74 +191,6 @@ Key parameters:
 - `vector_name` (string, default=NULL): Stable promoted vector name; collision protection is controlled by overwrite.
 - `overwrite` (bool, default=FALSE): Allow a new immutable artifact to supersede an existing vector with the same name.
 
-## `slingshot`
-
-Title: Slingshot trajectory
-
-Intent: trajectory
-
-Description: Infer lineage curves and pseudotime from clusters in a 2D space.
-
-Consumes:
-- `space`: space
-- `plot_space`: space
-- `clusters`: cell_vector
-- `space_2d`: space_2d
-- `cell_set`: select
-
-Produces:
-- `pseudotime`: cell_vector_family [terminal artifact] - Lineage-specific pseudotime values per cell.
-- `curves`: path_2d_family [terminal artifact] - Lineage curve paths in 2D.
-
-Promotable outputs: pseudotime, curves
-
-Replay equivalence:
-- `pseudotime`: `exact_canonical_value`
-- `curves`: `exact_canonical_value`
-
-Key parameters:
-- `start.clus` (string, default=NULL): Starting cluster id.
-- `end.clus` (string_vec, default=NULL): Ending cluster id(s).
-- `exclude_clusters` (string_vec, default=NULL): Cluster id(s) to exclude before fitting.
-- `stretch` (dbl, default=2): Slingshot curve stretching.
-- `reweight` (bool, default=TRUE): Whether to reweight assignments during fitting.
-
-## `slingshot_fit`
-
-Title: Slingshot fit
-
-Intent: trajectory
-
-Description: Fit Slingshot lineages/pseudotime in a chosen fit space (typically latent/PCA).
-
-Consumes:
-- `fit_space`: space
-- `clusters`: cell_vector
-- `cell_set`: select
-
-Produces:
-- `pseudotime`: cell_vector_family [terminal artifact] - Lineage-specific pseudotime values per cell (fit space inference).
-- `lineage_weights`: cell_vector_family [terminal artifact] - Slingshot lineage membership weights per cell and lineage. These are trajectory membership weights, not pseudotime.
-- `model`: model_ref [terminal artifact] - Session-chainable Slingshot fit model (engine='slingshot').
-
-Promotable outputs: pseudotime, lineage_weights, model
-
-Replay equivalence:
-- `pseudotime`: `exact_canonical_value`
-- `lineage_weights`: `exact_canonical_value`
-- `model`: `loadable_reference`
-
-Key parameters:
-- `start.clus` (string, default=NULL): Starting cluster id.
-- `end.clus` (string_vec, default=NULL): Ending cluster id(s).
-- `include_clusters` (string_vec, default=NULL): Restrict fitting to these cluster id(s).
-- `exclude_clusters` (string_vec, default=NULL): Cluster id(s) to exclude before fitting.
-- `exclude_cells` (cell_ids, default=NULL): Optional cell IDs to exclude before fitting.
-- `stretch` (dbl, default=2): Slingshot curve stretching.
-- `reweight` (bool, default=TRUE): Whether to reweight assignments during fitting.
-- `shrink` (dbl, default=1): Curve shrinkage toward shared segments.
-- `maxit` (int, default=10): Maximum fitting iterations.
-
 ## `slingshot_adopt`
 
 Title: Adopt an existing Slingshot fit
@@ -289,55 +221,6 @@ Replay equivalence:
 
 Key parameters:
 - `source` (entity_ref, default=NULL): Registered external_source reference for the object from which the selected Slingshot fit was extracted.
-
-## `slingshot_lineage_weights`
-
-Title: Slingshot lineage weights
-
-Intent: trajectory, provenance, backfill
-
-Description: Extract Slingshot lineage membership weights from an existing model_ref without refitting, preserving trajectory_fit_id and lineage mapping.
-
-Consumes:
-- `model`: model_ref
-- `cell_set`: select
-
-Produces:
-- `lineage_weights`: cell_vector_family [terminal artifact] - Slingshot lineage membership weights extracted from an existing model_ref; no trajectory refit is performed.
-
-Promotable outputs: lineage_weights
-
-Replay equivalence:
-- `lineage_weights`: `exact_canonical_value`
-
-Key parameters:
-- (none)
-
-## `slingshot_project`
-
-Title: Slingshot project curves
-
-Intent: trajectory
-
-Description: Project a fitted Slingshot model into a 2D display space (e.g. UMAP).
-
-Consumes:
-- `model`: model_ref
-- `plot_space`: space_2d
-- `cell_set`: select
-
-Produces:
-- `curves`: path_2d_family [terminal artifact] - Projected Slingshot lineage curves in the chosen 2D display space.
-
-Promotable outputs: curves
-
-Replay equivalence:
-- `curves`: `exact_canonical_value`
-
-Key parameters:
-- `stretch` (dbl, default=NULL): Optional override of stretch during embedding.
-- `shrink` (dbl, default=NULL): Optional override of shrink during embedding.
-- `approx_points` (int, default=200): Target max curve points per lineage for display (0/NULL = no compaction).
 
 ## `monocle3_fit`
 
