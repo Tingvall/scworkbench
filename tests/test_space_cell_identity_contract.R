@@ -47,8 +47,6 @@ test_space_cell_identity_contract <- function() {
   # canonical converter or explicit cell-id alignment at a typed handoff.
   converter_consumers <- list(
     geometry = wb_op_knn_graph,
-    peakvi_fit = wb_op_peakvi_fit,
-    peakvi_project = wb_op_peakvi_project,
     scvi = .wb_scvi_space_matrix
   )
   bodies <- vapply(converter_consumers, function(fn) paste(deparse(body(fn)), collapse = "\n"), character(1))

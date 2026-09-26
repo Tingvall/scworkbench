@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 10
+Operation count: 8
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -222,41 +222,6 @@ Replay equivalence:
 Key parameters:
 - `source` (entity_ref, default=NULL): Registered external_source reference for the object from which the selected Slingshot fit was extracted.
 
-## `peakvi_fit`
-
-Title: PeakVI fit (pybench)
-
-Intent: latent, model, python
-
-Description: Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.
-
-Consumes:
-- `matrix`: matrix
-- `cell_set`: select
-
-Produces:
-- `space`: space [materialization; committed by: model] - PeakVI latent space written into the bundle spaces registry.
-- `model`: model_ref [terminal artifact] - Serialized PeakVI Python model payload (engine='peakvi').
-
-Promotable outputs: model
-
-Replay equivalence:
-- `space`: `exact_canonical_value`
-- `model`: `loadable_reference`
-
-Key parameters:
-- `n_latent` (int, default=20): Target latent dimensionality for the emitted PeakVI space.
-- `n_layers` (int, default=2): Number of hidden layers passed to the PeakVI model constructor.
-- `n_hidden` (int, default=256): Hidden width passed to the PeakVI model constructor.
-- `dropout` (number, default=0.2): Dropout rate passed to the PeakVI model constructor.
-- `batch_key` (metadata_field, default=NULL): Optional observation field used as the PeakVI batch covariate.
-- `max_epochs` (int, default=500): Maximum training epochs passed through to scvi-tools.
-- `lr` (number, default=0.001): Optional learning rate passed through in train plan_kwargs.
-- `early_stopping` (bool, default=TRUE): If TRUE, enable scvi-tools early stopping during PeakVI training.
-- `seed` (int, default=1): Random seed for PeakVI training.
-- `use_gpu` (bool, default=FALSE): If TRUE, request GPU-backed training in scvi-tools.
-- `space_id_out` (string, default=peakvi_space): Space id to write for the learned PeakVI latent embedding.
-
 ## `scvi_train`
 
 Title: scVI train (pybench)
@@ -298,34 +263,6 @@ Key parameters:
 - `model_artifact_id` (string, default=NULL): Optional preregistered model artifact id. NULL lets scworkbench assign one.
 - `overwrite` (bool, default=FALSE): If TRUE, allow replacing an existing output_space_id.
 - `allow_non_counts` (bool, default=FALSE): If TRUE, bypass raw/count-like matrix checks. Use only for intentional expert overrides.
-
-## `peakvi_project`
-
-Title: PeakVI project (pybench)
-
-Intent: projection, latent, python
-
-Description: Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
-
-Consumes:
-- `matrix`: matrix
-- `model`: model_ref
-- `cell_set`: select
-
-Produces:
-- `space`: space [materialization; committed by: fit_summary] - Projected PeakVI latent space written into the bundle spaces registry.
-- `fit_summary`: obs_table [terminal artifact] - Projection receipt and output-space summary.
-
-Promotable outputs: fit_summary
-
-Replay equivalence:
-- `space`: `exact_canonical_value`
-- `fit_summary`: `exact_canonical_value`
-
-Key parameters:
-- `batch_key` (string, default=NULL): Optional observation field used as the PeakVI batch covariate during projection.
-- `use_gpu` (bool, default=FALSE): If TRUE, request GPU-backed model loading/projection in scvi-tools.
-- `space_id_out` (string, default=peakvi_project_space): Space id to write for the projected PeakVI latent embedding.
 
 ## `model_bound_latent_union`
 

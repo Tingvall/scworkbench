@@ -11,37 +11,6 @@
   raw
 }
 
-.wb_runner_peakvi_fit <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "peakvi_fit runner: missing resolved$matrix.")
-  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
-             "peakvi_fit runner: effective_cells is empty.")
-
-  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
-  .wb_assert(nzchar(matrix_id), "peakvi_fit runner: resolved matrix primitive missing matrix_id.")
-
-  raw <- wb_op_peakvi_fit(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    cells = as.character(effective_cells),
-    n_latent = inputs$n_latent %||% 20L,
-    n_layers = inputs$n_layers %||% 2L,
-    n_hidden = inputs$n_hidden %||% 256L,
-    dropout = inputs$dropout %||% 0.2,
-    batch_key = inputs$batch_key %||% NULL,
-    max_epochs = inputs$max_epochs %||% 500L,
-    lr = inputs$lr %||% 1e-3,
-    early_stopping = inputs$early_stopping %||% TRUE,
-    seed = inputs$seed %||% 1L,
-    use_gpu = inputs$use_gpu %||% FALSE,
-    space_id_out = inputs$space_id_out %||% "peakvi_space",
-    cell_set = inputs$cell_set %||% "all"
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "peakvi_fit must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_py_protocol_hello <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   wb_op_py_protocol_hello(
     bundle = bundle,
@@ -82,45 +51,6 @@
 
   .wb_assert(is.list(raw) && is.list(raw$outputs),
              "scvi_train must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
-.wb_runner_peakvi_project <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "peakvi_project runner: missing resolved$matrix.")
-  .wb_assert(!is.null(resolved$model), "peakvi_project runner: missing resolved$model.")
-  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
-             "peakvi_project runner: effective_cells is empty.")
-  .wb_assert(identical(as.character(resolved$model$engine %||% "")[1], "peakvi"),
-             "peakvi_project runner: model_ref must have engine='peakvi'.")
-
-  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
-  .wb_assert(nzchar(matrix_id), "peakvi_project runner: resolved matrix primitive missing matrix_id.")
-
-  raw <- wb_op_peakvi_project(
-    bundle = bundle,
-    peakvi_model = resolved$model,
-    matrix_id = matrix_id,
-    cells = as.character(effective_cells),
-    cell_set = inputs$cell_set %||% "all",
-    batch_key = inputs$batch_key %||% NULL,
-    use_gpu = inputs$use_gpu %||% FALSE,
-    space_id_out = inputs$space_id_out %||% "peakvi_project_space"
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "peakvi_project must return list(outputs=<list>, params=<list>).")
-  raw$outputs$fit_summary <- wb_prim_obs_table(data.frame(
-    engine="peakvi", projection_mode="transform_without_refit",
-    matrix_id=matrix_id, output_space_id=as.character(raw$params$space_id_out %||% inputs$space_id_out),
-    n_cells=length(effective_cells), n_features=as.integer(raw$params$n_features %||% NA_integer_),
-    n_latent=as.integer(raw$params$n_latent %||% NA_integer_),
-    model_space_id=as.character(raw$params$model_space_id %||% resolved$model$model_space_id %||% NA_character_),
-    model_artifact_id=as.character(resolved$model$artifact_id %||% NA_character_),
-    batch_key=as.character(inputs$batch_key %||% NA_character_), use_gpu=isTRUE(inputs$use_gpu %||% FALSE),
-    pybench_protocol_version=as.character(raw$params$pybench_runtime$protocol_version %||% NA_character_),
-    pybench_version=as.character(raw$params$pybench_runtime$pybench_version %||% NA_character_),
-    pybench_timings_json=jsonlite::toJSON(raw$params$pybench_runtime$timings %||% list(), auto_unbox=TRUE, null="null"), stringsAsFactors=FALSE),
-    table_type="peakvi_project_summary")
   raw
 }
 
@@ -593,56 +523,6 @@
         )
       )
     ),
-    peakvi_fit = list(
-      op_name = "peakvi_fit",
-      title = "PeakVI fit (pybench)",
-      description = "Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.",
-      intent = c("latent", "model", "python"),
-      requires = list(matrix = "matrix"),
-      produces = list(
-        space = "space",
-        model = "model_ref"
-      ),
-      promotable = c("model"),
-      runner = .wb_runner_peakvi_fit,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix")
-      ),
-      params = list(
-        list(name = "n_latent", type = "int", default = 20, min = 2, max = 1024,
-             help = "Target latent dimensionality for the emitted PeakVI space."),
-        list(name = "n_layers", type = "int", default = 2, min = 1, max = 32,
-             help = "Number of hidden layers passed to the PeakVI model constructor."),
-        list(name = "n_hidden", type = "int", default = 256, min = 1, max = 8192,
-             help = "Hidden width passed to the PeakVI model constructor."),
-        list(name = "dropout", type = "number", default = 0.2, min = 0, max = 1,
-             help = "Dropout rate passed to the PeakVI model constructor."),
-        list(name = "batch_key", type = "metadata_field", default = NULL,
-             help = "Optional observation field used as the PeakVI batch covariate."),
-        list(name = "max_epochs", type = "int", default = 500, min = 1, max = 100000,
-             help = "Maximum training epochs passed through to scvi-tools."),
-        list(name = "lr", type = "number", default = 1e-3, min = 0,
-             help = "Optional learning rate passed through in train plan_kwargs."),
-        list(name = "early_stopping", type = "bool", default = TRUE,
-             help = "If TRUE, enable scvi-tools early stopping during PeakVI training."),
-        list(name = "seed", type = "int", default = 1, min = 0, max = 999999,
-             help = "Random seed for PeakVI training."),
-        list(name = "use_gpu", type = "bool", default = FALSE,
-             help = "If TRUE, request GPU-backed training in scvi-tools."),
-        list(name = "space_id_out", type = "string", default = "peakvi_space",
-             help = "Space id to write for the learned PeakVI latent embedding.")
-      ),
-      interface_produces = list(
-        space = list(
-          kind = "space",
-          description = "PeakVI latent space written into the bundle spaces registry."
-        ),
-        model = list(
-          kind = "model_ref",
-          description = "Serialized PeakVI Python model payload (engine='peakvi')."
-        )
-      )
-    ),
     scvi_train = list(
       op_name = "scvi_train",
       title = "scVI train (pybench)",
@@ -706,38 +586,6 @@
           kind = "obs_table",
           description = "Training summary, parameter, runtime, and metric table emitted by pybench."
         )
-      )
-    ),
-    peakvi_project = list(
-      op_name = "peakvi_project",
-      title = "PeakVI project (pybench)",
-      description = "Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.",
-      intent = c("projection", "latent", "python"),
-      requires = list(matrix = "matrix", model = "model_ref"),
-      coverage = list(model = "reference_only"),
-      produces = list(
-        space = "space", fit_summary = "obs_table"
-      ),
-      promotable = c("fit_summary"),
-      runner = .wb_runner_peakvi_project,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix"),
-        model = list(required = TRUE, kind = "model_ref")
-      ),
-      params = list(
-        list(name = "batch_key", type = "string", default = NULL,
-             help = "Optional observation field used as the PeakVI batch covariate during projection."),
-        list(name = "use_gpu", type = "bool", default = FALSE,
-             help = "If TRUE, request GPU-backed model loading/projection in scvi-tools."),
-        list(name = "space_id_out", type = "string", default = "peakvi_project_space",
-             help = "Space id to write for the projected PeakVI latent embedding.")
-      ),
-      interface_produces = list(
-        space = list(
-          kind = "space",
-          description = "Projected PeakVI latent space written into the bundle spaces registry."
-        ),
-        fit_summary = list(kind="obs_table", description="Projection receipt and output-space summary.")
       )
     ),
     model_bound_latent_union = list(

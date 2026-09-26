@@ -81,21 +81,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.; `outputs$union_summary` (`obs_table`): Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_peakvi_project
-#' @aliases wb_op_peakvi_project
-#' @description Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param peakvi_model PeakVI `model_ref` primitive returned by the Python-backed fitting workflow.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param batch_key Optional observation field used as the PeakVI batch covariate during projection.
-#' @param use_gpu If TRUE, request GPU-backed model loading/projection in scvi-tools.
-#' @param space_id_out Space id to write for the projected PeakVI latent embedding.
-#' @param python_bin Python executable used for an optional pybench-backed runtime.
-#' @param cell_set Named bundle cell set used to resolve the analysis universe.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Projected PeakVI latent space written into the bundle spaces registry.; `outputs$fit_summary` (`obs_table`): Projection receipt and output-space summary.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_slingshot_adopt
 #' @aliases wb_op_slingshot_adopt
 #' @description Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.

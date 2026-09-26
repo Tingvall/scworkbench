@@ -89,17 +89,21 @@ Meaning:
 - Python getters remain the right path for Python-native consumers that can
   safely read matrices in-process
 
-PeakVI production exception:
+Historical core PeakVI bridge (retained-run context, not a live no-pack op):
 
-- `peakvi_fit` uses an R-staged sparse chunk bridge as the production-safe
-  cluster path:
+- the removed core `peakvi_fit` used an R-staged sparse chunk bridge:
   - R reads the matrix through the mature R BPCells path
   - R stages sparse chunk files plus manifest metadata
   - Python assembles from those staged chunks before training PeakVI
-- `peakvi_fit` still supports native bundle matrix reads when
+- the historical PyBench `peakvi_fit` still supports native bundle matrix reads when
   `matrix_chunks_dir` is absent; that path is local/development capable, not the
   current cluster production default.
-- `peakvi_project` currently requires staged chunks.
+- the historical PyBench `peakvi_project` requires staged chunks.
+
+Current CPU PeakVI fit/project execution is owned by the explicitly activated
+`scwbLatent` pack. Its private Python process receives only bounded
+stage-relative typed matrix chunks; it does not receive bundle registry or
+publication authority. See [peakvi_fit.md](peakvi_fit.md).
 
 Historical reason:
 
@@ -114,8 +118,7 @@ Implications:
 
 - keep Python getter behavior deterministic in feature/cell ordering
 - do not assume every Python-native op must read matrices directly from BPCells
-- for cluster-critical PeakVI paths, prefer the staged sparse chunk bridge until
-  native cluster reads are revalidated
+- do not treat historical native PeakVI bundle reads as a current pack grant
 
 scVI training bridge:
 

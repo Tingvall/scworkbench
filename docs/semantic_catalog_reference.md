@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 280
+Record count: 278
 
-Graph edges: 428
+Graph edges: 414
 
 ## artifact_type
 
@@ -1028,23 +1028,11 @@ Title: Adopt an existing Slingshot fit
 
 Description: Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
 
-### `op:peakvi_fit`
-
-Title: PeakVI fit (pybench)
-
-Description: Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.
-
 ### `op:scvi_train`
 
 Title: scVI train (pybench)
 
 Description: Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.
-
-### `op:peakvi_project`
-
-Title: PeakVI project (pybench)
-
-Description: Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.
 
 ### `op:model_bound_latent_union`
 

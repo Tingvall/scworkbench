@@ -1,10 +1,10 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "record_count": 106,
-  "meaningful_public_transformation_count": 58,
-  "exported_guarded_function_count": 21,
-  "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_model_bound_latent_union", "wb_op_peakvi_project", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
+  "record_count": 104,
+  "meaningful_public_transformation_count": 57,
+  "exported_guarded_function_count": 20,
+  "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_model_bound_latent_union", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
   "invariant": {
     "name": "one_supported_provenance_route_per_public_meaningful_transformation",
     "ok": true,
@@ -312,18 +312,6 @@
       "direct_committed_write": false
     },
     {
-      "interface_id": "operation_implementation:wb_op_peakvi_project",
-      "function_name": "wb_op_peakvi_project",
-      "category": "operation_implementation",
-      "exported": true,
-      "implemented": true,
-      "durable_mutation": true,
-      "supported_route": "registered_session_execution_and_promotion",
-      "supported_route_count": 1,
-      "boundary": "guarded_implementation",
-      "direct_committed_write": false
-    },
-    {
       "interface_id": "operation_implementation:wb_op_slingshot_adopt",
       "function_name": "wb_op_slingshot_adopt",
       "category": "operation_implementation",
@@ -602,18 +590,6 @@
     {
       "interface_id": "matrix_space_model_writer:wb_op_scvi_train",
       "function_name": "wb_op_scvi_train",
-      "category": "matrix_space_model_writer",
-      "exported": false,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "matrix_space_model_writer:wb_op_peakvi_fit",
-      "function_name": "wb_op_peakvi_fit",
       "category": "matrix_space_model_writer",
       "exported": false,
       "implemented": true,

@@ -1,153 +1,40 @@
-# `peakvi_fit`
+# PeakVI operation-pack ownership
 
-User-facing reference for the engine-native PeakVI fit op.
+Current CPU PeakVI execution is owned by the independently installed
+`scwbLatent` operation pack. The core no-pack catalog does not register
+`peakvi_fit` or `peakvi_project`; use the qualified operations
+`scwblatent::peakvi_fit` and `scwblatent::peakvi_project` after explicit
+pack activation. The core still owns authenticated matrix/model reads,
+contained output publication, promotion, receipts, provenance and rollback.
 
-## Purpose
+`scwblatent::peakvi_fit` consumes an authenticated ATAC/count matrix through
+bounded, ordered typed chunks and atomically publishes a fitted latent space,
+contained model tree and fit summary. The fitted space ID is allocated by
+core; it is not a caller-overwritable legacy `space_id_out`. The pack accepts
+CPU execution only. `batch_key` is null until typed metadata authority is
+available.
 
-`peakvi_fit` trains a PeakVI model on an ATAC/count matrix and emits:
+`scwblatent::peakvi_project` consumes an authenticated promoted model and
+disjoint query-matrix cells, then publishes an immutable query latent space
+and projection summary without refitting. The caller supplies a fresh
+`space_id_out`, and collisions reject. Because scvi-tools loads a
+pickle-capable model payload, projection requires
+`pickle_execution_trust = "operator_verified_source_v1"` after independent
+source verification. Core content hashes do not make pickle safe and this
+declaration is neither a signature nor a sandbox.
 
-- a reusable latent `space`
-- a reusable `model_ref` with `engine = "peakvi"`
+The pack stages at most `n_features * chunk_size` R matrix elements per
+typed read. Private Python receives stage-relative files, not a bundle path,
+SQL connection or publication authority. This pilot does not qualify GPU,
+large data or full scVI. See the pack's own README and operation manifest for
+the live parameter and output contract.
 
-This makes PeakVI a first-class model-producing op inside `scworkbench`,
-rather than an external script step.
+The former unqualified core operations remain part of historical run and
+bundle provenance. Existing promoted outputs remain inspectable without
+installing the pack, but they are not silently re-executed by the new pack.
+The old-core CPU comparator is retained as explicit migration evidence; the
+new pack is not claimed to reproduce legacy model bytes or coordinate hashes.
 
-Primary downstream uses:
-
-- run `scwbrepresentation::umap_fit` from an installed, explicitly activated
-  `scwbRepresentation` pack on the learned latent space
-- run trajectory methods on the learned latent space
-- compare `lsi` and PeakVI representations
-- reuse the saved model with `peakvi_project`
-
-## Inputs
-
-Required:
-
-- `matrix`
-  - matrix primitive, typically an ATAC count/accessibility matrix
-
-Standard cell selection:
-
-- `cell_set`
-- `cell_ids`
-
-`peakvi_fit` is matrix-first. It does not consume an existing latent space.
-
-## Main Parameters
-
-- `n_latent`
-  - latent dimensionality of the emitted space
-- `n_layers`
-  - hidden-layer count passed to PeakVI
-- `n_hidden`
-  - hidden width passed to PeakVI
-- `dropout`
-  - dropout rate passed to PeakVI
-- `batch_key`
-  - optional observation field used as PeakVI batch covariate
-- `max_epochs`
-  - optional training cap
-- `lr`
-  - learning rate
-- `early_stopping`
-  - whether to enable scvi-tools early stopping
-- `seed`
-  - optional random seed
-- `use_gpu`
-  - explicit runtime choice
-- `space_id_out`
-  - emitted latent space id
-
-Current defaults are aligned with the script-parity path:
-
-- `n_latent = 20`
-- `n_layers = 2`
-- `n_hidden = 256`
-- `dropout = 0.2`
-- `max_epochs = 500`
-- `lr = 1e-3`
-- `early_stopping = TRUE`
-
-## Outputs
-
-- `space`
-  - PeakVI latent embedding written into the bundle spaces registry
-- `model`
-  - serialized `model_ref` with `engine = "peakvi"`
-
-The latent space is the main reusable analytical result.
-
-## Current Execution Path
-
-The current production/cluster path is:
-
-1. R resolves the effective cells and matrix metadata.
-2. R reads the selected matrix slice through the mature R BPCells path.
-3. R stages sparse chunk files plus a manifest.
-4. Python loads those staged chunks, assembles the sparse matrix, builds `AnnData`, and trains PeakVI.
-5. Python writes the latent space and model payload back into the bundle.
-6. R records run provenance and returns the emitted primitives.
-
-Important:
-
-- `peakvi_fit` in `pybench` still supports native bundle matrix reads when
-  `matrix_chunks_dir` is absent
-- native Python BPCells reads are local/development capable, but not currently
-  the production cluster default
-- the R/scworkbench production path supplies staged sparse chunks
-- `peakvi_project` currently requires staged sparse chunks
-
-## Why The Staged Chunk Bridge Exists
-
-Upstream Python BPCells did not handle the double-matrix bundle payloads needed
-for this use case. A fork added double-matrix read support and worked on the
-workstation, but the native/forked path later produced segmentation faults on
-the Tetralith/cluster runtime.
-
-Until that forked/double-matrix path passes a real cluster smoke without
-segmentation faults, staged sparse chunks are the production-safe PeakVI
-transport.
-
-The staged bridge keeps:
-
-- BPCells reading in the mature R path
-- PeakVI training in Python
-- the cross-runtime handoff small, explicit, and recoverable
-
-## Cluster Usage Notes
-
-- for early smoke tests, pass an explicit low `max_epochs`
-- if R-side staging becomes heavy, tune:
-  - `SCWORKBENCH_PEAKVI_STAGE_CHUNK_CELLS`
-- default staging chunk size is `256`
-
-Recommended smoke pattern:
-
-- start with a small subset or one-epoch run
-- then scale to the full bundle once the container/runtime path is confirmed
-
-## Relationship To `peakvi_project`
-
-`peakvi_fit` learns and saves the reference model.
-
-`peakvi_project` reuses a saved PeakVI `model_ref` to place new cells into that
-existing latent space without refitting the model.
-
-Current contract:
-
-- `peakvi_fit`: staged sparse chunks for production/cluster; native pybench
-  bundle reads remain available only when `matrix_chunks_dir` is absent
-- `peakvi_project`: staged-only
-
-That pairing is the intended workflow for:
-
-- reference/query mapping
-- tumor-to-reference projection
-- reusable latent-space-centered analysis
-
-## Related Docs
-
-- `docs/pybench_op_protocol_v2.md`
-- `docs/pybench_integration_contract.md`
-- `docs/apptainer_fullstack.md`
+`model_bound_latent_union` remains core-owned and is not ABI-v3-ready. Its
+migration and any pack-linked union workflow require separate authority
+design; this PeakVI ownership change does not make that path pack-native.

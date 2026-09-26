@@ -190,67 +190,56 @@ The integration bundle must contain:
 - disjoint retained cell sets for Bdev reference and KO query cells;
 - unambiguous sample/genotype metadata and one recorded genome build.
 
-The governed model sequence is:
+The current CPU model sequence requires the independently installed and
+explicitly activated `scwbLatent` pack and a verified private Python
+environment. The fitted model is promoted before G1-authenticated projection:
 
 ```r
+manifest <- system.file("scworkbench", "operation-pack.json",
+  package = "scwbLatent")
+wb_operation_pack_activate(manifest)
+
 fit <- wb_session_run_op(
-  wb_session_new(), integration, "peakvi_fit",
+  wb_session_new(), integration, "scwblatent::peakvi_fit",
   inputs = list(
     matrix = "ATAC_common_peaks",
     cell_set = "set:bdev_reference",
     min_cells = 10L,
     n_latent = 20L,
-    use_gpu = TRUE,
-    space_id_out = "peakvi.bdev_reference"
+    use_gpu = FALSE
   )
 )
+promoted <- wb_session_promote_current(integration, fit$session,
+  outputs = c("model", "fit_summary"))
+model_id <- promoted$promoted$artifact_id[
+  promoted$promoted$output == "model"][[1L]]
 
 projected <- wb_session_run_op(
-  fit$session, integration, "peakvi_project",
+  wb_session_new(), integration, "scwblatent::peakvi_project",
   inputs = list(
-    matrix = "ATAC_common_peaks",
-    model = wb_ref_run(fit$run$run_id, "model"),
+    query_matrix = "ATAC_common_peaks",
+    model = wb_ref_artifact(model_id, "model"),
     cell_set = "set:ko_query",
     min_cells = 1L,
-    use_gpu = TRUE,
-    space_id_out = "peakvi.ko_projected"
-  )
-)
-
-joint <- wb_session_run_op(
-  projected$session, integration, "model_bound_latent_union",
-  inputs = list(
-    reference_space = "peakvi.bdev_reference",
-    query_space = "peakvi.ko_projected",
-    model = wb_ref_run(fit$run$run_id, "model"),
-    projection_summary = wb_ref_run(projected$run$run_id, "fit_summary"),
-    cell_set = "all",
-    min_cells = 1L,
-    space_id_out = "peakvi.bdev_ko_joint"
-  )
-)
-
-display <- wb_session_run_op(
-  joint$session, integration, "scwbrepresentation::umap_fit",
-  inputs = list(
-    space = "peakvi.bdev_ko_joint",
-    cell_set = "all",
-    min_cells = 3L,
-    dims = 1:20,
-    space_id_out = "umap.peakvi.bdev_ko_joint",
-    seed = 1L
+    use_gpu = FALSE,
+    space_id_out = "peakvi.ko_projected",
+    pickle_execution_trust = "operator_verified_source_v1"
   )
 )
 ```
 
-The union operation only row-binds unchanged fitted and projected coordinates
-after checking disjoint cells, equal dimensions, complete coverage and shared
-model identity. It does not refit or transform either group. The joint UMAP is
-a downstream display embedding; it does not itself establish biological
+The caller must verify the promoted model's source before explicitly
+authorizing its pickle-capable load. The pack's fitted space ID is
+core-allocated; its promotion closes with the model and fit summary. Projection
+does not refit or overwrite inherited state. The independently installed
+`scwbRepresentation` pack can consume a separately validated latent space
+for display UMAP; display coordinates do not themselves establish biological
 mapping quality.
 
-This display step requires the independently installed and explicitly
-activated `scwbRepresentation` operation pack; it is not a core operation.
+The old-core `model_bound_latent_union` operation remains available for
+historical inspection but is not ABI-v3-ready for this pack workflow. A
+pack-linked fitted/query union and downstream joint UMAP require separate
+typed authority and qualification; do not infer them from this example.
 
 ## Current boundaries
 

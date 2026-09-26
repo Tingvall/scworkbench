@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 280,
+  "record_count": 278,
   "record_type_counts": {
     "artifact_type": 78,
     "getter": 85,
-    "op": 10,
+    "op": 8,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -1313,237 +1313,6 @@
       }
     },
     {
-      "record_id": "op:peakvi_fit",
-      "record_type": "op",
-      "name": "peakvi_fit",
-      "title": "PeakVI fit (pybench)",
-      "description": "Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.",
-      "search_text": "PeakVI fit (pybench)\nTrain a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.\nlatent\nmodel\npython\nmatrix\nTRUE\ncell_set\nselect\nFALSE\nspace\nmaterialization\nPeakVI latent space written into the bundle spaces registry.\nmodel_ref\nterminal_artifact\nSerialized PeakVI Python model payload (engine='peakvi').\nn_latent\nint\n20\n2\n1024\nTarget latent dimensionality for the emitted PeakVI space.\nn_layers\n1\n32\nNumber of hidden layers passed to the PeakVI model constructor.\nn_hidden\n256\n8192\nHidden width passed to the PeakVI model constructor.\ndropout\nnumber\n0.2\n0\nDropout rate passed to the PeakVI model constructor.\nbatch_key\nmetadata_field\nOptional observation field used as the PeakVI batch covariate.\nmax_epochs\n500\n1e+05\nMaximum training epochs passed through to scvi-tools.\nlr\n0.001\nOptional learning rate passed through in train plan_kwargs.\nearly_stopping\nbool\nIf TRUE, enable scvi-tools early stopping during PeakVI training.\nseed\n999999\nRandom seed for PeakVI training.\nuse_gpu\nIf TRUE, request GPU-backed training in scvi-tools.\nspace_id_out\nstring\npeakvi_space\nSpace id to write for the learned PeakVI latent embedding.",
-      "tags": ["op", "latent", "model", "python"],
-      "payload": {
-        "op_name": "peakvi_fit",
-        "title": "PeakVI fit (pybench)",
-        "description": "Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference.",
-        "intent": ["latent", "model", "python"],
-        "consumes": [
-          {
-            "name": "matrix",
-            "kind": "matrix",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "space",
-            "kind": "space",
-            "output_name": "space",
-            "primitive_kind": "space",
-            "durability_role": "materialization",
-            "promotable_directly": false,
-            "materialized_by_terminals": "model",
-            "description": "PeakVI latent space written into the bundle spaces registry."
-          },
-          {
-            "name": "model",
-            "kind": "model_ref",
-            "output_name": "model",
-            "primitive_kind": "model_ref",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "model",
-            "description": "Serialized PeakVI Python model payload (engine='peakvi')."
-          }
-        ],
-        "inputs": {
-          "matrix": {
-            "required": true,
-            "kind": "matrix",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "n_latent",
-            "type": "int",
-            "default": 20,
-            "min": 2,
-            "max": 1024,
-            "help": "Target latent dimensionality for the emitted PeakVI space.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "n_layers",
-            "type": "int",
-            "default": 2,
-            "min": 1,
-            "max": 32,
-            "help": "Number of hidden layers passed to the PeakVI model constructor.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "n_hidden",
-            "type": "int",
-            "default": 256,
-            "min": 1,
-            "max": 8192,
-            "help": "Hidden width passed to the PeakVI model constructor.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "dropout",
-            "type": "number",
-            "default": 0.2,
-            "min": 0,
-            "max": 1,
-            "help": "Dropout rate passed to the PeakVI model constructor.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "batch_key",
-            "type": "metadata_field",
-            "default": null,
-            "help": "Optional observation field used as the PeakVI batch covariate.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "max_epochs",
-            "type": "int",
-            "default": 500,
-            "min": 1,
-            "max": 100000,
-            "help": "Maximum training epochs passed through to scvi-tools.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "lr",
-            "type": "number",
-            "default": 0.001,
-            "min": 0,
-            "help": "Optional learning rate passed through in train plan_kwargs.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "early_stopping",
-            "type": "bool",
-            "default": true,
-            "help": "If TRUE, enable scvi-tools early stopping during PeakVI training.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "seed",
-            "type": "int",
-            "default": 1,
-            "min": 0,
-            "max": 999999,
-            "help": "Random seed for PeakVI training.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "use_gpu",
-            "type": "bool",
-            "default": false,
-            "help": "If TRUE, request GPU-backed training in scvi-tools.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "space_id_out",
-            "type": "string",
-            "default": "peakvi_space",
-            "help": "Space id to write for the learned PeakVI latent embedding.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          }
-        ],
-        "promotable": "model",
-        "replay_equivalence": {
-          "space": "exact_canonical_value",
-          "model": "loadable_reference"
-        },
-        "chunking": null
-      }
-    },
-    {
       "record_id": "op:scvi_train",
       "record_type": "op",
       "name": "scvi_train",
@@ -1834,146 +1603,6 @@
         "replay_equivalence": {
           "space": "exact_canonical_value",
           "model": "loadable_reference",
-          "fit_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:peakvi_project",
-      "record_type": "op",
-      "name": "peakvi_project",
-      "title": "PeakVI project (pybench)",
-      "description": "Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.",
-      "search_text": "PeakVI project (pybench)\nProject cells from an ATAC matrix through a saved PeakVI model and emit a latent space.\nprojection\nlatent\npython\nmatrix\nTRUE\nmodel\nmodel_ref\ncell_set\nselect\nFALSE\nspace\nmaterialization\nfit_summary\nProjected PeakVI latent space written into the bundle spaces registry.\nobs_table\nterminal_artifact\nProjection receipt and output-space summary.\nbatch_key\nstring\nOptional observation field used as the PeakVI batch covariate during projection.\nuse_gpu\nbool\nIf TRUE, request GPU-backed model loading/projection in scvi-tools.\nspace_id_out\npeakvi_project_space\nSpace id to write for the projected PeakVI latent embedding.",
-      "tags": ["op", "projection", "latent", "python"],
-      "payload": {
-        "op_name": "peakvi_project",
-        "title": "PeakVI project (pybench)",
-        "description": "Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.",
-        "intent": ["projection", "latent", "python"],
-        "consumes": [
-          {
-            "name": "matrix",
-            "kind": "matrix",
-            "required": true
-          },
-          {
-            "name": "model",
-            "kind": "model_ref",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "space",
-            "kind": "space",
-            "output_name": "space",
-            "primitive_kind": "space",
-            "durability_role": "materialization",
-            "promotable_directly": false,
-            "materialized_by_terminals": "fit_summary",
-            "description": "Projected PeakVI latent space written into the bundle spaces registry."
-          },
-          {
-            "name": "fit_summary",
-            "kind": "obs_table",
-            "output_name": "fit_summary",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "fit_summary",
-            "description": "Projection receipt and output-space summary."
-          }
-        ],
-        "inputs": {
-          "matrix": {
-            "required": true,
-            "kind": "matrix",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "model": {
-            "required": true,
-            "kind": "model_ref",
-            "effective_cell_coverage": "reference_only"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "batch_key",
-            "type": "string",
-            "default": null,
-            "help": "Optional observation field used as the PeakVI batch covariate during projection.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "use_gpu",
-            "type": "bool",
-            "default": false,
-            "help": "If TRUE, request GPU-backed model loading/projection in scvi-tools.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "space_id_out",
-            "type": "string",
-            "default": "peakvi_project_space",
-            "help": "Space id to write for the projected PeakVI latent embedding.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          }
-        ],
-        "promotable": "fit_summary",
-        "replay_equivalence": {
-          "space": "exact_canonical_value",
           "fit_summary": "exact_canonical_value"
         },
         "chunking": null
@@ -7840,8 +7469,8 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 280,
-    "edge_count": 428,
+    "node_count": 278,
+    "edge_count": 414,
     "nodes": [
       {
         "record_id": "op:chromvar",
@@ -7880,22 +7509,10 @@
         "title": "Adopt an existing Slingshot fit"
       },
       {
-        "record_id": "op:peakvi_fit",
-        "record_type": "op",
-        "name": "peakvi_fit",
-        "title": "PeakVI fit (pybench)"
-      },
-      {
         "record_id": "op:scvi_train",
         "record_type": "op",
         "name": "scvi_train",
         "title": "scVI train (pybench)"
-      },
-      {
-        "record_id": "op:peakvi_project",
-        "record_type": "op",
-        "name": "peakvi_project",
-        "title": "PeakVI project (pybench)"
       },
       {
         "record_id": "op:model_bound_latent_union",
@@ -9881,48 +9498,6 @@
       },
       {
         "from": "primitive:matrix",
-        "to": "op:peakvi_fit",
-        "edge_type": "consumed_by",
-        "label": "input:matrix"
-      },
-      {
-        "from": "op:peakvi_fit",
-        "to": "parameter:matrix",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:matrix"
-      },
-      {
-        "from": "op:peakvi_fit",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:peakvi_fit",
-        "to": "parameter:seed",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:seed"
-      },
-      {
-        "from": "op:peakvi_fit",
-        "to": "primitive:space",
-        "edge_type": "produces",
-        "label": "output:space"
-      },
-      {
-        "from": "op:peakvi_fit",
-        "to": "primitive:model_ref",
-        "edge_type": "produces",
-        "label": "output:model"
-      },
-      {
-        "from": "op:peakvi_fit",
-        "to": "artifact_type:model_ref",
-        "edge_type": "promotes_as",
-        "label": "promotable:model"
-      },
-      {
-        "from": "primitive:matrix",
         "to": "op:scvi_train",
         "edge_type": "consumed_by",
         "label": "input:matrix"
@@ -9974,48 +9549,6 @@
         "to": "artifact_type:model_ref",
         "edge_type": "promotes_as",
         "label": "promotable:model"
-      },
-      {
-        "from": "primitive:matrix",
-        "to": "op:peakvi_project",
-        "edge_type": "consumed_by",
-        "label": "input:matrix"
-      },
-      {
-        "from": "op:peakvi_project",
-        "to": "parameter:matrix",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:matrix"
-      },
-      {
-        "from": "primitive:model_ref",
-        "to": "op:peakvi_project",
-        "edge_type": "consumed_by",
-        "label": "input:model"
-      },
-      {
-        "from": "op:peakvi_project",
-        "to": "parameter:model",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:model"
-      },
-      {
-        "from": "op:peakvi_project",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:peakvi_project",
-        "to": "primitive:space",
-        "edge_type": "produces",
-        "label": "output:space"
-      },
-      {
-        "from": "op:peakvi_project",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:fit_summary"
       },
       {
         "from": "primitive:space",

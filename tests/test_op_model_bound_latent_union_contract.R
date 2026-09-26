@@ -38,11 +38,11 @@ test_op_model_bound_latent_union_contract <- function() {
   model_dir <- file.path(root, "artifact_models", "peakvi_fixture")
   dir.create(model_dir, recursive = TRUE, showWarnings = FALSE)
   writeLines("contained PeakVI model fixture", file.path(model_dir, "model.txt"))
-  model_output <- wb_prim_model_ref("peakvi_reference", "peakvi_reference", engine = "peakvi")
+  model_output <- wb_prim_model_ref("peakvi_reference", "peakvi_reference", engine = "scvi")
   model_output$model_path <- model_dir
-  model_output$model_type <- "peakvi"
+  model_output$model_type <- "scvi"
   model_run <- wb_new_run(
-    "peakvi_fit",
+    "scvi_train",
     inputs = list(cell_set = "all", parents = character(0)),
     outputs = list(model = model_output)
   )
@@ -54,7 +54,7 @@ test_op_model_bound_latent_union_contract <- function() {
   model <- wb_art_load(b, model_artifact_id)
   projection_summary <- wb_prim_obs_table(
     data.frame(
-      engine = "peakvi",
+      engine = "scvi",
       projection_mode = "transform_without_refit",
       output_space_id = "peakvi_projected_ko",
       model_space_id = "peakvi_reference",
@@ -62,7 +62,7 @@ test_op_model_bound_latent_union_contract <- function() {
       n_latent = 4L,
       stringsAsFactors = FALSE
     ),
-    table_type = "peakvi_project_summary",
+    table_type = "scvi_project_summary",
     entity_kind = "space"
   )
 

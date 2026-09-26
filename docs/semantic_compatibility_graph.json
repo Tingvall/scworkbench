@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 280,
-  "edge_count": 428,
+  "node_count": 278,
+  "edge_count": 414,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -41,22 +41,10 @@
       "title": "Adopt an existing Slingshot fit"
     },
     {
-      "record_id": "op:peakvi_fit",
-      "record_type": "op",
-      "name": "peakvi_fit",
-      "title": "PeakVI fit (pybench)"
-    },
-    {
       "record_id": "op:scvi_train",
       "record_type": "op",
       "name": "scvi_train",
       "title": "scVI train (pybench)"
-    },
-    {
-      "record_id": "op:peakvi_project",
-      "record_type": "op",
-      "name": "peakvi_project",
-      "title": "PeakVI project (pybench)"
     },
     {
       "record_id": "op:model_bound_latent_union",
@@ -2042,48 +2030,6 @@
     },
     {
       "from": "primitive:matrix",
-      "to": "op:peakvi_fit",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:peakvi_fit",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:peakvi_fit",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:peakvi_fit",
-      "to": "parameter:seed",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:seed"
-    },
-    {
-      "from": "op:peakvi_fit",
-      "to": "primitive:space",
-      "edge_type": "produces",
-      "label": "output:space"
-    },
-    {
-      "from": "op:peakvi_fit",
-      "to": "primitive:model_ref",
-      "edge_type": "produces",
-      "label": "output:model"
-    },
-    {
-      "from": "op:peakvi_fit",
-      "to": "artifact_type:model_ref",
-      "edge_type": "promotes_as",
-      "label": "promotable:model"
-    },
-    {
-      "from": "primitive:matrix",
       "to": "op:scvi_train",
       "edge_type": "consumed_by",
       "label": "input:matrix"
@@ -2135,48 +2081,6 @@
       "to": "artifact_type:model_ref",
       "edge_type": "promotes_as",
       "label": "promotable:model"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:peakvi_project",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:peakvi_project",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "primitive:model_ref",
-      "to": "op:peakvi_project",
-      "edge_type": "consumed_by",
-      "label": "input:model"
-    },
-    {
-      "from": "op:peakvi_project",
-      "to": "parameter:model",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:model"
-    },
-    {
-      "from": "op:peakvi_project",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:peakvi_project",
-      "to": "primitive:space",
-      "edge_type": "produces",
-      "label": "output:space"
-    },
-    {
-      "from": "op:peakvi_project",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:fit_summary"
     },
     {
       "from": "primitive:space",

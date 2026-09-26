@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 106
+Record count: 104
 
-Meaningful public transformations: 58
+Meaningful public transformations: 57
 
-Exported directly guarded functions: 21
+Exported directly guarded functions: 20
 
 Exactly-one-route invariant: PASS
 
@@ -360,20 +360,6 @@ Boundary: `guarded_implementation`
 
 Supported route: `registered_session_execution_and_promotion`
 
-## `wb_op_peakvi_project`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `guarded_implementation`
-
-Supported route: `registered_session_execution_and_promotion`
-
 ## `wb_op_slingshot_adopt`
 
 Category: operation_implementation
@@ -697,20 +683,6 @@ Boundary: `public_transaction`
 Supported route: `declared_ingestion_transaction`
 
 ## `wb_op_scvi_train`
-
-Category: matrix_space_model_writer
-
-Exported: false
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_peakvi_fit`
 
 Category: matrix_space_model_writer
 

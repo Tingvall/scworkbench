@@ -167,7 +167,7 @@ test_typed_effective_cell_coverage_contract <- function() {
     identical(matrix_cov$diagnostics$per_input$matrix$available_n, 8L)
   )
 
-  peak_iface <- wb_op_interface("peakvi_project")
-  stopifnot(identical(peak_iface$inputs$model$effective_cell_coverage, "reference_only"))
+  union_iface <- wb_op_interface("model_bound_latent_union")
+  stopifnot(identical(union_iface$inputs$model$effective_cell_coverage, "reference_only"))
   TRUE
 }

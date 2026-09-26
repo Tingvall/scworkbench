@@ -22,6 +22,13 @@ canonical-identity parity but no direct runtime for the new grant; an
 unsupported Python execution request rejects before stage mutation.
 Existing space-trained G2/G1 identities are unchanged.
 
+`peakvi_fit` and `peakvi_project` are now owned by the explicitly activated
+`scwbLatent` CPU operation pack under qualified names. The unqualified
+historical core implementations are no longer executable. Existing promoted
+PeakVI runs remain inspectable without loading the pack and are not rewritten
+or reinterpreted as pack runs. The accepted old-core numerical comparator is
+retained in the pack's pinned migration tier.
+
 `model_bound_latent_union` remains a core operation and is **not ABI-v3
 ready**. Its current implementation queries the artifact registry with SQL,
 reads spaces through the bundle, and creates a space directly. A future pack

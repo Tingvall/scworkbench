@@ -118,13 +118,16 @@ SCWORKBENCH_PYBENCH_PYTHON="$PYBENCH_ROOT/.venv/bin/python" \
 Rscript - <<'RS'
 devtools::load_all('.', quiet=TRUE)
 contract_test_skip <- function(x) stop(x)
-source('tests/test_pybench_durable_named_ops_v2_contract.R')
-test_pybench_durable_peakvi_fit_v2_contract()
+source('tests/test_operation_pack_v3_matrix_model_boundary_contract.R')
+test_operation_pack_v3_matrix_model_boundary_lifecycle_contract()
 RS
 ```
 
-It passes against the pinned PyBench commit. PeakVI fit/project, scVI durable
-recovery, staging capability, corruption, and dense-storage contracts exercise
-the same shared registry/payload interface. The remaining PyBench performance
+The ABI-v3 matrix-model contract exercises the current generic fitted-space
+and contained-model boundary. Historical core PeakVI named-op v2 tests have
+been relocated to scwbLatent migration evidence; they are not live no-pack
+operations. Other scVI durable recovery, staging capability, corruption, and
+dense-storage contracts exercise the shared registry/payload interface. The
+remaining PyBench performance
 boundary is explicit: its complete-tree pre/post audit and mutable-tree clone
 still hash or copy more than the current operation's changed dense payload.
