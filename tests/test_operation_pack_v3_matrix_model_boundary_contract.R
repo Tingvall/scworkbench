@@ -67,7 +67,7 @@ test_operation_pack_v3_matrix_model_protocol_fixture_contract <- function() {
       DBI::dbQuoteIdentifier(bundle$con, table)))$n[[1L]]), integer(1)),
     tables)
   roots <- file.path(bundle$dir, c("space_payloads", "artifacts",
-    "operation_pack_v2"))
+    "artifact_models", "operation_pack_v2"))
   entries <- unlist(lapply(roots, function(root) if (dir.exists(root))
     list.files(root, recursive = TRUE, full.names = TRUE, all.files = TRUE,
       no.. = TRUE, include.dirs = TRUE) else character()), use.names = FALSE)
