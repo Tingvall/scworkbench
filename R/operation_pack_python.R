@@ -325,7 +325,7 @@
     runtime_path <- tempfile("operation_pack_runtime_", fileext = ".json")
     on.exit(unlink(runtime_path, force = TRUE), add = TRUE)
     output_ids <- vapply(output_specs, function(x) as.character(x$artifact_id)[1], character(1))
-    on.exit(.wb_palantir_cleanup_staging_artifacts(
+    on.exit(.wb_pybench_cleanup_staging_artifacts(
       bundle, output_ids, keep_model_files = FALSE), add = TRUE)
     command_args <- function(request_path, receipt_path) c(
       "-m", "pybench.operation_pack_cli", "execute",
@@ -343,7 +343,7 @@
       invisible(TRUE)
     }
     finalize <- function(transition, request, result) {
-      .wb_palantir_cleanup_staging_artifacts(
+      .wb_pybench_cleanup_staging_artifacts(
         transition, unname(input_ids), keep_model_files = FALSE)
       invisible(TRUE)
     }

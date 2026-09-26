@@ -343,7 +343,7 @@ Uses:
 - `artifact_type:path_2d_family`
 - `op:scwbtrajectory::slingshot_project`
 - `op:scwbtrajectory::monocle3_project`
-- `op:palantir_project`
+- `op:scwbtrajectory::palantir_project`
 - `op:scwbtrajectory::space_path_project_2d`
 - `op:trajectory_segment_path_join`
 - `plot:embedding_overlay`

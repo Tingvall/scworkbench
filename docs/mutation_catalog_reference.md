@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 108
+Record count: 106
 
-Meaningful public transformations: 60
+Meaningful public transformations: 58
 
-Exported directly guarded functions: 23
+Exported directly guarded functions: 21
 
 Exactly-one-route invariant: PASS
 
@@ -347,34 +347,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_model_bound_latent_union`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `guarded_implementation`
-
-Supported route: `registered_session_execution_and_promotion`
-
-## `wb_op_palantir_fit`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `guarded_implementation`
-
-Supported route: `registered_session_execution_and_promotion`
-
-## `wb_op_palantir_project`
 
 Category: operation_implementation
 

@@ -139,7 +139,7 @@ wb_op_peakvi_fit <- function(bundle,
   prereg <- .wb_pybench_preregister_outputs(bundle = bundle, run = run_tmp, outputs_spec = outs_spec)
   staging_ids <- vapply(prereg, function(x) as.character(x$artifact_id), character(1))
   pybench_success <- FALSE
-  on.exit(if (!isTRUE(pybench_success)) .wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE), add = TRUE)
+  on.exit(if (!isTRUE(pybench_success)) .wb_pybench_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE), add = TRUE)
 
   req <- .wb_pybench_build_request(
     bundle = bundle,
@@ -167,7 +167,7 @@ wb_op_peakvi_fit <- function(bundle,
     ),
     outputs = prereg
   )
-  bridge <- .wb_palantir_bridge_run_or_stop(
+  bridge <- .wb_pybench_bridge_run_or_stop(
     bundle = bundle,
     module = "pybench.ops.peakvi_fit",
     request = req,
@@ -292,7 +292,7 @@ wb_op_peakvi_project <- function(bundle,
     outputs = list()
   )
 
-  bridge <- .wb_palantir_bridge_run_or_stop(
+  bridge <- .wb_pybench_bridge_run_or_stop(
     bundle = bundle,
     module = "pybench.ops.peakvi_project",
     request = req,

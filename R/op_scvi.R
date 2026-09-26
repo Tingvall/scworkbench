@@ -262,7 +262,7 @@ wb_op_scvi_train <- function(bundle,
   pybench_success <- FALSE
   on.exit({
     if (!isTRUE(pybench_success)) {
-      .wb_palantir_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE)
+      .wb_pybench_cleanup_staging_artifacts(bundle, staging_ids, keep_model_files = FALSE)
     }
   }, add = TRUE)
 
@@ -298,7 +298,7 @@ wb_op_scvi_train <- function(bundle,
     outputs = prereg
   )
 
-  bridge <- .wb_palantir_bridge_run_or_stop(
+  bridge <- .wb_pybench_bridge_run_or_stop(
     bundle = bundle,
     module = "pybench.ops.scvi_train",
     request = req,

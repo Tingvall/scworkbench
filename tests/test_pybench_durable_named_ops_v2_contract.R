@@ -76,18 +76,3 @@ test_pybench_durable_peakvi_project_v2_contract <- function() {
             identical(expected$fit_summary$content_sha256,.wb_prov_payload_identity(b,summary)$content_sha256))
   TRUE
 }
-
-test_pybench_durable_palantir_fit_project_v2_contract <- function() {
-  env <- .pybench_v2_test_env(); if (is.null(env)) return(contract_test_skip("PyBench interpreter unavailable"))
-  bundle_dir<-tempfile("pal_v2_b");workspace<-tempfile("pal_v2_w");b<-wb_init_bundle(bundle_dir,overwrite=TRUE);cells<-paste0("c",1:12)
-  on.exit({.pybench_v2_restore_env(env);try(wb_close_bundle(b),silent=TRUE);unlink(bundle_dir,recursive=TRUE);unlink(workspace,recursive=TRUE)},add=TRUE)
-  wb_define_cells(b,cells);wb_attach_space(b,"latent",data.frame(cell_id=cells,d1=1:12,d2=12:1,d3=(1:12)/2));wb_attach_space(b,"plot2d",data.frame(cell_id=cells,x=1:12,y=12:1))
-  fit<-wb_session_run_op(wb_session_create(b,workspace,"pal_fit"),b,"palantir_fit",inputs=list(fit_space="latent",root_cell=cells[1],terminal_cells=cells[c(11,12)],dims=as.character(1:3),knn=3L,n_diffusion_components=2L,n_waypoints=10L,cell_set="all",min_cells=2L))
-  ws<-fit$session$durable$workspace;fit_run_id<-fit$run$run_id;wb_close_bundle(b);b<-wb_open_bundle(bundle_dir)
-  project<-wb_session_run_op(wb_session_resume(b,ws),b,"palantir_project",inputs=list(model=wb_ref_run(fit_run_id,"model"),plot_space="plot2d",min_cells_per_branch=2L,approx_points=5L,cell_set="all",min_cells=1L))
-  ws<-project$session$durable$workspace;wb_close_bundle(b);b<-wb_open_bundle(bundle_dir);curves<-wb_session_promote_current(b,wb_session_resume(b,ws),outputs="curves",created_by="named-v2")
-  cid<-as.character(curves$promoted$artifact_id[curves$promoted$output=="curves"])[1]
-  stopifnot(curves$session$durable$state=="promoted", identical(wb_art_load(b,cid,"path_2d_family")$kind,"path_2d_family"),
-            any(curves$promoted$run_id==fit_run_id))
-  TRUE
-}

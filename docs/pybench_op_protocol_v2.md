@@ -66,7 +66,10 @@ Python tracebacks are not copied into persisted provenance.
 | v2 staging-write | source, recipient, unrelated or stale stage | rejected |
 | v1 writable | any bundle | rejected; no compatibility path |
 
-scVI, PeakVI, and Palantir fit/project use this production boundary. Protocol
+Core-owned scVI and PeakVI use this production boundary. Palantir fit/project
+are now owned by the explicitly activated scwbTrajectory pack and use its
+typed G2 v3/G1 private-computation boundary; historical Palantir outputs
+remain inspectable through the generic bundle contracts. Protocol
 conformance is now exercised by explicitly activated synthetic operation-pack
 fixtures; `py_protocol_hello` is not part of the production operation catalog.
 Large matrix inputs remain external ephemeral chunk directories; all durable

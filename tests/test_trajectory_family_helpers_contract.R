@@ -83,22 +83,12 @@ test_trajectory_family_helpers_contract <- function(bundle_dir) {
   cv_space_session <- wb_path_2d_family_space_id(b, cv_ref, runs = s$runs)
   stopifnot(identical(as.character(cv_space_session), "umap.peakvi_space"))
 
-  prom <- wb_promote_analysis(
-    bundle = b,
-    runs = s$runs,
-    head_run_id = s$head_run_id,
-    name_prefix = "traj_space_lookup",
-    created_by = "test",
-    fail_fast = TRUE
-  )
-  ok <- prom$promoted[
-    as.character(prom$promoted$status %||% "") == "ok" &
-      as.character(prom$promoted$output %||% "") == "curves",
-    ,
-    drop = FALSE
-  ]
-  stopifnot(nrow(ok) == 1L)
-  cv_art <- wb_ref_artifact(as.character(ok$artifact_id[1]), "curves")
+  # This is a generic getter fixture for a historical operation name, not a
+  # live method dispatch. Materialize its primitive directly to exercise the
+  # pack-free artifact lookup without requiring a removed core catalog entry.
+  curve_id <- getFromNamespace(".wb_promoters_by_kind", "scworkbench")()[["path_2d_family"]](
+    b, project_run, "curves", curve, created_by = "test")
+  cv_art <- wb_ref_artifact(curve_id, "curves")
   cv_space_art <- wb_path_2d_family_space_id(b, cv_art, runs = s$runs)
   stopifnot(identical(as.character(cv_space_art), "umap.peakvi_space"))
 

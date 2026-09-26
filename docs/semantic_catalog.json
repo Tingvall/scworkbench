@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 282,
+  "record_count": 280,
   "record_type_counts": {
     "artifact_type": 78,
     "getter": 85,
-    "op": 12,
+    "op": 10,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -2113,383 +2113,6 @@
         "replay_equivalence": {
           "space": "exact_canonical_value",
           "union_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:palantir_fit",
-      "record_type": "op",
-      "name": "palantir_fit",
-      "title": "Palantir fit (pybench)",
-      "description": "Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.",
-      "search_text": "Palantir fit (pybench)\nRun Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.\ntrajectory\nfit_space\nspace\nTRUE\ncell_set\nselect\nFALSE\npseudotime\ncell_vector\nterminal_artifact\nPalantir pseudotime (single-root, global).\nbranch_membership\nrelation_family\nPalantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).\nbranch_summary\nobs_table\nPalantir branch probability summary table.\nentropy\nPalantir entropy per cell.\nmodel\nmodel_ref\nPalantir Python model payload (engine='palantir').\nroot_cell\nstring\nSingle Palantir early/root cell ID (Palantir-native single-root semantics).\nterminal_cells\ncell_ids\nOptional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities).\ndims\nstring_vec\nOptional fit-space dimensions to use (for example 1:20 as explicit integer vector).\nknn\nint\n30\n2\n1000\nkNN size for Palantir diffusion graph and pseudotime.\nn_diffusion_components\n10\n200\nNumber of diffusion components for Palantir.\nn_waypoints\n300\n10000\nNumber of Palantir waypoints.\nuse_early_cell_as_start\nbool\nPass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start.\nseed\n20\n0\n999999\nRandom seed for Palantir stochastic steps.",
-      "tags": ["op", "trajectory"],
-      "payload": {
-        "op_name": "palantir_fit",
-        "title": "Palantir fit (pybench)",
-        "description": "Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.",
-        "intent": "trajectory",
-        "consumes": [
-          {
-            "name": "fit_space",
-            "kind": "space",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "pseudotime",
-            "kind": "cell_vector",
-            "output_name": "pseudotime",
-            "primitive_kind": "cell_vector",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "pseudotime",
-            "description": "Palantir pseudotime (single-root, global)."
-          },
-          {
-            "name": "branch_membership",
-            "kind": "relation_family",
-            "output_name": "branch_membership",
-            "primitive_kind": "relation_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "branch_membership",
-            "description": "Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities)."
-          },
-          {
-            "name": "branch_summary",
-            "kind": "obs_table",
-            "output_name": "branch_summary",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "branch_summary",
-            "description": "Palantir branch probability summary table."
-          },
-          {
-            "name": "entropy",
-            "kind": "cell_vector",
-            "output_name": "entropy",
-            "primitive_kind": "cell_vector",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "entropy",
-            "description": "Palantir entropy per cell."
-          },
-          {
-            "name": "model",
-            "kind": "model_ref",
-            "output_name": "model",
-            "primitive_kind": "model_ref",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "model",
-            "description": "Palantir Python model payload (engine='palantir')."
-          }
-        ],
-        "inputs": {
-          "fit_space": {
-            "required": true,
-            "must_be_2d": false,
-            "dims_min": 2,
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "root_cell",
-            "type": "string",
-            "default": null,
-            "help": "Single Palantir early/root cell ID (Palantir-native single-root semantics).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "terminal_cells",
-            "type": "cell_ids",
-            "default": null,
-            "help": "Optional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "dims",
-            "type": "string_vec",
-            "default": null,
-            "help": "Optional fit-space dimensions to use (for example 1:20 as explicit integer vector).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "knn",
-            "type": "int",
-            "default": 30,
-            "min": 2,
-            "max": 1000,
-            "help": "kNN size for Palantir diffusion graph and pseudotime.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "n_diffusion_components",
-            "type": "int",
-            "default": 10,
-            "min": 2,
-            "max": 200,
-            "help": "Number of diffusion components for Palantir.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "n_waypoints",
-            "type": "int",
-            "default": 300,
-            "min": 10,
-            "max": 10000,
-            "help": "Number of Palantir waypoints.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "use_early_cell_as_start",
-            "type": "bool",
-            "default": true,
-            "help": "Pass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "seed",
-            "type": "int",
-            "default": 20,
-            "min": 0,
-            "max": 999999,
-            "help": "Random seed for Palantir stochastic steps.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          }
-        ],
-        "promotable": ["pseudotime", "branch_membership", "branch_summary", "entropy", "model"],
-        "replay_equivalence": {
-          "pseudotime": "exact_canonical_value",
-          "branch_membership": "exact_canonical_value",
-          "branch_summary": "exact_canonical_value",
-          "entropy": "exact_canonical_value",
-          "model": "loadable_reference"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:palantir_project",
-      "record_type": "op",
-      "name": "palantir_project",
-      "title": "Palantir project trajectories",
-      "description": "Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.",
-      "search_text": "Palantir project trajectories\nProject Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\nFALSE\ncurves\npath_2d_family\nterminal_artifact\nPalantir-style smoothed branch trajectories projected into the chosen 2D display space.\nprob_min\ndbl\n0.05\n0\n1\nMinimum branch probability mask threshold for branch trajectory interpolation.\nsmoothness\n20\nPalantir-style mellon trajectory smoothing multiplier (higher = smoother).\nmin_cells_per_branch\nint\n50\n2\n1e+06\nMinimum eligible cells required to derive a branch trajectory.\napprox_points\n200\n5000\nNumber of trajectory sample points per branch (curve resolution).",
-      "tags": ["op", "trajectory"],
-      "payload": {
-        "op_name": "palantir_project",
-        "title": "Palantir project trajectories",
-        "description": "Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.",
-        "intent": "trajectory",
-        "consumes": [
-          {
-            "name": "model",
-            "kind": "model_ref",
-            "required": true
-          },
-          {
-            "name": "plot_space",
-            "kind": "space_2d",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "curves",
-            "kind": "path_2d_family",
-            "output_name": "curves",
-            "primitive_kind": "path_2d_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "curves",
-            "description": "Palantir-style smoothed branch trajectories projected into the chosen 2D display space."
-          }
-        ],
-        "inputs": {
-          "model": {
-            "required": true,
-            "kind": "model_ref",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "plot_space": {
-            "required": true,
-            "must_be_2d": true,
-            "dims_min": 2,
-            "dims_max": 2,
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "prob_min",
-            "type": "dbl",
-            "default": 0.05,
-            "min": 0,
-            "max": 1,
-            "help": "Minimum branch probability mask threshold for branch trajectory interpolation.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "smoothness",
-            "type": "dbl",
-            "default": 1,
-            "min": 0.05,
-            "max": 20,
-            "help": "Palantir-style mellon trajectory smoothing multiplier (higher = smoother).",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "min_cells_per_branch",
-            "type": "int",
-            "default": 50,
-            "min": 2,
-            "max": 1000000,
-            "help": "Minimum eligible cells required to derive a branch trajectory.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "approx_points",
-            "type": "int",
-            "default": 200,
-            "min": 0,
-            "max": 5000,
-            "help": "Number of trajectory sample points per branch (curve resolution).",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          }
-        ],
-        "promotable": "curves",
-        "replay_equivalence": {
-          "curves": "exact_canonical_value"
         },
         "chunking": null
       }
@@ -8114,7 +7737,7 @@
       "name": "plot_trajectory_on_umap",
       "title": "Plot selected trajectory curves on UMAP",
       "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
-      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nFor segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:scwbtrajectory::slingshot_project\nop:scwbtrajectory::monocle3_project\nop:palantir_project\nop:scwbtrajectory::space_path_project_2d\nop:trajectory_segment_path_join\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nComposite display paths are derived geometry, not merged fitted models.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
+      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nFor segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:scwbtrajectory::slingshot_project\nop:scwbtrajectory::monocle3_project\nop:scwbtrajectory::palantir_project\nop:scwbtrajectory::space_path_project_2d\nop:trajectory_segment_path_join\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nComposite display paths are derived geometry, not merged fitted models.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
       "tags": ["recipe", "visualization", "validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
       "payload": {
         "recipe_id": "plot_trajectory_on_umap",
@@ -8123,7 +7746,7 @@
         "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
         "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
         "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
-        "uses": ["artifact_type:path_2d_family", "op:scwbtrajectory::slingshot_project", "op:scwbtrajectory::monocle3_project", "op:palantir_project", "op:scwbtrajectory::space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+        "uses": ["artifact_type:path_2d_family", "op:scwbtrajectory::slingshot_project", "op:scwbtrajectory::monocle3_project", "op:scwbtrajectory::palantir_project", "op:scwbtrajectory::space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
         "produces": "artifact_type:path_2d_family",
         "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
         "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "Composite display paths are derived geometry, not merged fitted models.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
@@ -8217,8 +7840,8 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 282,
-    "edge_count": 450,
+    "node_count": 280,
+    "edge_count": 428,
     "nodes": [
       {
         "record_id": "op:chromvar",
@@ -8279,18 +7902,6 @@
         "record_type": "op",
         "name": "model_bound_latent_union",
         "title": "Model-Bound Latent-Space Union"
-      },
-      {
-        "record_id": "op:palantir_fit",
-        "record_type": "op",
-        "name": "palantir_fit",
-        "title": "Palantir fit (pybench)"
-      },
-      {
-        "record_id": "op:palantir_project",
-        "record_type": "op",
-        "name": "palantir_project",
-        "title": "Palantir project trajectories"
       },
       {
         "record_id": "getter:wb_status",
@@ -10455,126 +10066,6 @@
         "label": "output:union_summary"
       },
       {
-        "from": "primitive:space",
-        "to": "op:palantir_fit",
-        "edge_type": "consumed_by",
-        "label": "input:fit_space"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "parameter:space",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:fit_space"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "parameter:seed",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:seed"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "primitive:cell_vector",
-        "edge_type": "produces",
-        "label": "output:pseudotime"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "primitive:relation_family",
-        "edge_type": "produces",
-        "label": "output:branch_membership"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:branch_summary"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "primitive:cell_vector",
-        "edge_type": "produces",
-        "label": "output:entropy"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "primitive:model_ref",
-        "edge_type": "produces",
-        "label": "output:model"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "artifact_type:cell_vector",
-        "edge_type": "promotes_as",
-        "label": "promotable:pseudotime"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "artifact_type:relation_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:branch_membership"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "artifact_type:cell_vector",
-        "edge_type": "promotes_as",
-        "label": "promotable:entropy"
-      },
-      {
-        "from": "op:palantir_fit",
-        "to": "artifact_type:model_ref",
-        "edge_type": "promotes_as",
-        "label": "promotable:model"
-      },
-      {
-        "from": "primitive:model_ref",
-        "to": "op:palantir_project",
-        "edge_type": "consumed_by",
-        "label": "input:model"
-      },
-      {
-        "from": "op:palantir_project",
-        "to": "parameter:model",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:model"
-      },
-      {
-        "from": "primitive:space_2d",
-        "to": "op:palantir_project",
-        "edge_type": "consumed_by",
-        "label": "input:plot_space"
-      },
-      {
-        "from": "op:palantir_project",
-        "to": "parameter:space",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:plot_space"
-      },
-      {
-        "from": "op:palantir_project",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:palantir_project",
-        "to": "primitive:path_2d_family",
-        "edge_type": "produces",
-        "label": "output:curves"
-      },
-      {
-        "from": "op:palantir_project",
-        "to": "artifact_type:path_2d_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:curves"
-      },
-      {
         "from": "artifact_type:cell_vector",
         "to": "primitive:cell_vector",
         "edge_type": "loads_as",
@@ -12118,18 +11609,6 @@
       },
       {
         "from": "artifact_type:path_2d_family",
-        "to": "recipe:plot_trajectory_on_umap",
-        "edge_type": "used_by_recipe",
-        "label": "recipe:plot_trajectory_on_umap"
-      },
-      {
-        "from": "recipe:plot_trajectory_on_umap",
-        "to": "op:palantir_project",
-        "edge_type": "uses",
-        "label": "op:palantir_project"
-      },
-      {
-        "from": "op:palantir_project",
         "to": "recipe:plot_trajectory_on_umap",
         "edge_type": "used_by_recipe",
         "label": "recipe:plot_trajectory_on_umap"

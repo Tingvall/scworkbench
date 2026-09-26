@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 12
+Operation count: 10
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -354,68 +354,3 @@ Replay equivalence:
 
 Key parameters:
 - `space_id_out` (string, default=model_bound_latent_union): New durable space identity for the unchanged row-wise coordinate union.
-
-## `palantir_fit`
-
-Title: Palantir fit (pybench)
-
-Intent: trajectory
-
-Description: Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.
-
-Consumes:
-- `fit_space`: space
-- `cell_set`: select
-
-Produces:
-- `pseudotime`: cell_vector [terminal artifact] - Palantir pseudotime (single-root, global).
-- `branch_membership`: relation_family [terminal artifact] - Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).
-- `branch_summary`: obs_table [terminal artifact] - Palantir branch probability summary table.
-- `entropy`: cell_vector [terminal artifact] - Palantir entropy per cell.
-- `model`: model_ref [terminal artifact] - Palantir Python model payload (engine='palantir').
-
-Promotable outputs: pseudotime, branch_membership, branch_summary, entropy, model
-
-Replay equivalence:
-- `pseudotime`: `exact_canonical_value`
-- `branch_membership`: `exact_canonical_value`
-- `branch_summary`: `exact_canonical_value`
-- `entropy`: `exact_canonical_value`
-- `model`: `loadable_reference`
-
-Key parameters:
-- `root_cell` (string, default=NULL): Single Palantir early/root cell ID (Palantir-native single-root semantics).
-- `terminal_cells` (cell_ids, default=NULL): Optional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities).
-- `dims` (string_vec, default=NULL): Optional fit-space dimensions to use (for example 1:20 as explicit integer vector).
-- `knn` (int, default=30): kNN size for Palantir diffusion graph and pseudotime.
-- `n_diffusion_components` (int, default=10): Number of diffusion components for Palantir.
-- `n_waypoints` (int, default=300): Number of Palantir waypoints.
-- `use_early_cell_as_start` (bool, default=TRUE): Pass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start.
-- `seed` (int, default=20): Random seed for Palantir stochastic steps.
-
-## `palantir_project`
-
-Title: Palantir project trajectories
-
-Intent: trajectory
-
-Description: Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.
-
-Consumes:
-- `model`: model_ref
-- `plot_space`: space_2d
-- `cell_set`: select
-
-Produces:
-- `curves`: path_2d_family [terminal artifact] - Palantir-style smoothed branch trajectories projected into the chosen 2D display space.
-
-Promotable outputs: curves
-
-Replay equivalence:
-- `curves`: `exact_canonical_value`
-
-Key parameters:
-- `prob_min` (dbl, default=0.05): Minimum branch probability mask threshold for branch trajectory interpolation.
-- `smoothness` (dbl, default=1): Palantir-style mellon trajectory smoothing multiplier (higher = smoother).
-- `min_cells_per_branch` (int, default=50): Minimum eligible cells required to derive a branch trajectory.
-- `approx_points` (int, default=200): Number of trajectory sample points per branch (curve resolution).

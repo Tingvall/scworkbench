@@ -16,17 +16,17 @@ test_peakvi_project_promotion_contract <- function() {
     ),
     source = "retained fitted-model fixture"
   )
-  op_env <- environment(wb_op_peakvi_project); old <- .wb_palantir_bridge_run_or_stop
+  op_env <- environment(wb_op_peakvi_project); old <- .wb_pybench_bridge_run_or_stop
   captured_requests <- list()
-  unlockBinding(".wb_palantir_bridge_run_or_stop", op_env)
-  assign(".wb_palantir_bridge_run_or_stop", function(module, request, ...) {
+  unlockBinding(".wb_pybench_bridge_run_or_stop", op_env)
+  assign(".wb_pybench_bridge_run_or_stop", function(module, request, ...) {
     captured_requests[[length(captured_requests) + 1L]] <<- request
     sb <- wb_open_bundle(request$bundle_dir); on.exit(wb_close_bundle(sb),add=TRUE)
     cells <- as.character(request$inputs$cell_ids); sid <- as.character(request$params$space_id_out)
     wb_add_space(sb,sid,matrix(seq_len(length(cells)*2),length(cells),2,dimnames=list(cells,c("z1","z2"))),source="mock")
     list(receipt=list(status="ok",protocol_version="1",pybench=list(version="mock"),timings=list(total=0)))
   },envir=op_env)
-  on.exit({assign(".wb_palantir_bridge_run_or_stop",old,envir=op_env); lockBinding(".wb_palantir_bridge_run_or_stop",op_env)},add=TRUE)
+  on.exit({assign(".wb_pybench_bridge_run_or_stop",old,envir=op_env); lockBinding(".wb_pybench_bridge_run_or_stop",op_env)},add=TRUE)
   model_dir <- file.path(root, "artifact_models", "peakvi_contract")
   dir.create(model_dir, recursive = TRUE, showWarnings = FALSE)
   writeLines("contained PeakVI fixture", file.path(model_dir, "model.txt"))

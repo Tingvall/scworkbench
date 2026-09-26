@@ -81,40 +81,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.; `outputs$union_summary` (`obs_table`): Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_palantir_fit
-#' @aliases wb_op_palantir_fit
-#' @description Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param fit_space_id Registered coordinate space used to fit the model.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param root_cell Single Palantir early/root cell ID (Palantir-native single-root semantics).
-#' @param terminal_cells Optional explicit terminal cell IDs passed to Palantir as terminal states (recommended for branch probabilities).
-#' @param dims Optional fit-space dimensions to use (for example 1:20 as explicit integer vector).
-#' @param knn kNN size for Palantir diffusion graph and pseudotime.
-#' @param n_diffusion_components Number of diffusion components for Palantir.
-#' @param n_waypoints Number of Palantir waypoints.
-#' @param use_early_cell_as_start Pass through to Palantir; if TRUE, force the provided early/root cell to be used as trajectory start.
-#' @param seed Integer random seed used to make stochastic computation reproducible.
-#' @param cell_set Named bundle cell set used to resolve the analysis universe.
-#' @param python_bin Python executable used for an optional pybench-backed runtime.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector`): Palantir pseudotime (single-root, global).; `outputs$branch_membership` (`relation_family`): Palantir branch probabilities as cell-to-branch relations (`branch:*` keys; weights are probabilities).; `outputs$branch_summary` (`obs_table`): Palantir branch probability summary table.; `outputs$entropy` (`cell_vector`): Palantir entropy per cell.; `outputs$model` (`model_ref`): Palantir Python model payload (engine='palantir').. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_palantir_project
-#' @aliases wb_op_palantir_project
-#' @description Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param model Required `model` input represented as `model_ref`; accepted symbolic references are resolved by the operation interface.
-#' @param plot_space_id Registered two-dimensional display space used for projection.
-#' @param prob_min Minimum branch probability mask threshold for branch trajectory interpolation.
-#' @param smoothness Palantir-style mellon trajectory smoothing multiplier (higher = smoother).
-#' @param min_cells_per_branch Minimum eligible cells required to derive a branch trajectory.
-#' @param approx_points Number of trajectory sample points per branch (curve resolution).
-#' @param python_bin Python executable used for an optional pybench-backed runtime.
-#' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Palantir-style smoothed branch trajectories projected into the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_peakvi_project
 #' @aliases wb_op_peakvi_project
 #' @description Project cells from an ATAC matrix through a saved PeakVI model and emit a latent space.

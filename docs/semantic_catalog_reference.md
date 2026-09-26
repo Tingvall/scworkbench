@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 282
+Record count: 280
 
-Graph edges: 450
+Graph edges: 428
 
 ## artifact_type
 
@@ -1051,18 +1051,6 @@ Description: Project cells from an ATAC matrix through a saved PeakVI model and 
 Title: Model-Bound Latent-Space Union
 
 Description: Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
-
-### `op:palantir_fit`
-
-Title: Palantir fit (pybench)
-
-Description: Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.
-
-### `op:palantir_project`
-
-Title: Palantir project trajectories
-
-Description: Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model.
 
 ## parameter
 

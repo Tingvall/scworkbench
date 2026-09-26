@@ -36,17 +36,10 @@ test_pybench_relative_model_bridge_closure_contract <- function() {
     data.frame(cell_id = cells, x = seq_along(cells),
                y = rev(seq_along(cells)), stringsAsFactors = FALSE)
   )
-  wb_attach_space(
-    b, "palantir_model_space",
-    data.frame(cell_id = cells, x = seq_along(cells),
-               y = rev(seq_along(cells)), stringsAsFactors = FALSE)
-  )
 
   peak_relative <- "artifact_models/promoted_peakvi"
-  pal_relative <- "artifact_models/promoted_palantir.pkl"
   dir.create(file.path(source_root, peak_relative), recursive = TRUE, showWarnings = FALSE)
   writeLines("contained PeakVI model", file.path(source_root, peak_relative, "model.txt"))
-  writeBin(charToRaw("contained Palantir model"), file.path(source_root, pal_relative))
 
   promote_model <- function(engine, model_space_id, relative) {
     model <- wb_prim_model_ref(model_space_id, model_space_id, engine = engine)
@@ -66,35 +59,29 @@ test_pybench_relative_model_bridge_closure_contract <- function() {
     as.character(promoted$promoted$artifact_id[1])
   }
   peak_artifact <- promote_model("peakvi", "peakvi_model_space", peak_relative)
-  pal_artifact <- promote_model("palantir", "palantir_model_space", pal_relative)
-  stopifnot(nzchar(peak_artifact), nzchar(pal_artifact))
+  stopifnot(nzchar(peak_artifact))
   stored <- DBI::dbGetQuery(
     b$con,
-    "SELECT artifact_id, model_path FROM artifact_model_ref WHERE artifact_id IN (?, ?) ORDER BY artifact_id;",
-    params = list(peak_artifact, pal_artifact)
+    "SELECT artifact_id, model_path FROM artifact_model_ref WHERE artifact_id = ?;",
+    params = list(peak_artifact)
   )
-  stopifnot(nrow(stored) == 2L, all(!vapply(stored$model_path, .wb_path_is_absolute, logical(1))))
+  stopifnot(nrow(stored) == 1L, all(!vapply(stored$model_path, .wb_path_is_absolute, logical(1))))
 
   wb_close_bundle(b)
   stopifnot(isTRUE(file.rename(source_root, moved_root)))
   b <- wb_open_bundle(moved_root)
 
   peak_model <- wb_art_load(b, peak_artifact, expected_kind = "model_ref")
-  pal_model <- wb_art_load(b, pal_artifact, expected_kind = "model_ref")
-  pal_model$cells <- cells
   stopifnot(.wb_path_is_absolute(peak_model$model_path),
-            .wb_path_is_absolute(pal_model$model_path),
-            identical(as.character(pal_model$in_space_id), "palantir_model_space"),
-            identical(.wb_pybench_model_request_path(b, peak_model), peak_relative),
-            identical(.wb_pybench_model_request_path(b, pal_model), pal_relative))
+            identical(.wb_pybench_model_request_path(b, peak_model), peak_relative))
 
   captured <- new.env(parent = emptyenv())
   captured$requests <- list()
   captured$calls <- 0L
   op_env <- environment(wb_op_peakvi_project)
-  old_bridge <- get(".wb_palantir_bridge_run_or_stop", envir = op_env)
-  unlockBinding(".wb_palantir_bridge_run_or_stop", op_env)
-  assign(".wb_palantir_bridge_run_or_stop", function(bundle = NULL, module, request, ...) {
+  old_bridge <- get(".wb_pybench_bridge_run_or_stop", envir = op_env)
+  unlockBinding(".wb_pybench_bridge_run_or_stop", op_env)
+  assign(".wb_pybench_bridge_run_or_stop", function(bundle = NULL, module, request, ...) {
     captured$calls <- captured$calls + 1L
     captured$requests[[length(captured$requests) + 1L]] <- request
     bridge_bundle <- wb_open_bundle(request$bundle_dir)
@@ -107,14 +94,6 @@ test_pybench_relative_model_bridge_closure_contract <- function() {
                dimnames = list(output_cells, c("z1", "z2"))),
         source = "relative-model-bridge-mock"
       )
-    } else if (identical(module, "pybench.ops.palantir_project")) {
-      artifact_id <- as.character(request$outputs$curves$artifact_id)
-      DBI::dbExecute(
-        bridge_bundle$con,
-        "INSERT INTO artifact_curves_2d(artifact_id,lineage_id,point,x,y) VALUES(?,?,?,?,?),(?,?,?,?,?);",
-        params = list(artifact_id, "branch:test", 1L, 0, 0,
-                      artifact_id, "branch:test", 2L, 1, 1)
-      )
     } else {
       stop("Unexpected mocked PyBench module: ", module, call. = FALSE)
     }
@@ -124,8 +103,8 @@ test_pybench_relative_model_bridge_closure_contract <- function() {
     ))
   }, envir = op_env)
   on.exit({
-    assign(".wb_palantir_bridge_run_or_stop", old_bridge, envir = op_env)
-    lockBinding(".wb_palantir_bridge_run_or_stop", op_env)
+    assign(".wb_pybench_bridge_run_or_stop", old_bridge, envir = op_env)
+    lockBinding(".wb_pybench_bridge_run_or_stop", op_env)
   }, add = TRUE)
 
   peak_run <- wb_session_run_op(
@@ -135,27 +114,17 @@ test_pybench_relative_model_bridge_closure_contract <- function() {
       cell_set = "all", min_cells = 1L, space_id_out = "peakvi_projected"
     )
   )
-  pal_run <- wb_session_run_op(
-    wb_session_new(), b, "palantir_project",
-    inputs = list(
-      model = pal_model,
-      plot_space = wb_prim_space_2d("plot2d"), min_cells_per_branch = 2L,
-      approx_points = 2L, min_cells = 1L
-    )
-  )
-  stopifnot(length(captured$requests) == 2L)
+  stopifnot(length(captured$requests) == 1L)
   request_paths <- vapply(
     captured$requests, function(request) as.character(request$inputs$model_path),
     character(1)
   )
-  stopifnot(identical(request_paths, c(peak_relative, pal_relative)),
+  stopifnot(identical(request_paths, peak_relative),
             all(!vapply(request_paths, .wb_path_is_absolute, logical(1))),
             all(!startsWith(request_paths, normalizePath(moved_root, winslash = "/", mustWork = TRUE))))
   stopifnot(
     identical(peak_run$run$inputs$provenance_refs$model$artifact_id, peak_artifact),
-    identical(pal_run$run$inputs$user_inputs$model$artifact_id, pal_artifact),
-    identical(peak_run$run$outputs$space$kind, "space"),
-    identical(pal_run$run$outputs$curves$kind, "path_2d_family")
+    identical(peak_run$run$outputs$space$kind, "space")
   )
 
   relative_primitive <- wb_prim_model_ref("peakvi_model_space", "peakvi_model_space", "peakvi")

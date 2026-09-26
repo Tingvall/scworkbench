@@ -15,13 +15,13 @@ wb_op_py_protocol_hello <- function(bundle, cell_set = "all", n_preview = 25L,
   prereg <- .wb_pybench_preregister_outputs(bundle, run_tmp, specs, created_by = "pybench-protocol-v2")
   ids <- vapply(prereg, function(x) as.character(x$artifact_id), character(1))
   ok <- FALSE
-  on.exit(if (!ok) .wb_palantir_cleanup_staging_artifacts(bundle, ids, keep_model_files = FALSE), add = TRUE)
+  on.exit(if (!ok) .wb_pybench_cleanup_staging_artifacts(bundle, ids, keep_model_files = FALSE), add = TRUE)
   request <- .wb_pybench_build_request(
     bundle, "py_protocol_hello", .wb_pybench_current_run_id(bundle),
     inputs = list(cell_set = as.character(cell_set)[1]),
     params = list(n_preview = n_preview), outputs = prereg
   )
-  .wb_palantir_bridge_run_or_stop(bundle = bundle, module = "pybench.ops.py_protocol_hello",
+  .wb_pybench_bridge_run_or_stop(bundle = bundle, module = "pybench.ops.py_protocol_hello",
                                   request = request, python_bin = python_bin)
   outputs <- list(
     vector = wb_art_load(bundle, prereg$vector$artifact_id, expected_kind = "cell_vector"),
