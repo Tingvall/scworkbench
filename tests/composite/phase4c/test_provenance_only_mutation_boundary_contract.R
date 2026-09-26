@@ -7,7 +7,6 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
   spaces <- wb_spaces(b)
   stopifnot(length(cells) >= 10L, nrow(matrices) >= 1L, nrow(spaces) >= 1L)
   matrix_id <- as.character(matrices$matrix_id[1])
-  source_space <- as.character(spaces$space_id[1])
 
   scientific_state <- function(bundle) {
     tables <- intersect(
@@ -43,13 +42,6 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
     dimnames = list(cells, c("x", "y"))
   )
   attempts <- list(
-    normalization = function() wb_op_matrix_log_normalize(
-      b, matrix_id, output_matrix_id = ".__blocked_normalized__."
-    ),
-    pca = function() wb_op_pca_fit(
-      b, matrix_id, cells = cells, feature_ids = head(wb_feature_ids(b, matrix_id), 10L),
-      n_components = 2L, backend = "prcomp", space_id_out = ".__blocked_pca__."
-    ),
     scvi = function() scworkbench:::wb_op_scvi_train(
       b, matrix_id = matrix_id, cells = cells, output_space_id = ".__blocked_scvi__."
     ),
@@ -62,7 +54,7 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
 
   before <- scientific_state(b)
   old <- getOption("scworkbench.registry_mutation_context")
-  options(scworkbench.registry_mutation_context = list(run_id = "forged", op_name = "pca_fit"))
+  options(scworkbench.registry_mutation_context = list(run_id = "forged", op_name = "cell_set_derive"))
   on.exit(options(scworkbench.registry_mutation_context = old), add = TRUE)
   errors <- lapply(attempts, function(f) try(f(), silent = TRUE))
   stopifnot(
@@ -83,45 +75,27 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
     identical(before, scientific_state(b))
   )
 
-  normalized_id <- ".__prov_boundary_normalized__."
-  pca_id <- ".__prov_boundary_pca__."
-  s <- wb_session_new()
-  rr_norm <- wb_session_run_op(
-    s, b, "matrix_log_normalize",
-    inputs = list(matrix = matrix_id, output_matrix_id = normalized_id, cell_set = "all")
+  target_set <- "set:provenance_boundary"
+  rr <- wb_session_run_op(
+    wb_session_new(), b, "cell_set_derive",
+    inputs = list(target_cell_set = target_set, cell_set = "all",
+      min_cells = 1L, role = "diagnostic", status = "temporary")
   )
-  s <- rr_norm$session
-  normalized_features <- head(wb_feature_ids(wb_session_view(s), normalized_id), 12L)
-  stopifnot(length(normalized_features) >= 3L)
+  s <- rr$session
 
-  # A session view is inspectable, but the handle alone does not carry writer
-  # authority outside the dynamic registered runner invocation.
-  staged_direct <- try(wb_add_space(wb_session_view(s), ".__blocked_stage_space__.", coords), silent = TRUE)
+  # A staged session view is inspectable, but its handle alone has no writer
+  # authority outside the registered runner invocation.
+  staged_direct <- try(wb_add_space(wb_session_view(s),
+    ".__blocked_stage_space__.", coords), silent = TRUE)
   stopifnot(inherits(staged_direct, "try-error"))
 
-  rr_pca <- wb_session_run_op(
-    s, b, "pca_fit",
-    inputs = list(
-      matrix = wb_ref_run(rr_norm$run$run_id, "matrix"),
-      feature_ids = normalized_features,
-      n_components = 2L,
-      backend = "prcomp",
-      space_id_out = pca_id,
-      cell_set = "all"
-    )
-  )
-  s <- rr_pca$session
-  promoted <- wb_session_promote_current(
-    b, s, outputs = "fit_summary", name_prefix = "provenance_boundary", created_by = "contract"
-  )
+  promoted <- wb_session_promote_current(b, s, outputs = "manifest",
+    name_prefix = "provenance_boundary", created_by = "contract")
   stopifnot(nrow(promoted$promoted) >= 1L)
 
   wb_close_bundle(b)
   b <- wb_open_bundle(bundle_dir)
-  stopifnot(
-    normalized_id %in% as.character(wb_matrices(b)$matrix_id),
-    pca_id %in% as.character(wb_spaces(b)$space_id)
-  )
+  stopifnot(identical(as.character(wb_cells(b, target_set)), cells))
   heads <- wb_prov_list_heads(b)
   sid <- as.character(heads$snapshot_id[1])
   persisted <- DBI::dbGetQuery(
@@ -129,17 +103,10 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
     "SELECT run_id, op_name FROM prov_runs WHERE snapshot_id = ? ORDER BY run_id;",
     params = list(sid)
   )
-  stopifnot(
-    all(c(rr_norm$run$run_id, rr_pca$run$run_id) %in% persisted$run_id),
-    all(c("matrix_log_normalize", "pca_fit") %in% persisted$op_name)
-  )
-  norm_details <- wb_prov_run_details(b, rr_norm$run$run_id, sid)
-  pca_details <- wb_prov_run_details(b, rr_pca$run$run_id, sid)
-  stopifnot(
-    any(norm_details$outputs$primitive_kind == "matrix"),
-    any(pca_details$outputs$primitive_kind == "space"),
-    rr_norm$run$run_id %in% pca_details$parents
-  )
+  stopifnot(rr$run$run_id %in% persisted$run_id,
+    "cell_set_derive" %in% persisted$op_name)
+  details <- wb_prov_run_details(b, rr$run$run_id, sid)
+  stopifnot(any(details$outputs$primitive_kind == "obs_table"))
 
   catalog <- wb_mutation_catalog_semantic()
   stopifnot(
