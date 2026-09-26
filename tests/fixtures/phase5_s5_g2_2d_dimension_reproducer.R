@@ -1,5 +1,7 @@
+# Regression reproducer for the corrected generic G2 two-dimensional label path.
+# At and after d8feee3b3da96c9a7616dd654e7387da681f2c32, expect exit 0:
+# wb_space exposes x/y; the durable matrix and selected axis use dim1/dim2.
 # Run with an installed scworkbench and its scwbV3Phase5 test fixture.
-# Expected current result: exit 1 with the G2 selected-dimension error.
 library(scworkbench)
 
 reproduce_g2_2d <- function() {
