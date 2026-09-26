@@ -31,6 +31,7 @@ scwb_documentation_policy <- function(root = ".") {
     "docs/recipient_audit.md", "docs/python_bridge.md",
     "docs/extension_engineering.md", "docs/operation_packs.md",
     "docs/operation_pack_v2_protocol.md", "docs/operation_pack_v3_protocol.md",
+    "docs/phase6_matrix_trained_model_boundary.md",
     "docs/source_ownership.md",
     "docs/CONTRIBUTING.md", "docs/SUPPORT.md", "docs/release_process.md",
     "docs/bundle_integrity_validation.md", "docs/bundle_path_containment_and_trust.md", "docs/bundle_state_contract.md", "docs/bundle_writer_lock.md", "docs/entity_lifecycle.md", "docs/durable_resumable_sessions.md", "docs/metadata_field_identity.md", "docs/metadata_cell_vector_diagnostics.md", "docs/pybench_integration_contract.md", "docs/pybench_op_protocol_v2.md", "docs/scvi_train.md", "docs/peakvi_fit.md", "docs/rna_map_ops.md", "docs/tabular_primitives.md", "docs/trajectory_fit_family_contract.md", "docs/trajectory_segment_contract.md", "docs/trajectory_segment_join_contract.md",

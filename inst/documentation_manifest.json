@@ -211,6 +211,17 @@
       "installed_relative_path": null
     },
     {
+      "path": "docs/phase6_matrix_trained_model_boundary.md",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "docs/phase6_matrix_trained_model_boundary.md",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": false,
+      "installed_relative_path": null
+    },
+    {
       "path": "docs/source_ownership.md",
       "class": "public_canonical",
       "audience": "public",
@@ -715,6 +726,17 @@
       "source_tarball": true,
       "installed_package": true,
       "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase4e-sparse-knn/request.json"
+    },
+    {
+      "path": "inst/protocol/fixtures/operation-pack-v3/phase6-matrix-model-identities.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v3/phase6-matrix-model-identities.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase6-matrix-model-identities.json"
     },
     {
       "path": "inst/protocol/fixtures/operation-pack-v3/relation-family-identities.json",
