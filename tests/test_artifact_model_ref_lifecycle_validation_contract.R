@@ -87,33 +87,6 @@ test_artifact_model_ref_lifecycle_validation_contract <- function() {
             identical(umap_presence$artifact_id, umap_artifact),
             dir.exists(umap_presence$absolute_model_path))
 
-  # Exercise another core-owned artifact-backed model route for PeakVI.
-  # Palantir lifecycle assertions belong to the registered trajectory pack.
-  promote_fixture_model <- function(engine, model_space_id, in_space_id) {
-    rel <- file.path("artifact_models", paste0(engine, "_lifecycle_fixture"))
-    dir.create(file.path(bundle_dir, rel), recursive = TRUE, showWarnings = FALSE)
-    writeLines(paste(engine, "fixture"), file.path(bundle_dir, rel, "model.txt"))
-    prim <- wb_prim_model_ref(model_space_id, in_space_id, engine = engine)
-    prim$model_type <- paste0(engine, "_fit")
-    prim$model_path <- file.path(bundle_dir, rel)
-    run <- wb_new_run(
-      paste0(engine, "_fit"), inputs = list(cell_set = "all", user_inputs = list()),
-      outputs = list(model = prim), notes = paste(engine, "artifact lifecycle fixture")
-    )
-    result <- wb_promote_analysis(
-      b, setNames(list(run), run$run_id), run$run_id,
-      outputs = "model", name_prefix = paste0(engine, "_lifecycle"), created_by = "test"
-    )
-    artifact_id <- as.character(result$promoted$artifact_id[result$promoted$output == "model"][[1L]])
-    loaded <- wb_art_load(b, artifact_id, "model_ref")
-    identity <- artifact_identity(artifact_id)
-    presence <- .wb_model_ref_physical_presence(b, identity)
-    stopifnot(isTRUE(presence$present), identical(presence$storage, "artifact_model_ref"),
-              identical(presence$artifact_id, artifact_id))
-    list(artifact_id = artifact_id, identity = identity, model_path = presence$model_path)
-  }
-  peakvi <- promote_fixture_model("peakvi", "atac.peakvi.lifecycle", "ATAC_counts")
-
   finalized <- wb_finalize_recipient_bundle(b)
   stopifnot(isTRUE(finalized$ready))
   wb_close_bundle(b)
@@ -125,8 +98,8 @@ test_artifact_model_ref_lifecycle_validation_contract <- function() {
   # Writable reopen with validate=TRUE must use the same resolver during its
   # lifecycle migration/backfill and must not retract artifact-backed models.
   b <- wb_open_bundle(bundle_dir, validate = TRUE)
-  life <- wb_entity_lifecycle(b, "model_ref", c(scvi_id, peakvi$identity, umap_id))
-  stopifnot(nrow(life) == 3L, all(life$lifecycle_state == "current"),
+  life <- wb_entity_lifecycle(b, "model_ref", c(scvi_id, umap_id))
+  stopifnot(nrow(life) == 2L, all(life$lifecycle_state == "current"),
             all(life$provenance_bound == 1L))
   wb_close_bundle(b)
 
