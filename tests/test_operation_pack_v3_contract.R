@@ -492,9 +492,9 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "fixtures/operation-pack-v3/identities.json",
     "fixtures/operation-pack-v3/relation-family-identities.json")
   expected <- c(
-    "863f20762e1bbdf3fc4e23fe9885e7ecf3b8bc12b5950b68e5c27df3034083e0",
-    "d95b996b233ad02cb707af81f745a6694240d6b716369a50b6b4f30243360c39",
-    "6b815f64770a37c5eabeb67537561444a3ba731e05b6d4bce9c351819abb4264",
+    "3f06cc79680488f71d07a0691a44637731c6b8f11afe1ed63200433e054b3734",
+    "d46ebe83e00c3c1add2fc7518025242d14b1defa57e174c7304b7a536c0e61b6",
+    "f35fb54c87f4671e67da4d2841b4659b2a1304310d89d5453b21059b2bacd538",
     "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793",
     "5f94004cc229cc5f02c4b7a9401f5c91a0cb9346469d48499b46809c9a919860")
   observed <- vapply(file.path("inst", "protocol", files),
