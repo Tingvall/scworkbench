@@ -477,6 +477,11 @@
         matrix)
       fitted_id <- as.character(model$model_space_id %||%
         model$in_space_id %||% "")[1]
+      if (!identical(fitted_id,
+          as.character(linkage$paired_fitted_space_id)[1]))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Matrix-trained model changed its paired fitted-space identity.",
+          "resolution")
       fitted <- if (nzchar(fitted_id)) wb_space(bundle, fitted_id) else NULL
       if (is.data.frame(fitted)) fitted <- .wb_as_coord_matrix(fitted)
       fitted_cells <- if (is.null(fitted)) character() else rownames(fitted)
@@ -497,6 +502,8 @@
         .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
           "Matrix-trained model source, fitted axis, or latent space changed.",
           "resolution")
+      .wb_operation_pack_v3_matrix_model_fitted_space_recheck(bundle,
+        artifact_id, linkage, fitted)
     } else if (derived_fitted) {
       fitted_space <- .wb_operation_pack_v3_dfa_reopen(bundle, model, linkage,
         source_tree_for_linkage$root)

@@ -7,7 +7,13 @@ parameter, and complete required sibling outputs. Core binds matrix content
 and descriptor identities, exact ordered fitted cells and features, source
 snapshot, paired space ID/dimensions, model tree, promotion group, and receipt
 observation. A G1 model read reauthenticates the retained matrix and fitted
-space before exposing private model bytes. Staging, promotion, and rollback
+space before exposing private model bytes. The pre-execution linkage fixes
+the allocated fitted-space ID; the post-execution receipt binds that ID to
+the space's canonical content identity. On G1 reopen, core follows the
+promoted artifact-to-run binding to exactly one validated terminal receipt,
+then recomputes its paired-space identity from the current durable
+coordinates. Missing, ambiguous, or changed evidence rejects, including a
+self-updated HDF5 registry checksum. Staging, promotion, and rollback
 remain core-owned; packs receive no bundle/SQL/committed path authority.
 
 The shared manifest, request, receipt schemas and identity fixture are in

@@ -2093,6 +2093,8 @@
         model_source_linkage_identity =
           .wb_operation_pack_v3_unscoped_identity(
             grant$model_source_linkage$linkage_identity),
+        paired_fitted_space_id = grant$model_source_linkage$
+          paired_fitted_space_id,
         paired_space_content_identity = paired$content_identity,
         ordered_sibling_observed_descriptor_identities = lapply(siblings,
           function(x) .wb_operation_pack_v3_unscoped_identity(
@@ -2405,6 +2407,10 @@
           !identical(tree$model_source_linkage_identity,
             .wb_operation_pack_v3_unscoped_identity(
               write_grant$model_source_linkage$linkage_identity)) ||
+          !identical(tree$paired_fitted_space_id,
+            write_grant$model_source_linkage$paired_fitted_space_id) ||
+          !identical(tree$paired_fitted_space_id,
+            write_grant$paired_space_output$allocated_id) ||
           !identical(tree$paired_space_content_identity,
             paired$content_identity) ||
           !identical(tree$ordered_sibling_observed_descriptor_identities,
@@ -2731,6 +2737,10 @@
           identical(tree$model_source_linkage_identity,
             .wb_operation_pack_v3_unscoped_identity(
               matrix_grant$model_source_linkage$linkage_identity)),
+          identical(tree$paired_fitted_space_id,
+            matrix_grant$model_source_linkage$paired_fitted_space_id),
+          identical(tree$paired_fitted_space_id,
+            matrix_grant$paired_space_output$allocated_id),
           identical(tree$paired_space_content_identity,
             siblings[[1L]]$content_identity),
           identical(tree$ordered_sibling_observed_descriptor_identities,

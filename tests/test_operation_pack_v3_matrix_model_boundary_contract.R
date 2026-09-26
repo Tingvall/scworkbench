@@ -1,18 +1,24 @@
 .wb_phase6_matrix_fixture <- function() {
-  library <- tempfile("scwb-phase6-lib-")
-  dir.create(library)
-  source <- file.path(normalizePath(".", winslash = "/", mustWork = TRUE),
-    "tests", "fixtures", "operation-pack-v3-matrix-model")
-  log <- tempfile("scwb-phase6-install-", fileext = ".log")
-  status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
-    paste0("--library=", shQuote(library)), shQuote(source)),
-    stdout = log, stderr = log)
-  if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE),
-    collapse = "\n"), call. = FALSE)
+  library <- getOption("scworkbench.phase6.matrix_fixture_library", NULL)
+  if (is.null(library) || !dir.exists(library)) {
+    library <- tempfile("scwb-phase6-lib-")
+    dir.create(library)
+    source <- file.path(normalizePath(".", winslash = "/", mustWork = TRUE),
+      "tests", "fixtures", "operation-pack-v3-matrix-model")
+    log <- tempfile("scwb-phase6-install-", fileext = ".log")
+    status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      paste0("--library=", shQuote(library)), shQuote(source)),
+      stdout = log, stderr = log)
+    if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE),
+      collapse = "\n"), call. = FALSE)
+    options(scworkbench.phase6.matrix_fixture_library = library)
+  }
   old <- .libPaths(); .libPaths(c(library, old))
-  manifest <- system.file("scworkbench", "operation-pack.json",
-    package = "scwbV3MatrixModel", lib.loc = library)
-  wb_operation_pack_activate(manifest, lib.loc = library)
+  if (is.null(.wb_operation_pack_registry$packs[["scwbv3matrixmodel"]])) {
+    manifest <- system.file("scworkbench", "operation-pack.json",
+      package = "scwbV3MatrixModel", lib.loc = library)
+    wb_operation_pack_activate(manifest, lib.loc = library)
+  }
   root <- tempfile("scwb-phase6-bundle-")
   bundle <- wb_init_bundle(root)
   cells <- c("c3", "c1", "c4", "c2")
@@ -45,13 +51,33 @@ test_operation_pack_v3_matrix_model_protocol_fixture_contract <- function() {
 
 .wb_phase6_matrix_cleanup <- function(state) {
   try(wb_close_bundle(state$bundle), silent = TRUE)
-  try(wb_operation_pack_unload("scwbv3matrixmodel"), silent = TRUE)
-  if ("scwbV3MatrixModel" %in% loadedNamespaces())
-    try(unloadNamespace("scwbV3MatrixModel"), silent = TRUE)
+  # Executed packs are intentionally not unloadable within one process.
+  # Keep this disposable package available for subsequent focused tests.
   .libPaths(state$old)
-  unlink(state$library, recursive = TRUE, force = TRUE)
   unlink(state$root, recursive = TRUE, force = TRUE)
   invisible(TRUE)
+}
+
+.wb_phase6_source_only_state <- function(bundle) {
+  tables <- DBI::dbGetQuery(bundle$con, paste0(
+    "SELECT name FROM sqlite_master WHERE type='table' ",
+    "AND name NOT LIKE 'sqlite_%' ORDER BY name;"))$name
+  counts <- stats::setNames(vapply(tables, function(table)
+    as.integer(DBI::dbGetQuery(bundle$con, paste0("SELECT COUNT(*) AS n FROM ",
+      DBI::dbQuoteIdentifier(bundle$con, table)))$n[[1L]]), integer(1)),
+    tables)
+  roots <- file.path(bundle$dir, c("space_payloads", "artifacts",
+    "operation_pack_v2"))
+  entries <- unlist(lapply(roots, function(root) if (dir.exists(root))
+    list.files(root, recursive = TRUE, full.names = TRUE, all.files = TRUE,
+      no.. = TRUE, include.dirs = TRUE) else character()), use.names = FALSE)
+  entries <- sort(entries[file.exists(entries)], method = "radix")
+  files <- entries[!dir.exists(entries)]
+  list(fingerprint = .wb_manifest_registry_snapshot(bundle$con)$fingerprint,
+    counts = counts, entries = substring(entries, nchar(bundle$dir) + 2L),
+    file_hashes = stats::setNames(vapply(files,
+      .wb_prov_sha256_file, character(1)), substring(files,
+        nchar(bundle$dir) + 2L)))
 }
 
 test_operation_pack_v3_matrix_model_boundary_lifecycle_contract <- function() {
@@ -111,19 +137,13 @@ test_operation_pack_v3_matrix_model_boundary_rollback_contract <- function() {
     options(scworkbench.operation_pack_v2_test_hook = NULL)
     .wb_phase6_matrix_cleanup(state)
   }, add = TRUE)
-  baseline <- list(artifacts = nrow(wb_art_list(state$bundle)),
-    spaces = wb_spaces(state$bundle)$space_id,
-    transitions = sort(list.files(.wb_operation_pack_v2_store(state$bundle),
-      all.files = TRUE, no.. = TRUE)))
+  baseline <- .wb_phase6_source_only_state(state$bundle)
   run <- function(attack = "none") wb_session_run_op(wb_session_new(),
     state$bundle, "scwbv3matrixmodel::fit_matrix_model",
     inputs = list(matrix = "ATAC", n_latent = 2L, chunk_size = 2L,
       attack = attack, cell_set = "all", min_cells = 1L))
-  assert_source_only <- function() stopifnot(
-    identical(nrow(wb_art_list(state$bundle)), baseline$artifacts),
-    identical(wb_spaces(state$bundle)$space_id, baseline$spaces),
-    identical(sort(list.files(.wb_operation_pack_v2_store(state$bundle),
-      all.files = TRUE, no.. = TRUE)), baseline$transitions))
+  assert_source_only <- function() stopifnot(identical(
+    .wb_phase6_source_only_state(state$bundle), baseline))
   for (attack in c("wrong_axis", "omit_space", "incomplete_tree")) {
     error <- tryCatch(run(attack), error = identity)
     stopifnot(inherits(error, "error"))
@@ -156,7 +176,8 @@ test_operation_pack_v3_matrix_model_source_reopen_authentication_contract <-
   fit$session <- wb_session_discard(fit$session)
   definition <- .wb_operation_pack_registry$operations[[
     "scwbv3matrixmodel::read_matrix_model"]]$definition$v3_definition
-  for (attack in c("matrix_bytes", "feature_axis")) {
+  for (attack in c("matrix_bytes", "feature_axis", "fitted_space",
+      "model_tree")) {
     copy <- tempfile(paste0("scwb-phase6-", attack, "-"))
     fs::dir_copy(state$root, copy)
     on.exit(unlink(copy, recursive = TRUE, force = TRUE), add = TRUE)
@@ -169,9 +190,26 @@ test_operation_pack_v3_matrix_model_source_reopen_authentication_contract <-
         recursive = TRUE, full.names = TRUE)[[1L]]
       connection <- file(target, open = "ab")
       writeBin(as.raw(1L), connection); close(connection)
-    } else {
+    } else if (identical(attack, "feature_axis")) {
       DBI::dbExecute(damaged$con, paste0("UPDATE features SET feature_id=",
         "'mutated_f1' WHERE matrix_id='ATAC' AND feature_id='f1';"))
+    } else if (identical(attack, "fitted_space")) {
+      registry <- .wb_space_payload_registry_row(damaged,
+        model$model_space_id)
+      target <- .wb_space_payload_path(damaged, registry)
+      values <- rhdf5::h5read(target, "coordinates")
+      values[1L, 1L] <- values[1L, 1L] + 1
+      rhdf5::h5write(values, target, "coordinates")
+      # Even a self-rehashed registry row cannot rewrite the earlier receipt.
+      DBI::dbExecute(damaged$con, paste0(
+        "UPDATE space_payloads SET content_sha256=? WHERE space_id=?;"),
+        params = list(.wb_prov_sha256_file(target), model$model_space_id))
+    } else {
+      target <- file.path(model$model_tree_root,
+        model$model_primary_path)
+      Sys.chmod(target, mode = "0644")
+      connection <- file(target, open = "ab")
+      writeBin(as.raw(1L), connection); close(connection)
     }
     stage <- tempfile("scwb-phase6-source-read-"); dir.create(stage)
     error <- tryCatch(.wb_operation_pack_v3_prepare_self_linked_model_reads(
@@ -181,5 +219,22 @@ test_operation_pack_v3_matrix_model_source_reopen_authentication_contract <-
     unlink(stage, recursive = TRUE, force = TRUE)
     wb_close_bundle(damaged)
   }
+  model <- wb_art_load(state$bundle, model_id, expected_kind = "model_ref")
+  original <- .wb_as_coord_matrix(wb_space(state$bundle,
+    model$model_space_id))
+  changed <- original; changed[1L, 1L] <- changed[1L, 1L] + 1
+  stopifnot(inherits(tryCatch(
+    .wb_operation_pack_v3_matrix_model_fitted_space_recheck(state$bundle,
+      model_id, model$model_linkage, changed), error = identity), "error"))
+  forged <- model$model_linkage
+  forged$paired_fitted_space_id <- "forged-space"
+  forged_preimage <- forged
+  forged_preimage$linkage_identity <- NULL
+  forged$linkage_identity <- .wb_operation_pack_v2_identity_scoped(
+    forged$schema, "linkage excluding linkage_identity",
+    forged_preimage)
+  stopifnot(inherits(tryCatch(
+    .wb_operation_pack_v3_matrix_model_fitted_space_recheck(state$bundle,
+      model_id, forged, original), error = identity), "error"))
   TRUE
 }

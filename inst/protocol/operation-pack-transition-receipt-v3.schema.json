@@ -6851,7 +6851,8 @@
       "required": [
         "schema", "write_grant_identity", "tree_manifest",
         "tree_manifest_identity", "payload_manifest_identity",
-        "model_source_linkage_identity", "paired_space_content_identity",
+        "model_source_linkage_identity", "paired_fitted_space_id",
+        "paired_space_content_identity",
         "ordered_sibling_observed_descriptor_identities",
         "model_sibling_closure_identity", "loadability_status",
         "observation_identity"
@@ -6863,6 +6864,7 @@
         "tree_manifest_identity": {"$ref": "#/$defs/identity"},
         "payload_manifest_identity": {"$ref": "#/$defs/identity"},
         "model_source_linkage_identity": {"$ref": "#/$defs/identity"},
+        "paired_fitted_space_id": {"$ref": "#/$defs/id"},
         "paired_space_content_identity": {"$ref": "#/$defs/identity"},
         "ordered_sibling_observed_descriptor_identities": {
           "type": "array", "minItems": 1,

@@ -6648,7 +6648,8 @@
         "schema", "engine", "model_type", "source_matrix_id",
         "source_matrix_content_identity", "source_matrix_descriptor_identity",
         "source_matrix_snapshot_id", "feature_order_identity",
-        "fitted_cell_order_identity", "latent_dimension_count",
+        "fitted_cell_order_identity", "paired_fitted_space_id",
+        "latent_dimension_count",
         "transition_source_state_identity", "linkage_identity"
       ],
       "properties": {
@@ -6661,6 +6662,7 @@
         "source_matrix_snapshot_id": {"$ref": "#/$defs/sha256"},
         "feature_order_identity": {"$ref": "#/$defs/identity"},
         "fitted_cell_order_identity": {"$ref": "#/$defs/identity"},
+        "paired_fitted_space_id": {"$ref": "#/$defs/id"},
         "latent_dimension_count": {"type": "integer", "minimum": 1},
         "transition_source_state_identity": {"$ref": "#/$defs/identity"},
         "linkage_identity": {

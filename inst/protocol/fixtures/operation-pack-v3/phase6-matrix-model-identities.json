@@ -8,7 +8,7 @@
     },
     "model_sibling_closure_identity": {
       "scheme": "scworkbench.operation_pack.matrix_model_sibling_closure.v1",
-      "sha256": "b6edd0510ecf7601fa4f7650b3f6d1ef4040a742f3a3c7547fcf7964f0ea774b"
+      "sha256": "5761b74d19549455e3aa4915d61c1dd75d123ca3abc611eb7070e5c37d67b2dc"
     },
     "model_source_linkage": {
       "engine": "synthetic",
@@ -24,9 +24,10 @@
       "linkage_identity": {
         "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
         "scope": "linkage excluding linkage_identity",
-        "sha256": "31e3254b01ffd9012fd84d26b7170022fb508ae7534d2990951e144aa035fc7c"
+        "sha256": "6fddc8fac2611ca8391e0083dcf2bb176ecf55d27b41837959a11080827f6512"
       },
       "model_type": "latent_fit",
+      "paired_fitted_space_id": "space_synthetic_latent",
       "schema": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
       "source_matrix_content_identity": {
         "scheme": "scworkbench.matrix.content.v1",
@@ -113,7 +114,7 @@
     "write_grant_identity": {
       "scheme": "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
       "scope": "grant excluding write_grant_identity",
-      "sha256": "20633bee8a255de8f5c3dd2c6d9b0b707c043d70bb9d3172224b442baaa4fad0"
+      "sha256": "f51c7998f1209961b62ebf580ba562aed82a786cfa15fd32a2b00b1bde2d0ba1"
     }
   },
   "manifest_policy": {
@@ -136,16 +137,16 @@
     "loadability_status": "contained_tree_authenticated",
     "model_sibling_closure_identity": {
       "scheme": "scworkbench.operation_pack.matrix_model_sibling_closure.v1",
-      "sha256": "b6edd0510ecf7601fa4f7650b3f6d1ef4040a742f3a3c7547fcf7964f0ea774b"
+      "sha256": "5761b74d19549455e3aa4915d61c1dd75d123ca3abc611eb7070e5c37d67b2dc"
     },
     "model_source_linkage_identity": {
       "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
-      "sha256": "31e3254b01ffd9012fd84d26b7170022fb508ae7534d2990951e144aa035fc7c"
+      "sha256": "6fddc8fac2611ca8391e0083dcf2bb176ecf55d27b41837959a11080827f6512"
     },
     "observation_identity": {
       "scheme": "scworkbench.operation_pack.matrix_model_sibling_closure_observation.v1",
       "scope": "observation excluding observation_identity",
-      "sha256": "da1eb999a1fecdcce4883534b9cebd583b12e4b95b414b5cb16f228184aebc16"
+      "sha256": "d882e2db08226ecc84dc42f5a61eec8e9946b2a35d61f26e7e056da73e16dc24"
     },
     "ordered_sibling_observed_descriptor_identities": [
       {
@@ -157,6 +158,7 @@
         "sha256": "4777e903035214f8c9933470ffee526a05065321d402438b6a25a3e31eb7c721"
       }
     ],
+    "paired_fitted_space_id": "space_synthetic_latent",
     "paired_space_content_identity": {
       "scheme": "scworkbench.space.content.v1",
       "sha256": "e3857b827ad7eca8abace3df32b7ddb3e149f044ab369590c49a7a66896a1d4b"
@@ -192,7 +194,7 @@
     },
     "write_grant_identity": {
       "scheme": "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
-      "sha256": "20633bee8a255de8f5c3dd2c6d9b0b707c043d70bb9d3172224b442baaa4fad0"
+      "sha256": "f51c7998f1209961b62ebf580ba562aed82a786cfa15fd32a2b00b1bde2d0ba1"
     }
   },
   "model_source_linkage": {
@@ -209,9 +211,10 @@
     "linkage_identity": {
       "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
       "scope": "linkage excluding linkage_identity",
-      "sha256": "31e3254b01ffd9012fd84d26b7170022fb508ae7534d2990951e144aa035fc7c"
+      "sha256": "6fddc8fac2611ca8391e0083dcf2bb176ecf55d27b41837959a11080827f6512"
     },
     "model_type": "latent_fit",
+    "paired_fitted_space_id": "space_synthetic_latent",
     "schema": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
     "source_matrix_content_identity": {
       "scheme": "scworkbench.matrix.content.v1",
