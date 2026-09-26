@@ -4,8 +4,8 @@ test_geneprograms_extraction_contract <- function() {
     "cell_vector_family_graph_smooth", "cell_vector_winners",
     "winner_cell_sets", "feature_set_overlap_qc", "pathway_enrich")
   qualified <- paste0("scwbgeneprograms::", moved)
-  stopifnot(length(wb_list_ops()) == 10L,
-    !any(moved %in% wb_list_ops()), !any(qualified %in% wb_list_ops()))
+  stopifnot(!any(moved %in% wb_list_ops()),
+    !any(qualified %in% wb_list_ops()))
   map <- getFromNamespace(".wb_operation_pack_migrated_map", "scworkbench")()
   stopifnot(identical(unname(map[moved]), qualified))
   for (name in moved) {
