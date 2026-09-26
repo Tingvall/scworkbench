@@ -1,0 +1,242 @@
+{
+  "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "contained_matrix_model_sibling_write_grant": {
+    "engine": "synthetic",
+    "limits": {
+      "maximum_file_count": 2,
+      "maximum_total_bytes": 1024
+    },
+    "model_sibling_closure_identity": {
+      "scheme": "scworkbench.operation_pack.matrix_model_sibling_closure.v1",
+      "sha256": "b6edd0510ecf7601fa4f7650b3f6d1ef4040a742f3a3c7547fcf7964f0ea774b"
+    },
+    "model_source_linkage": {
+      "engine": "synthetic",
+      "feature_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "84d52937e3704144e08d01a6ca7e676666c43592935aec5dd042fc90349aa967"
+      },
+      "fitted_cell_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "04e5b8ca60c9048d65821b3c3f598783ce21967b00a2bf0382d1074d7a754acb"
+      },
+      "latent_dimension_count": 2,
+      "linkage_identity": {
+        "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+        "scope": "linkage excluding linkage_identity",
+        "sha256": "31e3254b01ffd9012fd84d26b7170022fb508ae7534d2990951e144aa035fc7c"
+      },
+      "model_type": "latent_fit",
+      "schema": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+      "source_matrix_content_identity": {
+        "scheme": "scworkbench.matrix.content.v1",
+        "sha256": "b6dfc277fa3930f5250eb26fd382add021892bb117bc48fc760031442d9cc584"
+      },
+      "source_matrix_descriptor_identity": {
+        "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+        "sha256": "eb459583fe2aec5accde1555050db364ac5bb2f937ffb9fd2e844ca601686573"
+      },
+      "source_matrix_id": "matrix_counts",
+      "source_matrix_snapshot_id": "b6dfc277fa3930f5250eb26fd382add021892bb117bc48fc760031442d9cc584",
+      "transition_source_state_identity": {
+        "scheme": "scworkbench.scientific_state.v1",
+        "sha256": "ec4ef78aa3791cc932fa189de80d082d7ad3518e29595441ebcd54c2c8f31aec"
+      }
+    },
+    "model_type": "latent_fit",
+    "output": "model",
+    "paired_space_output": {
+      "allocated_id": "space_synthetic_latent",
+      "expected_cell_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "04e5b8ca60c9048d65821b3c3f598783ce21967b00a2bf0382d1074d7a754acb"
+      },
+      "expected_dimensions": [
+        4,
+        2
+      ],
+      "name": "space"
+    },
+    "primary_path": "model.bin",
+    "relative_root": "outputs/model/model_tree",
+    "required_sibling_terminals": [
+      {
+        "allocated_id": "space_synthetic_latent",
+        "expected_cell_order_identity_if_cell_indexed": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "04e5b8ca60c9048d65821b3c3f598783ce21967b00a2bf0382d1074d7a754acb"
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "sha256": "65704bda50db492c26e0d206106b513f158b0fb3685afbea66b47231601ba9a0"
+        },
+        "kind": "space",
+        "name": "space",
+        "replay_policy": "exact_payload_v1"
+      },
+      {
+        "allocated_id": "artifact_synthetic_summary",
+        "expected_cell_order_identity_if_cell_indexed": null,
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "sha256": "1e594fe1e161b5cbec85fb457d6e44e53651e21d33bd826fc97c119c09951e64"
+        },
+        "kind": "obs_table",
+        "name": "fit_summary",
+        "replay_policy": "exact_payload_v1"
+      }
+    ],
+    "schema": "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
+    "source_matrix": {
+      "cell_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "04e5b8ca60c9048d65821b3c3f598783ce21967b00a2bf0382d1074d7a754acb"
+      },
+      "content_identity": {
+        "scheme": "scworkbench.matrix.content.v1",
+        "sha256": "b6dfc277fa3930f5250eb26fd382add021892bb117bc48fc760031442d9cc584"
+      },
+      "dimensions": [
+        3,
+        4
+      ],
+      "feature_order_identity": {
+        "scheme": "scworkbench.feature_order.v1",
+        "sha256": "84d52937e3704144e08d01a6ca7e676666c43592935aec5dd042fc90349aa967"
+      },
+      "input_descriptor_identity": {
+        "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+        "sha256": "eb459583fe2aec5accde1555050db364ac5bb2f937ffb9fd2e844ca601686573"
+      },
+      "input_name": "matrix"
+    },
+    "write_grant_identity": {
+      "scheme": "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
+      "scope": "grant excluding write_grant_identity",
+      "sha256": "20633bee8a255de8f5c3dd2c6d9b0b707c043d70bb9d3172224b442baaa4fad0"
+    }
+  },
+  "manifest_policy": {
+    "engine": "synthetic",
+    "file_order": "utf8_path_lexicographic_v1",
+    "latent_dimensions_parameter": "n_latent",
+    "maximum_file_count": 2,
+    "maximum_total_bytes": 1024,
+    "model_type": "latent_fit",
+    "paired_space_output": "space",
+    "policy": "matrix_trained_contained_model_closure.v1",
+    "primary_path": "model.bin",
+    "required_sibling_terminals": [
+      "space",
+      "fit_summary"
+    ],
+    "source_matrix_input": "matrix"
+  },
+  "matrix_model_sibling_closure_observation": {
+    "loadability_status": "contained_tree_authenticated",
+    "model_sibling_closure_identity": {
+      "scheme": "scworkbench.operation_pack.matrix_model_sibling_closure.v1",
+      "sha256": "b6edd0510ecf7601fa4f7650b3f6d1ef4040a742f3a3c7547fcf7964f0ea774b"
+    },
+    "model_source_linkage_identity": {
+      "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+      "sha256": "31e3254b01ffd9012fd84d26b7170022fb508ae7534d2990951e144aa035fc7c"
+    },
+    "observation_identity": {
+      "scheme": "scworkbench.operation_pack.matrix_model_sibling_closure_observation.v1",
+      "scope": "observation excluding observation_identity",
+      "sha256": "da1eb999a1fecdcce4883534b9cebd583b12e4b95b414b5cb16f228184aebc16"
+    },
+    "ordered_sibling_observed_descriptor_identities": [
+      {
+        "scheme": "scworkbench.operation_pack.observed_output_descriptor.v3",
+        "sha256": "4139ce64e26a447233475519f80e4d94d889356e2d491b9efd3689f6a22aa66f"
+      },
+      {
+        "scheme": "scworkbench.operation_pack.observed_output_descriptor.v3",
+        "sha256": "4777e903035214f8c9933470ffee526a05065321d402438b6a25a3e31eb7c721"
+      }
+    ],
+    "paired_space_content_identity": {
+      "scheme": "scworkbench.space.content.v1",
+      "sha256": "e3857b827ad7eca8abace3df32b7ddb3e149f044ab369590c49a7a66896a1d4b"
+    },
+    "payload_manifest_identity": {
+      "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+      "sha256": "f43c5fb6292e67a376a9638e924fbb68cb4613a279aff4a81d8b7f096ac983e0"
+    },
+    "schema": "scworkbench.operation_pack.matrix_model_sibling_closure_observation.v1",
+    "tree_manifest": {
+      "engine": "synthetic",
+      "entries": [
+        {
+          "path": "model.bin",
+          "sha256": "09e90ef24982233f05563e3e7748e61e44f1632e1325236a028688fa3f7587f4",
+          "size": 4
+        }
+      ],
+      "file_count": 1,
+      "manifest_identity": {
+        "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+        "scope": "manifest excluding manifest_identity",
+        "sha256": "0f31a5cb6bbb2cb22547c6a1c7e43025b19894f054d9abe59cfbb92676865f65"
+      },
+      "model_type": "latent_fit",
+      "primary_path": "model.bin",
+      "schema": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+      "total_size": 4
+    },
+    "tree_manifest_identity": {
+      "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+      "sha256": "0f31a5cb6bbb2cb22547c6a1c7e43025b19894f054d9abe59cfbb92676865f65"
+    },
+    "write_grant_identity": {
+      "scheme": "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
+      "sha256": "20633bee8a255de8f5c3dd2c6d9b0b707c043d70bb9d3172224b442baaa4fad0"
+    }
+  },
+  "model_source_linkage": {
+    "engine": "synthetic",
+    "feature_order_identity": {
+      "scheme": "scworkbench.feature_order.v1",
+      "sha256": "84d52937e3704144e08d01a6ca7e676666c43592935aec5dd042fc90349aa967"
+    },
+    "fitted_cell_order_identity": {
+      "scheme": "scworkbench.cell_order.v1",
+      "sha256": "04e5b8ca60c9048d65821b3c3f598783ce21967b00a2bf0382d1074d7a754acb"
+    },
+    "latent_dimension_count": 2,
+    "linkage_identity": {
+      "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+      "scope": "linkage excluding linkage_identity",
+      "sha256": "31e3254b01ffd9012fd84d26b7170022fb508ae7534d2990951e144aa035fc7c"
+    },
+    "model_type": "latent_fit",
+    "schema": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+    "source_matrix_content_identity": {
+      "scheme": "scworkbench.matrix.content.v1",
+      "sha256": "b6dfc277fa3930f5250eb26fd382add021892bb117bc48fc760031442d9cc584"
+    },
+    "source_matrix_descriptor_identity": {
+      "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+      "sha256": "eb459583fe2aec5accde1555050db364ac5bb2f937ffb9fd2e844ca601686573"
+    },
+    "source_matrix_id": "matrix_counts",
+    "source_matrix_snapshot_id": "b6dfc277fa3930f5250eb26fd382add021892bb117bc48fc760031442d9cc584",
+    "transition_source_state_identity": {
+      "scheme": "scworkbench.scientific_state.v1",
+      "sha256": "ec4ef78aa3791cc932fa189de80d082d7ad3518e29595441ebcd54c2c8f31aec"
+    }
+  },
+  "paired_space_output_declaration": {
+    "name": "space",
+    "category": "materialization",
+    "kind": "space",
+    "storage_profile": "space_file_backed_hdf5_v1",
+    "allocated_id_key": "space_id",
+    "required": true,
+    "promotion_group": "latent_fit",
+    "materialized_by_terminals": ["model"]
+  },
+  "schema": "scworkbench.operation_pack.phase6_matrix_model_identity_fixture.v1"
+}

@@ -107,6 +107,7 @@
       output$fragment_policy <- NULL
       output$contained_model_policy <- NULL
       output$contained_model_sibling_closure_policy <- NULL
+      output$matrix_trained_contained_model_closure_policy <- NULL
       output$derived_fitted_axis_policy <- NULL
       output
     })
@@ -373,6 +374,49 @@
           paste0("Operation '", opname,
             "' has an invalid contained-model output declaration."),
           "semantic_admission")
+    }
+    matrix_models <- Filter(function(x) !is.null(
+      x$matrix_trained_contained_model_closure_policy), operation$outputs)
+    for (output in matrix_models) {
+      policy <- output$matrix_trained_contained_model_closure_policy
+      source <- inputs[[as.character(policy$source_matrix_input)[1]]]
+      paired <- outputs[[as.character(policy$paired_space_output)[1]]]
+      siblings <- as.character(unlist(policy$required_sibling_terminals,
+        use.names = FALSE))
+      definitions <- outputs[siblings]
+      slice_inputs <- vapply(operation$typed_slice_reads %||% list(),
+        function(x) as.character(x$input)[1], character(1))
+      valid <- identical(as.character(output$kind)[1], "model_ref") &&
+        identical(as.character(output$category)[1], "terminal_artifact") &&
+        isTRUE(output$required) && is.null(output$contained_model_policy) &&
+        is.null(output$contained_model_sibling_closure_policy) &&
+        !is.null(source) && identical(as.character(source$kind)[1],
+          "matrix") && as.character(policy$source_matrix_input)[1] %in%
+          slice_inputs && !is.null(paired) && identical(as.character(
+          paired$kind)[1], "space") && identical(as.character(
+          paired$category)[1], "materialization") &&
+        as.character(output$name)[1] %in% as.character(unlist(
+          paired$materialized_by_terminals %||% list(), use.names = FALSE)) &&
+        length(siblings) %in% c(1L, 2L) &&
+        identical(as.character(policy$paired_space_output)[1], siblings[[1L]]) &&
+        !anyDuplicated(siblings) &&
+        all(vapply(definitions, function(x) !is.null(x) &&
+          isTRUE(x$required) && identical(as.character(
+            x$promotion_group)[1], as.character(output$promotion_group)[1]),
+          logical(1))) &&
+        (length(siblings) == 1L || (identical(as.character(
+          definitions[[2L]]$kind)[1], "obs_table") &&
+          identical(as.character(definitions[[2L]]$category)[1],
+            "terminal_artifact"))) &&
+        !is.null(properties[[as.character(
+          policy$latent_dimensions_parameter)[1]]]) &&
+        as.integer(policy$maximum_file_count) <= 32L &&
+        as.numeric(policy$maximum_total_bytes) <= 1073741824
+      if (!valid) .wb_operation_pack_v3_error(
+        "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+        paste0("Operation '", opname,
+          "' has an invalid matrix-trained contained-model closure."),
+        "semantic_admission")
     }
     model_reads <- operation$contained_model_reads %||% list()
     read_names <- vapply(model_reads, function(x) as.character(x$name)[1],
@@ -834,6 +878,16 @@
       as.character(x$input)[1], character(1))
     definition$coverage[model_inputs] <-
       rep("model_associated_unless_query_space", length(model_inputs))
+  }
+  if (length(op$self_linked_contained_model_reads %||% list()) &&
+      any(vapply(op$inputs, function(input) identical(
+        as.character(input$kind)[1L], "matrix"), logical(1)))) {
+    model_inputs <- vapply(op$self_linked_contained_model_reads, function(x)
+      as.character(x$input)[1L], character(1))
+    # A transferred model is a reference authority, not a cell filter on the
+    # disjoint query matrix. G1 still reauthenticates its fitted source/axis.
+    definition$coverage[model_inputs] <-
+      rep("reference_only", length(model_inputs))
   }
   definition
 }

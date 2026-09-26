@@ -98,7 +98,8 @@ wb_attach_to_cells <- function(
   }
 
   # ---- restrict to cells that actually exist in bundle ----
-  existing <- as_chr(DBI::dbGetQuery(con, "SELECT cell_id FROM cells;")$cell_id)
+  existing <- as_chr(DBI::dbGetQuery(con,
+    "SELECT cell_id FROM cells ORDER BY rowid;")$cell_id)
   keep <- intersect(cell_ids, existing)
   .wb_assert(length(keep) > 0, "None of the provided/inferred cell_ids exist in this bundle.")
   missing <- setdiff(cell_ids, existing)
@@ -191,7 +192,7 @@ wb_attach_to_cells <- function(
       feature_ids <- as_chr(rownames(mat))
       col_cells <- as_chr(colnames(mat))
 
-      keep_cols <- intersect(col_cells, keep)
+      keep_cols <- intersect(existing, intersect(col_cells, keep))
       .wb_assert(length(keep_cols) > 0, paste0("Matrix ", matrix_id, " has no columns matching bundle cells."))
 
       mat2 <- mat[, match(keep_cols, col_cells), drop = FALSE]
@@ -296,6 +297,15 @@ wb_attach_to_cells <- function(
       }
       DBI::dbExecute(con, "DELETE FROM features WHERE matrix_id = ?;", params = list(matrix_id))
       DBI::dbWriteTable(con, "features", feats_df, append = TRUE)
+
+      # Recipient validation and matrix coverage use the normalized logical
+      # matrix membership, not only the fragment's ordered cell list.
+      for (cell_id in keep_cols) DBI::dbExecute(con,
+        "INSERT OR IGNORE INTO matrix_cells(matrix_id, cell_id) VALUES (?, ?);",
+        params = list(matrix_id, cell_id))
+      DBI::dbExecute(con,
+        "UPDATE matrices SET n_cells=(SELECT COUNT(*) FROM matrix_cells WHERE matrix_id=?) WHERE matrix_id=?;",
+        params = list(matrix_id, matrix_id))
 
       report$matrices[[matrix_id]] <- list(
         fragment_id = frag_id,

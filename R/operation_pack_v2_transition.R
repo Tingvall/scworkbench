@@ -1118,7 +1118,10 @@
       fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
       model_tree <- item$descriptor$contained_model_tree %||% NULL
       sibling_tree <- item$descriptor$contained_model_sibling_tree %||% NULL
-      authenticated_tree <- model_tree %||% sibling_tree$tree_manifest %||% NULL
+      matrix_tree <- item$descriptor$contained_matrix_model_sibling_tree %||%
+        NULL
+      authenticated_tree <- model_tree %||% sibling_tree$tree_manifest %||%
+        matrix_tree$tree_manifest %||% NULL
       actual <- if (!is.null(authenticated_tree)) {
         tree_root <- file.path(path, "outputs", item$name, "model_tree")
         tree_manifest <- tryCatch(.wb_operation_pack_v3_model_tree_manifest(
@@ -1129,7 +1132,8 @@
         if (inherits(tree_manifest, "error") || !identical(
             .wb_operation_pack_v3_unscoped_identity(
               tree_manifest$manifest_identity),
-            if (is.null(sibling_tree)) model_tree$tree_manifest_identity else
+            if (!is.null(matrix_tree)) matrix_tree$tree_manifest_identity else
+              if (is.null(sibling_tree)) model_tree$tree_manifest_identity else
               sibling_tree$tree_manifest_identity)) return(list(ok = FALSE,
               code = "model_tree_identity_mismatch", output = item$name))
         .wb_operation_pack_v3_model_payload_identity(tree_manifest)$sha256
@@ -1179,13 +1183,17 @@
       fragment_manifest <- item$descriptor$matrix_fragment_manifest %||% NULL
       model_tree <- item$descriptor$contained_model_tree %||% NULL
       sibling_tree <- item$descriptor$contained_model_sibling_tree %||% NULL
-      authenticated_tree <- model_tree %||% sibling_tree$tree_manifest %||% NULL
+      matrix_tree <- item$descriptor$contained_matrix_model_sibling_tree %||%
+        NULL
+      authenticated_tree <- model_tree %||% sibling_tree$tree_manifest %||%
+        matrix_tree$tree_manifest %||% NULL
       actual <- if (!is.null(authenticated_tree)) {
         .wb_operation_pack_sha256(list(
           engine = authenticated_tree$engine,
           model_type = authenticated_tree$model_type,
           linkage_identity = item$descriptor$model_linkage_identity,
-          tree_manifest_identity = if (is.null(sibling_tree))
+          tree_manifest_identity = if (!is.null(matrix_tree))
+            matrix_tree$tree_manifest_identity else if (is.null(sibling_tree))
             model_tree$tree_manifest_identity else
               sibling_tree$tree_manifest_identity))
       } else if (!is.null(fragment_manifest)) {
@@ -1991,10 +1999,12 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
     simplifyVector = FALSE) else readRDS(path)
   model_tree <- record$descriptor$contained_model_tree %||% NULL
   sibling_tree <- record$descriptor$contained_model_sibling_tree %||% NULL
-  tree_observation <- model_tree %||% sibling_tree
+  matrix_tree <- record$descriptor$contained_matrix_model_sibling_tree %||% NULL
+  tree_observation <- model_tree %||% sibling_tree %||% matrix_tree
   observed_tree <- NULL
   observed <- if (!is.null(tree_observation)) {
-    declared <- sibling_tree$tree_manifest %||% tree_observation
+    declared <- sibling_tree$tree_manifest %||%
+      matrix_tree$tree_manifest %||% tree_observation
     engine <- as.character(declared$engine)[1]
     model_type <- as.character(declared$model_type)[1]
     primary_path <- as.character(declared$primary_path)[1]
@@ -2048,7 +2058,15 @@ wb_operation_pack_transition_load <- function(bundle, transition_id, output_name
       .wb_operation_pack_v3_model_payload_identity(observed_tree)
     sibling_grant <- request_record$descriptor$
       contained_model_sibling_write_grant %||% NULL
-    if (!is.null(sibling_grant)) {
+    matrix_grant <- request_record$descriptor$
+      contained_matrix_model_sibling_write_grant %||% NULL
+    if (!is.null(matrix_grant)) {
+      value$model_source_linkage <- matrix_grant$model_source_linkage
+      paired_space_id <- as.character(
+        matrix_grant$paired_space_output$allocated_id)[1]
+      value$model_space_id <- paired_space_id
+      value$in_space_id <- paired_space_id
+    } else if (!is.null(sibling_grant)) {
       value$model_source_linkage <- sibling_grant$model_source_linkage
       source_space_id <- as.character(
         sibling_grant$model_source_linkage$source_space_id)[1]

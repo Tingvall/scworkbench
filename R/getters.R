@@ -688,8 +688,10 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   # Ensure matrix exists (nice error early)
   .wb_get_matrices_row(con, matrix_id)
 
-  # Canonical cells: bundle order
-  all_cells <- wb_cells(bundle, cell_set = "all")
+  # A logical matrix may cover only part of the bundle cell universe. Resolve
+  # requested cells against that matrix's registered coverage, not global
+  # positions (which can index past a single-fragment payload).
+  all_cells <- wb_cells_with_matrix(bundle, matrix_id)
 
   # Canonical features: prefer registry-by-matrix if present, else matrix rownames
   all_features <- NULL
@@ -750,6 +752,12 @@ wb_slice <- function(bundle, matrix_id, features = NULL, cells = NULL) {
   # Load matrix (can be sparse/delayed/whatever your wb_matrix returns)
   m <- wb_matrix(bundle, matrix_id)
   .wb_assert(!is.null(m), paste0("wb_matrix() returned NULL for matrix_id: ", matrix_id))
+  physical_cells <- colnames(m)
+  if (!is.null(physical_cells) && length(physical_cells)) {
+    ci <- match(cell_out, as.character(physical_cells))
+    .wb_assert(!anyNA(ci), paste0("Matrix '", matrix_id,
+      "' physical cell axis differs from registered coverage."))
+  }
   out <- m[fi, ci, drop = FALSE]
   out <- .wb_as_sparse(out)
 

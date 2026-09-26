@@ -697,12 +697,34 @@
     result$receipt$derived_fitted_axis_observations %||% list(),
     vapply(result$receipt$derived_fitted_axis_observations %||% list(),
       function(x) as.character(x$model_output)[1], character(1)))
+  # The core alone publishes a matrix-trained fitted latent space from its
+  # audited staged primitive; the pack never receives registry authority.
+  for (model_name in names(grants)) {
+    matrix_grant <- grants[[model_name]]$descriptor$
+      contained_matrix_model_sibling_write_grant %||% NULL
+    if (is.null(matrix_grant)) next
+    paired <- as.character(matrix_grant$paired_space_output$name)[1]
+    target <- as.character(matrix_grant$paired_space_output$allocated_id)[1]
+    value <- result$outputs[[paired]]
+    if (is.null(value) || !identical(as.character(value$space_id)[1], target) ||
+        nrow(DBI::dbGetQuery(bundle$con,
+          "SELECT 1 FROM spaces WHERE space_id=? LIMIT 1;",
+          params = list(target))) != 0L)
+      .wb_operation_pack_v3_error("PYBENCH_PUBLICATION_FAILED",
+        "Matrix-trained fitted space is absent or its immutable ID collides.",
+        "publication")
+    wb_add_space(bundle, target, value$values,
+      description = paste0("Matrix-trained latent space ", target),
+      source = "operation_pack_v3_matrix_model", overwrite = FALSE)
+  }
   # Bind a closed model tree to its private transition record before any
   # registry publication. The returned primitive is the only value exposed to
   # session promotion; the pack never receives this bundle-relative path.
   for (name in names(result$outputs)) {
     write_grant <- grants[[name]]$descriptor$contained_model_write_grant %||%
-      grants[[name]]$descriptor$contained_model_sibling_write_grant %||% NULL
+      grants[[name]]$descriptor$contained_model_sibling_write_grant %||%
+      grants[[name]]$descriptor$
+        contained_matrix_model_sibling_write_grant %||% NULL
     fitted <- fitted_observations[[name]] %||% NULL
     if (is.null(write_grant) && !is.null(fitted)) {
       receipt_item <- result$receipt$outputs[[match(name, vapply(
@@ -730,7 +752,8 @@
     observed <- result$receipt$outputs[[match(name, vapply(
       result$receipt$outputs, `[[`, character(1), "name"))]]$descriptor
     tree_observation <- observed$contained_model_tree %||%
-      observed$contained_model_sibling_tree
+      observed$contained_model_sibling_tree %||%
+      observed$contained_matrix_model_sibling_tree
     if (!identical(.wb_operation_pack_v3_unscoped_identity(
         tree$manifest_identity), tree_observation$tree_manifest_identity) ||
         !identical(
@@ -748,6 +771,16 @@
       observed$payload_manifest_identity
     sibling_grant <- grants[[name]]$descriptor$
       contained_model_sibling_write_grant %||% NULL
+    matrix_grant <- grants[[name]]$descriptor$
+      contained_matrix_model_sibling_write_grant %||% NULL
+    if (!is.null(matrix_grant)) {
+      result$outputs[[name]]$model_source_linkage <-
+        matrix_grant$model_source_linkage
+      paired_space_id <- as.character(
+        matrix_grant$paired_space_output$allocated_id)[1]
+      result$outputs[[name]]$model_space_id <- paired_space_id
+      result$outputs[[name]]$in_space_id <- paired_space_id
+    }
     if (!is.null(sibling_grant)) {
       source_space_id <- as.character(
         sibling_grant$model_source_linkage$source_space_id)[1]

@@ -319,6 +319,9 @@
 .wb_operation_pack_v3_assert_model_source_linkage <- function(value,
     code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "resolution") {
   if (identical(as.character(value$schema %||% "")[1],
+      "scworkbench.operation_pack.matrix_model_source_linkage.v1"))
+    .wb_operation_pack_v3_assert_matrix_model_linkage(value, code, phase)
+  else if (identical(as.character(value$schema %||% "")[1],
       "scworkbench.operation_pack.model_source_linkage.v3"))
     .wb_operation_pack_v3_assert_model_source_linkage_v3(value, code, phase)
   else .wb_operation_pack_v3_assert_model_source_linkage_v2(value, code,
@@ -437,6 +440,8 @@
       "Self-linked model engine/type is outside its exact allowlist.",
       "resolution")
     linkage <- model$model_source_linkage %||% model$model_linkage %||% list()
+    matrix_trained <- identical(as.character(linkage$schema %||% "")[1],
+      "scworkbench.operation_pack.matrix_model_source_linkage.v1")
     derived_fitted <- identical(as.character(linkage$schema %||% "")[1],
       "scworkbench.operation_pack.model_source_linkage.v3")
     .wb_operation_pack_v3_assert_model_source_linkage(linkage)
@@ -464,7 +469,35 @@
     source_tree_for_linkage <- .wb_operation_pack_v3_model_tree_source(bundle,
       model, engine, model_type)
     fitted_space <- NULL
-    if (derived_fitted) {
+    if (matrix_trained) {
+      matrix_id <- as.character(linkage$source_matrix_id)[1]
+      matrix <- wb_prim_matrix(matrix_id)
+      snapshot <- .wb_operation_pack_v3_phase5_primitive_identity(
+        .wb_operation_pack_v3_matrix_identity_bundle(bundle, matrix_id),
+        matrix)
+      fitted_id <- as.character(model$model_space_id %||%
+        model$in_space_id %||% "")[1]
+      fitted <- if (nzchar(fitted_id)) wb_space(bundle, fitted_id) else NULL
+      if (is.data.frame(fitted)) fitted <- .wb_as_coord_matrix(fitted)
+      fitted_cells <- if (is.null(fitted)) character() else rownames(fitted)
+      features <- wb_features(bundle, matrix_id)$feature_id
+      available_cells <- wb_cells_with_matrix(bundle, matrix_id)
+      if (!identical(snapshot$sha256, linkage$source_matrix_snapshot_id) ||
+          !identical(snapshot, linkage$source_matrix_content_identity) ||
+          !identical(.wb_operation_pack_v2_identity_plain(
+            "scworkbench.feature_order.v1", unname(as.list(features))),
+            linkage$feature_order_identity) ||
+          !length(fitted_cells) ||
+          !all(fitted_cells %in% available_cells) ||
+          !identical(.wb_operation_pack_v2_identity_plain(
+            "scworkbench.cell_order.v1", unname(as.list(fitted_cells))),
+            linkage$fitted_cell_order_identity) ||
+          !identical(as.integer(ncol(fitted)),
+            as.integer(linkage$latent_dimension_count)))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Matrix-trained model source, fitted axis, or latent space changed.",
+          "resolution")
+    } else if (derived_fitted) {
       fitted_space <- .wb_operation_pack_v3_dfa_reopen(bundle, model, linkage,
         source_tree_for_linkage$root)
     } else {
@@ -549,7 +582,9 @@
       "grant excluding grant_identity", grant)
     grants[[name]] <- grant
     values[[name]] <- list(root = root, manifest = tree,
-      fitted_space = fitted_space)
+      fitted_space = fitted_space,
+      matrix_fitted_cells = if (matrix_trained) fitted_cells else NULL,
+      matrix_fitted_features = if (matrix_trained) features else NULL)
   }
   list(grants = grants, values = values, input_records = records)
 }
@@ -683,6 +718,33 @@
     `[[`, character(1), "name"))
   state <- base$state
   state$model_payload_calls <- list()
+  matrix_model_grants <- Filter(Negate(is.null), lapply(grants, function(x)
+    x$descriptor$contained_matrix_model_sibling_write_grant %||% NULL))
+  if (length(matrix_model_grants)) {
+    ordinary_write_space <- base$writers$write_space
+    base$writers$write_space <- function(name, value,
+        semantic_metadata = list()) {
+      matching <- Filter(function(x) identical(as.character(
+        x$paired_space_output$name)[1], as.character(name)[1]),
+        matrix_model_grants)
+      if (length(matching) == 1L) {
+        if (!.wb_is_primitive(value) ||
+            !identical(as.character(value$kind)[1], "space"))
+          .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+            "Matrix-trained writer requires a typed latent space.",
+            "execution")
+        allocated <- as.character(matching[[1L]]$
+          paired_space_output$allocated_id)[1]
+        declared <- as.character(value$space_id %||% "")[1]
+        if (nzchar(declared) && !identical(declared, allocated))
+          .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+            "Matrix-trained latent space may not substitute its core ID.",
+            "execution")
+        value$space_id <- allocated
+      }
+      ordinary_write_space(name, value, semantic_metadata)
+    }
+  }
   model_values <- c(attr(request, "operation_pack_v3_model_read_values") %||%
     list(), attr(request,
       "operation_pack_v3_self_linked_model_read_values") %||% list())
@@ -720,7 +782,24 @@
           fitted <- model_values[[name]]$fitted_space %||% NULL
           if (!is.null(fitted)) result$fitted_source_space <-
             .wb_operation_pack_v2_deep_copy(fitted)
-          if (!is.null(grant$model_source_linkage))
+          matrix_cells <- model_values[[name]]$matrix_fitted_cells %||% NULL
+          if (!is.null(matrix_cells)) result$fitted_cells <-
+            unname(as.character(matrix_cells))
+          matrix_features <- model_values[[name]]$matrix_fitted_features %||%
+            NULL
+          if (!is.null(matrix_features)) result$fitted_features <-
+            unname(as.character(matrix_features))
+          if (identical(as.character(grant$model_source_linkage$schema %||%
+              "")[1],
+              "scworkbench.operation_pack.matrix_model_source_linkage.v1")) {
+            result$latent_dimension_count <- as.integer(
+              grant$model_source_linkage$latent_dimension_count)
+            result$model_source_linkage <-
+              .wb_operation_pack_v2_deep_copy(
+                grant$model_source_linkage)
+          }
+          if (!is.null(grant$model_source_linkage) &&
+              !is.null(grant$model_source_linkage$source_space_id))
             result$source_space_id <- as.character(
               grant$model_source_linkage$source_space_id)[1L]
           if (identical(grant$reader,
@@ -735,6 +814,7 @@
     output <- as.character(output)[1]
     grant <- grants[[output]]$descriptor$contained_model_write_grant %||%
       grants[[output]]$descriptor$contained_model_sibling_write_grant %||%
+      grants[[output]]$descriptor$contained_matrix_model_sibling_write_grant %||%
       .wb_operation_pack_v3_dfa_model_grant(state, output) %||% NULL
     if (is.null(grant) || !is.null(state$writes[[output]]))
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -767,10 +847,20 @@
         grant$limits$maximum_file_count, grant$limits$maximum_total_bytes)
       sibling <- as.character(grant$schema)[1] %in% c(
         "scworkbench.operation_pack.contained_model_sibling_write_grant.v1",
+        "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
         "scworkbench.operation_pack.sealed_model_sibling_grant.v1")
+      matrix_trained <- identical(as.character(grant$schema)[1],
+        "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1")
       derived <- identical(as.character(grant$schema)[1],
         "scworkbench.operation_pack.sealed_model_sibling_grant.v1")
-      if (sibling && nzchar(as.character(value$in_space_id %||% "")[1]) &&
+      if (matrix_trained && nzchar(as.character(value$in_space_id %||% "")[1]) &&
+          !identical(as.character(value$in_space_id)[1],
+            as.character(grant$paired_space_output$allocated_id)[1]))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Matrix-trained model must link to its allocated latent space.",
+          "audit")
+      if (sibling && !matrix_trained &&
+          nzchar(as.character(value$in_space_id %||% "")[1]) &&
           !identical(as.character(value$in_space_id)[1],
             as.character(if (derived) grant$source_space_id else
               grant$model_source_linkage$source_space_id)[1]))
@@ -784,6 +874,11 @@
       value$engine <- grant$engine; value$model_type <- grant$model_type
       if (sibling) value$model_source_linkage <- linkage else
         value$model_linkage <- linkage
+      if (matrix_trained) {
+        value$in_space_id <- as.character(
+          grant$paired_space_output$allocated_id)[1]
+        value$model_space_id <- value$in_space_id
+      }
       value$model_payload_entry <- grant$primary_path
       payload <- file.path(stage_root, "outputs", output, "payload.rds")
       saveRDS(value, payload, version = 3L, compress = FALSE)
@@ -821,7 +916,8 @@
   if (length(request$derived_fitted_axis_grants %||% list()) ||
       any(vapply(grants, function(x) !is.null(x$descriptor$
       contained_model_write_grant) || !is.null(x$descriptor$
-        contained_model_sibling_write_grant), logical(1))))
+        contained_model_sibling_write_grant) || !is.null(x$descriptor$
+        contained_matrix_model_sibling_write_grant), logical(1))))
     base$writers$open_model_tree <- open_model
   base
 }

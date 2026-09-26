@@ -2529,6 +2529,9 @@
             },
             "contained_model_sibling_write_grant": {
               "$ref": "#/$defs/contained_model_sibling_write_grant"
+            },
+            "contained_matrix_model_sibling_write_grant": {
+              "$ref": "#/$defs/contained_matrix_model_sibling_write_grant"
             }
           }
         },
@@ -6588,7 +6591,8 @@
         "model_source_linkage": {
           "oneOf": [
             {"$ref": "#/$defs/model_source_linkage_v2"},
-            {"$ref": "#/$defs/model_source_linkage_v3"}
+            {"$ref": "#/$defs/model_source_linkage_v3"},
+            {"$ref": "#/$defs/matrix_model_source_linkage_v1"}
           ]
         },
         "model_source_linkage_identity": {
@@ -6634,6 +6638,117 @@
         },
         "grant_identity": {
           "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "matrix_model_source_linkage_v1": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "engine", "model_type", "source_matrix_id",
+        "source_matrix_content_identity", "source_matrix_descriptor_identity",
+        "source_matrix_snapshot_id", "feature_order_identity",
+        "fitted_cell_order_identity", "latent_dimension_count",
+        "transition_source_state_identity", "linkage_identity"
+      ],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.matrix_model_source_linkage.v1"},
+        "engine": {"type": "string", "minLength": 1},
+        "model_type": {"type": "string", "minLength": 1},
+        "source_matrix_id": {"$ref": "#/$defs/id"},
+        "source_matrix_content_identity": {"$ref": "#/$defs/identity"},
+        "source_matrix_descriptor_identity": {"$ref": "#/$defs/identity"},
+        "source_matrix_snapshot_id": {"$ref": "#/$defs/sha256"},
+        "feature_order_identity": {"$ref": "#/$defs/identity"},
+        "fitted_cell_order_identity": {"$ref": "#/$defs/identity"},
+        "latent_dimension_count": {"type": "integer", "minimum": 1},
+        "transition_source_state_identity": {"$ref": "#/$defs/identity"},
+        "linkage_identity": {
+          "type": "object", "additionalProperties": false,
+          "required": ["scheme", "scope", "sha256"],
+          "properties": {
+            "scheme": {"const": "scworkbench.operation_pack.matrix_model_source_linkage.v1"},
+            "scope": {"const": "linkage excluding linkage_identity"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    },
+    "contained_matrix_model_sibling_write_grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "output", "engine", "model_type", "primary_path",
+        "relative_root", "source_matrix", "model_source_linkage",
+        "paired_space_output", "required_sibling_terminals",
+        "model_sibling_closure_identity", "limits", "write_grant_identity"
+      ],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1"},
+        "output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "engine": {"type": "string", "minLength": 1},
+        "model_type": {"type": "string", "minLength": 1},
+        "primary_path": {"$ref": "#/$defs/relative_root"},
+        "relative_root": {"$ref": "#/$defs/relative_root"},
+        "source_matrix": {
+          "type": "object", "additionalProperties": false,
+          "required": ["input_name", "input_descriptor_identity", "content_identity",
+            "cell_order_identity", "feature_order_identity", "dimensions"],
+          "properties": {
+            "input_name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "input_descriptor_identity": {"$ref": "#/$defs/identity"},
+            "content_identity": {"$ref": "#/$defs/identity"},
+            "cell_order_identity": {"$ref": "#/$defs/identity"},
+            "feature_order_identity": {"$ref": "#/$defs/identity"},
+            "dimensions": {"$ref": "#/$defs/dimensions_2"}
+          }
+        },
+        "model_source_linkage": {"$ref": "#/$defs/matrix_model_source_linkage_v1"},
+        "paired_space_output": {
+          "type": "object", "additionalProperties": false,
+          "required": ["name", "allocated_id", "expected_dimensions", "expected_cell_order_identity"],
+          "properties": {
+            "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "allocated_id": {"$ref": "#/$defs/id"},
+            "expected_dimensions": {"$ref": "#/$defs/dimensions_2"},
+            "expected_cell_order_identity": {"$ref": "#/$defs/identity"}
+          }
+        },
+        "required_sibling_terminals": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["name", "allocated_id", "kind", "grant_identity", "replay_policy",
+              "expected_cell_order_identity_if_cell_indexed"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "allocated_id": {"$ref": "#/$defs/id"},
+              "kind": {"type": "string", "minLength": 1},
+              "grant_identity": {"$ref": "#/$defs/identity"},
+              "replay_policy": {"type": "string", "minLength": 1},
+              "expected_cell_order_identity_if_cell_indexed": {
+                "oneOf": [{"$ref": "#/$defs/identity"}, {"type": "null"}]
+              }
+            }
+          }
+        },
+        "model_sibling_closure_identity": {"$ref": "#/$defs/identity"},
+        "limits": {
+          "type": "object", "additionalProperties": false,
+          "required": ["maximum_file_count", "maximum_total_bytes"],
+          "properties": {
+            "maximum_file_count": {"type": "integer", "minimum": 1, "maximum": 32},
+            "maximum_total_bytes": {"type": "integer", "minimum": 1, "maximum": 1073741824}
+          }
+        },
+        "write_grant_identity": {
+          "type": "object", "additionalProperties": false,
+          "required": ["scheme", "scope", "sha256"],
+          "properties": {
+            "scheme": {"const": "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1"},
+            "scope": {"const": "grant excluding write_grant_identity"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
         }
       }
     },

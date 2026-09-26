@@ -1402,6 +1402,35 @@
                 }
               }
             },
+            "matrix_trained_contained_model_closure_policy": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "policy", "engine", "model_type", "primary_path",
+                "source_matrix_input", "paired_space_output",
+                "latent_dimensions_parameter", "required_sibling_terminals",
+                "file_order", "maximum_file_count", "maximum_total_bytes"
+              ],
+              "properties": {
+                "policy": {"const": "matrix_trained_contained_model_closure.v1"},
+                "engine": {"type": "string", "minLength": 1},
+                "model_type": {"type": "string", "minLength": 1},
+                "primary_path": {
+                  "type": "string",
+                  "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)[A-Za-z0-9._/-]+$"
+                },
+                "source_matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                "paired_space_output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                "latent_dimensions_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                "required_sibling_terminals": {
+                  "type": "array", "minItems": 1, "uniqueItems": true,
+                  "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+                },
+                "file_order": {"const": "utf8_path_lexicographic_v1"},
+                "maximum_file_count": {"type": "integer", "minimum": 1, "maximum": 32},
+                "maximum_total_bytes": {"type": "integer", "minimum": 1, "maximum": 1073741824}
+              }
+            },
             "derived_fitted_axis_policy": {
               "type": "object",
               "additionalProperties": false,

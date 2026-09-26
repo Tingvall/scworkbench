@@ -1039,6 +1039,24 @@
         file.path(stage, grant$relative_root), phase = "audit")
       next
     }
+    if (identical(as.character(linkage$schema %||% "")[1],
+        "scworkbench.operation_pack.matrix_model_source_linkage.v1")) {
+      matrix_id <- as.character(linkage$source_matrix_id)[1]
+      snapshot <- .wb_operation_pack_v3_phase5_primitive_identity(
+        .wb_operation_pack_v3_matrix_identity_bundle(bundle, matrix_id),
+        wb_prim_matrix(matrix_id))
+      features <- wb_features(bundle, matrix_id)$feature_id
+      if (!identical(snapshot$sha256,
+          linkage$source_matrix_snapshot_id) ||
+          !identical(snapshot, linkage$source_matrix_content_identity) ||
+          !identical(.wb_operation_pack_v2_identity_plain(
+            "scworkbench.feature_order.v1", unname(as.list(features))),
+            linkage$feature_order_identity))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Matrix-trained model source changed before publication.",
+          "audit")
+      next
+    }
     values <- tryCatch(wb_space(bundle, linkage$source_space_id),
       error = identity)
     if (inherits(values, "error")) .wb_operation_pack_v3_error(

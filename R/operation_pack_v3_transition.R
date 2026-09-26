@@ -1002,6 +1002,39 @@
         engine = as.character(sibling_policy$engine)[1],
         contained = TRUE, no_symlinks = TRUE)
     }
+    matrix_policy <- outputs[[name]]$
+      matrix_trained_contained_model_closure_policy %||% NULL
+    if (!is.null(matrix_policy)) {
+      source_name <- as.character(matrix_policy$source_matrix_input)[1]
+      descriptor$expected_model_linkage <- list(mode = "input",
+        reference_name = source_name,
+        reference_identity = .wb_operation_pack_v3_unscoped_identity(
+          input_records[[source_name]]$descriptor_identity))
+      descriptor$semantic_constraints <- list(
+        engine = as.character(matrix_policy$engine)[1],
+        contained = TRUE, no_symlinks = TRUE)
+    }
+    paired_models <- Filter(function(x) identical(as.character(
+      x$matrix_trained_contained_model_closure_policy$
+        paired_space_output %||% "")[1], name), operation$outputs)
+    if (length(paired_models) == 1L) {
+      matrix_policy <- paired_models[[1L]]$
+        matrix_trained_contained_model_closure_policy
+      source_name <- as.character(matrix_policy$source_matrix_input)[1]
+      axis_grants <- Filter(function(x) identical(as.character(x$input_name)[1],
+        source_name), typed_slice_grants)
+      if (length(axis_grants) != 1L) .wb_operation_pack_v3_error(
+        "PYBENCH_CAPABILITY_MISMATCH",
+        "Matrix-trained latent space requires one typed matrix reader.",
+        "resolution")
+      cells <- attr(axis_grants[[1L]], "operation_pack_v3_cells")
+      latent <- as.integer(params[[as.character(
+        matrix_policy$latent_dimensions_parameter)[1]]])[1]
+      descriptor$expected_dimensions <- list(as.integer(length(cells)), latent)
+      descriptor$expected_cell_order_identity <-
+        .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1",
+          unname(as.list(cells)))
+    }
     if (!is.null(outputs[[name]]$fragment_policy)) {
       descriptor$matrix_fragment_grant <-
         .wb_operation_pack_v3_matrix_fragment_grant(bundle, outputs[[name]],
@@ -1045,16 +1078,27 @@
   for (i in seq_along(base$outputs)) {
     name <- as.character(base$outputs[[i]]$name)[1]
     output <- outputs[[name]]
-    if (is.null(output$contained_model_sibling_closure_policy) ||
-        !is.null(output$derived_fitted_axis_policy)) next
+    if ((is.null(output$contained_model_sibling_closure_policy) ||
+        !is.null(output$derived_fitted_axis_policy)) &&
+        is.null(output$matrix_trained_contained_model_closure_policy)) next
     descriptor <- base$outputs[[i]]$descriptor
-    sibling_grant <- .wb_operation_pack_v3_model_sibling_write_grant(bundle,
-      output, operation, inputs, input_records, params, output_records)
-    descriptor$contained_model_sibling_write_grant <- sibling_grant
+    matrix_policy <- output$matrix_trained_contained_model_closure_policy
+    sibling_grant <- if (is.null(matrix_policy))
+      .wb_operation_pack_v3_model_sibling_write_grant(bundle, output,
+        operation, inputs, input_records, params, output_records) else
+      .wb_operation_pack_v3_matrix_model_grant(bundle, output, operation,
+        inputs, input_records, params, typed_slice_grants, output_records,
+        base$execution_capability$source_state_identity)
+    descriptor[[if (is.null(matrix_policy))
+      "contained_model_sibling_write_grant" else
+      "contained_matrix_model_sibling_write_grant"]] <- sibling_grant
     descriptor$expected_model_linkage <- list(mode = "input",
-      reference_name = sibling_grant$source_space$input_name,
-      reference_identity = sibling_grant$source_space$
-        input_descriptor_identity)
+      reference_name = if (is.null(matrix_policy))
+        sibling_grant$source_space$input_name else
+        sibling_grant$source_matrix$input_name,
+      reference_identity = if (is.null(matrix_policy))
+        sibling_grant$source_space$input_descriptor_identity else
+        sibling_grant$source_matrix$input_descriptor_identity)
     descriptor$semantic_constraints <- list(engine = sibling_grant$engine,
       contained = TRUE, no_symlinks = TRUE)
     descriptor$grant_identity <- NULL
@@ -1355,6 +1399,15 @@
         "PYBENCH_CAPABILITY_MISMATCH", "staging")
       .wb_operation_pack_v3_assert_self_identity(
         descriptor$contained_model_sibling_write_grant,
+        "write_grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
+    }
+    if (!is.null(descriptor$contained_matrix_model_sibling_write_grant)) {
+      .wb_operation_pack_v3_assert_matrix_model_linkage(
+        descriptor$contained_matrix_model_sibling_write_grant$
+          model_source_linkage,
+        "PYBENCH_CAPABILITY_MISMATCH", "staging")
+      .wb_operation_pack_v3_assert_self_identity(
+        descriptor$contained_matrix_model_sibling_write_grant,
         "write_grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
     }
     .wb_operation_pack_v3_assert_self_identity(descriptor, "grant_identity",
@@ -1899,11 +1952,14 @@
     if (!is.null(model_tree)) {
       write_grant <- grants[[name]]$descriptor$contained_model_write_grant %||%
         grants[[name]]$descriptor$contained_model_sibling_write_grant %||%
+        grants[[name]]$descriptor$
+          contained_matrix_model_sibling_write_grant %||%
         if (!is.null(fitted_state) && identical(as.character(
           fitted_state$model_grant$output)[1], name))
           fitted_state$model_grant else NULL
       sibling_closure <- as.character(write_grant$schema)[1] %in% c(
         "scworkbench.operation_pack.contained_model_sibling_write_grant.v1",
+        "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
         "scworkbench.operation_pack.sealed_model_sibling_grant.v1")
       linkage <- if (sibling_closure)
         writes[[name]]$value$model_source_linkage else
@@ -1998,6 +2054,62 @@
       operation$outputs, `[[`, character(1), "name"))]]
     sibling_policy <- declaration$contained_model_sibling_closure_policy %||%
       NULL
+    matrix_policy <- declaration$
+      matrix_trained_contained_model_closure_policy %||% NULL
+    if (!is.null(matrix_policy)) {
+      grant <- grants[[output_name]]$descriptor$
+        contained_matrix_model_sibling_write_grant
+      model_tree <- writes[[output_name]]$tree_manifest
+      sibling_names <- as.character(unlist(
+        matrix_policy$required_sibling_terminals, use.names = FALSE))
+      siblings <- lapply(sibling_names, function(name)
+        observed[[match(name, observed_names)]])
+      if (is.null(model_tree) || any(vapply(siblings, is.null, logical(1))))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Matrix-trained model closure is incomplete.", "audit")
+      for (j in seq_along(siblings)) {
+        expected_axis <- grant$required_sibling_terminals[[j]]$
+          expected_cell_order_identity_if_cell_indexed
+        actual_axis <- siblings[[j]]$descriptor$cell_order_identity %||% NULL
+        if (!is.null(expected_axis) && !identical(expected_axis, actual_axis))
+          .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+            "Matrix-trained latent space axis differs from fitted cells.",
+            "audit")
+      }
+      paired <- siblings[[1L]]$descriptor
+      if (!identical(as.integer(unlist(paired$dimensions,
+          use.names = FALSE)), as.integer(unlist(grant$
+          paired_space_output$expected_dimensions, use.names = FALSE))))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Matrix-trained latent dimensions differ from the grant.", "audit")
+      tree <- list(schema =
+          "scworkbench.operation_pack.matrix_model_sibling_closure_observation.v1",
+        write_grant_identity = .wb_operation_pack_v3_unscoped_identity(
+          grant$write_grant_identity), tree_manifest = model_tree,
+        tree_manifest_identity = .wb_operation_pack_v3_unscoped_identity(
+          model_tree$manifest_identity),
+        payload_manifest_identity =
+          .wb_operation_pack_v3_model_payload_identity(model_tree),
+        model_source_linkage_identity =
+          .wb_operation_pack_v3_unscoped_identity(
+            grant$model_source_linkage$linkage_identity),
+        paired_space_content_identity = paired$content_identity,
+        ordered_sibling_observed_descriptor_identities = lapply(siblings,
+          function(x) .wb_operation_pack_v3_unscoped_identity(
+            x$descriptor$observed_descriptor_identity)),
+        model_sibling_closure_identity = grant$model_sibling_closure_identity,
+        loadability_status = "contained_tree_authenticated")
+      tree$observation_identity <- .wb_operation_pack_v2_identity_scoped(
+        tree$schema, "observation excluding observation_identity", tree)
+      observed[[i]]$descriptor$contained_matrix_model_sibling_tree <- tree
+      observed[[i]]$descriptor$observed_descriptor_identity <- NULL
+      observed[[i]]$descriptor$observed_descriptor_identity <-
+        .wb_operation_pack_v2_identity_scoped(
+          "scworkbench.operation_pack.observed_output.v3",
+          "descriptor excluding observed_descriptor_identity",
+          observed[[i]]$descriptor)
+      next
+    }
     if (!is.null(sibling_policy) &&
         is.null(declaration$derived_fitted_axis_policy)) {
       grant <- grants[[output_name]]$descriptor$
@@ -2266,6 +2378,44 @@
       .wb_operation_pack_v3_assert_self_identity(
         item$descriptor$observed_pseudobulk, "observation_identity",
         "PYBENCH_RECEIPT_MISMATCH", "receipt")
+    }
+    if (!is.null(grant$contained_matrix_model_sibling_write_grant)) {
+      write_grant <- grant$contained_matrix_model_sibling_write_grant
+      tree <- item$descriptor$contained_matrix_model_sibling_tree
+      .wb_operation_pack_v3_assert_matrix_model_linkage(
+        write_grant$model_source_linkage, "PYBENCH_RECEIPT_MISMATCH",
+        "receipt")
+      .wb_operation_pack_v3_assert_self_identity(write_grant,
+        "write_grant_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+      .wb_operation_pack_v3_assert_self_identity(tree,
+        "observation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+      siblings <- lapply(write_grant$required_sibling_terminals,
+        function(x) observed[[match(x$name, vapply(observed, `[[`,
+          character(1), "name"))]])
+      if (any(vapply(siblings, is.null, logical(1))))
+        .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+          "Matrix-trained model receipt omits a sibling.", "receipt")
+      expected <- lapply(siblings, function(x)
+        .wb_operation_pack_v3_unscoped_identity(
+          x$descriptor$observed_descriptor_identity))
+      paired <- siblings[[1L]]$descriptor
+      if (!identical(tree$write_grant_identity,
+          .wb_operation_pack_v3_unscoped_identity(
+            write_grant$write_grant_identity)) ||
+          !identical(tree$model_source_linkage_identity,
+            .wb_operation_pack_v3_unscoped_identity(
+              write_grant$model_source_linkage$linkage_identity)) ||
+          !identical(tree$paired_space_content_identity,
+            paired$content_identity) ||
+          !identical(tree$ordered_sibling_observed_descriptor_identities,
+            expected) ||
+          !identical(tree$model_sibling_closure_identity,
+            write_grant$model_sibling_closure_identity) ||
+          !identical(tree$loadability_status,
+            "contained_tree_authenticated"))
+        .wb_operation_pack_v3_error("PYBENCH_RECEIPT_MISMATCH",
+          "Matrix-trained model receipt differs from complete closure.",
+          "receipt")
     }
     if (!is.null(grant$parameter_axis_grant_identity) &&
         !identical(item$descriptor$observed_parameter_axis$
@@ -2557,6 +2707,39 @@
       .wb_operation_pack_v3_assert_self_identity(observed,
         "observed_descriptor_identity",
         "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
+      matrix_grant <- grant$contained_matrix_model_sibling_write_grant %||%
+        NULL
+      if (!is.null(matrix_grant)) {
+        .wb_operation_pack_v3_assert_matrix_model_linkage(
+          matrix_grant$model_source_linkage,
+          "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
+        .wb_operation_pack_v3_assert_self_identity(matrix_grant,
+          "write_grant_identity", "PYBENCH_REOPEN_VALIDATION_FAILED",
+          "reopen")
+        tree <- observed$contained_matrix_model_sibling_tree
+        .wb_operation_pack_v3_assert_self_identity(tree,
+          "observation_identity", "PYBENCH_REOPEN_VALIDATION_FAILED",
+          "reopen")
+        siblings <- lapply(matrix_grant$required_sibling_terminals,
+          function(x) observation_map[[x$name]]$descriptor)
+        stopifnot(length(siblings) == length(
+          matrix_grant$required_sibling_terminals),
+          !any(vapply(siblings, is.null, logical(1))),
+          identical(tree$write_grant_identity,
+            .wb_operation_pack_v3_unscoped_identity(
+              matrix_grant$write_grant_identity)),
+          identical(tree$model_source_linkage_identity,
+            .wb_operation_pack_v3_unscoped_identity(
+              matrix_grant$model_source_linkage$linkage_identity)),
+          identical(tree$paired_space_content_identity,
+            siblings[[1L]]$content_identity),
+          identical(tree$ordered_sibling_observed_descriptor_identities,
+            lapply(siblings, function(x)
+              .wb_operation_pack_v3_unscoped_identity(
+                x$observed_descriptor_identity))),
+          identical(tree$model_sibling_closure_identity,
+            matrix_grant$model_sibling_closure_identity))
+      }
       if (!is.null(grant$cardinality_grant)) {
         .wb_operation_pack_v3_assert_self_identity(
           observed$observed_cardinality,

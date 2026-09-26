@@ -1,0 +1,133 @@
+# Generic ABI-v3 authority for a model fitted from an authenticated matrix.
+# This is deliberately separate from the accepted space-trained G2 grant.
+
+.wb_operation_pack_v3_matrix_model_linkage <- function(bundle, policy,
+    source, source_record, axis_grant, latent_count, transition_state) {
+  cells <- attr(axis_grant, "operation_pack_v3_cells")
+  features <- attr(axis_grant, "operation_pack_v3_features")
+  source_bundle <- if (nzchar(as.character(source$matrix_id %||% "")[1]))
+    .wb_operation_pack_v3_matrix_identity_bundle(bundle, source$matrix_id) else
+      bundle
+  snapshot <- .wb_operation_pack_v3_phase5_primitive_identity(
+    source_bundle, source)
+  value <- list(schema =
+      "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+    engine = as.character(policy$engine)[1],
+    model_type = as.character(policy$model_type)[1],
+    source_matrix_id = as.character(source$matrix_id %||% "")[1],
+    source_matrix_content_identity = source_record$content_identity,
+    source_matrix_descriptor_identity =
+      .wb_operation_pack_v3_unscoped_identity(
+        source_record$descriptor_identity),
+    feature_order_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.feature_order.v1", unname(as.list(features))),
+    fitted_cell_order_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(cells))),
+    latent_dimension_count = as.integer(latent_count),
+    source_matrix_snapshot_id = snapshot$sha256,
+    transition_source_state_identity = transition_state)
+  value$linkage_identity <- .wb_operation_pack_v2_identity_scoped(
+    value$schema, "linkage excluding linkage_identity", value)
+  value
+}
+
+.wb_operation_pack_v3_assert_matrix_model_linkage <- function(value,
+    code = "PYBENCH_INPUT_IDENTITY_MISMATCH", phase = "resolution") {
+  required <- c("schema", "engine", "model_type", "source_matrix_id",
+    "source_matrix_content_identity", "source_matrix_descriptor_identity",
+    "feature_order_identity", "fitted_cell_order_identity",
+    "latent_dimension_count", "source_matrix_snapshot_id",
+    "transition_source_state_identity", "linkage_identity")
+  if (!is.list(value) || !setequal(names(value), required) ||
+      !identical(as.character(value$schema)[1],
+        "scworkbench.operation_pack.matrix_model_source_linkage.v1") ||
+      !nzchar(as.character(value$source_matrix_id)[1]) ||
+      as.integer(value$latent_dimension_count)[1] < 1L)
+    .wb_operation_pack_v3_error(code,
+      "Matrix-trained model has incomplete source linkage.", phase)
+  .wb_operation_pack_v3_assert_self_identity(value, "linkage_identity",
+    code, phase)
+  invisible(TRUE)
+}
+
+.wb_operation_pack_v3_matrix_model_grant <- function(bundle, output,
+    operation, inputs, input_records, params, typed_slice_grants,
+    output_records, transition_state) {
+  policy <- output$matrix_trained_contained_model_closure_policy
+  if (is.null(policy)) return(NULL)
+  source_name <- as.character(policy$source_matrix_input)[1]
+  source <- inputs[[source_name]]
+  source_record <- input_records[[source_name]]
+  candidates <- Filter(function(x) identical(as.character(x$input_name)[1],
+    source_name), typed_slice_grants)
+  if (length(candidates) != 1L) .wb_operation_pack_v3_error(
+    "PYBENCH_CAPABILITY_MISMATCH",
+    "Matrix-trained model requires exactly one typed matrix reader.",
+    "resolution")
+  axis_grant <- candidates[[1L]]
+  cells <- attr(axis_grant, "operation_pack_v3_cells")
+  features <- attr(axis_grant, "operation_pack_v3_features")
+  if (!length(cells) || !length(features) ||
+      !identical(features, as.character(source$feature_id)))
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Matrix-trained model requires the complete authenticated feature axis.",
+      "resolution")
+  latent_count <- as.integer(params[[as.character(
+    policy$latent_dimensions_parameter)[1]]])[1]
+  if (is.na(latent_count) || latent_count < 1L || latent_count > 4096L)
+    .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+      "Matrix-trained latent dimension is outside its bound.", "resolution")
+  linkage <- .wb_operation_pack_v3_matrix_model_linkage(bundle, policy,
+    source, source_record, axis_grant, latent_count, transition_state)
+  sibling_names <- as.character(unlist(policy$required_sibling_terminals,
+    use.names = FALSE))
+  definitions <- stats::setNames(operation$outputs,
+    vapply(operation$outputs, `[[`, character(1), "name"))
+  siblings <- lapply(sibling_names, function(name) {
+    record <- output_records[[name]]
+    kind <- as.character(definitions[[name]]$kind)[1]
+    list(name = name, allocated_id = as.character(record$allocated_id)[1],
+      kind = kind, grant_identity = .wb_operation_pack_v3_unscoped_identity(
+        record$descriptor$grant_identity),
+      replay_policy = as.character(operation$replay_equivalence[[name]])[1],
+      expected_cell_order_identity_if_cell_indexed = if (identical(kind,
+        "space")) linkage$fitted_cell_order_identity else NULL)
+  })
+  model_name <- as.character(output$name)[1]
+  model_record <- output_records[[model_name]]
+  paired <- output_records[[as.character(policy$paired_space_output)[1]]]
+  closure <- .wb_operation_pack_v2_identity_plain(
+    "scworkbench.operation_pack.matrix_model_sibling_closure.v1", list(
+      model_output = model_name,
+      model_grant_identity = .wb_operation_pack_v3_unscoped_identity(
+        model_record$descriptor$grant_identity),
+      model_source_linkage_identity = .wb_operation_pack_v3_unscoped_identity(
+        linkage$linkage_identity),
+      promotion_group = as.character(output$promotion_group)[1],
+      siblings = lapply(siblings, function(x) x[c("name", "grant_identity",
+        "replay_policy")])))
+  grant <- list(schema =
+      "scworkbench.operation_pack.contained_matrix_model_sibling_write_grant.v1",
+    output = model_name, engine = linkage$engine, model_type = linkage$model_type,
+    primary_path = as.character(policy$primary_path)[1],
+    relative_root = paste0("outputs/", model_name, "/model_tree"),
+    source_matrix = list(input_name = source_name,
+      input_descriptor_identity = linkage$source_matrix_descriptor_identity,
+      content_identity = source_record$content_identity,
+      cell_order_identity = linkage$fitted_cell_order_identity,
+      feature_order_identity = linkage$feature_order_identity,
+      dimensions = unname(as.list(as.integer(source$dimensions)))),
+    model_source_linkage = linkage,
+    paired_space_output = list(name = as.character(
+      policy$paired_space_output)[1],
+      allocated_id = as.character(paired$allocated_id)[1],
+      expected_dimensions = list(as.integer(length(cells)), latent_count),
+      expected_cell_order_identity = linkage$fitted_cell_order_identity),
+    required_sibling_terminals = siblings,
+    model_sibling_closure_identity = closure,
+    limits = list(maximum_file_count = as.integer(policy$maximum_file_count),
+      maximum_total_bytes = as.integer(policy$maximum_total_bytes)))
+  grant$write_grant_identity <- .wb_operation_pack_v2_identity_scoped(
+    grant$schema, "grant excluding write_grant_identity", grant)
+  grant
+}

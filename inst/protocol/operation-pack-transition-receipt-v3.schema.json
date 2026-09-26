@@ -2949,6 +2949,9 @@
                   "$ref": "#/$defs/derived_fitted_model_tree_observation"
                 }
               ]
+            },
+            "contained_matrix_model_sibling_tree": {
+              "$ref": "#/$defs/matrix_model_sibling_closure_observation"
             }
           }
         },
@@ -6839,6 +6842,42 @@
         },
         "observation_identity": {
           "$ref": "#/$defs/self_identity"
+        }
+      }
+    },
+    "matrix_model_sibling_closure_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "write_grant_identity", "tree_manifest",
+        "tree_manifest_identity", "payload_manifest_identity",
+        "model_source_linkage_identity", "paired_space_content_identity",
+        "ordered_sibling_observed_descriptor_identities",
+        "model_sibling_closure_identity", "loadability_status",
+        "observation_identity"
+      ],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.matrix_model_sibling_closure_observation.v1"},
+        "write_grant_identity": {"$ref": "#/$defs/identity"},
+        "tree_manifest": {"$ref": "#/$defs/contained_model_tree_manifest"},
+        "tree_manifest_identity": {"$ref": "#/$defs/identity"},
+        "payload_manifest_identity": {"$ref": "#/$defs/identity"},
+        "model_source_linkage_identity": {"$ref": "#/$defs/identity"},
+        "paired_space_content_identity": {"$ref": "#/$defs/identity"},
+        "ordered_sibling_observed_descriptor_identities": {
+          "type": "array", "minItems": 1,
+          "items": {"$ref": "#/$defs/identity"}
+        },
+        "model_sibling_closure_identity": {"$ref": "#/$defs/identity"},
+        "loadability_status": {"const": "contained_tree_authenticated"},
+        "observation_identity": {
+          "type": "object", "additionalProperties": false,
+          "required": ["scheme", "scope", "sha256"],
+          "properties": {
+            "scheme": {"const": "scworkbench.operation_pack.matrix_model_sibling_closure_observation.v1"},
+            "scope": {"const": "observation excluding observation_identity"},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
         }
       }
     },
