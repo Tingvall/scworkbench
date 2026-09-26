@@ -1,5 +1,6 @@
-# Generic legacy PyBench bridge support retained for core-owned PeakVI, scVI,
-# protocol-hello, and Python-pack transitions. No method registration lives here.
+# Generic legacy PyBench bridge support retained for core-owned scVI,
+# protocol-hello, historical PeakVI payloads, and Python-pack transitions.
+# No PeakVI method registration lives here.
 .wb_pybench_cleanup_staging_artifacts <- function(bundle, artifact_ids,
     keep_model_files = TRUE) {
   artifact_ids <- unique(as.character(artifact_ids %||% character(0)))
