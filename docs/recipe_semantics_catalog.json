@@ -82,7 +82,7 @@
       "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
       "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
       "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
-      "uses": ["artifact_type:path_2d_family", "op:scwbtrajectory::slingshot_project", "op:monocle3_project", "op:palantir_project", "op:scwbtrajectory::space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+      "uses": ["artifact_type:path_2d_family", "op:scwbtrajectory::slingshot_project", "op:scwbtrajectory::monocle3_project", "op:palantir_project", "op:scwbtrajectory::space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
       "produces": "artifact_type:path_2d_family",
       "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
       "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "Composite display paths are derived geometry, not merged fitted models.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]

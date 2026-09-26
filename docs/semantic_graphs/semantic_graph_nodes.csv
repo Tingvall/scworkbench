@@ -168,8 +168,6 @@
 "op:feature_set_namespace_transfer","op","feature_set_namespace_transfer","Feature-Set Namespace Transfer","Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics."
 "op:metadata_cell_vector","op","metadata_cell_vector","Metadata Cell Vector","Materialize an imported cell metadata column as a typed, provenance-backed cell vector."
 "op:model_bound_latent_union","op","model_bound_latent_union","Model-Bound Latent-Space Union","Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity."
-"op:monocle3_fit","op","monocle3_fit","Monocle3 fit (hybrid space)","Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot."
-"op:monocle3_project","op","monocle3_project","Monocle3 project curves","Project a fitted monocle3 trajectory graph into a 2D display space."
 "op:palantir_fit","op","palantir_fit","Palantir fit (pybench)","Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime."
 "op:palantir_project","op","palantir_project","Palantir project trajectories","Project Palantir branch trajectories into a 2D display space using Palantir-style mellon interpolation from the fitted Palantir model."
 "op:peakvi_fit","op","peakvi_fit","PeakVI fit (pybench)","Train a PeakVI model on a matrix via the pybench Python runtime and emit a latent space plus model reference."

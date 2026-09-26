@@ -44,7 +44,7 @@
     )
   )
   run <- wb_new_run(
-    op_name = "monocle3_project",
+    op_name = "scwbtrajectory::monocle3_project",
     inputs = list(cell_set = "all", user_inputs = list(segment_id = segment_id)),
     params = list(
       trajectory_fit_id = fit_id,

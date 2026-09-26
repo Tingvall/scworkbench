@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 284
+Record count: 282
 
-Graph edges: 469
+Graph edges: 450
 
 ## artifact_type
 
@@ -1027,18 +1027,6 @@ Description: Materialize an imported cell metadata column as a typed, provenance
 Title: Adopt an existing Slingshot fit
 
 Description: Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
-
-### `op:monocle3_fit`
-
-Title: Monocle3 fit (hybrid space)
-
-Description: Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
-
-### `op:monocle3_project`
-
-Title: Monocle3 project curves
-
-Description: Project a fitted monocle3 trajectory graph into a 2D display space.
 
 ### `op:peakvi_fit`
 

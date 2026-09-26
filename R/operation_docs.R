@@ -81,42 +81,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.; `outputs$union_summary` (`obs_table`): Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_monocle3_fit
-#' @aliases wb_op_monocle3_fit
-#' @description Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param fit_space_id Registered coordinate space used to fit the model.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param dims Optional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).
-#' @param root_cells Root cell IDs (exactly one of root_cells or root_pr_nodes).
-#' @param root_pr_nodes Principal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes).
-#' @param k kNN size for monocle3 clustering.
-#' @param cluster_method Monocle3 clustering backend.
-#' @param num_iter Monocle3 clustering iterations.
-#' @param partition_qval Partition significance threshold.
-#' @param weight Whether weighted nearest-neighbor relationships are used by the engine.
-#' @param resolution Optional clustering resolution (NULL lets monocle3 choose).
-#' @param random_seed Random seed for clustering.
-#' @param use_partition Learn graph per partition. FALSE is recommended for current tree semantics.
-#' @param close_loop Allow loop closure in graph learning. FALSE is required for tree-derived lineages.
-#' @param verbose Whether the underlying engine emits progress output.
-#' @param nn_control Optional nearest-neighbor control list passed to the underlying engine.
-#' @param learn_graph_control Optional principal-graph learning control list passed to the underlying engine.
-#' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$pseudotime` (`cell_vector`): Rooted global pseudotime per cell from monocle3.; `outputs$branch_membership` (`relation_family`): Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).; `outputs$model` (`model_ref`): Session-chainable monocle3 CDS model (engine='monocle3').. Promotion eligibility is declared by the operation catalog.
-NULL
-
-#' @name wb_op_monocle3_project
-#' @aliases wb_op_monocle3_project
-#' @description Project a fitted monocle3 trajectory graph into a 2D display space.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param monocle3_model Monocle3 `model_ref` primitive returned by `wb_op_monocle3_fit()`.
-#' @param plot_space_id Registered two-dimensional display space used for projection.
-#' @param approx_points Target max curve points per lineage for display (0/NULL = no compaction).
-#' @param ... Additional engine-specific arguments accepted by this wrapper.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$curves` (`path_2d_family`): Projected monocle3 root-qualified lineage curves in the chosen 2D display space.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_palantir_fit
 #' @aliases wb_op_palantir_fit
 #' @description Run Palantir pseudotime/branch probabilities on a scworkbench latent space via the pybench Python runtime.

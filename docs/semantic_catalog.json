@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 284,
+  "record_count": 282,
   "record_type_counts": {
     "artifact_type": 78,
     "getter": 85,
-    "op": 14,
+    "op": 12,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -1308,380 +1308,6 @@
           "curves": "exact_canonical_value",
           "model": "loadable_reference",
           "adoption_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:monocle3_fit",
-      "record_type": "op",
-      "name": "monocle3_fit",
-      "title": "Monocle3 fit (hybrid space)",
-      "description": "Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.",
-      "search_text": "Monocle3 fit (hybrid space)\nFit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.\ntrajectory\nfit_space\nspace\nTRUE\ncell_set\nselect\nFALSE\npseudotime\ncell_vector\nterminal_artifact\nRooted global pseudotime per cell from monocle3.\nbranch_membership\nrelation_family\nDerived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).\nmodel\nmodel_ref\nSession-chainable monocle3 CDS model (engine='monocle3').\ndims\nstring_vec\nOptional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).\nroot_cells\ncell_ids\nRoot cell IDs (exactly one of root_cells or root_pr_nodes).\nroot_pr_nodes\nPrincipal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes).\nk\nint\n20\n2\n500\nkNN size for monocle3 clustering.\ncluster_method\nchoice\nleiden\nlouvain\nMonocle3 clustering backend.\nnum_iter\n1\n200\nMonocle3 clustering iterations.\npartition_qval\ndbl\n0.05\n0\nPartition significance threshold.\nweight\nbool\nUse weighted nearest-neighbor graph for monocle3 clustering.\nresolution\n100\nOptional clustering resolution (NULL lets monocle3 choose).\nrandom_seed\n42\n999999\nRandom seed for clustering.\nuse_partition\nLearn graph per partition. FALSE is recommended for current tree semantics.\nclose_loop\nAllow loop closure in graph learning. FALSE is required for tree-derived lineages.\nverbose\nVerbose monocle3 output.",
-      "tags": ["op", "trajectory"],
-      "payload": {
-        "op_name": "monocle3_fit",
-        "title": "Monocle3 fit (hybrid space)",
-        "description": "Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.",
-        "intent": "trajectory",
-        "consumes": [
-          {
-            "name": "fit_space",
-            "kind": "space",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "pseudotime",
-            "kind": "cell_vector",
-            "output_name": "pseudotime",
-            "primitive_kind": "cell_vector",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "pseudotime",
-            "description": "Rooted global pseudotime per cell from monocle3."
-          },
-          {
-            "name": "branch_membership",
-            "kind": "relation_family",
-            "output_name": "branch_membership",
-            "primitive_kind": "relation_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "branch_membership",
-            "description": "Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation)."
-          },
-          {
-            "name": "model",
-            "kind": "model_ref",
-            "output_name": "model",
-            "primitive_kind": "model_ref",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "model",
-            "description": "Session-chainable monocle3 CDS model (engine='monocle3')."
-          }
-        ],
-        "inputs": {
-          "fit_space": {
-            "required": true,
-            "must_be_2d": false,
-            "dims_min": 2,
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "dims",
-            "type": "string_vec",
-            "default": null,
-            "help": "Optional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "root_cells",
-            "type": "cell_ids",
-            "default": null,
-            "help": "Root cell IDs (exactly one of root_cells or root_pr_nodes).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "root_pr_nodes",
-            "type": "string_vec",
-            "default": null,
-            "help": "Principal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "k",
-            "type": "int",
-            "default": 20,
-            "min": 2,
-            "max": 500,
-            "help": "kNN size for monocle3 clustering.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "cluster_method",
-            "type": "choice",
-            "default": "leiden",
-            "choices": ["leiden", "louvain"],
-            "help": "Monocle3 clustering backend.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "num_iter",
-            "type": "int",
-            "default": 2,
-            "min": 1,
-            "max": 200,
-            "help": "Monocle3 clustering iterations.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "partition_qval",
-            "type": "dbl",
-            "default": 0.05,
-            "min": 0,
-            "max": 1,
-            "help": "Partition significance threshold.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "weight",
-            "type": "bool",
-            "default": false,
-            "help": "Use weighted nearest-neighbor graph for monocle3 clustering.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "resolution",
-            "type": "dbl",
-            "default": null,
-            "min": 0,
-            "max": 100,
-            "help": "Optional clustering resolution (NULL lets monocle3 choose).",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "random_seed",
-            "type": "int",
-            "default": 42,
-            "min": 1,
-            "max": 999999,
-            "help": "Random seed for clustering.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "use_partition",
-            "type": "bool",
-            "default": false,
-            "help": "Learn graph per partition. FALSE is recommended for current tree semantics.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "close_loop",
-            "type": "bool",
-            "default": false,
-            "help": "Allow loop closure in graph learning. FALSE is required for tree-derived lineages.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "verbose",
-            "type": "bool",
-            "default": false,
-            "help": "Verbose monocle3 output.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          }
-        ],
-        "promotable": ["pseudotime", "branch_membership", "model"],
-        "replay_equivalence": {
-          "pseudotime": "exact_canonical_value",
-          "branch_membership": "exact_canonical_value",
-          "model": "loadable_reference"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:monocle3_project",
-      "record_type": "op",
-      "name": "monocle3_project",
-      "title": "Monocle3 project curves",
-      "description": "Project a fitted monocle3 trajectory graph into a 2D display space.",
-      "search_text": "Monocle3 project curves\nProject a fitted monocle3 trajectory graph into a 2D display space.\ntrajectory\nmodel\nmodel_ref\nTRUE\nplot_space\nspace_2d\ncell_set\nselect\nFALSE\ncurves\npath_2d_family\nterminal_artifact\nProjected monocle3 root-qualified lineage curves in the chosen 2D display space.\napprox_points\nint\n200\n0\n5000\nTarget max curve points per lineage for display (0/NULL = no compaction).",
-      "tags": ["op", "trajectory"],
-      "payload": {
-        "op_name": "monocle3_project",
-        "title": "Monocle3 project curves",
-        "description": "Project a fitted monocle3 trajectory graph into a 2D display space.",
-        "intent": "trajectory",
-        "consumes": [
-          {
-            "name": "model",
-            "kind": "model_ref",
-            "required": true
-          },
-          {
-            "name": "plot_space",
-            "kind": "space_2d",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "curves",
-            "kind": "path_2d_family",
-            "output_name": "curves",
-            "primitive_kind": "path_2d_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "curves",
-            "description": "Projected monocle3 root-qualified lineage curves in the chosen 2D display space."
-          }
-        ],
-        "inputs": {
-          "model": {
-            "required": true,
-            "kind": "model_ref",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "plot_space": {
-            "required": true,
-            "must_be_2d": true,
-            "dims_min": 2,
-            "dims_max": 2,
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "approx_points",
-            "type": "int",
-            "default": 200,
-            "min": 0,
-            "max": 5000,
-            "help": "Target max curve points per lineage for display (0/NULL = no compaction).",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          }
-        ],
-        "promotable": "curves",
-        "replay_equivalence": {
-          "curves": "exact_canonical_value"
         },
         "chunking": null
       }
@@ -8488,7 +8114,7 @@
       "name": "plot_trajectory_on_umap",
       "title": "Plot selected trajectory curves on UMAP",
       "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
-      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nFor segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:scwbtrajectory::slingshot_project\nop:monocle3_project\nop:palantir_project\nop:scwbtrajectory::space_path_project_2d\nop:trajectory_segment_path_join\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nComposite display paths are derived geometry, not merged fitted models.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
+      "search_text": "Plot selected trajectory curves on UMAP\nHow does a selected trajectory or lineage sit in the 2D embedding?\nCombine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.\nvisualization\nLocate trajectory curve artifact or project model/path into 2D.\nFor segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.\nChoose only the selected lineage/path used for dynamics if multiple are present.\nPlot full candidate cells in muted color and selected curve in foreground.\nOverlay pseudotime or endpoint labels as needed.\nUse diagnostics to avoid showing unused branches in dynamics figures.\nartifact_type:path_2d_family\nop:scwbtrajectory::slingshot_project\nop:scwbtrajectory::monocle3_project\nop:palantir_project\nop:scwbtrajectory::space_path_project_2d\nop:trajectory_segment_path_join\nplot:embedding_overlay\nprimitive:path_2d_family\nparameter:lineage\nvalidate trajectory geometry\nprepare collaborator-facing trajectory diagnostics\n2D curves are display projections and may not equal high-dimensional geometry.\nComposite display paths are derived geometry, not merged fitted models.\nIf dynamics use one lineage, do not display unrelated lineages as if they were used.",
       "tags": ["recipe", "visualization", "validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
       "payload": {
         "recipe_id": "plot_trajectory_on_umap",
@@ -8497,7 +8123,7 @@
         "question": "How does a selected trajectory or lineage sit in the 2D embedding?",
         "description": "Combine a 2D space with path_2d_family curves and pseudotime/cell overlays for trajectory diagnostics.",
         "steps": ["Locate trajectory curve artifact or project model/path into 2D.", "For segmented composites, use trajectory_segment_path_join to derive display geometry from parent segment paths.", "Choose only the selected lineage/path used for dynamics if multiple are present.", "Plot full candidate cells in muted color and selected curve in foreground.", "Overlay pseudotime or endpoint labels as needed.", "Use diagnostics to avoid showing unused branches in dynamics figures."],
-        "uses": ["artifact_type:path_2d_family", "op:scwbtrajectory::slingshot_project", "op:monocle3_project", "op:palantir_project", "op:scwbtrajectory::space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
+        "uses": ["artifact_type:path_2d_family", "op:scwbtrajectory::slingshot_project", "op:scwbtrajectory::monocle3_project", "op:palantir_project", "op:scwbtrajectory::space_path_project_2d", "op:trajectory_segment_path_join", "plot:embedding_overlay", "primitive:path_2d_family", "parameter:lineage"],
         "produces": "artifact_type:path_2d_family",
         "use_when": ["validate trajectory geometry", "prepare collaborator-facing trajectory diagnostics"],
         "cautions": ["2D curves are display projections and may not equal high-dimensional geometry.", "Composite display paths are derived geometry, not merged fitted models.", "If dynamics use one lineage, do not display unrelated lineages as if they were used."]
@@ -8591,8 +8217,8 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 284,
-    "edge_count": 469,
+    "node_count": 282,
+    "edge_count": 450,
     "nodes": [
       {
         "record_id": "op:chromvar",
@@ -8629,18 +8255,6 @@
         "record_type": "op",
         "name": "slingshot_adopt",
         "title": "Adopt an existing Slingshot fit"
-      },
-      {
-        "record_id": "op:monocle3_fit",
-        "record_type": "op",
-        "name": "monocle3_fit",
-        "title": "Monocle3 fit (hybrid space)"
-      },
-      {
-        "record_id": "op:monocle3_project",
-        "record_type": "op",
-        "name": "monocle3_project",
-        "title": "Monocle3 project curves"
       },
       {
         "record_id": "op:peakvi_fit",
@@ -10655,108 +10269,6 @@
         "label": "promotable:model"
       },
       {
-        "from": "primitive:space",
-        "to": "op:monocle3_fit",
-        "edge_type": "consumed_by",
-        "label": "input:fit_space"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "parameter:space",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:fit_space"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "parameter:seed",
-        "edge_type": "has_parameter_semantics",
-        "label": "param:random_seed"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "primitive:cell_vector",
-        "edge_type": "produces",
-        "label": "output:pseudotime"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "primitive:relation_family",
-        "edge_type": "produces",
-        "label": "output:branch_membership"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "primitive:model_ref",
-        "edge_type": "produces",
-        "label": "output:model"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "artifact_type:cell_vector",
-        "edge_type": "promotes_as",
-        "label": "promotable:pseudotime"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "artifact_type:relation_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:branch_membership"
-      },
-      {
-        "from": "op:monocle3_fit",
-        "to": "artifact_type:model_ref",
-        "edge_type": "promotes_as",
-        "label": "promotable:model"
-      },
-      {
-        "from": "primitive:model_ref",
-        "to": "op:monocle3_project",
-        "edge_type": "consumed_by",
-        "label": "input:model"
-      },
-      {
-        "from": "op:monocle3_project",
-        "to": "parameter:model",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:model"
-      },
-      {
-        "from": "primitive:space_2d",
-        "to": "op:monocle3_project",
-        "edge_type": "consumed_by",
-        "label": "input:plot_space"
-      },
-      {
-        "from": "op:monocle3_project",
-        "to": "parameter:space",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:plot_space"
-      },
-      {
-        "from": "op:monocle3_project",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:monocle3_project",
-        "to": "primitive:path_2d_family",
-        "edge_type": "produces",
-        "label": "output:curves"
-      },
-      {
-        "from": "op:monocle3_project",
-        "to": "artifact_type:path_2d_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:curves"
-      },
-      {
         "from": "primitive:matrix",
         "to": "op:peakvi_fit",
         "edge_type": "consumed_by",
@@ -12606,18 +12118,6 @@
       },
       {
         "from": "artifact_type:path_2d_family",
-        "to": "recipe:plot_trajectory_on_umap",
-        "edge_type": "used_by_recipe",
-        "label": "recipe:plot_trajectory_on_umap"
-      },
-      {
-        "from": "recipe:plot_trajectory_on_umap",
-        "to": "op:monocle3_project",
-        "edge_type": "uses",
-        "label": "op:monocle3_project"
-      },
-      {
-        "from": "op:monocle3_project",
         "to": "recipe:plot_trajectory_on_umap",
         "edge_type": "used_by_recipe",
         "label": "recipe:plot_trajectory_on_umap"

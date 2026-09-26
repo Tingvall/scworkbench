@@ -12,7 +12,7 @@
   source_identity <- list(schema="scworkbench.source_identity.v2",inputs=list(list(scope="public_file",source_id="fixture_counts",path="fixture_counts.mtx.gz",uri="https://example.invalid/fixture",accession="fixture",role="counts",format="mtx",sha256=paste(rep("a",64),collapse=""),bundled=FALSE)))
   scworkbench:::.wb_ingest_report_artifact(b,"core","atomic",list(n_cells=length(cells)),list(),list(),created_by="capsule-test",source="capsule-test",matrix_ids="counts",source_identity=source_identity)
   model <- wb_prim_model_ref("pca","pca",engine="test"); model$model_type <- "test"; model$model_obj <- list(version=1L)
-  run <- wb_new_run("monocle3_fit",inputs=list(cell_set="all"),outputs=list(model=model,fit_summary=wb_prim_obs_table(data.frame(metric="x",value=1),table_type="fit_summary",entity_kind="metric")))
+  run <- wb_new_run("scvi_train",inputs=list(cell_set="all"),outputs=list(model=model,fit_summary=wb_prim_obs_table(data.frame(metric="x",value=1),table_type="fit_summary",entity_kind="metric")))
   promoted <- wb_promote_analysis(b,setNames(list(run),run$run_id),run$run_id,name_prefix="capsule fixture",fail_fast=TRUE)
   artifact_id <- promoted$promoted$artifact_id[[1L]]
   vector_run <- wb_session_run_op(wb_session_new(),b,"metadata_cell_vector",inputs=list(source_column="capsule_group",vector_name="capsule_group",value_type="categorical",missing_policy="error",cell_set="all",min_cells=1L))

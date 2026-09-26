@@ -17,7 +17,7 @@ test_trajectory_family_helpers_contract <- function(bundle_dir) {
       parents = character(), user_inputs = list()),
     params = list(trajectory_fit_id = "family_helper_fixture"),
     outputs = list(pseudotime = pt))
-  project_run <- wb_new_run("monocle3_project",
+  project_run <- wb_new_run("palantir_project",
     inputs = list(cell_set = "all", effective_n = length(cell_ids),
       parents = fit_run$run_id,
       user_inputs = list(plot_space = "umap.peakvi_space")),

@@ -17,7 +17,7 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
     model <- wb_prim_model_ref(model_space_id = "synthetic", in_space_id = "synthetic", engine = "monocle3")
     model$model_obj <- list(tag = tag, payload = seq_len(3L))
     wb_new_run(
-      op_name = "monocle3_fit",
+      op_name = "scvi_train",
       inputs = list(cell_set = "all", parents = character(0), user_inputs = list()),
       params = list(fit_space_id = "synthetic"), outputs = list(model = model)
     )

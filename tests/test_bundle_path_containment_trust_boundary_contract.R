@@ -11,7 +11,7 @@ test_bundle_path_containment_trust_boundary_contract <- function() {
   prim$model_type <- "monocle3"
   prim$model_obj <- list(contract="contained-model", cells=cells)
   run <- wb_new_run(
-    op_name="monocle3_fit",
+    op_name="scvi_train",
     inputs=list(cell_set="core", user_inputs=list(fit_space=wb_prim_space("fit_space")),
                 execution_inputs=list(resolved=list(fit_space=wb_prim_space("fit_space")))),
     params=list(), outputs=list(model=prim)

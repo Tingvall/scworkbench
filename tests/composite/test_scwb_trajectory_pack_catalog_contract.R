@@ -25,7 +25,7 @@ test_trajectory_catalog_activation_identity_contract <- function() {
     "trajectory_segment_from_artifacts", "trajectory_space_path_segment",
     "trajectory_segment_join", "trajectory_segment_path_join",
     "slingshot", "slingshot_fit", "slingshot_lineage_weights",
-    "slingshot_project")
+    "slingshot_project", "monocle3_fit", "monocle3_project")
   qualified <- paste0("scwbtrajectory::", unqualified)
   stopifnot(!any(unqualified %in% before_ops),
     !any(qualified %in% before_ops))

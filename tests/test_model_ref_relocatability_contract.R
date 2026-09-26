@@ -24,7 +24,7 @@ test_model_ref_relocatability_contract <- function() {
   )
 
   run <- wb_new_run(
-    op_name = "monocle3_fit",
+    op_name = "scvi_train",
     inputs = list(
       cell_set = "core",
       user_inputs = list(fit_space = wb_prim_space("umap_test")),

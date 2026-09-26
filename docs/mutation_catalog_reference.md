@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 110
+Record count: 108
 
 Meaningful public transformations: 60
 
@@ -359,34 +359,6 @@ Durable mutation: true
 Boundary: `guarded_implementation`
 
 Supported route: `registered_session_execution_and_promotion`
-
-## `wb_op_monocle3_fit`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_monocle3_project`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
 
 ## `wb_op_palantir_fit`
 

@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 284,
-  "edge_count": 469,
+  "node_count": 282,
+  "edge_count": 450,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -39,18 +39,6 @@
       "record_type": "op",
       "name": "slingshot_adopt",
       "title": "Adopt an existing Slingshot fit"
-    },
-    {
-      "record_id": "op:monocle3_fit",
-      "record_type": "op",
-      "name": "monocle3_fit",
-      "title": "Monocle3 fit (hybrid space)"
-    },
-    {
-      "record_id": "op:monocle3_project",
-      "record_type": "op",
-      "name": "monocle3_project",
-      "title": "Monocle3 project curves"
     },
     {
       "record_id": "op:peakvi_fit",
@@ -2065,108 +2053,6 @@
       "label": "promotable:model"
     },
     {
-      "from": "primitive:space",
-      "to": "op:monocle3_fit",
-      "edge_type": "consumed_by",
-      "label": "input:fit_space"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:fit_space"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "parameter:seed",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:random_seed"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "primitive:cell_vector",
-      "edge_type": "produces",
-      "label": "output:pseudotime"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "primitive:relation_family",
-      "edge_type": "produces",
-      "label": "output:branch_membership"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "primitive:model_ref",
-      "edge_type": "produces",
-      "label": "output:model"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "artifact_type:cell_vector",
-      "edge_type": "promotes_as",
-      "label": "promotable:pseudotime"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "artifact_type:relation_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:branch_membership"
-    },
-    {
-      "from": "op:monocle3_fit",
-      "to": "artifact_type:model_ref",
-      "edge_type": "promotes_as",
-      "label": "promotable:model"
-    },
-    {
-      "from": "primitive:model_ref",
-      "to": "op:monocle3_project",
-      "edge_type": "consumed_by",
-      "label": "input:model"
-    },
-    {
-      "from": "op:monocle3_project",
-      "to": "parameter:model",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:model"
-    },
-    {
-      "from": "primitive:space_2d",
-      "to": "op:monocle3_project",
-      "edge_type": "consumed_by",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "op:monocle3_project",
-      "to": "parameter:space",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:plot_space"
-    },
-    {
-      "from": "op:monocle3_project",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:monocle3_project",
-      "to": "primitive:path_2d_family",
-      "edge_type": "produces",
-      "label": "output:curves"
-    },
-    {
-      "from": "op:monocle3_project",
-      "to": "artifact_type:path_2d_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:curves"
-    },
-    {
       "from": "primitive:matrix",
       "to": "op:peakvi_fit",
       "edge_type": "consumed_by",
@@ -4016,18 +3902,6 @@
     },
     {
       "from": "artifact_type:path_2d_family",
-      "to": "recipe:plot_trajectory_on_umap",
-      "edge_type": "used_by_recipe",
-      "label": "recipe:plot_trajectory_on_umap"
-    },
-    {
-      "from": "recipe:plot_trajectory_on_umap",
-      "to": "op:monocle3_project",
-      "edge_type": "uses",
-      "label": "op:monocle3_project"
-    },
-    {
-      "from": "op:monocle3_project",
       "to": "recipe:plot_trajectory_on_umap",
       "edge_type": "used_by_recipe",
       "label": "recipe:plot_trajectory_on_umap"

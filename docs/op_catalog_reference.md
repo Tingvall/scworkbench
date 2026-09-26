@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 14
+Operation count: 12
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -221,69 +221,6 @@ Replay equivalence:
 
 Key parameters:
 - `source` (entity_ref, default=NULL): Registered external_source reference for the object from which the selected Slingshot fit was extracted.
-
-## `monocle3_fit`
-
-Title: Monocle3 fit (hybrid space)
-
-Intent: trajectory
-
-Description: Fit monocle3 graph/pseudotime using a scworkbench latent space injected into monocle3's UMAP slot.
-
-Consumes:
-- `fit_space`: space
-- `cell_set`: select
-
-Produces:
-- `pseudotime`: cell_vector [terminal artifact] - Rooted global pseudotime per cell from monocle3.
-- `branch_membership`: relation_family [terminal artifact] - Derived cell-to-lineage membership relations (tree root-to-leaf paths; binary weights in the current implementation).
-- `model`: model_ref [terminal artifact] - Session-chainable monocle3 CDS model (engine='monocle3').
-
-Promotable outputs: pseudotime, branch_membership, model
-
-Replay equivalence:
-- `pseudotime`: `exact_canonical_value`
-- `branch_membership`: `exact_canonical_value`
-- `model`: `loadable_reference`
-
-Key parameters:
-- `dims` (string_vec, default=NULL): Optional fit-space dimensions to use (e.g. 1:20 as explicit integer vector).
-- `root_cells` (cell_ids, default=NULL): Root cell IDs (exactly one of root_cells or root_pr_nodes).
-- `root_pr_nodes` (string_vec, default=NULL): Principal graph root node IDs (advanced; exactly one of root_cells or root_pr_nodes).
-- `k` (int, default=20): kNN size for monocle3 clustering.
-- `cluster_method` (choice, default=leiden): Monocle3 clustering backend.
-- `num_iter` (int, default=2): Monocle3 clustering iterations.
-- `partition_qval` (dbl, default=0.05): Partition significance threshold.
-- `weight` (bool, default=FALSE): Use weighted nearest-neighbor graph for monocle3 clustering.
-- `resolution` (dbl, default=NULL): Optional clustering resolution (NULL lets monocle3 choose).
-- `random_seed` (int, default=42): Random seed for clustering.
-- `use_partition` (bool, default=FALSE): Learn graph per partition. FALSE is recommended for current tree semantics.
-- `close_loop` (bool, default=FALSE): Allow loop closure in graph learning. FALSE is required for tree-derived lineages.
-- `verbose` (bool, default=FALSE): Verbose monocle3 output.
-
-## `monocle3_project`
-
-Title: Monocle3 project curves
-
-Intent: trajectory
-
-Description: Project a fitted monocle3 trajectory graph into a 2D display space.
-
-Consumes:
-- `model`: model_ref
-- `plot_space`: space_2d
-- `cell_set`: select
-
-Produces:
-- `curves`: path_2d_family [terminal artifact] - Projected monocle3 root-qualified lineage curves in the chosen 2D display space.
-
-Promotable outputs: curves
-
-Replay equivalence:
-- `curves`: `exact_canonical_value`
-
-Key parameters:
-- `approx_points` (int, default=200): Target max curve points per lineage for display (0/NULL = no compaction).
 
 ## `peakvi_fit`
 

@@ -21,7 +21,7 @@
     plot_space_id = "Registered two-dimensional display space used for projection.",
     source_space_id = "Registered source coordinate space used for fitting.",
     model_ref = "Typed `model_ref` primitive required by this engine-specific helper.",
-    monocle3_model = "Monocle3 `model_ref` primitive returned by `wb_op_monocle3_fit()`.",
+    monocle3_model = "Authenticated Monocle3 `model_ref` primitive.",
     slingshot_model = "Authenticated Slingshot `model_ref` primitive.",
     peakvi_model = "PeakVI `model_ref` primitive returned by the Python-backed fitting workflow.",
     seed = "Integer random seed used to make stochastic computation reproducible.",
