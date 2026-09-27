@@ -53,6 +53,16 @@ transport hashes, acknowledgements, and spool paths are ephemeral; durable
 request and receipt evidence retains the source/grant identities and the
 transport-neutral semantic identity of every canonical getter result.
 
+For a bundle-backed matrix, the grant's content identity is computed from the
+exact stage-visible fragment tree that `wb_slice()` reads. Core validates
+committed-leaf links and hashes their bytes, while stage-only predecessor
+fragments are hashed in place. The same identity and registry state are
+rechecked before and after every R typed-slice read, including supervised
+Python broker reads, and again before publication. A changed local payload
+cannot be authorized by updating a
+local checksum sidecar; the observed fragment bytes must still match the
+identity sealed in the request and receipt.
+
 `wb_slice_chunks()` exposes the same lazy bounded delivery to ordinary R
 clients. Historical replay retains the effective selections, requested chunk
 size, limits, ordered calls, coverage, and identities, so a later global

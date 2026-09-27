@@ -118,24 +118,13 @@
                                                   features, cells) {
   source <- grant$source_reference
   if (identical(source$source_kind, "bundle_matrix")) {
-    current <- .wb_operation_pack_v2_identity_plain(
-      "scworkbench.scientific_state.v1",
-      .wb_manifest_registry_snapshot(bundle$con))
-    if (!identical(current, source$transition_source_state_identity))
-      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-        "Broker bundle source changed after request authentication.",
-        "execution")
-    observed <- .wb_prov_payload_identity(bundle,
-      wb_prim_matrix(source$matrix_id))
-    observed_identity <- list(
-      scheme = as.character(observed$content_identity_scheme)[1],
-      sha256 = as.character(observed$content_sha256)[1])
-    if (!identical(observed_identity, source$input_content_identity))
-      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-        "Broker matrix payload identity changed after authentication.",
-        "execution")
-    return(wb_slice(bundle, source$matrix_id, features = features,
-      cells = cells))
+    .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant,
+      "execution")
+    values <- as.matrix(wb_slice(bundle, source$matrix_id,
+      features = features, cells = cells))
+    .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant,
+      "execution")
+    return(values)
   }
   matrix <- .wb_operation_pack_v3_private_source_validate(stage, grant)
   all_features <- .wb_operation_pack_v3_broker_axis_ids(stage,
@@ -269,8 +258,18 @@
         grant$features_axis),
       cells = .wb_operation_pack_v3_broker_axis_ids(stage,
         grant$cells_axis)))
-    bundle <- .wb_operation_pack_v3_broker_open_bundle(source_bundle_dir)
+    # The broker reads the same stage-visible matrix as the R adapter. The
+    # original bundle is only a trusted target for committed-leaf links; it
+    # must never substitute its payload for a stage-only or changed source.
+    bundle <- .wb_operation_pack_v3_broker_open_bundle(bundle_dir)
     on.exit(wb_close_bundle(bundle), add = TRUE)
+    if (!identical(normalizePath(bundle_dir, winslash = "/", mustWork = TRUE),
+        normalizePath(source_bundle_dir, winslash = "/", mustWork = TRUE))) {
+      source_bundle <- .wb_operation_pack_v3_broker_open_bundle(
+        source_bundle_dir)
+      on.exit(wb_close_bundle(source_bundle), add = TRUE)
+      bundle$staging_source_bundle <- source_bundle
+    }
     ordinals <- stats::setNames(rep(0L, length(grants)), names(grants))
     records <- list()
     deadline <- Sys.time() + timeout

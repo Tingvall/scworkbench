@@ -726,6 +726,68 @@
         params = list(as.character(matrix_id)[1]))) == 1L) source else bundle
 }
 
+.wb_operation_pack_v3_matrix_stage_tree_sha256 <- function(bundle, relative) {
+  stage_root <- normalizePath(bundle$dir, winslash = "/", mustWork = TRUE)
+  status <- .wb_path_status(stage_root, relative, expected_type = "directory",
+    must_exist = TRUE, purpose = "typed-slice matrix fragment")
+  .wb_assert(isTRUE(status$ok) &&
+    .wb_path_inside(status$absolute, stage_root),
+    "Typed-slice matrix fragment is outside its authenticated stage.")
+  root <- status$absolute
+  entries <- sort(as.character(fs::dir_ls(root, recurse = TRUE,
+    type = "any", all = TRUE, follow = FALSE)), method = "radix")
+  source <- bundle$staging_source_bundle %||% NULL
+  rows <- lapply(entries, function(entry) {
+    suffix <- substring(entry, nchar(root) + 2L)
+    link <- Sys.readlink(entry)
+    if (nzchar(link)) {
+      .wb_assert(!dir.exists(entry) &&
+        inherits(source, "scworkbench_bundle"),
+        "Typed-slice matrix fragment contains an unauthorized link.")
+      expected_relative <- file.path(relative, suffix)
+      expected <- .wb_path_status(source$dir, expected_relative,
+        expected_type = "file", must_exist = TRUE,
+        purpose = "committed typed-slice matrix leaf")
+      .wb_assert(isTRUE(expected$ok) &&
+        identical(normalizePath(entry, winslash = "/", mustWork = TRUE),
+          expected$absolute),
+        "Typed-slice matrix fragment link differs from its committed leaf.")
+    } else {
+      .wb_assert(.wb_path_inside(normalizePath(entry, winslash = "/",
+        mustWork = TRUE), root),
+        "Typed-slice matrix fragment contains an escaped entry.")
+    }
+    if (dir.exists(entry)) return(NULL)
+    list(path = suffix, sha256 = .wb_prov_sha256_file(entry))
+  })
+  .wb_prov_sha256_object(Filter(Negate(is.null), rows))
+}
+
+.wb_operation_pack_v3_matrix_consumed_identity <- function(bundle, matrix_id,
+    phase = "audit") {
+  tryCatch({
+    frags <- wb_matrix_fragments(bundle, matrix_id)
+    .wb_assert(nrow(frags) > 0L && "path" %in% names(frags),
+      "Typed-slice matrix has no registered backing fragments.")
+    rows <- lapply(seq_len(nrow(frags)), function(i) {
+      columns <- intersect(c("matrix_id", "storage", "n_features",
+        "n_cells", "feature_ids_json", "cell_ids_json", "source",
+        "description"), names(frags))
+      list(fragment = as.list(frags[i, columns, drop = FALSE]),
+        payload_sha256 = .wb_operation_pack_v3_matrix_stage_tree_sha256(
+          bundle, as.character(frags$path[[i]])))
+    })
+    list(content_identity_scheme = unname(
+      .wb_content_identity_schemes()[["matrix"]]),
+      content_sha256 = .wb_prov_sha256_object(list(kind = "matrix",
+        matrix_id = matrix_id, fragments = rows)),
+      verification_status = "content_verified")
+  }, error = function(error) .wb_operation_pack_v3_error(
+    "PYBENCH_INPUT_IDENTITY_MISMATCH",
+    paste0("Typed-slice matrix source cannot be authenticated: ",
+      conditionMessage(error)), phase))
+}
+
 .wb_operation_pack_v3_request <- function(bundle, registration, operation,
                                             inputs, params, transition_id,
                                             session_id, run_id, generation,
@@ -772,13 +834,11 @@
     if (name %in% typed_input_names && identical(value$kind, "matrix") &&
         is.null(value$values) && nzchar(as.character(value$matrix_id %||%
           "")[1])) {
-      # A committed source payload is verified at its durable root because a
-      # session view may contain containment-safe overlay links to it. A
-      # predecessor materialization that exists only in this checkpoint is
-      # verified directly in the authenticated session view.
-      identity_bundle <- .wb_operation_pack_v3_matrix_identity_bundle(bundle,
-        value$matrix_id)
-      observed <- .wb_prov_payload_identity(identity_bundle, value)
+      # Authenticate the exact stage-visible fragment bytes that typed slices
+      # will consume. Unchanged committed leaves remain containment-safe links;
+      # stage-only predecessor fragments remain private regular files.
+      observed <- .wb_operation_pack_v3_matrix_consumed_identity(bundle,
+        value$matrix_id, "resolution")
       if (!identical(as.character(observed$verification_status)[1],
           "content_verified")) .wb_operation_pack_v3_error(
         "PYBENCH_INPUT_IDENTITY_MISMATCH",
@@ -1688,6 +1748,26 @@
   invisible(TRUE)
 }
 
+.wb_operation_pack_v3_typed_slice_grant_assert_current <- function(bundle,
+    grant, phase = "audit") {
+  source <- grant$source_reference
+  current_state <- .wb_operation_pack_v2_identity_plain(
+    "scworkbench.scientific_state.v1",
+    .wb_manifest_registry_snapshot(bundle$con))
+  observed <- .wb_operation_pack_v3_matrix_consumed_identity(bundle,
+    source$matrix_id, phase)
+  identity <- list(scheme = as.character(
+    observed$content_identity_scheme)[1], sha256 = as.character(
+      observed$content_sha256)[1])
+  if (!identical(current_state, source$transition_source_state_identity) ||
+      !identical(identity, source$input_content_identity) ||
+      !identical(identity, grant$input_content_identity))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Typed-slice source changed after authentication for '",
+        grant$name, "'."), phase)
+  invisible(TRUE)
+}
+
 .wb_operation_pack_v3_typed_slice_sources_assert_current <- function(bundle,
                                                                        request) {
   stage <- attr(request, "operation_pack_stage_root")
@@ -1700,26 +1780,10 @@
     request$typed_slice_grants %||% list())
   spaces <- request$typed_space_grants %||% list()
   if (!length(durable) && !length(spaces)) return(invisible(TRUE))
-  # The request authenticates the complete session-view registry, including
-  # predecessor materializations in the current checkpoint generation.
-  current_state <- .wb_operation_pack_v2_identity_plain(
-    "scworkbench.scientific_state.v1",
-    .wb_manifest_registry_snapshot(bundle$con))
-  for (grant in durable) {
-    source <- grant$source_reference
-    identity_bundle <- .wb_operation_pack_v3_matrix_identity_bundle(bundle,
-      source$matrix_id)
-    observed <- .wb_prov_payload_identity(identity_bundle,
-      wb_prim_matrix(source$matrix_id))
-    identity <- list(scheme = as.character(
-      observed$content_identity_scheme)[1], sha256 = as.character(
-        observed$content_sha256)[1])
-    if (!identical(current_state, source$transition_source_state_identity) ||
-        !identical(identity, source$input_content_identity))
-      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
-        paste0("Typed-slice source changed after authentication for '",
-          grant$name, "'."), "audit")
-  }
+  # Authenticate the exact stage-visible bytes, including stage-only
+  # predecessors, against both the source reference and grant identity.
+  for (grant in durable)
+    .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle, grant)
   for (grant in spaces) {
     source <- grant$source_reference
     cells <- attr(grant, "operation_pack_v3_cells") %||% character()
@@ -3415,8 +3479,14 @@
         if (is.null(bundle)) .wb_operation_pack_v3_error(
           "PYBENCH_INPUT_IDENTITY_MISMATCH",
           "Typed-slice bundle source has no core binding.", "execution")
-        wb_slice(bundle, matrix_id = grant$source_reference$matrix_id,
-          features = features, cells = cells)
+        .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle,
+          grant, "execution")
+        value <- as.matrix(wb_slice(bundle,
+          matrix_id = grant$source_reference$matrix_id,
+          features = features, cells = cells))
+        .wb_operation_pack_v3_typed_slice_grant_assert_current(bundle,
+          grant, "execution")
+        value
       } else input$values[match(features, as.character(input$feature_id)),
         match(cells, as.character(input$cell_id)), drop = FALSE]
       values <- as.matrix(values)
@@ -3438,6 +3508,12 @@
         length(prior) + 1L, value)
       state$typed_slice_calls[[name]][[length(prior) + 1L]] <- list(
         result = result, chunk_values = chunk_values)
+      # Internal fault seam for checking source revalidation between reads.
+      # Neither the stage bundle nor a state-authority handle reaches the pack.
+      test_hook <- getOption(
+        "scworkbench.operation_pack_v3_typed_slice_test_hook", NULL)
+      if (is.function(test_hook))
+        test_hook(name = name, read_index = length(prior) + 1L)
       state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
         category = "typed_slice", name = name,
         slice_result_identity = result$slice_result_identity)
