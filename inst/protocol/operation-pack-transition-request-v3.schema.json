@@ -1831,6 +1831,55 @@
                   "$ref": "#/$defs/self_identity"
                 }
               }
+            },
+            {
+              "type": "object", "additionalProperties": false,
+              "required": ["category", "kind", "reader", "matrix_input",
+                "matrix_id", "field_parameters", "fields", "row_order",
+                "missing_value_policy", "dimensions", "cell_order_identity",
+                "input_descriptor_identity", "input_content_identity",
+                "content_identity", "source_identity", "ancestry_identity",
+                "payload_manifest_identity", "descriptor_identity"],
+              "properties": {
+                "category": {"const": "authenticated_core_registry_snapshot"},
+                "kind": {"const": "ordered_cell_metadata"},
+                "reader": {"const": "read_ordered_cell_metadata"},
+                "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                "matrix_id": {"type": "string", "minLength": 1},
+                "field_parameters": {"type": "array", "minItems": 1,
+                  "items": {"type": "object", "additionalProperties": false,
+                    "required": ["parameter", "role", "cardinality"],
+                    "properties": {
+                      "parameter": {"type": "string"},
+                      "role": {"enum": ["categorical", "continuous"]},
+                      "cardinality": {"enum": ["zero_or_one", "zero_or_more"]}
+                    }}},
+                "fields": {"type": "array", "maxItems": 16,
+                  "items": {"type": "object", "additionalProperties": false,
+                    "required": ["parameter", "name", "field_id", "value_type",
+                      "storage_type"],
+                    "properties": {
+                      "parameter": {"type": "string"},
+                      "name": {"type": "string"},
+                      "field_id": {"type": "string"},
+                      "value_type": {"enum": ["categorical", "continuous"]},
+                      "storage_type": {"enum": ["TEXT", "INTEGER", "REAL"]}
+                    }}},
+                "row_order": {"const": "matrix_effective_cell_order_v1"},
+                "missing_value_policy": {"const": "preserve_null_v1"},
+                "dimensions": {"type": "array", "prefixItems": [
+                  {"type": "integer", "minimum": 1},
+                  {"type": "integer", "minimum": 0}], "items": false,
+                  "minItems": 2, "maxItems": 2},
+                "cell_order_identity": {"$ref": "#/$defs/identity"},
+                "input_descriptor_identity": {"$ref": "#/$defs/identity"},
+                "input_content_identity": {"$ref": "#/$defs/identity"},
+                "content_identity": {"$ref": "#/$defs/self_identity"},
+                "source_identity": {"$ref": "#/$defs/self_identity"},
+                "ancestry_identity": {"$ref": "#/$defs/self_identity"},
+                "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
+                "descriptor_identity": {"$ref": "#/$defs/self_identity"}
+              }
             }
           ]
         }
@@ -3968,7 +4017,8 @@
                     "enum": [
                       "read_feature_set_registry",
                       "read_session_cell_axis",
-                      "read_matrix_feature_annotations"
+                      "read_matrix_feature_annotations",
+                      "read_ordered_cell_metadata"
                     ]
                   },
                   "descriptor_identity": {
@@ -5274,6 +5324,9 @@
         },
         "duplicate_policy": {
           "const": "reject"
+        },
+        "value_policy": {
+          "const": "nonnegative_integer_v1"
         },
         "max_rows": {
           "type": "integer",

@@ -5496,14 +5496,16 @@
               "enum": [
                 "feature_set_registry",
                 "session_cell_axis",
-                "matrix_feature_annotations"
+                "matrix_feature_annotations",
+                "ordered_cell_metadata"
               ]
             },
             "reader": {
               "enum": [
                 "read_feature_set_registry",
                 "read_session_cell_axis",
-                "read_matrix_feature_annotations"
+                "read_matrix_feature_annotations",
+                "read_ordered_cell_metadata"
               ]
             },
             "descriptor_identity": {
