@@ -15,12 +15,12 @@ test_analysis_capsule_r_source_review_closure_contract <- function() {
   ),ordinary)
   stopifnot(!length(scworkbench:::.wb_capsule_r_registered_ops(ordinary,wb_list_ops())))
   bypasses<-list(
-    "wb_session_run_op(s,b,op_name='scvi_train')",
-    "wb_session_run_op(s,b,'scvi_train')",
-    "scworkbench::wb_session_run_op(s,b,op_name='scvi_train')",
-    "scworkbench:::wb_op_scvi_train(b)"
+    "wb_session_run_op(s,b,op_name='metadata_cell_vector')",
+    "wb_session_run_op(s,b,'metadata_cell_vector')",
+    "scworkbench::wb_session_run_op(s,b,op_name='metadata_cell_vector')",
+    "scworkbench:::wb_op_metadata_cell_vector(b)"
   )
-  expected<-rep("scvi_train",4L)
+  expected<-rep("metadata_cell_vector",4L)
   for(i in seq_along(bypasses)) {
     path<-file.path(work,paste0("bypass",i,".R"));writeLines(bypasses[[i]],path)
     stopifnot(expected[[i]]%in%scworkbench:::.wb_capsule_r_registered_ops(path,wb_list_ops()))
