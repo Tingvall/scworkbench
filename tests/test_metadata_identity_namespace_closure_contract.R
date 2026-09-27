@@ -101,14 +101,10 @@ test_metadata_identity_namespace_closure_contract <- function() {
   expr <- wb_op_expr_avg_by(b, "RNA_counts", by = group_ref)
   stopifnot(identical(names(expr), c("feature_id", group_names)))
 
-  stage <- scworkbench:::.wb_scvi_stage_sparse_chunks(
-    b, "RNA_counts", rownames(counts_mat), ids,
-    batch_key = group_ref, categorical_covariates = list(
-      wb_ref_metadata_field(fields$field_id[fields$source_name == "meta:000001"][[1L]])
-    ), chunk_cells = 5L
-  )
-  on.exit(unlink(stage, recursive = TRUE, force = TRUE), add = TRUE)
-  staged <- utils::read.delim(file.path(stage, "cell_metadata.tsv"), check.names = FALSE)
+  staged <- wb_meta(b, cells = ids, cols = list(
+    wb_ref_metadata_field("core:cell_id"), group_ref,
+    wb_ref_metadata_field(fields$field_id[
+      fields$source_name == "meta:000001"][[1L]])))
   stopifnot(identical(names(staged), c(
     "cell_id", group_ref$field_id,
     fields$field_id[fields$source_name == "meta:000001"][[1L]]

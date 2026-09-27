@@ -282,7 +282,7 @@ test_operation_pack_v3_g1_verified_primary_deserialization_contract <-
         structure(list(kind = "space", space_id = "pca", values =
           wb_space(bundle, "pca")), class = "wb_primitive"),
         list(dims = 1:2), "dims"))
-    run <- wb_new_run("scvi_train", inputs = list(cell_set = "all",
+    run <- wb_new_run("slingshot_adopt", inputs = list(cell_set = "all",
       parents = character(), user_inputs = list()),
       outputs = list(model = model))
     promoted <- wb_promote_analysis(bundle, setNames(list(run),

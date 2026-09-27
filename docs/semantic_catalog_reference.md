@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 278
+Record count: 277
 
-Graph edges: 414
+Graph edges: 405
 
 ## artifact_type
 
@@ -1027,12 +1027,6 @@ Description: Materialize an imported cell metadata column as a typed, provenance
 Title: Adopt an existing Slingshot fit
 
 Description: Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
-
-### `op:scvi_train`
-
-Title: scVI train (pybench)
-
-Description: Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.
 
 ### `op:model_bound_latent_union`
 

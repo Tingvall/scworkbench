@@ -490,13 +490,15 @@ test_operation_pack_v3_shared_schema_drift_contract <- function() {
     "operation-pack-transition-request-v3.schema.json",
     "operation-pack-transition-receipt-v3.schema.json",
     "fixtures/operation-pack-v3/identities.json",
-    "fixtures/operation-pack-v3/relation-family-identities.json")
+    "fixtures/operation-pack-v3/relation-family-identities.json",
+    "fixtures/operation-pack-v3/phase6-ordered-cell-metadata-identities.json")
   expected <- c(
-    "3f06cc79680488f71d07a0691a44637731c6b8f11afe1ed63200433e054b3734",
-    "d46ebe83e00c3c1add2fc7518025242d14b1defa57e174c7304b7a536c0e61b6",
-    "f35fb54c87f4671e67da4d2841b4659b2a1304310d89d5453b21059b2bacd538",
+    "8444a66511a33108a68491484cea87ef921d5f673ef3030615c4fd7b5352a8b4",
+    "7d35dbcf8aa75440305f634530ad933c1e8e06968509fca5743c8583599b911c",
+    "67bd53400f3d672a181c5f3a9878fd54a4eb790a9861bd7dca5f155d29851dc2",
     "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793",
-    "5f94004cc229cc5f02c4b7a9401f5c91a0cb9346469d48499b46809c9a919860")
+    "5f94004cc229cc5f02c4b7a9401f5c91a0cb9346469d48499b46809c9a919860",
+    "7317a0a9baea791c3cac688e9528342a4d2d1691a2840add53dde2ffe623b37e")
   observed <- vapply(file.path("inst", "protocol", files),
     digest::digest, character(1), algo = "sha256", serialize = FALSE,
     file = TRUE)
@@ -847,7 +849,7 @@ test_operation_pack_v3_session_annotation_and_bounded_axes_contract <- function(
     "scworkbench.scientific_state.v1",
     scworkbench:::.wb_manifest_registry_snapshot(fixture$bundle$con))
   made <- scworkbench:::.wb_operation_pack_v3_registry_read_records(
-    fixture$bundle, operation, list(matrix = matrix), records, stage,
+    fixture$bundle, operation, list(matrix = matrix), records, list(), stage,
     fixture$cells, "session_test", "run_test", "ephemeral", state_id)
   stopifnot(length(made$records) == 2L,
     identical(made$values$session_cells$cell_id,

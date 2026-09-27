@@ -42,9 +42,6 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
     dimnames = list(cells, c("x", "y"))
   )
   attempts <- list(
-    scvi = function() scworkbench:::wb_op_scvi_train(
-      b, matrix_id = matrix_id, cells = cells, output_space_id = ".__blocked_scvi__."
-    ),
     space_write = function() wb_add_space(b, ".__blocked_space__.", coords),
     registry = function() wb_cell_set_replace(b, ".__blocked_set__.", cells[1:2]),
     matrix_registry = function() wb_register_matrix_fragment(

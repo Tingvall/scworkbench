@@ -17,7 +17,7 @@
   ),
   matrix_space_model_writer = c(
     "wb_add_space", "wb_register_matrix_fragment", "wb_attach_cell_vector",
-    "wb_op_scvi_train", "wb_op_model_bound_latent_union",
+    "wb_op_model_bound_latent_union",
     ".wb_pybench_preregister_outputs", ".wb_promote_model_ref",
     "wb_repair_model_ref_paths"
   ),

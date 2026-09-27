@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.mutation_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "record_count": 104,
+  "record_count": 103,
   "meaningful_public_transformation_count": 57,
   "exported_guarded_function_count": 20,
   "exported_guarded_functions": ["wb_add_space", "wb_attach_to_cells", "wb_cell_set_add", "wb_cell_set_remove", "wb_cell_set_replace", "wb_cell_set_set", "wb_define_cells", "wb_feature_set_delete", "wb_feature_set_replace", "wb_ingest_cells", "wb_matrix_set_genome", "wb_motif_library_register", "wb_motif_match_replace", "wb_motif_register", "wb_op_feature_set_import", "wb_op_model_bound_latent_union", "wb_refresh_manifest", "wb_register_matrix_fragment", "wb_set_cell_set_style", "wb_set_create"],
@@ -585,18 +585,6 @@
       "supported_route": "declared_ingestion_transaction",
       "supported_route_count": 1,
       "boundary": "public_transaction",
-      "direct_committed_write": false
-    },
-    {
-      "interface_id": "matrix_space_model_writer:wb_op_scvi_train",
-      "function_name": "wb_op_scvi_train",
-      "category": "matrix_space_model_writer",
-      "exported": false,
-      "implemented": true,
-      "durable_mutation": false,
-      "supported_route": "direct_pure_computation",
-      "supported_route_count": 0,
-      "boundary": "pure",
       "direct_committed_write": false
     },
     {

@@ -42,7 +42,7 @@ test_op_model_bound_latent_union_contract <- function() {
   model_output$model_path <- model_dir
   model_output$model_type <- "scvi"
   model_run <- wb_new_run(
-    "scvi_train",
+    "slingshot_adopt",
     inputs = list(cell_set = "all", parents = character(0)),
     outputs = list(model = model_output)
   )

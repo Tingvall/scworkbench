@@ -739,6 +739,17 @@
       "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase6-matrix-model-identities.json"
     },
     {
+      "path": "inst/protocol/fixtures/operation-pack-v3/phase6-ordered-cell-metadata-identities.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v3/phase6-ordered-cell-metadata-identities.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase6-ordered-cell-metadata-identities.json"
+    },
+    {
       "path": "inst/protocol/fixtures/operation-pack-v3/relation-family-identities.json",
       "class": "public_canonical",
       "audience": "public",

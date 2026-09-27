@@ -120,19 +120,18 @@ Implications:
 - do not assume every Python-native op must read matrices directly from BPCells
 - do not treat historical native PeakVI bundle reads as a current pack grant
 
-scVI training bridge:
+Historical core scVI training bridge (retained for reading old runs only):
 
-- `scvi_train` uses the same R-staged sparse-chunk transport for its supported
-  runtime path.
-- R validates count-like input and metadata covariates, stages the selected
+- The retired core `scvi_train` used R-staged sparse-chunk transport.
+- R validated count-like input and metadata covariates, staged the selected
   matrix and cell metadata, preregisters `model_ref` and `obs_table` outputs,
-  and invokes `pybench.ops.scvi_train`.
-- Python writes the latent space, a bundle-relative scVI model directory, and
-  the requested fit-summary payload. R remains the authority for the op
+  and invoked `pybench.ops.scvi_train`.
+- Python wrote the latent space, a bundle-relative scVI model directory, and
+  the requested fit-summary payload. R remained the authority for the op
   interface, artifact rows, run/session provenance, and promotion.
-- The Python environment must include the pybench `scvi` extra. This bridge is
-  not a fallback for normalized matrices; `allow_non_counts=TRUE` is an
-  explicit expert override.
+- New training uses `scwblatent::scvi_train` and the generic ABI-v3
+  authenticated metadata/count-slice boundary; it has no normalized-matrix
+  override. See [scvi_train.md](scvi_train.md).
 
 ## Parity Discipline
 

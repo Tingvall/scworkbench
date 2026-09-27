@@ -85,15 +85,14 @@ test_public_typed_run_branch_inputs_contract <- function() {
   # The authoritative rehydrator covers every catalog shape used in persisted
   # provenance, without weakening the operation validator.
   typed <- scworkbench:::.wb_prov_rehydrate_named_inputs(list(
-    n_latent = list(30L), dropout = list(0.1), early_stopping = list(TRUE),
-    output_space_id = list("rna.scvi.typed"), max_epochs = NULL,
-    categorical_covariates = list("sample_id", "donor"),
-    batch_key = list("sample_id")
-  ), "scvi_train")
-  stopifnot(is.integer(typed$n_latent), is.numeric(typed$dropout),
-            is.logical(typed$early_stopping), is.character(typed$output_space_id),
-            is.null(typed$max_epochs), identical(typed$categorical_covariates, c("sample_id", "donor")),
-            identical(typed$batch_key, "sample_id"))
+    n_neighbors = list(30L), min_dist = list(0.1),
+    dims = as.list(1:3), space_id_out = list("rna.umap.typed"),
+    seed = list(7L)
+  ), "umap_fit")
+  stopifnot(is.integer(typed$n_neighbors), is.numeric(typed$min_dist),
+            identical(typed$dims, 1:3),
+            identical(typed$space_id_out, "rna.umap.typed"),
+            identical(typed$seed, 7L))
   symbolic <- scworkbench:::.wb_prov_replay_execution_inputs(
     list(space = list(ref_type = "run", run_id = "parent", output = "space"), dims = as.list(1:3)),
     list(space_id_out = "branch", seed = 1L), run_id = "symbolic", op_name = "umap_fit"

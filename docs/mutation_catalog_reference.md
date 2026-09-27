@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 104
+Record count: 103
 
 Meaningful public transformations: 57
 
@@ -681,20 +681,6 @@ Durable mutation: true
 Boundary: `public_transaction`
 
 Supported route: `declared_ingestion_transaction`
-
-## `wb_op_scvi_train`
-
-Category: matrix_space_model_writer
-
-Exported: false
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
 
 ## `.wb_pybench_preregister_outputs`
 

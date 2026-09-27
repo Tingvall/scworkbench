@@ -38,7 +38,8 @@ and a core-owned immutable space writer. The existing core contract verifies
 model/receipt identity, disjoint axes, complete union, equal dimensions and
 row-bind semantics; this order does not alter that operation.
 
-`scvi_train` is deferred. Besides the matrix-model closure, it needs typed
-authenticated batch, categorical and continuous covariate reads bound to the
-same fitted-cell axis and explicit count-like input authority. The PeakVI
-pilot forbids non-null batch metadata rather than consulting bundle storage.
+`scvi_train` has subsequently migrated to `scwblatent::scvi_train`. The
+generic ABI-v3 ordered cell-metadata snapshot binds batch, categorical and
+continuous fields to the fitted matrix axis; an opt-in typed-slice policy
+checks count-like values. PeakVI's own fit declaration still forbids a
+non-null batch key and its scientific code is unchanged.

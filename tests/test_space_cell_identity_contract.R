@@ -34,20 +34,16 @@ test_space_cell_identity_contract <- function() {
   converted <- .wb_as_coord_matrix(wide_default)
   typed_space_converted <- .wb_operation_pack_v3_space_matrix(
     wb_space(b, "wide_identity", cells = rev(present)))
-  scvi_converted <- .wb_scvi_space_matrix(b, "wide_identity", rev(present))
   stopifnot(
     identical(rownames(converted), present),
     identical(rownames(typed_space_converted), rev(present)),
-    identical(rownames(scvi_converted), rev(present)),
-    is.numeric(converted), is.numeric(typed_space_converted),
-    is.numeric(scvi_converted)
+    is.numeric(converted), is.numeric(typed_space_converted)
   )
 
   # Consumer audit: every distinct wb_space conversion route is either the
   # canonical converter or explicit cell-id alignment at a typed handoff.
   converter_consumers <- list(
-    geometry = wb_op_knn_graph,
-    scvi = .wb_scvi_space_matrix
+    geometry = wb_op_knn_graph
   )
   bodies <- vapply(converter_consumers, function(fn) paste(deparse(body(fn)), collapse = "\n"), character(1))
   stopifnot(all(grepl(".wb_as_coord_matrix", bodies, fixed = TRUE)))

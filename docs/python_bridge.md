@@ -8,5 +8,7 @@ protocol resource is shipped with the package:
 system.file("protocol/pybench-op-v2.schema.json", package = "scworkbench")
 ```
 
-Use registered operations such as `scvi_train` through `wb_session_run_op()`;
-do not write protocol payloads or artifact registry rows directly.
+Use registered operations such as `scwblatent::scvi_train` through
+`wb_session_run_op()`; that operation uses the ABI-v3 pack boundary, not the
+historical core bridge. For all operations, do not write protocol payloads or
+artifact registry rows directly.

@@ -18,14 +18,11 @@ test_metadata_identifier_consumers_contract <- function() {
 
   counts <- Matrix::Matrix(matrix(seq_len(60L) %% 5L, nrow = 5L, dimnames = list(paste0("g", 1:5), ids)), sparse = TRUE)
   wb_attach_matrix(b, "RNA_counts", counts, layer = "counts", feature_type = "gene")
-  stage <- scworkbench:::.wb_scvi_stage_sparse_chunks(
-    b, "RNA_counts", rownames(counts), ids, batch_key = "batch key",
-    categorical_covariates = "label/by", continuous_covariates = "numeric score%", chunk_cells = 5L
-  )
-  on.exit(unlink(stage, recursive = TRUE, force = TRUE), add = TRUE)
-  staged_meta <- utils::read.delim(file.path(stage, "cell_metadata.tsv"), check.names = FALSE)
-  stopifnot(identical(names(staged_meta), c("cell_id", "batch key", "label/by", "numeric score%")))
-  stopifnot(identical(as.character(staged_meta$cell_id), ids))
+  selected_meta <- wb_meta(b, cells = ids, cols = c("cell_id", "batch key",
+    "label/by", "numeric score%"))
+  stopifnot(identical(names(selected_meta), c("cell_id", "batch key",
+    "label/by", "numeric score%")))
+  stopifnot(identical(as.character(selected_meta$cell_id), ids))
   split <- wb_op_cells_split_by(b, "batch key")
   stopifnot(identical(sort(names(split)), c("ctrl", "drug")), sum(lengths(split)) == length(ids))
 

@@ -398,6 +398,8 @@ wb_operation_pack_transition_registry_reads <- function(bundle, transition_id) {
       session_cell_axis = "wb_operation_pack_session_cell_axis",
       matrix_feature_annotations =
         "wb_operation_pack_matrix_feature_annotations",
+      ordered_cell_metadata =
+        "wb_operation_pack_ordered_cell_metadata",
       "wb_operation_pack_feature_set_registry")
     out[[i]] <- list(
       snapshot = structure(snapshot,

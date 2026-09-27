@@ -530,6 +530,21 @@
     input_record$descriptor_identity)
   content_id <- input_record$content_identity
   matrix_id <- as.character(input$matrix_id %||% "")[1]
+  value_policy <- as.character(declaration$value_policy %||% "")[1]
+  if (identical(value_policy, "nonnegative_integer_v1") && nzchar(matrix_id)) {
+    info <- wb_matrices(bundle)
+    row <- info[as.character(info$matrix_id) == matrix_id, , drop = FALSE]
+    if (nrow(row) != 1L) .wb_operation_pack_v3_error(
+      "PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Count-like typed-slice input has no matrix registry row.",
+      "resolution")
+    layer <- tolower(as.character(row$layer[[1]] %||% ""))
+    if (!identical(layer, "counts") ||
+        grepl("log|norm|scale|cp10k|tfidf", tolower(matrix_id)))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Count-like typed-slice policy requires a counts layer and rejects normalized labels.",
+        "resolution")
+  }
   durable <- is.null(input$values) && nzchar(matrix_id) && nrow(DBI::dbGetQuery(bundle$con,
     "SELECT 1 FROM matrices WHERE matrix_id=? LIMIT 1;",
     params = list(matrix_id))) == 1L
@@ -596,6 +611,7 @@
     max_rows = as.integer(max_rows), max_columns = as.integer(max_columns),
     max_elements = product, max_control_bytes = 1048576L,
     max_response_bytes = 134217728L, max_outstanding_responses = 1L)
+  if (nzchar(value_policy)) grant$value_policy <- value_policy
   grant$grant_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.typed_slice_grant.v1",
     "grant excluding grant_identity", grant)
@@ -825,7 +841,7 @@
     base$inputs[[i]]$descriptor <- input_records[[input_name]]
   }
   v3_registry <- .wb_operation_pack_v3_registry_read_records(bundle,
-    operation, inputs, input_records, stage_root, effective_cells, session_id,
+    operation, inputs, input_records, params, stage_root, effective_cells, session_id,
     run_id, generation, base$execution_capability$source_state_identity)
   if (length(v3_registry$records)) {
     base$registry_reads <- c(base$registry_reads %||% list(),
@@ -1414,6 +1430,14 @@
       "PYBENCH_CAPABILITY_MISMATCH", "staging")
   }
   for (grant in request$typed_slice_grants %||% list()) {
+    declaration <- Filter(function(x) identical(as.character(x$name)[1],
+      as.character(grant$name)[1]), operation$typed_slice_reads %||% list())
+    if (length(declaration) != 1L || !identical(
+        as.character(grant$value_policy %||% "")[1],
+        as.character(declaration[[1]]$value_policy %||% "")[1]))
+      .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+        "Typed-slice value policy differs from the authenticated manifest.",
+        "staging")
     .wb_operation_pack_v3_assert_self_identity(grant$source_reference,
       "source_reference_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
     .wb_operation_pack_v3_assert_self_identity(grant,
@@ -3396,6 +3420,13 @@
       } else input$values[match(features, as.character(input$feature_id)),
         match(cells, as.character(input$cell_id)), drop = FALSE]
       values <- as.matrix(values)
+      if (identical(as.character(grant$value_policy %||% "")[1],
+          "nonnegative_integer_v1") &&
+          (any(!is.finite(values)) || any(values < 0) ||
+            any(abs(values - round(values)) > 1e-8)))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Typed matrix slice violates its nonnegative integer policy.",
+          "execution")
       dimnames(values) <- list(features, cells)
       value <- structure(list(kind = "matrix",
         matrix_id = input$matrix_id %||% NULL, values = values,

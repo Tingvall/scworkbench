@@ -1,195 +1,44 @@
-# `scvi_train`
+# scVI CPU training through scwbLatent
 
-`scvi_train` is the scworkbench-side contract for training an RNA scVI model
-through pybench and returning normal bundle state.
-
-Target workflow:
-
-```text
-RNA_counts -> scvi_train -> rna.scvi -> umap_fit
-```
-
-The UMAP steps in this document require an independently installed and
-explicitly activated `scwbRepresentation` operation pack. Core retains the
-generic contained-model and atomic publication contracts, but does not ship a
-UMAP implementation.
-
-## Purpose
-
-The op trains a count-aware RNA latent model from a raw/count-like matrix and
-emits:
-
-- a reusable latent `space`, for example `rna.scvi`;
-- a reusable `model_ref` with `engine = "scvi"`;
-- a promoted `fit_summary` observation table with training parameters, runtime,
-  input dimensions, covariates, and metrics.
-
-The latent space is written into the normal bundle spaces registry, so existing
-downstream ops and Shiny should consume it like any other space.
-
-## Inputs
-
-Required:
-
-- `matrix`
-  - matrix primitive, expected to be raw RNA counts or count-like integer values.
-
-Standard cell selection:
-
-- `cell_set`
-- `cell_ids`
-
-Optional metadata/covariate fields:
-
-- `batch_key`
-- `categorical_covariates`
-- `continuous_covariates`
-
-All covariates must exist in bundle cell metadata.
-
-## Parameters
-
-Defaults:
-
-- `n_latent = 30`
-- `n_hidden = 128`
-- `n_layers = 2`
-- `dropout = 0.1`
-- `max_epochs = NULL`
-- `early_stopping = TRUE`
-- `seed = 1`
-- `use_gpu = FALSE`
-- `output_space_id = "rna.scvi"`
-- `overwrite = FALSE`
-- `allow_non_counts = FALSE`
-
-`allow_non_counts=FALSE` makes the op fail early for matrix ids/layers that look
-normalized and for sampled non-integer or negative values. Set it to `TRUE` only
-for an intentional expert override.
-
-## Staging Contract
-
-The production-safe bridge uses R-staged sparse chunks, matching the PeakVI
-cluster pattern.
-
-Staged directory contents:
-
-- `manifest.json`
-- `feature_ids.txt`
-- `cell_metadata.tsv`
-- one or more Matrix Market chunk files, `chunk_00001.mtx`, ...
-- one cell-id file per chunk, `chunk_00001_cells.txt`, ...
-
-`manifest.json` fields:
-
-- `protocol = "scworkbench_sparse_matrix_chunks_v1"`
-- `matrix_id`
-- `value_type = "counts"`
-- `orientation = "features_by_cells"`
-- `feature_ids_file`
-- `cell_metadata_file`
-- `n_features`
-- `n_cells`
-- `batch_key`
-- `categorical_covariates`
-- `continuous_covariates`
-- `chunk_cells`
-- `chunks`, each with `index`, `mtx`, `cells`, `n_features`, `n_cells`
-
-The Python side transposes feature-by-cell chunks into AnnData cell-by-feature
-`X`, uses `cell_metadata.tsv` for `obs`, uses `feature_ids.txt` for `var`,
-trains `scvi.model.SCVI`, and writes outputs back to the bundle.
-
-## Expected pybench Module
-
-Module:
-
-```text
-pybench.ops.scvi_train
-```
-
-Request protocol:
-
-```text
-pybench-op-v2
-```
-
-Required request fields:
-
-- `inputs$matrix`
-- `inputs$cell_ids`
-- `inputs$matrix_chunks_dir`
-- `inputs$cell_metadata_path`
-- `params$output_space_id` or `params$space_id_out`
-- `outputs$model`
-- `outputs$fit_summary`
-
-Expected pybench outputs:
-
-- add bundle space `output_space_id`;
-- write model payload for preregistered `outputs$model`:
-  - `engine = "scvi"`
-  - `model_space_id = output_space_id`
-  - `in_space_id = output_space_id`
-  - `model_type = "scvi_train"`
-  - bundle-relative model directory under `artifact_models/`;
-- write `outputs$fit_summary` as an `obs_table`.
-
-## Runtime Status
-
-`pybench.ops.scvi_train` is implemented. It consumes the staged sparse-chunk
-protocol, writes the latent space through the shared bundle space contract,
-writes a bundle-relative scVI model directory for the preregistered
-`model_ref`, and writes the preregistered `fit_summary` `obs_table`.
-
-The bridge requires a pybench environment with the `scvi` extra, including
-`anndata`, `scvi-tools`, and the staged-matrix dependencies. The R contract
-test validates the interface, count/covariate checks, staging manifest, and
-R-side model-reference loading without requiring a real scVI training runtime.
-
-## Durable sample-aware sibling
-
-Long fits belong in a durable session. The example below reads replay-ready
-typed inputs from an existing unbatched scVI-to-UMAP snapshot, changes only the
-scientific branch axis and output identifiers, and checkpoints the new scVI
-before UMAP starts. In particular, `umap_inputs$dims` is already an integer
-vector; do not repair provenance with `unlist()` or `as.integer()`.
+`scvi_train` is no longer a core operation. Install and activate the
+`scwbLatent` R operation pack, then call its versioned operation identity
+`scwblatent::scvi_train` through `wb_session_run_op()`. Historical core
+`scvi_train` runs remain inspectable without activating the pack; they are not
+reinterpreted as new pack runs.
 
 ```r
-scvi_inputs <- wb_prov_run_replay_inputs(
-  b, unbatched_scvi_run_id, snapshot_id = source_snapshot_id
-)$inputs
-umap_inputs <- wb_prov_run_replay_inputs(
-  b, unbatched_umap_run_id, snapshot_id = source_snapshot_id
-)$inputs
-
-s <- wb_session_create(
-  b, workspace_root = "/machine-persistent/scworkbench_sessions",
-  session_id = "sample-aware-scvi"
-)
-scvi_inputs$batch_key <- "sample_id"
-scvi_inputs$output_space_id <- "rna.scvi.sample_aware"
-fit <- wb_session_run_op(s, b, "scvi_train", inputs = scvi_inputs)
-
-# The completed fit is now checkpointed. If this downstream step or the R
-# process fails, reopen the bundle and resume instead of training again.
-s <- wb_session_resume(b, fit$session$durable$workspace)
-umap_inputs$space <- wb_ref_run(fit$run$run_id, "space")
-umap_inputs$space_id_out <- "rna.umap.sample_aware"
-umap <- wb_session_run_op(
-  s, b, "scwbrepresentation::umap_fit", inputs = umap_inputs
-)
-
-promotion <- wb_session_promote_current(
-  b, umap$session,
-  outputs = list(
-    wb_ref_run(fit$run$run_id, "model"),
-    wb_ref_run(fit$run$run_id, "fit_summary"),
-    wb_ref_run(umap$run$run_id, "model")
-  )
-)
+fit <- wb_session_run_op(wb_session_new(), bundle,
+  "scwblatent::scvi_train", inputs = list(
+    matrix = "RNA_counts", batch_key = "sample_id",
+    categorical_covariates = "condition",
+    continuous_covariates = "quality_score",
+    n_latent = 30L, max_epochs = 100L,
+    cell_set = "all", min_cells = 2L))
 ```
 
-The UMAP model is the terminal output. Promoting it atomically materializes
-its paired `space_2d`; the materialization is not selected as a separate
-terminal artifact.
+The pack receives authenticated, ordered matrix chunks and one core-resolved
+cell-metadata snapshot. Metadata fields are selected by stable field ID or an
+unambiguous name, typed as categorical or continuous, aligned exactly to the
+effective matrix cell axis, and recorded with their values, missingness and
+source identities. The pack receives no bundle, SQL connection, registry path,
+or storage authority. A generic `nonnegative_integer_v1` typed-slice policy
+checks every consumed matrix chunk; the registered layer must be `counts`,
+and normalized matrix labels fail before dispatch. Missing covariates,
+ambiguous fields, reordered or foreign cells,
+nonfinite continuous values and duplicate field selections fail closed.
+
+The private Python helper fits `scvi.model.SCVI` on CPU only. The pack stages
+input files under its own temporary directory, verifies their checksums after
+the helper returns, and submits a latent `space`, contained `model_ref` tree,
+and `fit_summary` in one core-owned atomic output closure. The model and
+summary are promotable terminals; promoting either also materializes the
+space. Output identifiers are newly allocated and immutable. The former core
+overwrite option and deprecated output-space alias are not part of this pack
+contract. GPU and large-data performance are not qualified here.
+
+The prospective pack output identity is distinct from the historical core
+operation. The focused old-core comparison uses exact ordered cells and latent
+dimensions plus Spearman correlation of all pairwise latent distances at a
+predeclared minimum of 0.9; it does not compare serialized model bytes or
+legacy output hashes. See the frozen reference in
+`scwbLatent/tests/fixtures/scvi_old_core_reference.json`.

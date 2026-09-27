@@ -31,7 +31,7 @@ test_reporting_contracts <- function() {
   model$model_type <- "monocle3"
   model$model_obj <- list(contract = "reporting_contracts")
   run <- wb_new_run(
-    op_name = "scvi_train",
+    op_name = "slingshot_adopt",
     inputs = list(
       cell_set = "core",
       user_inputs = list(fit_space = wb_prim_space("umap_test")),

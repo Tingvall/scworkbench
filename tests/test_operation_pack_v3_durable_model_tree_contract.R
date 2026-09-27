@@ -45,7 +45,7 @@ test_operation_pack_v3_durable_model_tree_contract <- function() {
   model$model_payload_manifest_identity <- payload_identity
   model$model_linkage <- .wb_operation_pack_v3_model_linkage("fixture",
     "two_file_model", "pca", dimensions)
-  run <- wb_new_run("scvi_train",
+  run <- wb_new_run("slingshot_adopt",
     inputs = list(cell_set = "all", parents = character(),
       user_inputs = list()), outputs = list(model = model))
   promoted <- wb_promote_analysis(b, setNames(list(run), run$run_id),

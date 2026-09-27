@@ -19,41 +19,6 @@
   )
 }
 
-.wb_runner_scvi_train <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "scvi_train runner: missing resolved$matrix.")
-  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 0,
-             "scvi_train runner: effective_cells is empty.")
-
-  matrix_id <- as.character(resolved$matrix$matrix_id %||% "")[1]
-  .wb_assert(nzchar(matrix_id), "scvi_train runner: resolved matrix primitive missing matrix_id.")
-
-  raw <- wb_op_scvi_train(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    cells = as.character(effective_cells),
-    batch_key = inputs$batch_key %||% NULL,
-    categorical_covariates = inputs$categorical_covariates %||% NULL,
-    continuous_covariates = inputs$continuous_covariates %||% NULL,
-    n_latent = inputs$n_latent %||% 30L,
-    n_hidden = inputs$n_hidden %||% 128L,
-    n_layers = inputs$n_layers %||% 2L,
-    dropout = inputs$dropout %||% 0.1,
-    max_epochs = inputs$max_epochs %||% NULL,
-    early_stopping = inputs$early_stopping %||% TRUE,
-    seed = inputs$seed %||% 1L,
-    use_gpu = inputs$use_gpu %||% FALSE,
-    output_space_id = inputs$output_space_id %||% inputs$space_id_out %||% "rna.scvi",
-    model_artifact_id = inputs$model_artifact_id %||% NULL,
-    overwrite = inputs$overwrite %||% FALSE,
-    allow_non_counts = inputs$allow_non_counts %||% FALSE,
-    cell_set = inputs$cell_set %||% "all"
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "scvi_train must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_model_bound_latent_union <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$reference_space), "model_bound_latent_union runner: missing reference_space.")
   .wb_assert(!is.null(resolved$query_space), "model_bound_latent_union runner: missing query_space.")
@@ -520,71 +485,6 @@
         adoption_summary = list(
           kind = "obs_table", table_type = "slingshot_adoption_summary",
           description = "Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary."
-        )
-      )
-    ),
-    scvi_train = list(
-      op_name = "scvi_train",
-      title = "scVI train (pybench)",
-      description = "Train an RNA scVI model on a raw/count-like matrix via the pybench Python runtime and emit a latent space, model reference, and fit summary.",
-      intent = c("latent", "model", "python", "rna", "counts"),
-      requires = list(matrix = "matrix"),
-      produces = list(
-        space = "space",
-        model = "model_ref",
-        fit_summary = "obs_table"
-      ),
-      promotable = c("model", "fit_summary"),
-      runner = .wb_runner_scvi_train,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix")
-      ),
-      params = list(
-        list(name = "n_latent", type = "int", default = 30, min = 2, max = 1024,
-             help = "Target latent dimensionality for the emitted scVI space."),
-        list(name = "n_hidden", type = "int", default = 128, min = 1, max = 8192,
-             help = "Hidden width passed to the scVI model constructor."),
-        list(name = "n_layers", type = "int", default = 2, min = 1, max = 32,
-             help = "Number of hidden layers passed to the scVI model constructor."),
-        list(name = "dropout", type = "number", default = 0.1, min = 0, max = 1,
-             help = "Dropout rate passed to the scVI model constructor."),
-        list(name = "batch_key", type = "string", default = NULL,
-             help = "Optional cell metadata field used as the scVI batch covariate."),
-        list(name = "categorical_covariates", type = "metadata_field_array", default = NULL,
-             help = "Optional categorical cell metadata covariates passed to scVI setup_anndata."),
-        list(name = "continuous_covariates", type = "metadata_field_array", default = NULL,
-             help = "Optional continuous cell metadata covariates passed to scVI setup_anndata."),
-        list(name = "max_epochs", type = "int", default = NULL, min = 1, max = 100000,
-             help = "Optional maximum training epochs passed through to scvi-tools."),
-        list(name = "early_stopping", type = "bool", default = TRUE,
-             help = "If TRUE, enable scvi-tools early stopping during scVI training."),
-        list(name = "seed", type = "int", default = 1, min = 0, max = 999999,
-             help = "Random seed for scVI training."),
-        list(name = "use_gpu", type = "bool", default = FALSE,
-             help = "If TRUE, request GPU-backed training in scvi-tools."),
-        list(name = "output_space_id", type = "string", default = "rna.scvi",
-             help = "Space id to write for the learned scVI latent embedding."),
-        list(name = "space_id_out", type = "string", default = NULL,
-             help = "Deprecated compatibility alias for output_space_id."),
-        list(name = "model_artifact_id", type = "string", default = NULL,
-             help = "Optional preregistered model artifact id. NULL lets scworkbench assign one."),
-        list(name = "overwrite", type = "bool", default = FALSE,
-             help = "If TRUE, allow replacing an existing output_space_id."),
-        list(name = "allow_non_counts", type = "bool", default = FALSE,
-             help = "If TRUE, bypass raw/count-like matrix checks. Use only for intentional expert overrides.")
-      ),
-      interface_produces = list(
-        space = list(
-          kind = "space",
-          description = "scVI latent space written into the bundle spaces registry."
-        ),
-        model = list(
-          kind = "model_ref",
-          description = "Serialized scVI Python model payload (engine='scvi')."
-        ),
-        fit_summary = list(
-          kind = "obs_table",
-          description = "Training summary, parameter, runtime, and metric table emitted by pybench."
         )
       )
     ),

@@ -2,14 +2,139 @@
 
 .wb_operation_pack_v3_new_registry_declarations <- function(operation) {
   Filter(function(x) as.character(x$kind %||% "")[1] %in%
-      c("session_cell_axis", "matrix_feature_annotations"),
+      c("session_cell_axis", "matrix_feature_annotations",
+        "ordered_cell_metadata"),
     operation$registry_reads %||% list())
+}
+
+.wb_operation_pack_v3_cell_metadata_snapshot <- function(bundle, declaration,
+    inputs, input_records, params, effective_cells) {
+  input_name <- as.character(declaration$matrix_input)[1]
+  input <- inputs[[input_name]]
+  matrix_id <- as.character(input$matrix_id %||% "")[1]
+  cells <- as.character(effective_cells %||% input$cell_id %||% character())
+  if (!nzchar(matrix_id) || !length(cells) || length(cells) > 100000L ||
+      anyNA(cells) || any(!nzchar(cells)) || anyDuplicated(cells) ||
+      !identical(cells, as.character(input$cell_id)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Ordered cell metadata requires the authenticated matrix cell axis.",
+      "resolution")
+  selections <- declaration$field_parameters
+  fields <- list()
+  for (selection in selections) {
+    parameter <- as.character(selection$parameter)[1]
+    role <- as.character(selection$role)[1]
+    requested <- as.character(unlist(params[[parameter]] %||% character(),
+      use.names = FALSE))
+    if (length(requested) && (anyNA(requested) || any(!nzchar(requested)) ||
+        anyDuplicated(requested)) ||
+        (identical(selection$cardinality, "zero_or_one") &&
+          length(requested) > 1L))
+      .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+        "Ordered cell-metadata field selection is malformed.", "resolution")
+    for (name in requested) {
+      resolved <- tryCatch(.wb_metadata_resolve(bundle, name,
+        allow_core = TRUE), error = function(error)
+          .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+            conditionMessage(error), "resolution"))
+      storage <- as.character(resolved$storage_type[[1]])
+      if (identical(role, "continuous") && !storage %in%
+          c("INTEGER", "REAL"))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Continuous metadata must have numeric durable storage.",
+          "resolution")
+      fields[[length(fields) + 1L]] <- list(parameter = parameter,
+        name = name, field_id = as.character(resolved$field_id[[1]]),
+        value_type = role, storage_type = storage)
+    }
+  }
+  names <- vapply(fields, `[[`, character(1), "name")
+  ids <- vapply(fields, `[[`, character(1), "field_id")
+  if (length(fields) > 16L || anyDuplicated(names) || anyDuplicated(ids))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Ordered cell metadata exceeds its field ceiling or repeats a field.",
+      "resolution")
+  selected <- c(list(wb_ref_metadata_field("core:cell_id")),
+    lapply(ids, wb_ref_metadata_field))
+  frame <- wb_meta(bundle, cells = cells, cols = selected)
+  if (!identical(as.character(frame[[1]]), cells))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      "Ordered metadata getter changed the authenticated cell order.",
+      "resolution")
+  for (i in seq_along(fields)) {
+    values <- frame[[i + 1L]]
+    if (identical(fields[[i]]$value_type, "continuous")) {
+      values <- as.numeric(values)
+      if (any(!is.finite(values[!is.na(values)])))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Continuous metadata contains non-finite values.", "resolution")
+    } else values <- as.character(values)
+    fields[[i]]$values <- unname(lapply(seq_along(values), function(j)
+      if (is.na(values[[j]])) NULL else values[[j]]))
+  }
+  descriptor <- input_records[[input_name]]
+  list(schema = "scworkbench.ordered_cell_metadata.snapshot.v1",
+    matrix_input = input_name, matrix_id = matrix_id,
+    input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
+      descriptor$descriptor_identity),
+    input_content_identity = descriptor$content_identity,
+    cell_count = as.integer(length(cells)), cell_id = unname(as.list(cells)),
+    cell_order_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", unname(as.list(cells))),
+    fields = unname(fields))
 }
 
 .wb_operation_pack_v3_registry_snapshot_validate <- function(snapshot, kind) {
   exact <- function(expected) is.list(snapshot) && !is.null(names(snapshot)) &&
     !anyDuplicated(names(snapshot)) && setequal(names(snapshot), expected)
-  if (identical(kind, "session_cell_axis")) {
+  if (identical(kind, "ordered_cell_metadata")) {
+    expected <- c("schema", "matrix_input", "matrix_id",
+      "input_descriptor_identity", "input_content_identity", "cell_count",
+      "cell_id", "cell_order_identity", "fields")
+    cells <- as.character(unlist(snapshot$cell_id, use.names = FALSE))
+    fields <- snapshot$fields %||% list()
+    field_names <- vapply(fields, function(x) as.character(x$name %||% "")[1],
+      character(1))
+    ids <- vapply(fields, function(x) as.character(x$field_id %||% "")[1],
+      character(1))
+    fields_ok <- is.list(fields) && is.null(names(fields)) &&
+      length(fields) <= 16L && !anyDuplicated(field_names) &&
+      !anyDuplicated(ids) && all(vapply(fields, function(field) {
+        values <- field$values %||% list()
+        identical(sort(names(field), method = "radix"), sort(c(
+          "parameter", "name", "field_id", "value_type", "storage_type",
+          "values"), method = "radix")) &&
+          is.character(field$parameter) && length(field$parameter) == 1L &&
+          nzchar(field$parameter) && is.character(field$name) &&
+          length(field$name) == 1L && nzchar(field$name) &&
+          is.character(field$field_id) && length(field$field_id) == 1L &&
+          nzchar(field$field_id) &&
+          field$value_type %in% c("categorical", "continuous") &&
+          field$storage_type %in% c("TEXT", "INTEGER", "REAL") &&
+          (field$value_type != "continuous" ||
+            field$storage_type %in% c("INTEGER", "REAL")) &&
+          is.list(values) && is.null(names(values)) &&
+          length(values) == length(cells) &&
+          all(vapply(values, function(value) is.null(value) ||
+            (length(value) == 1L && !is.na(value) &&
+              if (field$value_type == "continuous")
+                is.numeric(value) && is.finite(value) else
+                is.character(value)), logical(1)))
+      }, logical(1)))
+    valid <- exact(expected) && identical(snapshot$schema,
+      "scworkbench.ordered_cell_metadata.snapshot.v1") &&
+      is.character(snapshot$matrix_input) &&
+      length(snapshot$matrix_input) == 1L &&
+      nzchar(snapshot$matrix_input) &&
+      is.character(snapshot$matrix_id) && length(snapshot$matrix_id) == 1L &&
+      nzchar(snapshot$matrix_id) && length(cells) > 0L &&
+      length(cells) <= 100000L && !anyNA(cells) && all(nzchar(cells)) &&
+      !anyDuplicated(cells) &&
+      identical(as.integer(snapshot$cell_count)[1], length(cells)) &&
+      identical(snapshot$cell_order_identity,
+        .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1",
+          unname(as.list(cells)))) && fields_ok
+  } else if (identical(kind, "session_cell_axis")) {
     expected <- c("schema", "selection_policy", "coverage_policy",
       "session_id", "run_id", "checkpoint_generation",
       "transition_source_state_identity", "cell_count", "cell_id",
@@ -26,7 +151,7 @@
       identical(snapshot$cell_order_identity,
         .wb_operation_pack_v2_identity_plain("scworkbench.cell_order.v1",
           unname(as.list(cells))))
-  } else {
+  } else if (identical(kind, "matrix_feature_annotations")) {
     expected <- c("schema", "matrix_input", "matrix_id",
       "input_descriptor_identity", "input_content_identity", "feature_count",
       "feature_order_identity", "fields", "rows")
@@ -49,7 +174,7 @@
       identical(snapshot$feature_order_identity,
         .wb_operation_pack_v2_identity_plain("scworkbench.feature_order.v1",
           unname(as.list(ids))))
-  }
+  } else valid <- FALSE
   if (!isTRUE(valid)) .wb_operation_pack_v3_error(
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
     "Authenticated core registry snapshot is malformed.", "reopen")
@@ -58,7 +183,15 @@
 
 .wb_operation_pack_v3_registry_snapshot_identities <- function(snapshot, kind) {
   snapshot <- .wb_operation_pack_v3_registry_snapshot_validate(snapshot, kind)
-  if (identical(kind, "session_cell_axis")) {
+  if (identical(kind, "ordered_cell_metadata")) {
+    content <- .wb_operation_pack_v2_identity_scoped(snapshot$schema,
+      "canonical ordered cell metadata", snapshot)
+    source <- .wb_operation_pack_v2_identity_scoped(
+      "scworkbench.ordered_cell_metadata.source.v1",
+      "ordered cell metadata source", list(matrix_id = snapshot$matrix_id,
+        cell_order_identity = snapshot$cell_order_identity,
+        fields = snapshot$fields))
+  } else if (identical(kind, "session_cell_axis")) {
     content <- .wb_operation_pack_v2_identity_scoped(snapshot$schema,
       "canonical session cell-axis snapshot", snapshot)
     source <- .wb_operation_pack_v2_identity_scoped(
@@ -139,7 +272,7 @@
 }
 
 .wb_operation_pack_v3_registry_read_records <- function(bundle, operation,
-    inputs, input_records, stage_root, effective_cells, session_id, run_id,
+    inputs, input_records, params, stage_root, effective_cells, session_id, run_id,
     generation, source_state_identity) {
   declarations <- .wb_operation_pack_v3_new_registry_declarations(operation)
   if (!length(declarations)) return(list(records = list(), values = list()))
@@ -151,7 +284,10 @@
     snapshot <- if (identical(kind, "session_cell_axis"))
       .wb_operation_pack_v3_session_axis_snapshot(declaration,
         effective_cells, session_id, run_id, generation,
-        source_state_identity) else
+        source_state_identity) else if (identical(kind,
+          "ordered_cell_metadata"))
+      .wb_operation_pack_v3_cell_metadata_snapshot(bundle, declaration,
+        inputs, input_records, params, effective_cells) else
       .wb_operation_pack_v3_feature_annotation_snapshot(bundle, declaration,
         inputs, input_records)
     value_dir <- file.path(stage_root, "registry_reads", name)
@@ -192,6 +328,34 @@
         dimensions = list(snapshot$cell_count),
         cell_order_identity = snapshot$cell_order_identity,
         selection_identity = selection_identity,
+        content_identity = content_identity, source_identity = source_identity,
+        ancestry_identity = ancestry_identity)
+    } else if (identical(kind, "ordered_cell_metadata")) {
+      identities <- .wb_operation_pack_v3_registry_snapshot_identities(
+        snapshot, kind)
+      source_identity <- identities$source
+      content_identity <- identities$content
+      input_name <- as.character(declaration$matrix_input)[1]
+      ancestry_identity <- .wb_operation_pack_v2_identity_scoped(
+        "scworkbench.provenance.ancestry.v1",
+        "ordered cell metadata ancestry", list(
+          input_descriptor_identity = snapshot$input_descriptor_identity,
+          input_content_identity = snapshot$input_content_identity,
+          source_identity = source_identity))
+      descriptor <- list(category = declaration$category, kind = kind,
+        reader = declaration$reader, matrix_input = input_name,
+        matrix_id = snapshot$matrix_id,
+        field_parameters = declaration$field_parameters,
+        fields = lapply(snapshot$fields, function(field)
+          field[c("parameter", "name", "field_id", "value_type",
+            "storage_type")]),
+        row_order = declaration$row_order,
+        missing_value_policy = declaration$missing_value_policy,
+        dimensions = list(snapshot$cell_count,
+          as.integer(length(snapshot$fields))),
+        cell_order_identity = snapshot$cell_order_identity,
+        input_descriptor_identity = snapshot$input_descriptor_identity,
+        input_content_identity = snapshot$input_content_identity,
         content_identity = content_identity, source_identity = source_identity,
         ancestry_identity = ancestry_identity)
     } else {
@@ -261,25 +425,15 @@
     snapshot <- if (identical(kind, "session_cell_axis"))
       .wb_operation_pack_v3_session_axis_snapshot(declaration,
         effective_cells, session_id, run_id, generation, source_state) else
+      if (identical(kind, "ordered_cell_metadata"))
+        .wb_operation_pack_v3_cell_metadata_snapshot(bundle, declaration,
+          inputs, input_records, params, effective_cells) else
       .wb_operation_pack_v3_feature_annotation_snapshot(bundle, declaration,
         inputs, input_records)
-    observed_content <- .wb_operation_pack_v2_identity_scoped(snapshot$schema,
-      if (identical(kind, "session_cell_axis"))
-        "canonical session cell-axis snapshot" else
-        "canonical matrix feature annotations", snapshot)
-    observed_source <- if (identical(kind, "session_cell_axis"))
-      .wb_operation_pack_v2_identity_scoped(
-        "scworkbench.session_cell_axis.source.v1",
-        "session cell-axis source state", list(session_id = snapshot$session_id,
-          run_id = snapshot$run_id,
-          checkpoint_generation = snapshot$checkpoint_generation,
-          transition_source_state_identity =
-            snapshot$transition_source_state_identity,
-          cell_order_identity = snapshot$cell_order_identity)) else
-      .wb_operation_pack_v2_identity_scoped(
-        "scworkbench.matrix_feature_annotations.source.v1",
-        "ordered matrix feature annotations", list(matrix_id = snapshot$matrix_id,
-          fields = snapshot$fields, rows = snapshot$rows))
+    identities <- .wb_operation_pack_v3_registry_snapshot_identities(
+      snapshot, kind)
+    observed_content <- identities$content
+    observed_source <- identities$source
     expected <- records[[name]]$descriptor
     if (!identical(observed_content, expected$content_identity) ||
         !identical(observed_source, expected$source_identity))

@@ -534,7 +534,22 @@
       "semantic_admission")
     for (read in new_reads) {
       kind <- as.character(read$kind)[1]
-      valid <- if (identical(kind, "session_cell_axis")) {
+      valid <- if (identical(kind, "ordered_cell_metadata")) {
+        input <- inputs[[as.character(read$matrix_input)[1]]]
+        selections <- read$field_parameters %||% list()
+        parameters <- vapply(selections, function(x)
+          as.character(x$parameter)[1], character(1))
+        !is.null(input) && identical(as.character(input$kind)[1],
+          "matrix") && length(selections) >= 1L &&
+          !anyDuplicated(parameters) && all(vapply(selections,
+            function(x) {
+              type <- if (identical(as.character(x$cardinality)[1],
+                  "zero_or_one")) "string" else "array"
+              .wb_operation_pack_v3_param_is(properties,
+                as.character(x$parameter)[1], type, nullable = TRUE)
+            }, logical(1))) && identical(as.character(read$reader)[1],
+              "read_ordered_cell_metadata")
+      } else if (identical(kind, "session_cell_axis")) {
         identical(as.character(read$reader)[1], "read_session_cell_axis")
       } else {
         input <- inputs[[as.character(read$matrix_input)[1]]]

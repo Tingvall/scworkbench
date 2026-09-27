@@ -17,7 +17,7 @@ test_promotion_artifact_payload_atomicity_contract <- function() {
     model <- wb_prim_model_ref(model_space_id = "synthetic", in_space_id = "synthetic", engine = "monocle3")
     model$model_obj <- list(tag = tag, payload = seq_len(3L))
     wb_new_run(
-      op_name = "scvi_train",
+      op_name = "slingshot_adopt",
       inputs = list(cell_set = "all", parents = character(0), user_inputs = list()),
       params = list(fit_space_id = "synthetic"), outputs = list(model = model)
     )
@@ -98,7 +98,7 @@ test_promotion_staged_model_payload_contract <- function() {
     model$model_type <- "scvi_train"
     model$model_path <- normalizePath(model_dir, winslash = "/", mustWork = TRUE)
     run <- wb_new_run(
-      op_name = "scvi_train",
+      op_name = "slingshot_adopt",
       inputs = list(cell_set = "all", parents = character(0), user_inputs = list()),
       params = list(output_space_id = paste0("synthetic_", tag)),
       outputs = list(model = model)
@@ -144,16 +144,16 @@ test_promotion_staged_model_payload_contract <- function() {
   # Continuing the same session after promoting the model must use the prior
   # durable materialization, not the primitive's now-stale staging path.
   continuation <- wb_new_run(
-    op_name = "scvi_train",
+    op_name = "slingshot_adopt",
     inputs = list(
       cell_set = "all",
       parents = success_case$run$run_id,
       user_inputs = list(model = wb_ref_run(success_case$run$run_id, "model"))
     ),
     params = list(output_space_id = "synthetic_success"),
-    outputs = list(fit_summary = wb_prim_obs_table(
+    outputs = list(adoption_summary = wb_prim_obs_table(
       data.frame(status = "continued", stringsAsFactors = FALSE),
-      table_type = "scvi_fit_summary"
+      table_type = "slingshot_adoption_summary"
     ))
   )
   continued <- wb_promote_analysis(
@@ -163,7 +163,7 @@ test_promotion_staged_model_payload_contract <- function() {
       c(success_case$run$run_id, continuation$run_id)
     ),
     head_run_id = continuation$run_id,
-    outputs = "fit_summary",
+    outputs = "adoption_summary",
     staging_bundle = success_case$bundle
   )
   continued_commit <- DBI::dbGetQuery(

@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 278,
-  "edge_count": 414,
+  "node_count": 277,
+  "edge_count": 405,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -39,12 +39,6 @@
       "record_type": "op",
       "name": "slingshot_adopt",
       "title": "Adopt an existing Slingshot fit"
-    },
-    {
-      "record_id": "op:scvi_train",
-      "record_type": "op",
-      "name": "scvi_train",
-      "title": "scVI train (pybench)"
     },
     {
       "record_id": "op:model_bound_latent_union",
@@ -2024,60 +2018,6 @@
     },
     {
       "from": "op:slingshot_adopt",
-      "to": "artifact_type:model_ref",
-      "edge_type": "promotes_as",
-      "label": "promotable:model"
-    },
-    {
-      "from": "primitive:matrix",
-      "to": "op:scvi_train",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:scvi_train",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:scvi_train",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:scvi_train",
-      "to": "parameter:seed",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:seed"
-    },
-    {
-      "from": "op:scvi_train",
-      "to": "parameter:overwrite",
-      "edge_type": "has_parameter_semantics",
-      "label": "param:overwrite"
-    },
-    {
-      "from": "op:scvi_train",
-      "to": "primitive:space",
-      "edge_type": "produces",
-      "label": "output:space"
-    },
-    {
-      "from": "op:scvi_train",
-      "to": "primitive:model_ref",
-      "edge_type": "produces",
-      "label": "output:model"
-    },
-    {
-      "from": "op:scvi_train",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:fit_summary"
-    },
-    {
-      "from": "op:scvi_train",
       "to": "artifact_type:model_ref",
       "edge_type": "promotes_as",
       "label": "promotable:model"

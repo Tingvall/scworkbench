@@ -5,9 +5,9 @@ test_operation_pack_v3_trajectory_family_policy_contract <- function() {
     "fixtures/operation-pack-v3/identities.json"),
     package = "scworkbench")
   expected <- c(
-    "3f06cc79680488f71d07a0691a44637731c6b8f11afe1ed63200433e054b3734",
-    "d46ebe83e00c3c1add2fc7518025242d14b1defa57e174c7304b7a536c0e61b6",
-    "f35fb54c87f4671e67da4d2841b4659b2a1304310d89d5453b21059b2bacd538",
+    "8444a66511a33108a68491484cea87ef921d5f673ef3030615c4fd7b5352a8b4",
+    "7d35dbcf8aa75440305f634530ad933c1e8e06968509fca5743c8583599b911c",
+    "67bd53400f3d672a181c5f3a9878fd54a4eb790a9861bd7dca5f155d29851dc2",
     "27f0e7317298815b82dc7ab4d2b7f4967549a8f90663bf5d3f337d1e5bca9793")
   observed <- vapply(paths, digest::digest, character(1), algo = "sha256",
     serialize = FALSE, file = TRUE)
