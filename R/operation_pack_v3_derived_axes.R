@@ -95,11 +95,12 @@
     if (!mode %in% c("ordered_unique_subset_v1",
         "declared_ordered_unique_union_v1") ||
         !source_mode %in% c("static_input_axis",
-          "g4_collection_member_axis") ||
+          "g4_collection_member_axis", "static_typed_space_union_v1") ||
         (mode == "ordered_unique_subset_v1" &&
           source_mode != "static_input_axis") ||
         (mode == "declared_ordered_unique_union_v1" &&
-          source_mode != "g4_collection_member_axis") ||
+          !source_mode %in% c("g4_collection_member_axis",
+            "static_typed_space_union_v1")) ||
         !length(linked) || length(linked) > 16L || anyDuplicated(linked_names) ||
         as.integer(limits$minimum_cells) < 1L ||
         as.integer(limits$minimum_cells) > as.integer(limits$maximum_cells) ||
@@ -116,8 +117,10 @@
     projection <- as.character(source$projection)[1]
     selector <- source$family_key_selector %||% NULL
     if (!projection %in% c("cell_vector_axis_v1",
-        "family_key_cell_axis_v1") ||
-        identical(projection, "cell_vector_axis_v1") != is.null(selector))
+        "family_key_cell_axis_v1", "space_cell_axis_v1") ||
+        (projection != "family_key_cell_axis_v1") != is.null(selector) ||
+        identical(projection, "space_cell_axis_v1") !=
+          identical(source_mode, "static_typed_space_union_v1"))
       fail("has an invalid logical source-axis projection.")
     if (source_mode == "static_input_axis") {
       input <- inputs[[as.character(source$input)[1]]]
@@ -126,6 +129,22 @@
       if (is.null(input) || !isTRUE(input$required) ||
           !identical(as.character(input$kind)[1], expected_kind))
         fail("has an invalid required static source input.")
+    } else if (source_mode == "static_typed_space_union_v1") {
+      read_names <- as.character(unlist(source$typed_space_reads,
+        use.names = FALSE))
+      declared_reads <- stats::setNames(operation$typed_space_reads %||%
+        list(), vapply(operation$typed_space_reads %||% list(), `[[`,
+          character(1), "name"))
+      if (length(read_names) < 2L || anyDuplicated(read_names) ||
+          length(read_names) > as.integer(limits$maximum_source_axes) ||
+          !identical(as.character(source$overlap_policy)[1],
+            "reject_any_overlap_v1") || any(vapply(read_names,
+              function(name) is.null(declared_reads[[name]]) ||
+                !identical(as.character(declared_reads[[name]]$selection$
+                  policy)[1], "full_input_axis_v1") ||
+                is.null(inputs[[as.character(declared_reads[[name]]$input)[1]]]),
+              logical(1)))) fail(
+                "has invalid complete typed-space union sources.")
     } else {
       collections <- stats::setNames(operation$artifact_collection_reads %||%
         list(), vapply(operation$artifact_collection_reads %||% list(),
@@ -155,7 +174,18 @@
           !identical(shape, "cell_key_cartesian")) fail(paste0(
             "links effective-parameter keys to invalid shape '", shape,
             "'."))
-      valid_shape <- (kind == "cell_vector" && shape == "one_per_cell" &&
+      valid_shape <- (kind == "space" &&
+          shape == "one_per_cell_space_v1" &&
+          source_mode == "static_typed_space_union_v1" &&
+          identical(as.character(item$row_order)[1],
+            "sealed_cell_axis_order_v1") &&
+          is.null(item$key_axis) &&
+          identical(as.character(item$dimension_source$mode)[1],
+            "typed_space_read_v1") &&
+          as.character(item$dimension_source$read)[1] %in%
+            as.character(unlist(source$typed_space_reads,
+              use.names = FALSE))) ||
+        (kind == "cell_vector" && shape == "one_per_cell" &&
           identical(as.character(item$row_order)[1],
             "sealed_cell_axis_order_v1") && is.null(item$key_axis)) ||
         (kind == "cell_vector_family" && shape %in% c(
@@ -163,9 +193,25 @@
           identical(as.character(item$row_order)[1],
             "key_major_then_sealed_cell_v1") && !is.null(item$key_axis))
       if (is.null(output) || !isTRUE(output$required) ||
-          !identical(as.character(output$category)[1], "terminal_artifact") ||
-          !kind %in% c("cell_vector", "cell_vector_family") || !valid_shape)
+          !identical(as.character(output$category)[1], if (kind == "space")
+            "materialization" else "terminal_artifact") ||
+          !kind %in% c("space", "cell_vector", "cell_vector_family") ||
+          !valid_shape)
         fail(paste0("links an invalid output '", name, "'."))
+      if (kind == "space") {
+        terminals <- as.character(unlist(output$materialized_by_terminals %||%
+          list(), use.names = FALSE))
+        closure <- operation$promotion_closure %||% list()
+        if (!length(terminals) || !all(vapply(terminals, function(terminal)
+            !is.null(outputs[[terminal]]) &&
+              identical(as.character(outputs[[terminal]]$category)[1],
+                "terminal_artifact") &&
+              identical(as.character(outputs[[terminal]]$promotion_group)[1],
+                as.character(output$promotion_group)[1]) &&
+              name %in% as.character(unlist(closure[[terminal]] %||%
+                list(), use.names = FALSE)), logical(1))))
+          fail("does not close the derived space with its terminal summary.")
+      }
       groups <- c(groups, as.character(output$promotion_group)[1])
     }
     if (length(unique(groups)) != 1L)
@@ -319,6 +365,11 @@
       "PYBENCH_CAPABILITY_MISMATCH",
       "Derived-axis source is not a cell_vector.", "resolution")
     cells <- as.character(value$cell_id %||% character())
+  } else if (identical(projection, "space_cell_axis_v1")) {
+    if (!identical(kind, "space")) .wb_operation_pack_v3_error(
+      "PYBENCH_CAPABILITY_MISMATCH",
+      "Derived-axis source is not a space.", "resolution")
+    cells <- as.character(value$cell_id %||% rownames(value$values))
   } else {
     if (!identical(kind, "cell_vector_family") || is.null(selector_record))
       .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
@@ -337,7 +388,8 @@
 
 .wb_operation_pack_v3_g7_source_reference <- function(source, value,
     descriptor_identity, params, item = NULL, collection = NULL,
-    collection_item = NULL, reference = NULL) {
+    collection_item = NULL, reference = NULL, typed_grant = NULL,
+    resolved_ordinal = NULL) {
   projection <- as.character(source$projection)[1]
   selector <- if (identical(projection, "family_key_cell_axis_v1"))
     .wb_operation_pack_v3_g7_resolve_selector(source$family_key_selector,
@@ -345,8 +397,11 @@
   cells <- .wb_operation_pack_v3_g7_project_cells(value, projection, selector)
   order_id <- .wb_operation_pack_v3_g7_plain(
     "scworkbench.cell_order.v1", unname(as.list(cells)))
-  if (identical(as.character(source$mode)[1], "static_input_axis")) {
-    record <- list(source_mode = "static_input_axis",
+  if (as.character(source$mode)[1] %in% c("static_input_axis",
+      "static_typed_space_union_v1")) {
+    record <- list(source_mode = if (identical(as.character(source$mode)[1],
+      "static_typed_space_union_v1"))
+        "static_typed_space_input_axis_v1" else "static_input_axis",
       input_name = as.character(source$input)[1],
       input_descriptor_identity = .wb_operation_pack_v3_unscoped_identity(
         descriptor_identity),
@@ -356,6 +411,23 @@
           selector$source_axis_selector_identity),
       source_cell_count = as.integer(length(cells)),
       source_cell_order_identity = order_id)
+    if (identical(as.character(source$mode)[1],
+        "static_typed_space_union_v1")) {
+      if (is.null(typed_grant) || !identical(
+          as.character(typed_grant$input_name)[1], record$input_name) ||
+          !identical(as.character(unlist(typed_grant$full_source_cell_axis$
+            ordered_cell_ids, use.names = FALSE)), cells))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Derived source is not the authenticated complete typed-space axis.",
+          "resolution")
+      record$resolved_ordinal <- as.integer(resolved_ordinal)
+      record$typed_space_read_name <- as.character(typed_grant$name)[1]
+      record$typed_space_grant_identity <-
+        .wb_operation_pack_v3_unscoped_identity(typed_grant$grant_identity)
+      record$input_content_identity <- typed_grant$source_reference$
+        input_content_identity
+      record$source_dimension_count <- as.integer(typed_grant$dimension_count)
+    }
   } else {
     record <- list(source_mode = "g4_collection_member_axis",
       collection_name = as.character(source$collection)[1],
@@ -412,11 +484,11 @@
 }
 
 .wb_operation_pack_v3_g7_output_policy <- function(declaration, item,
-    inputs, params, input_records) {
+    inputs, params, input_records, typed_space_grants = list()) {
   key <- if (is.null(item$key_axis)) NULL else
     .wb_operation_pack_v3_g7_key_axis(item$key_axis, inputs, params,
       input_records)
-  list(schema = "scworkbench.operation_pack.derived_cell_linked_output_policy.v1",
+  policy <- list(schema = "scworkbench.operation_pack.derived_cell_linked_output_policy.v1",
     manifest_declaration_identity = .wb_operation_pack_v3_unscoped_identity(
       declaration$declaration_identity), derived_axis_name = declaration$name,
     shape = item$shape, row_order = item$row_order,
@@ -425,10 +497,19 @@
       key$identity,
     resolved_key_axis = if (is.null(key)) NULL else key$resolution,
     resolved_keys = if (is.null(key)) NULL else unname(as.list(key$keys)))
+  if (!is.null(item$dimension_source)) {
+    policy$dimension_source <- item$dimension_source
+    read <- typed_space_grants[[as.character(item$dimension_source$read)[1]]]
+    if (is.null(read)) .wb_operation_pack_v3_error(
+      "PYBENCH_CAPABILITY_MISMATCH",
+      "Linked space lacks its typed-space dimension source.", "resolution")
+    policy$dimension_count <- as.integer(read$dimension_count)
+  }
+  policy
 }
 
 .wb_operation_pack_v3_g7_prepare <- function(operation, inputs, input_records,
-    params, artifact_collections, output_records) {
+    params, artifact_collections, output_records, typed_space_grants = list()) {
   declarations <- .wb_operation_pack_v3_g7_declarations(operation)
   if (!length(declarations)) return(list(grants = list(), state = list()))
   collection_declarations <- stats::setNames(
@@ -447,6 +528,35 @@
         params)
       references <- list(built$record); cells <- list(built$cells)
       selectors <- list(built$selector)
+    } else if (identical(as.character(source$mode)[1],
+        "static_typed_space_union_v1")) {
+      read_names <- as.character(unlist(source$typed_space_reads,
+        use.names = FALSE))
+      for (i in seq_along(read_names)) {
+        typed <- typed_space_grants[[read_names[[i]]]]
+        if (is.null(typed)) .wb_operation_pack_v3_error(
+          "PYBENCH_CAPABILITY_MISMATCH",
+          "Derived source lacks its declared typed-space grant.",
+          "resolution")
+        input_name <- as.character(typed$input_name)[1]
+        member_source <- source
+        member_source$input <- input_name
+        built <- .wb_operation_pack_v3_g7_source_reference(member_source,
+          inputs[[input_name]], input_records[[input_name]]$
+            descriptor_identity, params, typed_grant = typed,
+          resolved_ordinal = i)
+        references[[i]] <- built$record; cells[[i]] <- built$cells
+        selectors[[i]] <- built$selector
+      }
+      dimensions <- vapply(references, `[[`, integer(1),
+        "source_dimension_count")
+      if (length(unique(dimensions)) != 1L || dimensions[[1L]] < 1L)
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Complete typed-space union sources have incompatible dimensions.",
+          "resolution")
+      if (anyDuplicated(unlist(cells, use.names = FALSE)))
+        .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+          "Complete typed-space union sources overlap.", "resolution")
     } else {
       collection_name <- as.character(source$collection)[1]
       collection <- artifact_collections$grants[[collection_name]]
@@ -498,7 +608,7 @@
     closure <- lapply(declaration$linked_outputs, function(item) {
       output <- output_records[[as.character(item$name)[1]]]
       policy <- output$descriptor$derived_cell_output_axis_policy
-      list(name = output$name, allocated_id = output$allocated_id,
+      result <- list(name = output$name, allocated_id = output$allocated_id,
         kind = output$descriptor$kind,
         ordinary_output_grant_identity =
           .wb_operation_pack_v3_unscoped_identity(
@@ -508,6 +618,12 @@
           policy$resolved_key_axis_policy_identity_or_null,
         promotion_group = operation$outputs[[match(output$name, vapply(
           operation$outputs, `[[`, character(1), "name"))]]$promotion_group)
+      if (!is.null(policy$dimension_source)) {
+        result$dimension_source <- policy$dimension_source
+        result$dimension_count <- as.integer(references[[1L]]$
+          source_dimension_count)
+      }
+      result
     })
     linked_closure <- list(manifest_declaration_identity =
         .wb_operation_pack_v3_unscoped_identity(
@@ -530,7 +646,9 @@
       grant$schema, "grant excluding grant_identity", grant)
     grants[[declaration$name]] <- grant
     states[[declaration$name]] <- list(cells = cells, selectors = selectors,
-      references = references)
+      references = references, dimension_count = if (identical(
+        as.character(source$mode)[1], "static_typed_space_union_v1"))
+          dimensions[[1L]] else NULL)
   }
   list(grants = grants, state = states)
 }
@@ -667,6 +785,14 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
       }
       flat <- unlist(selected, use.names = FALSE)
       membership <- unique(flat)
+      full_sources <- all(vapply(seq_along(selected), function(j)
+        identical(selected[[j]], private$cells[[j]]), logical(1)))
+      if (identical(as.character(grant$source_axes[[1L]]$source_mode)[1],
+          "static_typed_space_input_axis_v1") &&
+          (!full_sources || anyDuplicated(flat)))
+        .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+          "Typed-space union must include every source cell exactly once with no overlap.",
+          "audit")
       if (!length(flat) || !setequal(final, membership))
         .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
           "Declared final axis is not the exact selected union membership.",
@@ -741,6 +867,20 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
     grant$expected_row_count <- as.integer(length(cells))
     grant$row_order_identity <- .wb_operation_pack_v3_g7_plain(
       "scworkbench.row_order.v1", unname(as.list(cells)))
+  } else if (shape == "one_per_cell_space_v1") {
+    dimensions <- as.integer(vapply(sealed$grant$source_axes, `[[`,
+      integer(1), "source_dimension_count"))
+    if (length(unique(dimensions)) != 1L || dimensions[[1L]] < 1L ||
+        !identical(dimensions[[1L]], as.integer(policy$dimension_count)))
+      .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+        "Sealed space sources have incompatible dimensions.", "audit")
+    grant$dimension_source <- policy$dimension_source
+    grant$dimension_count <- dimensions[[1L]]
+    grant$expected_dimensions <- list(as.integer(length(cells)),
+      dimensions[[1L]])
+    grant$expected_row_count <- as.integer(length(cells))
+    grant$row_order_identity <- .wb_operation_pack_v3_g7_plain(
+      "scworkbench.row_order.v1", unname(as.list(cells)))
   } else if (bounded) {
     resolution <- policy$resolved_key_axis$resolution
     required <- as.character(unlist(resolution$required_keys,
@@ -778,7 +918,20 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
   ordinary$schema <- "scworkbench.operation_pack.output_cardinality_grant.v1"
   ordinary$cardinality_grant_identity <- grant$
     sealed_cardinality_grant_identity
-  observed <- .wb_operation_pack_v3_observe_cardinality(value, ordinary)
+  if (identical(as.character(grant$shape)[1],
+      "one_per_cell_space_v1")) {
+    actual_dimensions <- unname(as.list(as.integer(
+      .wb_operation_pack_v2_dimensions(value, "space"))))
+    if (!identical(actual_dimensions, grant$expected_dimensions))
+      .wb_operation_pack_v3_error("PYBENCH_OUTPUT_INVALID",
+        "Sealed space dimensions differ from the authenticated sources.",
+        "audit")
+    observed_value <- list(cell_id =
+      .wb_operation_pack_v2_primitive_cells(value),
+      value = as.vector(value$values))
+  } else observed_value <- value
+  observed <- .wb_operation_pack_v3_observe_cardinality(observed_value,
+    ordinary)
   observed$schema <-
     "scworkbench.operation_pack.observed_sealed_output_cardinality.v1"
   observed$sealed_cardinality_grant_identity <-
@@ -1038,6 +1191,12 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
           expected_link$row_order),
         output_missing_values = identical(sealed_grant$missing_values,
           expected_link$missing_values),
+        output_dimension_source = identical(
+          sealed_grant$dimension_source %||% NULL,
+          expected_link$dimension_source %||% NULL),
+        output_dimension_count = identical(
+          sealed_grant$dimension_count %||% NULL,
+          expected_link$dimension_count %||% NULL),
         output_key_axis = identical(
           sealed_grant$resolved_key_axis_policy_identity_or_null,
           expected_link$resolved_key_axis_policy_identity_or_null),
@@ -1122,6 +1281,32 @@ wb_derived_cell_output_axis_declaration <- function(grant, final_cell_ids,
       if (!identical(cells, states[[grant$name]]$cells[[1]]))
         .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
           "Derived-axis source changed after authentication.", "audit")
+    } else if (identical(as.character(source$mode)[1],
+        "static_typed_space_union_v1")) {
+      typed <- stats::setNames(request$typed_space_grants %||% list(),
+        vapply(request$typed_space_grants %||% list(), `[[`, character(1),
+          "name"))
+      definitions <- stats::setNames(operation$inputs, vapply(
+        operation$inputs, `[[`, character(1), "name"))
+      for (i in seq_along(grant$source_axes)) {
+        reference <- grant$source_axes[[i]]
+        input_name <- as.character(reference$input_name)[1]
+        read_name <- as.character(reference$typed_space_read_name)[1]
+        current <- .wb_operation_pack_v2_input_descriptor(input_name,
+          inputs[[input_name]], definitions[[input_name]])$descriptor
+        cells <- .wb_operation_pack_v3_g7_project_cells(
+          inputs[[input_name]], "space_cell_axis_v1")
+        if (!identical(.wb_operation_pack_v3_unscoped_identity(
+            current$descriptor_identity),
+            reference$input_descriptor_identity) ||
+            !identical(cells, states[[grant$name]]$cells[[i]]) ||
+            !identical(reference$typed_space_grant_identity,
+              .wb_operation_pack_v3_unscoped_identity(
+                typed[[read_name]]$grant_identity)))
+          .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+            "Complete typed-space union source changed after authentication.",
+            "audit")
+      }
     }
   }
   invisible(TRUE)

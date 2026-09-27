@@ -82,6 +82,7 @@
         setdiff(types, "string")))
     }
     op$provenance_reads <- NULL
+    op$producer_lineage_reads <- NULL
     op$typed_slice_reads <- NULL
     op$typed_space_reads <- NULL
     op$cell_selector_axes <- NULL
@@ -618,15 +619,51 @@
       "semantic_admission")
     for (read in space_reads) {
       input <- inputs[[as.character(read$input)[1]]]
-      parameter <- as.character(read$selection$parameter)[1]
+      selection_policy <- as.character(read$selection$policy)[1]
+      parameter <- as.character(read$selection$parameter %||% "")[1]
       chunk <- as.character(read$chunk_size_parameter)[1]
       if (is.null(input) || !identical(as.character(input$kind)[1],
-          "space") || !parameter %in% selector_parameters ||
+          "space") || !selection_policy %in% c(
+            "parameter_cell_selector_v1", "full_input_axis_v1") ||
+          (identical(selection_policy, "parameter_cell_selector_v1") &&
+            !parameter %in% selector_parameters) ||
+          (identical(selection_policy, "full_input_axis_v1") &&
+            nzchar(parameter)) ||
           !.wb_operation_pack_v3_param_is(properties, chunk, "integer"))
         .wb_operation_pack_v3_error(
           "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
           paste0("Operation '", opname,
             "' has an incompatible typed-space reader declaration."),
+          "semantic_admission")
+    }
+    lineage_reads <- operation$producer_lineage_reads %||% list()
+    lineage_names <- vapply(lineage_reads, function(x)
+      as.character(x$name)[1], character(1))
+    if (anyDuplicated(lineage_names) || length(intersect(lineage_names,
+        c(names(inputs), slice_names, space_names))))
+      .wb_operation_pack_v3_error(
+        "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+        paste0("Operation '", opname,
+          "' has duplicate or colliding producer-lineage readers."),
+        "semantic_admission")
+    for (read in lineage_reads) {
+      fields <- c(query_space_input = "space", summary_input = "obs_table",
+        model_input = "model_ref", fitted_space_input = "space")
+      names_in <- vapply(names(fields), function(field)
+        as.character(read[[field]])[1], character(1))
+      kinds <- vapply(names_in, function(name)
+        as.character(inputs[[name]]$kind %||% "")[1], character(1))
+      required <- vapply(names_in, function(name)
+        isTRUE(inputs[[name]]$required), logical(1))
+      if (anyDuplicated(names_in) || !all(required) || !identical(unname(kinds),
+          unname(fields)) || !identical(as.character(read$reader)[1],
+            "read_producer_transition_lineage") || !identical(
+              as.character(read$source_policy)[1],
+              "accepted_staged_or_retained_v1"))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          paste0("Operation '", opname,
+            "' has incompatible producer-lineage source declarations."),
           "semantic_admission")
     }
     for (policy in policies) {
@@ -831,6 +868,7 @@
       setdiff(types, "string")))
   }
   projected$provenance_reads <- NULL
+  projected$producer_lineage_reads <- NULL
   projected$typed_slice_reads <- NULL
   projected$typed_space_reads <- NULL
   projected$cell_selector_axes <- NULL
@@ -888,6 +926,17 @@
     definition$typed_slice_reads <- op$typed_slice_reads
   if (length(op$typed_space_reads %||% list()))
     definition$typed_space_reads <- op$typed_space_reads
+  full_space_reads <- Filter(function(read) identical(as.character(
+    read$selection$policy)[1], "full_input_axis_v1"),
+    op$typed_space_reads %||% list())
+  if (length(full_space_reads)) {
+    full_inputs <- unique(vapply(full_space_reads, function(read)
+      as.character(read$input)[1], character(1)))
+    # Each complete typed-space source has its own authenticated cell axis.
+    # The derived output seal, not effective-cell intersection, joins them.
+    definition$coverage[full_inputs] <- rep("reference_only",
+      length(full_inputs))
+  }
   if (length(op$contained_model_reads %||% list())) {
     model_inputs <- vapply(op$contained_model_reads, function(x)
       as.character(x$input)[1], character(1))
@@ -895,8 +944,9 @@
       rep("model_associated_unless_query_space", length(model_inputs))
   }
   if (length(op$self_linked_contained_model_reads %||% list()) &&
+      (length(op$producer_lineage_reads %||% list()) ||
       any(vapply(op$inputs, function(input) identical(
-        as.character(input$kind)[1L], "matrix"), logical(1)))) {
+        as.character(input$kind)[1L], "matrix"), logical(1))))) {
     model_inputs <- vapply(op$self_linked_contained_model_reads, function(x)
       as.character(x$input)[1L], character(1))
     # A transferred model is a reference authority, not a cell filter on the

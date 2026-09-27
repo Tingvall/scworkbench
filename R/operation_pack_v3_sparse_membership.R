@@ -96,18 +96,73 @@
         unname(as.list(as.numeric(values[i, ]))))))
 }
 
-.wb_operation_pack_v3_typed_space_grant <- function(declaration, input,
+.wb_operation_pack_v3_full_space_assert_current <- function(bundle, space_id,
+    expected_semantic_identity = NULL, cells = NULL,
+    expected_provenance_identity = NULL, phase = "resolution") {
+  observed <- tryCatch({
+    payload <- .wb_space_payload_registry_row(bundle, space_id,
+      required = FALSE)
+    if (nrow(payload) == 1L) {
+      path <- .wb_space_payload_path(bundle, payload, must_exist = TRUE)
+      .wb_space_payload_validate_file(path, expected = payload,
+        verify_hash = TRUE, validate_values = FALSE)
+    }
+    provenance <- .wb_prov_payload_identity(bundle, wb_prim_space(space_id))
+    semantic <- if (!is.null(cells)) .wb_operation_pack_v3_space_content(
+      wb_space(bundle, space_id, cells = cells), cells) else NULL
+    list(provenance = provenance, semantic = semantic)
+  }, error = identity)
+  if (inherits(observed, "error") ||
+      (!is.null(expected_semantic_identity) && !identical(
+        observed$semantic, expected_semantic_identity)) ||
+      (!is.null(expected_provenance_identity) && !identical(
+        list(scheme = as.character(observed$provenance$
+          content_identity_scheme)[1], sha256 = as.character(
+            observed$provenance$content_sha256)[1]),
+        expected_provenance_identity)))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Full typed-space source '", space_id,
+        "' differs from its authenticated content identity."), phase)
+  invisible(TRUE)
+}
+
+.wb_operation_pack_v3_full_space_sources_assert_current <- function(bundle,
+    request) {
+  for (grant in request$typed_space_grants %||% list()) {
+    if (is.null(grant$full_source_cell_axis)) next
+    source <- grant$source_reference
+    .wb_operation_pack_v3_full_space_assert_current(bundle,
+      as.character(source$space_id)[1],
+      expected_semantic_identity = source$selected_content_identity,
+      cells = as.character(unlist(grant$full_source_cell_axis$
+        ordered_cell_ids, use.names = FALSE)), phase = "audit")
+  }
+  invisible(TRUE)
+}
+
+.wb_operation_pack_v3_typed_space_grant <- function(bundle, declaration, input,
     input_record, params, transition_source_state_identity, stage_root) {
   name <- as.character(declaration$name)[1]
-  parameter <- as.character(declaration$selection$parameter)[1]
-  cells <- as.character(unlist(params[[parameter]], use.names = FALSE))
   available <- as.character(input$cell_id %||% rownames(input$values))
+  selection_policy <- as.character(declaration$selection$policy)[1]
+  parameter <- if (identical(selection_policy, "full_input_axis_v1")) NULL else
+    as.character(declaration$selection$parameter)[1]
+  if (identical(selection_policy, "full_input_axis_v1"))
+    .wb_operation_pack_v3_full_space_assert_current(bundle,
+      as.character(input$space_id)[1])
+  cells <- if (identical(selection_policy, "full_input_axis_v1")) available else
+    as.character(unlist(params[[parameter]], use.names = FALSE))
   if (!length(cells) || anyNA(cells) || any(!nzchar(cells)) ||
       anyDuplicated(cells) || length(setdiff(cells, available)))
     .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
       paste0("Typed-space axis '", name,
         "' is empty, duplicate, stale, or outside the source space."),
       "resolution")
+  if (identical(selection_policy, "full_input_axis_v1") &&
+      length(setdiff(cells, as.character(wb_cells(bundle, cell_set = "all")))))
+    .wb_operation_pack_v3_error("PYBENCH_INPUT_IDENTITY_MISMATCH",
+      paste0("Complete typed-space axis '", name,
+        "' contains cells outside the bundle universe."), "resolution")
   axis <- .wb_operation_pack_v3_axis_manifest("cells", cells, name,
     stage_root)
   chunk_parameter <- as.character(declaration$chunk_size_parameter)[1]
@@ -141,6 +196,12 @@
     max_rows = as.integer(min(requested, length(cells))),
     max_columns = dimensions, max_elements = as.double(min(requested,
       length(cells))) * as.double(dimensions))
+  if (identical(selection_policy, "full_input_axis_v1"))
+    grant$full_source_cell_axis <- list(
+      ordered_cell_ids = unname(as.list(cells)),
+      cell_count = as.integer(length(cells)),
+      cell_order_identity = .wb_operation_pack_v2_identity_plain(
+        "scworkbench.cell_order.v1", unname(as.list(cells))))
   grant$grant_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.typed_space_grant.v1",
     "grant excluding grant_identity", grant)

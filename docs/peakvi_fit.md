@@ -35,6 +35,6 @@ installing the pack, but they are not silently re-executed by the new pack.
 The old-core CPU comparator is retained as explicit migration evidence; the
 new pack is not claimed to reproduce legacy model bytes or coordinate hashes.
 
-`model_bound_latent_union` remains core-owned and is not ABI-v3-ready. Its
-migration and any pack-linked union workflow require separate authority
-design; this PeakVI ownership change does not make that path pack-native.
+The qualified `scwblatent::model_bound_latent_union` consumes a retained fitted
+model, its fitted space, and a paired PeakVI projection space and summary.
+Its authenticated typed-space readers preserve the scientific row-bind order.

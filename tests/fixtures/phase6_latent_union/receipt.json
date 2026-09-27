@@ -1,0 +1,765 @@
+{
+  "schema": "scworkbench.operation_pack.transition_receipt.v3",
+  "message_type": "receipt",
+  "process_protocol_version": "pybench-op-v4",
+  "pack_abi_version": "3",
+  "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "status": "ok",
+  "transition_id": "transition_cfj8umcsi8wxaxi2",
+  "session_id": "session_w60up7xb50zp",
+  "run_id": "run_s655boezdzqt",
+  "transition_identity": {
+    "scheme": "scworkbench.operation_pack.transition.v2",
+    "scope": "transition excluding transition_identity",
+    "sha256": "038b1b854e1f19ca751f7b76dc900cdd7ce051e6ae6af34ec63beb615e42697d"
+  },
+  "request_identity": {
+    "scheme": "scworkbench.operation_pack.transition_request.v3",
+    "scope": "request excluding request_identity",
+    "sha256": "768b677eb115ac16faefe5a24e9b9a58785f4d8e469f0bee403a85a9afcd7759"
+  },
+  "capability_identity": {
+    "scheme": "scworkbench.operation_pack.capability.v3",
+    "scope": "capability excluding capability_identity",
+    "sha256": "16caa3bf07463df23c4edb0cc2c1374d13475981f40b7f6758b2def77cce7e3f"
+  },
+  "outputs": [
+    {
+      "name": "space",
+      "allocated_id": "stage_probe_joint",
+      "descriptor": {
+        "category": "materialization",
+        "kind": "space",
+        "storage_profile": "space_file_backed_hdf5_v1",
+        "writer": "write_space",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "bdb87b18cda94ebb57403b33754fce7aad085734a9834ffc6d34d358db36d10d"
+        },
+        "dimensions": [
+          32,
+          2
+        ],
+        "alignment": "cell_ordered",
+        "ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "3f75916ef5a1a461c8ac5e250eeca8bc7376ef947658e000b2c78ff09dd04db1"
+        },
+        "model_linkage": {
+          "mode": "none"
+        },
+        "content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "9075f810e80d3bf5e622e780c37f60c1c23ccf0ace7ba63a954d55f79d6645d0"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "sha256": "14552b508f122ff4cb6aafbc5e5d738374ea09c55a69e70a0877e8b2df38d2d8"
+        },
+        "semantic_metadata_identity": {
+          "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "semantic_validation": {
+          "constraints_identity": {
+            "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+            "sha256": "4ea5ae82ec5ed3afb7109125b8b58f4ad5df4068ec8e8e187c423e64d0d22a93"
+          },
+          "status": "passed"
+        },
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "62d108ddc168e525485ddfed1f1d400121312af5510e6872ce8c1cd3616d9438"
+        },
+        "sealed_axis_identity": {
+          "scheme": "scworkbench.operation_pack.sealed_derived_cell_axis.v1",
+          "sha256": "f4bcc8d56058769f9020edfa23350908e71cbb9bc6693c7483bbf9833ff50a2c"
+        },
+        "sealed_output_cardinality_grant": {
+          "schema": "scworkbench.operation_pack.sealed_output_cardinality_grant.v1",
+          "ordinary_output_grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "sha256": "bdb87b18cda94ebb57403b33754fce7aad085734a9834ffc6d34d358db36d10d"
+          },
+          "manifest_declaration_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+            "sha256": "9e4ed8def0843f7abc64e136d24eea5cc7a7a628731be568232428b519028c63"
+          },
+          "pack_declaration_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_output_axis_declaration.v1",
+            "sha256": "0e54c0e22712525fc0ad6bf0cc79570b2291342e56c3e3e720e914704ca671d9"
+          },
+          "derived_axis_grant_identity": {
+            "scheme": "scworkbench.operation_pack.authenticated_derived_cell_output_axis_grant.v1",
+            "sha256": "f70db458ee8e3ef8c7c32f3789f0709065378ff3b515f35c130b39e3c5db8b31"
+          },
+          "sealed_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sealed_derived_cell_axis.v1",
+            "sha256": "f4bcc8d56058769f9020edfa23350908e71cbb9bc6693c7483bbf9833ff50a2c"
+          },
+          "output": "space",
+          "kind": "space",
+          "shape": "one_per_cell_space_v1",
+          "row_order": "sealed_cell_axis_order_v1",
+          "missing_values": "forbidden",
+          "resolved_key_axis_policy_identity_or_null": null,
+          "cell_axis_count": 32,
+          "cell_axis_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "62d108ddc168e525485ddfed1f1d400121312af5510e6872ce8c1cd3616d9438"
+          },
+          "dimension_source": {
+            "mode": "typed_space_read_v1",
+            "read": "reference_chunks"
+          },
+          "dimension_count": 2,
+          "expected_dimensions": [
+            32,
+            2
+          ],
+          "expected_row_count": 32,
+          "row_order_identity": {
+            "scheme": "scworkbench.row_order.v1",
+            "sha256": "62d108ddc168e525485ddfed1f1d400121312af5510e6872ce8c1cd3616d9438"
+          },
+          "sealed_cardinality_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sealed_output_cardinality_grant.v1",
+            "scope": "grant excluding sealed_cardinality_grant_identity",
+            "sha256": "0bf30397cfcd63a1a481ec157e44dea490c6b2e853174bf2abe0a4c7b899fdac"
+          }
+        },
+        "observed_sealed_output_cardinality": {
+          "schema": "scworkbench.operation_pack.observed_sealed_output_cardinality.v1",
+          "shape": "one_per_cell_space_v1",
+          "observed_row_count": 32,
+          "observed_cell_axis_count": 32,
+          "observed_cell_axis_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "62d108ddc168e525485ddfed1f1d400121312af5510e6872ce8c1cd3616d9438"
+          },
+          "observed_row_order_identity": {
+            "scheme": "scworkbench.row_order.v1",
+            "sha256": "62d108ddc168e525485ddfed1f1d400121312af5510e6872ce8c1cd3616d9438"
+          },
+          "missing_count": 0,
+          "semantic_validation": "passed",
+          "sealed_cardinality_grant_identity": {
+            "scheme": "scworkbench.operation_pack.sealed_output_cardinality_grant.v1",
+            "scope": "grant excluding sealed_cardinality_grant_identity",
+            "sha256": "0bf30397cfcd63a1a481ec157e44dea490c6b2e853174bf2abe0a4c7b899fdac"
+          },
+          "sealed_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sealed_derived_cell_axis.v1",
+            "sha256": "f4bcc8d56058769f9020edfa23350908e71cbb9bc6693c7483bbf9833ff50a2c"
+          },
+          "observed_sealed_cardinality_identity": {
+            "scheme": "scworkbench.operation_pack.observed_sealed_output_cardinality.v1",
+            "scope": "observation excluding observed_sealed_cardinality_identity",
+            "sha256": "f70cc19951d01208ce3597e48f72e793c6a0f727da3887c4ab128f33cfe0dd8e"
+          }
+        },
+        "observed_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.observed_output.v3",
+          "scope": "descriptor excluding observed_descriptor_identity",
+          "sha256": "eded6256dded8229aed04cdd2fac63ccfa7908135eb99029bc77045098b57322"
+        }
+      }
+    },
+    {
+      "name": "union_summary",
+      "allocated_id": "model_bound_union_summary_id_4vwwvlvdfbkt",
+      "descriptor": {
+        "category": "terminal_artifact",
+        "kind": "obs_table",
+        "storage_profile": "terminal_primitive_v1",
+        "writer": "write_terminal_primitive",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "83d961a87d0e5ad4f81aa493a8ffc1be647e53e6226bb01cc42d07c32e70d058"
+        },
+        "dimensions": [
+          1,
+          14
+        ],
+        "alignment": "none",
+        "ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "ee1a15087332c6af071d37040b1dec7338c3a1b0893c9f2fe2d46b7b3b29ce9d"
+        },
+        "model_linkage": {
+          "mode": "none"
+        },
+        "content_identity": {
+          "scheme": "scworkbench.obs_table.content.v1",
+          "sha256": "94be5788273c2a016af733799e855fdfdd7c00984190a2e0fdf189cb8f569fa2"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "sha256": "4502e74dda237d1ef6ced0020826b3ecdc6d54a1274fbb5088d946f762b82337"
+        },
+        "semantic_metadata_identity": {
+          "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "semantic_validation": {
+          "constraints_identity": {
+            "scheme": "scworkbench.operation_pack.semantic_constraints.v2",
+            "sha256": "70db03b2a2c3f2aa902b9846fff5d420e4faae3945f25f1edaf8580c9c09b7c3"
+          },
+          "status": "passed"
+        },
+        "observed_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.observed_output.v3",
+          "scope": "descriptor excluding observed_descriptor_identity",
+          "sha256": "5f484f1849f6b32e1a8f54a8848fd1803b13fff32d7dd49642df39cd2b444ce3"
+        }
+      }
+    }
+  ],
+  "registry_requests": [],
+  "mutation_manifest": {
+    "entries_identity": {
+      "scheme": "scworkbench.operation_pack.mutation_entries.v2",
+      "sha256": "c9a7f869d023ebcd501bee7a8cf248dfa0a41be759098b0541fd05850ec71b2d"
+    },
+    "entry_count": 2,
+    "unexpected_entries": 0,
+    "mutation_identity": {
+      "scheme": "scworkbench.operation_pack.mutation_manifest.v2",
+      "scope": "mutation manifest excluding mutation_identity",
+      "sha256": "cb4042936d35a1f7c22916f99c15d6a8cfef97662c0e3ef9d0c000f5cac6c6e2"
+    }
+  },
+  "runtime_attestation": {
+    "schema": "scworkbench.operation_pack.runtime.v3",
+    "backend": "R",
+    "pack_identity": {
+      "scheme": "scworkbench.operation_pack.pack.v3",
+      "sha256": "be23341fc2c230fdda4195425040a5e70bd1e680bb04f8b06347d53785dea6e7"
+    },
+    "manifest_source_identity": {
+      "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+      "sha256": "f8c1b2f3293f06d4c72d0126a074b2dc1a862bb812651977e5026e71e030e393"
+    },
+    "distribution_identity": {
+      "scheme": "scworkbench.operation_pack.content.v1",
+      "sha256": "62a7913883b6ace7ad180e46125a3f54dda192b471cb0a4d1981dd943e5b4cde"
+    },
+    "operation_definition_identity": {
+      "scheme": "scworkbench.operation_pack.definition.v3",
+      "sha256": "1ed769b77455df46269ba2a0e8fe45c86f033cab5839c62863407036c52e3e8b"
+    },
+    "entry_point": {
+      "value": "scwbLatent::register_operation_pack",
+      "identity": {
+        "scheme": "scworkbench.operation_pack.entry_point.v2",
+        "sha256": "7db6de0fa7e77d9f1f9752f62f1fb8ec0650cbf81de877015497b2724e512ed2"
+      }
+    },
+    "declared_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "9bfd12b465577cae7f73db043bf13923975f0376060880e192b742d233bef874"
+    },
+    "selected_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "9bfd12b465577cae7f73db043bf13923975f0376060880e192b742d233bef874"
+    },
+    "dynamic_resolutions": [],
+    "preflight_report_identity": {
+      "scheme": "scworkbench.operation_pack.preflight.v2",
+      "sha256": "10e361a70c44679c9492e44610216204d5e15a9881977c06f787a5b9211f964c"
+    },
+    "path_policy": "no_absolute_paths",
+    "runtime_identity": {
+      "scheme": "scworkbench.operation_pack.runtime.v3",
+      "scope": "runtime attestation excluding runtime_identity",
+      "sha256": "e8d7ef95abcb3a12b8e08f11c63d52790ce059d93045450dca8386c041042f94"
+    }
+  },
+  "producer_lineage_reads": [
+    {
+      "schema": "scworkbench.operation_pack.producer_lineage_read_observation.v1",
+      "name": "projection_lineage",
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.producer_lineage_grant.v1",
+        "sha256": "bc11894cf5b862ecd6d7bf5a2ebf66ff413715db2a8dcee9d7f61136f501bfd1"
+      },
+      "use_count": 1,
+      "observation_identity": {
+        "scheme": "scworkbench.operation_pack.producer_lineage_read_observation.v1",
+        "scope": "observation excluding observation_identity",
+        "sha256": "ae94aaa8860d6b2d2c0e0740765eada8c50aca194da84509c1fb1bde5f8bbe04"
+      }
+    }
+  ],
+  "typed_space_usage": [
+    {
+      "schema": "scworkbench.operation_pack.typed_space_usage.v1",
+      "request_identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v3",
+        "sha256": "768b677eb115ac16faefe5a24e9b9a58785f4d8e469f0bee403a85a9afcd7759"
+      },
+      "capability_identity": {
+        "scheme": "scworkbench.operation_pack.capability.v3",
+        "sha256": "16caa3bf07463df23c4edb0cc2c1374d13475981f40b7f6758b2def77cce7e3f"
+      },
+      "operation_definition_identity": {
+        "scheme": "scworkbench.operation_pack.definition.v3",
+        "sha256": "1ed769b77455df46269ba2a0e8fe45c86f033cab5839c62863407036c52e3e8b"
+      },
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+        "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+      },
+      "calls": [
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+          },
+          "ordinal": 1,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "ab235630b2e1ed41798ef2a4ff2a3c089545e251b9d8ce75cc35cdf8df69b387"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "4adea5c6ea41ccc8aa3aab7dec3449fa210e6579cba079be4359910c6cbaae30"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "85742d334e5b8e1bbd91b7061cb7477d74e069d2dee156abaacd807de9ef0056"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "4fc42fd0b0c41c94a68edd50d4ddb7846168e96d8eef8b83bf79121d77bfb225"
+          }
+        },
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+          },
+          "ordinal": 2,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "eca9d3d2557eb1e58cb15777c8981861b9ff4ffc17757ee46b7746afe5053d8a"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "80e69ca8dbab3f0c9e9586eb7e5b578f594c639a0efff036d8ffcfbe9b41c8b0"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "181777225825cd240b3e16b35af7c9a48632bcb21493e2e14dc32e434f67c6b9"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "cd9825329207305d414fd08646b89379268f99be322b8d223b8f37667b497b8c"
+          }
+        },
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+          },
+          "ordinal": 3,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "1d255c706c6f810039cff9bdb0207988af8e13a52d6a778afeb33cd5af5659f1"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "c9de518f72dbb309ae71d8a816a983b5063506defb79d7e96df6d423e8123399"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "42197580f7bdf74e280b1b4514fad1fafa0178db9f14d706c36a23f3871907a7"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "978b267b088926cba90447860bd44534e153ecc6d2b3028d8a00676eb26738eb"
+          }
+        },
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+          },
+          "ordinal": 4,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "9805c96eb9f72c358d35ee6d67e0cb25ef817aa9eb32104c62d8a257f2b3bd2b"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "86495cf5d98e5ef431d0426284ae70162f6b2e13cc6a7ce9fbd285c788e4f24d"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "4f739e82d05b85560756d73ee07ef6d1329329ffadb31dd735ad72349c18ad06"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "daf6ae2a24b797274c145b701b22019190b0bf251e0e39eae2d6e740f49a3ac0"
+          }
+        },
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+          },
+          "ordinal": 5,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "306b6f63bfee25077bf8d3f0af3e3b16adb450292acc4b16561d65bd6555ba0c"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "876d7e00d2eb7feff97de5794ec42e17d965fbaed9fb6f34797c0f4943891ff2"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "2235b9e217eb280b3af295d17e73ea04bbb29fabe85f2b7648b4238bcea20be1"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "55cecc5b37646ca01fa50d690bbc0194f46e0e48dcf90755b635991c3c06611b"
+          }
+        },
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+          },
+          "ordinal": 6,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "c328b1629e7c606ac39f770c52ce7d51ff47502959d031417c2bb3d1fb94e9f4"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "10dacef8ce4ada7c9729e6e9c540e4389d08e7d87d95a19b1689c3b4834aa601"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "073b0ee7fb6f34c5508dcd30cfeae4983d741c5f3702be19065029593dc3a59b"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "a05a11ed89d15f807e90cfe70eca281ec6a8466f49d931c26fc1f01544f7648e"
+          }
+        }
+      ],
+      "call_count": 6,
+      "concatenated_cell_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "1c51e124e00c665731d0a702c6a6bf496026da87fa781320b3ef414a3947d37a"
+      },
+      "coverage_status": "exact",
+      "usage_identity": {
+        "scheme": "scworkbench.operation_pack.typed_space_usage.v1",
+        "scope": "usage excluding usage_identity",
+        "sha256": "2b9a773fb0f1d17e35b7af6369adfdf58983a0591d2fb18a545900a0b64bd831"
+      }
+    },
+    {
+      "schema": "scworkbench.operation_pack.typed_space_usage.v1",
+      "request_identity": {
+        "scheme": "scworkbench.operation_pack.transition_request.v3",
+        "sha256": "768b677eb115ac16faefe5a24e9b9a58785f4d8e469f0bee403a85a9afcd7759"
+      },
+      "capability_identity": {
+        "scheme": "scworkbench.operation_pack.capability.v3",
+        "sha256": "16caa3bf07463df23c4edb0cc2c1374d13475981f40b7f6758b2def77cce7e3f"
+      },
+      "operation_definition_identity": {
+        "scheme": "scworkbench.operation_pack.definition.v3",
+        "sha256": "1ed769b77455df46269ba2a0e8fe45c86f033cab5839c62863407036c52e3e8b"
+      },
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+        "sha256": "a9ae15316f67461556390a7b1665267aa27ddf3a24984c71a5abd4cae0275306"
+      },
+      "calls": [
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "a9ae15316f67461556390a7b1665267aa27ddf3a24984c71a5abd4cae0275306"
+          },
+          "ordinal": 1,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "f46b3be923472c91a031374937acd1370600c07daf482212e6914eac06017ee2"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "88a3ad19f2fda94edba5bc7924579e3033384799a47c1581fb2d914aadfe9c39"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "e1a65af6a6e2685cfe8a3c221b6c44ae2f9fbf5ef3fe580a0a9ef747054e9996"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "82f3466c0a69c0d22815c94327fcdd0aa124a3ceeeb660faf16ff560c32c0309"
+          }
+        },
+        {
+          "schema": "scworkbench.operation_pack.observed_typed_space_call.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "a9ae15316f67461556390a7b1665267aa27ddf3a24984c71a5abd4cae0275306"
+          },
+          "ordinal": 2,
+          "cell_count": 4,
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "fb2fbeb8c8c66a6b3b94c9a2abc33eef6596d960cb1eef63655b75291ad86961"
+          },
+          "dimensions": [
+            4,
+            2
+          ],
+          "semantic_content_identity": {
+            "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+            "sha256": "5c7df57ade9af9a080b5a6514aaf1cda77f773e926162f62675bb2124570f735"
+          },
+          "space_result_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_result.v1",
+            "scope": "space result excluding space_result_identity",
+            "sha256": "2c2b1fa2ced6631d043bcfa91fcd45bd5cc867cffcecfb6ba7a202e481d71510"
+          },
+          "call_identity": {
+            "scheme": "scworkbench.operation_pack.observed_typed_space_call.v1",
+            "scope": "call excluding call_identity",
+            "sha256": "5e6134608d2cb4f4fe16dfe2775d0157b1379fc665fcb1102b8b94926f4ed072"
+          }
+        }
+      ],
+      "call_count": 2,
+      "concatenated_cell_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "fbf46e3395f7df48a3869c7da8c1c85176e5dafc7d79f1c6ee5803743a85242e"
+      },
+      "coverage_status": "exact",
+      "usage_identity": {
+        "scheme": "scworkbench.operation_pack.typed_space_usage.v1",
+        "scope": "usage excluding usage_identity",
+        "sha256": "f7486f5b1ea11633e0abf42d052be53677c31ded73fa9c24dab17a32e86ec4ac"
+      }
+    }
+  ],
+  "self_linked_model_payload_reads": [
+    {
+      "schema": "scworkbench.operation_pack.observed_self_linked_contained_model_read.v1",
+      "name": "fitted_model",
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+        "scope": "grant excluding grant_identity",
+        "sha256": "09d646a11d81af93584108e857d437f1539f42ad09ef0d66692369d5027206c1"
+      },
+      "input_descriptor_identity": {
+        "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+        "sha256": "6c0d89c5f7797f1cda10c8da74bd9db7f5faa6faaf9d7adff5a5b2ff7b9de5d2"
+      },
+      "model_source_linkage_identity": {
+        "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+        "sha256": "a8ca4b686836448891a9108824edbeb6c2e87caf05aabb29faaf33ac634b8b1b"
+      },
+      "tree_manifest_identity": {
+        "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+        "sha256": "1202812f672fa52e647bf52953d374ca6f1e51d917e5f1581176a3f74c655f65"
+      },
+      "payload_manifest_identity": {
+        "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+        "sha256": "a6a868caac9951badd75ee411abe3edb1f74ad8ed8ff9fa9c59199f5723a4ab3"
+      },
+      "engine": "peakvi",
+      "model_type": "peakvi",
+      "use_count": 1,
+      "integrity_status": "unchanged",
+      "observation_identity": {
+        "scheme": "scworkbench.operation_pack.observed_self_linked_contained_model_read.v1",
+        "scope": "self_linked_model_read_observation excluding observation_identity",
+        "sha256": "2d998ebb23c539be7cf105faca2e96465d49412267d86dc3a123f3524970bc49"
+      }
+    }
+  ],
+  "derived_cell_output_axis_observations": [
+    {
+      "schema": "scworkbench.operation_pack.derived_cell_output_axis_observation.v1",
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.authenticated_derived_cell_output_axis_grant.v1",
+        "sha256": "f70db458ee8e3ef8c7c32f3789f0709065378ff3b515f35c130b39e3c5db8b31"
+      },
+      "source_axis_aggregate_identity": {
+        "scheme": "scworkbench.operation_pack.derived_cell_source_axis_aggregate.v1",
+        "sha256": "4ec22c92c604272ee68cd5be6623596f5eddecd8ec22d1b5423b3cef518488c4"
+      },
+      "pack_declaration_identity": {
+        "scheme": "scworkbench.operation_pack.derived_cell_output_axis_declaration.v1",
+        "sha256": "0e54c0e22712525fc0ad6bf0cc79570b2291342e56c3e3e720e914704ca671d9"
+      },
+      "derivation_identity": {
+        "scheme": "scworkbench.operation_pack.derived_cell_axis_derivation.v1",
+        "sha256": "99a45f4d1c35fcb7ae179f7091f493d39259b52fbd4eec1ea4c2bbc9d866ad04"
+      },
+      "sealed_axis_identity": {
+        "scheme": "scworkbench.operation_pack.sealed_derived_cell_axis.v1",
+        "sha256": "f4bcc8d56058769f9020edfa23350908e71cbb9bc6693c7483bbf9833ff50a2c"
+      },
+      "declaration_count": 1,
+      "seal_status": "sealed",
+      "derivation_mode": "declared_ordered_unique_union_v1",
+      "source_axis_count": 2,
+      "source_membership_count": 32,
+      "aggregate_selected_count": 32,
+      "overlap_collapse_count": 0,
+      "final_cell_count": 32,
+      "final_cell_order_identity": {
+        "scheme": "scworkbench.cell_order.v1",
+        "sha256": "62d108ddc168e525485ddfed1f1d400121312af5510e6872ce8c1cd3616d9438"
+      },
+      "linked_output_closure_identity": {
+        "scheme": "scworkbench.operation_pack.derived_cell_linked_output_closure.v1",
+        "sha256": "afdd3bfa563a1211a6f00aa7e4f12a5b95d164f5c4eaf1e832ac0ca6b2209901"
+      },
+      "linked_outputs": [
+        {
+          "name": "space",
+          "ordinary_output_grant_identity": {
+            "scheme": "scworkbench.operation_pack.output_grant.v3",
+            "sha256": "bdb87b18cda94ebb57403b33754fce7aad085734a9834ffc6d34d358db36d10d"
+          },
+          "sealed_cardinality_observation_identity": {
+            "scheme": "scworkbench.operation_pack.observed_sealed_output_cardinality.v1",
+            "sha256": "f70cc19951d01208ce3597e48f72e793c6a0f727da3887c4ab128f33cfe0dd8e"
+          },
+          "observed_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.observed_output.v3",
+            "sha256": "eded6256dded8229aed04cdd2fac63ccfa7908135eb99029bc77045098b57322"
+          },
+          "content_identity": {
+            "scheme": "scworkbench.space.content.v1",
+            "sha256": "9075f810e80d3bf5e622e780c37f60c1c23ccf0ace7ba63a954d55f79d6645d0"
+          },
+          "observed_sealed_cell_axis_identity": {
+            "scheme": "scworkbench.operation_pack.sealed_derived_cell_axis.v1",
+            "sha256": "f4bcc8d56058769f9020edfa23350908e71cbb9bc6693c7483bbf9833ff50a2c"
+          }
+        }
+      ],
+      "exact_linked_output_coverage": "passed",
+      "semantic_validation": "passed",
+      "observation_identity": {
+        "scheme": "scworkbench.operation_pack.derived_cell_output_axis_observation.v1",
+        "scope": "observation excluding observation_identity",
+        "sha256": "63a7018a143d2d1c36a7a9d8546c01d168b2e7cf5c48d7b164b3e8e9aa74d085"
+      }
+    }
+  ],
+  "publication_observations": [
+    {
+      "schema": "scworkbench.operation_pack.observed_materialization_publication.v1",
+      "publication_grant_identity": {
+        "scheme": "scworkbench.operation_pack.materialization_publication_grant.v1",
+        "sha256": "87d5a930f75b09aa3e0ce149d8d1f587a96709e2322ca2e474318ae0744c6fb4"
+      },
+      "mode": "add",
+      "preimage_identity": {
+        "scheme": "scworkbench.operation_pack.materialization_preimage.v1",
+        "sha256": "2cff2ae47a610c95df5de6f9a9cd2f57ef5f167c015cbfdd201d53a73859b4a2"
+      },
+      "output_observed_descriptor_identity": {
+        "scheme": "scworkbench.operation_pack.observed_output.v3",
+        "sha256": "eded6256dded8229aed04cdd2fac63ccfa7908135eb99029bc77045098b57322"
+      },
+      "closure_output_identities": [
+        {
+          "name": "space",
+          "observed_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.observed_output.v3",
+            "sha256": "eded6256dded8229aed04cdd2fac63ccfa7908135eb99029bc77045098b57322"
+          }
+        },
+        {
+          "name": "union_summary",
+          "observed_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.observed_output.v3",
+            "sha256": "5f484f1849f6b32e1a8f54a8848fd1803b13fff32d7dd49642df39cd2b444ce3"
+          }
+        }
+      ],
+      "status": "validated_not_published",
+      "observation_identity": {
+        "scheme": "scworkbench.operation_pack.observed_materialization_publication.v1",
+        "scope": "observation excluding observation_identity",
+        "sha256": "e647cd41d4b5409fe9d296927719ca631e34f79e1ada3363961d24d9a3e7560b"
+      }
+    }
+  ],
+  "receipt_identity": {
+    "scheme": "scworkbench.operation_pack.transition_receipt.v3",
+    "scope": "receipt excluding receipt_identity",
+    "sha256": "785cc679f85ef5492cb1c2d304f6ba27fb910bbf088949666c495d22cf99e0e4"
+  }
+}

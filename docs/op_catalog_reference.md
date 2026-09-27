@@ -4,7 +4,7 @@
 
 Generated at: source-controlled
 
-Operation count: 7
+Operation count: 6
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
@@ -221,31 +221,3 @@ Replay equivalence:
 
 Key parameters:
 - `source` (entity_ref, default=NULL): Registered external_source reference for the object from which the selected Slingshot fit was extracted.
-
-## `model_bound_latent_union`
-
-Title: Model-Bound Latent-Space Union
-
-Intent: latent, integration, projection, provenance
-
-Description: Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
-
-Consumes:
-- `reference_space`: space
-- `query_space`: space
-- `model`: model_ref
-- `projection_summary`: obs_table
-- `cell_set`: select
-
-Produces:
-- `space`: space [materialization; committed by: union_summary] - Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.
-- `union_summary`: obs_table [terminal artifact] - Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.
-
-Promotable outputs: union_summary
-
-Replay equivalence:
-- `space`: `exact_canonical_value`
-- `union_summary`: `exact_canonical_value`
-
-Key parameters:
-- `space_id_out` (string, default=model_bound_latent_union): New durable space identity for the unchanged row-wise coordinate union.

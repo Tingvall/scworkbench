@@ -2,11 +2,11 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 103
+Record count: 102
 
-Meaningful public transformations: 57
+Meaningful public transformations: 56
 
-Exported directly guarded functions: 20
+Exported directly guarded functions: 19
 
 Exactly-one-route invariant: PASS
 
@@ -345,20 +345,6 @@ Durable mutation: false
 Boundary: `pure`
 
 Supported route: `direct_pure_computation`
-
-## `wb_op_model_bound_latent_union`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: true
-
-Boundary: `guarded_implementation`
-
-Supported route: `registered_session_execution_and_promotion`
 
 ## `wb_op_slingshot_adopt`
 

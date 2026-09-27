@@ -1,8 +1,8 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 277,
-  "edge_count": 405,
+  "node_count": 276,
+  "edge_count": 397,
   "nodes": [
     {
       "record_id": "op:chromvar",
@@ -39,12 +39,6 @@
       "record_type": "op",
       "name": "slingshot_adopt",
       "title": "Adopt an existing Slingshot fit"
-    },
-    {
-      "record_id": "op:model_bound_latent_union",
-      "record_type": "op",
-      "name": "model_bound_latent_union",
-      "title": "Model-Bound Latent-Space Union"
     },
     {
       "record_id": "getter:wb_status",
@@ -2021,54 +2015,6 @@
       "to": "artifact_type:model_ref",
       "edge_type": "promotes_as",
       "label": "promotable:model"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:model_bound_latent_union",
-      "edge_type": "consumed_by",
-      "label": "input:reference_space"
-    },
-    {
-      "from": "primitive:space",
-      "to": "op:model_bound_latent_union",
-      "edge_type": "consumed_by",
-      "label": "input:query_space"
-    },
-    {
-      "from": "primitive:model_ref",
-      "to": "op:model_bound_latent_union",
-      "edge_type": "consumed_by",
-      "label": "input:model"
-    },
-    {
-      "from": "op:model_bound_latent_union",
-      "to": "parameter:model",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:model"
-    },
-    {
-      "from": "primitive:obs_table",
-      "to": "op:model_bound_latent_union",
-      "edge_type": "consumed_by",
-      "label": "input:projection_summary"
-    },
-    {
-      "from": "op:model_bound_latent_union",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:model_bound_latent_union",
-      "to": "primitive:space",
-      "edge_type": "produces",
-      "label": "output:space"
-    },
-    {
-      "from": "op:model_bound_latent_union",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:union_summary"
     },
     {
       "from": "artifact_type:cell_vector",

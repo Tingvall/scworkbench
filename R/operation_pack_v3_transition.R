@@ -817,6 +817,9 @@
     stage_root, g1_model_inputs = g1_model_inputs)
   ancestry_inputs <- unique(vapply(operation$provenance_reads %||% list(),
     function(x) as.character(x$input)[1], character(1)))
+  ancestry_inputs <- unique(c(ancestry_inputs, vapply(
+    operation$producer_lineage_reads %||% list(), function(x)
+      as.character(x$summary_input)[1], character(1))))
   for (i in seq_along(base$inputs)) {
     name <- as.character(base$inputs[[i]]$name)[1]
     if (name %in% ancestry_inputs &&
@@ -927,7 +930,7 @@
   typed_space_grants <- lapply(operation$typed_space_reads %||% list(),
     function(declaration) {
       input_name <- as.character(declaration$input)[1]
-      .wb_operation_pack_v3_typed_space_grant(declaration,
+      .wb_operation_pack_v3_typed_space_grant(bundle, declaration,
         inputs[[input_name]], input_records[[input_name]], params,
         base$execution_capability$source_state_identity, stage_root)
     })
@@ -964,10 +967,11 @@
       descriptor$derived_cell_output_axis_policy <-
         .wb_operation_pack_v3_g7_output_policy(
           g7_linked[[name]]$declaration, g7_linked[[name]]$policy,
-          inputs, params, input_records)
+          inputs, params, input_records, typed_space_grants)
       descriptor$expected_dimensions <- if (identical(
         as.character(outputs[[name]]$kind)[1], "cell_vector")) list(0L) else
-          list(0L, 3L)
+          if (identical(as.character(outputs[[name]]$kind)[1], "space"))
+            list(0L, 0L) else list(0L, 3L)
       descriptor["expected_cell_order_identity"] <- list(NULL)
     }
     if (!is.null(policy) && identical(as.character(policy$policy)[1],
@@ -1193,7 +1197,8 @@
     operation, inputs, input_records, params, output_records,
     base$transition$transition_identity)
   derived_axes <- .wb_operation_pack_v3_g7_prepare(operation, inputs,
-    input_records, params, artifact_collections, output_records)
+    input_records, params, artifact_collections, output_records,
+    typed_space_grants)
 
   relation_grants <- list()
   if (length(relation_policy)) {
@@ -1220,6 +1225,9 @@
 
   provenance <- .wb_operation_pack_v3_provenance_read_records(bundle,
     operation, inputs, source_refs, input_records, params, stage_root)
+  producer_lineage <- .wb_operation_pack_v3_producer_lineage_records(bundle,
+    operation, inputs, source_refs, input_records,
+    base$execution_capability$source_state_identity)
   identity <- registration$identity
   op_name <- as.character(operation$qualified_name)[1]
   capability <- base$execution_capability
@@ -1246,6 +1254,9 @@
     lapply(provenance$records, function(x) list(
       provenance_read_name = x$name, reader = x$reader,
       descriptor_identity = x$descriptor_identity)),
+    lapply(producer_lineage, function(x) list(
+      producer_lineage_read_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
     lapply(model_reads$grants, function(x) list(
       model_payload_name = x$name, reader = x$reader,
       grant_identity = x$grant_identity)),
@@ -1290,6 +1301,10 @@
     lapply(provenance$records, function(x)
       .wb_operation_pack_v3_unscoped_identity(
         x$descriptor_identity))
+  if (length(producer_lineage))
+    capability$producer_lineage_grant_identities <- unname(lapply(
+      producer_lineage, function(x)
+        .wb_operation_pack_v3_unscoped_identity(x$grant_identity)))
   if (length(model_reads$grants))
     capability$model_payload_grant_identities <- unname(lapply(
       model_reads$grants, function(x)
@@ -1355,6 +1370,8 @@
   if (length(parameter_axis_grants))
     base$parameter_axis_grants <- unname(parameter_axis_grants)
   if (length(provenance$records)) base$provenance_reads <- provenance$records
+  if (length(producer_lineage))
+    base$producer_lineage_grants <- unname(producer_lineage)
   if (length(model_reads$grants))
     base$model_payload_grants <- unname(model_reads$grants)
   if (length(self_model_reads$grants))
@@ -1389,6 +1406,9 @@
     attr(base, "operation_pack_v2_registry_read_values") %||% list(),
     v3_registry$values)
   attr(base, "operation_pack_v3_provenance_read_values") <- provenance$values
+  attr(base, "operation_pack_v3_producer_lineage_values") <-
+    stats::setNames(producer_lineage, vapply(producer_lineage, `[[`,
+      character(1), "name"))
   attr(base, "operation_pack_v3_model_read_values") <- model_reads$values
   attr(base, "operation_pack_v3_self_linked_model_read_values") <-
     self_model_reads$values
@@ -1564,6 +1584,9 @@
   for (read in request$provenance_reads %||% list())
     .wb_operation_pack_v3_assert_self_identity(read,
       "descriptor_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH", "resolution")
+  for (grant in request$producer_lineage_grants %||% list())
+    .wb_operation_pack_v3_assert_self_identity(grant,
+      "grant_identity", "PYBENCH_INPUT_IDENTITY_MISMATCH", "resolution")
   for (grant in request$model_payload_grants %||% list()) {
     .wb_operation_pack_v3_assert_self_identity(grant,
       "grant_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
@@ -1645,6 +1668,9 @@
     lapply(request$provenance_reads %||% list(), function(x) list(
       provenance_read_name = x$name, reader = x$reader,
       descriptor_identity = x$descriptor_identity)),
+    lapply(request$producer_lineage_grants %||% list(), function(x) list(
+      producer_lineage_read_name = x$name, reader = x$reader,
+      grant_identity = x$grant_identity)),
     lapply(request$model_payload_grants %||% list(), function(x) list(
       model_payload_name = x$name, reader = x$reader,
       grant_identity = x$grant_identity)),
@@ -1686,6 +1712,8 @@
   expected_provenance <- lapply(request$provenance_reads %||% list(),
     function(x) .wb_operation_pack_v3_unscoped_identity(
       x$descriptor_identity))
+  expected_lineage <- lapply(request$producer_lineage_grants %||% list(),
+    function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   expected_models <- lapply(request$model_payload_grants %||% list(),
     function(x) .wb_operation_pack_v3_unscoped_identity(x$grant_identity))
   expected_self_models <- lapply(request$self_linked_model_payload_grants %||%
@@ -1715,6 +1743,8 @@
         list(), expected_spaces) ||
       !identical(request$execution_capability$provenance_read_identities %||%
         list(), expected_provenance) ||
+      !identical(request$execution_capability$
+        producer_lineage_grant_identities %||% list(), expected_lineage) ||
       !identical(request$execution_capability$model_payload_grant_identities %||%
         list(), expected_models) ||
       !identical(request$execution_capability$
@@ -1818,6 +1848,7 @@
                                            writes, preflight, inputs,
                                            registry_reads = list(),
                                            provenance_reads = list(),
+                                           producer_lineage_reads = list(),
                                            typed_slice_usage = list(),
                                            typed_space_usage = list(),
                                            model_payload_reads = list(),
@@ -1853,6 +1884,7 @@
   base_request$typed_slice_grants <- NULL
   base_request$typed_space_grants <- NULL
   base_request$provenance_reads <- NULL
+  base_request$producer_lineage_grants <- NULL
   base_request$self_linked_model_payload_grants <- NULL
   base_request$artifact_collection_grants <- NULL
   base_request$named_cell_axis_collection_grants <- NULL
@@ -2318,6 +2350,8 @@
   receipt$runtime_attestation <- .wb_operation_pack_v3_runtime_attestation(
     registration, operation$qualified_name, preflight)
   if (length(provenance_reads)) receipt$provenance_reads <- provenance_reads
+  if (length(producer_lineage_reads))
+    receipt$producer_lineage_reads <- producer_lineage_reads
   if (length(typed_slice_usage)) receipt$typed_slice_usage <- typed_slice_usage
   if (length(typed_space_usage)) receipt$typed_space_usage <- typed_space_usage
   if (length(model_payload_reads))
@@ -2704,6 +2738,7 @@
   for (read in receipt$provenance_reads %||% list())
     .wb_operation_pack_v3_assert_self_identity(read,
       "observed_descriptor_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
+  .wb_operation_pack_v3_producer_lineage_receipt_audit(receipt, request)
   model_grants <- request$model_payload_grants %||% list()
   model_reads <- receipt$model_payload_reads %||% list()
   if (length(model_grants) != length(model_reads))
@@ -3296,6 +3331,8 @@
     request, path) {
   .wb_operation_pack_v3_sscf_retained_assert_current(bundle, request, path)
   .wb_operation_pack_v3_rf_retained_assert_current(bundle, request, path)
+  .wb_operation_pack_v3_producer_lineage_retained_assert_current(bundle,
+    request)
   for (descriptor in request$provenance_reads %||% list()) {
     name <- as.character(descriptor$name)[1]
     payload <- file.path(path, "provenance_reads", name, "payload.json")
@@ -3357,7 +3394,7 @@
 
 .wb_operation_pack_v3_capability_adapter <- function(request, operation,
     inputs, stage_root, bundle = NULL, registry_read_values = list(),
-    provenance_read_values = list()) {
+    provenance_read_values = list(), producer_lineage_values = list()) {
   g3_inputs <- vapply(operation$supported_external_state_adoptions %||%
     list(), function(x) as.character(x$state_input)[1], character(1))
   base <- .wb_operation_pack_v2_capability_adapter(request, operation,
@@ -3403,6 +3440,24 @@
       }
     }), names(provenance_read_values))
   base$readers <- c(base$readers, provenance_readers)
+  lineage_readers <- stats::setNames(lapply(names(producer_lineage_values),
+    function(name) {
+      force(name)
+      function(...) {
+        if (isTRUE(state$used) || length(list(...)) || any(vapply(
+            state$reader_calls, function(x) identical(as.character(
+              x$category %||% "")[1], "producer_lineage_read") &&
+              identical(as.character(x$name %||% "")[1], name),
+            logical(1))))
+          .wb_operation_pack_v3_error("PYBENCH_CAPABILITY_MISMATCH",
+            "Producer-lineage readers are private, no-argument and single-use.",
+            "execution")
+        state$reader_calls[[length(state$reader_calls) + 1L]] <- list(
+          category = "producer_lineage_read", name = name)
+        .wb_operation_pack_v2_deep_copy(producer_lineage_values[[name]])
+      }
+    }), names(producer_lineage_values))
+  base$readers <- c(base$readers, lineage_readers)
   slice_values <- attr(request, "operation_pack_v3_typed_slice_values") %||%
     list()
   typed_slice_readers <- stats::setNames(lapply(

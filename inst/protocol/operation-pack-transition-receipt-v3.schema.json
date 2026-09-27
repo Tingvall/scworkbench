@@ -271,6 +271,13 @@
         "$ref": "#/$defs/observed_provenance_read"
       }
     },
+    "producer_lineage_reads": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/producer_lineage_read_observation"
+      }
+    },
     "typed_slice_usage": {
       "type": "array",
       "minItems": 1,
@@ -1723,6 +1730,15 @@
             },
             "observed_pseudobulk": {
               "$ref": "#/$defs/pseudobulk_observation"
+            },
+            "sealed_axis_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "sealed_output_cardinality_grant": {
+              "$ref": "#/$defs/sealed_output_cardinality_grant"
+            },
+            "observed_sealed_output_cardinality": {
+              "$ref": "#/$defs/observed_sealed_output_cardinality"
             }
           }
         },
@@ -2018,6 +2034,15 @@
             },
             "observed_pseudobulk": {
               "$ref": "#/$defs/pseudobulk_observation"
+            },
+            "sealed_axis_identity": {
+              "$ref": "#/$defs/identity"
+            },
+            "sealed_output_cardinality_grant": {
+              "$ref": "#/$defs/sealed_output_cardinality_grant"
+            },
+            "observed_sealed_output_cardinality": {
+              "$ref": "#/$defs/observed_sealed_output_cardinality"
             }
           }
         },
@@ -6686,6 +6711,18 @@
         }
       }
     },
+    "producer_lineage_read_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "name", "grant_identity", "use_count", "observation_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.producer_lineage_read_observation.v1"},
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "grant_identity": {"$ref": "#/$defs/identity"},
+        "use_count": {"const": 1},
+        "observation_identity": {"$ref": "#/$defs/self_identity"}
+      }
+    },
     "typed_space_usage": {
       "type": "object",
       "additionalProperties": false,
@@ -7579,14 +7616,16 @@
         "kind": {
           "enum": [
             "cell_vector",
-            "cell_vector_family"
+            "cell_vector_family",
+            "space"
           ]
         },
         "shape": {
           "enum": [
             "one_per_cell",
             "cell_key_cartesian",
-            "bounded_grouped_cell_key_cartesian"
+            "bounded_grouped_cell_key_cartesian",
+            "one_per_cell_space_v1"
           ]
         },
         "row_order": {
@@ -8362,8 +8401,62 @@
               "pattern": "^[a-f0-9]{64}$"
             }
           }
+        },
+        "dimension_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dimension_source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "mode",
+            "read"
+          ],
+          "properties": {
+            "mode": {
+              "const": "typed_space_read_v1"
+            },
+            "read": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "shape": {
+                "const": "one_per_cell_space_v1"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "dimension_count",
+              "dimension_source"
+            ]
+          },
+          "else": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "dimension_count"
+                  ]
+                },
+                {
+                  "required": [
+                    "dimension_source"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
     },
     "observed_sealed_output_cardinality": {
       "type": "object",
@@ -8412,7 +8505,8 @@
           "enum": [
             "one_per_cell",
             "cell_key_cartesian",
-            "bounded_grouped_cell_key_cartesian"
+            "bounded_grouped_cell_key_cartesian",
+            "one_per_cell_space_v1"
           ]
         },
         "observed_row_count": {

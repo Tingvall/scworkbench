@@ -29,14 +29,12 @@ PeakVI runs remain inspectable without loading the pack and are not rewritten
 or reinterpreted as pack runs. The accepted old-core numerical comparator is
 retained in the pack's pinned migration tier.
 
-`model_bound_latent_union` remains a core operation and is **not ABI-v3
-ready**. Its current implementation queries the artifact registry with SQL,
-reads spaces through the bundle, and creates a space directly. A future pack
-migration needs typed retained-model and projection-receipt binding, separate
-reference/query space descriptors, an authenticated declared ordered union,
-and a core-owned immutable space writer. The existing core contract verifies
-model/receipt identity, disjoint axes, complete union, equal dimensions and
-row-bind semantics; this order does not alter that operation.
+`model_bound_latent_union` is owned by `scwblatent::model_bound_latent_union`.
+Its ABI-v3 contract binds separate complete reference and query axes, a
+retained producer transition, the fitted model payload, and a declared ordered
+union. Core authenticates these grants and writes the complete space and
+summary output closure. Historical core runs remain inspectable without the
+pack.
 
 `scvi_train` has subsequently migrated to `scwblatent::scvi_train`. The
 generic ABI-v3 ordered cell-metadata snapshot binds batch, categorical and

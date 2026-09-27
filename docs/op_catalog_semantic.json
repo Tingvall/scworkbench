@@ -1,7 +1,7 @@
 {
   "schema_version": "scworkbench.op_catalog.semantic.v1",
   "generated_at": "source-controlled",
-  "op_count": 7,
+  "op_count": 6,
   "ops": [
     {
       "op_name": "chromvar",
@@ -1245,135 +1245,6 @@
         "curves": "exact_canonical_value",
         "model": "loadable_reference",
         "adoption_summary": "exact_canonical_value"
-      },
-      "chunking": null
-    },
-    {
-      "op_name": "model_bound_latent_union",
-      "title": "Model-Bound Latent-Space Union",
-      "description": "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
-      "intent": ["latent", "integration", "projection", "provenance"],
-      "consumes": [
-        {
-          "name": "reference_space",
-          "kind": "space",
-          "required": true
-        },
-        {
-          "name": "query_space",
-          "kind": "space",
-          "required": true
-        },
-        {
-          "name": "model",
-          "kind": "model_ref",
-          "required": true
-        },
-        {
-          "name": "projection_summary",
-          "kind": "obs_table",
-          "required": true
-        },
-        {
-          "name": "cell_set",
-          "kind": "select",
-          "required": false
-        }
-      ],
-      "produces": [
-        {
-          "name": "space",
-          "kind": "space",
-          "output_name": "space",
-          "primitive_kind": "space",
-          "durability_role": "materialization",
-          "promotable_directly": false,
-          "materialized_by_terminals": "union_summary",
-          "description": "Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order."
-        },
-        {
-          "name": "union_summary",
-          "kind": "obs_table",
-          "output_name": "union_summary",
-          "primitive_kind": "obs_table",
-          "durability_role": "terminal_artifact",
-          "promotable_directly": true,
-          "materialized_by_terminals": "union_summary",
-          "description": "Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record."
-        }
-      ],
-      "inputs": {
-        "reference_space": {
-          "required": true,
-          "kind": "space",
-          "effective_cell_coverage": "reference_only"
-        },
-        "query_space": {
-          "required": true,
-          "kind": "space",
-          "effective_cell_coverage": "reference_only"
-        },
-        "model": {
-          "required": true,
-          "kind": "model_ref",
-          "effective_cell_coverage": "reference_only"
-        },
-        "projection_summary": {
-          "required": true,
-          "kind": "obs_table",
-          "effective_cell_coverage": "reference_only"
-        },
-        "cell_set": {
-          "type": "select",
-          "label": "Cell set",
-          "choices": ["core", "all"],
-          "default": "all",
-          "value_type": "cell_set",
-          "required": false,
-          "non_empty": true
-        }
-      },
-      "controls": {
-        "cell_set": {
-          "name": "cell_set",
-          "type": "cell_set",
-          "default": "all",
-          "required": false,
-          "help": "Named bundle cell set defining the requested cell universe."
-        },
-        "cell_ids": {
-          "name": "cell_ids",
-          "type": "cell_ids",
-          "default": null,
-          "required": false,
-          "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-        },
-        "min_cells": {
-          "name": "min_cells",
-          "type": "int",
-          "default": 10,
-          "min": 1,
-          "required": false,
-          "help": "Minimum effective cell count required before runner execution."
-        }
-      },
-      "params": [
-        {
-          "name": "space_id_out",
-          "type": "string",
-          "default": "model_bound_latent_union",
-          "help": "New durable space identity for the unchanged row-wise coordinate union.",
-          "required": false,
-          "nullable": false,
-          "allow_non_finite": false,
-          "strict_integer": false,
-          "non_empty": true
-        }
-      ],
-      "promotable": "union_summary",
-      "replay_equivalence": {
-        "space": "exact_canonical_value",
-        "union_summary": "exact_canonical_value"
       },
       "chunking": null
     }

@@ -68,19 +68,6 @@ NULL
 #' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$vector` (`cell_vector`): Typed per-cell vector materialized from imported bundle metadata.. Promotion eligibility is declared by the operation catalog.
 NULL
 
-#' @name wb_op_model_bound_latent_union
-#' @aliases wb_op_model_bound_latent_union
-#' @description Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param reference_space Required `reference_space` input represented as `space`; accepted symbolic references are resolved by the operation interface.
-#' @param query_space Required `query_space` input represented as `space`; accepted symbolic references are resolved by the operation interface.
-#' @param model Required `model` input represented as `model_ref`; accepted symbolic references are resolved by the operation interface.
-#' @param projection_summary Required `projection_summary` input represented as `obs_table`; accepted symbolic references are resolved by the operation interface.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param space_id_out New durable space identity for the unchanged row-wise coordinate union.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$space` (`space`): Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.; `outputs$union_summary` (`obs_table`): Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_slingshot_adopt
 #' @aliases wb_op_slingshot_adopt
 #' @description Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.

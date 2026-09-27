@@ -1466,6 +1466,10 @@
       bundle, operation, inputs, params, request$registry_reads %||% list())
   if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
     operation, inputs, source_refs, request, params)
+  if (abi_v3) .wb_operation_pack_v3_producer_lineage_assert_current(bundle,
+    operation, inputs, source_refs, request)
+  if (abi_v3) .wb_operation_pack_v3_full_space_sources_assert_current(
+    bundle, request)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
     bundle, request)
   if (abi_v3) .wb_operation_pack_v3_phase5_sources_assert_current(bundle,
@@ -1491,7 +1495,9 @@
       registry_read_values = attr(request,
         "operation_pack_v2_registry_read_values") %||% list(),
       provenance_read_values = attr(request,
-        "operation_pack_v3_provenance_read_values") %||% list()) else
+        "operation_pack_v3_provenance_read_values") %||% list(),
+      producer_lineage_values = attr(request,
+        "operation_pack_v3_producer_lineage_values") %||% list()) else
       .wb_operation_pack_v2_capability_adapter(request, operation, inputs,
         stage, bundle = bundle, registry_read_values = attr(request,
           "operation_pack_v2_registry_read_values") %||% list())
@@ -1568,6 +1574,9 @@
     provenance_read_observations <- if (abi_v3)
       .wb_operation_pack_v3_provenance_observations(request,
         adapter$state$reader_calls) else list()
+    producer_lineage_observations <- if (abi_v3)
+      .wb_operation_pack_v3_producer_lineage_observations(request,
+        adapter$state$reader_calls) else list()
     model_read_observations <- if (abi_v3)
       .wb_operation_pack_v3_model_read_observations(request,
         adapter$state) else list()
@@ -1580,6 +1589,7 @@
     receipt <- if (abi_v3) .wb_operation_pack_v3_receipt(request,
       registration, operation, adapter$state$writes, preflight, inputs,
       registry_read_observations, provenance_read_observations,
+      producer_lineage_reads = producer_lineage_observations,
       typed_slice_usage = typed_slice_usage,
       typed_space_usage = typed_space_usage,
       model_payload_reads = model_read_observations,
@@ -1700,6 +1710,10 @@
   }
   if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
     operation, inputs, source_refs, request, params)
+  if (abi_v3) .wb_operation_pack_v3_producer_lineage_assert_current(bundle,
+    operation, inputs, source_refs, request)
+  if (abi_v3) .wb_operation_pack_v3_full_space_sources_assert_current(
+    bundle, request)
   if (abi_v3) .wb_operation_pack_v3_typed_slice_sources_assert_current(
     bundle, request)
   if (abi_v3) .wb_operation_pack_v3_phase5_sources_assert_current(bundle,

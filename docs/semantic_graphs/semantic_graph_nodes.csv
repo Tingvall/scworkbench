@@ -167,7 +167,6 @@
 "op:feature_set_import","op","feature_set_import","Feature-Set Library Import","Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables."
 "op:feature_set_namespace_transfer","op","feature_set_namespace_transfer","Feature-Set Namespace Transfer","Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics."
 "op:metadata_cell_vector","op","metadata_cell_vector","Metadata Cell Vector","Materialize an imported cell metadata column as a typed, provenance-backed cell vector."
-"op:model_bound_latent_union","op","model_bound_latent_union","Model-Bound Latent-Space Union","Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity."
 "op:slingshot_adopt","op","slingshot_adopt","Adopt an existing Slingshot fit","Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it."
 "parameter:bootstrap_n","parameter","bootstrap_n","Bootstrap Replicate Count","Number of bootstrap resamples per bin for confidence intervals; zero disables bootstrap intervals."
 "parameter:cell_set","parameter","cell_set","Cell Set / Analysis Universe","Restricts the cells considered by an op. A durable named set is a typed scientific input with role-specific source/effective membership identity, not a cosmetic filter."

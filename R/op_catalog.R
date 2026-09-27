@@ -19,25 +19,6 @@
   )
 }
 
-.wb_runner_model_bound_latent_union <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$reference_space), "model_bound_latent_union runner: missing reference_space.")
-  .wb_assert(!is.null(resolved$query_space), "model_bound_latent_union runner: missing query_space.")
-  .wb_assert(!is.null(resolved$model), "model_bound_latent_union runner: missing model.")
-  .wb_assert(!is.null(resolved$projection_summary), "model_bound_latent_union runner: missing projection_summary.")
-  raw <- wb_op_model_bound_latent_union(
-    bundle = bundle,
-    reference_space = resolved$reference_space,
-    query_space = resolved$query_space,
-    model = resolved$model,
-    projection_summary = resolved$projection_summary,
-    cells = as.character(effective_cells),
-    space_id_out = inputs$space_id_out %||% "model_bound_latent_union"
-  )
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "model_bound_latent_union must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_chromvar <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "chromvar runner: missing resolved$matrix.")
   .wb_assert(!is.null(effective_cells) && length(effective_cells) > 1,
@@ -485,48 +466,6 @@
         adoption_summary = list(
           kind = "obs_table", table_type = "slingshot_adoption_summary",
           description = "Source checksum, subobject identity, coordinate-alignment result, fit identity, dimensions, and explicit external-execution boundary."
-        )
-      )
-    ),
-    model_bound_latent_union = list(
-      op_name = "model_bound_latent_union",
-      title = "Model-Bound Latent-Space Union",
-      description = "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
-      intent = c("latent", "integration", "projection", "provenance"),
-      requires = list(
-        reference_space = "space",
-        query_space = "space",
-        model = "model_ref",
-        projection_summary = "obs_table"
-      ),
-      coverage = list(
-        reference_space = "reference_only",
-        query_space = "reference_only",
-        model = "reference_only",
-        projection_summary = "reference_only"
-      ),
-      produces = list(space = "space", union_summary = "obs_table"),
-      promotable = c("union_summary"),
-      runner = .wb_runner_model_bound_latent_union,
-      inputs = list(
-        reference_space = list(required = TRUE, kind = "space"),
-        query_space = list(required = TRUE, kind = "space"),
-        model = list(required = TRUE, kind = "model_ref"),
-        projection_summary = list(required = TRUE, kind = "obs_table")
-      ),
-      params = list(
-        list(name = "space_id_out", type = "string", default = "model_bound_latent_union",
-             help = "New durable space identity for the unchanged row-wise coordinate union.")
-      ),
-      interface_produces = list(
-        space = list(
-          kind = "space",
-          description = "Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order."
-        ),
-        union_summary = list(
-          kind = "obs_table",
-          table_type = "model_bound_latent_union_summary",
-          description = "Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record."
         )
       )
     )

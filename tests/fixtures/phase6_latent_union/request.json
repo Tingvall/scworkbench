@@ -1,0 +1,996 @@
+{
+  "schema": "scworkbench.operation_pack.transition_request.v3",
+  "message_type": "request",
+  "process_protocol_version": "pybench-op-v4",
+  "pack_abi_version": "3",
+  "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "transition": {
+    "transition_id": "transition_cfj8umcsi8wxaxi2",
+    "session_id": "session_w60up7xb50zp",
+    "run_id": "run_s655boezdzqt",
+    "checkpoint_generation": "ephemeral",
+    "source_state_identity": {
+      "scheme": "scworkbench.scientific_state.v1",
+      "sha256": "0599ea8b3142e6e4b5594a40ed48eafecdc765fa75388ceae6ab1908e1f0e096"
+    },
+    "transition_identity": {
+      "scheme": "scworkbench.operation_pack.transition.v2",
+      "scope": "transition excluding transition_identity",
+      "sha256": "038b1b854e1f19ca751f7b76dc900cdd7ce051e6ae6af34ec63beb615e42697d"
+    }
+  },
+  "operation_authentication": {
+    "name": "scwblatent::model_bound_latent_union",
+    "pack_identity": {
+      "scheme": "scworkbench.operation_pack.pack.v3",
+      "sha256": "be23341fc2c230fdda4195425040a5e70bd1e680bb04f8b06347d53785dea6e7"
+    },
+    "manifest_identity": {
+      "scheme": "scworkbench.operation_pack.manifest.v3",
+      "sha256": "90d7409d59a73880638e1b8c3f06061ef775286bb9637a2899aea0948093ef2c"
+    },
+    "manifest_source_identity": {
+      "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+      "sha256": "f8c1b2f3293f06d4c72d0126a074b2dc1a862bb812651977e5026e71e030e393"
+    },
+    "distribution_identity": {
+      "scheme": "scworkbench.operation_pack.content.v1",
+      "sha256": "62a7913883b6ace7ad180e46125a3f54dda192b471cb0a4d1981dd943e5b4cde"
+    },
+    "operation_definition_identity": {
+      "scheme": "scworkbench.operation_pack.definition.v3",
+      "sha256": "1ed769b77455df46269ba2a0e8fe45c86f033cab5839c62863407036c52e3e8b"
+    },
+    "entry_point": {
+      "value": "scwbLatent::register_operation_pack",
+      "identity": {
+        "scheme": "scworkbench.operation_pack.entry_point.v2",
+        "sha256": "7db6de0fa7e77d9f1f9752f62f1fb8ec0650cbf81de877015497b2724e512ed2"
+      }
+    }
+  },
+  "engine_contract": {
+    "implementation": "scworkbench",
+    "implementation_version": "0.1.0",
+    "scientific_state_scheme": "scworkbench.scientific_state.v1",
+    "scientific_state_schema_identity": {
+      "scheme": "scworkbench.scientific_state.schema.v1",
+      "sha256": "adbf20a2abd5c067d69c3384874170645f2131961481142a27805a39704a7963"
+    },
+    "reader_api": "scworkbench.operation_pack.typed_readers.v2",
+    "writer_api": "scworkbench.operation_pack.staged_writers.v2"
+  },
+  "dependency_resolution": {
+    "declared_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "9bfd12b465577cae7f73db043bf13923975f0376060880e192b742d233bef874"
+    },
+    "selected_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "9bfd12b465577cae7f73db043bf13923975f0376060880e192b742d233bef874"
+    },
+    "dynamic_resolutions": [],
+    "preflight_report_identity": {
+      "scheme": "scworkbench.operation_pack.preflight.v2",
+      "sha256": "10e361a70c44679c9492e44610216204d5e15a9881977c06f787a5b9211f964c"
+    },
+    "network_policy": "deny"
+  },
+  "inputs": [
+    {
+      "name": "model",
+      "reference": "model_ref:model",
+      "descriptor": {
+        "kind": "model_ref",
+        "storage_profile": "model_ref_contained_tree_v1",
+        "reader": "read_model_ref",
+        "dimensions": [
+          1
+        ],
+        "alignment": "model_linked",
+        "content_identity": {
+          "scheme": "scworkbench.model_ref.content.v1",
+          "sha256": "419ed57bf0c6cebc56a984b5b6356c460dba32e6d1bafe61c0cc721f405aaac7"
+        },
+        "ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "042992b8ad832a9626dcd338381e13dc385ef44ade9ee1098949a6e51a75ef1b"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "sha256": "a6a868caac9951badd75ee411abe3edb1f74ad8ed8ff9fa9c59199f5723a4ab3"
+        },
+        "model_linkage_identity": {
+          "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+          "sha256": "a8ca4b686836448891a9108824edbeb6c2e87caf05aabb29faaf33ac634b8b1b"
+        },
+        "contained_payload_identity": {
+          "scheme": "scworkbench.operation_pack.contained_payload.v2",
+          "sha256": "df8b77652df7406c3dbe60044c337378879fd25f2e8a5e78d69bbadf31bab629"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "scope": "descriptor excluding descriptor_identity",
+          "sha256": "6c0d89c5f7797f1cda10c8da74bd9db7f5faa6faaf9d7adff5a5b2ff7b9de5d2"
+        }
+      }
+    },
+    {
+      "name": "projection_summary",
+      "reference": "obs_table:projection_summary",
+      "descriptor": {
+        "kind": "obs_table",
+        "storage_profile": "terminal_primitive_v1",
+        "reader": "read_terminal_primitive",
+        "dimensions": [
+          1,
+          7
+        ],
+        "alignment": "none",
+        "content_identity": {
+          "scheme": "scworkbench.obs_table.content.v1",
+          "sha256": "e275ad216abb28cee347fc5d3bcf9ff1b3ca1039f53f35719962014129fe870f"
+        },
+        "ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "b9cc81795c14147ca0a5d5aad36e3ab39f666b322faf57c4f75f550f7801f74a"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.payload.manifest.v2",
+          "sha256": "b9cc81795c14147ca0a5d5aad36e3ab39f666b322faf57c4f75f550f7801f74a"
+        },
+        "semantic_metadata_identity": {
+          "scheme": "scworkbench.operation_pack.semantic_metadata.v2",
+          "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "scope": "descriptor excluding descriptor_identity",
+          "sha256": "2e5aa0e72e23f7584594038427ab35ce1d9c6de29727b1a461103296254187f5"
+        }
+      }
+    },
+    {
+      "name": "query_space",
+      "reference": "space:query_space",
+      "descriptor": {
+        "kind": "space",
+        "storage_profile": "space_dense_v1",
+        "reader": "read_space",
+        "dimensions": [
+          8,
+          2
+        ],
+        "alignment": "cell_ordered",
+        "content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "8c1d95f1cea1c0c1ec7bcf322fc51a2cfedde6ec09ab639e7dccbaac5ec1e782"
+        },
+        "ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "f52f36bd6852386d1cd186c86e708a6c52ed5126ad4bb348082f68b3b88c60bb"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.payload.manifest.v2",
+          "sha256": "f52f36bd6852386d1cd186c86e708a6c52ed5126ad4bb348082f68b3b88c60bb"
+        },
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "fbf46e3395f7df48a3869c7da8c1c85176e5dafc7d79f1c6ee5803743a85242e"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "scope": "descriptor excluding descriptor_identity",
+          "sha256": "a844ded74e1c2716fd7716974822287a737fad73d60823e3f14384f4c83016fe"
+        }
+      }
+    },
+    {
+      "name": "reference_space",
+      "reference": "space:reference_space",
+      "descriptor": {
+        "kind": "space",
+        "storage_profile": "space_dense_v1",
+        "reader": "read_space",
+        "dimensions": [
+          24,
+          2
+        ],
+        "alignment": "cell_ordered",
+        "content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "1a2ae24f75c036d15d596a495c6dd6409d1c30de39910c528f6de7a4d8f6acd3"
+        },
+        "ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "07494ce99fcfc2054b9736e142ac3fb3db358f01cdee3d480f786b4fb8d31e5e"
+        },
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.payload.manifest.v2",
+          "sha256": "07494ce99fcfc2054b9736e142ac3fb3db358f01cdee3d480f786b4fb8d31e5e"
+        },
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "1c51e124e00c665731d0a702c6a6bf496026da87fa781320b3ef414a3947d37a"
+        },
+        "descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "scope": "descriptor excluding descriptor_identity",
+          "sha256": "8407a9c78ac23480f7a06102ab67873fd7d4a397b2623ba8c6e390b0d15bb71a"
+        }
+      }
+    }
+  ],
+  "params": {
+    "space_id_out": "stage_probe_joint",
+    "chunk_size": 4,
+    "overwrite": false
+  },
+  "outputs": [
+    {
+      "name": "space",
+      "allocated_id": "stage_probe_joint",
+      "descriptor": {
+        "category": "materialization",
+        "kind": "space",
+        "storage_profile": "space_file_backed_hdf5_v1",
+        "writer": "write_space",
+        "expected_dimensions": [
+          0,
+          0
+        ],
+        "expected_alignment": "cell_ordered",
+        "expected_ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "3f75916ef5a1a461c8ac5e250eeca8bc7376ef947658e000b2c78ff09dd04db1"
+        },
+        "expected_model_linkage": {
+          "mode": "none"
+        },
+        "semantic_constraints": {
+          "finite_values": true,
+          "minimum_dimensions": 1
+        },
+        "relative_root": "outputs/space",
+        "expected_cell_order_identity": null,
+        "derived_cell_output_axis_policy": {
+          "schema": "scworkbench.operation_pack.derived_cell_linked_output_policy.v1",
+          "manifest_declaration_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+            "sha256": "9e4ed8def0843f7abc64e136d24eea5cc7a7a628731be568232428b519028c63"
+          },
+          "derived_axis_name": "union_cells",
+          "shape": "one_per_cell_space_v1",
+          "row_order": "sealed_cell_axis_order_v1",
+          "missing_values": "forbidden",
+          "resolved_key_axis_policy_identity_or_null": null,
+          "resolved_key_axis": null,
+          "resolved_keys": null,
+          "dimension_source": {
+            "mode": "typed_space_read_v1",
+            "read": "reference_chunks"
+          },
+          "dimension_count": 2
+        },
+        "publication_grant": {
+          "schema": "scworkbench.operation_pack.materialization_publication_grant.v1",
+          "output": "space",
+          "promotion_group": "union",
+          "closure_outputs": [
+            "space",
+            "union_summary"
+          ],
+          "target_kind": "space",
+          "target_id": "stage_probe_joint",
+          "mode": "add",
+          "conflict_policy": "require_absent_v1",
+          "preimage": {
+            "state": "absent",
+            "registry_absence_identity": {
+              "scheme": "scworkbench.operation_pack.registry_absence.v1",
+              "sha256": "ed9307c5f112eaaf16774c6bb7247fa261ee1a64f8bb9c653b2d1ed8814aa2f1"
+            },
+            "transition_source_state_identity": {
+              "scheme": "scworkbench.scientific_state.v1",
+              "sha256": "0599ea8b3142e6e4b5594a40ed48eafecdc765fa75388ceae6ab1908e1f0e096"
+            }
+          },
+          "publication_grant_identity": {
+            "scheme": "scworkbench.operation_pack.materialization_publication_grant.v1",
+            "scope": "grant excluding publication_grant_identity",
+            "sha256": "87d5a930f75b09aa3e0ce149d8d1f587a96709e2322ca2e474318ae0744c6fb4"
+          }
+        },
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "bdb87b18cda94ebb57403b33754fce7aad085734a9834ffc6d34d358db36d10d"
+        }
+      }
+    },
+    {
+      "name": "union_summary",
+      "allocated_id": "model_bound_union_summary_id_4vwwvlvdfbkt",
+      "descriptor": {
+        "category": "terminal_artifact",
+        "kind": "obs_table",
+        "storage_profile": "terminal_primitive_v1",
+        "writer": "write_terminal_primitive",
+        "expected_dimensions": [
+          0,
+          0
+        ],
+        "expected_alignment": "none",
+        "expected_ancestry_identity": {
+          "scheme": "scworkbench.provenance.ancestry.v1",
+          "sha256": "ee1a15087332c6af071d37040b1dec7338c3a1b0893c9f2fe2d46b7b3b29ce9d"
+        },
+        "expected_model_linkage": {
+          "mode": "none"
+        },
+        "semantic_constraints": {
+          "table_type": "model_bound_latent_union_summary",
+          "row_order": "canonical"
+        },
+        "relative_root": "outputs/union_summary",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "83d961a87d0e5ad4f81aa493a8ffc1be647e53e6226bb01cc42d07c32e70d058"
+        }
+      }
+    }
+  ],
+  "execution_capability": {
+    "capability_id": "capability_q9c9gngukswjhqif",
+    "mode": "private_staging_write",
+    "transition_identity": {
+      "scheme": "scworkbench.operation_pack.transition.v2",
+      "scope": "transition excluding transition_identity",
+      "sha256": "038b1b854e1f19ca751f7b76dc900cdd7ce051e6ae6af34ec63beb615e42697d"
+    },
+    "session_id": "session_w60up7xb50zp",
+    "run_id": "run_s655boezdzqt",
+    "checkpoint_generation": "ephemeral",
+    "source_state_identity": {
+      "scheme": "scworkbench.scientific_state.v1",
+      "sha256": "0599ea8b3142e6e4b5594a40ed48eafecdc765fa75388ceae6ab1908e1f0e096"
+    },
+    "staging_root_identity": {
+      "scheme": "scworkbench.operation_pack.staging_root.v1",
+      "sha256": "10f3084b229eeeb730cdb28be107f078e410269eafa06fddfde60cf3a6b95280"
+    },
+    "lease_id": "lease_x3zucf60sj0avzl1",
+    "pack_identity": {
+      "scheme": "scworkbench.operation_pack.pack.v3",
+      "sha256": "be23341fc2c230fdda4195425040a5e70bd1e680bb04f8b06347d53785dea6e7"
+    },
+    "distribution_identity": {
+      "scheme": "scworkbench.operation_pack.content.v1",
+      "sha256": "62a7913883b6ace7ad180e46125a3f54dda192b471cb0a4d1981dd943e5b4cde"
+    },
+    "manifest_source_identity": {
+      "scheme": "scworkbench.operation_pack.manifest_source.bytes.v1",
+      "sha256": "f8c1b2f3293f06d4c72d0126a074b2dc1a862bb812651977e5026e71e030e393"
+    },
+    "operation_definition_identity": {
+      "scheme": "scworkbench.operation_pack.definition.v3",
+      "sha256": "1ed769b77455df46269ba2a0e8fe45c86f033cab5839c62863407036c52e3e8b"
+    },
+    "entry_point_identity": {
+      "scheme": "scworkbench.operation_pack.entry_point.v2",
+      "sha256": "7db6de0fa7e77d9f1f9752f62f1fb8ec0650cbf81de877015497b2724e512ed2"
+    },
+    "selected_requirement_set_identity": {
+      "scheme": "scworkbench.operation_pack.dependencies.v2",
+      "sha256": "9bfd12b465577cae7f73db043bf13923975f0376060880e192b742d233bef874"
+    },
+    "preflight_report_identity": {
+      "scheme": "scworkbench.operation_pack.preflight.v2",
+      "sha256": "10e361a70c44679c9492e44610216204d5e15a9881977c06f787a5b9211f964c"
+    },
+    "reader_grants": [
+      {
+        "input_name": "projection_summary",
+        "reader": "read_terminal_primitive",
+        "descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "scope": "descriptor excluding descriptor_identity",
+          "sha256": "2e5aa0e72e23f7584594038427ab35ce1d9c6de29727b1a461103296254187f5"
+        }
+      },
+      {
+        "producer_lineage_read_name": "projection_lineage",
+        "reader": "read_producer_transition_lineage",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.producer_lineage_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "bc11894cf5b862ecd6d7bf5a2ebf66ff413715db2a8dcee9d7f61136f501bfd1"
+        }
+      },
+      {
+        "self_linked_model_payload_name": "fitted_model",
+        "reader": "read_self_linked_contained_model_payload",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "09d646a11d81af93584108e857d437f1539f42ad09ef0d66692369d5027206c1"
+        }
+      },
+      {
+        "typed_space_name": "reference_chunks",
+        "reader": "read_typed_space",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+        }
+      },
+      {
+        "typed_space_name": "query_chunks",
+        "reader": "read_typed_space",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "a9ae15316f67461556390a7b1665267aa27ddf3a24984c71a5abd4cae0275306"
+        }
+      }
+    ],
+    "writer_grants": [
+      {
+        "output_name": "space",
+        "writer": "write_space",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "bdb87b18cda94ebb57403b33754fce7aad085734a9834ffc6d34d358db36d10d"
+        }
+      },
+      {
+        "output_name": "union_summary",
+        "writer": "write_terminal_primitive",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.output_grant.v3",
+          "scope": "descriptor excluding grant_identity",
+          "sha256": "83d961a87d0e5ad4f81aa493a8ffc1be647e53e6226bb01cc42d07c32e70d058"
+        }
+      }
+    ],
+    "single_use": true,
+    "typed_space_grant_identities": [
+      {
+        "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+        "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+      },
+      {
+        "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+        "sha256": "a9ae15316f67461556390a7b1665267aa27ddf3a24984c71a5abd4cae0275306"
+      }
+    ],
+    "producer_lineage_grant_identities": [
+      {
+        "scheme": "scworkbench.operation_pack.producer_lineage_grant.v1",
+        "sha256": "bc11894cf5b862ecd6d7bf5a2ebf66ff413715db2a8dcee9d7f61136f501bfd1"
+      }
+    ],
+    "self_linked_model_payload_grant_identities": [
+      {
+        "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+        "sha256": "09d646a11d81af93584108e857d437f1539f42ad09ef0d66692369d5027206c1"
+      }
+    ],
+    "derived_cell_output_axis_grant_identities": [
+      {
+        "scheme": "scworkbench.operation_pack.authenticated_derived_cell_output_axis_grant.v1",
+        "sha256": "f70db458ee8e3ef8c7c32f3789f0709065378ff3b515f35c130b39e3c5db8b31"
+      }
+    ],
+    "capability_identity": {
+      "scheme": "scworkbench.operation_pack.capability.v3",
+      "scope": "capability excluding capability_identity",
+      "sha256": "16caa3bf07463df23c4edb0cc2c1374d13475981f40b7f6758b2def77cce7e3f"
+    }
+  },
+  "typed_space_grants": [
+    {
+      "schema": "scworkbench.operation_pack.typed_space_grant.v1",
+      "name": "reference_chunks",
+      "input_name": "reference_space",
+      "reader": "read_typed_space",
+      "kind": "space",
+      "role": "candidate",
+      "selector_parameter": null,
+      "source_reference": {
+        "input_name": "reference_space",
+        "space_id": "peakvi_space_id_3s2d5tl451fk",
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "8407a9c78ac23480f7a06102ab67873fd7d4a397b2623ba8c6e390b0d15bb71a"
+        },
+        "input_content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "1a2ae24f75c036d15d596a495c6dd6409d1c30de39910c528f6de7a4d8f6acd3"
+        },
+        "selected_content_identity": {
+          "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+          "sha256": "222fc497760a0af12c0861706299e04f47c335eacd42ffae36f344f5fe12695d"
+        },
+        "transition_source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "0599ea8b3142e6e4b5594a40ed48eafecdc765fa75388ceae6ab1908e1f0e096"
+        },
+        "source_reference_identity": {
+          "scheme": "scworkbench.operation_pack.typed_space_source_reference.v1",
+          "scope": "source reference excluding source_reference_identity",
+          "sha256": "14973ca8064e968e7a7288c3eed182d262876ca3f892f38a415d4ab85454e3ad"
+        }
+      },
+      "cells_axis": {
+        "axis": "cells",
+        "count": 24,
+        "order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "1c51e124e00c665731d0a702c6a6bf496026da87fa781320b3ef414a3947d37a"
+        },
+        "axis_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.typed_slice_axis_manifest.v1",
+          "scope": "axis manifest excluding manifest_identity",
+          "sha256": "98b7ee8a7974c2d2c7831d6f32a79e6ffd7240dd0b15d2815e9f2674ad72c861"
+        },
+        "relative_path": "typed_slice_axes/reference_chunks/cells.json",
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "scope": "registry read payload manifest",
+          "sha256": "5c7102caebe4678b7aec7dce6cac578605068b6eb7f75e1abdc48290398170d5"
+        }
+      },
+      "dimension_count": 2,
+      "requested_chunk_size": 4,
+      "call_discipline": "ordered_partition_exactly_once",
+      "max_rows": 4,
+      "max_columns": 2,
+      "max_elements": 8,
+      "full_source_cell_axis": {
+        "ordered_cell_ids": [
+          "ref_1",
+          "ref_2",
+          "ref_3",
+          "ref_4",
+          "ref_5",
+          "ref_6",
+          "ref_7",
+          "ref_8",
+          "ref_9",
+          "ref_10",
+          "ref_11",
+          "ref_12",
+          "ref_13",
+          "ref_14",
+          "ref_15",
+          "ref_16",
+          "ref_17",
+          "ref_18",
+          "ref_19",
+          "ref_20",
+          "ref_21",
+          "ref_22",
+          "ref_23",
+          "ref_24"
+        ],
+        "cell_count": 24,
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "1c51e124e00c665731d0a702c6a6bf496026da87fa781320b3ef414a3947d37a"
+        }
+      },
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+        "scope": "grant excluding grant_identity",
+        "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+      }
+    },
+    {
+      "schema": "scworkbench.operation_pack.typed_space_grant.v1",
+      "name": "query_chunks",
+      "input_name": "query_space",
+      "reader": "read_typed_space",
+      "kind": "space",
+      "role": "query",
+      "selector_parameter": null,
+      "source_reference": {
+        "input_name": "query_space",
+        "space_id": "union_query",
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "a844ded74e1c2716fd7716974822287a737fad73d60823e3f14384f4c83016fe"
+        },
+        "input_content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "8c1d95f1cea1c0c1ec7bcf322fc51a2cfedde6ec09ab639e7dccbaac5ec1e782"
+        },
+        "selected_content_identity": {
+          "scheme": "scworkbench.operation_pack.space_slice.content.v1",
+          "sha256": "9413e4199b4d322e8a7d7ce10c2fbd7937f36b3bddcb3d21050928d859f0a910"
+        },
+        "transition_source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "0599ea8b3142e6e4b5594a40ed48eafecdc765fa75388ceae6ab1908e1f0e096"
+        },
+        "source_reference_identity": {
+          "scheme": "scworkbench.operation_pack.typed_space_source_reference.v1",
+          "scope": "source reference excluding source_reference_identity",
+          "sha256": "c29289bc5ddc197f8a56e1409f8d4fe6dc0058871a157ec8eb65d29db3755ca8"
+        }
+      },
+      "cells_axis": {
+        "axis": "cells",
+        "count": 8,
+        "order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "fbf46e3395f7df48a3869c7da8c1c85176e5dafc7d79f1c6ee5803743a85242e"
+        },
+        "axis_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.typed_slice_axis_manifest.v1",
+          "scope": "axis manifest excluding manifest_identity",
+          "sha256": "06918814b70b7de7368e1760bc787fb7cddbec1ba9416b9851ab4bb4d7df70bc"
+        },
+        "relative_path": "typed_slice_axes/query_chunks/cells.json",
+        "payload_manifest_identity": {
+          "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+          "scope": "registry read payload manifest",
+          "sha256": "c9fbcfff279f377a67305237cd34763796b1edd8036d1959fb88ff5d041c25e9"
+        }
+      },
+      "dimension_count": 2,
+      "requested_chunk_size": 4,
+      "call_discipline": "ordered_partition_exactly_once",
+      "max_rows": 4,
+      "max_columns": 2,
+      "max_elements": 8,
+      "full_source_cell_axis": {
+        "ordered_cell_ids": [
+          "query_1",
+          "query_2",
+          "query_3",
+          "query_4",
+          "query_5",
+          "query_6",
+          "query_7",
+          "query_8"
+        ],
+        "cell_count": 8,
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "fbf46e3395f7df48a3869c7da8c1c85176e5dafc7d79f1c6ee5803743a85242e"
+        }
+      },
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+        "scope": "grant excluding grant_identity",
+        "sha256": "a9ae15316f67461556390a7b1665267aa27ddf3a24984c71a5abd4cae0275306"
+      }
+    }
+  ],
+  "producer_lineage_grants": [
+    {
+      "schema": "scworkbench.operation_pack.producer_lineage_grant.v1",
+      "name": "projection_lineage",
+      "reader": "read_producer_transition_lineage",
+      "source_mode": "retained_producer_v1",
+      "source_snapshot_id": "prov_20260927_175242_mk8f0s2p",
+      "source_run_id": "run_0e20va0p5xms",
+      "source_op_name": "scwblatent::peakvi_project",
+      "source_run_identity": {
+        "scheme": "scworkbench.integrity.run.framed-utf8.sha256.v2",
+        "sha256": "24298ffa41d041e411319a6c8601183b0d32da830edd5229905651b945495864"
+      },
+      "query_space": {
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "a844ded74e1c2716fd7716974822287a737fad73d60823e3f14384f4c83016fe"
+        },
+        "space_id": "union_query",
+        "content_identity": {
+          "scheme": "scworkbench.content.dense-space-hdf5.sha256.v1",
+          "sha256": "bf116007a03b58b74406ee77548a65b27bea9cf35dc5cc3174c0d75099be5dbc"
+        },
+        "source_output_name": "space"
+      },
+      "projection_summary": {
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "2e5aa0e72e23f7584594038427ab35ce1d9c6de29727b1a461103296254187f5"
+        },
+        "artifact_id": "obs_table_20260927_175242_4txa9wyc",
+        "content_identity": {
+          "scheme": "scworkbench.obs_table.content.v1",
+          "sha256": "e275ad216abb28cee347fc5d3bcf9ff1b3ca1039f53f35719962014129fe870f"
+        },
+        "source_output_name": "projection_summary"
+      },
+      "model": {
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "6c0d89c5f7797f1cda10c8da74bd9db7f5faa6faaf9d7adff5a5b2ff7b9de5d2"
+        },
+        "artifact_id": "model_ref_20260927_175223_h68w4yor",
+        "content_identity": {
+          "scheme": "scworkbench.model_ref.content.v1",
+          "sha256": "419ed57bf0c6cebc56a984b5b6356c460dba32e6d1bafe61c0cc721f405aaac7"
+        },
+        "fitted_space_id": "peakvi_space_id_3s2d5tl451fk"
+      },
+      "fitted_space": {
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "8407a9c78ac23480f7a06102ab67873fd7d4a397b2623ba8c6e390b0d15bb71a"
+        },
+        "space_id": "peakvi_space_id_3s2d5tl451fk",
+        "content_identity": {
+          "scheme": "scworkbench.space.content.v1",
+          "sha256": "1a2ae24f75c036d15d596a495c6dd6409d1c30de39910c528f6de7a4d8f6acd3"
+        }
+      },
+      "source_state_identity": {
+        "scheme": "scworkbench.scientific_state.v1",
+        "sha256": "0599ea8b3142e6e4b5594a40ed48eafecdc765fa75388ceae6ab1908e1f0e096"
+      },
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.producer_lineage_grant.v1",
+        "scope": "grant excluding grant_identity",
+        "sha256": "bc11894cf5b862ecd6d7bf5a2ebf66ff413715db2a8dcee9d7f61136f501bfd1"
+      }
+    }
+  ],
+  "self_linked_model_payload_grants": [
+    {
+      "schema": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+      "name": "fitted_model",
+      "input_name": "model",
+      "reader": "read_self_linked_contained_model_payload",
+      "declaration_identity": {
+        "scheme": "scworkbench.operation_pack.self_linked_contained_model_read.v1",
+        "sha256": "9fd99713f571817a8f4f89c76180dddec50bf4976f54737ef7d0f5bf0c3c9904"
+      },
+      "selected_model": {
+        "engine": "peakvi",
+        "model_type": "peakvi"
+      },
+      "input_descriptor_identity": {
+        "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+        "sha256": "6c0d89c5f7797f1cda10c8da74bd9db7f5faa6faaf9d7adff5a5b2ff7b9de5d2"
+      },
+      "model_content_identity": {
+        "scheme": "scworkbench.model_ref.content.v1",
+        "sha256": "419ed57bf0c6cebc56a984b5b6356c460dba32e6d1bafe61c0cc721f405aaac7"
+      },
+      "model_source_linkage": {
+        "schema": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+        "engine": "peakvi",
+        "model_type": "peakvi",
+        "source_matrix_id": "ATAC_reference",
+        "source_matrix_content_identity": {
+          "scheme": "scworkbench.content.matrix.fragment-tree.v2",
+          "sha256": "ec62a28ff0d19f5975460b9de715e56fc7b84d61fd580b280bb8b620f270769a"
+        },
+        "source_matrix_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "121058e7b33400db9cb8b29939bf6d44f1002a79dfe7cbe54db4ae7b352f55eb"
+        },
+        "feature_order_identity": {
+          "scheme": "scworkbench.feature_order.v1",
+          "sha256": "3aaaff913a7b750f5a8eecddbd34f56bb7001a2eaa6a6cfc908c87a81e584559"
+        },
+        "fitted_cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "1c51e124e00c665731d0a702c6a6bf496026da87fa781320b3ef414a3947d37a"
+        },
+        "paired_fitted_space_id": "peakvi_space_id_3s2d5tl451fk",
+        "latent_dimension_count": 2,
+        "source_matrix_snapshot_id": "ec62a28ff0d19f5975460b9de715e56fc7b84d61fd580b280bb8b620f270769a",
+        "transition_source_state_identity": {
+          "scheme": "scworkbench.scientific_state.v1",
+          "sha256": "a44600cffceeb561d5f2bf57f4ceaf99751e404c8112aa899c03a1dd4ba4aac2"
+        },
+        "linkage_identity": {
+          "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+          "scope": "linkage excluding linkage_identity",
+          "sha256": "a8ca4b686836448891a9108824edbeb6c2e87caf05aabb29faaf33ac634b8b1b"
+        }
+      },
+      "model_source_linkage_identity": {
+        "scheme": "scworkbench.operation_pack.matrix_model_source_linkage.v1",
+        "sha256": "a8ca4b686836448891a9108824edbeb6c2e87caf05aabb29faaf33ac634b8b1b"
+      },
+      "contained_payload_identity": {
+        "scheme": "scworkbench.operation_pack.contained_payload.v2",
+        "sha256": "df8b77652df7406c3dbe60044c337378879fd25f2e8a5e78d69bbadf31bab629"
+      },
+      "payload_manifest_identity": {
+        "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+        "sha256": "a6a868caac9951badd75ee411abe3edb1f74ad8ed8ff9fa9c59199f5723a4ab3"
+      },
+      "tree_manifest": {
+        "schema": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+        "engine": "peakvi",
+        "model_type": "peakvi",
+        "primary_path": "model.pt",
+        "file_count": 1,
+        "total_size": 21516,
+        "entries": [
+          {
+            "path": "model.pt",
+            "size": 21516,
+            "sha256": "3aceadb7038181ca8659258d7f7feb8bc0f50e5c63cb06bbf92477d1317ddcfe"
+          }
+        ],
+        "manifest_identity": {
+          "scheme": "scworkbench.operation_pack.contained_model_tree_manifest.v1",
+          "scope": "manifest excluding manifest_identity",
+          "sha256": "1202812f672fa52e647bf52953d374ca6f1e51d917e5f1581176a3f74c655f65"
+        }
+      },
+      "limits": {
+        "maximum_file_count": 32,
+        "maximum_total_bytes": 1073741824
+      },
+      "relative_root": "model_payload_reads/fitted_model/tree",
+      "access": "verified_private_copy_read_only_v1",
+      "call_discipline": "exactly_once",
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.self_linked_contained_model_read_grant.v1",
+        "scope": "grant excluding grant_identity",
+        "sha256": "09d646a11d81af93584108e857d437f1539f42ad09ef0d66692369d5027206c1"
+      }
+    }
+  ],
+  "derived_cell_output_axis_grants": [
+    {
+      "schema": "scworkbench.operation_pack.authenticated_derived_cell_output_axis_grant.v1",
+      "name": "union_cells",
+      "derivation_mode": "declared_ordered_unique_union_v1",
+      "manifest_declaration_identity": {
+        "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+        "sha256": "9e4ed8def0843f7abc64e136d24eea5cc7a7a628731be568232428b519028c63"
+      },
+      "source_axes": [
+        {
+          "source_mode": "static_typed_space_input_axis_v1",
+          "input_name": "reference_space",
+          "input_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+            "sha256": "8407a9c78ac23480f7a06102ab67873fd7d4a397b2623ba8c6e390b0d15bb71a"
+          },
+          "primitive_kind": "space",
+          "projection": "space_cell_axis_v1",
+          "source_axis_selector_identity": null,
+          "source_cell_count": 24,
+          "source_cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "1c51e124e00c665731d0a702c6a6bf496026da87fa781320b3ef414a3947d37a"
+          },
+          "resolved_ordinal": 1,
+          "typed_space_read_name": "reference_chunks",
+          "typed_space_grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "157f7c387f7e9f7946cac457768163cecf414b125efbea5d64e76f58cafeebee"
+          },
+          "input_content_identity": {
+            "scheme": "scworkbench.space.content.v1",
+            "sha256": "1a2ae24f75c036d15d596a495c6dd6409d1c30de39910c528f6de7a4d8f6acd3"
+          },
+          "source_dimension_count": 2,
+          "source_axis_reference_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_source_axis_reference.v1",
+            "scope": "derived cell source axis reference excluding source_axis_reference_identity",
+            "sha256": "d6e5f62e523b9b9beec029c7d242144157d724a80f021c0ab1b3065545d2bf7a"
+          }
+        },
+        {
+          "source_mode": "static_typed_space_input_axis_v1",
+          "input_name": "query_space",
+          "input_descriptor_identity": {
+            "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+            "sha256": "a844ded74e1c2716fd7716974822287a737fad73d60823e3f14384f4c83016fe"
+          },
+          "primitive_kind": "space",
+          "projection": "space_cell_axis_v1",
+          "source_axis_selector_identity": null,
+          "source_cell_count": 8,
+          "source_cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "fbf46e3395f7df48a3869c7da8c1c85176e5dafc7d79f1c6ee5803743a85242e"
+          },
+          "resolved_ordinal": 2,
+          "typed_space_read_name": "query_chunks",
+          "typed_space_grant_identity": {
+            "scheme": "scworkbench.operation_pack.typed_space_grant.v1",
+            "sha256": "a9ae15316f67461556390a7b1665267aa27ddf3a24984c71a5abd4cae0275306"
+          },
+          "input_content_identity": {
+            "scheme": "scworkbench.space.content.v1",
+            "sha256": "8c1d95f1cea1c0c1ec7bcf322fc51a2cfedde6ec09ab639e7dccbaac5ec1e782"
+          },
+          "source_dimension_count": 2,
+          "source_axis_reference_identity": {
+            "scheme": "scworkbench.operation_pack.derived_cell_source_axis_reference.v1",
+            "scope": "derived cell source axis reference excluding source_axis_reference_identity",
+            "sha256": "ecce5b5bbac9246b2c4a861d911c607b9c95f3fb5d6bf95580f9a95717fbf348"
+          }
+        }
+      ],
+      "source_axis_aggregate": {
+        "derivation_mode": "declared_ordered_unique_union_v1",
+        "source_axis_count": 2,
+        "source_membership_count": 32,
+        "ordered_source_axis_reference_identities": [
+          {
+            "scheme": "scworkbench.operation_pack.derived_cell_source_axis_reference.v1",
+            "sha256": "d6e5f62e523b9b9beec029c7d242144157d724a80f021c0ab1b3065545d2bf7a"
+          },
+          {
+            "scheme": "scworkbench.operation_pack.derived_cell_source_axis_reference.v1",
+            "sha256": "ecce5b5bbac9246b2c4a861d911c607b9c95f3fb5d6bf95580f9a95717fbf348"
+          }
+        ],
+        "source_axis_aggregate_identity": {
+          "scheme": "scworkbench.operation_pack.derived_cell_source_axis_aggregate.v1",
+          "scope": "derived cell source axis aggregate excluding source_axis_aggregate_identity",
+          "sha256": "4ec22c92c604272ee68cd5be6623596f5eddecd8ec22d1b5423b3cef518488c4"
+        }
+      },
+      "linked_output_closure": {
+        "manifest_declaration_identity": {
+          "scheme": "scworkbench.operation_pack.derived_cell_output_axis.v1",
+          "sha256": "9e4ed8def0843f7abc64e136d24eea5cc7a7a628731be568232428b519028c63"
+        },
+        "linked_outputs": [
+          {
+            "name": "space",
+            "allocated_id": "stage_probe_joint",
+            "kind": "space",
+            "ordinary_output_grant_identity": {
+              "scheme": "scworkbench.operation_pack.output_grant.v3",
+              "sha256": "bdb87b18cda94ebb57403b33754fce7aad085734a9834ffc6d34d358db36d10d"
+            },
+            "shape": "one_per_cell_space_v1",
+            "row_order": "sealed_cell_axis_order_v1",
+            "missing_values": "forbidden",
+            "resolved_key_axis_policy_identity_or_null": null,
+            "promotion_group": "union",
+            "dimension_source": {
+              "mode": "typed_space_read_v1",
+              "read": "reference_chunks"
+            },
+            "dimension_count": 2
+          }
+        ],
+        "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+        "linked_output_closure_identity": {
+          "scheme": "scworkbench.operation_pack.derived_cell_linked_output_closure.v1",
+          "scope": "linked output closure excluding linked_output_closure_identity",
+          "sha256": "afdd3bfa563a1211a6f00aa7e4f12a5b95d164f5c4eaf1e832ac0ca6b2209901"
+        }
+      },
+      "limits": {
+        "minimum_cells": 1,
+        "maximum_cells": 10000000,
+        "maximum_source_axes": 2,
+        "maximum_source_memberships": 20000000,
+        "maximum_linked_outputs": 1
+      },
+      "call_discipline": "declare_once_seal_before_linked_output_v1",
+      "closure_policy": "all_linked_outputs_and_axis_observation_required_v1",
+      "grant_identity": {
+        "scheme": "scworkbench.operation_pack.authenticated_derived_cell_output_axis_grant.v1",
+        "scope": "grant excluding grant_identity",
+        "sha256": "f70db458ee8e3ef8c7c32f3789f0709065378ff3b515f35c130b39e3c5db8b31"
+      }
+    }
+  ],
+  "request_identity": {
+    "scheme": "scworkbench.operation_pack.transition_request.v3",
+    "scope": "request excluding request_identity",
+    "sha256": "768b677eb115ac16faefe5a24e9b9a58785f4d8e469f0bee403a85a9afcd7759"
+  }
+}

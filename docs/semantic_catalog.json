@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 277,
+  "record_count": 276,
   "record_type_counts": {
     "artifact_type": 78,
     "getter": 85,
-    "op": 7,
+    "op": 6,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -1308,144 +1308,6 @@
           "curves": "exact_canonical_value",
           "model": "loadable_reference",
           "adoption_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
-    {
-      "record_id": "op:model_bound_latent_union",
-      "record_type": "op",
-      "name": "model_bound_latent_union",
-      "title": "Model-Bound Latent-Space Union",
-      "description": "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
-      "search_text": "Model-Bound Latent-Space Union\nCombine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.\nlatent\nintegration\nprojection\nprovenance\nreference_space\nspace\nTRUE\nquery_space\nmodel\nmodel_ref\nprojection_summary\nobs_table\ncell_set\nselect\nFALSE\nmaterialization\nunion_summary\nDurable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order.\nterminal_artifact\nModel, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record.\nspace_id_out\nstring\nmodel_bound_latent_union\nNew durable space identity for the unchanged row-wise coordinate union.",
-      "tags": ["op", "latent", "integration", "projection", "provenance"],
-      "payload": {
-        "op_name": "model_bound_latent_union",
-        "title": "Model-Bound Latent-Space Union",
-        "description": "Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.",
-        "intent": ["latent", "integration", "projection", "provenance"],
-        "consumes": [
-          {
-            "name": "reference_space",
-            "kind": "space",
-            "required": true
-          },
-          {
-            "name": "query_space",
-            "kind": "space",
-            "required": true
-          },
-          {
-            "name": "model",
-            "kind": "model_ref",
-            "required": true
-          },
-          {
-            "name": "projection_summary",
-            "kind": "obs_table",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "space",
-            "kind": "space",
-            "output_name": "space",
-            "primitive_kind": "space",
-            "durability_role": "materialization",
-            "promotable_directly": false,
-            "materialized_by_terminals": "union_summary",
-            "description": "Durable high-dimensional space containing fitted reference and projected query coordinates in canonical cell order."
-          },
-          {
-            "name": "union_summary",
-            "kind": "obs_table",
-            "output_name": "union_summary",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "union_summary",
-            "description": "Model, source-space, output-space, cell-count, dimension, disjointness, and no-transformation record."
-          }
-        ],
-        "inputs": {
-          "reference_space": {
-            "required": true,
-            "kind": "space",
-            "effective_cell_coverage": "reference_only"
-          },
-          "query_space": {
-            "required": true,
-            "kind": "space",
-            "effective_cell_coverage": "reference_only"
-          },
-          "model": {
-            "required": true,
-            "kind": "model_ref",
-            "effective_cell_coverage": "reference_only"
-          },
-          "projection_summary": {
-            "required": true,
-            "kind": "obs_table",
-            "effective_cell_coverage": "reference_only"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "space_id_out",
-            "type": "string",
-            "default": "model_bound_latent_union",
-            "help": "New durable space identity for the unchanged row-wise coordinate union.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          }
-        ],
-        "promotable": "union_summary",
-        "replay_equivalence": {
-          "space": "exact_canonical_value",
-          "union_summary": "exact_canonical_value"
         },
         "chunking": null
       }
@@ -7173,8 +7035,8 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 277,
-    "edge_count": 405,
+    "node_count": 276,
+    "edge_count": 397,
     "nodes": [
       {
         "record_id": "op:chromvar",
@@ -7211,12 +7073,6 @@
         "record_type": "op",
         "name": "slingshot_adopt",
         "title": "Adopt an existing Slingshot fit"
-      },
-      {
-        "record_id": "op:model_bound_latent_union",
-        "record_type": "op",
-        "name": "model_bound_latent_union",
-        "title": "Model-Bound Latent-Space Union"
       },
       {
         "record_id": "getter:wb_status",
@@ -9193,54 +9049,6 @@
         "to": "artifact_type:model_ref",
         "edge_type": "promotes_as",
         "label": "promotable:model"
-      },
-      {
-        "from": "primitive:space",
-        "to": "op:model_bound_latent_union",
-        "edge_type": "consumed_by",
-        "label": "input:reference_space"
-      },
-      {
-        "from": "primitive:space",
-        "to": "op:model_bound_latent_union",
-        "edge_type": "consumed_by",
-        "label": "input:query_space"
-      },
-      {
-        "from": "primitive:model_ref",
-        "to": "op:model_bound_latent_union",
-        "edge_type": "consumed_by",
-        "label": "input:model"
-      },
-      {
-        "from": "op:model_bound_latent_union",
-        "to": "parameter:model",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:model"
-      },
-      {
-        "from": "primitive:obs_table",
-        "to": "op:model_bound_latent_union",
-        "edge_type": "consumed_by",
-        "label": "input:projection_summary"
-      },
-      {
-        "from": "op:model_bound_latent_union",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:model_bound_latent_union",
-        "to": "primitive:space",
-        "edge_type": "produces",
-        "label": "output:space"
-      },
-      {
-        "from": "op:model_bound_latent_union",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:union_summary"
       },
       {
         "from": "artifact_type:cell_vector",

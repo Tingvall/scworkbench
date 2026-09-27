@@ -3229,6 +3229,14 @@
             "$ref": "#/$defs/provenance_read"
           }
         },
+        "producer_lineage_reads": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/producer_lineage_read"
+          }
+        },
         "typed_slice_reads": {
           "type": "array",
           "minItems": 1,
@@ -3574,21 +3582,25 @@
                 ]
               },
               "selection": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "policy",
-                  "parameter"
-                ],
-                "properties": {
-                  "policy": {
-                    "const": "parameter_cell_selector_v1"
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["policy", "parameter"],
+                    "properties": {
+                      "policy": {"const": "parameter_cell_selector_v1"},
+                      "parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+                    }
                   },
-                  "parameter": {
-                    "type": "string",
-                    "pattern": "^[a-z][a-z0-9_]*$"
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["policy"],
+                    "properties": {
+                      "policy": {"const": "full_input_axis_v1"}
+                    }
                   }
-                }
+                ]
               },
               "chunk_size_parameter": {
                 "type": "string",
@@ -4347,6 +4359,21 @@
                   {
                     "type": "object",
                     "additionalProperties": false,
+                    "required": ["mode", "typed_space_reads", "projection", "overlap_policy"],
+                    "properties": {
+                      "mode": {"const": "static_typed_space_union_v1"},
+                      "typed_space_reads": {
+                        "type": "array", "minItems": 2, "maxItems": 64,
+                        "uniqueItems": true,
+                        "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+                      },
+                      "projection": {"const": "space_cell_axis_v1"},
+                      "overlap_policy": {"const": "reject_any_overlap_v1"}
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
                     "required": [
                       "mode",
                       "collection",
@@ -4484,6 +4511,26 @@
                 "type": "array",
                 "items": {
                   "oneOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": ["name", "shape", "row_order", "missing_values",
+                        "dimension_source"],
+                      "properties": {
+                        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                        "shape": {"const": "one_per_cell_space_v1"},
+                        "row_order": {"const": "sealed_cell_axis_order_v1"},
+                        "missing_values": {"const": "forbidden"},
+                        "dimension_source": {
+                          "type": "object", "additionalProperties": false,
+                          "required": ["mode", "read"],
+                          "properties": {
+                            "mode": {"const": "typed_space_read_v1"},
+                            "read": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}
+                          }
+                        }
+                      }
+                    },
                     {
                       "type": "object",
                       "additionalProperties": false,
@@ -4947,6 +4994,22 @@
             }
           }
         }
+      }
+    },
+    "producer_lineage_read": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "reader", "query_space_input", "summary_input",
+        "model_input", "fitted_space_input", "source_policy", "call_discipline"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "reader": {"const": "read_producer_transition_lineage"},
+        "query_space_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "summary_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "model_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "fitted_space_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "source_policy": {"const": "accepted_staged_or_retained_v1"},
+        "call_discipline": {"const": "exactly_once"}
       }
     },
     "axis_selection": {

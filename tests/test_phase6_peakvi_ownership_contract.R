@@ -44,3 +44,13 @@ test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract <- functio
   stopifnot(identical(before, fingerprint(root)))
   TRUE
 }
+
+test_phase6_latent_union_no_pack_catalog_contract <- function() {
+  stopifnot(!"model_bound_latent_union" %in% wb_list_ops(),
+    !"scwblatent::model_bound_latent_union" %in% wb_list_ops(),
+    !exists("wb_op_model_bound_latent_union",
+      envir = asNamespace("scworkbench"), inherits = FALSE),
+    inherits(tryCatch(wb_op_interface("model_bound_latent_union"),
+      error = identity), "error"))
+  TRUE
+}

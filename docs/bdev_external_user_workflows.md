@@ -236,10 +236,10 @@ does not refit or overwrite inherited state. The independently installed
 for display UMAP; display coordinates do not themselves establish biological
 mapping quality.
 
-The old-core `model_bound_latent_union` operation remains available for
-historical inspection but is not ABI-v3-ready for this pack workflow. A
-pack-linked fitted/query union and downstream joint UMAP require separate
-typed authority and qualification; do not infer them from this example.
+The qualified `scwblatent::model_bound_latent_union` operation can combine a
+promoted fitted space and a promoted query projection from the same retained
+model. Its typed readers and producer-lineage grant authenticate the source
+axes and paired projection summary before publishing the union.
 
 ## Current boundaries
 

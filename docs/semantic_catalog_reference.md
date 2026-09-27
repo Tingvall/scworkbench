@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 277
+Record count: 276
 
-Graph edges: 405
+Graph edges: 397
 
 ## artifact_type
 
@@ -1027,12 +1027,6 @@ Description: Materialize an imported cell metadata column as a typed, provenance
 Title: Adopt an existing Slingshot fit
 
 Description: Adopt a checksummed source-derived Slingshot fit as a complete trajectory family without refitting it.
-
-### `op:model_bound_latent_union`
-
-Title: Model-Bound Latent-Space Union
-
-Description: Combine disjoint fitted-reference and projected-query latent coordinates only when both are bound to the same retained PeakVI or scVI model identity.
 
 ## parameter
 
