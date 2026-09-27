@@ -387,6 +387,10 @@ wb_session_resume <- function(bundle, workspace) {
   .wb_assert(identical(as.character(s$durable$state), "active"),
              paste0("DURABLE_SESSION_", toupper(as.character(s$durable$state)), ": terminal sessions are inspectable but cannot resume execution."))
   .wb_session_validate_source(s, bundle)
+  # A checkpoint cannot serialize the source's SQLite connection. Restore its
+  # verified live handle only after checking the exact source path and registry
+  # identity, so stage-leaf authentication remains available after replacement.
+  s$staging_bundle$staging_source_bundle <- bundle
   .wb_session_validate_payloads(s)
   validated <- TRUE
   s

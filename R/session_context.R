@@ -401,6 +401,10 @@ wb_session_run_op <- function(session, bundle, op_name, ..., inputs = list(), no
     .wb_session_assert_mutation_owner(session)
     .wb_session_validate_checkpoint_state(session)
     .wb_session_validate_source(session, bundle)
+    # A read-only wb_session_open() handle, like wb_session_resume(), has no
+    # serialized source connection. Bind the verified source before dispatch.
+    if (!is.null(session$staging_bundle))
+      session$staging_bundle$staging_source_bundle <- bundle
     .wb_session_validate_payloads(session)
   }
   op_name <- .wb_operation_name_resolve(op_name)

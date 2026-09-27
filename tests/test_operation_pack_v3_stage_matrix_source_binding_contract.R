@@ -227,6 +227,57 @@ test_operation_pack_v3_stage_matrix_registry_and_broker_contract <-
   TRUE
 }
 
+test_operation_pack_v3_durable_reopen_committed_matrix_source_contract <-
+    function() {
+  installed <- .wb_g2_reference_pack_install()
+  on.exit(.wb_g2_reference_pack_close(installed), add = TRUE)
+  fixture <- .wb_g2_stage_matrix_fixture()
+  workspace_root <- tempfile("g2-durable-workspaces-")
+  dir.create(workspace_root)
+  on.exit({
+    .wb_g2_stage_matrix_close(fixture)
+    unlink(workspace_root, recursive = TRUE, force = TRUE)
+  }, add = TRUE)
+  baseline <- .wb_g2_source_only_state(fixture$bundle)
+  session <- wb_session_create(fixture$bundle, workspace_root, "g2_reopen")
+  workspace <- session$durable$workspace
+  wb_close_bundle(session$staging_bundle)
+  wb_close_bundle(fixture$bundle)
+  fixture$bundle <- NULL
+  quote_r <- function(value) encodeString(value, quote = '"')
+  code <- paste0(
+    "devtools::load_all(", quote_r(normalizePath(".", winslash = "/")),
+    ",quiet=TRUE);",
+    ".libPaths(c(", quote_r(installed$library), ",.libPaths()));",
+    "b<-wb_open_bundle(", quote_r(fixture$root), ");",
+    "s<-wb_session_resume(b,", quote_r(workspace), ");",
+    "stopifnot(inherits(s$staging_bundle$staging_source_bundle,",
+    "'scworkbench_bundle'));",
+    "m<-system.file('scworkbench','operation-pack.json',",
+    "package='scwbV3Reference',lib.loc=", quote_r(installed$library),
+    ");wb_operation_pack_activate(m,lib.loc=",
+    quote_r(installed$library), ");",
+    "x<-wb_session_run_op(s,b,'scwbv3reference::chunked_family',",
+    "inputs=list(matrix='RNA_counts',cell_set='all',min_cells=1L,",
+    "features=list(signal=list('gene_2','gene_1')),name='resumed',",
+    "chunk_size=2L));",
+    "stopifnot(identical(sort(names(x$run$outputs)),",
+    "c('scores','summary')));",
+    "wb_session_discard(x$session);wb_close_bundle(b);",
+    "cat('G2_DURABLE_REOPEN_TYPED_READ_OK\\n')")
+  output <- suppressWarnings(system2(file.path(R.home("bin"), "Rscript"),
+    c("-e", shQuote(code)), stdout = TRUE, stderr = TRUE))
+  status <- attr(output, "status") %||% 0L
+  if (!identical(as.integer(status), 0L))
+    stop(paste(output, collapse = "\n"), call. = FALSE)
+  stopifnot(any(grepl("G2_DURABLE_REOPEN_TYPED_READ_OK", output,
+    fixed = TRUE)), !dir.exists(workspace))
+  reopened <- wb_open_bundle(fixture$root)
+  on.exit(wb_close_bundle(reopened), add = TRUE)
+  stopifnot(identical(.wb_g2_source_only_state(reopened), baseline))
+  TRUE
+}
+
 test_operation_pack_v3_stage_matrix_between_reads_and_publication_contract <-
     function() {
   installed <- .wb_g2_reference_pack_install()
