@@ -60,8 +60,8 @@ stopifnot(
 # No-pack parity reflects the current core catalog after method extraction.
 core_identity_before <- wb_operation_catalog_identity()
 stopifnot(identical(core_identity_before$sha256,
-                    "8faee8b0338b64f87cbf3bb2124b65848d946dd211ae3c1025f0008f748557de"),
-          identical(core_identity_before$core_operation_count, 10L),
+                    "3a9b0647de71b0acd51eaa960cffdacfd9fe5381e18d3b680a819d1d9b4714d6"),
+          identical(core_identity_before$core_operation_count, 8L),
           !nrow(wb_operation_packs()))
 r_installed <- wb_operation_pack_validate(template_package)$identity
 r_structural <- wb_operation_pack_manifest_validate(template_manifest)$identity
