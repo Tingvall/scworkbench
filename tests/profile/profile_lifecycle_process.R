@@ -1,6 +1,6 @@
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 5L) stop(paste(
-  "usage: profile_lifecycle_process.R MODE LIB RECEIPT FIXTURE_ROOT PROFILE_SOURCE"),
+if (length(args) != 6L) stop(paste(
+  "usage: profile_lifecycle_process.R MODE LIB RECEIPT FIXTURE_ROOT PROFILE_SOURCE CORE_SOURCE"),
   call. = FALSE)
 mode <- args[[1L]]
 library_path <- normalizePath(args[[2L]], winslash = "/", mustWork = TRUE)
@@ -9,6 +9,7 @@ fixture_root <- normalizePath(args[[4L]], winslash = "/", mustWork = FALSE)
 .libPaths(c(library_path, .libPaths()))
 base::library(scworkbench, lib.loc = library_path)
 sys.source(args[[5L]], envir = globalenv())
+core_source <- normalizePath(args[[6L]], winslash = "/", mustWork = TRUE)
 bundle_root <- file.path(fixture_root, "final.bundle")
 exact_root <- file.path(fixture_root, "exact_source", "final.bundle")
 missing_root <- file.path(fixture_root, "missing_source", "final.bundle")
@@ -75,4 +76,42 @@ if (identical(mode, "create_exact_replay")) {
   wb_close_bundle(missing)
   wb_close_bundle(final)
   cat("PROFILE_PACK_FREE_INSPECTION_OK artifacts=2; MISSING_PACK_REPLAY_REJECTED\n")
+} else if (identical(mode, "archived_v9_disposable_upgrade")) {
+  stopifnot(nrow(wb_operation_packs()) == 0L)
+  archive <- file.path(core_source, "tests", "fixtures",
+    "phase5_s2_retained_old_core_bundle.tar.gz")
+  expected_archive <- "e6b2a277b2ff614d44f04ab8bbb80fbd3339f82886df8b0168d437733d67051b"
+  archive_before <- digest::digest(archive, algo = "sha256", file = TRUE)
+  stopifnot(identical(archive_before, expected_archive))
+  copy_parent <- file.path(fixture_root, "archived_v9_copy")
+  dir.create(copy_parent, recursive = TRUE)
+  utils::untar(archive, exdir = copy_parent)
+  copy_root <- file.path(copy_parent, "forge1-s2-retained-bundle")
+  db_path <- file.path(copy_root, "db", "app.sqlite")
+  before <- digest::digest(db_path, algo = "sha256", file = TRUE)
+  refused <- tryCatch(wb_open_bundle(copy_root, read_only = TRUE),
+    error = identity)
+  stopifnot(inherits(refused, "error"),
+    grepl("BUNDLE_SCHEMA_UPGRADE_REQUIRED", conditionMessage(refused),
+      fixed = TRUE),
+    identical(before, digest::digest(db_path, algo = "sha256", file = TRUE)))
+  writable <- wb_open_bundle(copy_root)
+  wb_migrate_bundle(writable)
+  wb_close_bundle(writable)
+  migrated <- digest::digest(db_path, algo = "sha256", file = TRUE)
+  historical <- wb_open_bundle(copy_root, read_only = TRUE)
+  artifacts <- wb_art_list(historical)
+  stopifnot(nrow(artifacts) > 0L,
+    any(as.character(artifacts$source_op) == "trajectory_de"))
+  de_id <- as.character(artifacts$artifact_id[
+    as.character(artifacts$source_op) == "trajectory_de"])[[1L]]
+  stopifnot(inherits(wb_art_load(historical, de_id), "wb_primitive"))
+  wb_close_bundle(historical)
+  validated <- wb_validate_bundle(copy_root, read_only = TRUE)
+  stopifnot(isTRUE(validated),
+    identical(migrated, digest::digest(db_path, algo = "sha256", file = TRUE)),
+    identical(archive_before, digest::digest(archive, algo = "sha256", file = TRUE)),
+    nrow(wb_operation_packs()) == 0L)
+  cat("PROFILE_ARCHIVED_V9_COPY_OK migrated_readonly_valid=TRUE archive_unchanged=TRUE artifacts=",
+    nrow(artifacts), "\n", sep = "")
 } else stop("Unknown lifecycle mode: ", mode)

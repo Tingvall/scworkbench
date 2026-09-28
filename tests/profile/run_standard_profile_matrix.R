@@ -112,12 +112,15 @@ process("standard_profile", "profile", full_library)
 lifecycle_script <- file.path(core_source, "tests", "profile",
   "profile_lifecycle_process.R")
 lifecycle_root <- file.path(evidence, "lifecycle_fixture")
-for (mode in c("create_exact_replay", "pack_free_inspect_missing_replay")) {
+for (mode in c("create_exact_replay", "pack_free_inspect_missing_replay",
+               "archived_v9_disposable_upgrade")) {
   label <- if (identical(mode, "create_exact_replay"))
-    "profile_exact_replay" else "profile_pack_free_inspection"
+    "profile_exact_replay" else if (identical(mode,
+      "pack_free_inspect_missing_replay")) "profile_pack_free_inspection" else
+      "profile_archived_v9_upgrade"
   run_gate(label, rscript_binary, c("--vanilla", shQuote(lifecycle_script),
     shQuote(mode), shQuote(full_library), shQuote(receipt_path),
-    shQuote(lifecycle_root), shQuote(profile_source)),
+    shQuote(lifecycle_root), shQuote(profile_source), shQuote(core_source)),
     c(paste0("R_LIBS=", shQuote(full_library)),
       paste0("SCWB_LATENT_PYTHON=", shQuote(latent_python))))
 }
@@ -126,4 +129,4 @@ install("install_collision_fixture", file.path(core_source, "tests", "fixtures",
 process("active_collision", "active_collision", full_library)
 cat("STANDARD_PROFILE_MATRIX_PASS packs=7 operations=61 individual_activations=7",
     " negatives=missing,wrong_pin,lock_collision,publication_rollback,active_collision",
-    " lifecycle=exact_replay,pack_free_inspection,missing_pack_replay\n")
+    " lifecycle=exact_replay,pack_free_inspection,missing_pack_replay,disposable_v9_upgrade\n")
