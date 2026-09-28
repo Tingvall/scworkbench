@@ -4,9 +4,9 @@
 
 Generated at: source-controlled
 
-Record count: 276
+Record count: 275
 
-Graph edges: 397
+Graph edges: 389
 
 ## artifact_type
 
@@ -991,12 +991,6 @@ Title: Capsule Output Path
 Description: Resolve and content-verify one relocatable bundle-owned capsule output path.
 
 ## op
-
-### `op:chromvar`
-
-Title: chromVAR deviations
-
-Description: Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
 
 ### `op:feature_set_import`
 

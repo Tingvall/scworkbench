@@ -395,6 +395,13 @@ wb_motif_register <- function(bundle,
   ))
 }
 
+.wb_motif_registry_exported_singleton <- function(package) {
+  object <- tryCatch(getExportedValue(package, package), error = identity)
+  .wb_assert(!inherits(object, "error"), paste0(
+    "Could not load exported singleton object from package: ", package))
+  object
+}
+
 #' Import JASPAR Motifs Into The Registry
 #'
 #' Convenience importer for populating a motif library from an installed JASPAR
@@ -433,7 +440,7 @@ wb_motif_library_import_jaspar <- function(bundle,
   .wb_require_pkg("TFBSTools", "JASPAR motif import")
   .wb_require_pkg(as.character(jaspar_pkg)[1], "JASPAR motif import")
 
-  jaspar_obj <- .wb_chromvar_load_exported_singleton(jaspar_pkg)
+  jaspar_obj <- .wb_motif_registry_exported_singleton(jaspar_pkg)
   opts <- list(species = as.character(species)[1], collection = as.character(collection)[1])
   motifs <- TFBSTools::getMatrixSet(jaspar_obj, opts)
   .wb_assert(length(motifs) > 0L,

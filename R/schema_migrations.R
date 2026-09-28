@@ -2,7 +2,7 @@
 # Component schema helpers remain compatibility shims for callers inside the
 # package, but only this file orchestrates schema creation and upgrades.
 
-.wb_bundle_schema_version <- function() 9L
+.wb_bundle_schema_version <- function() 10L
 
 .wb_bundle_schema_migrations <- function() {
   list(
@@ -14,7 +14,8 @@
     list(version = 6L, id = "006_provenance_identity_schemes", apply = .wb_schema_migration_006),
     list(version = 7L, id = "007_analysis_capsules", apply = .wb_schema_migration_007),
     list(version = 8L, id = "008_metadata_field_content_identity", apply = .wb_schema_migration_008),
-    list(version = 9L, id = "009_typed_cell_set_consumption", apply = .wb_schema_migration_009)
+    list(version = 9L, id = "009_typed_cell_set_consumption", apply = .wb_schema_migration_009),
+    list(version = 10L, id = "010_nullable_cell_vector_family", apply = .wb_schema_migration_010)
   )
 }
 
@@ -128,6 +129,12 @@
       )
     ))
   }
+  family_columns <- DBI::dbGetQuery(con, "PRAGMA table_info(artifact_pseudotime);")
+  value_column <- family_columns[family_columns$name == "pseudotime", , drop = FALSE]
+  if (nrow(value_column) != 1L || as.integer(value_column$notnull[[1L]]) != 0L) {
+    return(list(current = current, observed = observed, status = "invalid_schema",
+                message = "Bundle migration ledger is current but cell-vector-family values are not nullable."))
+  }
   list(current = current, observed = observed, status = "current",
        message = paste0("Bundle schema is current at version ", current, "."))
 }
@@ -174,6 +181,39 @@
 
 .wb_schema_migration_009 <- function(con, bundle_dir = NULL) {
   .wb_migrate_provenance_tables_locked(con)
+  invisible(TRUE)
+}
+
+.wb_schema_migration_010 <- function(con, bundle_dir = NULL) {
+  columns <- DBI::dbGetQuery(con, "PRAGMA table_info(artifact_pseudotime);")
+  .wb_assert(identical(as.character(columns$name),
+    c("artifact_id", "cell_id", "lineage_id", "pseudotime")),
+    "Nullable-family migration requires the exact historical artifact_pseudotime columns.")
+  if (as.integer(columns$notnull[columns$name == "pseudotime"][[1L]]) == 0L)
+    return(invisible(TRUE))
+  .wb_assert(isTRUE(.wb_schema_table_foreign_key_status(con, "artifact_pseudotime")$ok),
+    "Nullable-family migration requires the historical artifact_pseudotime foreign keys.")
+  DBI::dbExecute(con, "PRAGMA defer_foreign_keys=ON;")
+  DBI::dbExecute(con, "
+    CREATE TABLE __wb_nullable_artifact_pseudotime (
+      artifact_id TEXT NOT NULL,
+      cell_id TEXT NOT NULL,
+      lineage_id TEXT NOT NULL,
+      pseudotime REAL,
+      PRIMARY KEY (artifact_id, cell_id, lineage_id),
+      FOREIGN KEY (artifact_id) REFERENCES artifacts (artifact_id) DEFERRABLE INITIALLY DEFERRED,
+      FOREIGN KEY (cell_id) REFERENCES cells (cell_id) DEFERRABLE INITIALLY DEFERRED
+    );")
+  DBI::dbExecute(con, "
+    INSERT INTO __wb_nullable_artifact_pseudotime(artifact_id,cell_id,lineage_id,pseudotime)
+    SELECT artifact_id,cell_id,lineage_id,pseudotime FROM artifact_pseudotime;")
+  .wb_assert(identical(
+    as.integer(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM __wb_nullable_artifact_pseudotime;")$n[[1L]]),
+    as.integer(DBI::dbGetQuery(con, "SELECT COUNT(*) AS n FROM artifact_pseudotime;")$n[[1L]])),
+    "Nullable-family migration did not preserve every historical payload row.")
+  DBI::dbExecute(con, "DROP TABLE artifact_pseudotime;")
+  DBI::dbExecute(con, "ALTER TABLE __wb_nullable_artifact_pseudotime RENAME TO artifact_pseudotime;")
+  DBI::dbExecute(con, "CREATE INDEX idx_pt_artifact ON artifact_pseudotime(artifact_id);")
   invisible(TRUE)
 }
 

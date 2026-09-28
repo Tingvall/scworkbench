@@ -4,49 +4,10 @@
 
 Generated at: source-controlled
 
-Operation count: 6
+Operation count: 5
 
 This document summarizes registered scworkbench ops for humans, agents, and semantic indexing.
 The machine-readable companion is `docs/op_catalog_semantic.json`.
-
-## `chromvar`
-
-Title: chromVAR deviations
-
-Intent: atac, motif, signature, score
-
-Description: Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
-
-Consumes:
-- `matrix`: matrix
-- `cell_set`: select
-
-Produces:
-- `deviation_z`: cell_vector_family [terminal artifact] - Per-cell chromVAR z-scores keyed by motif.
-- `deviation_raw`: cell_vector_family [terminal artifact] - Per-cell raw chromVAR deviations keyed by motif.
-- `motif_summary`: obs_table [terminal artifact] - Per-motif chromVAR summary statistics.
-
-Promotable outputs: deviation_z, deviation_raw, motif_summary
-
-Replay equivalence:
-- `deviation_z`: `exact_canonical_value`
-- `deviation_raw`: `exact_canonical_value`
-- `motif_summary`: `exact_canonical_value`
-
-Key parameters:
-- `motif_library` (string, default=NULL): Canonical motif-library key from the motif registry.
-- `motifs` (string_vec, default=NULL): Optional motif-key subset within motif_library.
-- `motif_match_set` (string, default=NULL): Optional canonical motif-match-set key to reuse cached motif-to-peak matches.
-- `min_motif_peaks` (int, default=10): Minimum number of matched peaks per retained motif.
-- `max_motif_peaks` (int, default=NULL): Optional maximum number of matched peaks per retained motif.
-- `motif_p_cutoff` (dbl, default=5e-05): Motifmatchr p-value cutoff.
-- `motif_w` (int, default=7): Motifmatchr background window width.
-- `seqlevels_mode` (choice, default=standard): Seqlevel policy; standard chromosomes are the default.
-- `seqlevels_include` (string_vec, default=NULL): Optional explicit seqlevels to keep after applying seqlevels_mode.
-- `seqlevels_exclude` (string_vec, default=NULL): Optional explicit seqlevels to drop after applying seqlevels_mode.
-- `background_iterations` (int, default=50): Number of chromVAR background iterations.
-- `background_w` (dbl, default=0.1): Background peak matching window width.
-- `background_bs` (int, default=50): Background peak matching bin count.
 
 ## `feature_set_import`
 

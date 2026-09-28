@@ -213,8 +213,29 @@
         },
         {
           "$ref": "#/$defs/dynamic_input_metadata_dependency"
+        },
+        {
+          "$ref": "#/$defs/dynamic_matrix_registry_dependency"
         }
       ]
+    },
+    "dynamic_matrix_registry_dependency": {
+      "type": "object", "additionalProperties": false,
+      "required": ["requirement_id", "kind", "matrix_input",
+        "registry_read", "metadata_field", "ecosystem",
+        "package_name_scheme", "probe", "disposition", "version_policy"],
+      "properties": {
+        "requirement_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "kind": {"const": "dynamic_matrix_registry_package"},
+        "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "registry_read": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "metadata_field": {"const": "genome_provider"},
+        "ecosystem": {"const": "R"},
+        "package_name_scheme": {"const": "r_package_name_v1"},
+        "probe": {"const": "r_namespace_exports_v1"},
+        "disposition": {"const": "required"},
+        "version_policy": {"const": "record_resolved_installed_version_v1"}
+      }
     },
     "selector": {
       "type": "object",
@@ -2361,6 +2382,46 @@
             "missing_value_policy": {"const": "preserve_null_v1"},
             "call_discipline": {"const": "single_use"}
           }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["name", "category", "kind", "reader",
+            "matrix_input", "row_order", "call_discipline"],
+          "properties": {
+            "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "category": {"const": "authenticated_core_registry_snapshot"},
+            "kind": {"const": "genomic_matrix_source"},
+            "reader": {"const": "read_genomic_matrix_source"},
+            "matrix_input": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "row_order": {"const": "matrix_feature_order_v1"},
+            "call_discipline": {"const": "single_use"}
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["name", "category", "kind", "reader",
+            "library_parameter", "call_discipline"],
+          "properties": {
+            "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "category": {"const": "authenticated_core_registry_snapshot"},
+            "kind": {"const": "motif_library"},
+            "reader": {"const": "read_motif_library"},
+            "library_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "call_discipline": {"const": "single_use"}
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["name", "category", "kind", "reader",
+            "match_set_parameter", "call_discipline"],
+          "properties": {
+            "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "category": {"const": "authenticated_core_registry_snapshot"},
+            "kind": {"const": "motif_match_set"},
+            "reader": {"const": "read_motif_match_set"},
+            "match_set_parameter": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "call_discipline": {"const": "single_use"}
+          }
         }
       ]
     },
@@ -2469,20 +2530,27 @@
           }
         },
         {
+          "type": "object", "additionalProperties": false,
+          "required": ["output", "policy", "group", "source_read",
+            "row_order", "missing_values", "maximum_keys", "maximum_rows"],
+          "properties": {
+            "output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "policy": {"const": "runtime_ordered_cell_family_v1"},
+            "group": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "source_read": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "row_order": {"const": "cell_major_then_declared_key_v1"},
+            "missing_values": {"const": "allowed"},
+            "maximum_keys": {"type": "integer", "minimum": 1, "maximum": 10000},
+            "maximum_rows": {"type": "integer", "minimum": 1, "maximum": 10000000}
+          }
+        },
+        {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "output",
-            "policy"
-          ],
+          "required": ["output", "policy"],
           "properties": {
-            "output": {
-              "type": "string",
-              "pattern": "^[a-z][a-z0-9_]*$"
-            },
-            "policy": {
-              "const": "data_dependent_table_v1"
-            }
+            "output": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+            "policy": {"const": "data_dependent_table_v1"}
           }
         },
         {

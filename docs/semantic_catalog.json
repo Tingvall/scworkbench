@@ -1,11 +1,11 @@
 {
   "schema_version": "scworkbench.semantic_catalog.v1",
   "generated_at": "source-controlled",
-  "record_count": 276,
+  "record_count": 275,
   "record_type_counts": {
     "artifact_type": 78,
     "getter": 85,
-    "op": 6,
+    "op": 5,
     "parameter": 59,
     "plot": 12,
     "primitive": 11,
@@ -13,272 +13,6 @@
     "wrangler": 14
   },
   "records": [
-    {
-      "record_id": "op:chromvar",
-      "record_type": "op",
-      "name": "chromvar",
-      "title": "chromVAR deviations",
-      "description": "Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.",
-      "search_text": "chromVAR deviations\nBias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.\natac\nmotif\nsignature\nscore\nmatrix\nTRUE\ncell_set\nselect\nFALSE\ndeviation_z\ncell_vector_family\nterminal_artifact\nPer-cell chromVAR z-scores keyed by motif.\ndeviation_raw\nPer-cell raw chromVAR deviations keyed by motif.\nmotif_summary\nobs_table\nPer-motif chromVAR summary statistics.\nmotif_library\nstring\nCanonical motif-library key from the motif registry.\nmotifs\nstring_vec\nOptional motif-key subset within motif_library.\nmotif_match_set\nOptional canonical motif-match-set key to reuse cached motif-to-peak matches.\nmin_motif_peaks\nint\n10\n1\n1e+05\nMinimum number of matched peaks per retained motif.\nmax_motif_peaks\n1e+06\nOptional maximum number of matched peaks per retained motif.\nmotif_p_cutoff\ndbl\n5e-05\n0\nMotifmatchr p-value cutoff.\nmotif_w\n7\n100\nMotifmatchr background window width.\nseqlevels_mode\nchoice\nstandard\nall\nSeqlevel policy; standard chromosomes are the default.\nseqlevels_include\nOptional explicit seqlevels to keep after applying seqlevels_mode.\nseqlevels_exclude\nOptional explicit seqlevels to drop after applying seqlevels_mode.\nbackground_iterations\n50\n1000\nNumber of chromVAR background iterations.\nbackground_w\n0.1\nBackground peak matching window width.\nbackground_bs\n2\nBackground peak matching bin count.",
-      "tags": ["op", "atac", "motif", "signature", "score"],
-      "payload": {
-        "op_name": "chromvar",
-        "title": "chromVAR deviations",
-        "description": "Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.",
-        "intent": ["atac", "motif", "signature", "score"],
-        "consumes": [
-          {
-            "name": "matrix",
-            "kind": "matrix",
-            "required": true
-          },
-          {
-            "name": "cell_set",
-            "kind": "select",
-            "required": false
-          }
-        ],
-        "produces": [
-          {
-            "name": "deviation_z",
-            "kind": "cell_vector_family",
-            "output_name": "deviation_z",
-            "primitive_kind": "cell_vector_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "deviation_z",
-            "description": "Per-cell chromVAR z-scores keyed by motif."
-          },
-          {
-            "name": "deviation_raw",
-            "kind": "cell_vector_family",
-            "output_name": "deviation_raw",
-            "primitive_kind": "cell_vector_family",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "deviation_raw",
-            "description": "Per-cell raw chromVAR deviations keyed by motif."
-          },
-          {
-            "name": "motif_summary",
-            "kind": "obs_table",
-            "output_name": "motif_summary",
-            "primitive_kind": "obs_table",
-            "durability_role": "terminal_artifact",
-            "promotable_directly": true,
-            "materialized_by_terminals": "motif_summary",
-            "description": "Per-motif chromVAR summary statistics."
-          }
-        ],
-        "inputs": {
-          "matrix": {
-            "required": true,
-            "kind": "matrix",
-            "effective_cell_coverage": "cell_indexed"
-          },
-          "cell_set": {
-            "type": "select",
-            "label": "Cell set",
-            "choices": ["core", "all"],
-            "default": "all",
-            "value_type": "cell_set",
-            "required": false,
-            "non_empty": true
-          }
-        },
-        "controls": {
-          "cell_set": {
-            "name": "cell_set",
-            "type": "cell_set",
-            "default": "all",
-            "required": false,
-            "help": "Named bundle cell set defining the requested cell universe."
-          },
-          "cell_ids": {
-            "name": "cell_ids",
-            "type": "cell_ids",
-            "default": null,
-            "required": false,
-            "help": "Optional explicit non-empty cell-id universe overriding cell_set."
-          },
-          "min_cells": {
-            "name": "min_cells",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "required": false,
-            "help": "Minimum effective cell count required before runner execution."
-          }
-        },
-        "params": [
-          {
-            "name": "motif_library",
-            "type": "string",
-            "default": null,
-            "help": "Canonical motif-library key from the motif registry.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "motifs",
-            "type": "string_vec",
-            "default": null,
-            "help": "Optional motif-key subset within motif_library.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "motif_match_set",
-            "type": "string",
-            "default": null,
-            "help": "Optional canonical motif-match-set key to reuse cached motif-to-peak matches.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "min_motif_peaks",
-            "type": "int",
-            "default": 10,
-            "min": 1,
-            "max": 100000,
-            "help": "Minimum number of matched peaks per retained motif.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "max_motif_peaks",
-            "type": "int",
-            "default": null,
-            "min": 1,
-            "max": 1000000,
-            "help": "Optional maximum number of matched peaks per retained motif.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "motif_p_cutoff",
-            "type": "dbl",
-            "default": 0,
-            "min": 0,
-            "max": 1,
-            "help": "Motifmatchr p-value cutoff.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "motif_w",
-            "type": "int",
-            "default": 7,
-            "min": 1,
-            "max": 100,
-            "help": "Motifmatchr background window width.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "seqlevels_mode",
-            "type": "choice",
-            "default": "standard",
-            "choices": ["standard", "all"],
-            "help": "Seqlevel policy; standard chromosomes are the default.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "seqlevels_include",
-            "type": "string_vec",
-            "default": null,
-            "help": "Optional explicit seqlevels to keep after applying seqlevels_mode.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "seqlevels_exclude",
-            "type": "string_vec",
-            "default": null,
-            "help": "Optional explicit seqlevels to drop after applying seqlevels_mode.",
-            "required": false,
-            "nullable": true,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": true
-          },
-          {
-            "name": "background_iterations",
-            "type": "int",
-            "default": 50,
-            "min": 1,
-            "max": 1000,
-            "help": "Number of chromVAR background iterations.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          },
-          {
-            "name": "background_w",
-            "type": "dbl",
-            "default": 0.1,
-            "min": 0,
-            "max": 10,
-            "help": "Background peak matching window width.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": false,
-            "non_empty": false
-          },
-          {
-            "name": "background_bs",
-            "type": "int",
-            "default": 50,
-            "min": 2,
-            "max": 1000,
-            "help": "Background peak matching bin count.",
-            "required": false,
-            "nullable": false,
-            "allow_non_finite": false,
-            "strict_integer": true,
-            "non_empty": false
-          }
-        ],
-        "promotable": ["deviation_z", "deviation_raw", "motif_summary"],
-        "replay_equivalence": {
-          "deviation_z": "exact_canonical_value",
-          "deviation_raw": "exact_canonical_value",
-          "motif_summary": "exact_canonical_value"
-        },
-        "chunking": null
-      }
-    },
     {
       "record_id": "op:feature_set_import",
       "record_type": "op",
@@ -7035,15 +6769,9 @@
   "graph": {
     "schema_version": "scworkbench.semantic_compatibility_graph.v1",
     "generated_at": "source-controlled",
-    "node_count": 276,
-    "edge_count": 397,
+    "node_count": 275,
+    "edge_count": 389,
     "nodes": [
-      {
-        "record_id": "op:chromvar",
-        "record_type": "op",
-        "name": "chromvar",
-        "title": "chromVAR deviations"
-      },
       {
         "record_id": "op:feature_set_import",
         "record_type": "op",
@@ -8696,54 +8424,6 @@
       }
     ],
     "edges": [
-      {
-        "from": "primitive:matrix",
-        "to": "op:chromvar",
-        "edge_type": "consumed_by",
-        "label": "input:matrix"
-      },
-      {
-        "from": "op:chromvar",
-        "to": "parameter:matrix",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:matrix"
-      },
-      {
-        "from": "op:chromvar",
-        "to": "parameter:cell_set",
-        "edge_type": "has_parameter_semantics",
-        "label": "input:cell_set"
-      },
-      {
-        "from": "op:chromvar",
-        "to": "primitive:cell_vector_family",
-        "edge_type": "produces",
-        "label": "output:deviation_z"
-      },
-      {
-        "from": "op:chromvar",
-        "to": "primitive:cell_vector_family",
-        "edge_type": "produces",
-        "label": "output:deviation_raw"
-      },
-      {
-        "from": "op:chromvar",
-        "to": "primitive:obs_table",
-        "edge_type": "produces",
-        "label": "output:motif_summary"
-      },
-      {
-        "from": "op:chromvar",
-        "to": "artifact_type:cell_vector_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:deviation_z"
-      },
-      {
-        "from": "op:chromvar",
-        "to": "artifact_type:cell_vector_family",
-        "edge_type": "promotes_as",
-        "label": "promotable:deviation_raw"
-      },
       {
         "from": "primitive:matrix",
         "to": "op:feature_set_import",

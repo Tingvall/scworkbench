@@ -419,9 +419,12 @@
       class = "wb_operation_pack_v2_error"
     )
     if (identical(as.character(record$request$schema %||% "")[1],
-        "scworkbench.operation_pack.transition_request.v3"))
+        "scworkbench.operation_pack.transition_request.v3")) {
       .wb_operation_pack_v3_retained_provenance_assert_current(bundle,
         record$request, source)
+      .wb_operation_pack_v3_genomic_retained_assert_current(bundle,
+        record$request, source)
+    }
     rel <- file.path("operation_pack_v2", transition_id)
     .wb_prepare_staged_payload(staging_bundle, workspace, rel)
   }

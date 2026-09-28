@@ -750,6 +750,17 @@
       "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase6-ordered-cell-metadata-identities.json"
     },
     {
+      "path": "inst/protocol/fixtures/operation-pack-v3/phase7-genomic-runtime-family-identities.json",
+      "class": "public_canonical",
+      "audience": "public",
+      "status": "current",
+      "canonical_source": "inst/protocol/fixtures/operation-pack-v3/phase7-genomic-runtime-family-identities.json",
+      "generator": null,
+      "source_tarball": true,
+      "installed_package": true,
+      "installed_relative_path": "protocol/fixtures/operation-pack-v3/phase7-genomic-runtime-family-identities.json"
+    },
+    {
       "path": "inst/protocol/fixtures/operation-pack-v3/relation-family-identities.json",
       "class": "public_canonical",
       "audience": "public",
@@ -3160,17 +3171,6 @@
     },
     {
       "path": "man/wb_op_cells_union.Rd",
-      "class": "generated_public_reference",
-      "audience": "public",
-      "status": "generated",
-      "canonical_source": "R/ roxygen comments",
-      "generator": "devtools::document()",
-      "source_tarball": true,
-      "installed_package": false,
-      "installed_relative_path": null
-    },
-    {
-      "path": "man/wb_op_chromvar.Rd",
       "class": "generated_public_reference",
       "audience": "public",
       "status": "generated",

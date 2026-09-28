@@ -959,6 +959,12 @@
       descriptor["expected_cell_order_identity"] <- list(NULL)
     }
     if (!is.null(policy) && identical(as.character(policy$policy)[1],
+        "runtime_ordered_cell_family_v1")) {
+      descriptor$expected_dimensions <- list(0L, 3L)
+      descriptor["expected_cell_order_identity"] <- list(NULL)
+      descriptor$semantic_constraints$missing_values <- "allowed"
+    }
+    if (!is.null(policy) && identical(as.character(policy$policy)[1],
         "sealed_relation_family_v1")) {
       descriptor$expected_dimensions <- list(0L, 3L)
       descriptor["expected_cell_order_identity"] <- list(NULL)
@@ -1394,6 +1400,10 @@
       unname(sparse_family_grants)
   if (length(relation_grants))
     base$sealed_relation_family_grants <- unname(relation_grants)
+  runtime_key_grants <- .wb_operation_pack_v3_rfk_grant(operation,
+    registry_records, base$outputs)
+  if (length(runtime_key_grants))
+    base$runtime_cell_family_key_grants <- runtime_key_grants
   base$request_identity <- NULL
   base$request_identity <- .wb_operation_pack_v2_identity_scoped(
     "scworkbench.operation_pack.transition_request.v3",
@@ -1632,6 +1642,7 @@
     "capability_identity", "PYBENCH_CAPABILITY_MISMATCH", "staging")
   .wb_operation_pack_v3_assert_self_identity(request, "request_identity",
     "PYBENCH_CAPABILITY_MISMATCH", "staging")
+  .wb_operation_pack_v3_rfk_request_audit(request)
   identity <- registration$identity
   op_name <- as.character(operation$qualified_name)[1]
   if (!identical(request$operation_authentication$pack_identity,
@@ -1894,6 +1905,7 @@
   base_request$derived_fitted_axis_grants <- NULL
   base_request$standalone_sparse_cell_family_grants <- NULL
   base_request$sealed_relation_family_grants <- NULL
+  base_request$runtime_cell_family_key_grants <- NULL
   for (i in seq_along(base_request$outputs)) {
     base_request$outputs[[i]]$descriptor$cardinality_grant <- NULL
     base_request$outputs[[i]]$descriptor$sparse_membership_grant <- NULL
@@ -2384,6 +2396,11 @@
     request, sealed_relation_family_state, receipt$outputs, writes)
   if (length(relation_observations))
     receipt$sealed_relation_family_observations <- relation_observations
+  runtime_key_observations <- .wb_operation_pack_v3_rfk_observation(
+    request, standalone_sparse_cell_family_state, receipt)
+  if (length(runtime_key_observations))
+    receipt$runtime_cell_family_key_observations <-
+      runtime_key_observations
   publication_observations <- lapply(Filter(function(x)
     !is.null(x$descriptor$publication_grant), request$outputs), function(grant) {
       output <- observed[[match(grant$name, vapply(observed, `[[`,
@@ -2763,6 +2780,8 @@
     stage_root = attr(request, "operation_pack_stage_root"))
   .wb_operation_pack_v3_rf_receipt_audit(receipt, request,
     stage_root = attr(request, "operation_pack_stage_root"))
+  .wb_operation_pack_v3_rfk_receipt_audit(receipt, request,
+    stage_root = attr(request, "operation_pack_stage_root"))
   .wb_operation_pack_v3_assert_self_identity(receipt$mutation_manifest,
     "mutation_identity", "PYBENCH_RECEIPT_MISMATCH", "receipt")
   .wb_operation_pack_v3_assert_self_identity(receipt$runtime_attestation,
@@ -2796,6 +2815,8 @@
       input$descriptor, "descriptor_identity",
       "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
     .wb_operation_pack_v3_g7_request_audit(request)
+    .wb_operation_pack_v3_rfk_request_audit(request,
+      "PYBENCH_REOPEN_VALIDATION_FAILED", "reopen")
     .wb_operation_pack_v3_g7_receipt_audit(receipt, request)
     .wb_operation_pack_v3_sscf_retained_binding_audit(request)
     attr(request, "operation_pack_stage_root") <- path
@@ -2804,6 +2825,9 @@
       stage_root = if (isTRUE(load_payloads)) path else NULL,
       code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen")
     .wb_operation_pack_v3_rf_receipt_audit(receipt, request,
+      stage_root = if (isTRUE(load_payloads)) path else NULL,
+      code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen")
+    .wb_operation_pack_v3_rfk_receipt_audit(receipt, request,
       stage_root = if (isTRUE(load_payloads)) path else NULL,
       code = "PYBENCH_REOPEN_VALIDATION_FAILED", phase = "reopen")
     TRUE
@@ -3409,6 +3433,7 @@
   base <- .wb_operation_pack_v3_g3_adapter(base, request, stage_root)
   base <- .wb_operation_pack_v3_sscf_adapter(base, request, bundle, inputs)
   base <- .wb_operation_pack_v3_rf_adapter(base, request, bundle, inputs)
+  base <- .wb_operation_pack_v3_rfk_adapter(base, request, bundle)
   state <- base$state
   typed_input_names <- unique(vapply(request$typed_slice_grants %||% list(),
     `[[`, character(1), "input_name"))

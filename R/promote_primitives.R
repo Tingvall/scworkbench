@@ -296,6 +296,21 @@ wb_promote_analysis <- function(bundle,
   .wb_assert(all(selected_outputs %in% available),
              paste0("Requested outputs are not promotable terminal outputs: ",
                     paste(setdiff(selected_outputs, available), collapse = ", ")))
+  for (rid in heads) {
+    definition <- .wb_operation_pack_registry$operations[[
+      runs[[rid]]$op_name]]$definition %||% NULL
+    declaration <- definition$v3_definition %||%
+      definition$v2_definition %||% NULL
+    if (is.null(declaration) ||
+        !length(.wb_operation_pack_v3_rfk_policies(declaration))) next
+    selected <- as.character(selected_by_run[[rid]] %||% selected_outputs)
+    required <- as.character(vapply(declaration$outputs, function(x)
+      x$name, character(1)))
+    .wb_assert(setequal(selected, required) &&
+      !anyDuplicated(selected), paste0(
+        "Runtime ordered cell-family promotion requires the complete terminal closure: ",
+        paste(required, collapse = ", "), "."))
+  }
 
   commit_id <- .wb_promotion_commit_id(bundle$con)
   runtime_fingerprint <- .wb_promotion_runtime_fingerprint()
@@ -428,6 +443,9 @@ wb_promote_analysis <- function(bundle,
               run, out_name)
         }
         artifact_id <- do.call(promoter, promoter_args)
+        if (!length(promoted_ids)) .wb_promotion_transaction_fault(
+          "after_first_private_terminal_write", commit_id = commit_id,
+          artifact_id = artifact_id, output = out_name)
 
         if (identical(as.character(prim$kind)[1], "relation_family") &&
             !is.null(staging_bundle)) {
@@ -850,6 +868,13 @@ wb_promote_analysis <- function(bundle,
   .wb_assert(!is.null(prim$key) && !is.null(prim$cell_id) && !is.null(prim$value), "cell_vector_family missing fields")
   .wb_assert(length(prim$key) == length(prim$cell_id) && length(prim$key) == length(prim$value),
              "cell_vector_family: key/cell_id/value length mismatch")
+  .wb_assert(length(prim$value) > 0L && is.numeric(prim$value) &&
+               !anyNA(prim$key) && !anyNA(prim$cell_id) &&
+               all(nzchar(prim$key)) && all(nzchar(prim$cell_id)) &&
+               !anyDuplicated(data.frame(key = prim$key, cell_id = prim$cell_id)),
+             "cell_vector_family: nonempty, unique key/cell pairs are required")
+  .wb_assert(!any(is.nan(prim$value) | is.infinite(prim$value)),
+             "cell_vector_family: only NA_real_ is admitted as a missing numeric value")
 
   artifact_id <- .wb_new_artifact_id("cell_vector_family", bundle)
   created_at <- format(Sys.time(), "%Y-%m-%dT%H:%M:%S%z")

@@ -17,7 +17,8 @@ wb_prim_cell_vector_family(
 
 \item{cell_id}{Canonical cell id for each row.}
 
-\item{value}{Numeric value for each row.}
+\item{value}{Numeric value for each row. Finite values and \code{NA_real_} are
+durably supported; \code{NaN} and infinite values are rejected at promotion.}
 
 \item{value_type}{Semantic value type, usually \code{"continuous"}.}
 

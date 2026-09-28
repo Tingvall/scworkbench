@@ -2,28 +2,6 @@
 # Source: .wb_op_catalog() via wb_op_interface().
 # Regenerate: Rscript inst/dev/generate_operation_docs.R
 
-#' @name wb_op_chromvar
-#' @aliases wb_op_chromvar
-#' @description Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.
-#' @param bundle Open `scworkbench_bundle` that owns input storage, output registration, and provenance.
-#' @param matrix_id Registered logical matrix identifier consumed by this operation.
-#' @param cells Canonical cell ids defining the analysis universe; when omitted, the operation uses its documented cell-set behavior.
-#' @param motif_library Canonical motif-library key from the motif registry.
-#' @param motifs Optional motif-key subset within motif_library.
-#' @param motif_match_set Optional canonical motif-match-set key to reuse cached motif-to-peak matches.
-#' @param min_motif_peaks Minimum number of matched peaks per retained motif.
-#' @param max_motif_peaks Optional maximum number of matched peaks per retained motif.
-#' @param motif_p_cutoff Motifmatchr p-value cutoff.
-#' @param motif_w Motifmatchr background window width.
-#' @param seqlevels_mode Seqlevel policy; standard chromosomes are the default.
-#' @param seqlevels_include Optional explicit seqlevels to keep after applying seqlevels_mode.
-#' @param seqlevels_exclude Optional explicit seqlevels to drop after applying seqlevels_mode.
-#' @param background_iterations Number of chromVAR background iterations.
-#' @param background_w Background peak matching window width.
-#' @param background_bs Background peak matching bin count.
-#' @details For the live typed interface, including accepted symbolic references and defaults, see [wb_op_interface()]. Before runner execution, the engine derives one canonical ordered effective-cell universe by intersecting every resolved cell-indexed required input and every present cell-indexed optional input; per-input coverage diagnostics are recorded in run provenance. The runtime catalog declares: `outputs$deviation_z` (`cell_vector_family`): Per-cell chromVAR z-scores keyed by motif.; `outputs$deviation_raw` (`cell_vector_family`): Per-cell raw chromVAR deviations keyed by motif.; `outputs$motif_summary` (`obs_table`): Per-motif chromVAR summary statistics.. Promotion eligibility is declared by the operation catalog.
-NULL
-
 #' @name wb_op_feature_set_import
 #' @aliases wb_op_feature_set_import
 #' @description Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables.

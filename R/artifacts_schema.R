@@ -78,7 +78,7 @@
       artifact_id TEXT NOT NULL,
       cell_id TEXT NOT NULL,
       lineage_id TEXT NOT NULL,
-      pseudotime REAL NOT NULL,
+      pseudotime REAL,
       PRIMARY KEY (artifact_id, cell_id, lineage_id)
     );
   ")

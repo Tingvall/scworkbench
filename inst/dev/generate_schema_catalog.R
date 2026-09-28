@@ -18,6 +18,8 @@ generate_schema_catalog <- function(root = ".", output = file.path(root, "docs",
     )
   }
   inventory <- do.call(rbind, rows)
+  # Migration-only replacement tables are never part of the durable schema.
+  inventory <- inventory[!startsWith(inventory$table, "__wb_"), , drop = FALSE]
   inventory <- inventory[order(inventory$table), , drop = FALSE]
   stopifnot(!anyDuplicated(inventory$table))
   constrained <- names(scworkbench:::.wb_schema_foreign_key_definitions())

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 102
+Record count: 101
 
 Meaningful public transformations: 56
 
@@ -165,20 +165,6 @@ Boundary: `pure`
 Supported route: `direct_pure_computation`
 
 ## `wb_op_cells_union`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_chromvar`
 
 Category: operation_implementation
 

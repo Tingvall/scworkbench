@@ -1,15 +1,9 @@
 {
   "schema_version": "scworkbench.semantic_compatibility_graph.v1",
   "generated_at": "source-controlled",
-  "node_count": 276,
-  "edge_count": 397,
+  "node_count": 275,
+  "edge_count": 389,
   "nodes": [
-    {
-      "record_id": "op:chromvar",
-      "record_type": "op",
-      "name": "chromvar",
-      "title": "chromVAR deviations"
-    },
     {
       "record_id": "op:feature_set_import",
       "record_type": "op",
@@ -1662,54 +1656,6 @@
     }
   ],
   "edges": [
-    {
-      "from": "primitive:matrix",
-      "to": "op:chromvar",
-      "edge_type": "consumed_by",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:chromvar",
-      "to": "parameter:matrix",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:matrix"
-    },
-    {
-      "from": "op:chromvar",
-      "to": "parameter:cell_set",
-      "edge_type": "has_parameter_semantics",
-      "label": "input:cell_set"
-    },
-    {
-      "from": "op:chromvar",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:deviation_z"
-    },
-    {
-      "from": "op:chromvar",
-      "to": "primitive:cell_vector_family",
-      "edge_type": "produces",
-      "label": "output:deviation_raw"
-    },
-    {
-      "from": "op:chromvar",
-      "to": "primitive:obs_table",
-      "edge_type": "produces",
-      "label": "output:motif_summary"
-    },
-    {
-      "from": "op:chromvar",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:deviation_z"
-    },
-    {
-      "from": "op:chromvar",
-      "to": "artifact_type:cell_vector_family",
-      "edge_type": "promotes_as",
-      "label": "promotable:deviation_raw"
-    },
     {
       "from": "primitive:matrix",
       "to": "op:feature_set_import",

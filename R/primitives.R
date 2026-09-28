@@ -16,7 +16,8 @@
 #'
 #' @param key Family-member key for each row.
 #' @param cell_id Canonical cell id for each row.
-#' @param value Numeric value for each row.
+#' @param value Numeric value for each row. Finite values and `NA_real_` are
+#'   durably supported; `NaN` and infinite values are rejected at promotion.
 #' @param value_type Semantic value type, usually `"continuous"`.
 #' @param meta Optional named list of identity-bearing contract metadata. Its
 #'   exact R representation is restored after durable promotion.

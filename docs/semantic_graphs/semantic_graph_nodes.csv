@@ -163,7 +163,6 @@
 "getter:wb_trajectory_lineage_weights","getter","wb_trajectory_lineage_weights","Trajectory Lineage Weights","Load Slingshot lineage membership weights as a cell_vector_family from a promoted lineage_weights artifact, promoted sibling trajectory artifact, or in-memory Slingshot model_ref fallback."
 "getter:wb_vector","getter","wb_vector","Feature Vector","Get a single feature vector across cells."
 "op:cell_set_derive","op","cell_set_derive","Derived Cell Set","Materialize a selector-derived or explicitly declared cell universe as a named cell set with lifecycle role/status and manifest tables."
-"op:chromvar","op","chromvar","chromVAR deviations","Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog."
 "op:feature_set_import","op","feature_set_import","Feature-Set Library Import","Import GMT/RDS/table feature-set libraries into the bundle feature-set registry and emit import provenance tables."
 "op:feature_set_namespace_transfer","op","feature_set_namespace_transfer","Feature-Set Namespace Transfer","Transfer matrix-scoped feature-set namespaces between comparable matrices using mirror or intersect semantics."
 "op:metadata_cell_vector","op","metadata_cell_vector","Metadata Cell Vector","Materialize an imported cell metadata column as a typed, provenance-backed cell vector."

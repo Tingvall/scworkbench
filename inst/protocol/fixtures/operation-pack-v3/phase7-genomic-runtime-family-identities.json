@@ -1,0 +1,422 @@
+{
+  "schema": "scworkbench.operation_pack.phase7_identity_fixtures.v1",
+  "canonical_json_scheme": "scworkbench.operation_pack.canonical_json.v1",
+  "cases": [
+    {
+      "name": "ordered_genomic_matrix_source",
+      "preimage": {
+        "schema": "scworkbench.genomic_matrix_source.snapshot.v1",
+        "matrix_input": "matrix",
+        "matrix_id": "peaks_counts",
+        "input_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.input_descriptor.v2",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "input_content_identity": {
+          "scheme": "scworkbench.matrix.content.v1",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "feature_order_identity": {
+          "scheme": "scworkbench.feature_order.v1",
+          "sha256": "5e3371a32deea2f0df9333b2fe98c1487fc782e52b79f570034f7439ecbfd262"
+        },
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "66f6154002590f88fea0669286e2dd76f15e86e76d7252c72a16606cb1bcadf7"
+        },
+        "consumed_matrix_identity": {
+          "content_identity_scheme": "scworkbench.matrix.content.v1",
+          "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification_status": "content_verified"
+        },
+        "feature_count": 2,
+        "cell_count": 2,
+        "cell_id": [
+          "cell_2",
+          "cell_10"
+        ],
+        "feature_type": "peak",
+        "organism": "Homo sapiens",
+        "genome_build": "hg38",
+        "genome_provider": "BSgenome.Hsapiens.UCSC.hg38",
+        "fields": [
+          "feature_id",
+          "feature_type",
+          "chr",
+          "start",
+          "end"
+        ],
+        "peaks": [
+          {
+            "feature_id": "peak_2",
+            "feature_type": "peak",
+            "chr": "chr2",
+            "start": 31,
+            "end": 45
+          },
+          {
+            "feature_id": "peak_10",
+            "feature_type": "peak",
+            "chr": "chr1",
+            "start": 7,
+            "end": 13
+          }
+        ]
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.genomic_matrix_source.snapshot.v1",
+          "scope": "bounded authenticated core registry snapshot",
+          "sha256": "54e967d9f3bdff1f39ac0a0aa3bbd1d82d7a089542bc0ac4757fd05c50886966"
+        },
+        {
+          "scheme": "scworkbench.genomic_matrix_source.snapshot.v1.source",
+          "scope": "current bounded registry source",
+          "sha256": "54e967d9f3bdff1f39ac0a0aa3bbd1d82d7a089542bc0ac4757fd05c50886966"
+        }
+      ]
+    },
+    {
+      "name": "ordered_motif_library",
+      "preimage": {
+        "schema": "scworkbench.motif_library.snapshot.v1",
+        "library_parameter": "motif_library",
+        "motif_library": "jaspar_mini",
+        "library": {
+          "motif_library": "jaspar_mini",
+          "source_type": "JASPAR",
+          "organism": "Homo sapiens",
+          "genome_build": "hg38",
+          "collection": "CORE",
+          "source_id": "JASPAR2024",
+          "source_version": "2024",
+          "description": null,
+          "created_at": "2026-09-28T00:00:00Z",
+          "created_by": "fixture"
+        },
+        "motifs": [
+          {
+            "motif_key": "motif_2",
+            "motif_library": "jaspar_mini",
+            "motif_id": "MA0002.1",
+            "motif_name": "B",
+            "source_type": "JASPAR",
+            "matrix_class": "PFM",
+            "payload_json": "{\"A\":[1,2]}",
+            "metadata_json": "{}",
+            "created_at": "2026-09-28T00:00:00Z",
+            "created_by": "fixture"
+          },
+          {
+            "motif_key": "motif_10",
+            "motif_library": "jaspar_mini",
+            "motif_id": "MA0010.1",
+            "motif_name": "A",
+            "source_type": "JASPAR",
+            "matrix_class": "PFM",
+            "payload_json": "{\"A\":[2,1]}",
+            "metadata_json": "{}",
+            "created_at": "2026-09-28T00:00:00Z",
+            "created_by": "fixture"
+          }
+        ]
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.motif_library.snapshot.v1",
+          "scope": "bounded authenticated core registry snapshot",
+          "sha256": "adb6d27f0838461704d3fb0231c6b90025c2ec23e087b68b0a6d7b94a2370f5b"
+        },
+        {
+          "scheme": "scworkbench.motif_library.snapshot.v1.source",
+          "scope": "current bounded registry source",
+          "sha256": "adb6d27f0838461704d3fb0231c6b90025c2ec23e087b68b0a6d7b94a2370f5b"
+        }
+      ]
+    },
+    {
+      "name": "optional_match_set_absent",
+      "preimage": {
+        "schema": "scworkbench.motif_match_set.snapshot.v1",
+        "match_set_parameter": "motif_match_set",
+        "selection": null,
+        "match_set": null,
+        "membership": []
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.motif_match_set.snapshot.v1",
+          "scope": "bounded authenticated core registry snapshot",
+          "sha256": "c686b2729c1aab5141178d965d878c82b617c0b2b5afa36a9e6c03c076844ba6"
+        },
+        {
+          "scheme": "scworkbench.motif_match_set.snapshot.v1.source",
+          "scope": "current bounded registry source",
+          "sha256": "c686b2729c1aab5141178d965d878c82b617c0b2b5afa36a9e6c03c076844ba6"
+        }
+      ]
+    },
+    {
+      "name": "cached_match_set",
+      "preimage": {
+        "schema": "scworkbench.motif_match_set.snapshot.v1",
+        "match_set_parameter": "motif_match_set",
+        "selection": "jaspar_mini_matches",
+        "match_set": {
+          "motif_match_set": "jaspar_mini_matches",
+          "matrix_id": "peaks_counts",
+          "motif_library": "jaspar_mini",
+          "organism": "Homo sapiens",
+          "genome_build": "hg38",
+          "genome_provider": "BSgenome.Hsapiens.UCSC.hg38",
+          "match_engine": "motifmatchr",
+          "match_params_json": "{}",
+          "n_features": 2,
+          "n_motifs": 2,
+          "description": null,
+          "created_at": "2026-09-28T00:00:00Z",
+          "created_by": "fixture"
+        },
+        "membership": [
+          {
+            "motif_key": "motif_2",
+            "feature_id": "peak_10"
+          },
+          {
+            "motif_key": "motif_10",
+            "feature_id": "peak_2"
+          }
+        ]
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.motif_match_set.snapshot.v1",
+          "scope": "bounded authenticated core registry snapshot",
+          "sha256": "bc626e3ffb488b3474dcd5e6874cb23945a7d1a63fb823264c88c71f8cca9574"
+        },
+        {
+          "scheme": "scworkbench.motif_match_set.snapshot.v1.source",
+          "scope": "current bounded registry source",
+          "sha256": "bc626e3ffb488b3474dcd5e6874cb23945a7d1a63fb823264c88c71f8cca9574"
+        }
+      ]
+    },
+    {
+      "name": "dynamic_provider_resolution",
+      "preimage": {
+        "requirement_id": "genome_provider",
+        "selector_identity": {
+          "scheme": "scworkbench.operation_pack.dynamic_dependency_selector.v2",
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        "input_name": "matrix",
+        "input_identity": {
+          "scheme": "scworkbench.matrix.content.v1",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        },
+        "metadata_field": "genome_provider",
+        "ecosystem": "R",
+        "provider_name": "BSgenome.Hsapiens.UCSC.hg38",
+        "package_name_scheme": "r_package_name_v1",
+        "probe": "r_namespace_exports_v1",
+        "disposition": "required",
+        "resolved_package": {
+          "name": "BSgenome.Hsapiens.UCSC.hg38",
+          "version": "1.4.5",
+          "artifact_identity": {
+            "scheme": "scworkbench.r_package.artifact.v1",
+            "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+          },
+          "probe_evidence_identity": {
+            "scheme": "scworkbench.r_namespace_exports.v1",
+            "sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+          }
+        },
+        "status": "available"
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.operation_pack.dynamic_dependency_resolution.v2",
+          "scope": "resolution excluding resolution_identity",
+          "sha256": "c8180f7a518241a87b490cb62986ae795a0cb7061e577888f7fe5124454d7298"
+        }
+      ]
+    },
+    {
+      "name": "two_family_one_table_grant",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.runtime_family_key_grant.v1",
+        "group": "chromvar",
+        "source_read": "genomic_source",
+        "source_descriptor_identity": {
+          "scheme": "scworkbench.operation_pack.registry_read_descriptor.v3",
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222"
+        },
+        "source_content_identity": {
+          "scheme": "scworkbench.genomic_matrix_source.snapshot.v1",
+          "scope": "bounded authenticated core registry snapshot",
+          "sha256": "54e967d9f3bdff1f39ac0a0aa3bbd1d82d7a089542bc0ac4757fd05c50886966"
+        },
+        "matrix_consumed_identity": {
+          "content_identity_scheme": "scworkbench.matrix.content.v1",
+          "content_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "verification_status": "content_verified"
+        },
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "66f6154002590f88fea0669286e2dd76f15e86e76d7252c72a16606cb1bcadf7"
+        },
+        "cell_count": 2,
+        "ordered_cells": [
+          "cell_2",
+          "cell_10"
+        ],
+        "family_outputs": [
+          "deviation_z",
+          "deviation_raw"
+        ],
+        "closure_outputs": [
+          "deviation_z",
+          "deviation_raw",
+          "motif_summary"
+        ],
+        "maximum_keys": 10000,
+        "maximum_rows": 10000000,
+        "row_order": "cell_major_then_declared_key_v1"
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.operation_pack.runtime_family_key_grant.v1",
+          "scope": "grant excluding grant_identity",
+          "sha256": "722ca09c07530004144fbb074a0e41d47f107ade3972e8717b50c7669cebf600"
+        }
+      ]
+    },
+    {
+      "name": "nonlexical_runtime_key_seal",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.runtime_family_key_seal.v1",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.runtime_family_key_grant.v1",
+          "sha256": "722ca09c07530004144fbb074a0e41d47f107ade3972e8717b50c7669cebf600"
+        },
+        "ordered_keys": [
+          "motif_2",
+          "motif_10"
+        ],
+        "key_order_identity": {
+          "scheme": "scworkbench.operation_pack.runtime_family_keys.v1",
+          "sha256": "e16265c62591af0b624e68170169fc9df67ad4de1da3a5cfdcf6a0b973734dd1"
+        },
+        "cell_order_identity": {
+          "scheme": "scworkbench.cell_order.v1",
+          "sha256": "66f6154002590f88fea0669286e2dd76f15e86e76d7252c72a16606cb1bcadf7"
+        },
+        "cell_count": 2,
+        "key_count": 2,
+        "row_count": 4,
+        "row_order": "cell_major_then_declared_key_v1"
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.operation_pack.runtime_family_key_seal.v1",
+          "scope": "seal excluding seal_identity",
+          "sha256": "2c169720afbb44032012e1a84aa20eda78c590bf458a388f360afaa91fa4cfb3"
+        }
+      ]
+    },
+    {
+      "name": "complete_runtime_family_receipt",
+      "preimage": {
+        "schema": "scworkbench.operation_pack.runtime_family_keys_observation.v1",
+        "grant_identity": {
+          "scheme": "scworkbench.operation_pack.runtime_family_key_grant.v1",
+          "sha256": "722ca09c07530004144fbb074a0e41d47f107ade3972e8717b50c7669cebf600"
+        },
+        "seal": {
+          "schema": "scworkbench.operation_pack.runtime_family_key_seal.v1",
+          "grant_identity": {
+            "scheme": "scworkbench.operation_pack.runtime_family_key_grant.v1",
+            "sha256": "722ca09c07530004144fbb074a0e41d47f107ade3972e8717b50c7669cebf600"
+          },
+          "ordered_keys": [
+            "motif_2",
+            "motif_10"
+          ],
+          "key_order_identity": {
+            "scheme": "scworkbench.operation_pack.runtime_family_keys.v1",
+            "sha256": "e16265c62591af0b624e68170169fc9df67ad4de1da3a5cfdcf6a0b973734dd1"
+          },
+          "cell_order_identity": {
+            "scheme": "scworkbench.cell_order.v1",
+            "sha256": "66f6154002590f88fea0669286e2dd76f15e86e76d7252c72a16606cb1bcadf7"
+          },
+          "cell_count": 2,
+          "key_count": 2,
+          "row_count": 4,
+          "row_order": "cell_major_then_declared_key_v1",
+          "seal_identity": {
+            "scheme": "scworkbench.operation_pack.runtime_family_key_seal.v1",
+            "scope": "seal excluding seal_identity",
+            "sha256": "2c169720afbb44032012e1a84aa20eda78c590bf458a388f360afaa91fa4cfb3"
+          }
+        },
+        "closure": [
+          {
+            "name": "deviation_z",
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v3",
+              "sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+            },
+            "content_identity": {
+              "scheme": "scworkbench.cell_vector_family.content.v1",
+              "sha256": "8888888888888888888888888888888888888888888888888888888888888888"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "9999999999999999999999999999999999999999999999999999999999999999"
+            }
+          },
+          {
+            "name": "deviation_raw",
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v3",
+              "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "content_identity": {
+              "scheme": "scworkbench.cell_vector_family.content.v1",
+              "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+            }
+          },
+          {
+            "name": "motif_summary",
+            "observed_descriptor_identity": {
+              "scheme": "scworkbench.operation_pack.observed_output.v3",
+              "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+            },
+            "content_identity": {
+              "scheme": "scworkbench.obs_table.content.v1",
+              "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+            },
+            "payload_manifest_identity": {
+              "scheme": "scworkbench.operation_pack.payload_manifest.v2",
+              "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+            }
+          }
+        ],
+        "status": "passed"
+      },
+      "identities": [
+        {
+          "scheme": "scworkbench.operation_pack.runtime_family_keys_observation.v1",
+          "scope": "observation excluding observation_identity",
+          "sha256": "8e24a94b11b12dfae769964c28f5745690c98285abe43425f7984065cb5e9d88"
+        }
+      ]
+    }
+  ]
+}

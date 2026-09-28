@@ -346,9 +346,52 @@
     "sealed_relation_family_grants": {
       "type": "array", "items": {"$ref": "#/$defs/sealed_relation_family_grant"},
       "minItems": 1, "maxItems": 1
+    },
+    "runtime_cell_family_key_grants": {
+      "type": "array", "items": {"$ref": "#/$defs/runtime_cell_family_key_grant"},
+      "minItems": 1, "maxItems": 1
     }
   },
   "$defs": {
+    "runtime_cell_family_key_grant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "group", "source_read",
+        "source_descriptor_identity", "source_content_identity",
+        "matrix_consumed_identity", "cell_order_identity", "cell_count",
+        "ordered_cells", "family_outputs", "closure_outputs", "maximum_keys",
+        "maximum_rows", "row_order", "grant_identity"],
+      "properties": {
+        "schema": {"const": "scworkbench.operation_pack.runtime_family_key_grant.v1"},
+        "group": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "source_read": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "source_descriptor_identity": {"$ref": "#/$defs/identity"},
+        "source_content_identity": {"$ref": "#/$defs/self_identity"},
+        "matrix_consumed_identity": {
+          "type": "object", "additionalProperties": false,
+          "required": ["content_identity_scheme", "content_sha256", "verification_status"],
+          "properties": {
+            "content_identity_scheme": {"type": "string", "minLength": 1},
+            "content_sha256": {"$ref": "#/$defs/sha256"},
+            "verification_status": {"const": "content_verified"}
+          }
+        },
+        "cell_order_identity": {"$ref": "#/$defs/identity"},
+        "cell_count": {"type": "integer", "minimum": 2, "maximum": 1000000},
+        "ordered_cells": {"type": "array", "minItems": 2,
+          "maxItems": 1000000, "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}},
+        "family_outputs": {"type": "array", "minItems": 2,
+          "maxItems": 2, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+        "closure_outputs": {"type": "array", "minItems": 3,
+          "maxItems": 3, "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+        "maximum_keys": {"type": "integer", "minimum": 1, "maximum": 10000},
+        "maximum_rows": {"type": "integer", "minimum": 1, "maximum": 10000000},
+        "row_order": {"const": "cell_major_then_declared_key_v1"},
+        "grant_identity": {"$ref": "#/$defs/self_identity"}
+      }
+    },
     "sha256": {
       "type": "string",
       "pattern": "^[0-9a-f]{64}$"
@@ -1881,6 +1924,66 @@
                 "cell_order_identity": {"$ref": "#/$defs/identity"},
                 "input_descriptor_identity": {"$ref": "#/$defs/identity"},
                 "input_content_identity": {"$ref": "#/$defs/identity"},
+                "content_identity": {"$ref": "#/$defs/self_identity"},
+                "source_identity": {"$ref": "#/$defs/self_identity"},
+                "ancestry_identity": {"$ref": "#/$defs/self_identity"},
+                "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
+                "descriptor_identity": {"$ref": "#/$defs/self_identity"}
+              }
+            },
+            {
+              "type": "object", "additionalProperties": false,
+              "required": ["category", "kind", "reader", "dimensions",
+                "content_identity", "source_identity", "ancestry_identity",
+                "payload_manifest_identity", "descriptor_identity"],
+              "properties": {
+                "category": {"const": "authenticated_core_registry_snapshot"},
+                "kind": {"enum": ["motif_library", "motif_match_set"]},
+                "reader": {"enum": ["read_motif_library", "read_motif_match_set"]},
+                "dimensions": {"type": "array", "minItems": 1, "maxItems": 1,
+                  "prefixItems": [{"type": "integer", "minimum": 0}],
+                  "items": false},
+                "content_identity": {"$ref": "#/$defs/self_identity"},
+                "source_identity": {"$ref": "#/$defs/self_identity"},
+                "ancestry_identity": {"$ref": "#/$defs/self_identity"},
+                "payload_manifest_identity": {"$ref": "#/$defs/self_identity"},
+                "descriptor_identity": {"$ref": "#/$defs/self_identity"}
+              }
+            },
+            {
+              "type": "object", "additionalProperties": false,
+              "required": ["category", "kind", "reader", "dimensions",
+                "matrix_input", "matrix_id", "input_descriptor_identity",
+                "input_content_identity", "feature_order_identity",
+                "cell_order_identity", "cell_count", "cell_id",
+                "consumed_matrix_identity", "content_identity",
+                "source_identity", "ancestry_identity",
+                "payload_manifest_identity", "descriptor_identity"],
+              "properties": {
+                "category": {"const": "authenticated_core_registry_snapshot"},
+                "kind": {"const": "genomic_matrix_source"},
+                "reader": {"const": "read_genomic_matrix_source"},
+                "dimensions": {"type": "array", "minItems": 1, "maxItems": 1,
+                  "prefixItems": [{"type": "integer", "minimum": 1}],
+                  "items": false},
+                "matrix_input": {"type": "string", "minLength": 1},
+                "matrix_id": {"type": "string", "minLength": 1},
+                "input_descriptor_identity": {"$ref": "#/$defs/identity"},
+                "input_content_identity": {"$ref": "#/$defs/identity"},
+                "feature_order_identity": {"$ref": "#/$defs/identity"},
+                "cell_order_identity": {"$ref": "#/$defs/identity"},
+                "cell_count": {"type": "integer", "minimum": 2},
+                "cell_id": {"type": "array", "minItems": 2,
+                  "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+                "consumed_matrix_identity": {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["content_identity_scheme", "content_sha256", "verification_status"],
+                  "properties": {
+                    "content_identity_scheme": {"type": "string", "minLength": 1},
+                    "content_sha256": {"$ref": "#/$defs/sha256"},
+                    "verification_status": {"const": "content_verified"}
+                  }
+                },
                 "content_identity": {"$ref": "#/$defs/self_identity"},
                 "source_identity": {"$ref": "#/$defs/self_identity"},
                 "ancestry_identity": {"$ref": "#/$defs/self_identity"},
@@ -4113,7 +4216,10 @@
                       "read_feature_set_registry",
                       "read_session_cell_axis",
                       "read_matrix_feature_annotations",
-                      "read_ordered_cell_metadata"
+                      "read_ordered_cell_metadata",
+                      "read_genomic_matrix_source",
+                      "read_motif_library",
+                      "read_motif_match_set"
                     ]
                   },
                   "descriptor_identity": {

@@ -84,6 +84,9 @@
     op$provenance_reads <- NULL
     op$producer_lineage_reads <- NULL
     op$typed_slice_reads <- NULL
+    op$dependencies <- Filter(function(x) !identical(
+      as.character(x$kind %||% "")[1L],
+      "dynamic_matrix_registry_package"), op$dependencies %||% list())
     op$typed_space_reads <- NULL
     op$cell_selector_axes <- NULL
     op$contained_model_reads <- NULL
@@ -119,6 +122,7 @@
     op$dimension_policies <- Filter(function(x) !as.character(
       x$policy %||% "")[1] %in% c("authenticated_output_axes_v1",
         "data_dependent_family_v1",
+        "runtime_ordered_cell_family_v1",
         "standalone_sparse_cell_family_v1",
         "sealed_relation_family_v1",
         "authenticated_sparse_membership_v1",
@@ -456,6 +460,8 @@
       manifest$backend)
     .wb_operation_pack_v3_rf_semantic_validate(operation, inputs, outputs,
       manifest$backend)
+    .wb_operation_pack_v3_rfk_semantic_validate(operation, outputs,
+      registry_reads, manifest$backend)
     axes <- operation$parameter_axes %||% list()
     axis_names <- vapply(axes, function(x) as.character(x$name)[1],
       character(1))
@@ -552,6 +558,22 @@
               "read_ordered_cell_metadata")
       } else if (identical(kind, "session_cell_axis")) {
         identical(as.character(read$reader)[1], "read_session_cell_axis")
+      } else if (identical(kind, "genomic_matrix_source")) {
+        input <- inputs[[as.character(read$matrix_input)[1L]]]
+        identical(as.character(read$reader)[1L],
+          "read_genomic_matrix_source") && !is.null(input) &&
+          identical(as.character(input$kind)[1L], "matrix") &&
+          any(vapply(operation$typed_slice_reads %||% list(), function(x)
+            identical(as.character(x$input)[1L],
+              as.character(read$matrix_input)[1L]), logical(1)))
+      } else if (identical(kind, "motif_library")) {
+        identical(as.character(read$reader)[1L], "read_motif_library") &&
+          .wb_operation_pack_v3_param_is(properties,
+            read$library_parameter, "string")
+      } else if (identical(kind, "motif_match_set")) {
+        identical(as.character(read$reader)[1L], "read_motif_match_set") &&
+          .wb_operation_pack_v3_param_is(properties,
+            read$match_set_parameter, "string", nullable = TRUE)
       } else {
         input <- inputs[[as.character(read$matrix_input)[1]]]
         identical(as.character(read$reader)[1],
@@ -563,6 +585,20 @@
         paste0("Operation '", opname,
           "' has an invalid authenticated core snapshot declaration."),
         "semantic_admission")
+    }
+
+    for (dependency in operation$dependencies %||% list()) {
+      if (!identical(as.character(dependency$kind %||% "")[1L],
+          "dynamic_matrix_registry_package")) next
+      read <- registry_reads[[as.character(dependency$registry_read)[1L]]]
+      if (is.null(read) || !identical(as.character(read$kind)[1L],
+          "genomic_matrix_source") || !identical(
+            as.character(read$matrix_input)[1L],
+            as.character(dependency$matrix_input)[1L]))
+        .wb_operation_pack_v3_error(
+          "OPERATION_PACK_MANIFEST_SEMANTICS_INVALID",
+          "Dynamic matrix provider must reference its authenticated genomic source read.",
+          "semantic_admission")
     }
 
     slices <- operation$typed_slice_reads %||% list()

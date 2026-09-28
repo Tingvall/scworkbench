@@ -3,7 +3,8 @@
 .wb_operation_pack_v3_new_registry_declarations <- function(operation) {
   Filter(function(x) as.character(x$kind %||% "")[1] %in%
       c("session_cell_axis", "matrix_feature_annotations",
-        "ordered_cell_metadata"),
+        "ordered_cell_metadata", "genomic_matrix_source",
+        "motif_library", "motif_match_set"),
     operation$registry_reads %||% list())
 }
 
@@ -174,6 +175,37 @@
       identical(snapshot$feature_order_identity,
         .wb_operation_pack_v2_identity_plain("scworkbench.feature_order.v1",
           unname(as.list(ids))))
+  } else if (kind %in% c("genomic_matrix_source", "motif_library",
+      "motif_match_set")) {
+    valid <- is.list(snapshot) && is.null(names(snapshot$peaks %||% list())) &&
+      is.null(names(snapshot$motifs %||% list())) &&
+      is.null(names(snapshot$membership %||% list())) &&
+      identical(as.character(snapshot$schema)[1L], switch(kind,
+        genomic_matrix_source = "scworkbench.genomic_matrix_source.snapshot.v1",
+        motif_library = "scworkbench.motif_library.snapshot.v1",
+        motif_match_set = "scworkbench.motif_match_set.snapshot.v1"))
+    if (valid && identical(kind, "genomic_matrix_source")) {
+      ids <- vapply(snapshot$peaks, function(x)
+        as.character(x$feature_id)[1L], character(1))
+      valid <- length(ids) > 0L && length(ids) <= 2000000L &&
+        !anyDuplicated(ids) && identical(length(ids),
+          as.integer(snapshot$feature_count)[1L]) &&
+        identical(snapshot$feature_order_identity,
+          .wb_operation_pack_v2_identity_plain(
+            "scworkbench.feature_order.v1", unname(as.list(ids)))) &&
+        is.list(snapshot$consumed_matrix_identity) &&
+        identical(as.character(snapshot$consumed_matrix_identity$
+          verification_status)[1L], "content_verified")
+    }
+    if (valid && identical(kind, "motif_library")) {
+      keys <- vapply(snapshot$motifs, function(x)
+        as.character(x$motif_key)[1L], character(1))
+      valid <- length(keys) > 0L && length(keys) <= 10000L &&
+        !anyDuplicated(keys)
+    }
+    if (valid && identical(kind, "motif_match_set"))
+      valid <- length(snapshot$membership) <= 5000000L &&
+        (is.null(snapshot$selection) == is.null(snapshot$match_set))
   } else valid <- FALSE
   if (!isTRUE(valid)) .wb_operation_pack_v3_error(
     "PYBENCH_INPUT_IDENTITY_MISMATCH",
@@ -202,6 +234,13 @@
         transition_source_state_identity =
           snapshot$transition_source_state_identity,
         cell_order_identity = snapshot$cell_order_identity))
+  } else if (kind %in% c("genomic_matrix_source", "motif_library",
+      "motif_match_set")) {
+    content <- .wb_operation_pack_v2_identity_scoped(snapshot$schema,
+      "bounded authenticated core registry snapshot", snapshot)
+    source <- .wb_operation_pack_v2_identity_scoped(
+      paste0(snapshot$schema, ".source"),
+      "current bounded registry source", snapshot)
   } else {
     content <- .wb_operation_pack_v2_identity_scoped(snapshot$schema,
       "canonical matrix feature annotations", snapshot)
@@ -281,7 +320,11 @@
     declaration <- declarations[[i]]
     name <- as.character(declaration$name)[1]
     kind <- as.character(declaration$kind)[1]
-    snapshot <- if (identical(kind, "session_cell_axis"))
+    snapshot <- if (kind %in% c("genomic_matrix_source", "motif_library",
+        "motif_match_set"))
+      .wb_operation_pack_v3_genomic_registry_snapshot(bundle, declaration,
+        inputs, input_records, params, effective_cells) else
+      if (identical(kind, "session_cell_axis"))
       .wb_operation_pack_v3_session_axis_snapshot(declaration,
         effective_cells, session_id, run_id, generation,
         source_state_identity) else if (identical(kind,
@@ -358,6 +401,35 @@
         input_content_identity = snapshot$input_content_identity,
         content_identity = content_identity, source_identity = source_identity,
         ancestry_identity = ancestry_identity)
+    } else if (kind %in% c("genomic_matrix_source", "motif_library",
+        "motif_match_set")) {
+      identities <- .wb_operation_pack_v3_registry_snapshot_identities(
+        snapshot, kind)
+      descriptor <- list(category = declaration$category, kind = kind,
+        reader = declaration$reader,
+        dimensions = list(as.integer(length(snapshot$peaks %||%
+          snapshot$motifs %||% snapshot$membership %||% list()))),
+        content_identity = identities$content,
+        source_identity = identities$source,
+        ancestry_identity = .wb_operation_pack_v2_identity_scoped(
+          "scworkbench.provenance.ancestry.v1",
+          "bounded registry snapshot ancestry",
+          list(source_identity = identities$source,
+            input_content_identity = snapshot$input_content_identity %||%
+              NULL)))
+      if (identical(kind, "genomic_matrix_source")) {
+        descriptor$matrix_input <- snapshot$matrix_input
+        descriptor$matrix_id <- snapshot$matrix_id
+        descriptor$input_descriptor_identity <-
+          snapshot$input_descriptor_identity
+        descriptor$input_content_identity <- snapshot$input_content_identity
+        descriptor$feature_order_identity <- snapshot$feature_order_identity
+        descriptor$cell_order_identity <- snapshot$cell_order_identity
+        descriptor$cell_count <- snapshot$cell_count
+        descriptor$cell_id <- snapshot$cell_id
+        descriptor$consumed_matrix_identity <-
+          snapshot$consumed_matrix_identity
+      }
     } else {
       input_name <- as.character(declaration$matrix_input)[1]
       source_identity <- .wb_operation_pack_v2_identity_scoped(
@@ -422,7 +494,11 @@
   for (declaration in declarations) {
     name <- as.character(declaration$name)[1]
     kind <- as.character(declaration$kind)[1]
-    snapshot <- if (identical(kind, "session_cell_axis"))
+    snapshot <- if (kind %in% c("genomic_matrix_source", "motif_library",
+        "motif_match_set"))
+      .wb_operation_pack_v3_genomic_registry_snapshot(bundle, declaration,
+        inputs, input_records, params, effective_cells) else
+      if (identical(kind, "session_cell_axis"))
       .wb_operation_pack_v3_session_axis_snapshot(declaration,
         effective_cells, session_id, run_id, generation, source_state) else
       if (identical(kind, "ordered_cell_metadata"))

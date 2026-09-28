@@ -19,39 +19,6 @@
   )
 }
 
-.wb_runner_chromvar <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  .wb_assert(!is.null(resolved$matrix), "chromvar runner: missing resolved$matrix.")
-  .wb_assert(!is.null(effective_cells) && length(effective_cells) > 1,
-             "chromvar runner: effective_cells must contain at least 2 cells.")
-
-  matrix_id <- resolved$matrix$matrix_id
-  .wb_assert(is.character(matrix_id) && length(matrix_id) == 1 && nzchar(matrix_id),
-             "chromvar runner: resolved matrix primitive missing matrix_id.")
-
-  raw <- wb_op_chromvar(
-    bundle = bundle,
-    matrix_id = matrix_id,
-    cells = as.character(effective_cells),
-    motif_library = inputs$motif_library,
-    motifs = inputs$motifs %||% NULL,
-    motif_match_set = inputs$motif_match_set %||% NULL,
-    min_motif_peaks = inputs$min_motif_peaks %||% 10L,
-    max_motif_peaks = inputs$max_motif_peaks %||% NULL,
-    motif_p_cutoff = inputs$motif_p_cutoff %||% 5e-05,
-    motif_w = inputs$motif_w %||% 7L,
-    seqlevels_mode = inputs$seqlevels_mode %||% "standard",
-    seqlevels_include = inputs$seqlevels_include %||% NULL,
-    seqlevels_exclude = inputs$seqlevels_exclude %||% NULL,
-    background_iterations = inputs$background_iterations %||% 50L,
-    background_w = inputs$background_w %||% 0.1,
-    background_bs = inputs$background_bs %||% 50L
-  )
-
-  .wb_assert(is.list(raw) && is.list(raw$outputs),
-             "chromvar must return list(outputs=<list>, params=<list>).")
-  raw
-}
-
 .wb_runner_feature_set_import <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "feature_set_import runner: missing resolved$matrix.")
   .wb_assert(!is.null(inputs$namespace), "feature_set_import runner: inputs$namespace is required.")
@@ -164,69 +131,6 @@
 # Add new ops in one place only: contract + wrangler + interface metadata.
 .wb_op_catalog <- function() {
   catalog <- list(
-    chromvar = list(
-      op_name = "chromvar",
-      title = "chromVAR deviations",
-      description = "Bias-corrected chromVAR deviations on a peak matrix using genome-backed GC bias and motif matching against a JASPAR PWM catalog.",
-      intent = c("atac", "motif", "signature", "score"),
-      requires = list(matrix = "matrix"),
-      produces = list(
-        deviation_z = "cell_vector_family",
-        deviation_raw = "cell_vector_family",
-        motif_summary = "obs_table"
-      ),
-      promotable = c("deviation_z", "deviation_raw", "motif_summary"),
-      runner = .wb_runner_chromvar,
-      inputs = list(
-        matrix = list(required = TRUE, kind = "matrix")
-      ),
-      params = list(
-        list(name = "motif_library", type = "string", default = NULL,
-             help = "Canonical motif-library key from the motif registry."),
-        list(name = "motifs", type = "string_vec", default = NULL,
-             help = "Optional motif-key subset within motif_library."),
-        list(name = "motif_match_set", type = "string", default = NULL,
-             help = "Optional canonical motif-match-set key to reuse cached motif-to-peak matches."),
-        list(name = "min_motif_peaks", type = "int", default = 10L, min = 1, max = 100000,
-             help = "Minimum number of matched peaks per retained motif."),
-        list(name = "max_motif_peaks", type = "int", default = NULL, min = 1, max = 1000000,
-             help = "Optional maximum number of matched peaks per retained motif."),
-        list(name = "motif_p_cutoff", type = "dbl", default = 5e-05, min = 0, max = 1,
-             help = "Motifmatchr p-value cutoff."),
-        list(name = "motif_w", type = "int", default = 7L, min = 1, max = 100,
-             help = "Motifmatchr background window width."),
-        list(name = "seqlevels_mode", type = "choice", default = "standard", choices = c("standard", "all"),
-             help = "Seqlevel policy; standard chromosomes are the default."),
-        list(name = "seqlevels_include", type = "string_vec", default = NULL,
-             help = "Optional explicit seqlevels to keep after applying seqlevels_mode."),
-        list(name = "seqlevels_exclude", type = "string_vec", default = NULL,
-             help = "Optional explicit seqlevels to drop after applying seqlevels_mode."),
-        list(name = "background_iterations", type = "int", default = 50L, min = 1, max = 1000,
-             help = "Number of chromVAR background iterations."),
-        list(name = "background_w", type = "dbl", default = 0.1, min = 0, max = 10,
-             help = "Background peak matching window width."),
-        list(name = "background_bs", type = "int", default = 50L, min = 2, max = 1000,
-             help = "Background peak matching bin count.")
-      ),
-      interface_produces = list(
-        deviation_z = list(
-          kind = "cell_vector_family",
-          value_kind = "continuous",
-          key = "motif",
-          description = "Per-cell chromVAR z-scores keyed by motif."
-        ),
-        deviation_raw = list(
-          kind = "cell_vector_family",
-          value_kind = "continuous",
-          key = "motif",
-          description = "Per-cell raw chromVAR deviations keyed by motif."
-        ),
-        motif_summary = list(
-          kind = "obs_table",
-          description = "Per-motif chromVAR summary statistics."
-        )
-      )
-    ),
     feature_set_import = list(
       op_name = "feature_set_import",
       title = "Feature-Set Library Import",

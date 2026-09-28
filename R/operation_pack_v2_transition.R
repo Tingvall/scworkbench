@@ -503,6 +503,8 @@
 .wb_operation_pack_v2_dynamic_reread <- function(operation, inputs, preflight) {
   for (resolution in preflight$dynamic) {
     dependency <- Filter(function(x) identical(as.character(x$requirement_id)[1], resolution$requirement_id), operation$dependencies)[[1]]
+    if (identical(as.character(dependency$kind %||% "")[1L],
+        "dynamic_matrix_registry_package")) next
     observed <- .wb_operation_pack_v2_dynamic_value(inputs[[dependency$input_name]], dependency$metadata_field)
     if (!identical(observed, resolution$provider_name)) .wb_operation_pack_v2_error(
       "OPERATION_PACK_DYNAMIC_PROVIDER_CHANGED", "Dynamic provider metadata changed after preflight.",
@@ -1424,6 +1426,8 @@
       declarations[[name]]$kind)), names(inputs)) else NULL
   preflight <- .wb_operation_pack_v2_preflight(operation, inputs, params,
     registration = registration, transport_inputs = transport_inputs)
+  if (abi_v3) preflight <- .wb_operation_pack_v3_genomic_provider_preflight(
+    bundle, operation, inputs, preflight)
   .wb_operation_pack_v2_fault("preflighted", transition_id = transition_id)
   source_refs <- attr(inputs, "operation_pack_v3_source_refs") %||% list()
   request <- if (abi_v3) .wb_operation_pack_v3_request(bundle,
@@ -1460,6 +1464,8 @@
     state = "staged", transition_id = transition_id), file.path(stage, "state.json"))
   .wb_operation_pack_v2_fault("staged", transition_id = transition_id)
   .wb_operation_pack_v2_dynamic_reread(operation, inputs, preflight)
+  if (abi_v3) .wb_operation_pack_v3_genomic_provider_assert_current(bundle,
+    operation, inputs, preflight)
   if (abi_v3) .wb_operation_pack_v3_registry_reads_assert_current(bundle,
     operation, inputs, params, request, effective_cells, session_id, run_id,
     generation) else .wb_operation_pack_v2_registry_reads_assert_current(
@@ -1708,6 +1714,11 @@
       "PYBENCH_OUT_OF_SCOPE_MUTATION", "Private stage contains undeclared files.", "audit",
       unexpected = setdiff(observed_fixed, expected_inventory))
   }
+  if (abi_v3) .wb_operation_pack_v3_genomic_provider_assert_current(bundle,
+    operation, inputs, preflight)
+  if (abi_v3) .wb_operation_pack_v3_registry_reads_assert_current(bundle,
+    operation, inputs, params, request, effective_cells, session_id, run_id,
+    generation)
   if (abi_v3) .wb_operation_pack_v3_provenance_reads_assert_current(bundle,
     operation, inputs, source_refs, request, params)
   if (abi_v3) .wb_operation_pack_v3_producer_lineage_assert_current(bundle,
