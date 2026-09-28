@@ -45,7 +45,21 @@ test_phase5_s2_core_ownership_contract <- function() {
                                   serialize = FALSE),
                       "e6b2a277b2ff614d44f04ab8bbb80fbd3339f82886df8b0168d437733d67051b"))
   utils::untar(archive, exdir = retained)
-  b <- wb_open_bundle(file.path(retained, "forge1-s2-retained-bundle"), read_only = TRUE)
+  root <- file.path(retained, "forge1-s2-retained-bundle")
+  db_path <- file.path(root, "db", "app.sqlite")
+  before <- digest::digest(db_path, file = TRUE, algo = "sha256")
+  refused <- tryCatch(wb_open_bundle(root, read_only = TRUE),
+    error = base::identity)
+  stopifnot(inherits(refused, "error"),
+    grepl("BUNDLE_SCHEMA_UPGRADE_REQUIRED", conditionMessage(refused),
+      fixed = TRUE),
+    identical(before, digest::digest(db_path, file = TRUE, algo = "sha256")))
+  # Upgrade only the extracted copy; the frozen archive retains its v9 bytes.
+  writable <- wb_open_bundle(root)
+  wb_migrate_bundle(writable)
+  wb_close_bundle(writable)
+  upgraded <- digest::digest(db_path, file = TRUE, algo = "sha256")
+  b <- wb_open_bundle(root, read_only = TRUE)
   on.exit(wb_close_bundle(b), add = TRUE)
   arts <- wb_art_list(b)
   stopifnot(all(legacy[c(1L, 2L, 4L, 6L)] %in% arts$source_op))
@@ -56,7 +70,8 @@ test_phase5_s2_core_ownership_contract <- function() {
   stopifnot(
     identical(as.character(de$table_type), "trajectory_de"),
     identical(as.character(de$table$feature_id), paste0("g", 1:4)),
-    identical(as.character(de$table$lineage_id), rep("L1", 4L))
+    identical(as.character(de$table$lineage_id), rep("L1", 4L)),
+    identical(upgraded, digest::digest(db_path, file = TRUE, algo = "sha256"))
   )
   stopifnot(!any(legacy %in% wb_list_ops()))
   TRUE

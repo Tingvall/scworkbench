@@ -30,6 +30,16 @@ test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract <- functio
   utils::untar(archive, exdir = parent)
   root <- file.path(parent, "historical.bundle")
   before <- fingerprint(root)
+  refused <- tryCatch(wb_open_bundle(root, read_only = TRUE),
+    error = base::identity)
+  stopifnot(inherits(refused, "error"),
+    grepl("BUNDLE_SCHEMA_UPGRADE_REQUIRED", conditionMessage(refused),
+      fixed = TRUE), identical(before, fingerprint(root)))
+  # Migrate the disposable extracted copy, never the frozen source archive.
+  writable <- wb_open_bundle(root)
+  wb_migrate_bundle(writable)
+  wb_close_bundle(writable)
+  upgraded <- fingerprint(root)
   b <- wb_open_bundle(root, read_only = TRUE)
   graph <- wb_prov_bundle_dag(b, include_snapshots = TRUE)
   artifacts <- wb_art_list(b)
@@ -41,7 +51,7 @@ test_phase6_peakvi_no_pack_catalog_and_historical_inspection_contract <- functio
     "peakvi_fit" %in% as.character(graph$nodes$op_name),
     isTRUE(wb_bundle_validation_report(root, level = "recipient")$ok))
   wb_close_bundle(b)
-  stopifnot(identical(before, fingerprint(root)))
+  stopifnot(identical(upgraded, fingerprint(root)))
   TRUE
 }
 
