@@ -27,6 +27,16 @@ Role: extend and stabilize engine + thin clients.
 - For independently distributed reusable methods, use the public operation-pack
   ABI rather than patching the core catalog. Packs are explicitly activated and
   feed the same canonical catalog and executor; see `docs/operation_packs.md`.
+- The no-pack production catalog has five operations. The optional
+  [standard profile](../standard_profile/README.md) installs seven pinned R
+  packs and, only after explicit process-local activation, exposes 61 normal
+  operations. Installing packs alone does not change the catalog.
+- Choose among the eleven existing primitive kinds using the
+  [primitive exchange inventory](../phase8/primitive_exchange_inventory.csv).
+  For advanced v3 policies, distinguish shared schema/identity parity from
+  runtime support: G3 adoption, G7 output axes, derived fitted axes, standalone
+  sparse cell families, and sealed relation families are currently R-only;
+  unsupported Python declarations fail closed before analytical mutation.
 - Treat named cell-set parameters as typed scientific dependencies. The central
   executor owns their role, membership identity, graph binding, and replay
   preflight; operation runners must not write or infer provenance separately.

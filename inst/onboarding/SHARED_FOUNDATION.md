@@ -40,6 +40,9 @@ Core getters can load promoted primitives and read-only validation/provenance
 navigation remain available without the pack. Replay or continuation that needs
 the operation reports `OPERATION_PACK_REQUIRED` until the exact compatible pack
 is installed and explicitly activated. See `docs/operation_packs.md`.
+The optional [standard profile](../standard_profile/README.md) installs seven
+pinned R packs but activates them only after an explicit call in each process;
+core-only use remains available.
 
 A named analysis cell set is a scientific input. New promoted runs preserve a
 role-specific typed dependency and exact source/effective membership identity,
@@ -79,6 +82,9 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
   `path_2d_family`, `space_path_family`.
 - Ops consume/emit primitives.
 - Wranglers map primitives to display/report contracts.
+- Pack-facing read/write and durable-lifecycle classifications for these eleven
+  kinds are recorded in the
+  [primitive exchange inventory](../phase8/primitive_exchange_inventory.csv).
 
 6. Plot Contracts
 - Plot compatibility is engine-owned.

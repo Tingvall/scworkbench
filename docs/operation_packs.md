@@ -113,15 +113,35 @@ canonical matrix getter, and a single-use core-attested read of the current
 provenance of an artifact-backed typed input. Packs own partitioning,
 scientific work, merge, and summary logic.
 
-The same additive ABI now includes six method-neutral capabilities: a
+The same additive ABI now includes seven method-neutral capabilities: a
 self-linked contained-model reader (G1), sibling-bound contained-model
 publication (G2), supported external-state adoption (G3), ordered
 retained-artifact collections (G4), ordered named cell-axis collections (G5),
-and optional parameter-resolved display/endpoint groups (G6). These
+optional parameter-resolved display/endpoint groups (G6), and authenticated
+derived cell-output axes (G7). These
 capabilities expose private typed copies and identities, not bundle, SQL,
 registry, committed-path, or state-authority handles. Their closed shapes,
 limits, call disciplines, and durable lifecycle are specified in
 `docs/operation_pack_v3_protocol.md`.
+
+The built-in primitive vocabulary has eleven kinds: `matrix`, `space`,
+`space_2d`, `cell_vector`, `cell_vector_family`, `relation_family`,
+`feature_table`, `obs_table`, `model_ref`, `path_2d_family`, and
+`space_path_family`. See the
+[primitive exchange inventory](../inst/phase8/primitive_exchange_inventory.csv)
+for each kind's R/Python read, write, promotion, reopen, relocation, and
+recipient-validation classification. The semantic primitive catalog remains
+the source of truth for public primitive definitions.
+
+Pack authors must distinguish the shared v3 schemas and identity fixtures
+from implemented Python runtime authority. G3 external-state adoption, G7
+derived output axes, G2's `derived_fitted_axis_policy`,
+`standalone_sparse_cell_family_v1`, and `sealed_relation_family_v1` are
+currently R-runtime-only advanced policies. PyBench mirrors the shared
+protocol identities where specified, but a Python pack declaring an
+unsupported advanced policy fails closed before activation or analytical
+mutation. See the individual policy sections of
+`docs/operation_pack_v3_protocol.md` for exact declarations and limits.
 
 R packages register the same closed runner interface through the existing
 entry point:
@@ -154,6 +174,11 @@ wb_operation_packs()
 wb_operation_pack_inspect("your_namespace")
 wb_op_interface("your_namespace::operation")
 ```
+
+The optional [standard profile](../inst/standard_profile/README.md) provides a
+source-verified installer and a separate, per-process activation call for the
+seven accepted R packs. Installing the profile's packages leaves the core-only
+catalog unchanged until that call succeeds.
 
 Backend-neutral structural validation reads JSON only and performs no package
 discovery, import, activation, or bundle mutation:
@@ -437,8 +462,12 @@ The independently versioned R package `scwbStatistics` uses canonical namespace
 - `scwbstatistics::cell_vector_compare`
 - `scwbstatistics::feature_trend_spearman`
 
-Core alone exposes 53 operations. This pack adds six namespaced definitions for
-a total of 59. An unqualified prospective call resolves only when one active
+Core alone exposes five operations: `feature_set_import`,
+`feature_set_namespace_transfer`, `cell_set_derive`, `metadata_cell_vector`,
+and `slingshot_adopt`. This pack adds six namespaced definitions for a total
+of 11 when it alone is activated. The standard profile activates seven packs
+for 61 normal operations (five core and 56 packed). An unqualified prospective
+call resolves only when one active
 qualified definition has that short name, and the run records the qualified
 definition and pack identities. Historical unqualified records are never
 rewritten. Finalized payloads and provenance remain readable without the pack;
@@ -452,7 +481,8 @@ input and output tuples differ; neither is an alias.
 
 ## Operation, capsule, or adopted state
 
-- Use a core operation for broadly supported engine capability.
+- Use a core operation for engine-owned ingestion, registry, or adoption
+  authority; the no-pack production catalog has the five names above.
 - Use a pack operation for reusable method compute expressible with existing
   primitives but distributed independently from core.
 - Use a provenance-bound analysis capsule only for an irreducibly

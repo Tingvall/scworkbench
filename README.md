@@ -185,13 +185,15 @@ Independently distributed scientific operations can be explicitly activated
 through the operation-pack ABI. Installation is inert; see
 [docs/operation_packs.md](docs/operation_packs.md) for trust, authoring,
 provenance, recipient, and conformance semantics.
-Protocols v1 and v2 admit R packages and Python distributions. The production
-`scwbStatistics` ABI v2 pack adds six `scwbstatistics::` operations after
-`wb_operation_pack_load("scwbStatistics")`; core alone exposes 53 operations.
-R packs activate
-in-process; Python packs activate explicitly through the configured PyBench
-interpreter and then execute through the same catalog, session, promotion,
-provenance, replay, and recipient contracts.
+Protocols v1, v2, and v3 admit R packages and Python distributions. The
+no-pack core exposes exactly five operations: `feature_set_import`,
+`feature_set_namespace_transfer`, `cell_set_derive`, `metadata_cell_vector`,
+and `slingshot_adopt`. The optional, explicitly activated
+[standard profile](inst/standard_profile/README.md) installs seven pinned R
+packs and exposes 61 normal operations (five core and 56 packed). R packs
+activate in-process; Python packs activate explicitly through the configured
+PyBench interpreter and then execute through the same catalog, session,
+promotion, provenance, replay, and recipient contracts.
 
 Contribution, support, and composite-release policies are documented in
 [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md),
