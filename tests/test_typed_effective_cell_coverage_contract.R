@@ -159,7 +159,8 @@ test_typed_effective_cell_coverage_contract <- function() {
 
   matrix_cov <- wb_cell_coverage(
     b, "all", inputs = list(), resolved = list(matrix = wb_prim_matrix("partial_matrix")),
-    requirements = list(matrix = "matrix"), op_name = "coverage_fixture"
+    requirements = list(matrix = "matrix"),
+    op_name = "scwbv2reference::two_table_terminal"
   )
   stopifnot(
     identical(matrix_cov$effective, 8L),
