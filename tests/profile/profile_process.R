@@ -101,7 +101,21 @@ if (identical(mode, "core_only")) {
   repeated <- scwb_standard_profile_activate(receipt_path, lib.loc = library)
   stopifnot(identical(result$packs$pack_sha256, repeated$packs$pack_sha256),
     identical(result$profile_sha256, repeated$profile_sha256))
-  cat("PASS profile: wrong pin, lock collision, publication rollback, 61 ops, identities, idempotence\n")
+  bundle_dir <- tempfile("standard-profile-run-")
+  bundle <- wb_init_bundle(bundle_dir)
+  wb_define_cells(bundle, c("cell_1-A", "cell_2-B"))
+  executed <- wb_session_run_op(wb_session_new(), bundle,
+    "scwbrna::cell_suffix_label", inputs = list(cell_set = "all",
+      min_cells = 1L, sep = "-", default_label = "other"))
+  rna_receipt <- Filter(function(x) identical(x$package, "scwbRNA"),
+    receipt$packs)[[1L]]
+  stopifnot(identical(executed$run$operation_pack$pack_sha256,
+    rna_receipt$pack_sha256),
+    identical(executed$run$operation_pack$package$version, "0.1.0"))
+  wb_session_discard(executed$session)
+  wb_close_bundle(bundle)
+  unlink(bundle_dir, recursive = TRUE)
+  cat("PASS profile: wrong pin, lock collision, publication rollback, 61 ops, exact run provenance, idempotence\n")
 } else if (identical(mode, "active_collision")) {
   fixture <- "scwbV2Reference"
   manifest <- system.file("scworkbench", "operation-pack.json", package = fixture,
