@@ -1,8 +1,9 @@
 #!/usr/bin/env Rscript
 # Reconstruct the accepted Phase 7 root-test inventory from Git, not from the
-# edited Phase 8 working tree. Usage: Rscript ... <inventory.csv> <references.csv>
+# edited Phase 8 working tree. Usage: Rscript ... <inventory.csv>
+# <references.csv> <frozen-operation-names.csv>
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) != 2L) stop("Expected inventory.csv and references.csv")
+if (length(args) != 3L) stop("Expected inventory.csv, references.csv and operation-names.csv")
 baseline <- "0aaa68893e595993c2664e104f7e0dc20702f960"
 git <- function(...) {
   out <- suppressWarnings(system2("git", c(...), stdout = TRUE, stderr = TRUE))
@@ -11,6 +12,8 @@ git <- function(...) {
   out
 }
 paths <- git("ls-tree", "-r", "--name-only", baseline, "tests")
+new_core_commit <- git("rev-parse", "HEAD")[[1L]]
+representation_owner_commit <- "d0a25aacef000f52b211ee0e138d4c964c68cc77"
 paths <- sort(paths[grepl("^tests/test_.*\\.R$", paths)])
 stopifnot(length(paths) == 139L)
 walk <- function(x, fun) {
@@ -23,20 +26,32 @@ walk <- function(x, fun) {
   }
 }
 call_text <- function(x) paste(deparse(x, width.cutoff = 500L), collapse = " ")
-op_names <- c("de_wilcox", "markers_topn", "cell_vector_assoc",
-  "cell_vector_association", "cell_vector_compare", "feature_trend_spearman",
-  "addmodulescore", "ucell", "cell_vector_family_reduce",
-  "cell_vector_family_calibrate", "cell_vector_family_qc",
-  "cell_vector_family_graph_smooth", "cell_vector_winners",
-  "winner_cell_sets", "feature_set_overlap_qc", "pathway_enrich",
-  "leiden", "pca_fit", "umap_fit", "umap_transform",
-  "cell_suffix_label", "rna_qc_metrics", "hvg_select",
-  "matrix_log_normalize", "knn_build", "knn_pseudobulk",
-  "space_path_define", "trajectory_segment_from_artifacts",
-  "trajectory_space_path_segment", "trajectory_segment_join",
-  "trajectory_segment_path_join", "slingshot", "slingshot_fit",
-  "slingshot_lineage_weights", "slingshot_project", "palantir",
-  "scvi_train", "peakvi_train", "chromvar")
+profile <- jsonlite::read_json("inst/standard_profile/profile.json",
+  simplifyVector = FALSE)
+pack_root <- Sys.getenv("SCWB_PHASE8_PACK_ROOT",
+  unset = "/home/dirk/Projects/operation_packs")
+operation_rows <- list()
+for (pack in profile$packs) {
+  source <- if (identical(pack$package, "scwbRepresentation"))
+    Sys.getenv("SCWB_PHASE8_REPRESENTATION_SOURCE",
+      unset = file.path(pack_root, pack$package)) else
+    file.path(pack_root, pack$package)
+  if (!identical(git("-C", source, "rev-parse", "HEAD")[[1L]],
+      pack$source_commit)) stop("Pack source does not match Phase 8 pin: ", source)
+  manifest <- jsonlite::read_json(file.path(source, "inst", "scworkbench",
+    "operation-pack.json"), simplifyVector = FALSE)
+  if (!identical(length(manifest$operations), as.integer(pack$operation_count)))
+    stop("Operation count differs from standard-profile lock: ", source)
+  for (operation in manifest$operations)
+    operation_rows[[length(operation_rows) + 1L]] <- data.frame(
+      package = pack$package, source_commit = pack$source_commit,
+      operation_name = operation$name,
+      qualified_name = operation$qualified_name)
+}
+operations <- do.call(rbind, operation_rows)
+stopifnot(nrow(operations) == 56L, !anyDuplicated(operations$qualified_name))
+write.csv(operations, args[[3L]], row.names = FALSE)
+op_names <- unique(c(operations$operation_name, operations$qualified_name))
 overrides <- list(
   test_immutable_history_state_machine_closure_contract = c(
     "pinned_composite", "retain_composite",
@@ -56,8 +71,9 @@ overrides <- list(
     "Generic validation uses retained core metadata operation."),
   test_operation_pack_v3_pseudobulk_zero_neighbor_policy_contract = c(
     "pack_method", "move",
-    "scwbRepresentation/tests/test_knn_sparse_contract.R:test_representation_knn_pseudobulk_zero_neighbor_contract",
-    "Scientific kNN zero-neighbor policy belongs to Representation; generic sparse grant stays core."))
+    paste("scwbRepresentation/tests/test_knn_sparse_contract.R:test_representation_knn_pseudobulk_zero_neighbor_contract",
+      "tests/test_operation_pack_v3_sparse_membership_contract.R:test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract", sep = ";"),
+    "Scientific kNN zero-neighbor behavior moved to Representation; synthetic sparse grant validation stays core."))
 rows <- list(); refs <- list()
 for (path in paths) {
   parsed <- parse(text = git("show", paste0(baseline, ":", path)))
@@ -75,10 +91,15 @@ for (path in paths) {
         try(if (is.character(node[[i]])) strings <<- c(strings, node[[i]]),
           silent = TRUE)
     })
+    if (!length(assertions)) walk(body, function(node) {
+      head <- as.character(node[[1L]])
+      if (length(head) == 1L && grepl("(expect|assert)", head))
+        assertions <<- c(assertions, call_text(node))
+    })
+    stopifnot(length(assertions) > 0L)
     strings <- unique(strings)
     fixtures <- strings[grepl("(fixtures/|\\.bundle$|\\.rds$|\\.h5$|\\.h5ad$|\\.json$)", strings)]
-    found <- unique(c(op_names[op_names %in% strings],
-      strings[grepl("^scwb[a-z]+::[a-z_]+$", strings)]))
+    found <- unique(op_names[op_names %in% strings])
     override <- overrides[[name]]
     if (is.null(override)) override <- c("core_engine", "retain_core", path,
       "Engine authority, catalog, schema, security, provenance, or historical inspection assertion.")
@@ -88,12 +109,17 @@ for (path in paths) {
       fixtures = paste(fixtures, collapse = " | "),
       owner = override[[1L]], disposition = override[[2L]],
       destination = override[[3L]], justification = override[[4L]],
-      migrated_operation_references = paste(found, collapse = " | "))
+      migrated_operation_references = paste(found, collapse = " | "),
+      old_owner_commit = baseline,
+      new_owner_commit = if (identical(override[[1L]], "pack_method"))
+        representation_owner_commit else new_core_commit)
     for (op in found) refs[[length(refs) + 1L]] <- data.frame(
       baseline_commit = baseline, source_path = path, test_identity = name,
       migrated_operation = op, owner = override[[1L]],
       disposition = override[[2L]], destination = override[[3L]],
-      justification = override[[4L]])
+      justification = override[[4L]], old_owner_commit = baseline,
+      new_owner_commit = if (identical(override[[1L]], "pack_method"))
+        representation_owner_commit else new_core_commit)
   }
 }
 inventory <- do.call(rbind, rows)

@@ -62,7 +62,7 @@ test_operation_pack_v3_sparse_membership_contract <- function() {
   TRUE
 }
 
-test_operation_pack_v3_pseudobulk_zero_neighbor_policy_contract <- function() {
+test_operation_pack_v3_pseudobulk_zero_neighbor_grant_contract <- function() {
   grant <- list(schema = "scworkbench.operation_pack.pseudobulk_grant.v1",
     output = "summary", membership_output = "neighbors",
     query_axis_identity = .wb_operation_pack_v2_identity_plain(

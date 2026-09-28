@@ -98,9 +98,10 @@ claim.
 The synthetic Python reference distribution lives only in PyBench's test
 fixtures and is activated explicitly during cross-repository conformance. It
 does not create an official scientific pack. The former core operation
-`py_protocol_hello` is no longer registered or discoverable: its implementation
-is retained privately only so historical records remain intelligible. Current
-protocol conformance uses explicit fixture packs.
+`py_protocol_hello` is no longer registered or discoverable, and its retired
+implementation has been removed. Historical records remain inspectable from
+their stored definitions and provenance; they do not require executable method
+code. Current protocol conformance uses explicit fixture packs.
 
 ## ABI v3 bounded axes, typed slices, and ancestry
 
