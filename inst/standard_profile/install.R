@@ -6,7 +6,11 @@ if (length(args) != 6L) stop(paste(
 core_source <- normalizePath(args[[1L]], winslash = "/", mustWork = TRUE)
 pybench_source <- normalizePath(args[[2L]], winslash = "/", mustWork = TRUE)
 pack_root <- normalizePath(args[[3L]], winslash = "/", mustWork = TRUE)
-latent_python <- normalizePath(args[[4L]], winslash = "/", mustWork = TRUE)
+if (!file.exists(args[[4L]]) || dir.exists(args[[4L]])) stop(
+  "LATENT_PYTHON must name an existing interpreter", call. = FALSE)
+# Keep the venv entry itself: resolving the python symlink escapes its package set.
+latent_python <- file.path(normalizePath(dirname(args[[4L]]), winslash = "/",
+  mustWork = TRUE), basename(args[[4L]]))
 library_path <- normalizePath(args[[5L]], winslash = "/", mustWork = FALSE)
 receipt_path <- path.expand(args[[6L]])
 dir.create(library_path, recursive = TRUE, showWarnings = FALSE)
