@@ -292,6 +292,32 @@ contract_test_activate_core_conformance_pack <- function() {
   invisible(TRUE)
 }
 
+.contract_test_phase5_conformance_state <- new.env(parent = emptyenv())
+
+contract_test_activate_phase5_conformance_pack <- function() {
+  if (is.null(.contract_test_phase5_conformance_state$library)) {
+    source <- file.path(normalizePath(".", winslash = "/", mustWork = TRUE),
+      "tests", "fixtures", "operation-pack-v3-phase5")
+    library <- tempfile("scwb-phase5-conformance-library-", tmpdir = "/tmp")
+    dir.create(library, recursive = TRUE)
+    log <- tempfile("scwb-phase5-conformance-install-", fileext = ".log")
+    status <- system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
+      paste0("--library=", shQuote(library)), shQuote(source)),
+      stdout = log, stderr = log)
+    if (!identical(status, 0L)) stop(paste(readLines(log, warn = FALSE),
+      collapse = "\n"), call. = FALSE)
+    .contract_test_phase5_conformance_state$library <- library
+    .libPaths(c(library, .libPaths()))
+    existing <- Sys.getenv("R_LIBS", unset = "")
+    Sys.setenv(R_LIBS = paste(c(library,
+      if (nzchar(existing)) existing else character()),
+      collapse = .Platform$path.sep))
+  }
+  wb_operation_pack_load("scwbV3Phase5",
+    lib.loc = .contract_test_phase5_conformance_state$library)
+  invisible(TRUE)
+}
+
 # Engine-owned trajectory and wrangler contracts need a deterministic,
 # provenance-valid categorical primitive, not a dependency on a clustering
 # pack. The golden fixture's lineage metadata supplies that state through the

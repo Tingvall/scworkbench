@@ -43,7 +43,7 @@ test_space_cell_identity_contract <- function() {
   # Consumer audit: every distinct wb_space conversion route is either the
   # canonical converter or explicit cell-id alignment at a typed handoff.
   converter_consumers <- list(
-    geometry = wb_op_knn_graph
+    typed_space_handoff = .wb_operation_pack_v3_space_matrix
   )
   bodies <- vapply(converter_consumers, function(fn) paste(deparse(body(fn)), collapse = "\n"), character(1))
   stopifnot(all(grepl(".wb_as_coord_matrix", bodies, fixed = TRUE)))

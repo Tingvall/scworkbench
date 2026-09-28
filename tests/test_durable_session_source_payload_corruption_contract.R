@@ -1,8 +1,7 @@
 test_durable_session_source_payload_corruption_contract <- function() {
-  contract_test_activate_representation_pack()
-  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
+  contract_test_activate_phase5_conformance_pack()
+  on.exit(try(wb_operation_pack_unload("scwbv3phase5"), silent = TRUE),
     add = TRUE)
-  if (!requireNamespace("uwot", quietly = TRUE)) return(contract_test_skip("uwot is not installed."))
   bundle_dir <- tempfile("scwb_durable_corruption_bundle_")
   workspace_root <- tempfile("scwb_durable_corruption_sessions_")
   b <- wb_init_bundle(bundle_dir, overwrite = TRUE)
@@ -26,10 +25,10 @@ test_durable_session_source_payload_corruption_contract <- function() {
     source_column = "group", vector_name = name, value_type = "categorical",
     missing_policy = "error", overwrite = TRUE, cell_set = "all", min_cells = 1L
   ))
-  run_umap <- function(session, target) wb_session_run_op(session, b, "umap_fit", inputs = list(
-    space = "source.pca", cell_set = "all", min_cells = 1L, dims = 1:4,
-    space_id_out = target, n_neighbors = 3L, min_dist = 0.1,
-    metric = "euclidean", nn_method = "annoy", seed = 1L
+  run_model <- function(session) wb_session_run_op(session, b,
+    "scwbv3phase5::fit_sibling_model", inputs = list(
+      source = "source.pca", cell_set = "all", min_cells = 1L,
+      dims = 1:4
   ))
 
   # A clean close/manifest rewrite changes publication metadata only, not the
@@ -46,10 +45,10 @@ test_durable_session_source_payload_corruption_contract <- function() {
 
   # Corrupt a real staged file tree. Both resume and promotion reject it, while
   # the source registry fingerprint remains byte-for-byte unchanged.
-  file_case <- run_umap(wb_session_create(b, workspace_root, "payload_corrupt"), "payload.umap")
+  file_case <- run_model(wb_session_create(b, workspace_root, "payload_corrupt"))
   source_before <- .wb_session_source_identity(b)$scientific_state_fingerprint
   model_path <- as.character(file_case$run$outputs$model$model_path)
-  if (!length(model_path) || !nzchar(model_path)) model_path <- file.path("models", "umap", "payload.umap.uwot")
+  stopifnot(length(model_path) == 1L, nzchar(model_path))
   if (!.wb_path_is_absolute(model_path)) model_path <- file.path(file_case$session$staging_bundle$dir, model_path)
   stopifnot(file.exists(model_path) || dir.exists(model_path))
   victim <- if (dir.exists(model_path)) list.files(model_path, recursive = TRUE, full.names = TRUE)[1] else model_path
@@ -62,22 +61,6 @@ test_durable_session_source_payload_corruption_contract <- function() {
             grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_promote), fixed = TRUE),
             identical(source_before, .wb_session_source_identity(b)$scientific_state_fingerprint))
   wb_session_discard(file_case$session)
-
-  # Preserve coordinates but remove their registry binding. Identity validation
-  # must include the registry row, not just the referenced coordinate payload.
-  registry_case <- run_umap(wb_session_create(b, workspace_root, "registry_corrupt"), "registry.umap")
-  source_before <- .wb_session_source_identity(b)$scientific_state_fingerprint
-  DBI::dbExecute(registry_case$session$staging_bundle$con,
-                 "UPDATE spaces SET source = ? WHERE space_id = ?;",
-                 params = list("tampered_registry_binding", "registry.umap"))
-  bad_resume <- try(wb_session_resume(b, registry_case$session$durable$workspace), silent = TRUE)
-  bad_promote <- try(wb_session_promote_current(b, registry_case$session, outputs = "space_2d"), silent = TRUE)
-  if (!inherits(bad_resume, "try-error")) stop("File-backed staged space registry corruption resumed successfully.", call. = FALSE)
-  stopifnot(inherits(bad_resume, "try-error"), inherits(bad_promote, "try-error"),
-            grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_resume), fixed = TRUE),
-            grepl("DURABLE_SESSION_PAYLOAD_CORRUPT", as.character(bad_promote), fixed = TRUE),
-            identical(source_before, .wb_session_source_identity(b)$scientific_state_fingerprint))
-  wb_session_discard(registry_case$session)
 
   # Bundle publication succeeds, then the injected crash prevents the terminal
   # session receipt. The old active checkpoint now disagrees with its source;

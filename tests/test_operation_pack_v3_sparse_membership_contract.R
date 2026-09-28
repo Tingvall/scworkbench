@@ -63,102 +63,48 @@ test_operation_pack_v3_sparse_membership_contract <- function() {
 }
 
 test_operation_pack_v3_pseudobulk_zero_neighbor_policy_contract <- function() {
-  contract_test_activate_representation_pack()
-  root <- tempfile("v3-pseudobulk-zero-neighbor-")
-  bundle <- wb_init_bundle(root, overwrite = TRUE)
-  session <- wb_session_new()
-  on.exit({
-    options(scworkbench.operation_pack_v3_output_test_hook = NULL)
-    try(session <- wb_session_discard(session), silent = TRUE)
-    try(wb_close_bundle(bundle), silent = TRUE)
-    unlink(root, recursive = TRUE, force = TRUE)
-  }, add = TRUE)
-  cells <- c("q1", "q2", "c1", "c2")
-  features <- c("f1", "f2")
-  values <- matrix(c(0, 0, 1, 10, 0, 0, 10, 100), nrow = 2L,
-    byrow = TRUE, dimnames = list(features, cells))
-  coordinates <- cbind(x = c(0, 10, 1, 9), y = rep(0, 4L))
-  rownames(coordinates) <- cells
-  wb_define_cells(bundle, cells)
-  wb_attach_matrix(bundle, "RNA", Matrix::Matrix(values, sparse = TRUE),
-    feature_type = "gene")
-  wb_add_space(bundle, "latent", coordinates, overwrite = TRUE)
-
-  staged <- .wb_session_stage_bundle(bundle, session)
-  session <- staged$session
-  counts <- function(candidate) vapply(c("artifacts", "prov_runs",
-      "prov_commits"), function(table) as.integer(DBI::dbGetQuery(
-        candidate$con, paste0("SELECT COUNT(*) AS n FROM ", table,
-          ";"))$n[[1L]]), integer(1))
-  transition_inventory <- function() {
-    path <- file.path(session$staging_dir, "operation_pack_v2")
-    if (!dir.exists(path)) return(character())
-    sort(list.files(path, recursive = TRUE, all.files = TRUE,
-      no.. = TRUE, include.dirs = TRUE), method = "radix")
-  }
-  before <- list(source = counts(bundle), staged = counts(staged$bundle),
-    transitions = transition_inventory())
-
-  omit_q2_membership <- function(writes, ...) {
-    family <- writes$neighbor_distance$value
-    keep <- family$key == "q1"
-    family$key <- family$key[keep]
-    family$cell_id <- family$cell_id[keep]
-    family$value <- family$value[keep]
-    writes$neighbor_distance$value <- family
-    table <- writes$pseudobulk_table$value$table
-    q2 <- table$query_cell_id == "q2"
-    table$n_neighbors[q2] <- 0L
-    table$value[q2] <- 999
-    writes$pseudobulk_table$value$table <- table
-    writes
-  }
-  options(scworkbench.operation_pack_v3_output_test_hook =
-    omit_q2_membership)
-  failed <- tryCatch(wb_session_run_op(session, bundle,
-    "knn_pseudobulk", inputs = list(matrix = "RNA", space = "latent",
-      query_cells = c("q1", "q2"), candidate_cells = c("c1", "c2"),
-      features = features, k = 1L, include_query = FALSE,
-      aggregate = "sum", min_cells = 1L)), error = identity)
-  options(scworkbench.operation_pack_v3_output_test_hook = NULL)
-  after <- list(source = counts(bundle), staged = counts(staged$bundle),
-    transitions = transition_inventory())
-  stopifnot(inherits(failed, "wb_operation_pack_error"),
-    identical(failed$code, "PYBENCH_OUTPUT_INVALID"),
-    identical(failed$phase, "audit"),
-    grepl("zero_rows_forbidden_v1", conditionMessage(failed), fixed = TRUE),
-    identical(before, after), !dir.exists(file.path(session$staging_dir,
-      "operation_pack_v2")))
-
-  positive <- wb_session_run_op(session, bundle, "knn_pseudobulk",
-    inputs = list(matrix = "RNA", space = "latent",
-      query_cells = c("q1", "q2"), candidate_cells = c("c1", "c2"),
-      features = features, k = 1L, include_query = FALSE,
-      aggregate = "sum", min_cells = 1L))
-  session <- positive$session
-  table <- positive$run$outputs$pseudobulk_table$table
-  stopifnot(all(table$n_neighbors > 0L),
-    identical(unique(table$query_cell_id), c("q1", "q2")))
-  transition_id <- positive$run$operation_pack_transition$transition_id
-  record <- .wb_operation_pack_v2_record_validate(file.path(
-    session$staging_dir, "operation_pack_v2", transition_id),
-    load_payloads = TRUE)
-  output_names <- vapply(record$receipt$outputs, `[[`, character(1), "name")
-  observation <- record$receipt$outputs[[match("pseudobulk_table",
-    output_names)]]$descriptor$observed_pseudobulk
-  request_names <- vapply(record$request$outputs, `[[`, character(1), "name")
-  grant <- record$request$outputs[[match("pseudobulk_table",
-    request_names)]]$descriptor$pseudobulk_grant
-  membership <- record$receipt$outputs[[match("neighbor_distance",
-    output_names)]]$descriptor$observed_sparse_membership
-  grant$zero_neighbor_policy <- "unknown_policy_v1"
-  unknown <- tryCatch(.wb_operation_pack_v3_pseudobulk_observe(
-    positive$run$outputs$pseudobulk_table, grant, membership),
-    error = identity)
-  stopifnot(isTRUE(record$ok), identical(setdiff(names(observation),
-      "schema"), c("grant_identity", "edge_ledger_identity", "row_count",
-        "aggregate", "status", "observation_identity")),
-    identical(observation$status, "validated"),
+  grant <- list(schema = "scworkbench.operation_pack.pseudobulk_grant.v1",
+    output = "summary", membership_output = "neighbors",
+    query_axis_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.cell_order.v1", list("q1", "q2")),
+    feature_axis_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.feature_order.v1", list("f1", "f2")),
+    query_cells = list("q1", "q2"), features = list("f1", "f2"),
+    aggregate = "sum", zero_neighbor_policy = "zero_rows_forbidden_v1",
+    row_order = "query_then_feature_v1")
+  grant$grant_identity <- .wb_operation_pack_v2_identity_scoped(
+    "scworkbench.operation_pack.pseudobulk_grant.v1",
+    "grant excluding grant_identity", grant)
+  ledger <- list(list(query_cell_id = "q1", neighbor_rank = 1L,
+    cell_id = "c1", distance = 1),
+    list(query_cell_id = "q2", neighbor_rank = 1L,
+      cell_id = "c2", distance = 1))
+  membership <- list(edge_ledger = ledger,
+    edge_ledger_identity = .wb_operation_pack_v2_identity_plain(
+      "scworkbench.operation_pack.sparse_edge_ledger.v1", ledger))
+  value <- wb_prim_obs_table(data.frame(feature_id = rep(c("f1", "f2"), 2L),
+    query_cell_id = rep(c("q1", "q2"), each = 2L), n_neighbors = rep(1L, 4L),
+    aggregate = rep("sum", 4L), value = c(1, 2, 3, 4)),
+    table_type = "synthetic_pseudobulk", entity_kind = "query_feature")
+  observed <- .wb_operation_pack_v3_pseudobulk_observe(value, grant,
+    membership)
+  missing <- membership
+  missing$edge_ledger <- ledger[1L]
+  zero <- tryCatch(.wb_operation_pack_v3_pseudobulk_observe(value, grant,
+    missing), error = identity)
+  unknown_grant <- grant
+  unknown_grant$zero_neighbor_policy <- "unknown_policy_v1"
+  unknown <- tryCatch(.wb_operation_pack_v3_pseudobulk_observe(value,
+    unknown_grant, membership), error = identity)
+  stopifnot(identical(observed$status, "validated"),
+    identical(observed$row_count, 4L),
+    identical(setdiff(names(observed), "schema"), c("grant_identity",
+      "edge_ledger_identity", "row_count", "aggregate", "status",
+      "observation_identity")),
+    inherits(zero, "wb_operation_pack_error"),
+    identical(zero$code, "PYBENCH_OUTPUT_INVALID"),
+    identical(zero$phase, "audit"),
+    grepl("zero_rows_forbidden_v1", conditionMessage(zero), fixed = TRUE),
     inherits(unknown, "wb_operation_pack_error"),
     identical(unknown$code, "PYBENCH_OUTPUT_INVALID"),
     identical(unknown$phase, "audit"))

@@ -75,7 +75,8 @@ Clients (Shiny, scripts, notebooks, agents) are thin interfaces.
 5. Primitives
 - Typed internal currency:
   `matrix`, `space`, `space_2d`, `cell_vector`, `cell_vector_family`,
-  `feature_table`, `obs_table`, `model_ref`, `path_2d_family`.
+  `relation_family`, `feature_table`, `obs_table`, `model_ref`,
+  `path_2d_family`, `space_path_family`.
 - Ops consume/emit primitives.
 - Wranglers map primitives to display/report contracts.
 

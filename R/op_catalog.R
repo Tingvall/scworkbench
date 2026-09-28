@@ -11,14 +11,6 @@
   raw
 }
 
-.wb_runner_py_protocol_hello <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
-  wb_op_py_protocol_hello(
-    bundle = bundle,
-    cell_set = inputs$cell_set %||% "all",
-    n_preview = inputs$n_preview %||% 25L
-  )
-}
-
 .wb_runner_feature_set_import <- function(bundle, resolved, effective_cells, inputs = list(), ...) {
   .wb_assert(!is.null(resolved$matrix), "feature_set_import runner: missing resolved$matrix.")
   .wb_assert(!is.null(inputs$namespace), "feature_set_import runner: inputs$namespace is required.")

@@ -2,7 +2,7 @@
 
 <!-- Generated from wb_mutation_catalog_semantic(); do not edit entries by hand. -->
 
-Record count: 101
+Record count: 99
 
 Meaningful public transformations: 56
 
@@ -277,34 +277,6 @@ Boundary: `guarded_implementation`
 Supported route: `registered_session_execution_and_promotion`
 
 ## `wb_op_interface`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_knn_graph`
-
-Category: operation_implementation
-
-Exported: true
-
-Implemented: true
-
-Durable mutation: false
-
-Boundary: `pure`
-
-Supported route: `direct_pure_computation`
-
-## `wb_op_meanexpr`
 
 Category: operation_implementation
 

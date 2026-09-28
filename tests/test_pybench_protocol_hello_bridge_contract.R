@@ -1,12 +1,11 @@
 test_pybench_protocol_hello_bridge_contract <- function() {
-  # The historical implementation remains private solely so retained records
-  # can be described without rewriting their operation identity. It is no
-  # longer a production operation or public mutation surface.
+  # Retained operation records remain inspectable without executable retired
+  # method code or a production catalog entry.
   stopifnot(
     !"py_protocol_hello" %in% wb_list_ops(),
     inherits(try(wb_op_interface("py_protocol_hello"), silent = TRUE),
       "try-error"),
-    exists("wb_op_py_protocol_hello", envir = asNamespace("scworkbench"),
+    !exists("wb_op_py_protocol_hello", envir = asNamespace("scworkbench"),
       inherits = FALSE),
     !"wb_op_py_protocol_hello" %in% getNamespaceExports("scworkbench")
   )

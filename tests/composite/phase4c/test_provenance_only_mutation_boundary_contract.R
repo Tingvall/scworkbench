@@ -60,15 +60,15 @@ test_provenance_only_mutation_boundary_contract <- function(bundle_dir) {
     identical(before, scientific_state(b))
   )
 
-  # Exported pure computation remains directly usable on committed state.
-  mean_expression <- wb_op_meanexpr(
-    b, matrix_id, features = head(wb_feature_ids(b, matrix_id), 3L),
-    cells = cells
-  )
+  # Getter-backed pure computation remains directly usable on committed state.
+  expression <- wb_slice(b, matrix_id = matrix_id,
+    features = head(wb_feature_ids(b, matrix_id), 3L), cells = cells)
+  mean_expression <- data.frame(cell_id = colnames(expression),
+    value = as.numeric(Matrix::colMeans(expression)))
   stopifnot(
-    is.data.frame(mean_expression$scores),
-    identical(as.character(mean_expression$scores$cell_id), cells),
-    identical(as.integer(mean_expression$params$n_features), 3L),
+    is.data.frame(mean_expression),
+    identical(as.character(mean_expression$cell_id), cells),
+    length(mean_expression$value) == length(cells),
     identical(before, scientific_state(b))
   )
 

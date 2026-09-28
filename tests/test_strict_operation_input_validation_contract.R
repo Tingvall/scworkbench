@@ -1,7 +1,4 @@
 test_strict_operation_input_validation_contract <- function() {
-  contract_test_activate_representation_pack()
-  on.exit(try(wb_operation_pack_unload("scwbrepresentation"), silent = TRUE),
-    add = TRUE)
   catalog <- scworkbench:::.wb_op_catalog()
 
   expect_error <- function(expr, pattern = NULL) {
@@ -56,10 +53,11 @@ test_strict_operation_input_validation_contract <- function() {
 
   # Unknown names are rejected before execution and close typos are actionable.
   typo <- expect_error(
-    scworkbench:::.wb_validate_op_inputs_contract("umap_fit", list(n_neighbor = 10L), session_for("umap_fit")),
-    "Unknown input 'n_neighbor'"
+    scworkbench:::.wb_validate_op_inputs_contract("metadata_cell_vector", list(source_colum = "group"),
+      session_for("metadata_cell_vector")),
+    "Unknown input 'source_colum'"
   )
-  stopifnot(grepl("Did you mean 'n_neighbors'?", as.character(typo), fixed = TRUE))
+  stopifnot(grepl("Did you mean 'source_column'?", as.character(typo), fixed = TRUE))
 
   for (op_name in names(catalog)) {
     op <- scworkbench:::.wb_op(op_name)
@@ -168,10 +166,11 @@ test_strict_operation_input_validation_contract <- function() {
   expect_error(scworkbench:::.wb_validate_op_inputs_contract("metadata_cell_vector", list(
     source_column = "group", vector_name = "group", min_cells = 1.2
   ), wb_session_new()), "mathematically integral")
-  canonical <- scworkbench:::.wb_validate_op_inputs_contract("umap_fit",
-    list(n_neighbors = 12), session_for("umap_fit"))
-  stopifnot(identical(canonical$inputs$n_neighbors, 12L),
-    identical(canonical$params$n_neighbors, 12L))
+  canonical <- scworkbench:::.wb_validate_op_inputs_contract("metadata_cell_vector",
+    list(source_column = "group", vector_name = "group", min_cells = 12),
+    session_for("metadata_cell_vector"))
+  stopifnot(identical(canonical$inputs$min_cells, 12L),
+    identical(canonical$params$source_column, "group"))
 
   TRUE
 }
