@@ -8,7 +8,11 @@ receipt_path <- normalizePath(args[[3L]], winslash = "/", mustWork = TRUE)
 fixture_root <- normalizePath(args[[4L]], winslash = "/", mustWork = FALSE)
 .libPaths(c(library_path, .libPaths()))
 base::library(scworkbench, lib.loc = library_path)
-sys.source(args[[5L]], envir = globalenv())
+installed_profile <- system.file("standard_profile", "activate.R",
+  package = "scworkbench", lib.loc = library_path, mustWork = TRUE)
+stopifnot(identical(digest::digest(installed_profile, algo = "sha256", file = TRUE),
+  digest::digest(args[[5L]], algo = "sha256", file = TRUE)))
+sys.source(installed_profile, envir = globalenv())
 core_source <- normalizePath(args[[6L]], winslash = "/", mustWork = TRUE)
 bundle_root <- file.path(fixture_root, "final.bundle")
 exact_root <- file.path(fixture_root, "exact_source", "final.bundle")

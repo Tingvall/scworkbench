@@ -5,7 +5,11 @@ library <- normalizePath(args[[2L]], winslash = "/", mustWork = TRUE)
 core_library <- normalizePath(args[[3L]], winslash = "/", mustWork = TRUE)
 .libPaths(c(library, core_library, .libPaths()))
 base::library(scworkbench, lib.loc = core_library)
-sys.source(args[[4L]], envir = .GlobalEnv)
+installed_profile <- system.file("standard_profile", "activate.R",
+  package = "scworkbench", lib.loc = core_library, mustWork = TRUE)
+stopifnot(identical(digest::digest(installed_profile, algo = "sha256", file = TRUE),
+  digest::digest(args[[4L]], algo = "sha256", file = TRUE)))
+sys.source(installed_profile, envir = .GlobalEnv)
 
 expect_error_code <- function(expr, code) {
   error <- tryCatch({ force(expr); NULL }, error = identity)
